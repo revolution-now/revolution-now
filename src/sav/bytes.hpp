@@ -59,14 +59,14 @@ struct bytes {
     if( !out.empty() ) out.resize( out.size() - 1 );
   }
 
-  friend bool read_binary( base::BinaryData& b, bytes& o ) {
+  friend bool read_binary( base::IBinaryIO& b, bytes& o ) {
     for( uint8_t& c : o.a )
       if( !b.read( c ) ) return false;
     return true;
   }
 
-  friend bool write_binary( base::BinaryData& b,
-                            bytes const&      o ) {
+  friend bool write_binary( base::IBinaryIO& b,
+                            bytes const&     o ) {
     for( uint8_t const c : o.a )
       if( !b.write( c ) ) return false;
     return true;

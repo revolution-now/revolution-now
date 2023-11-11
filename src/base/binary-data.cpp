@@ -10,87 +10,105 @@
 *****************************************************************/
 #include "binary-data.hpp"
 
-// C++ standard library.
-#include <filesystem>
-#include <fstream>
-
 using namespace std;
-
-namespace fs = std::filesystem;
 
 namespace base {
 
-using ::base::valid;
-using ::base::valid_or;
-
 /****************************************************************
-** BinaryBuffer
+** IBinaryIO
 *****************************************************************/
-base::expect<BinaryBuffer, string> BinaryBuffer::from_file(
-    string const& path ) {
-  if( !fs::exists( path ) )
-    return fmt::format( "file {} does not exist.", path );
-  error_code      ec        = {};
-  uintmax_t const file_size = fs::file_size( path, ec );
-  if( ec.value() != 0 )
-    return fmt::format( "could not determine size of file {}.",
-                        path );
-
-  ifstream in( path, ios::binary );
-  if( !in.good() )
-    return fmt::format( "failed to open file {}.", path );
-
-  vector<unsigned char> buffer;
-  buffer.resize( file_size );
-  in.read( reinterpret_cast<char*>( buffer.data() ), file_size );
-  if( in.tellg() < int( file_size ) )
-    return fmt::format(
-        "failed to read all {} bytes of file {}; only read {}.",
-        file_size, path, in.gcount() );
-  if( in.tellg() > int( file_size ) )
-    return fmt::format(
-        "internal error: more bytes read from file {} than "
-        "requested; requested {}, read {}.",
-        path, file_size, int( in.tellg() ) );
-
-  return BinaryBuffer( std::move( buffer ) );
+int IBinaryIO::remaining() const {
+  auto remaining = size() - pos();
+  CHECK_GE( remaining, 0 );
+  return remaining;
 }
 
-valid_or<string> BinaryBuffer::write_file( string const& path,
-                                           int           n ) {
-  ofstream out( path, ios::binary );
-  if( !out.good() )
-    return fmt::format( "failed to open file {}.", path );
+bool IBinaryIO::eof() const { return ( remaining() == 0 ); }
 
-  n = std::min( n, int( buffer_.size() ) );
-  out.write( reinterpret_cast<char*>( buffer_.data() ), n );
-  if( !out.good() )
-    return fmt::format( "failed to write {} bytes to file {}.",
-                        buffer_.size(), path );
-
-  return valid;
+vector<IBinaryIO::Byte> IBinaryIO::read_remainder() {
+  vector<Byte> res;
+  int const    count = remaining();
+  res.resize( count );
+  read_bytes( count, res.data() );
+  return res;
 }
 
 /****************************************************************
-** BinaryData
+** FileBinaryIO.
 *****************************************************************/
-bool BinaryData::eof() const { return !good( 1 ); }
-
-bool BinaryData::good( int nbytes ) const {
-  int const remaining = buffer_.size() - ( idx_ + nbytes );
-  return ( remaining >= 0 );
+expect<FileBinaryIO, string>
+FileBinaryIO::open_for_rw_fail_on_nonexist(
+    std::string const& path ) {
+  FILE* const fp = std::fopen( path.c_str(), "rb+" );
+  if( fp == nullptr )
+    return fmt::format(
+        "failed to open file \"{}\" for reading.", path );
+  return FileBinaryIO( fp );
 }
 
-bool BinaryData::read_bytes( int n, unsigned char* dst ) {
-  if( !good( n ) ) return false;
+expect<FileBinaryIO, string>
+FileBinaryIO::open_for_rw_and_truncate(
+    std::string const& path ) {
+  FILE* const fp = std::fopen( path.c_str(), "wb+" );
+  if( fp == nullptr )
+    return fmt::format(
+        "failed to open file \"{}\" for writing.", path );
+  return FileBinaryIO( fp );
+}
+
+void FileBinaryIO::free_resource() {
+  FILE* const fp = resource();
+  CHECK( fp != nullptr );
+  std::fclose( fp );
+  // NOTE: zero will handle clearing the file handle.
+}
+
+int FileBinaryIO::pos() const {
+  FILE* const fp  = resource();
+  int const   res = std::ftell( fp );
+  // On an error it could return -1, but there isn't much we can
+  // really do to handle that here, so we'll just return 0 since
+  // that is at least a valid result.
+  return std::max( res, 0 );
+}
+
+int FileBinaryIO::size() const {
+  FILE* const fp       = resource();
+  int const   orig_pos = pos();
+  std::fseek( fp, 0, SEEK_END );
+  auto file_size = std::ftell( fp );
+  std::fseek( fp, orig_pos, SEEK_SET );
+  CHECK_EQ( pos(), orig_pos );
+  return file_size;
+}
+
+bool FileBinaryIO::read_bytes( int n, unsigned char* dst ) {
+  FILE* const  fp   = resource();
+  size_t const read = std::fread( dst, 1, n, fp );
+  return ( int( read ) == n );
+}
+
+bool FileBinaryIO::write_bytes( int                  n,
+                                unsigned char const* src ) {
+  FILE* const  fp      = resource();
+  size_t const written = std::fwrite( src, 1, n, fp );
+  return ( int( written ) == n );
+}
+
+/****************************************************************
+** MemBufferBinaryIO
+*****************************************************************/
+bool MemBufferBinaryIO::read_bytes( int n, unsigned char* dst ) {
+  if( remaining() < n ) return false;
   std::memcpy( dst, &buffer_[idx_], n );
   idx_ += n;
   CHECK_LE( pos(), size() );
   return true;
 }
 
-bool BinaryData::write_bytes( int n, unsigned char const* src ) {
-  if( !good( n ) ) return false;
+bool MemBufferBinaryIO::write_bytes( int                  n,
+                                     unsigned char const* src ) {
+  if( remaining() < n ) return false;
   std::memcpy( &buffer_[idx_], src, n );
   idx_ += n;
   return true;

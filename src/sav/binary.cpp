@@ -25,8 +25,8 @@ namespace sav {
 
 namespace {
 
-using ::base::BinaryBuffer;
-using ::base::BinaryData;
+using ::base::FileBinaryIO;
+using ::base::IBinaryIO;
 using ::base::valid;
 using ::base::valid_or;
 
@@ -41,7 +41,7 @@ valid_or<string> sanity_check_count( string_view label,
 }
 
 template<typename T>
-valid_or<string> read_vector( BinaryData& b, string_view label,
+valid_or<string> read_vector( IBinaryIO& b, string_view label,
                               int count, int sanity_max,
                               vector<T>& out ) {
   HAS_VALUE_OR_RET(
@@ -54,7 +54,7 @@ valid_or<string> read_vector( BinaryData& b, string_view label,
 }
 
 template<typename T>
-valid_or<string> write_vector( BinaryData& b, string_view label,
+valid_or<string> write_vector( IBinaryIO& b, string_view label,
                                vector<T> const& in ) {
   for( int i = 0; i < int( in.size() ); ++i )
     if( !write_binary( b, in[i] ) )
@@ -62,7 +62,7 @@ valid_or<string> write_vector( BinaryData& b, string_view label,
   return valid;
 }
 
-valid_or<string> read( BinaryData& b, ColonySAV& out ) {
+valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   if( !read_binary( b, out.head ) )
     return fmt::format( "while reading header." );
   if( !read_binary( b, out.player ) )
@@ -147,7 +147,7 @@ valid_or<string> read( BinaryData& b, ColonySAV& out ) {
   return valid;
 }
 
-valid_or<string> write( BinaryData& b, ColonySAV const& out ) {
+valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.head ) )
     return fmt::format( "while writing header." );
   if( !write_binary( b, out.player ) )
@@ -204,17 +204,17 @@ valid_or<string> write( BinaryData& b, ColonySAV const& out ) {
 valid_or<string> load_binary( string const& path,
                               ColonySAV&    out ) {
   base::ScopedTimer timer( "load SAV binary" );
-  UNWRAP_RETURN( buffer, BinaryBuffer::from_file( path ) );
-  base::BinaryData data( buffer );
-  if( auto res = read( data, out ); !res )
+  UNWRAP_RETURN(
+      file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
+  if( auto res = read( file, out ); !res )
     return fmt::format(
         "failed while reading save file data at offset {}: {}",
-        data.pos(), res.error() );
+        file.pos(), res.error() );
 
-  if( data.pos() < buffer.size() )
+  if( file.remaining() > 0 )
     return fmt::format(
         "{} unexpected residual bytes at end of file.",
-        buffer.size() - data.pos() );
+        file.remaining() );
 
   return valid;
 }
@@ -222,17 +222,12 @@ valid_or<string> load_binary( string const& path,
 valid_or<string> save_binary( string const&    path,
                               ColonySAV const& in ) {
   base::ScopedTimer timer( "save SAV binary" );
-  // This should be more than enough. The OG's save files are
-  // typically no more than 20-40k.
-  BinaryBuffer buffer( 200 * 1024 );
-
-  base::BinaryData data( buffer );
-  if( !write( data, in ) )
+  UNWRAP_RETURN(
+      file, FileBinaryIO::open_for_rw_and_truncate( path ) );
+  if( !write( file, in ) )
     return fmt::format(
         "failed to write save data to buffer at offset {}.",
-        data.pos() );
-
-  HAS_VALUE_OR_RET( buffer.write_file( path, data.pos() ) );
+        file.pos() );
   return valid;
 }
 

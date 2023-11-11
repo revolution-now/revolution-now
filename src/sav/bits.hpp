@@ -18,7 +18,7 @@
 #include "base/to-str.hpp"
 
 namespace base {
-struct BinaryData;
+struct IBinaryIO;
 }
 
 namespace sav {
@@ -35,9 +35,9 @@ struct bits_base {
  protected:
   void to_string( std::string& out ) const;
 
-  bool read_binary( base::BinaryData& b );
+  bool read_binary( base::IBinaryIO& b );
 
-  bool write_binary( base::BinaryData& b ) const;
+  bool write_binary( base::IBinaryIO& b ) const;
 
   static cdr::value to_canonical( cdr::converter&,
                                   bits_base const& o );
@@ -79,13 +79,13 @@ struct bits : private bits_base {
     o.to_string( out );
   }
 
-  friend bool read_binary( base::BinaryData& b, bits& o )
+  friend bool read_binary( base::IBinaryIO& b, bits& o )
   requires( N % 8 == 0 )
   {
     return o.read_binary( b );
   }
 
-  friend bool write_binary( base::BinaryData& b, bits const& o )
+  friend bool write_binary( base::IBinaryIO& b, bits const& o )
   requires( N % 8 == 0 )
   {
     return o.write_binary( b );

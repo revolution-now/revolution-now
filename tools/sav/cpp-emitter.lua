@@ -380,10 +380,10 @@ end
 local function emit_binary_conv_decl( hpp, name )
   hpp:newline();
   hpp:comment( 'Binary conversion.' )
-  hpp:line( 'bool read_binary( base::BinaryData& b, %s& o );',
+  hpp:line( 'bool read_binary( base::IBinaryIO& b, %s& o );',
             name )
   hpp:line(
-      'bool write_binary( base::BinaryData& b, %s const& o );',
+      'bool write_binary( base::IBinaryIO& b, %s const& o );',
       name )
 end
 
@@ -434,7 +434,7 @@ local function emit_bit_struct_binary_conv_def(cpp, name,
   local holder = smallest_uint( nbytes )
 
   -- Read.
-  cpp:line( 'bool read_binary( base::BinaryData& b, %s& o ) {',
+  cpp:line( 'bool read_binary( base::IBinaryIO& b, %s& o ) {',
             name )
   cpp:indent()
   cpp:line( '%s bits = 0;', holder )
@@ -463,7 +463,7 @@ local function emit_bit_struct_binary_conv_def(cpp, name,
 
   -- Write.
   cpp:line(
-      'bool write_binary( base::BinaryData& b, %s const& o ) {',
+      'bool write_binary( base::IBinaryIO& b, %s const& o ) {',
       name )
   cpp:indent()
   cpp:line( '%s bits = 0;', holder )
@@ -504,7 +504,7 @@ local function emit_struct_binary_conv_def( cpp, name, struct )
   cpp:comment( 'Binary conversion.' )
 
   -- Read.
-  cpp:line( 'bool read_binary( base::BinaryData& b, %s& o ) {',
+  cpp:line( 'bool read_binary( base::IBinaryIO& b, %s& o ) {',
             name )
   cpp:indent()
   cpp:line( 'return true' );
@@ -527,7 +527,7 @@ local function emit_struct_binary_conv_def( cpp, name, struct )
 
   -- Write.
   cpp:line(
-      'bool write_binary( base::BinaryData& b, %s const& o ) {',
+      'bool write_binary( base::IBinaryIO& b, %s const& o ) {',
       name )
   cpp:indent()
   cpp:line( 'return true' );
@@ -955,50 +955,35 @@ end
 function CppEmitter:emit_fwd_decls( hpp )
   hpp:open_ns( 'base' )
   hpp:newline()
-  hpp:line( 'struct BinaryData;' )
-  hpp:line( 'struct BinaryData;' )
+  hpp:line( 'struct IBinaryIO;' )
   hpp:close_ns( 'base' )
 end
 
 function CppEmitter:emit_cpp_macros( cpp )
   cpp:section( 'Macros.' )
-  cpp:line(
-      '#define BAD_ENUM_VALUE( typename, value )                \\' )
-  cpp:line(
-      '  FATAL( "unrecognized value for type " typename ": {}", \\' )
-  cpp:line(
-      '      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )' )
-
-  cpp:newline()
-  cpp:line(
-      '#define BAD_ENUM_STR_VALUE( typename, str_value )           \\' )
-  cpp:line(
-      '  conv.err( "unreognize value for enum " typename ": \'{}\'", \\' )
-  cpp:line( '             str_value )' )
-  cpp:newline()
-  cpp:line(
-      '#define CONV_FROM_FIELD( name, identifier )                       \\' )
-  cpp:line(
-      '  UNWRAP_RETURN(                                                  \\' )
-  cpp:line(
-      '      identifier, conv.from_field<                                \\' )
-  cpp:line(
-      '                std::remove_cvref_t<decltype( res.identifier )>>( \\' )
-  cpp:line(
-      '                tbl, name, used_keys ) );                         \\' )
-  cpp:line( '  res.identifier = std::move( identifier )' )
-  cpp:newline()
-  cpp:line(
-      '#define CONV_FROM_BITSTRING_FIELD( name, identifier, N ) \\' )
-  cpp:line(
-      '  UNWRAP_RETURN( identifier, conv.from_field<bits<N>>(   \\' )
-  cpp:line(
-      '                 tbl, name, used_keys ) );               \\' )
-  cpp:line(
-      '  res.identifier = static_cast<std::remove_cvref_t<      \\' )
-  cpp:line(
-      '                     decltype( res.identifier )          \\' )
-  cpp:line( '                   >>( identifier.n() );' )
+  -- LuaFormatter off
+  cpp:line( [[#define BAD_ENUM_VALUE( typename, value )                \]] )
+  cpp:line( [[  FATAL( "unrecognized value for type " typename ": {}", \]] )
+  cpp:line( [[      static_cast<std::underlying_type_t<has_city_1bit_type>>( o ) )]] )
+  cpp:line( [[]] )
+  cpp:line( [[#define BAD_ENUM_STR_VALUE( typename, str_value )           \]] )
+  cpp:line( [[  conv.err( "unreognize value for enum " typename ": '{}'", \]] )
+  cpp:line( [[             str_value )]] )
+  cpp:line( [[]] )
+  cpp:line( [[#define CONV_FROM_FIELD( name, identifier )                       \]] )
+  cpp:line( [[  UNWRAP_RETURN(                                                  \]] )
+  cpp:line( [[      identifier, conv.from_field<                                \]] )
+  cpp:line( [[                std::remove_cvref_t<decltype( res.identifier )>>( \]] )
+  cpp:line( [[                tbl, name, used_keys ) );                         \]] )
+  cpp:line( [[  res.identifier = std::move( identifier )]] )
+  cpp:line( [[]] )
+  cpp:line( [[#define CONV_FROM_BITSTRING_FIELD( name, identifier, N ) \]] )
+  cpp:line( [[  UNWRAP_RETURN( identifier, conv.from_field<bits<N>>(   \]] )
+  cpp:line( [[                 tbl, name, used_keys ) );               \]] )
+  cpp:line( [[  res.identifier = static_cast<std::remove_cvref_t<      \]] )
+  cpp:line( [[                     decltype( res.identifier )          \]] )
+  cpp:line( [[                   >>( identifier.n() );]] )
+  -- LuaFormatter on
 end
 
 function CppEmitter:generate_code()

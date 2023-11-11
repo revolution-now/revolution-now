@@ -48,14 +48,14 @@ void to_str( array_string<N> const& o, std::string& out,
 
 // Binary conversions.
 template<size_t N>
-bool read_binary( base::BinaryData& b, array_string<N>& o ) {
+bool read_binary( base::IBinaryIO& b, array_string<N>& o ) {
   for( unsigned char& c : o.a )
     if( !b.read( c ) ) return false;
   return true;
 }
 
 template<size_t N>
-bool write_binary( base::BinaryData&      b,
+bool write_binary( base::IBinaryIO&       b,
                    array_string<N> const& o ) {
   for( unsigned char const c : o.a )
     if( !b.write( c ) ) return false;

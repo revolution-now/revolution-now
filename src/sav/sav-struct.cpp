@@ -1259,7 +1259,7 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
 ** GameOptions
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, GameOptions& o ) {
+bool read_binary( base::IBinaryIO& b, GameOptions& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.unused01 = (bits & 0b1111111); bits >>= 7;
@@ -1275,7 +1275,7 @@ bool read_binary( base::BinaryData& b, GameOptions& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, GameOptions const& o ) {
+bool write_binary( base::IBinaryIO& b, GameOptions const& o ) {
   uint16_t bits = 0;
   bits |= (o.show_indian_moves & 0b1); bits <<= 1;
   bits |= (o.show_foreign_moves & 0b1); bits <<= 1;
@@ -1344,7 +1344,7 @@ cdr::result<GameOptions> from_canonical(
 ** ColonyReportOptions
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ColonyReportOptions& o ) {
+bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.labels_on_cargo_and_terrain = (bits & 0b1); bits >>= 1;
@@ -1361,7 +1361,7 @@ bool read_binary( base::BinaryData& b, ColonyReportOptions& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, ColonyReportOptions const& o ) {
+bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o ) {
   uint16_t bits = 0;
   bits |= (o.unused03 & 0b111111); bits <<= 1;
   bits |= (o.report_rebel_majorities & 0b1); bits <<= 1;
@@ -1434,7 +1434,7 @@ cdr::result<ColonyReportOptions> from_canonical(
 ** Event
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Event& o ) {
+bool read_binary( base::IBinaryIO& b, Event& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.discovery_of_the_new_world = (bits & 0b1); bits >>= 1;
@@ -1456,7 +1456,7 @@ bool read_binary( base::BinaryData& b, Event& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Event const& o ) {
+bool write_binary( base::IBinaryIO& b, Event const& o ) {
   uint16_t bits = 0;
   bits |= (o.woodcut16 & 0b1); bits <<= 1;
   bits |= (o.woodcut15 & 0b1); bits <<= 1;
@@ -1549,7 +1549,7 @@ cdr::result<Event> from_canonical(
 ** Duration
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Duration& o ) {
+bool read_binary( base::IBinaryIO& b, Duration& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.dur_1 = (bits & 0b1111); bits >>= 4;
@@ -1557,7 +1557,7 @@ bool read_binary( base::BinaryData& b, Duration& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Duration const& o ) {
+bool write_binary( base::IBinaryIO& b, Duration const& o ) {
   uint8_t bits = 0;
   bits |= (o.dur_2 & 0b1111); bits <<= 4;
   bits |= (o.dur_1 & 0b1111); bits <<= 0;
@@ -1594,7 +1594,7 @@ cdr::result<Duration> from_canonical(
 ** Buildings
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Buildings& o ) {
+bool read_binary( base::IBinaryIO& b, Buildings& o ) {
   uint64_t bits = 0;
   if( !b.read_bytes<6>( bits ) ) return false;
   o.fortification = static_cast<level_3bit_type>( bits & 0b111 ); bits >>= 3;
@@ -1619,7 +1619,7 @@ bool read_binary( base::BinaryData& b, Buildings& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Buildings const& o ) {
+bool write_binary( base::IBinaryIO& b, Buildings const& o ) {
   uint64_t bits = 0;
   bits |= (o.unused05b & 0b111111); bits <<= 3;
   bits |= (static_cast<uint64_t>( o.blacksmiths_house ) & 0b111); bits <<= 2;
@@ -1724,7 +1724,7 @@ cdr::result<Buildings> from_canonical(
 ** CustomHouseFlags
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, CustomHouseFlags& o ) {
+bool read_binary( base::IBinaryIO& b, CustomHouseFlags& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.food = (bits & 0b1); bits >>= 1;
@@ -1746,7 +1746,7 @@ bool read_binary( base::BinaryData& b, CustomHouseFlags& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, CustomHouseFlags const& o ) {
+bool write_binary( base::IBinaryIO& b, CustomHouseFlags const& o ) {
   uint16_t bits = 0;
   bits |= (o.muskets & 0b1); bits <<= 1;
   bits |= (o.tools & 0b1); bits <<= 1;
@@ -1839,7 +1839,7 @@ cdr::result<CustomHouseFlags> from_canonical(
 ** NationInfo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, NationInfo& o ) {
+bool read_binary( base::IBinaryIO& b, NationInfo& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.nation_id = static_cast<nation_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -1850,7 +1850,7 @@ bool read_binary( base::BinaryData& b, NationInfo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, NationInfo const& o ) {
+bool write_binary( base::IBinaryIO& b, NationInfo const& o ) {
   uint8_t bits = 0;
   bits |= (o.vis_to_dutch & 0b1); bits <<= 1;
   bits |= (o.vis_to_spanish & 0b1); bits <<= 1;
@@ -1899,7 +1899,7 @@ cdr::result<NationInfo> from_canonical(
 ** Unknown15
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Unknown15& o ) {
+bool read_binary( base::IBinaryIO& b, Unknown15& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unknown15a = (bits & 0b1111111); bits >>= 7;
@@ -1907,7 +1907,7 @@ bool read_binary( base::BinaryData& b, Unknown15& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Unknown15 const& o ) {
+bool write_binary( base::IBinaryIO& b, Unknown15 const& o ) {
   uint8_t bits = 0;
   bits |= (o.damaged & 0b1); bits <<= 7;
   bits |= (o.unknown15a & 0b1111111); bits <<= 0;
@@ -1944,7 +1944,7 @@ cdr::result<Unknown15> from_canonical(
 ** CargoItems
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, CargoItems& o ) {
+bool read_binary( base::IBinaryIO& b, CargoItems& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -1952,7 +1952,7 @@ bool read_binary( base::BinaryData& b, CargoItems& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, CargoItems const& o ) {
+bool write_binary( base::IBinaryIO& b, CargoItems const& o ) {
   uint8_t bits = 0;
   bits |= (static_cast<uint8_t>( o.cargo_2 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint8_t>( o.cargo_1 ) & 0b1111); bits <<= 0;
@@ -1989,7 +1989,7 @@ cdr::result<CargoItems> from_canonical(
 ** BoycottBitmap
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, BoycottBitmap& o ) {
+bool read_binary( base::IBinaryIO& b, BoycottBitmap& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.food = (bits & 0b1); bits >>= 1;
@@ -2011,7 +2011,7 @@ bool read_binary( base::BinaryData& b, BoycottBitmap& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, BoycottBitmap const& o ) {
+bool write_binary( base::IBinaryIO& b, BoycottBitmap const& o ) {
   uint16_t bits = 0;
   bits |= (o.muskets & 0b1); bits <<= 1;
   bits |= (o.tools & 0b1); bits <<= 1;
@@ -2104,7 +2104,7 @@ cdr::result<BoycottBitmap> from_canonical(
 ** ALCS
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ALCS& o ) {
+bool read_binary( base::IBinaryIO& b, ALCS& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.artillery_near = (bits & 0b1); bits >>= 1;
@@ -2115,7 +2115,7 @@ bool read_binary( base::BinaryData& b, ALCS& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, ALCS const& o ) {
+bool write_binary( base::IBinaryIO& b, ALCS const& o ) {
   uint8_t bits = 0;
   bits |= (o.unused09 & 0b1111); bits <<= 1;
   bits |= (o.scouted & 0b1); bits <<= 1;
@@ -2164,7 +2164,7 @@ cdr::result<ALCS> from_canonical(
 ** TILE
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TILE& o ) {
+bool read_binary( base::IBinaryIO& b, TILE& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.tile = static_cast<terrain_5bit_type>( bits & 0b11111 ); bits >>= 5;
@@ -2172,7 +2172,7 @@ bool read_binary( base::BinaryData& b, TILE& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, TILE const& o ) {
+bool write_binary( base::IBinaryIO& b, TILE const& o ) {
   uint8_t bits = 0;
   bits |= (static_cast<uint8_t>( o.hill_river ) & 0b111); bits <<= 5;
   bits |= (static_cast<uint8_t>( o.tile ) & 0b11111); bits <<= 0;
@@ -2209,7 +2209,7 @@ cdr::result<TILE> from_canonical(
 ** MASK
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, MASK& o ) {
+bool read_binary( base::IBinaryIO& b, MASK& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.has_unit = static_cast<has_unit_1bit_type>( bits & 0b1 ); bits >>= 1;
@@ -2223,7 +2223,7 @@ bool read_binary( base::BinaryData& b, MASK& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, MASK const& o ) {
+bool write_binary( base::IBinaryIO& b, MASK const& o ) {
   uint8_t bits = 0;
   bits |= (static_cast<uint8_t>( o.unused ) & 0b1); bits <<= 1;
   bits |= (static_cast<uint8_t>( o.plowed ) & 0b1); bits <<= 1;
@@ -2284,7 +2284,7 @@ cdr::result<MASK> from_canonical(
 ** PATH
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PATH& o ) {
+bool read_binary( base::IBinaryIO& b, PATH& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.region_id = static_cast<region_id_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2292,7 +2292,7 @@ bool read_binary( base::BinaryData& b, PATH& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, PATH const& o ) {
+bool write_binary( base::IBinaryIO& b, PATH const& o ) {
   uint8_t bits = 0;
   bits |= (static_cast<uint8_t>( o.visitor_nation ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint8_t>( o.region_id ) & 0b1111); bits <<= 0;
@@ -2329,7 +2329,7 @@ cdr::result<PATH> from_canonical(
 ** SEEN
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, SEEN& o ) {
+bool read_binary( base::IBinaryIO& b, SEEN& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.score = static_cast<region_id_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2340,7 +2340,7 @@ bool read_binary( base::BinaryData& b, SEEN& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, SEEN const& o ) {
+bool write_binary( base::IBinaryIO& b, SEEN const& o ) {
   uint8_t bits = 0;
   bits |= (static_cast<uint8_t>( o.vis2du ) & 0b1); bits <<= 1;
   bits |= (static_cast<uint8_t>( o.vis2sp ) & 0b1); bits <<= 1;
@@ -2389,7 +2389,7 @@ cdr::result<SEEN> from_canonical(
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount& o ) {
+bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unloads_count = (bits & 0b1111); bits >>= 4;
@@ -2397,7 +2397,7 @@ bool read_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o ) {
   uint8_t bits = 0;
   bits |= (o.loads_count & 0b1111); bits <<= 4;
   bits |= (o.unloads_count & 0b1111); bits <<= 0;
@@ -2434,7 +2434,7 @@ cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
 ** Stop1LoadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1LoadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2446,7 +2446,7 @@ bool read_binary( base::BinaryData& b, Stop1LoadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop1LoadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2499,7 +2499,7 @@ cdr::result<Stop1LoadsCargo> from_canonical(
 ** Stop1UnloadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1UnloadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2511,7 +2511,7 @@ bool read_binary( base::BinaryData& b, Stop1UnloadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop1UnloadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2564,7 +2564,7 @@ cdr::result<Stop1UnloadsCargo> from_canonical(
 ** Stop2LoadsAndUnloadsCount
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount& o ) {
+bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unloads_count = (bits & 0b1111); bits >>= 4;
@@ -2572,7 +2572,7 @@ bool read_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount const& o ) {
   uint8_t bits = 0;
   bits |= (o.loads_count & 0b1111); bits <<= 4;
   bits |= (o.unloads_count & 0b1111); bits <<= 0;
@@ -2609,7 +2609,7 @@ cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
 ** Stop2LoadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2LoadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2621,7 +2621,7 @@ bool read_binary( base::BinaryData& b, Stop2LoadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop2LoadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop2LoadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2674,7 +2674,7 @@ cdr::result<Stop2LoadsCargo> from_canonical(
 ** Stop2UnloadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2UnloadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2686,7 +2686,7 @@ bool read_binary( base::BinaryData& b, Stop2UnloadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop2UnloadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop2UnloadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2739,7 +2739,7 @@ cdr::result<Stop2UnloadsCargo> from_canonical(
 ** Stop3LoadsAndUnloadsCount
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount& o ) {
+bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unloads_count = (bits & 0b1111); bits >>= 4;
@@ -2747,7 +2747,7 @@ bool read_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount const& o ) {
   uint8_t bits = 0;
   bits |= (o.loads_count & 0b1111); bits <<= 4;
   bits |= (o.unloads_count & 0b1111); bits <<= 0;
@@ -2784,7 +2784,7 @@ cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
 ** Stop3LoadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3LoadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2796,7 +2796,7 @@ bool read_binary( base::BinaryData& b, Stop3LoadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop3LoadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop3LoadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2849,7 +2849,7 @@ cdr::result<Stop3LoadsCargo> from_canonical(
 ** Stop3UnloadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3UnloadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2861,7 +2861,7 @@ bool read_binary( base::BinaryData& b, Stop3UnloadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop3UnloadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop3UnloadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -2914,7 +2914,7 @@ cdr::result<Stop3UnloadsCargo> from_canonical(
 ** Stop4LoadsAndUnloadsCount
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount& o ) {
+bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
   o.unloads_count = (bits & 0b1111); bits >>= 4;
@@ -2922,7 +2922,7 @@ bool read_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount const& o ) {
   uint8_t bits = 0;
   bits |= (o.loads_count & 0b1111); bits <<= 4;
   bits |= (o.unloads_count & 0b1111); bits <<= 0;
@@ -2959,7 +2959,7 @@ cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
 ** Stop4LoadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4LoadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -2971,7 +2971,7 @@ bool read_binary( base::BinaryData& b, Stop4LoadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop4LoadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop4LoadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -3024,7 +3024,7 @@ cdr::result<Stop4LoadsCargo> from_canonical(
 ** Stop4UnloadsCargo
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4UnloadsCargo& o ) {
+bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o ) {
   uint32_t bits = 0;
   if( !b.read_bytes<3>( bits ) ) return false;
   o.cargo_1 = static_cast<cargo_4bit_type>( bits & 0b1111 ); bits >>= 4;
@@ -3036,7 +3036,7 @@ bool read_binary( base::BinaryData& b, Stop4UnloadsCargo& o ) {
   return true;
 }
 
-bool write_binary( base::BinaryData& b, Stop4UnloadsCargo const& o ) {
+bool write_binary( base::IBinaryIO& b, Stop4UnloadsCargo const& o ) {
   uint32_t bits = 0;
   bits |= (static_cast<uint32_t>( o.cargo_6 ) & 0b1111); bits <<= 4;
   bits |= (static_cast<uint32_t>( o.cargo_5 ) & 0b1111); bits <<= 4;
@@ -3089,7 +3089,7 @@ cdr::result<Stop4UnloadsCargo> from_canonical(
 ** ExpeditionaryForce
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ExpeditionaryForce& o ) {
+bool read_binary( base::IBinaryIO& b, ExpeditionaryForce& o ) {
   return true
     && read_binary( b, o.regulars )
     && read_binary( b, o.dragoons )
@@ -3098,7 +3098,7 @@ bool read_binary( base::BinaryData& b, ExpeditionaryForce& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, ExpeditionaryForce const& o ) {
+bool write_binary( base::IBinaryIO& b, ExpeditionaryForce const& o ) {
   return true
     && write_binary( b, o.regulars )
     && write_binary( b, o.dragoons )
@@ -3143,7 +3143,7 @@ cdr::result<ExpeditionaryForce> from_canonical(
 ** BackupForce
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, BackupForce& o ) {
+bool read_binary( base::IBinaryIO& b, BackupForce& o ) {
   return true
     && read_binary( b, o.regulars )
     && read_binary( b, o.dragoons )
@@ -3152,7 +3152,7 @@ bool read_binary( base::BinaryData& b, BackupForce& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, BackupForce const& o ) {
+bool write_binary( base::IBinaryIO& b, BackupForce const& o ) {
   return true
     && write_binary( b, o.regulars )
     && write_binary( b, o.dragoons )
@@ -3197,7 +3197,7 @@ cdr::result<BackupForce> from_canonical(
 ** PriceGroupState
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PriceGroupState& o ) {
+bool read_binary( base::IBinaryIO& b, PriceGroupState& o ) {
   return true
     && read_binary( b, o.food )
     && read_binary( b, o.sugar )
@@ -3218,7 +3218,7 @@ bool read_binary( base::BinaryData& b, PriceGroupState& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, PriceGroupState const& o ) {
+bool write_binary( base::IBinaryIO& b, PriceGroupState const& o ) {
   return true
     && write_binary( b, o.food )
     && write_binary( b, o.sugar )
@@ -3311,7 +3311,7 @@ cdr::result<PriceGroupState> from_canonical(
 ** HEAD
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, HEAD& o ) {
+bool read_binary( base::IBinaryIO& b, HEAD& o ) {
   return true
     && read_binary( b, o.colonize )
     && read_binary( b, o.unknown00 )
@@ -3351,7 +3351,7 @@ bool read_binary( base::BinaryData& b, HEAD& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, HEAD const& o ) {
+bool write_binary( base::IBinaryIO& b, HEAD const& o ) {
   return true
     && write_binary( b, o.colonize )
     && write_binary( b, o.unknown00 )
@@ -3520,7 +3520,7 @@ cdr::result<HEAD> from_canonical(
 ** PLAYER
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PLAYER& o ) {
+bool read_binary( base::IBinaryIO& b, PLAYER& o ) {
   return true
     && read_binary( b, o.name )
     && read_binary( b, o.country_name )
@@ -3531,7 +3531,7 @@ bool read_binary( base::BinaryData& b, PLAYER& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, PLAYER const& o ) {
+bool write_binary( base::IBinaryIO& b, PLAYER const& o ) {
   return true
     && write_binary( b, o.name )
     && write_binary( b, o.country_name )
@@ -3584,7 +3584,7 @@ cdr::result<PLAYER> from_canonical(
 ** Tiles
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Tiles& o ) {
+bool read_binary( base::IBinaryIO& b, Tiles& o ) {
   return true
     && read_binary( b, o.tile_n )
     && read_binary( b, o.tile_e )
@@ -3597,7 +3597,7 @@ bool read_binary( base::BinaryData& b, Tiles& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, Tiles const& o ) {
+bool write_binary( base::IBinaryIO& b, Tiles const& o ) {
   return true
     && write_binary( b, o.tile_n )
     && write_binary( b, o.tile_e )
@@ -3658,7 +3658,7 @@ cdr::result<Tiles> from_canonical(
 ** Stock
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stock& o ) {
+bool read_binary( base::IBinaryIO& b, Stock& o ) {
   return true
     && read_binary( b, o.food )
     && read_binary( b, o.sugar )
@@ -3679,7 +3679,7 @@ bool read_binary( base::BinaryData& b, Stock& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, Stock const& o ) {
+bool write_binary( base::IBinaryIO& b, Stock const& o ) {
   return true
     && write_binary( b, o.food )
     && write_binary( b, o.sugar )
@@ -3772,7 +3772,7 @@ cdr::result<Stock> from_canonical(
 ** PopulationOnMap
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PopulationOnMap& o ) {
+bool read_binary( base::IBinaryIO& b, PopulationOnMap& o ) {
   return true
     && read_binary( b, o.for_english )
     && read_binary( b, o.for_french )
@@ -3781,7 +3781,7 @@ bool read_binary( base::BinaryData& b, PopulationOnMap& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, PopulationOnMap const& o ) {
+bool write_binary( base::IBinaryIO& b, PopulationOnMap const& o ) {
   return true
     && write_binary( b, o.for_english )
     && write_binary( b, o.for_french )
@@ -3826,7 +3826,7 @@ cdr::result<PopulationOnMap> from_canonical(
 ** FortificationOnMap
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, FortificationOnMap& o ) {
+bool read_binary( base::IBinaryIO& b, FortificationOnMap& o ) {
   return true
     && read_binary( b, o.for_english )
     && read_binary( b, o.for_french )
@@ -3835,7 +3835,7 @@ bool read_binary( base::BinaryData& b, FortificationOnMap& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, FortificationOnMap const& o ) {
+bool write_binary( base::IBinaryIO& b, FortificationOnMap const& o ) {
   return true
     && write_binary( b, o.for_english )
     && write_binary( b, o.for_french )
@@ -3880,7 +3880,7 @@ cdr::result<FortificationOnMap> from_canonical(
 ** COLONY
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, COLONY& o ) {
+bool read_binary( base::IBinaryIO& b, COLONY& o ) {
   return true
     && read_binary( b, o.x_y )
     && read_binary( b, o.name )
@@ -3907,7 +3907,7 @@ bool read_binary( base::BinaryData& b, COLONY& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, COLONY const& o ) {
+bool write_binary( base::IBinaryIO& b, COLONY const& o ) {
   return true
     && write_binary( b, o.x_y )
     && write_binary( b, o.name )
@@ -4024,14 +4024,14 @@ cdr::result<COLONY> from_canonical(
 ** TransportChain
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TransportChain& o ) {
+bool read_binary( base::IBinaryIO& b, TransportChain& o ) {
   return true
     && read_binary( b, o.next_unit_idx )
     && read_binary( b, o.prev_unit_idx )
     ;
 }
 
-bool write_binary( base::BinaryData& b, TransportChain const& o ) {
+bool write_binary( base::IBinaryIO& b, TransportChain const& o ) {
   return true
     && write_binary( b, o.next_unit_idx )
     && write_binary( b, o.prev_unit_idx )
@@ -4068,7 +4068,7 @@ cdr::result<TransportChain> from_canonical(
 ** UNIT
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, UNIT& o ) {
+bool read_binary( base::IBinaryIO& b, UNIT& o ) {
   return true
     && read_binary( b, o.x_y )
     && read_binary( b, o.type )
@@ -4090,7 +4090,7 @@ bool read_binary( base::BinaryData& b, UNIT& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, UNIT const& o ) {
+bool write_binary( base::IBinaryIO& b, UNIT const& o ) {
   return true
     && write_binary( b, o.x_y )
     && write_binary( b, o.type )
@@ -4187,7 +4187,7 @@ cdr::result<UNIT> from_canonical(
 ** RelationByIndian
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, RelationByIndian& o ) {
+bool read_binary( base::IBinaryIO& b, RelationByIndian& o ) {
   return true
     && read_binary( b, o.inca )
     && read_binary( b, o.aztec )
@@ -4200,7 +4200,7 @@ bool read_binary( base::BinaryData& b, RelationByIndian& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, RelationByIndian const& o ) {
+bool write_binary( base::IBinaryIO& b, RelationByIndian const& o ) {
   return true
     && write_binary( b, o.inca )
     && write_binary( b, o.aztec )
@@ -4261,7 +4261,7 @@ cdr::result<RelationByIndian> from_canonical(
 ** Trade
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Trade& o ) {
+bool read_binary( base::IBinaryIO& b, Trade& o ) {
   return true
     && read_binary( b, o.eu_prc )
     && read_binary( b, o.nr )
@@ -4271,7 +4271,7 @@ bool read_binary( base::BinaryData& b, Trade& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, Trade const& o ) {
+bool write_binary( base::IBinaryIO& b, Trade const& o ) {
   return true
     && write_binary( b, o.eu_prc )
     && write_binary( b, o.nr )
@@ -4320,7 +4320,7 @@ cdr::result<Trade> from_canonical(
 ** NATION
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, NATION& o ) {
+bool read_binary( base::IBinaryIO& b, NATION& o ) {
   return true
     && read_binary( b, o.unknown19 )
     && read_binary( b, o.tax_rate )
@@ -4354,7 +4354,7 @@ bool read_binary( base::BinaryData& b, NATION& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, NATION const& o ) {
+bool write_binary( base::IBinaryIO& b, NATION const& o ) {
   return true
     && write_binary( b, o.unknown19 )
     && write_binary( b, o.tax_rate )
@@ -4499,14 +4499,14 @@ cdr::result<NATION> from_canonical(
 ** Alarm
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Alarm& o ) {
+bool read_binary( base::IBinaryIO& b, Alarm& o ) {
   return true
     && read_binary( b, o.friction )
     && read_binary( b, o.attacks )
     ;
 }
 
-bool write_binary( base::BinaryData& b, Alarm const& o ) {
+bool write_binary( base::IBinaryIO& b, Alarm const& o ) {
   return true
     && write_binary( b, o.friction )
     && write_binary( b, o.attacks )
@@ -4543,7 +4543,7 @@ cdr::result<Alarm> from_canonical(
 ** TRIBE
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TRIBE& o ) {
+bool read_binary( base::IBinaryIO& b, TRIBE& o ) {
   return true
     && read_binary( b, o.x_y )
     && read_binary( b, o.nation_id )
@@ -4557,7 +4557,7 @@ bool read_binary( base::BinaryData& b, TRIBE& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, TRIBE const& o ) {
+bool write_binary( base::IBinaryIO& b, TRIBE const& o ) {
   return true
     && write_binary( b, o.x_y )
     && write_binary( b, o.nation_id )
@@ -4622,7 +4622,7 @@ cdr::result<TRIBE> from_canonical(
 ** RelationByNations
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, RelationByNations& o ) {
+bool read_binary( base::IBinaryIO& b, RelationByNations& o ) {
   return true
     && read_binary( b, o.england )
     && read_binary( b, o.france )
@@ -4631,7 +4631,7 @@ bool read_binary( base::BinaryData& b, RelationByNations& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, RelationByNations const& o ) {
+bool write_binary( base::IBinaryIO& b, RelationByNations const& o ) {
   return true
     && write_binary( b, o.england )
     && write_binary( b, o.france )
@@ -4676,7 +4676,7 @@ cdr::result<RelationByNations> from_canonical(
 ** INDIAN
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, INDIAN& o ) {
+bool read_binary( base::IBinaryIO& b, INDIAN& o ) {
   return true
     && read_binary( b, o.capitol_x_y )
     && read_binary( b, o.tech )
@@ -4692,7 +4692,7 @@ bool read_binary( base::BinaryData& b, INDIAN& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, INDIAN const& o ) {
+bool write_binary( base::IBinaryIO& b, INDIAN const& o ) {
   return true
     && write_binary( b, o.capitol_x_y )
     && write_binary( b, o.tech )
@@ -4765,7 +4765,7 @@ cdr::result<INDIAN> from_canonical(
 ** STUFF
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, STUFF& o ) {
+bool read_binary( base::IBinaryIO& b, STUFF& o ) {
   return true
     && read_binary( b, o.unknown34 )
     && read_binary( b, o.counter_decreasing_on_new_colony )
@@ -4781,7 +4781,7 @@ bool read_binary( base::BinaryData& b, STUFF& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, STUFF const& o ) {
+bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
   return true
     && write_binary( b, o.unknown34 )
     && write_binary( b, o.counter_decreasing_on_new_colony )
@@ -4854,7 +4854,7 @@ cdr::result<STUFF> from_canonical(
 ** TRADEROUTE
 *****************************************************************/
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TRADEROUTE& o ) {
+bool read_binary( base::IBinaryIO& b, TRADEROUTE& o ) {
   return true
     && read_binary( b, o.name )
     && read_binary( b, o.land_or_sea )
@@ -4882,7 +4882,7 @@ bool read_binary( base::BinaryData& b, TRADEROUTE& o ) {
     ;
 }
 
-bool write_binary( base::BinaryData& b, TRADEROUTE const& o ) {
+bool write_binary( base::IBinaryIO& b, TRADEROUTE const& o ) {
   return true
     && write_binary( b, o.name )
     && write_binary( b, o.land_or_sea )

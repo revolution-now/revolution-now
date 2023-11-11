@@ -27,7 +27,7 @@ namespace {
 
 using namespace std;
 
-using ::base::BinaryData;
+using ::base::MemBufferBinaryIO;
 
 /****************************************************************
 ** Test Cases
@@ -229,59 +229,51 @@ TEST_CASE( "[sav/bits] read_binary" ) {
     array<unsigned char, 16> buffer = { 1, 1, 1, 1, 1, 1, 1, 1,
                                         1, 1, 1, 1, 1, 1, 1, 1 };
 
-    BinaryData    b( buffer );
-    bits<0> const expected = {};
-    bits<0>       as;
+    MemBufferBinaryIO b( buffer );
+    bits<0> const     expected = {};
+    bits<0>           as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 16 ) );
-    REQUIRE_FALSE( b.good( 17 ) );
+    REQUIRE( b.remaining() == 16 );
     REQUIRE( b.pos() == 0 );
     REQUIRE( as == expected );
   }
   SECTION( "single" ) {
     array<unsigned char, 16> buffer = {
         128, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData    b( buffer );
-    bits<8> const expected = bits<8>( 128 );
-    bits<8>       as;
+    MemBufferBinaryIO b( buffer );
+    bits<8> const     expected = bits<8>( 128 );
+    bits<8>           as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 15 ) );
-    REQUIRE_FALSE( b.good( 16 ) );
+    REQUIRE( b.remaining() == 15 );
     REQUIRE( b.pos() == 1 );
     REQUIRE( as == expected );
   }
   SECTION( "double" ) {
     array<unsigned char, 16> buffer = {
         128, 200, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData     b( buffer );
-    bits<16> const expected =
+    MemBufferBinaryIO b( buffer );
+    bits<16> const    expected =
         bits<16>( ( 128UL << 0 ) + ( 200UL << 8 ) );
     bits<16> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 14 ) );
-    REQUIRE_FALSE( b.good( 15 ) );
+    REQUIRE( b.remaining() == 14 );
     REQUIRE( b.pos() == 2 );
     REQUIRE( as == expected );
   }
   SECTION( "many" ) {
     array<unsigned char, 16> buffer = {
         128, 200, 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData     b( buffer );
-    bits<40> const expected = bits<40>(
+    MemBufferBinaryIO b( buffer );
+    bits<40> const    expected = bits<40>(
         ( 128UL << 0 ) + ( 200UL << 8 ) + ( 1UL << 16 ) +
         ( 2UL << 24 ) + ( 3UL << 32 ) );
     bits<40> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     REQUIRE( as == expected );
   }
@@ -292,15 +284,13 @@ TEST_CASE( "[sav/bits] write_binary" ) {
                                         1, 1, 1, 1, 1, 1, 1, 1 };
   array<unsigned char, 16> expected = {};
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
 
   SECTION( "empty" ) {
     bits<0> const as = {};
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 16 ) );
-    REQUIRE_FALSE( b.good( 17 ) );
+    REQUIRE( b.remaining() == 16 );
     REQUIRE( b.pos() == 0 );
     expected = { 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1 };
@@ -310,9 +300,7 @@ TEST_CASE( "[sav/bits] write_binary" ) {
     bits<8> const as( 0xfe );
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 15 ) );
-    REQUIRE_FALSE( b.good( 16 ) );
+    REQUIRE( b.remaining() == 15 );
     REQUIRE( b.pos() == 1 );
     expected = { 0xfe, 1, 1, 1, 1, 1, 1, 1,
                  1,    1, 1, 1, 1, 1, 1, 1 };
@@ -322,9 +310,7 @@ TEST_CASE( "[sav/bits] write_binary" ) {
     bits<16> const as( 0xfe );
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 14 ) );
-    REQUIRE_FALSE( b.good( 15 ) );
+    REQUIRE( b.remaining() == 14 );
     REQUIRE( b.pos() == 2 );
     expected = { 0xfe, 0, 1, 1, 1, 1, 1, 1,
                  1,    1, 1, 1, 1, 1, 1, 1 };
@@ -336,9 +322,7 @@ TEST_CASE( "[sav/bits] write_binary" ) {
                        ( 4UL << 32 ) );
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     expected = { 0xfe, 1, 2, 10, 4, 1, 1, 1,
                  1,    1, 1, 1,  1, 1, 1, 1 };

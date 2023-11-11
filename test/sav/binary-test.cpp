@@ -28,7 +28,7 @@ namespace {
 
 using namespace std;
 
-using ::base::BinaryBuffer;
+using ::base::FileBinaryIO;
 
 /****************************************************************
 ** Helpers.
@@ -39,9 +39,11 @@ fs::path classic_sav_dir() {
 
 bool file_contents_same( fs::path const& f1,
                          fs::path const& f2 ) {
-  UNWRAP_CHECK( b1, BinaryBuffer::from_file( f1 ) );
-  UNWRAP_CHECK( b2, BinaryBuffer::from_file( f2 ) );
-  return b1 == b2;
+  UNWRAP_CHECK(
+      file1, FileBinaryIO::open_for_rw_fail_on_nonexist( f1 ) );
+  UNWRAP_CHECK(
+      file2, FileBinaryIO::open_for_rw_fail_on_nonexist( f2 ) );
+  return file1.read_remainder() == file2.read_remainder();
 }
 
 fs::path output_folder() {

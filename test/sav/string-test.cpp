@@ -24,7 +24,7 @@ namespace {
 
 using namespace std;
 
-using ::base::BinaryData;
+using ::base::MemBufferBinaryIO;
 
 /****************************************************************
 ** Test Cases
@@ -94,15 +94,13 @@ TEST_CASE( "[sav/string] write_binary" ) {
   array<unsigned char, 16> buffer   = { 1, 1, 1, 1, 1, 1, 1, 1,
                                         1, 1, 1, 1, 1, 1, 1, 1 };
   array<unsigned char, 16> expected = {};
-  BinaryData               b( buffer );
+  MemBufferBinaryIO        b( buffer );
 
   SECTION( "null zero" ) {
     array_string<5> const as = { 'y', 'e', 's', 3, 2 };
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     expected = { 'y', 'e', 's', 3, 2, 1, 1, 1,
                  1,   1,   1,   1, 1, 1, 1, 1 };
@@ -112,9 +110,7 @@ TEST_CASE( "[sav/string] write_binary" ) {
     array_string<5> const as = { 'h', 'e', 'l', 'l', 'o' };
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     expected = { 'h', 'e', 'l', 'l', 'o', 1, 1, 1,
                  1,   1,   1,   1,   1,   1, 1, 1 };
@@ -126,14 +122,12 @@ TEST_CASE( "[sav/string] read_binary" ) {
   SECTION( "null zero" ) {
     array<unsigned char, 16> buffer = {
         'y', 'e', 's', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData            b( buffer );
+    MemBufferBinaryIO     b( buffer );
     array_string<5> const expected = { 'y', 'e', 's', 0, 1 };
     array_string<5>       as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     REQUIRE( as == expected );
   }
@@ -141,14 +135,12 @@ TEST_CASE( "[sav/string] read_binary" ) {
     array<unsigned char, 16> buffer = {
         'h', 'e', 'l', 'l', 'o', 1, 1, 1,
         1,   1,   1,   1,   1,   1, 1, 1 };
-    BinaryData            b( buffer );
+    MemBufferBinaryIO     b( buffer );
     array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
     array_string<5>       as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     REQUIRE( as == expected );
   }

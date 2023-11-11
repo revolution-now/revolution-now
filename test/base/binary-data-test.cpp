@@ -22,13 +22,24 @@ namespace {
 using namespace std;
 
 /****************************************************************
+** Helpers.
+*****************************************************************/
+fs::path output_folder() {
+  error_code ec  = {};
+  fs::path   res = fs::temp_directory_path( ec );
+  BASE_CHECK( ec.value() == 0,
+              "failed to get temp folder path." );
+  return res;
+}
+
+/****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
+TEST_CASE( "[base/binary-data] IBinaryIO [write] [builtin]" ) {
   array<unsigned char, 16> buffer   = {};
   array<unsigned char, 16> expected = {};
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
   uint8_t const  i1 = 0x05;
@@ -37,18 +48,14 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
   uint64_t const i4 = 0x1234567890987654;
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
   expected = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   REQUIRE( buffer == expected );
 
   REQUIRE( write_binary( b, i1 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 15 ) );
-  REQUIRE_FALSE( b.good( 16 ) );
+  REQUIRE( b.remaining() == 15 );
   REQUIRE( b.pos() == 1 );
   expected = { 0x05, 0, 0, 0, 0, 0, 0, 0,
                0,    0, 0, 0, 0, 0, 0, 0 };
@@ -56,9 +63,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE( write_binary( b, i2 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 13 ) );
-  REQUIRE_FALSE( b.good( 14 ) );
+  REQUIRE( b.remaining() == 13 );
   REQUIRE( b.pos() == 3 );
   expected = { 0x05, 0xff, 0x80, 0, 0, 0, 0, 0,
                0,    0,    0,    0, 0, 0, 0, 0 };
@@ -66,9 +71,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE( write_binary( b, i3 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 9 ) );
-  REQUIRE_FALSE( b.good( 10 ) );
+  REQUIRE( b.remaining() == 9 );
   REQUIRE( b.pos() == 7 );
   expected = { 0x05, 0xff, 0x80, 0, 0x20, 0, 0x10, 0,
                0,    0,    0,    0, 0,    0, 0,    0 };
@@ -76,9 +79,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE( write_binary( b, i4 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -86,9 +87,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE_FALSE( write_binary( b, i4 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -96,9 +95,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE_FALSE( write_binary( b, i2 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -106,9 +103,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE( write_binary( b, i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -116,9 +111,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE_FALSE( write_binary( b, i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -126,20 +119,18 @@ TEST_CASE( "[base/binary-data] BinaryData [write] [builtin]" ) {
 
   REQUIRE_FALSE( write_binary( b, i4 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
   REQUIRE( buffer == expected );
 }
 
-TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
+TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
   array<unsigned char, 16> buffer   = {};
   array<unsigned char, 16> expected = {};
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
   uint8_t const  i1 = 0x05;
@@ -148,18 +139,14 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
   uint64_t const i4 = 0x1234567890987654;
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
   expected = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
   REQUIRE( buffer == expected );
 
   REQUIRE( b.write_bytes<1>( i1 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 15 ) );
-  REQUIRE_FALSE( b.good( 16 ) );
+  REQUIRE( b.remaining() == 15 );
   REQUIRE( b.pos() == 1 );
   expected = { 0x05, 0, 0, 0, 0, 0, 0, 0,
                0,    0, 0, 0, 0, 0, 0, 0 };
@@ -167,9 +154,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<2>( i2 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 13 ) );
-  REQUIRE_FALSE( b.good( 14 ) );
+  REQUIRE( b.remaining() == 13 );
   REQUIRE( b.pos() == 3 );
   expected = { 0x05, 0xff, 0x80, 0, 0, 0, 0, 0,
                0,    0,    0,    0, 0, 0, 0, 0 };
@@ -177,9 +162,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<2>( i3 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 11 ) );
-  REQUIRE_FALSE( b.good( 12 ) );
+  REQUIRE( b.remaining() == 11 );
   REQUIRE( b.pos() == 5 );
   expected = { 0x05, 0xff, 0x80, 0, 0x20, 0, 0, 0,
                0,    0,    0,    0, 0,    0, 0, 0 };
@@ -187,9 +170,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<2>( i3 >> 16 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 9 ) );
-  REQUIRE_FALSE( b.good( 10 ) );
+  REQUIRE( b.remaining() == 9 );
   REQUIRE( b.pos() == 7 );
   expected = { 0x05, 0xff, 0x80, 0, 0x20, 0, 0x10, 0,
                0,    0,    0,    0, 0,    0, 0,    0 };
@@ -197,9 +178,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<7>( i4 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 2 ) );
-  REQUIRE_FALSE( b.good( 3 ) );
+  REQUIRE( b.remaining() == 2 );
   REQUIRE( b.pos() == 14 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0,    0 };
@@ -207,9 +186,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<1>( i4 >> 56 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -217,9 +194,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<8>( i4 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -227,9 +202,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<2>( i2 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0 };
@@ -237,9 +210,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<1>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -247,9 +218,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<1>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -257,9 +226,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE( b.write_bytes<0>( i1 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -267,9 +234,7 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 
   REQUIRE_FALSE( b.write_bytes<8>( i4 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
   expected = { 0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
                0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x05 };
@@ -277,14 +242,14 @@ TEST_CASE( "[base/binary-data] BinaryData [write_bytes]" ) {
 }
 
 TEST_CASE(
-    "[base/binary-data] BinaryData [write] [std::array]" ) {
+    "[base/binary-data] IBinaryIO [write] [std::array]" ) {
   // These are not the arrays under test; we just happen to use a
   // std::array to represent the underlying binary buffer because
   // it supports operator==.
   array<unsigned char, 16 + 15> buffer   = {};
   array<unsigned char, 16 + 15> expected = {};
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 31 );
 
   array<uint16_t, 8> i0 = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -294,9 +259,7 @@ TEST_CASE(
   array<uint8_t, 2>  i3 = { 0x34, 0x56 };
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 31 ) );
-  REQUIRE_FALSE( b.good( 32 ) );
+  REQUIRE( b.remaining() == 31 );
   REQUIRE( b.pos() == 0 );
   expected = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -304,9 +267,7 @@ TEST_CASE(
 
   REQUIRE( write_binary( b, i0 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 15 ) );
-  REQUIRE_FALSE( b.good( 16 ) );
+  REQUIRE( b.remaining() == 15 );
   REQUIRE( b.pos() == 16 );
   expected = { 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 8, 0,
                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -314,9 +275,7 @@ TEST_CASE(
 
   REQUIRE_FALSE( write_binary( b, i1 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 7 ) );
-  REQUIRE_FALSE( b.good( 8 ) );
+  REQUIRE( b.remaining() == 7 );
   REQUIRE( b.pos() == 24 );
   expected = { 1,    0,    2,    0,    3,    0,    4,    0,
                5,    0,    6,    0,    7,    0,    8,    0,
@@ -326,9 +285,7 @@ TEST_CASE(
 
   REQUIRE_FALSE( write_binary( b, i2 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 3 ) );
-  REQUIRE_FALSE( b.good( 4 ) );
+  REQUIRE( b.remaining() == 3 );
   REQUIRE( b.pos() == 28 );
   expected = { 1,    0,    2,    0,    3,    0,    4,    0,
                5,    0,    6,    0,    7,    0,    8,    0,
@@ -338,9 +295,7 @@ TEST_CASE(
 
   REQUIRE( write_binary( b, i3 ) );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 30 );
   expected = { 1,    0,    2,    0,    3,    0,    4,    0,
                5,    0,    6,    0,    7,    0,    8,    0,
@@ -350,8 +305,7 @@ TEST_CASE(
 
   REQUIRE_FALSE( write_binary( b, i3 ) );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 31 );
   expected = { 1,    0,    2,    0,    3,    0,    4,    0,
                5,    0,    6,    0,    7,    0,    8,    0,
@@ -360,12 +314,12 @@ TEST_CASE(
   REQUIRE( buffer == expected );
 }
 
-TEST_CASE( "[base/binary-data] BinaryData [read] [builtin]" ) {
+TEST_CASE( "[base/binary-data] IBinaryIO [read] [builtin]" ) {
   array<unsigned char, 16> buffer = {
       0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
       0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x06 };
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
   uint8_t const  expected_i1 = 0x05;
@@ -379,95 +333,74 @@ TEST_CASE( "[base/binary-data] BinaryData [read] [builtin]" ) {
   uint64_t i4 = 0;
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
 
   REQUIRE( i1 == 0 );
   REQUIRE( read_binary( b, i1 ) );
   REQUIRE( i1 == expected_i1 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 15 ) );
-  REQUIRE_FALSE( b.good( 16 ) );
+  REQUIRE( b.remaining() == 15 );
   REQUIRE( b.pos() == 1 );
 
   REQUIRE( i2 == 0 );
   REQUIRE( read_binary( b, i2 ) );
   REQUIRE( i2 == expected_i2 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 13 ) );
-  REQUIRE_FALSE( b.good( 14 ) );
+  REQUIRE( b.remaining() == 13 );
   REQUIRE( b.pos() == 3 );
 
   REQUIRE( i3 == 0 );
   REQUIRE( read_binary( b, i3 ) );
   REQUIRE( i3 == expected_i3 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 9 ) );
-  REQUIRE_FALSE( b.good( 10 ) );
+  REQUIRE( b.remaining() == 9 );
   REQUIRE( b.pos() == 7 );
 
   REQUIRE( i4 == 0 );
   REQUIRE( read_binary( b, i4 ) );
   REQUIRE( i4 == expected_i4 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE_FALSE( read_binary( b, i4 ) );
   REQUIRE( i4 == expected_i4 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE_FALSE( read_binary( b, i2 ) );
   REQUIRE( i2 == expected_i2 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE( i1 == expected_i1 );
   REQUIRE( read_binary( b, i1 ) );
   REQUIRE( i1 == 0x06 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
 
   REQUIRE_FALSE( read_binary( b, i1 ) );
   REQUIRE( i1 == 0x06 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
 
   REQUIRE_FALSE( read_binary( b, i4 ) );
   REQUIRE( i1 == 0x06 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
   REQUIRE( b.pos() == 16 );
 }
 
-TEST_CASE( "[base/binary-data] BinaryData [read_bytes]" ) {
+TEST_CASE( "[base/binary-data] IBinaryIO [read_bytes]" ) {
   array<unsigned char, 16> buffer = {
       0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
       0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x06 };
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
   uint8_t const  expected_i1 = 0x05;
@@ -479,116 +412,89 @@ TEST_CASE( "[base/binary-data] BinaryData [read_bytes]" ) {
   uint64_t i4 = 0;
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
 
   REQUIRE( i1 == 0 );
   REQUIRE( b.read_bytes<0>( i1 ) );
   REQUIRE( i1 == 0 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
 
   REQUIRE( i1 == 0 );
   REQUIRE( b.read_bytes<1>( i1 ) );
   REQUIRE( i1 == expected_i1 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 15 ) );
-  REQUIRE_FALSE( b.good( 16 ) );
+  REQUIRE( b.remaining() == 15 );
   REQUIRE( b.pos() == 1 );
 
   REQUIRE( i2 == 0 );
   REQUIRE( b.read_bytes<1>( i2 ) );
   REQUIRE( i2 == 0xff );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 14 ) );
-  REQUIRE_FALSE( b.good( 15 ) );
+  REQUIRE( b.remaining() == 14 );
   REQUIRE( b.pos() == 2 );
 
   REQUIRE( b.read_bytes<1>( i2 ) );
   REQUIRE( i2 == 0x80 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 13 ) );
-  REQUIRE_FALSE( b.good( 14 ) );
+  REQUIRE( b.remaining() == 13 );
   REQUIRE( b.pos() == 3 );
 
   REQUIRE( i3 == 0 );
   REQUIRE( b.read_bytes<3>( i3 ) );
   REQUIRE( i3 == 0x00002000 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 10 ) );
-  REQUIRE_FALSE( b.good( 11 ) );
+  REQUIRE( b.remaining() == 10 );
   REQUIRE( b.pos() == 6 );
 
   REQUIRE( b.read_bytes<1>( i3 ) );
   REQUIRE( i3 == 0x00000010 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 9 ) );
-  REQUIRE_FALSE( b.good( 10 ) );
+  REQUIRE( b.remaining() == 9 );
   REQUIRE( b.pos() == 7 );
 
   REQUIRE( i4 == 0 );
   REQUIRE( b.read_bytes<8>( i4 ) );
   REQUIRE( i4 == expected_i4 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE_FALSE( b.read_bytes<8>( i4 ) );
   REQUIRE( i4 == 0 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE_FALSE( b.read_bytes<2>( i2 ) );
   REQUIRE( i2 == 0 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE( b.remaining() == 1 );
   REQUIRE( b.pos() == 15 );
 
   REQUIRE( i1 == expected_i1 );
   REQUIRE( b.read_bytes<1>( i1 ) );
   REQUIRE( i1 == 0x06 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
 
   REQUIRE_FALSE( b.read_bytes<1>( i1 ) );
   REQUIRE( i1 == 0 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
 
   REQUIRE_FALSE( b.read_bytes<1>( i4 ) );
   REQUIRE( i1 == 0 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
-  REQUIRE_FALSE( b.good( 2 ) );
+  REQUIRE_FALSE( b.remaining() == 1 );
   REQUIRE( b.pos() == 16 );
 }
 
-TEST_CASE(
-    "[base/binary-data] BinaryData [read] [std::array]" ) {
+TEST_CASE( "[base/binary-data] IBinaryIO [read] [std::array]" ) {
   // These are not the arrays under test; we just happen to use a
   // std::array to represent the underlying binary buffer because
   // it supports operator==.
@@ -596,7 +502,7 @@ TEST_CASE(
       0x05, 0xff, 0x80, 0,    0x20, 0,    0x10, 0x54,
       0x76, 0x98, 0x90, 0x78, 0x56, 0x34, 0x12, 0x06 };
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
   array<uint16_t, 3> const expected_i0 = { 0xff05, 0x0080,
@@ -610,49 +516,41 @@ TEST_CASE(
   array<uint8_t, 2>  i2 = { 0, 0 };
 
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 16 ) );
-  REQUIRE_FALSE( b.good( 17 ) );
+  REQUIRE( b.remaining() == 16 );
   REQUIRE( b.pos() == 0 );
 
   REQUIRE( read_binary( b, i0 ) );
   REQUIRE( i0 == expected_i0 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 10 ) );
-  REQUIRE_FALSE( b.good( 11 ) );
+  REQUIRE( b.remaining() == 10 );
   REQUIRE( b.pos() == 6 );
 
   REQUIRE( read_binary( b, i1 ) );
   REQUIRE( i1 == expected_i1 );
   REQUIRE_FALSE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE( b.good( 2 ) );
-  REQUIRE_FALSE( b.good( 3 ) );
+  REQUIRE( b.remaining() == 2 );
   REQUIRE( b.pos() == 14 );
 
   REQUIRE( read_binary( b, i2 ) );
   REQUIRE( i2 == expected_i2 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
 
   REQUIRE_FALSE( read_binary( b, i2 ) );
   REQUIRE( i2 == expected_i2 );
   REQUIRE( b.eof() );
-  REQUIRE( b.good( 0 ) );
-  REQUIRE_FALSE( b.good( 1 ) );
+  REQUIRE( b.remaining() == 0 );
   REQUIRE( b.pos() == 16 );
 }
 
 TEST_CASE(
-    "[base/binary-data] BinaryData [read/write] [signed]" ) {
+    "[base/binary-data] IBinaryIO [read/write] [signed]" ) {
   array<unsigned char, 8> buffer = { 0xff, 0xff, 0x05, 0x80,
                                      0xff, 0xff, 0xff, 0xff };
   array<unsigned char, 8> expected;
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 8 );
 
   SECTION( "read" ) {
@@ -695,7 +593,98 @@ TEST_CASE(
   }
 }
 
-TEST_CASE( "[base/binary-data] BinaryBuffer" ) {
+TEST_CASE( "[base/binary-data] FileBinaryIO read" ) {
+  expect<FileBinaryIO, string> const nonexistent =
+      FileBinaryIO::open_for_rw_fail_on_nonexist(
+          "does-not-exist-j89j9j" );
+  REQUIRE(
+      nonexistent ==
+      "failed to open file \"does-not-exist-j89j9j\" for reading."s );
+
+  auto bin_files = testing::data_dir() / "binary-files";
+
+  UNWRAP_CHECK( five_numbers,
+                FileBinaryIO::open_for_rw_fail_on_nonexist(
+                    bin_files / "five-numbers.bin" ) );
+  REQUIRE( !five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 0 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 5 );
+
+  uint16_t two_bytes = 0;
+  REQUIRE( five_numbers.read( two_bytes ) );
+  REQUIRE( two_bytes == 0x0301 );
+  REQUIRE( !five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 2 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 3 );
+
+  vector<unsigned char> const v = five_numbers.read_remainder();
+  REQUIRE( v == vector<unsigned char>{ 2, 4, 7 } );
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+
+  int8_t one_byte = 111;
+  REQUIRE( !five_numbers.read( one_byte ) );
+  REQUIRE( one_byte == 111 ); // unchanged due to failure.
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+
+  vector<unsigned char> const v2 = five_numbers.read_remainder();
+  REQUIRE( v2.empty() );
+  REQUIRE( five_numbers.eof() );
+  REQUIRE( five_numbers.pos() == 5 );
+  REQUIRE( five_numbers.size() == 5 );
+  REQUIRE( five_numbers.remaining() == 0 );
+}
+
+TEST_CASE( "[base/binary-data] FileBinaryIO write" ) {
+  fs::path const tmp  = output_folder();
+  fs::path const file = tmp / "two-numbers.bin";
+
+  {
+    UNWRAP_CHECK(
+        two_numbers,
+        FileBinaryIO::open_for_rw_and_truncate( file ) );
+    REQUIRE( two_numbers.eof() );
+    REQUIRE( two_numbers.pos() == 0 );
+    REQUIRE( two_numbers.size() == 0 );
+    REQUIRE( two_numbers.remaining() == 0 );
+
+    uint16_t const two_bytes = 0x3355;
+    REQUIRE( two_numbers.write( two_bytes ) );
+    REQUIRE( two_numbers.eof() );
+    REQUIRE( two_numbers.pos() == 2 );
+    REQUIRE( two_numbers.size() == 2 );
+    REQUIRE( two_numbers.remaining() == 0 );
+  }
+
+  UNWRAP_CHECK(
+      two_numbers,
+      FileBinaryIO::open_for_rw_fail_on_nonexist( file ) );
+  REQUIRE( !two_numbers.eof() );
+  REQUIRE( two_numbers.pos() == 0 );
+  REQUIRE( two_numbers.size() == 2 );
+  REQUIRE( two_numbers.remaining() == 2 );
+
+  uint16_t two_bytes = 0;
+  REQUIRE( two_numbers.read( two_bytes ) );
+  REQUIRE( two_bytes == 0x3355 );
+  REQUIRE( two_numbers.eof() );
+  REQUIRE( two_numbers.pos() == 2 );
+  REQUIRE( two_numbers.size() == 2 );
+  REQUIRE( two_numbers.remaining() == 0 );
+
+  vector<unsigned char> const v = two_numbers.read_remainder();
+  REQUIRE( v == vector<unsigned char>{} );
+  REQUIRE( two_numbers.eof() );
+  REQUIRE( two_numbers.pos() == 2 );
+  REQUIRE( two_numbers.size() == 2 );
+  REQUIRE( two_numbers.remaining() == 0 );
 }
 
 } // namespace

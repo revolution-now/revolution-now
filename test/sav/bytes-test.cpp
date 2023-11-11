@@ -21,7 +21,7 @@ namespace {
 
 using namespace std;
 
-using ::base::BinaryData;
+using ::base::MemBufferBinaryIO;
 
 /****************************************************************
 ** Test Cases
@@ -141,15 +141,13 @@ TEST_CASE( "[sav/bytes] write_binary" ) {
                                         1, 1, 1, 1, 1, 1, 1, 1 };
   array<unsigned char, 16> expected = {};
 
-  BinaryData b( buffer );
+  MemBufferBinaryIO b( buffer );
 
   SECTION( "empty" ) {
     bytes<0> const as = {};
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 16 ) );
-    REQUIRE_FALSE( b.good( 17 ) );
+    REQUIRE( b.remaining() == 16 );
     REQUIRE( b.pos() == 0 );
     expected = { 1, 1, 1, 1, 1, 1, 1, 1,
                  1, 1, 1, 1, 1, 1, 1, 1 };
@@ -159,9 +157,7 @@ TEST_CASE( "[sav/bytes] write_binary" ) {
     bytes<1> const as = { 0xfe };
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 15 ) );
-    REQUIRE_FALSE( b.good( 16 ) );
+    REQUIRE( b.remaining() == 15 );
     REQUIRE( b.pos() == 1 );
     expected = { 0xfe, 1, 1, 1, 1, 1, 1, 1,
                  1,    1, 1, 1, 1, 1, 1, 1 };
@@ -171,9 +167,7 @@ TEST_CASE( "[sav/bytes] write_binary" ) {
     bytes<2> const as = { 0xfe, 0 };
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 14 ) );
-    REQUIRE_FALSE( b.good( 15 ) );
+    REQUIRE( b.remaining() == 14 );
     REQUIRE( b.pos() == 2 );
     expected = { 0xfe, 0, 1, 1, 1, 1, 1, 1,
                  1,    1, 1, 1, 1, 1, 1, 1 };
@@ -183,9 +177,7 @@ TEST_CASE( "[sav/bytes] write_binary" ) {
     bytes<5> const as = { 0xfe, 1, 2, 10, 4 };
     write_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     expected = { 0xfe, 1, 2, 10, 4, 1, 1, 1,
                  1,    1, 1, 1,  1, 1, 1, 1 };
@@ -198,56 +190,48 @@ TEST_CASE( "[sav/bytes] read_binary" ) {
     array<unsigned char, 16> buffer = { 1, 1, 1, 1, 1, 1, 1, 1,
                                         1, 1, 1, 1, 1, 1, 1, 1 };
 
-    BinaryData     b( buffer );
-    bytes<0> const expected = {};
-    bytes<0>       as;
+    MemBufferBinaryIO b( buffer );
+    bytes<0> const    expected = {};
+    bytes<0>          as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 16 ) );
-    REQUIRE_FALSE( b.good( 17 ) );
+    REQUIRE( b.remaining() == 16 );
     REQUIRE( b.pos() == 0 );
     REQUIRE( as == expected );
   }
   SECTION( "single" ) {
     array<unsigned char, 16> buffer = {
         128, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData     b( buffer );
-    bytes<1> const expected = { 128 };
-    bytes<1>       as;
+    MemBufferBinaryIO b( buffer );
+    bytes<1> const    expected = { 128 };
+    bytes<1>          as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 15 ) );
-    REQUIRE_FALSE( b.good( 16 ) );
+    REQUIRE( b.remaining() == 15 );
     REQUIRE( b.pos() == 1 );
     REQUIRE( as == expected );
   }
   SECTION( "double" ) {
     array<unsigned char, 16> buffer = {
         128, 200, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData     b( buffer );
-    bytes<2> const expected = { 128, 200 };
-    bytes<2>       as;
+    MemBufferBinaryIO b( buffer );
+    bytes<2> const    expected = { 128, 200 };
+    bytes<2>          as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 14 ) );
-    REQUIRE_FALSE( b.good( 15 ) );
+    REQUIRE( b.remaining() == 14 );
     REQUIRE( b.pos() == 2 );
     REQUIRE( as == expected );
   }
   SECTION( "many" ) {
     array<unsigned char, 16> buffer = {
         128, 200, 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
-    BinaryData     b( buffer );
-    bytes<5> const expected = { 128, 200, 1, 2, 3 };
-    bytes<5>       as;
+    MemBufferBinaryIO b( buffer );
+    bytes<5> const    expected = { 128, 200, 1, 2, 3 };
+    bytes<5>          as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
-    REQUIRE( b.good( 0 ) );
-    REQUIRE( b.good( 11 ) );
-    REQUIRE_FALSE( b.good( 12 ) );
+    REQUIRE( b.remaining() == 11 );
     REQUIRE( b.pos() == 5 );
     REQUIRE( as == expected );
   }

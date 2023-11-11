@@ -36,7 +36,7 @@ void bits_base::to_string( std::string& out ) const {
   }
 }
 
-bool bits_base::read_binary( base::BinaryData& b ) {
+bool bits_base::read_binary( base::IBinaryIO& b ) {
   CHECK( n_bits % 8 == 0 );
   int const nbytes = n_bits / 8;
   n                = 0;
@@ -48,7 +48,7 @@ bool bits_base::read_binary( base::BinaryData& b ) {
   return true;
 }
 
-bool bits_base::write_binary( base::BinaryData& b ) const {
+bool bits_base::write_binary( base::IBinaryIO& b ) const {
   CHECK( n_bits % 8 == 0 );
   int const nbytes = n_bits / 8;
   uint64_t  m      = n;

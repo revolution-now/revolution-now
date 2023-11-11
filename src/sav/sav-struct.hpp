@@ -22,8 +22,7 @@
 *****************************************************************/
 namespace base {
 
-struct BinaryData;
-struct BinaryData;
+struct IBinaryIO;
 
 }  // namespace base
 
@@ -781,8 +780,8 @@ struct GameOptions {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, GameOptions& o );
-bool write_binary( base::BinaryData& b, GameOptions const& o );
+bool read_binary( base::IBinaryIO& b, GameOptions& o );
+bool write_binary( base::IBinaryIO& b, GameOptions const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -814,8 +813,8 @@ struct ColonyReportOptions {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ColonyReportOptions& o );
-bool write_binary( base::BinaryData& b, ColonyReportOptions const& o );
+bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o );
+bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -852,8 +851,8 @@ struct Event {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Event& o );
-bool write_binary( base::BinaryData& b, Event const& o );
+bool read_binary( base::IBinaryIO& b, Event& o );
+bool write_binary( base::IBinaryIO& b, Event const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -876,8 +875,8 @@ struct Duration {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Duration& o );
-bool write_binary( base::BinaryData& b, Duration const& o );
+bool read_binary( base::IBinaryIO& b, Duration& o );
+bool write_binary( base::IBinaryIO& b, Duration const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -917,8 +916,8 @@ struct Buildings {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Buildings& o );
-bool write_binary( base::BinaryData& b, Buildings const& o );
+bool read_binary( base::IBinaryIO& b, Buildings& o );
+bool write_binary( base::IBinaryIO& b, Buildings const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -955,8 +954,8 @@ struct CustomHouseFlags {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, CustomHouseFlags& o );
-bool write_binary( base::BinaryData& b, CustomHouseFlags const& o );
+bool read_binary( base::IBinaryIO& b, CustomHouseFlags& o );
+bool write_binary( base::IBinaryIO& b, CustomHouseFlags const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -982,8 +981,8 @@ struct NationInfo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, NationInfo& o );
-bool write_binary( base::BinaryData& b, NationInfo const& o );
+bool read_binary( base::IBinaryIO& b, NationInfo& o );
+bool write_binary( base::IBinaryIO& b, NationInfo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1006,8 +1005,8 @@ struct Unknown15 {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Unknown15& o );
-bool write_binary( base::BinaryData& b, Unknown15 const& o );
+bool read_binary( base::IBinaryIO& b, Unknown15& o );
+bool write_binary( base::IBinaryIO& b, Unknown15 const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1030,8 +1029,8 @@ struct CargoItems {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, CargoItems& o );
-bool write_binary( base::BinaryData& b, CargoItems const& o );
+bool read_binary( base::IBinaryIO& b, CargoItems& o );
+bool write_binary( base::IBinaryIO& b, CargoItems const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1068,8 +1067,8 @@ struct BoycottBitmap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, BoycottBitmap& o );
-bool write_binary( base::BinaryData& b, BoycottBitmap const& o );
+bool read_binary( base::IBinaryIO& b, BoycottBitmap& o );
+bool write_binary( base::IBinaryIO& b, BoycottBitmap const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1095,8 +1094,8 @@ struct ALCS {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ALCS& o );
-bool write_binary( base::BinaryData& b, ALCS const& o );
+bool read_binary( base::IBinaryIO& b, ALCS& o );
+bool write_binary( base::IBinaryIO& b, ALCS const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1119,8 +1118,8 @@ struct TILE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TILE& o );
-bool write_binary( base::BinaryData& b, TILE const& o );
+bool read_binary( base::IBinaryIO& b, TILE& o );
+bool write_binary( base::IBinaryIO& b, TILE const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1149,8 +1148,8 @@ struct MASK {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, MASK& o );
-bool write_binary( base::BinaryData& b, MASK const& o );
+bool read_binary( base::IBinaryIO& b, MASK& o );
+bool write_binary( base::IBinaryIO& b, MASK const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1173,8 +1172,8 @@ struct PATH {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PATH& o );
-bool write_binary( base::BinaryData& b, PATH const& o );
+bool read_binary( base::IBinaryIO& b, PATH& o );
+bool write_binary( base::IBinaryIO& b, PATH const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1200,8 +1199,8 @@ struct SEEN {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, SEEN& o );
-bool write_binary( base::BinaryData& b, SEEN const& o );
+bool read_binary( base::IBinaryIO& b, SEEN& o );
+bool write_binary( base::IBinaryIO& b, SEEN const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1224,8 +1223,8 @@ struct Stop1LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryData& b, Stop1LoadsAndUnloadsCount const& o );
+bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o );
+bool write_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1252,8 +1251,8 @@ struct Stop1LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1LoadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop1LoadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop1LoadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1280,8 +1279,8 @@ struct Stop1UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop1UnloadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop1UnloadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop1UnloadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1304,8 +1303,8 @@ struct Stop2LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryData& b, Stop2LoadsAndUnloadsCount const& o );
+bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o );
+bool write_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1332,8 +1331,8 @@ struct Stop2LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2LoadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop2LoadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop2LoadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1360,8 +1359,8 @@ struct Stop2UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop2UnloadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop2UnloadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop2UnloadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1384,8 +1383,8 @@ struct Stop3LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryData& b, Stop3LoadsAndUnloadsCount const& o );
+bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o );
+bool write_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1412,8 +1411,8 @@ struct Stop3LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3LoadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop3LoadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop3LoadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1440,8 +1439,8 @@ struct Stop3UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop3UnloadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop3UnloadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop3UnloadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1464,8 +1463,8 @@ struct Stop4LoadsAndUnloadsCount {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount& o );
-bool write_binary( base::BinaryData& b, Stop4LoadsAndUnloadsCount const& o );
+bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o );
+bool write_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1492,8 +1491,8 @@ struct Stop4LoadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4LoadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop4LoadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop4LoadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1520,8 +1519,8 @@ struct Stop4UnloadsCargo {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stop4UnloadsCargo& o );
-bool write_binary( base::BinaryData& b, Stop4UnloadsCargo const& o );
+bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o );
+bool write_binary( base::IBinaryIO& b, Stop4UnloadsCargo const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1546,8 +1545,8 @@ struct ExpeditionaryForce {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ExpeditionaryForce& o );
-bool write_binary( base::BinaryData& b, ExpeditionaryForce const& o );
+bool read_binary( base::IBinaryIO& b, ExpeditionaryForce& o );
+bool write_binary( base::IBinaryIO& b, ExpeditionaryForce const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1572,8 +1571,8 @@ struct BackupForce {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, BackupForce& o );
-bool write_binary( base::BinaryData& b, BackupForce const& o );
+bool read_binary( base::IBinaryIO& b, BackupForce& o );
+bool write_binary( base::IBinaryIO& b, BackupForce const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1610,8 +1609,8 @@ struct PriceGroupState {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PriceGroupState& o );
-bool write_binary( base::BinaryData& b, PriceGroupState const& o );
+bool read_binary( base::IBinaryIO& b, PriceGroupState& o );
+bool write_binary( base::IBinaryIO& b, PriceGroupState const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1667,8 +1666,8 @@ struct HEAD {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, HEAD& o );
-bool write_binary( base::BinaryData& b, HEAD const& o );
+bool read_binary( base::IBinaryIO& b, HEAD& o );
+bool write_binary( base::IBinaryIO& b, HEAD const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1695,8 +1694,8 @@ struct PLAYER {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PLAYER& o );
-bool write_binary( base::BinaryData& b, PLAYER const& o );
+bool read_binary( base::IBinaryIO& b, PLAYER& o );
+bool write_binary( base::IBinaryIO& b, PLAYER const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1725,8 +1724,8 @@ struct Tiles {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Tiles& o );
-bool write_binary( base::BinaryData& b, Tiles const& o );
+bool read_binary( base::IBinaryIO& b, Tiles& o );
+bool write_binary( base::IBinaryIO& b, Tiles const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1763,8 +1762,8 @@ struct Stock {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Stock& o );
-bool write_binary( base::BinaryData& b, Stock const& o );
+bool read_binary( base::IBinaryIO& b, Stock& o );
+bool write_binary( base::IBinaryIO& b, Stock const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1789,8 +1788,8 @@ struct PopulationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, PopulationOnMap& o );
-bool write_binary( base::BinaryData& b, PopulationOnMap const& o );
+bool read_binary( base::IBinaryIO& b, PopulationOnMap& o );
+bool write_binary( base::IBinaryIO& b, PopulationOnMap const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1815,8 +1814,8 @@ struct FortificationOnMap {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, FortificationOnMap& o );
-bool write_binary( base::BinaryData& b, FortificationOnMap const& o );
+bool read_binary( base::IBinaryIO& b, FortificationOnMap& o );
+bool write_binary( base::IBinaryIO& b, FortificationOnMap const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1859,8 +1858,8 @@ struct COLONY {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, COLONY& o );
-bool write_binary( base::BinaryData& b, COLONY const& o );
+bool read_binary( base::IBinaryIO& b, COLONY& o );
+bool write_binary( base::IBinaryIO& b, COLONY const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1883,8 +1882,8 @@ struct TransportChain {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TransportChain& o );
-bool write_binary( base::BinaryData& b, TransportChain const& o );
+bool read_binary( base::IBinaryIO& b, TransportChain& o );
+bool write_binary( base::IBinaryIO& b, TransportChain const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1922,8 +1921,8 @@ struct UNIT {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, UNIT& o );
-bool write_binary( base::BinaryData& b, UNIT const& o );
+bool read_binary( base::IBinaryIO& b, UNIT& o );
+bool write_binary( base::IBinaryIO& b, UNIT const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1952,8 +1951,8 @@ struct RelationByIndian {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, RelationByIndian& o );
-bool write_binary( base::BinaryData& b, RelationByIndian const& o );
+bool read_binary( base::IBinaryIO& b, RelationByIndian& o );
+bool write_binary( base::IBinaryIO& b, RelationByIndian const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -1979,8 +1978,8 @@ struct Trade {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Trade& o );
-bool write_binary( base::BinaryData& b, Trade const& o );
+bool read_binary( base::IBinaryIO& b, Trade& o );
+bool write_binary( base::IBinaryIO& b, Trade const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2030,8 +2029,8 @@ struct NATION {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, NATION& o );
-bool write_binary( base::BinaryData& b, NATION const& o );
+bool read_binary( base::IBinaryIO& b, NATION& o );
+bool write_binary( base::IBinaryIO& b, NATION const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2054,8 +2053,8 @@ struct Alarm {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, Alarm& o );
-bool write_binary( base::BinaryData& b, Alarm const& o );
+bool read_binary( base::IBinaryIO& b, Alarm& o );
+bool write_binary( base::IBinaryIO& b, Alarm const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2085,8 +2084,8 @@ struct TRIBE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TRIBE& o );
-bool write_binary( base::BinaryData& b, TRIBE const& o );
+bool read_binary( base::IBinaryIO& b, TRIBE& o );
+bool write_binary( base::IBinaryIO& b, TRIBE const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2111,8 +2110,8 @@ struct RelationByNations {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, RelationByNations& o );
-bool write_binary( base::BinaryData& b, RelationByNations const& o );
+bool read_binary( base::IBinaryIO& b, RelationByNations& o );
+bool write_binary( base::IBinaryIO& b, RelationByNations const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2144,8 +2143,8 @@ struct INDIAN {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, INDIAN& o );
-bool write_binary( base::BinaryData& b, INDIAN const& o );
+bool read_binary( base::IBinaryIO& b, INDIAN& o );
+bool write_binary( base::IBinaryIO& b, INDIAN const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2177,8 +2176,8 @@ struct STUFF {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, STUFF& o );
-bool write_binary( base::BinaryData& b, STUFF const& o );
+bool read_binary( base::IBinaryIO& b, STUFF& o );
+bool write_binary( base::IBinaryIO& b, STUFF const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2222,8 +2221,8 @@ struct TRADEROUTE {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, TRADEROUTE& o );
-bool write_binary( base::BinaryData& b, TRADEROUTE const& o );
+bool read_binary( base::IBinaryIO& b, TRADEROUTE& o );
+bool write_binary( base::IBinaryIO& b, TRADEROUTE const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -2264,8 +2263,8 @@ struct ColonySAV {
 };
 
 // Binary conversion.
-bool read_binary( base::BinaryData& b, ColonySAV& o );
-bool write_binary( base::BinaryData& b, ColonySAV const& o );
+bool read_binary( base::IBinaryIO& b, ColonySAV& o );
+bool write_binary( base::IBinaryIO& b, ColonySAV const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
