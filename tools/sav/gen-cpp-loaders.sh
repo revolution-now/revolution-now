@@ -1,20 +1,16 @@
 #!/bin/bash
 set -eo pipefail
 
-die() {
-  echo "error: $*" 1>&2
-  exit 1
-}
+sav="$(dirname "$0")"
+tools="$sav/.."
+root="$tools/.."
 
-this="$(dirname "$0")"
+out_dir="$root/src/sav"
 
-out="$1"
-[[ -n "$out" ]] || die "out directory is empty."
-
-source "$this/luarocks-env.sh"
-export LUA_PATH="$this/?.lua;$LUA_PATH"
+source "$sav/luarocks-env.sh"
+export LUA_PATH="$sav/?.lua;$LUA_PATH"
 
 lua                           \
-  "$this/gen-cpp-loaders.lua" \
-  "$this/sav-structure.json"  \
-  "$out"
+  "$sav/gen-cpp-loaders.lua" \
+  "$sav/sav-structure.json"  \
+  "$out_dir"
