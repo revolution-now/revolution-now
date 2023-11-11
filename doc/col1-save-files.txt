@@ -34,14 +34,10 @@ Problems with fields
     change, just that it seems to be flipped. Probably not an is-
     sue, though we may want to change the name of that field to
     "water color cycling off").
-  * colony_report_options.
-  * The tuts are not filled out.
   * active_unit may be signed since when there are no active
     units it seems to be 65535. This looks like it also applies
     to the colony of origin and dwelling of origin fields, which
     can be 255.
-  * change founding_fathers to a bit struct so that they are
-    named.
   * unknown35 has something to do with colony count (along with
     the fields above/below it apparently).
   * relation_type seems to have an additional value even in new
@@ -50,15 +46,87 @@ Problems with fields
 TODO
 ========================================================
 
-  1. Add CLI flags to game for doing the conversions; include
-     commands for working with map files only.
-  2. Save/Load map only. This is needed because we want to be
+  1. Go through other sources (web sites) with field mappings and
+     try to fill in some of the missing ones.
+
+       * The tuts are not filled out.
+       * Turn the founding fathers into a named bitfield.
+       * Fill out colony_report_options.
+
+  2. Save/Load map files. This is needed because we want to be
      able to load the OG's map files, which contain only map
      data.
-  3. Solve problem of how to obtain/represent the save-game sum-
+
+       => Test this by importing the OG's America map.
+
+  3. Add framework for conversion between new and old.
+
+       => Test this by importing the OG's America map.
+
+  4. Try to map remaining fields.
+
+  5. Add UI mechanism for working with OG sav files.
+
+  6. Add CLI flags to game for doing the conversions; include
+     commands for working with map files only.
+
+       => not needed at the moment because we have the lua con-
+          version scripts.
+
+  7. If we're going to support conversion of SAV files to/from
+     JSON in the distributed game, we're probably going to need
+     a way to convey the metadata values to users.  We could
+     just publish the JSON schema, that would probably be easiest.
+
+  8. Solve problem of how to obtain/represent the save-game sum-
      maries for each format.
-  4. Go through other sources (web sites) with field mappings and
-     try to fill in some of the missing ones.
-  5. Try to map remaining fields.
-  6. Add conversion between new and old.
-  7. Add UI mechanism for working with OG sav files.
+
+       => Add a function to load only the non-map portion
+          of a SAV file and extract summary.
+
+       * RN json: Not sure if there is a good robust solution
+                  here that allows for users to manipulate
+                  and/or regenerate this file while preserving
+                  a summary in a place that can be accessed
+                  quickly, since JSON does not support key
+                  ordering.
+       * RN rcl:  If we find a solution that works for JSON
+                  then it should also work for rcl.  Until
+                  that time, probably the best thing is to
+                  just keep it as a comment at the top of the
+                  file, even though it is kind of hacky. This
+                  is the reason JSON does not allow comments,
+                  since one starts using them for conveying
+                  essential information that really should be
+                  part of the JSON proper (or rcl in this case).
+       * OG bin:  Load non-map part only (needs to be implemented).
+       * OG json: ? (see below)
+
+     Not totally sure how we will want to handle this, since
+     there are a few things still up in the air:
+
+       1. Although the rcl language is ideal for the config
+          files, it is possible that we will switch to proper
+          JSON for the rn save files. This is so that users can
+          more easily manipulate them on their own, and they are
+          not likely going to be read/edited by hand as much as
+          the rcl config files. In that case, storing the summary
+          as a comment won't work because JSON does not support
+          comments, and that's probably a good thing.
+       2. Although we will support converting the OG's binary SAV
+          files to/from the OG JSON format just as a tool (e.g.,
+          as CLI commands), it seems that we may not need to sup-
+          port directly loading the OG JSON files into the game.
+          This is because, the main reason that someone might
+          want to use an OG JSON file is to read/edit an OG bi-
+          nary file. Even if they edit it, they would do so
+          likely just to convert it back to binary and play it in
+          the OG. If they wanted to then load it into RN then
+          they could have just done that originally, at which
+          point they could save it to rcl/JSON in the new format
+          and edit it that way. So in other words, there does not
+          appear to be any practical use cases for having the
+          game UI directly load OG JSON files. Thus, it seems un-
+          necessary to support storing the summaries in them.
+          That way we can keep the OG JSON/binary files contents'
+          the same.
