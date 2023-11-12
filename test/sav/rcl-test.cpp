@@ -88,30 +88,30 @@ TEST_CASE( "[sav/rcl] json roundtrip" ) {
       classic_sav_dir() / "dutch-viceroy-playthrough" / "json";
 
   // clang-format off
-    static vector<pair<fs::path, fs::path>> const paths{
-        { modern_dir, "dutch-viceroy-1492-options-set-cheat-enabled.SAV.json" },
-        { modern_dir, "dutch-viceroy-1492-start.SAV.json" },
-        { modern_dir, "dutch-viceroy-1500-first-colony.SAV.json" },
-        { modern_dir, "dutch-viceroy-1516-two-colonies-two-trade-routes.SAV.json" },
-        { modern_dir, "dutch-viceroy-1519-at-war-with-natives-with-treasure.SAV.json" },
-        { modern_dir, "dutch-viceroy-1524-met-the-english-at-war.SAV.json" },
-        { modern_dir, "dutch-viceroy-1525-just-after-declaration.SAV.json" },
-        { modern_dir, "dutch-viceroy-1525-just-before-declaration.SAV.json" },
-        { modern_dir, "dutch-viceroy-1526-ref-landed.SAV.json" },
-        { modern_dir, "dutch-viceroy-1533-mid-war.SAV.json" },
-        { modern_dir, "dutch-viceroy-1534-all-tribes-killed.SAV.json" },
-        { modern_dir, "dutch-viceroy-1534-most-tribes-killed.SAV.json" },
-        { modern_dir, "dutch-viceroy-1542-almost-won-independence.SAV.json" },
-        { modern_dir, "dutch-viceroy-1551-ref-gone-win-next-turn.SAV.json" },
-        { modern_dir, "dutch-viceroy-1552-post-independence-keep-playing.SAV.json" },
-        { modern_dir, "dutch-viceroy-1560-post-independence-cleared-all-entities.SAV.json" },
-        { classic_dir, "COLONY00.SAV.json" },
-        { classic_dir, "COLONY01.SAV.json" },
-        { classic_dir, "COLONY02.SAV.json" },
-        { classic_dir, "COLONY08.SAV.json" },
-        { classic_dir, "COLONY09.SAV.json" },
-        { classic_dir, "COLONY10.SAV.json" },
-    };
+  static vector<pair<fs::path, fs::path>> const paths{
+    { modern_dir, "dutch-viceroy-1492-options-set-cheat-enabled.SAV.json" },
+    { modern_dir, "dutch-viceroy-1492-start.SAV.json" },
+    { modern_dir, "dutch-viceroy-1500-first-colony.SAV.json" },
+    { modern_dir, "dutch-viceroy-1516-two-colonies-two-trade-routes.SAV.json" },
+    { modern_dir, "dutch-viceroy-1519-at-war-with-natives-with-treasure.SAV.json" },
+    { modern_dir, "dutch-viceroy-1524-met-the-english-at-war.SAV.json" },
+    { modern_dir, "dutch-viceroy-1525-just-after-declaration.SAV.json" },
+    { modern_dir, "dutch-viceroy-1525-just-before-declaration.SAV.json" },
+    { modern_dir, "dutch-viceroy-1526-ref-landed.SAV.json" },
+    { modern_dir, "dutch-viceroy-1533-mid-war.SAV.json" },
+    { modern_dir, "dutch-viceroy-1534-all-tribes-killed.SAV.json" },
+    { modern_dir, "dutch-viceroy-1534-most-tribes-killed.SAV.json" },
+    { modern_dir, "dutch-viceroy-1542-almost-won-independence.SAV.json" },
+    { modern_dir, "dutch-viceroy-1551-ref-gone-win-next-turn.SAV.json" },
+    { modern_dir, "dutch-viceroy-1552-post-independence-keep-playing.SAV.json" },
+    { modern_dir, "dutch-viceroy-1560-post-independence-cleared-all-entities.SAV.json" },
+    { classic_dir, "COLONY00.SAV.json" },
+    { classic_dir, "COLONY01.SAV.json" },
+    { classic_dir, "COLONY02.SAV.json" },
+    { classic_dir, "COLONY08.SAV.json" },
+    { classic_dir, "COLONY09.SAV.json" },
+    { classic_dir, "COLONY10.SAV.json" },
+  };
   // clang-format on
 
   // Can't do all of these cause it's too slow.
