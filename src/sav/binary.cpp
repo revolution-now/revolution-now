@@ -13,6 +13,7 @@
 
 // sav
 #include "error.hpp"
+#include "map-file.hpp"
 #include "sav-struct.hpp"
 
 // base
@@ -27,6 +28,7 @@ namespace {
 
 using ::base::FileBinaryIO;
 using ::base::IBinaryIO;
+using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
 
@@ -145,6 +147,59 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   return valid;
 }
 
+valid_or<string> read( IBinaryIO& b, MapFile& out ) {
+  if( !read_binary( b, out.map_size_x ) )
+    return fmt::format( "while reading map X size." );
+  if( !read_binary( b, out.map_size_y ) )
+    return fmt::format( "while reading map Y size." );
+  if( !read_binary( b, out.unknown ) )
+    return fmt::format( "while reading bytes 4+5." );
+
+  int tile_count = out.map_size_x * out.map_size_y;
+  if( tile_count == 0 )
+    return fmt::format( "map size is zero." );
+  // These are the (fixed) size of the map in the OG. Note that
+  // they include a "border" of tiles, one tile thick, that are
+  // not visible on the map in the game.
+  int const kOGMapX = 58;
+  int const kOGMapY = 72;
+  // In the sanity checks below we will allow maps that are
+  // smaller than this since we will use those in unit tests,
+  // but we will not allow maps larger, since the OG has various
+  // mechanisms that won't really work with arbitrary map sizes.
+  int const kMaxTiles = kOGMapX * kOGMapY;
+
+  if( tile_count > kMaxTiles )
+    return fmt::format(
+        "the map has {} tiles which exceeds the size of the "
+        "original game's map, which is {}x{} tiles.",
+        tile_count, kOGMapX, kOGMapY );
+
+  HAS_VALUE_OR_RET( read_vector( b, "tile", tile_count,
+                                 kMaxTiles, out.tile ) );
+  HAS_VALUE_OR_RET( read_vector( b, "mask", tile_count,
+                                 kMaxTiles, out.mask ) );
+  HAS_VALUE_OR_RET( read_vector( b, "path", tile_count,
+                                 kMaxTiles, out.path ) );
+
+  return valid;
+}
+
+valid_or<string> write( IBinaryIO& b, MapFile const& out ) {
+  if( !write_binary( b, out.map_size_x ) )
+    return fmt::format( "while writing map X size." );
+  if( !write_binary( b, out.map_size_y ) )
+    return fmt::format( "while writing map Y size." );
+  if( !write_binary( b, out.unknown ) )
+    return fmt::format( "while writing bytes 4+5." );
+
+  HAS_VALUE_OR_RET( write_vector( b, "tile", out.tile ) );
+  HAS_VALUE_OR_RET( write_vector( b, "mask", out.mask ) );
+  HAS_VALUE_OR_RET( write_vector( b, "path", out.path ) );
+
+  return valid;
+}
+
 valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.header ) )
     return fmt::format( "while writing header." );
@@ -200,7 +255,7 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
 *****************************************************************/
 valid_or<string> load_binary( string const& path,
                               ColonySAV&    out ) {
-  base::ScopedTimer timer( "load SAV binary" );
+  ScopedTimer timer( "load SAV binary" );
   UNWRAP_RETURN(
       file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
   if( auto res = read( file, out ); !res )
@@ -218,12 +273,42 @@ valid_or<string> load_binary( string const& path,
 
 valid_or<string> save_binary( string const&    path,
                               ColonySAV const& in ) {
-  base::ScopedTimer timer( "save SAV binary" );
+  ScopedTimer timer( "save SAV binary" );
   UNWRAP_RETURN(
       file, FileBinaryIO::open_for_rw_and_truncate( path ) );
   if( !write( file, in ) )
     return fmt::format(
         "failed to write save data to buffer at offset {}.",
+        file.pos() );
+  return valid;
+}
+
+valid_or<string> load_map_file( string const& path,
+                                MapFile&      out ) {
+  ScopedTimer timer( "load MP file" );
+  UNWRAP_RETURN(
+      file, FileBinaryIO::open_for_rw_fail_on_nonexist( path ) );
+  if( auto res = read( file, out ); !res )
+    return fmt::format(
+        "failed while reading MP file data at offset {}: {}",
+        file.pos(), res.error() );
+
+  if( file.remaining() > 0 )
+    return fmt::format(
+        "{} unexpected residual bytes at end of file.",
+        file.remaining() );
+
+  return valid;
+}
+
+valid_or<string> save_map_file( string const&  path,
+                                MapFile const& in ) {
+  ScopedTimer timer( "save MP file" );
+  UNWRAP_RETURN(
+      file, FileBinaryIO::open_for_rw_and_truncate( path ) );
+  if( !write( file, in ) )
+    return fmt::format(
+        "failed to write MP data to buffer at offset {}.",
         file.pos() );
   return valid;
 }

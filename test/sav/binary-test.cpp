@@ -14,7 +14,8 @@
 #include "src/sav/binary.hpp"
 
 // sav
-#include "sav-struct.hpp"
+#include "src/sav/map-file.hpp"
+#include "src/sav/sav-struct.hpp"
 
 // base
 #include "src/base/binary-data.hpp"
@@ -54,14 +55,25 @@ fs::path output_folder() {
   return res;
 }
 
-bool binary_round_trip( fs::path const& folder,
-                        fs::path const& file,
-                        fs::path const& tmp ) {
+bool binary_sav_round_trip( fs::path const& folder,
+                            fs::path const& file,
+                            fs::path const& tmp ) {
   static ColonySAV sav;
   fs::path const   in  = folder / file;
   fs::path const   out = tmp / file;
   CHECK_HAS_VALUE( load_binary( in, sav ) );
   CHECK_HAS_VALUE( save_binary( out, sav ) );
+  return file_contents_same( in, out );
+}
+
+bool binary_map_round_trip( fs::path const& folder,
+                            fs::path const& file,
+                            fs::path const& tmp ) {
+  static MapFile map;
+  fs::path const in  = folder / file;
+  fs::path const out = tmp / file;
+  CHECK_HAS_VALUE( load_map_file( in, map ) );
+  CHECK_HAS_VALUE( save_map_file( out, map ) );
   return file_contents_same( in, out );
 }
 
@@ -78,7 +90,7 @@ T const& pick_one( vector<T> const& v ) {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[sav/binary] binary roundtrip" ) {
+TEST_CASE( "[sav/binary] SAV file binary roundtrip" ) {
   fs::path const tmp = output_folder();
 
   fs::path const classic_dir = classic_sav_dir() / "1990s";
@@ -115,7 +127,25 @@ TEST_CASE( "[sav/binary] binary roundtrip" ) {
   // Can't do all of these cause it's too slow.
   auto& [dir, file] = pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
-  bool const good = binary_round_trip( dir, file, tmp );
+  bool const good = binary_sav_round_trip( dir, file, tmp );
+  REQUIRE( good );
+}
+
+TEST_CASE( "[sav/binary] MP file roundtrip" ) {
+  fs::path const tmp = output_folder();
+
+  fs::path const map_dir = classic_sav_dir() / "map";
+
+  // clang-format off
+  static vector<pair<fs::path, fs::path>> const paths{
+    { map_dir, "AMER2.MP" },
+  };
+  // clang-format on
+
+  // Can't do all of these cause it's too slow.
+  auto& [dir, file] = pick_one( paths );
+  INFO( fmt::format( "path: {}", dir / file ) );
+  bool const good = binary_map_round_trip( dir, file, tmp );
   REQUIRE( good );
 }
 

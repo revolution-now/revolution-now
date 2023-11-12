@@ -23,10 +23,6 @@ These do or may provide unique info beyond the primary source above:
 Problems with fields
 ===========================================
 
-  * water_color_cycling off when should be on (the field does
-    change, just that it seems to be flipped. Probably not an is-
-    sue, though we may want to change the name of that field to
-    "water color cycling off").
   * active_unit may be signed since when there are no active
     units it seems to be 65535. This looks like it also applies
     to the colony of origin and dwelling of origin fields, which
@@ -39,39 +35,26 @@ Problems with fields
 TODO
 ========================================================
 
-  1. Go through other sources (web sites) with field mappings and
-     try to fill in some of the missing ones.
-
-       * The tuts are not filled out.
-       * Turn the founding fathers into a named bitfield.
-       * Fill out colony_report_options.
-
-  2. Save/Load map files. This is needed because we want to be
-     able to load the OG's map files, which contain only map
-     data.
+  1. Add framework for conversion between new and old.
 
        => Test this by importing the OG's America map.
 
-  3. Add framework for conversion between new and old.
+  2. Try to map remaining fields.
 
-       => Test this by importing the OG's America map.
+  3. Add UI mechanism for working with OG sav files.
 
-  4. Try to map remaining fields.
-
-  5. Add UI mechanism for working with OG sav files.
-
-  6. Add CLI flags to game for doing the conversions; include
+  4. Add CLI flags to game for doing the conversions; include
      commands for working with map files only.
 
        => not needed at the moment because we have the lua con-
           version scripts.
 
-  7. If we're going to support conversion of SAV files to/from
+  5. If we're going to support conversion of SAV files to/from
      JSON in the distributed game, we're probably going to need
      a way to convey the metadata values to users.  We could
      just publish the JSON schema, that would probably be easiest.
 
-  8. Solve problem of how to obtain/represent the save-game sum-
+  6. Solve problem of how to obtain/represent the save-game sum-
      maries for each format.
 
        => Add a function to load only the non-map portion
