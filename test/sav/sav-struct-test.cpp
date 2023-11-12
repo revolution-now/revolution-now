@@ -36,11 +36,11 @@ TEST_CASE( "[sav/sav-struct] construction" ) {
   ColonySAV sav;
 
   // Test a couple random fields.
-  REQUIRE( sav.head.turn == 0 );
-  REQUIRE( sav.head.game_options.autosave == false );
-  REQUIRE( sav.head.tribe_count == 0 );
-  REQUIRE( sav.head.event.the_fountain_of_youth == false );
-  REQUIRE( sav.indian[1].tech == tech_type::semi_nomadic );
+  REQUIRE( sav.header.turn == 0 );
+  REQUIRE( sav.header.game_options.autosave == false );
+  REQUIRE( sav.header.dwelling_count == 0 );
+  REQUIRE( sav.header.event.the_fountain_of_youth == false );
+  REQUIRE( sav.tribe[1].tech == tech_type::semi_nomadic );
 }
 
 TEST_CASE( "[sav/sav-struct] to_str" ) {
@@ -84,23 +84,23 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
   // Bit field with bits<> type.
   {
     GameOptions const o{
-        .unused01            = 33,
-        .tutorial_hints      = true,
-        .water_color_cycling = false,
-        .combat_analysis     = true,
-        .autosave            = false,
-        .end_of_turn         = false,
-        .fast_piece_slide    = true,
-        .cheats_enabled      = false,
-        .show_foreign_moves  = true,
-        .show_indian_moves   = false,
+        .unused01                    = 33,
+        .tutorial_hints              = true,
+        .disable_water_color_cycling = false,
+        .combat_analysis             = true,
+        .autosave                    = false,
+        .end_of_turn                 = false,
+        .fast_piece_slide            = true,
+        .cheats_enabled              = false,
+        .show_foreign_moves          = true,
+        .show_indian_moves           = false,
     };
     expected =
-        "GameOptions{unused01=0100001,tutorial_hints=true,water_"
-        "color_cycling=false,combat_analysis=true,autosave="
-        "false,end_of_turn=false,fast_piece_slide=true,cheats_"
-        "enabled=false,show_foreign_moves=true,show_indian_"
-        "moves=false}";
+        "GameOptions{unused01=0100001,tutorial_hints=true,"
+        "disable_water_color_cycling=false,combat_analysis=true,"
+        "autosave=false,end_of_turn=false,fast_piece_slide=true,"
+        "cheats_enabled=false,show_foreign_moves=true,show_"
+        "indian_moves=false}";
     REQUIRE( base::to_str( o ) == expected );
   }
 }

@@ -62,7 +62,7 @@ local function main( args )
                         io.open( structure_json, 'r' ):read( 'a' ) )
   info( 'producing reverse metadata mapping...' )
   assert( structure.__metadata )
-  assert( structure.HEAD )
+  assert( structure.HEADER )
 
   -- Output header file.
   local output_dir = assert( args[2] )

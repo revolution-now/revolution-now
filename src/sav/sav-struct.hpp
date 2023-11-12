@@ -7,7 +7,6 @@
 #include "sav/bits.hpp"
 #include "sav/bytes.hpp"
 #include "sav/string.hpp"
-#undef HEAD
 
 // cdr
 #include "cdr/ext.hpp"
@@ -858,12 +857,46 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
                          cdr::tag_t<visible_to_spanish_1bit_type> );
 
 /****************************************************************
+** TutorialHelp
+*****************************************************************/
+struct TutorialHelp {
+  bool unknown00 : 1;
+  bool unknown01 : 1;
+  bool unknown02 : 1;
+  bool unknown03 : 1;
+  bool unknown04 : 1;
+  bool unknown05 : 1;
+  bool unknown06 : 1;
+  bool unknown07 : 1;
+
+  bool operator==( TutorialHelp const& ) const = default;
+};
+
+// String conversion.
+void to_str( TutorialHelp const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TutorialHelp& o );
+
+bool write_binary( base::IBinaryIO& b, TutorialHelp const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TutorialHelp const& o,
+                         cdr::tag_t<TutorialHelp> );
+
+cdr::result<TutorialHelp> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TutorialHelp> );
+
+/****************************************************************
 ** GameOptions
 *****************************************************************/
 struct GameOptions {
   uint8_t unused01 : 7;
   bool tutorial_hints : 1;
-  bool water_color_cycling : 1;
+  bool disable_water_color_cycling : 1;
   bool combat_analysis : 1;
   bool autosave : 1;
   bool end_of_turn : 1;
@@ -929,6 +962,48 @@ cdr::result<ColonyReportOptions> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<ColonyReportOptions> );
+
+/****************************************************************
+** Flags
+*****************************************************************/
+struct Flags {
+  bool how_to_win : 1;
+  bool background_music : 1;
+  bool event_music : 1;
+  bool sound_effects : 1;
+  bool unknown00 : 1;
+  bool unknown01 : 1;
+  bool unknown02 : 1;
+  bool unknown03 : 1;
+  bool unknown04 : 1;
+  bool unknown05 : 1;
+  bool unknown06 : 1;
+  bool unknown07 : 1;
+  bool unknown08 : 1;
+  bool unknown09 : 1;
+  bool unknown10 : 1;
+  bool unknown11 : 1;
+
+  bool operator==( Flags const& ) const = default;
+};
+
+// String conversion.
+void to_str( Flags const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Flags& o );
+
+bool write_binary( base::IBinaryIO& b, Flags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Flags const& o,
+                         cdr::tag_t<Flags> );
+
+cdr::result<Flags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Flags> );
 
 /****************************************************************
 ** Event
@@ -1173,6 +1248,58 @@ cdr::result<CargoItems> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<CargoItems> );
+
+/****************************************************************
+** FoundingFathers
+*****************************************************************/
+struct FoundingFathers {
+  bool adam_smith : 1;
+  bool jakob_fugger : 1;
+  bool peter_minuit : 1;
+  bool peter_stuyvesant : 1;
+  bool jan_de_witt : 1;
+  bool ferdinand_magellan : 1;
+  bool francisco_coronado : 1;
+  bool hernando_de_soto : 1;
+  bool henry_hudson : 1;
+  bool sieur_de_la_salle : 1;
+  bool hernan_cortes : 1;
+  bool george_washington : 1;
+  bool paul_revere : 1;
+  bool francis_drake : 1;
+  bool john_paul_jones : 1;
+  bool thomas_jefferson : 1;
+  bool pocahontas : 1;
+  bool thomas_paine : 1;
+  bool simon_bolivar : 1;
+  bool benjamin_franklin : 1;
+  bool william_brewster : 1;
+  bool william_penn : 1;
+  bool jean_de_brebeuf : 1;
+  bool juan_de_sepulveda : 1;
+  bool bartolme_de_las_casas : 1;
+  uint8_t unknown00 : 7;
+
+  bool operator==( FoundingFathers const& ) const = default;
+};
+
+// String conversion.
+void to_str( FoundingFathers const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, FoundingFathers& o );
+
+bool write_binary( base::IBinaryIO& b, FoundingFathers const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         FoundingFathers const& o,
+                         cdr::tag_t<FoundingFathers> );
+
+cdr::result<FoundingFathers> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<FoundingFathers> );
 
 /****************************************************************
 ** BoycottBitmap
@@ -1839,19 +1966,18 @@ cdr::result<PriceGroupState> from_canonical(
                          cdr::tag_t<PriceGroupState> );
 
 /****************************************************************
-** HEAD
+** HEADER
 *****************************************************************/
-struct HEAD {
+struct HEADER {
   array_string<9> colonize = {};
   bytes<3> unknown00 = {};
   uint16_t map_size_x = {};
   uint16_t map_size_y = {};
-  bytes<1> tut1 = {};
+  TutorialHelp tutorial_help = {};
   bytes<1> unknown03 = {};
   GameOptions game_options = {};
   ColonyReportOptions colony_report_options = {};
-  bytes<1> tut2 = {};
-  bytes<1> tut3 = {};
+  Flags flags = {};
   bytes<2> unknown39 = {};
   uint16_t year = {};
   season_type season = {};
@@ -1860,7 +1986,7 @@ struct HEAD {
   bytes<1> unknown40 = {};
   uint16_t active_unit = {};
   bytes<6> unknown41 = {};
-  uint16_t tribe_count = {};
+  uint16_t dwelling_count = {};
   uint16_t unit_count = {};
   uint16_t colony_count = {};
   uint8_t trade_route_count = {};
@@ -1878,26 +2004,26 @@ struct HEAD {
   Event event = {};
   bytes<2> unknown05 = {};
 
-  bool operator==( HEAD const& ) const = default;
+  bool operator==( HEADER const& ) const = default;
 };
 
 // String conversion.
-void to_str( HEAD const& o, std::string& out, base::ADL_t );
+void to_str( HEADER const& o, std::string& out, base::ADL_t );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, HEAD& o );
+bool read_binary( base::IBinaryIO& b, HEADER& o );
 
-bool write_binary( base::IBinaryIO& b, HEAD const& o );
+bool write_binary( base::IBinaryIO& b, HEADER const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         HEAD const& o,
-                         cdr::tag_t<HEAD> );
+                         HEADER const& o,
+                         cdr::tag_t<HEADER> );
 
-cdr::result<HEAD> from_canonical(
+cdr::result<HEADER> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<HEAD> );
+                         cdr::tag_t<HEADER> );
 
 /****************************************************************
 ** PLAYER
@@ -2224,11 +2350,11 @@ cdr::result<RelationByIndian> from_canonical(
 ** Trade
 *****************************************************************/
 struct Trade {
-  std::array<uint8_t, 16> eu_prc = {};
+  std::array<uint8_t, 16> euro_price = {};
   std::array<int16_t, 16> nr = {};
   std::array<int32_t, 16> gold = {};
-  std::array<int32_t, 16> tons = {};
-  std::array<int32_t, 16> tons2 = {};
+  std::array<int32_t, 16> tons_traded = {};
+  std::array<int32_t, 16> tons_traded2 = {};
 
   bool operator==( Trade const& ) const = default;
 };
@@ -2260,7 +2386,7 @@ struct NATION {
   std::array<profession_type, 3> recruit = {};
   bytes<1> unused07 = {};
   uint8_t recruit_count = {};
-  bits<32> founding_fathers = {};
+  FoundingFathers founding_fathers = {};
   bytes<1> unknown21 = {};
   uint16_t liberty_bells_total = {};
   uint16_t liberty_bells_last_turn = {};
@@ -2335,39 +2461,39 @@ cdr::result<Alarm> from_canonical(
                          cdr::tag_t<Alarm> );
 
 /****************************************************************
-** TRIBE
+** DWELLING
 *****************************************************************/
-struct TRIBE {
+struct DWELLING {
   std::array<uint8_t, 2> x_y = {};
   nation_type nation_id = {};
   ALCS alcs = {};
   uint8_t population = {};
-  bytes<1> mission = {};
+  int8_t mission = {};
   bytes<2> unknown28 = {};
   bytes<1> last_bought = {};
   bytes<1> last_sold = {};
   std::array<Alarm, 4> alarm = {};
 
-  bool operator==( TRIBE const& ) const = default;
+  bool operator==( DWELLING const& ) const = default;
 };
 
 // String conversion.
-void to_str( TRIBE const& o, std::string& out, base::ADL_t );
+void to_str( DWELLING const& o, std::string& out, base::ADL_t );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, TRIBE& o );
+bool read_binary( base::IBinaryIO& b, DWELLING& o );
 
-bool write_binary( base::IBinaryIO& b, TRIBE const& o );
+bool write_binary( base::IBinaryIO& b, DWELLING const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         TRIBE const& o,
-                         cdr::tag_t<TRIBE> );
+                         DWELLING const& o,
+                         cdr::tag_t<DWELLING> );
 
-cdr::result<TRIBE> from_canonical(
+cdr::result<DWELLING> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<TRIBE> );
+                         cdr::tag_t<DWELLING> );
 
 /****************************************************************
 ** RelationByNations
@@ -2400,41 +2526,41 @@ cdr::result<RelationByNations> from_canonical(
                          cdr::tag_t<RelationByNations> );
 
 /****************************************************************
-** INDIAN
+** TRIBE
 *****************************************************************/
-struct INDIAN {
+struct TRIBE {
   std::array<uint8_t, 2> capitol_x_y = {};
   tech_type tech = {};
   bytes<4> unknown31a = {};
   uint8_t muskets = {};
   uint8_t horse_herds = {};
   bytes<5> unknown31b = {};
-  std::array<int16_t, 16> tons = {};
+  std::array<int16_t, 16> stock = {};
   bytes<12> unknown32 = {};
   RelationByNations relation_by_nations = {};
   bytes<8> unknown33 = {};
   std::array<uint16_t, 4> alarm_by_player = {};
 
-  bool operator==( INDIAN const& ) const = default;
+  bool operator==( TRIBE const& ) const = default;
 };
 
 // String conversion.
-void to_str( INDIAN const& o, std::string& out, base::ADL_t );
+void to_str( TRIBE const& o, std::string& out, base::ADL_t );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, INDIAN& o );
+bool read_binary( base::IBinaryIO& b, TRIBE& o );
 
-bool write_binary( base::IBinaryIO& b, INDIAN const& o );
+bool write_binary( base::IBinaryIO& b, TRIBE const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         INDIAN const& o,
-                         cdr::tag_t<INDIAN> );
+                         TRIBE const& o,
+                         cdr::tag_t<TRIBE> );
 
-cdr::result<INDIAN> from_canonical(
+cdr::result<TRIBE> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<INDIAN> );
+                         cdr::tag_t<TRIBE> );
 
 /****************************************************************
 ** STUFF
@@ -2526,14 +2652,14 @@ cdr::result<TRADEROUTE> from_canonical(
 ** ColonySAV
 *****************************************************************/
 struct ColonySAV {
-  HEAD head = {};
+  HEADER header = {};
   std::array<PLAYER, 4> player = {};
   bytes<24> other = {};
   std::vector<COLONY> colony = {};
   std::vector<UNIT> unit = {};
   std::array<NATION, 4> nation = {};
-  std::vector<TRIBE> tribe = {};
-  std::array<INDIAN, 8> indian = {};
+  std::vector<DWELLING> dwelling = {};
+  std::array<TRIBE, 8> tribe = {};
   STUFF stuff = {};
   std::vector<TILE> tile = {};
   std::vector<MASK> mask = {};

@@ -1,14 +1,14 @@
 {
     "__key_order": [
         "__metadata",
-        "HEAD",
+        "HEADER",
         "PLAYER",
         "OTHER",
         "COLONY",
         "UNIT",
         "NATION",
+        "DWELLING",
         "TRIBE",
-        "INDIAN",
         "STUFF",
         "TILE",
         "MASK",
@@ -366,7 +366,7 @@
             "sea": "01"
         }
     },
-    "HEAD":
+    "HEADER":
     {
         "__hint": "This is just a hint or a comment. It doesn't have effect on the SAV decoding",
         "struct":
@@ -376,12 +376,11 @@
                 "unknown00",
                 "map_size_x",
                 "map_size_y",
-                "tut1",
+                "tutorial_help",
                 "unknown03",
                 "game_options",
                 "colony_report_options",
-                "tut2",
-                "tut3",
+                "flags",
                 "unknown39",
                 "year",
                 "season",
@@ -390,7 +389,7 @@
                 "unknown40",
                 "active_unit",
                 "unknown41",
-                "tribe_count",
+                "dwelling_count",
                 "unit_count",
                 "colony_count",
                 "trade_route_count",
@@ -412,7 +411,30 @@
             "unknown00": {"size": 3},
             "map_size_x": {"size": 2, "save_meta": true, "type": "uint"},
             "map_size_y": {"size": 2, "save_meta": true, "type": "uint"},
-            "tut1": {"size": 1, "__hint": "a bit_struct, not important"},
+            "tutorial_help":
+            {
+                "bit_struct":
+                {
+                    "__key_order": [
+                        "unknown00",
+                        "unknown01",
+                        "unknown02",
+                        "unknown03",
+                        "unknown04",
+                        "unknown05",
+                        "unknown06",
+                        "unknown07"
+                    ],
+                    "unknown00": {"size": 1, "type": "bit_bool"},
+                    "unknown01": {"size": 1, "type": "bit_bool"},
+                    "unknown02": {"size": 1, "type": "bit_bool"},
+                    "unknown03": {"size": 1, "type": "bit_bool"},
+                    "unknown04": {"size": 1, "type": "bit_bool"},
+                    "unknown05": {"size": 1, "type": "bit_bool"},
+                    "unknown06": {"size": 1, "type": "bit_bool"},
+                    "unknown07": {"size": 1, "type": "bit_bool"}
+                }
+            },
             "unknown03": {"size": 1},
             "game_options":
             {
@@ -421,7 +443,7 @@
                     "__key_order": [
                         "unused01",
                         "tutorial_hints",
-                        "water_color_cycling",
+                        "disable_water_color_cycling",
                         "combat_analysis",
                         "autosave",
                         "end_of_turn",
@@ -432,7 +454,7 @@
                     ],
                     "unused01": {"size": 7},
                     "tutorial_hints": {"size": 1, "type": "bit_bool"},
-                    "water_color_cycling": {"size": 1, "type": "bit_bool"},
+                    "disable_water_color_cycling": {"size": 1, "type": "bit_bool"},
                     "combat_analysis": {"size": 1, "type": "bit_bool"},
                     "autosave": {"size": 1, "type": "bit_bool"},
                     "end_of_turn": {"size": 1, "type": "bit_bool"},
@@ -472,8 +494,46 @@
                     "unused03": {"size": 6}
                 }
             },
-            "tut2": {"size": 1},
-            "tut3": {"size": 1},
+            "flags":
+            {
+                "bit_struct":
+                {
+                    "__key_order": [
+                        "how_to_win",
+                        "background_music",
+                        "event_music",
+                        "sound_effects",
+                        "unknown00",
+                        "unknown01",
+                        "unknown02",
+                        "unknown03",
+                        "unknown04",
+                        "unknown05",
+                        "unknown06",
+                        "unknown07",
+                        "unknown08",
+                        "unknown09",
+                        "unknown10",
+                        "unknown11"
+                    ],
+                    "how_to_win": {"size": 1, "type": "bit_bool"},
+                    "background_music": {"size": 1, "type": "bit_bool"},
+                    "event_music": {"size": 1, "type": "bit_bool"},
+                    "sound_effects": {"size": 1, "type": "bit_bool"},
+                    "unknown00": {"size": 1, "type": "bit_bool"},
+                    "unknown01": {"size": 1, "type": "bit_bool"},
+                    "unknown02": {"size": 1, "type": "bit_bool"},
+                    "unknown03": {"size": 1, "type": "bit_bool"},
+                    "unknown04": {"size": 1, "type": "bit_bool"},
+                    "unknown05": {"size": 1, "type": "bit_bool"},
+                    "unknown06": {"size": 1, "type": "bit_bool"},
+                    "unknown07": {"size": 1, "type": "bit_bool"},
+                    "unknown08": {"size": 1, "type": "bit_bool"},
+                    "unknown09": {"size": 1, "type": "bit_bool"},
+                    "unknown10": {"size": 1, "type": "bit_bool"},
+                    "unknown11": {"size": 1, "type": "bit_bool"}
+                }
+            },
             "unknown39": {"size": 2},
             "year": {"size": 2, "type": "uint"},
             "season": {"size": 2, "type": "season_type"},
@@ -482,7 +542,7 @@
             "unknown40": {"size": 1},
             "active_unit": {"size": 2, "type": "uint", "__hint": "index of an active unit in UNITs section"},
             "unknown41": {"size": 6},
-            "tribe_count": {"size": 2, "save_meta": true, "type": "uint", "__hint": "tribes count, saving to meta for later use"},
+            "dwelling_count": {"size": 2, "save_meta": true, "type": "uint", "__hint": "tribes count, saving to meta for later use"},
             "unit_count": {"size": 2, "save_meta": true, "type": "uint", "__hint": "units count, saving to meta for later use"},
             "colony_count": {"size": 2, "save_meta": true, "type": "uint", "__hint": "colonies count, saving to meta for later use"},
             "trade_route_count": {"size": 1, "save_meta": true, "type": "uint", "__hint": "trade routes count, saving to meta for later use"},
@@ -618,7 +678,7 @@
             "country_name": {"size": 24, "type": "str"},
             "unknown06": {"size": 1},
             "control": {"size": 1, "type": "control_type"},
-            "founded_colonies": {"size": 1, "type": "uint"},
+            "founded_colonies": {"size": 1, "type": "uint", "__hint": "might be used to pick next colony name"},
             "diplomacy": {"size": 1}
         }
     },
@@ -875,6 +935,7 @@
                 "unknown18",
                 "holds_occupied",
                 "cargo_items",
+                "__hint01",
                 "cargo_hold",
                 "turns_worked",
                 "profession_or_treasure_amount",
@@ -905,7 +966,7 @@
                 }
             },
             "moves": {"size": 1, "type": "uint", "__hint": "'moves' count already made. One 'move' is one move by road"},
-            "origin_settlement": {"size": 1, "type": "uint", "__hint": "index of COLONY (for colonist) or TRIBE (for brave) where is he from"},
+            "origin_settlement": {"size": 1, "type": "uint", "__hint": "index of COLONY (for colonist) or DWELLING (for brave) where is he from"},
             "unknown16b": {"size": 1},
             "orders": {"size": 1, "type": "orders_type"},
             "goto_x": {"size": 1, "type": "uint"},
@@ -924,6 +985,7 @@
                     "cargo_2": {"size": 4, "type": "cargo_4bit_type"}
                 }
             },
+            "__hint01": "for pioneers, the following field may contain tools count.",
             "cargo_hold": {"size": 1, "cols": 6, "type": "uint", "no_indent": true},
             "turns_worked": {"size": 1, "type": "uint"},
             "profession_or_treasure_amount": {"size": 1, "type": "uint", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
@@ -980,12 +1042,71 @@
             "recruit": {"size": 1, "cols": 3, "type": "profession_type", "no_indent": true},
             "unused07": {"size": 1},
             "recruit_count": {"size": 1, "type": "uint"},
-            "founding_fathers": {"size": 4, "type": "bits"},
+            "founding_fathers":
+            {
+                "bit_struct":
+                {
+                    "__key_order": [
+                        "adam_smith",
+                        "jakob_fugger",
+                        "peter_minuit",
+                        "peter_stuyvesant",
+                        "jan_de_witt",
+                        "ferdinand_magellan",
+                        "francisco_coronado",
+                        "hernando_de_soto",
+                        "henry_hudson",
+                        "sieur_de_la_salle",
+                        "hernan_cortes",
+                        "george_washington",
+                        "paul_revere",
+                        "francis_drake",
+                        "john_paul_jones",
+                        "thomas_jefferson",
+                        "pocahontas",
+                        "thomas_paine",
+                        "simon_bolivar",
+                        "benjamin_franklin",
+                        "william_brewster",
+                        "william_penn",
+                        "jean_de_brebeuf",
+                        "juan_de_sepulveda",
+                        "bartolme_de_las_casas",
+                        "unknown00"
+                    ],
+                    "adam_smith": {"size": 1, "type": "bit_bool"},
+                    "jakob_fugger": {"size": 1, "type": "bit_bool"},
+                    "peter_minuit": {"size": 1, "type": "bit_bool"},
+                    "peter_stuyvesant": {"size": 1, "type": "bit_bool"},
+                    "jan_de_witt": {"size": 1, "type": "bit_bool"},
+                    "ferdinand_magellan": {"size": 1, "type": "bit_bool"},
+                    "francisco_coronado": {"size": 1, "type": "bit_bool"},
+                    "hernando_de_soto": {"size": 1, "type": "bit_bool"},
+                    "henry_hudson": {"size": 1, "type": "bit_bool"},
+                    "sieur_de_la_salle": {"size": 1, "type": "bit_bool"},
+                    "hernan_cortes": {"size": 1, "type": "bit_bool"},
+                    "george_washington": {"size": 1, "type": "bit_bool"},
+                    "paul_revere": {"size": 1, "type": "bit_bool"},
+                    "francis_drake": {"size": 1, "type": "bit_bool"},
+                    "john_paul_jones": {"size": 1, "type": "bit_bool"},
+                    "thomas_jefferson": {"size": 1, "type": "bit_bool"},
+                    "pocahontas": {"size": 1, "type": "bit_bool"},
+                    "thomas_paine": {"size": 1, "type": "bit_bool"},
+                    "simon_bolivar": {"size": 1, "type": "bit_bool"},
+                    "benjamin_franklin": {"size": 1, "type": "bit_bool"},
+                    "william_brewster": {"size": 1, "type": "bit_bool"},
+                    "william_penn": {"size": 1, "type": "bit_bool"},
+                    "jean_de_brebeuf": {"size": 1, "type": "bit_bool"},
+                    "juan_de_sepulveda": {"size": 1, "type": "bit_bool"},
+                    "bartolme_de_las_casas": {"size": 1, "type": "bit_bool"},
+                    "unknown00": {"size": 7}
+                }
+            },
             "unknown21": {"size": 1},
             "liberty_bells_total": {"size": 2, "type": "uint"},
             "liberty_bells_last_turn": {"size": 2, "type": "uint"},
             "unknown22": {"size": 2},
-            "next_founding_father": {"size": 2, "type": "uint"},
+            "next_founding_father": {"size": 2, "type": "uint", "__hint": "index of founding father currently in progress."},
             "founding_father_count": {"size": 2, "type": "uint"},
             "prob_founding_father_count_end": {"size": 2},
             "villages_burned": {"size": 1, "type": "uint"},
@@ -1060,19 +1181,20 @@
             {
                 "struct":
                 {
-                    "__key_order": ["eu_prc", "nr", "gold", "tons", "tons2"],
-                    "eu_prc": {"size": 1, "cols": 16, "type": "uint", "no_indent": true},
+                    "__key_order": ["euro_price", "nr", "gold", "__hint00", "tons_traded", "tons_traded2"],
+                    "euro_price": {"size": 1, "cols": 16, "type": "uint", "no_indent": true},
                     "nr": {"size": 2, "cols": 16, "type": "int", "no_indent": true},
                     "gold": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
-                    "tons": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
-                    "tons2": {"size": 4, "cols": 16, "type": "int", "no_indent": true}
+                    "__hint00": "these two appear to mirror each other (need to verify), though one might be for the economics advisor display and another internal.",
+                    "tons_traded": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
+                    "tons_traded2": {"size": 4, "cols": 16, "type": "int", "no_indent": true}
                 }
             }
         }
     },
-    "TRIBE":
+    "DWELLING":
     {
-        "count": "tribe_count",
+        "count": "dwelling_count",
         "struct":
         {
             "__key_order": [
@@ -1101,7 +1223,7 @@
                 }
             },
             "population": {"size": 1, "type": "uint"},
-            "mission": {"size": 1},
+            "mission": {"size": 1, "type": "int", "__hint": "-1 if none. Otherwise nation idx (0,1,2,3)."},
             "unknown28": {"size": 2},
             "last_bought": {"size": 1},
             "last_sold": {"size": 1},
@@ -1117,7 +1239,7 @@
             }
         }
     },
-    "INDIAN":
+    "TRIBE":
     {
         "count": 8,
         "struct":
@@ -1129,7 +1251,7 @@
                 "muskets",
                 "horse_herds",
                 "unknown31b",
-                "tons",
+                "stock",
                 "unknown32",
                 "relation_by_nations",
                 "unknown33",
@@ -1141,7 +1263,7 @@
             "muskets": {"size": 1, "type": "uint", "__hint": "not including muskets equipped by braves"},
             "horse_herds": {"size": 1, "type": "uint"},
             "unknown31b": {"size": 5},
-            "tons": {"size": 2, "cols": 16, "type": "int", "no_indent": true},
+            "stock": {"size": 2, "cols": 16, "type": "int", "no_indent": true, "__hint": "stock of each good used for trading. can be negative."},
             "unknown32": {"size": 12},
             "relation_by_nations":
             {
@@ -1222,7 +1344,7 @@
             ],
             "has_unit": {"size": 1, "type": "has_unit_1bit_type"},
             "has_city": {"size": 1, "type": "has_city_1bit_type"},
-            "suppress": {"size": 1, "type": "suppress_1bit_type"},
+            "suppress": {"size": 1, "type": "suppress_1bit_type", "__hint": "one of the bits in here is probably used to indicate that a silver resource is partially depleted (along with the suppress bit)."},
             "road": {"size": 1, "type": "road_1bit_type"},
             "purchased": {"size": 1, "type": "purchased_1bit_type"},
             "pacific": {"size": 1, "type": "pacific_1bit_type"},
@@ -1241,7 +1363,7 @@
         {
             "__key_order": ["region_id", "visitor_nation"],
             "region_id": {"size": 4, "type": "region_id_4bit_type"},
-            "visitor_nation": {"size": 4, "type": "nation_4bit_short_type"}
+            "visitor_nation": {"size": 4, "type": "nation_4bit_short_type", "__hint": "these may be used to suppress an LCR that was visited."}
         }
     },
     "SEEN":
@@ -1264,8 +1386,8 @@
     "unknown_map38a": {"size": 18, "count": 14},
     "unknown_map38b": {"size": 18, "count": 14},
     "unknown39a": {"size": 104},
-    "unknown39b": {"size": 3},
-    "prime_resource_seed": {"size": 2},
+    "unknown39b": {"size": 3, "__hint": "some report that this can affect the professions that villages teach, which are likely computed (with some randomness) and not stored. RNG fix causes professions to fluctuate with each visit."},
+    "prime_resource_seed": {"size": 2, "__hint": "these may contain both the prime resource and LCR seeds, possibly in nibbles."},
     "unknown39d": {"size": 1},
     "TRADE_ROUTE":
     {

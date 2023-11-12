@@ -1,15 +1,24 @@
 {
-  "HEAD": {
+  "HEADER": {
     "colonize": "COLONIZE",
     "unknown00": "1a 49 00",
     "map_size_x": 58,
     "map_size_y": 72,
-    "tut1": "2b",
+    "tutorial_help": {
+      "unknown00": true,
+      "unknown01": true,
+      "unknown02": false,
+      "unknown03": true,
+      "unknown04": false,
+      "unknown05": true,
+      "unknown06": false,
+      "unknown07": false
+    },
     "unknown03": "00",
     "game_options": {
       "unused01": "0001101",
       "tutorial_hints": false,
-      "water_color_cycling": false,
+      "disable_water_color_cycling": false,
       "combat_analysis": true,
       "autosave": true,
       "end_of_turn": false,
@@ -31,8 +40,24 @@
       "report_rebel_majorities": false,
       "unused03": "000000"
     },
-    "tut2": "de",
-    "tut3": "eb",
+    "flags": {
+      "how_to_win": false,
+      "background_music": true,
+      "event_music": true,
+      "sound_effects": true,
+      "unknown00": true,
+      "unknown01": false,
+      "unknown02": true,
+      "unknown03": true,
+      "unknown04": true,
+      "unknown05": true,
+      "unknown06": false,
+      "unknown07": true,
+      "unknown08": false,
+      "unknown09": true,
+      "unknown10": true,
+      "unknown11": true
+    },
     "unknown39": "00 00",
     "year": 1718,
     "season": "autumn",
@@ -41,7 +66,7 @@
     "unknown40": "00",
     "active_unit": 65535,
     "unknown41": "03 00 03 00 03 00",
-    "tribe_count": 63,
+    "dwelling_count": 63,
     "unit_count": 215,
     "colony_count": 27,
     "trade_route_count": 0,
@@ -18000,7 +18025,34 @@
       ],
       "unused07": "00",
       "recruit_count": 0,
-      "founding_fathers": "00000001100110011110100010110101",
+      "founding_fathers": {
+        "adam_smith": true,
+        "jakob_fugger": false,
+        "peter_minuit": true,
+        "peter_stuyvesant": false,
+        "jan_de_witt": true,
+        "ferdinand_magellan": true,
+        "francisco_coronado": false,
+        "hernando_de_soto": true,
+        "henry_hudson": false,
+        "sieur_de_la_salle": false,
+        "hernan_cortes": false,
+        "george_washington": true,
+        "paul_revere": false,
+        "francis_drake": true,
+        "john_paul_jones": true,
+        "thomas_jefferson": true,
+        "pocahontas": true,
+        "thomas_paine": false,
+        "simon_bolivar": false,
+        "benjamin_franklin": true,
+        "william_brewster": true,
+        "william_penn": false,
+        "jean_de_brebeuf": false,
+        "juan_de_sepulveda": true,
+        "bartolme_de_las_casas": true,
+        "unknown00": "0000000"
+      },
       "unknown21": "00",
       "liberty_bells_total": 1155,
       "liberty_bells_last_turn": 335,
@@ -18053,7 +18105,7 @@
       "unknown26b": "1b 08",
       "unknown26c": "b7 00 00 0e 3a 13",
       "trade": {
-        "eu_prc": [
+        "euro_price": [
           1,
           3,
           2,
@@ -18107,7 +18159,7 @@
           -4449,
           -18739
         ],
-        "tons": [
+        "tons_traded": [
           0,
           1791,
           626,
@@ -18125,7 +18177,7 @@
           -1934,
           -1761
         ],
-        "tons2": [
+        "tons_traded2": [
           0,
           1414,
           535,
@@ -18155,7 +18207,34 @@
       ],
       "unused07": "00",
       "recruit_count": 0,
-      "founding_fathers": "00000001010000011000110000100001",
+      "founding_fathers": {
+        "adam_smith": true,
+        "jakob_fugger": false,
+        "peter_minuit": false,
+        "peter_stuyvesant": false,
+        "jan_de_witt": false,
+        "ferdinand_magellan": true,
+        "francisco_coronado": false,
+        "hernando_de_soto": false,
+        "henry_hudson": false,
+        "sieur_de_la_salle": false,
+        "hernan_cortes": true,
+        "george_washington": true,
+        "paul_revere": false,
+        "francis_drake": false,
+        "john_paul_jones": false,
+        "thomas_jefferson": true,
+        "pocahontas": true,
+        "thomas_paine": false,
+        "simon_bolivar": false,
+        "benjamin_franklin": false,
+        "william_brewster": false,
+        "william_penn": false,
+        "jean_de_brebeuf": true,
+        "juan_de_sepulveda": false,
+        "bartolme_de_las_casas": true,
+        "unknown00": "0000000"
+      },
       "unknown21": "00",
       "liberty_bells_total": 2134,
       "liberty_bells_last_turn": 155,
@@ -18208,7 +18287,7 @@
       "unknown26b": "08 10",
       "unknown26c": "40 01 00 30 22 0a",
       "trade": {
-        "eu_prc": [
+        "euro_price": [
           1,
           3,
           2,
@@ -18262,7 +18341,7 @@
           -9340,
           4648
         ],
-        "tons": [
+        "tons_traded": [
           0,
           1125,
           1444,
@@ -18280,7 +18359,7 @@
           -3350,
           1525
         ],
-        "tons2": [
+        "tons_traded2": [
           0,
           981,
           1111,
@@ -18310,7 +18389,34 @@
       ],
       "unused07": "00",
       "recruit_count": 0,
-      "founding_fathers": "00000000000100000000001000000000",
+      "founding_fathers": {
+        "adam_smith": false,
+        "jakob_fugger": false,
+        "peter_minuit": false,
+        "peter_stuyvesant": false,
+        "jan_de_witt": false,
+        "ferdinand_magellan": false,
+        "francisco_coronado": false,
+        "hernando_de_soto": false,
+        "henry_hudson": false,
+        "sieur_de_la_salle": true,
+        "hernan_cortes": false,
+        "george_washington": false,
+        "paul_revere": false,
+        "francis_drake": false,
+        "john_paul_jones": false,
+        "thomas_jefferson": false,
+        "pocahontas": false,
+        "thomas_paine": false,
+        "simon_bolivar": false,
+        "benjamin_franklin": false,
+        "william_brewster": true,
+        "william_penn": false,
+        "jean_de_brebeuf": false,
+        "juan_de_sepulveda": false,
+        "bartolme_de_las_casas": false,
+        "unknown00": "0000000"
+      },
       "unknown21": "00",
       "liberty_bells_total": 102,
       "liberty_bells_last_turn": 0,
@@ -18363,7 +18469,7 @@
       "unknown26b": "04 04",
       "unknown26c": "b9 00 00 00 28 00",
       "trade": {
-        "eu_prc": [
+        "euro_price": [
           2,
           6,
           5,
@@ -18417,7 +18523,7 @@
           -1051,
           -3426
         ],
-        "tons": [
+        "tons_traded": [
           0,
           536,
           334,
@@ -18435,7 +18541,7 @@
           -250,
           -555
         ],
-        "tons2": [
+        "tons_traded2": [
           0,
           449,
           274,
@@ -18465,7 +18571,34 @@
       ],
       "unused07": "00",
       "recruit_count": 19,
-      "founding_fathers": "00000001111111111111111111111111",
+      "founding_fathers": {
+        "adam_smith": true,
+        "jakob_fugger": true,
+        "peter_minuit": true,
+        "peter_stuyvesant": true,
+        "jan_de_witt": true,
+        "ferdinand_magellan": true,
+        "francisco_coronado": true,
+        "hernando_de_soto": true,
+        "henry_hudson": true,
+        "sieur_de_la_salle": true,
+        "hernan_cortes": true,
+        "george_washington": true,
+        "paul_revere": true,
+        "francis_drake": true,
+        "john_paul_jones": true,
+        "thomas_jefferson": true,
+        "pocahontas": true,
+        "thomas_paine": true,
+        "simon_bolivar": true,
+        "benjamin_franklin": true,
+        "william_brewster": true,
+        "william_penn": true,
+        "jean_de_brebeuf": true,
+        "juan_de_sepulveda": true,
+        "bartolme_de_las_casas": true,
+        "unknown00": "0000000"
+      },
       "unknown21": "00",
       "liberty_bells_total": 1920,
       "liberty_bells_last_turn": 320,
@@ -18518,7 +18651,7 @@
       "unknown26b": "11 06",
       "unknown26c": "9c 00 00 00 00 00",
       "trade": {
-        "eu_prc": [
+        "euro_price": [
           3,
           5,
           5,
@@ -18572,7 +18705,7 @@
           8089,
           24338
         ],
-        "tons": [
+        "tons_traded": [
           2113,
           2160,
           2212,
@@ -18590,7 +18723,7 @@
           731,
           2515
         ],
-        "tons2": [
+        "tons_traded2": [
           2113,
           2160,
           2212,
@@ -18611,7 +18744,7 @@
       }
     }
   ],
-  "TRIBE": [
+  "DWELLING": [
     {
       "x, y": [
         11,
@@ -18626,7 +18759,7 @@
         "unused09": "0000"
       },
       "population": 13,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18663,7 +18796,7 @@
         "unused09": "0000"
       },
       "population": 10,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18700,7 +18833,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18737,7 +18870,7 @@
         "unused09": "0000"
       },
       "population": 4,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18774,7 +18907,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18811,7 +18944,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18848,7 +18981,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18885,7 +19018,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18922,7 +19055,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18959,7 +19092,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -18996,7 +19129,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19033,7 +19166,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "11",
+      "mission": 17,
       "unknown28": "00 ff",
       "last_bought": "00",
       "last_sold": "01",
@@ -19070,7 +19203,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19107,7 +19240,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19144,7 +19277,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19181,7 +19314,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19218,7 +19351,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19255,7 +19388,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19292,7 +19425,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19329,7 +19462,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19366,7 +19499,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19403,7 +19536,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "11",
+      "mission": 17,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19440,7 +19573,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19477,7 +19610,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19514,7 +19647,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19551,7 +19684,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19588,7 +19721,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19625,7 +19758,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19662,7 +19795,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19699,7 +19832,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19736,7 +19869,7 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": "01",
+      "mission": 1,
       "unknown28": "00 ff",
       "last_bought": "00",
       "last_sold": "01",
@@ -19773,7 +19906,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "13",
+      "mission": 19,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19810,7 +19943,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19847,7 +19980,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19884,7 +20017,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "00",
+      "mission": 0,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19921,7 +20054,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19958,7 +20091,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -19995,7 +20128,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20032,7 +20165,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20069,7 +20202,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20106,7 +20239,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20143,7 +20276,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20180,7 +20313,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20217,7 +20350,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20254,7 +20387,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20291,7 +20424,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20328,7 +20461,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20365,7 +20498,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20402,7 +20535,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20439,7 +20572,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20476,7 +20609,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20513,7 +20646,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20550,7 +20683,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20587,7 +20720,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20624,7 +20757,7 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20661,7 +20794,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20698,7 +20831,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20735,7 +20868,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20772,7 +20905,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20809,7 +20942,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20846,7 +20979,7 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20883,7 +21016,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20920,7 +21053,7 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": "ff",
+      "mission": -1,
       "unknown28": "00 ff",
       "last_bought": "ff",
       "last_sold": "ff",
@@ -20944,7 +21077,7 @@
       ]
     }
   ],
-  "INDIAN": [
+  "TRIBE": [
     {
       "capitol (x, y)": [
         11,
@@ -20955,7 +21088,7 @@
       "muskets": 0,
       "horse_herds": 31,
       "unknown31b": "00 44 00 54 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -20998,7 +21131,7 @@
       "muskets": 0,
       "horse_herds": 47,
       "unknown31b": "00 2c 01 6c 00",
-      "tons": [
+      "stock": [
         4167,
         -10,
         0,
@@ -21041,7 +21174,7 @@
       "muskets": 0,
       "horse_herds": 2,
       "unknown31b": "00 00 00 27 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -21084,7 +21217,7 @@
       "muskets": 0,
       "horse_herds": 9,
       "unknown31b": "00 00 00 25 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -21127,7 +21260,7 @@
       "muskets": 0,
       "horse_herds": 0,
       "unknown31b": "00 00 00 01 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -21170,7 +21303,7 @@
       "muskets": 0,
       "horse_herds": 0,
       "unknown31b": "00 00 00 00 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -21213,7 +21346,7 @@
       "muskets": 0,
       "horse_herds": 47,
       "unknown31b": "00 00 00 00 00",
-      "tons": [
+      "stock": [
         0,
         0,
         0,
@@ -21256,7 +21389,7 @@
       "muskets": 0,
       "horse_herds": 3,
       "unknown31b": "00 00 00 00 00",
-      "tons": [
+      "stock": [
         0,
         0,
         -7,

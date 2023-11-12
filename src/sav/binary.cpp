@@ -63,7 +63,7 @@ valid_or<string> write_vector( IBinaryIO& b, string_view label,
 }
 
 valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
-  if( !read_binary( b, out.head ) )
+  if( !read_binary( b, out.header ) )
     return fmt::format( "while reading header." );
   if( !read_binary( b, out.player ) )
     return fmt::format( "while reading player array." );
@@ -75,30 +75,28 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   // reports say that the OG only allows 38 colonies per player,
   // so this should be more than enough.
   HAS_VALUE_OR_RET( read_vector(
-      b, "colony", out.head.colony_count, 5000, out.colony ) );
+      b, "colony", out.header.colony_count, 5000, out.colony ) );
 
   // The OG apparently has a limit of 256 units on the map (per
   // player?), which is what this section holds. But we'll be a
   // bit more generous. Note that this section only includes
   // units on the map.
-  HAS_VALUE_OR_RET( read_vector( b, "unit", out.head.unit_count,
-                                 10000, out.unit ) );
+  HAS_VALUE_OR_RET( read_vector(
+      b, "unit", out.header.unit_count, 10000, out.unit ) );
 
   if( !read_binary( b, out.nation ) )
     return fmt::format( "while reading nation array." );
 
-  // FIXME: the sav structure document uses the word "tribe"
-  // when it should use "dwelling".
   HAS_VALUE_OR_RET( read_vector( b, "dwelling",
-                                 out.head.tribe_count, 8 * 200,
-                                 out.tribe ) );
+                                 out.header.dwelling_count,
+                                 8 * 200, out.dwelling ) );
 
-  if( !read_binary( b, out.indian ) )
+  if( !read_binary( b, out.tribe ) )
     return fmt::format( "while reading tribe array." );
   if( !read_binary( b, out.stuff ) )
     return fmt::format( "while reading 'stuff' section." );
 
-  int tile_count = out.head.map_size_x * out.head.map_size_y;
+  int tile_count = out.header.map_size_x * out.header.map_size_y;
   if( tile_count == 0 )
     return fmt::format( "map size is zero." );
   // These are the (fixed) size of the map in the OG. Note that
@@ -148,7 +146,7 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
 }
 
 valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
-  if( !write_binary( b, out.head ) )
+  if( !write_binary( b, out.header ) )
     return fmt::format( "while writing header." );
   if( !write_binary( b, out.player ) )
     return fmt::format( "while writing player array." );
@@ -162,11 +160,10 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.nation ) )
     return fmt::format( "while writing nation array." );
 
-  // FIXME: the sav structure document uses the word "tribe"
-  // when it should use "dwelling".
-  HAS_VALUE_OR_RET( write_vector( b, "dwelling", out.tribe ) );
+  HAS_VALUE_OR_RET(
+      write_vector( b, "dwelling", out.dwelling ) );
 
-  if( !write_binary( b, out.indian ) )
+  if( !write_binary( b, out.tribe ) )
     return fmt::format( "while writing tribe array." );
   if( !write_binary( b, out.stuff ) )
     return fmt::format( "while writing 'stuff' section." );

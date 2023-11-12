@@ -53,7 +53,7 @@ local function main( args )
   local structure = json_decode(
                         io.open( structure_json, 'r' ):read( 'a' ) )
   assert( structure.__metadata )
-  assert( structure.HEAD )
+  assert( structure.HEADER )
 
   -- Binary SAV file.
   local colony_sav = assert( args[2] )

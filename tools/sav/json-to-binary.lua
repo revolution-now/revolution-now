@@ -51,7 +51,7 @@ local function main( args )
   local structure = json_decode(
                         io.open( structure_json, 'r' ):read( 'a' ) )
   assert( structure.__metadata )
-  assert( structure.HEAD )
+  assert( structure.HEADER )
 
   -- Input JSON file.
   local input_json_file = assert( args[2] )
