@@ -40,7 +40,7 @@ namespace rn {
 base::valid_or<std::string> wrapped::TerrainState::validate()
     const {
   REFL_VALIDATE( int( pacific_ocean_endpoints.size() ) ==
-                     world_map.size().h,
+                     real_terrain.map.size().h,
                  "the pacific_ocean_endpoints array must have "
                  "one element for each row in the map." );
   return base::valid;
@@ -66,20 +66,21 @@ TerrainState::TerrainState()
 }
 
 gfx::Matrix<MapSquare> const& TerrainState::world_map() const {
-  return o_.world_map;
+  return o_.real_terrain.map;
 }
 
 void TerrainState::modify_entire_map(
     base::function_ref<void( gfx::Matrix<MapSquare>& )>
         mutator ) {
-  mutator( o_.world_map );
+  mutator( o_.real_terrain.map );
   // Maintain the invariant that pacific_ocean_tiles should
   // have one element for each map row.
-  o_.pacific_ocean_endpoints.resize( o_.world_map.size().h );
+  o_.pacific_ocean_endpoints.resize(
+      o_.real_terrain.map.size().h );
 }
 
 Delta TerrainState::world_size_tiles() const {
-  return o_.world_map.size();
+  return o_.real_terrain.map.size();
 }
 
 Rect TerrainState::world_rect_tiles() const {
@@ -98,7 +99,7 @@ bool TerrainState::square_exists( Coord coord ) const {
 base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
     Coord coord ) {
   if( !square_exists( coord ) ) return base::nothing;
-  return o_.world_map[coord.y][coord.x];
+  return o_.real_terrain.map[coord.y][coord.x];
 }
 
 base::maybe<PlayerTerrain const&> TerrainState::player_terrain(
@@ -115,7 +116,7 @@ PlayerTerrain& TerrainState::mutable_player_terrain(
 base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     Coord coord ) const {
   if( !square_exists( coord ) ) return base::nothing;
-  return o_.world_map[coord.y][coord.x];
+  return o_.real_terrain.map[coord.y][coord.x];
 }
 
 MapSquare const& TerrainState::total_square_at(
@@ -174,12 +175,13 @@ void TerrainState::initialize_player_terrain( e_nation nation,
     o_.player_terrain[nation].emplace();
   gfx::Matrix<base::maybe<FogSquare>>& map =
       o_.player_terrain[nation]->map;
-  map =
-      gfx::Matrix<base::maybe<FogSquare>>( o_.world_map.size() );
+  map = gfx::Matrix<base::maybe<FogSquare>>(
+      o_.real_terrain.map.size() );
   if( visible ) {
-    gfx::Matrix<MapSquare> const& world_map = o_.world_map;
+    gfx::Matrix<MapSquare> const& world_map =
+        o_.real_terrain.map;
     for( Rect const tile :
-         gfx::subrects( o_.world_map.rect() ) ) {
+         gfx::subrects( o_.real_terrain.map.rect() ) ) {
       map[tile.upper_left()].emplace();
       map[tile.upper_left()]->square =
           world_map[tile.upper_left()];
@@ -189,7 +191,7 @@ void TerrainState::initialize_player_terrain( e_nation nation,
 
 bool TerrainState::is_pacific_ocean( Coord coord ) const {
   CHECK_GE( coord.y, 0 );
-  CHECK_LT( coord.y, o_.world_map.size().h );
+  CHECK_LT( coord.y, o_.real_terrain.map.size().h );
   // Recall that the endpoint is one-past-the-end.
   return ( coord.x < o_.pacific_ocean_endpoints[coord.y] );
 }

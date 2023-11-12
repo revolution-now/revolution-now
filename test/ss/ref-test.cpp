@@ -213,15 +213,18 @@ cdr::value cdr_game_state_default = cdr::table{
                     "french"_key  = cdr::null,
                     "spanish"_key = cdr::null,
                 },
-            "world_map"_key =
+            "real_terrain"_key =
                 cdr::table{
-                    "size"_key =
+                    "map"_key =
                         cdr::table{
-                            "h"_key = 0,
-                            "w"_key = 0,
+                            "size"_key =
+                                cdr::table{
+                                    "h"_key = 0,
+                                    "w"_key = 0,
+                                },
+                            "data"_key       = cdr::list{},
+                            "has_coords"_key = false,
                         },
-                    "data"_key       = cdr::list{},
-                    "has_coords"_key = false,
                 },
             "proto_squares"_key =
                 cdr::table{

@@ -31,6 +31,10 @@ struct.PlayerTerrain {
   map 'gfx::Matrix<base::maybe<FogSquare>>',
 }
 
+struct.RealTerrain {
+  map 'gfx::Matrix<MapSquare>',
+}
+
 namespace "rn.wrapped"
 
 struct.TerrainState {
@@ -38,7 +42,7 @@ struct.TerrainState {
 
   player_terrain 'refl::enum_map<e_nation, base::maybe<PlayerTerrain>>',
 
-  world_map 'gfx::Matrix<MapSquare>',
+  real_terrain 'RealTerrain',
 
   # For rendering purposes it is necessary to know the contents
   # of squares that are "off of the map edge." These will specify
