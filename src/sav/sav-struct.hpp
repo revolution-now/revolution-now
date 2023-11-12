@@ -2,6 +2,7 @@
 ** Classic Colonization Save File Structure.
 *****************************************************************/
 // NOTE: this file was auto-generated. DO NOT MODIFY!
+#pragma once
 
 // sav
 #include "sav/bits.hpp"

@@ -1084,6 +1084,7 @@ function CppEmitter:generate_code()
   hpp:section( 'Classic Colonization Save File Structure.' )
   hpp:comment(
       'NOTE: this file was auto-generated. DO NOT MODIFY!' )
+  hpp:line( '#pragma once' )
   hpp:newline()
   hpp:comment( 'sav' )
   hpp:include( '"sav/bits.hpp"' )
