@@ -67,7 +67,10 @@ convert_batch_to_binary() {
 }
 
 main() {
-  batches="$(ls $classic_saves/*/ -d)"
+  batches="
+    $classic_saves/1990s/
+    $classic_saves/dutch-viceroy-playthrough/
+  "
   for batch in $batches; do
     convert_batch_to_json "$batch"
     convert_batch_to_binary "$batch"
