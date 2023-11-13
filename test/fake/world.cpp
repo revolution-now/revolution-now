@@ -24,6 +24,7 @@
 #include "src/connectivity.hpp"
 #include "src/harbor-units.hpp"
 #include "src/lua.hpp"
+#include "src/map-square.hpp"
 #include "src/map-updater-lua.hpp"
 #include "src/map-updater.hpp"
 #include "src/market.hpp"
@@ -228,8 +229,9 @@ MapSquare World::make_terrain( e_terrain terrain ) {
 
 void World::build_map( vector<MapSquare> tiles, W width ) {
   map_updater().modify_entire_map(
-      [&]( gfx::Matrix<MapSquare>& m ) {
-        m = gfx::Matrix<MapSquare>( std::move( tiles ), width );
+      [&]( RealTerrain& real_terrain ) {
+        real_terrain.map =
+            gfx::Matrix<MapSquare>( std::move( tiles ), width );
       } );
   init_player_maps();
   ss().land_view.viewport.set_world_size_tiles(

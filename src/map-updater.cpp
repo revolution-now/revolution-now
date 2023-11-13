@@ -178,8 +178,7 @@ NonRenderingMapUpdater::make_squares_fogged(
 }
 
 void NonRenderingMapUpdater::modify_entire_map(
-    base::function_ref<void( gfx::Matrix<MapSquare>& )>
-        mutator ) {
+    base::function_ref<void( RealTerrain& )> mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
 }
 
@@ -365,8 +364,7 @@ vector<BuffersUpdated> RenderingMapUpdater::make_squares_fogged(
 }
 
 void RenderingMapUpdater::modify_entire_map(
-    base::function_ref<void( gfx::Matrix<MapSquare>& )>
-        mutator ) {
+    base::function_ref<void( RealTerrain& )> mutator ) {
   this->Base::modify_entire_map( mutator );
 }
 

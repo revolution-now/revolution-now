@@ -402,7 +402,9 @@ TEST_CASE(
   // Add road.
   expected_real_square      = real_square;
   expected_real_square.road = !expected_real_square.road;
-  f( [&]( auto& m ) { m[tile].road = !m[tile].road; } );
+  f( [&]( auto& real_terrain ) {
+    real_terrain.map[tile].road = !real_terrain.map[tile].road;
+  } );
   REQUIRE( real_square == expected_real_square );
   REQUIRE( fog_square( e_nation::dutch ) == nothing );
   REQUIRE( fog_square( e_nation::french ) == nothing );

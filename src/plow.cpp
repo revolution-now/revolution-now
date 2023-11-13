@@ -15,6 +15,7 @@
 #include "imap-updater.hpp"
 #include "logger.hpp"
 #include "lumber-yield.hpp"
+#include "map-square.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
 

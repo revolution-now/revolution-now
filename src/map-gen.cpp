@@ -44,16 +44,16 @@ void generate_terrain_impl( lua::state& st,
 
 void reset_terrain( IMapUpdater& map_updater, Delta size ) {
   map_updater.modify_entire_map(
-      [&]( gfx::Matrix<MapSquare>& world_map ) {
-        world_map = gfx::Matrix<MapSquare>( size );
+      [&]( RealTerrain& real_terrain ) {
+        real_terrain.map = gfx::Matrix<MapSquare>( size );
       } );
 }
 
 void generate_terrain( lua::state&  st,
                        IMapUpdater& map_updater ) {
   map_updater.modify_entire_map(
-      [&]( gfx::Matrix<MapSquare>& m ) {
-        generate_terrain_impl( st, m );
+      [&]( RealTerrain& real_terrain ) {
+        generate_terrain_impl( st, real_terrain.map );
       } );
 }
 

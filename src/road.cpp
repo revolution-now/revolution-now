@@ -13,6 +13,7 @@
 // Revolution Now
 #include "imap-updater.hpp"
 #include "logger.hpp"
+#include "map-square.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
 

@@ -16,8 +16,6 @@
 #include "imap-updater.rds.hpp"
 
 // Revolution Now
-#include "map-square.hpp"
-#include "matrix.hpp"
 #include "maybe.hpp"
 
 // ss
@@ -37,6 +35,8 @@
 namespace rn {
 
 struct IMapUpdater;
+struct MapSquare;
+struct RealTerrain;
 
 /****************************************************************
 ** MapUpdaterOptions
@@ -82,8 +82,7 @@ struct [[nodiscard]] MapUpdaterOptionsPopper {
 struct IMapUpdater {
   using SquareUpdateFunc =
       base::function_ref<void( MapSquare& )>;
-  using MapUpdateFunc =
-      base::function_ref<void( gfx::Matrix<MapSquare>& )>;
+  using MapUpdateFunc = base::function_ref<void( RealTerrain& )>;
   using OptionsUpdateFunc =
       base::function_ref<void( MapUpdaterOptions& )>;
   using Popper = detail::MapUpdaterOptionsPopper;

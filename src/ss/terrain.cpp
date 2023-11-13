@@ -70,9 +70,8 @@ gfx::Matrix<MapSquare> const& TerrainState::world_map() const {
 }
 
 void TerrainState::modify_entire_map(
-    base::function_ref<void( gfx::Matrix<MapSquare>& )>
-        mutator ) {
-  mutator( o_.real_terrain.map );
+    base::function_ref<void( RealTerrain& )> mutator ) {
+  mutator( o_.real_terrain );
   // Maintain the invariant that pacific_ocean_tiles should
   // have one element for each map row.
   o_.pacific_ocean_endpoints.resize(
@@ -270,8 +269,8 @@ LUA_STARTUP( lua::state& st ) {
         &U::initialize_player_terrain;
 
     u["reset"] = []( U& o, Delta size ) {
-      o.modify_entire_map( [&]( gfx::Matrix<MapSquare>& m ) {
-        m = gfx::Matrix<MapSquare>( size );
+      o.modify_entire_map( [&]( RealTerrain& real_terrain ) {
+        real_terrain.map = gfx::Matrix<MapSquare>( size );
       } );
     };
 

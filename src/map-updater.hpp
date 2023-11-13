@@ -16,6 +16,9 @@
 // render
 #include "render/renderer.rds.hpp"
 
+// gfx
+#include "gfx/matrix.hpp"
+
 namespace rr {
 struct Renderer;
 }

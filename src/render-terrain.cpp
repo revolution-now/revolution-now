@@ -14,6 +14,7 @@
 #include "error.hpp"
 #include "imap-updater.hpp"
 #include "logger.hpp"
+#include "map-square.hpp"
 #include "plow.hpp"
 #include "road.hpp"
 #include "tiles.hpp"

@@ -114,8 +114,7 @@ struct TerrainState {
   // involve changing its dimensions) it must always be done via
   // this method so that invariants of this class will be upheld.
   void modify_entire_map(
-      base::function_ref<void( gfx::Matrix<MapSquare>& )>
-          mutator );
+      base::function_ref<void( RealTerrain& )> mutator );
 
   // This should only be called by code doing map generation.
   // Once a map is generated, the proto squares should not be
