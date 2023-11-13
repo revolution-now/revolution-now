@@ -35,26 +35,22 @@ Problems with fields
 TODO
 ========================================================
 
-  1. Add framework for conversion between new and old.
+  1. Try to map remaining fields.
 
-       => Test this by importing the OG's America map.
+  2. Add UI mechanism for working with OG sav files.
 
-  2. Try to map remaining fields.
-
-  3. Add UI mechanism for working with OG sav files.
-
-  4. Add CLI flags to game for doing the conversions; include
+  3. Add CLI flags to game for doing the conversions; include
      commands for working with map files only.
 
        => not needed at the moment because we have the lua con-
           version scripts.
 
-  5. If we're going to support conversion of SAV files to/from
+  4. If we're going to support conversion of SAV files to/from
      JSON in the distributed game, we're probably going to need
      a way to convey the metadata values to users.  We could
      just publish the JSON schema, that would probably be easiest.
 
-  6. Solve problem of how to obtain/represent the save-game sum-
+  5. Solve problem of how to obtain/represent the save-game sum-
      maries for each format.
 
        => Add a function to load only the non-map portion

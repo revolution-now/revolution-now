@@ -29,6 +29,7 @@ void linker_dont_discard_module_irand();
 void linker_dont_discard_module_ss_dwelling();
 void linker_dont_discard_module_native_expertise();
 void linker_dont_discard_module_ss_native_unit();
+void linker_dont_discard_module_classic_sav();
 
 void linker_dont_discard_me() {
   linker_dont_discard_module_map_updater_lua();
@@ -48,6 +49,7 @@ void linker_dont_discard_me() {
   linker_dont_discard_module_ss_dwelling();
   linker_dont_discard_module_native_expertise();
   linker_dont_discard_module_ss_native_unit();
+  linker_dont_discard_module_classic_sav();
   // Add more here as needed.
 }
 

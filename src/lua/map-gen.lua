@@ -20,18 +20,21 @@ local weights = require( 'map-gen.classic.terrain-weights' )
 local timer = require( 'util.timer' )
 
 -----------------------------------------------------------------
+-- Globals.
+-----------------------------------------------------------------
+local function global( name ) return assert( _G[name] ) end
+
+local classic_sav = global( 'classic_sav' )
+local unit_mgr = global( 'unit_mgr' )
+local native_expertise = global( 'native_expertise' )
+
+-----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local min = math.min
 local max = math.max
 
------------------------------------------------------------------
--- Globals.
------------------------------------------------------------------
-local function global( name ) return assert( _G[name] ) end
-
-local unit_mgr = global( 'unit_mgr' )
-local native_expertise = global( 'native_expertise' )
+local import_map_file = classic_sav.import_map_file
 
 -----------------------------------------------------------------
 -- Constants
@@ -1749,6 +1752,14 @@ local function generate( options )
 
   if options.type == 'battlefield' then
     generate_battlefield()
+    return
+  elseif options.type == 'america' then
+    import_map_file( 'test/data/saves/classic/map/AMER-NEW.MP' )
+    local placement_seed = set_random_placement_seed()
+    distribute_prime_resources( placement_seed )
+    distribute_lost_city_rumors( placement_seed )
+    create_pacific_ocean()
+    create_indian_villages( options )
     return
   elseif options.type == 'land-partition' then
     generate_land( options )

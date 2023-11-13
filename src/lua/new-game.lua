@@ -359,7 +359,7 @@ local function add_testing_options( options )
     -- { nation='dutch', ship_pos=nil, human=false }
   }
   options.difficulty = 'conquistador'
-  -- options.map.type = 'land-partition'
+  -- options.map.type = 'america'
   -- options.map.world_size = { w=4, h=4 }
 end
 
