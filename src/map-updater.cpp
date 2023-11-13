@@ -177,7 +177,7 @@ NonRenderingMapUpdater::make_squares_fogged(
   return res;
 }
 
-void NonRenderingMapUpdater::modify_entire_map(
+void NonRenderingMapUpdater::modify_entire_map_no_redraw(
     base::function_ref<void( RealTerrain& )> mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
 }
@@ -363,9 +363,9 @@ vector<BuffersUpdated> RenderingMapUpdater::make_squares_fogged(
   return buffers_updated;
 }
 
-void RenderingMapUpdater::modify_entire_map(
+void RenderingMapUpdater::modify_entire_map_no_redraw(
     base::function_ref<void( RealTerrain& )> mutator ) {
-  this->Base::modify_entire_map( mutator );
+  this->Base::modify_entire_map_no_redraw( mutator );
 }
 
 void RenderingMapUpdater::redraw_landscape_buffer() {

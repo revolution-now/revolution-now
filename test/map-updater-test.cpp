@@ -377,7 +377,7 @@ TEST_CASE(
   MapSquare  expected_real_square;
 
   auto f = [&]( auto&& mutator ) {
-    map_updater.modify_entire_map( mutator );
+    map_updater.modify_entire_map_no_redraw( mutator );
   };
 
   auto fog_square = [&]( e_nation nation ) -> maybe<FogSquare>& {

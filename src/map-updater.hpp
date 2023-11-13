@@ -54,7 +54,8 @@ struct NonRenderingMapUpdater : IMapUpdater {
       std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) override;
+  void modify_entire_map_no_redraw(
+      MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
   void redraw() override;
@@ -94,7 +95,8 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       std::vector<Coord> const& tiles ) override;
 
   // Implement IMapUpdater.
-  void modify_entire_map( MapUpdateFunc mutator ) override;
+  void modify_entire_map_no_redraw(
+      MapUpdateFunc mutator ) override;
 
   // Implement IMapUpdater.
   void redraw() override;

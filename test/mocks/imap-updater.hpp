@@ -27,7 +27,8 @@ namespace rn {
 struct MockIMapUpdater : IMapUpdater {
   MOCK_METHOD( BuffersUpdated, modify_map_square,
                ( Coord, SquareUpdateFunc ), () );
-  MOCK_METHOD( void, modify_entire_map, ( MapUpdateFunc ), () );
+  MOCK_METHOD( void, modify_entire_map_no_redraw,
+               ( MapUpdateFunc ), () );
   MOCK_METHOD( std::vector<BuffersUpdated>, make_squares_visible,
                (e_nation, std::vector<Coord> const&), () );
   MOCK_METHOD( std::vector<BuffersUpdated>, make_squares_fogged,

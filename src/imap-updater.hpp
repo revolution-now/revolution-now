@@ -106,7 +106,8 @@ struct IMapUpdater {
   // only expected to be called when setting up the world, and in
   // that process the player maps and drawing happen subse-
   // quently.
-  virtual void modify_entire_map( MapUpdateFunc mutator ) = 0;
+  virtual void modify_entire_map_no_redraw(
+      MapUpdateFunc mutator ) = 0;
 
   // If the given nation cannot see the squares they will be made
   // visible, and if they were already visible then they will be

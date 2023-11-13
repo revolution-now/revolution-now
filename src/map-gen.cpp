@@ -43,7 +43,7 @@ void generate_terrain_impl( lua::state& st,
 } // namespace
 
 void reset_terrain( IMapUpdater& map_updater, Delta size ) {
-  map_updater.modify_entire_map(
+  map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
         real_terrain.map = gfx::Matrix<MapSquare>( size );
       } );
@@ -51,7 +51,7 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
 
 void generate_terrain( lua::state&  st,
                        IMapUpdater& map_updater ) {
-  map_updater.modify_entire_map(
+  map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
         generate_terrain_impl( st, real_terrain.map );
       } );

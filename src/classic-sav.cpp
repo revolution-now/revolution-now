@@ -11,13 +11,16 @@
 *****************************************************************/
 #include "classic-sav.hpp"
 
+// Revolution Now
+#include "imap-updater.hpp"
+#include "ts.hpp"
+
 // sav
 #include "sav/binary.hpp"
 #include "sav/bridge.hpp"
 #include "sav/map-file.hpp"
 
 // ss
-#include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
 // luapp
@@ -53,9 +56,9 @@ valid_or<string> load_classic_map_file(
 namespace {
 
 LUA_FN( import_map_file, void, std::string const& path ) {
-  SS& ss = st["SS"].as<SS&>();
+  TS& ts = st["TS"].as<TS&>();
 
-  ss.mutable_terrain_use_with_care.modify_entire_map(
+  ts.map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
         valid_or<string> const success =
             load_classic_map_file( path, real_terrain );
