@@ -21,6 +21,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/timer.hpp"
+
 // C++ standard library
 #include <type_traits>
 
@@ -32,6 +35,7 @@ namespace {
 
 using ::base::expect;
 using ::base::nothing;
+using ::base::ScopedTimer;
 using ::base::valid;
 using ::base::valid_or;
 
@@ -328,6 +332,8 @@ valid_or<std::string> map_squares_to_tiles(
 *****************************************************************/
 valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
                                      rn::RootState& out ) {
+  ScopedTimer timer( "convert saved game from OG to RN" );
+
   // Terrain.
   rn::wrapped::TerrainState terrain_o;
   HAS_VALUE_OR_RET( tiles_to_map_squares(
@@ -342,6 +348,8 @@ valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
 
 valid_or<std::string> convert_to_og( rn::RootState const& in,
                                      sav::ColonySAV&      out ) {
+  ScopedTimer timer( "convert saved game from RN to OG" );
+
   // Header.
   out.header.colonize = { 'C', 'O', 'L', 'O', 'N',
                           'I', 'Z', 'E', 0 };
@@ -358,6 +366,7 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
 
 valid_or<std::string> convert_to_rn( sav::MapFile const& in,
                                      rn::RealTerrain&    out ) {
+  ScopedTimer timer( "convert map from OG to RN" );
   HAS_VALUE_OR_RET( tiles_to_map_squares(
       in.map_size_x, in.map_size_y, in.tile, out ) );
   return valid;
@@ -365,6 +374,7 @@ valid_or<std::string> convert_to_rn( sav::MapFile const& in,
 
 valid_or<std::string> convert_to_og( rn::RealTerrain const& in,
                                      sav::ColonySAV& out ) {
+  ScopedTimer timer( "convert map from RN to OG" );
   HAS_VALUE_OR_RET(
       map_squares_to_tiles( in, out.header.map_size_x,
                             out.header.map_size_y, out.tile ) );
