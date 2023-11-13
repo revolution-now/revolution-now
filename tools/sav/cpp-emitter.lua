@@ -818,7 +818,7 @@ function CppEmitter:emit_bit_struct( hpp, cpp, bit_struct, name )
                          bytes_needed_for_bits( member.size ) )
     local remaps = { bit_bool='bool', uint='uint8_t' }
     type = remaps[type] or type
-    hpp:line( '%s %s : %d;', type, as_identifier( key ),
+    hpp:line( '%s %s : %d = {};', type, as_identifier( key ),
               member.size );
   end
   hpp:newline()

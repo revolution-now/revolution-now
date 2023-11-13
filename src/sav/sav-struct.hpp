@@ -861,14 +861,14 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
 ** TutorialHelp
 *****************************************************************/
 struct TutorialHelp {
-  bool unknown00 : 1;
-  bool unknown01 : 1;
-  bool unknown02 : 1;
-  bool unknown03 : 1;
-  bool unknown04 : 1;
-  bool unknown05 : 1;
-  bool unknown06 : 1;
-  bool unknown07 : 1;
+  bool unknown00 : 1 = {};
+  bool unknown01 : 1 = {};
+  bool unknown02 : 1 = {};
+  bool unknown03 : 1 = {};
+  bool unknown04 : 1 = {};
+  bool unknown05 : 1 = {};
+  bool unknown06 : 1 = {};
+  bool unknown07 : 1 = {};
 
   bool operator==( TutorialHelp const& ) const = default;
 };
@@ -895,16 +895,16 @@ cdr::result<TutorialHelp> from_canonical(
 ** GameOptions
 *****************************************************************/
 struct GameOptions {
-  uint8_t unused01 : 7;
-  bool tutorial_hints : 1;
-  bool disable_water_color_cycling : 1;
-  bool combat_analysis : 1;
-  bool autosave : 1;
-  bool end_of_turn : 1;
-  bool fast_piece_slide : 1;
-  bool cheats_enabled : 1;
-  bool show_foreign_moves : 1;
-  bool show_indian_moves : 1;
+  uint8_t unused01 : 7 = {};
+  bool tutorial_hints : 1 = {};
+  bool disable_water_color_cycling : 1 = {};
+  bool combat_analysis : 1 = {};
+  bool autosave : 1 = {};
+  bool end_of_turn : 1 = {};
+  bool fast_piece_slide : 1 = {};
+  bool cheats_enabled : 1 = {};
+  bool show_foreign_moves : 1 = {};
+  bool show_indian_moves : 1 = {};
 
   bool operator==( GameOptions const& ) const = default;
 };
@@ -931,17 +931,17 @@ cdr::result<GameOptions> from_canonical(
 ** ColonyReportOptions
 *****************************************************************/
 struct ColonyReportOptions {
-  bool labels_on_cargo_and_terrain : 1;
-  bool labels_on_buildings : 1;
-  bool report_new_cargos_available : 1;
-  bool report_inefficient_government : 1;
-  bool report_tools_needed_for_production : 1;
-  bool report_raw_materials_shortages : 1;
-  bool report_food_shortages : 1;
-  bool report_when_colonists_trained : 1;
-  bool report_sons_of_liberty_membership : 1;
-  bool report_rebel_majorities : 1;
-  uint8_t unused03 : 6;
+  bool labels_on_cargo_and_terrain : 1 = {};
+  bool labels_on_buildings : 1 = {};
+  bool report_new_cargos_available : 1 = {};
+  bool report_inefficient_government : 1 = {};
+  bool report_tools_needed_for_production : 1 = {};
+  bool report_raw_materials_shortages : 1 = {};
+  bool report_food_shortages : 1 = {};
+  bool report_when_colonists_trained : 1 = {};
+  bool report_sons_of_liberty_membership : 1 = {};
+  bool report_rebel_majorities : 1 = {};
+  uint8_t unused03 : 6 = {};
 
   bool operator==( ColonyReportOptions const& ) const = default;
 };
@@ -968,22 +968,22 @@ cdr::result<ColonyReportOptions> from_canonical(
 ** Flags
 *****************************************************************/
 struct Flags {
-  bool how_to_win : 1;
-  bool background_music : 1;
-  bool event_music : 1;
-  bool sound_effects : 1;
-  bool unknown00 : 1;
-  bool unknown01 : 1;
-  bool unknown02 : 1;
-  bool unknown03 : 1;
-  bool unknown04 : 1;
-  bool unknown05 : 1;
-  bool unknown06 : 1;
-  bool unknown07 : 1;
-  bool unknown08 : 1;
-  bool unknown09 : 1;
-  bool unknown10 : 1;
-  bool unknown11 : 1;
+  bool how_to_win : 1 = {};
+  bool background_music : 1 = {};
+  bool event_music : 1 = {};
+  bool sound_effects : 1 = {};
+  bool unknown00 : 1 = {};
+  bool unknown01 : 1 = {};
+  bool unknown02 : 1 = {};
+  bool unknown03 : 1 = {};
+  bool unknown04 : 1 = {};
+  bool unknown05 : 1 = {};
+  bool unknown06 : 1 = {};
+  bool unknown07 : 1 = {};
+  bool unknown08 : 1 = {};
+  bool unknown09 : 1 = {};
+  bool unknown10 : 1 = {};
+  bool unknown11 : 1 = {};
 
   bool operator==( Flags const& ) const = default;
 };
@@ -1010,22 +1010,22 @@ cdr::result<Flags> from_canonical(
 ** Event
 *****************************************************************/
 struct Event {
-  bool discovery_of_the_new_world : 1;
-  bool building_a_colony : 1;
-  bool meeting_the_natives : 1;
-  bool the_aztec_empire : 1;
-  bool the_inca_nation : 1;
-  bool discovery_of_the_pacific_ocean : 1;
-  bool entering_indian_village : 1;
-  bool the_fountain_of_youth : 1;
-  bool cargo_from_the_new_world : 1;
-  bool meeting_fellow_europeans : 1;
-  bool colony_burning : 1;
-  bool colony_destroyed : 1;
-  bool indian_raid : 1;
-  bool woodcut14 : 1;
-  bool woodcut15 : 1;
-  bool woodcut16 : 1;
+  bool discovery_of_the_new_world : 1 = {};
+  bool building_a_colony : 1 = {};
+  bool meeting_the_natives : 1 = {};
+  bool the_aztec_empire : 1 = {};
+  bool the_inca_nation : 1 = {};
+  bool discovery_of_the_pacific_ocean : 1 = {};
+  bool entering_indian_village : 1 = {};
+  bool the_fountain_of_youth : 1 = {};
+  bool cargo_from_the_new_world : 1 = {};
+  bool meeting_fellow_europeans : 1 = {};
+  bool colony_burning : 1 = {};
+  bool colony_destroyed : 1 = {};
+  bool indian_raid : 1 = {};
+  bool woodcut14 : 1 = {};
+  bool woodcut15 : 1 = {};
+  bool woodcut16 : 1 = {};
 
   bool operator==( Event const& ) const = default;
 };
@@ -1052,8 +1052,8 @@ cdr::result<Event> from_canonical(
 ** Duration
 *****************************************************************/
 struct Duration {
-  uint8_t dur_1 : 4;
-  uint8_t dur_2 : 4;
+  uint8_t dur_1 : 4 = {};
+  uint8_t dur_2 : 4 = {};
 
   bool operator==( Duration const& ) const = default;
 };
@@ -1080,25 +1080,25 @@ cdr::result<Duration> from_canonical(
 ** Buildings
 *****************************************************************/
 struct Buildings {
-  level_3bit_type fortification : 3;
-  level_3bit_type armory : 3;
-  level_3bit_type docks : 3;
-  level_3bit_type town_hall : 3;
-  level_3bit_type schoolhouse : 3;
-  bool warehouse : 1;
-  bool unused05a : 1;
-  bool stables : 1;
-  bool custom_house : 1;
-  level_2bit_type printing_press : 2;
-  level_3bit_type weavers_house : 3;
-  level_3bit_type tobacconists_house : 3;
-  level_3bit_type rum_distillers_house : 3;
-  level_2bit_type capitol_unused : 2;
-  level_3bit_type fur_traders_house : 3;
-  level_2bit_type carpenters_shop : 2;
-  level_2bit_type church : 2;
-  level_3bit_type blacksmiths_house : 3;
-  uint8_t unused05b : 6;
+  level_3bit_type fortification : 3 = {};
+  level_3bit_type armory : 3 = {};
+  level_3bit_type docks : 3 = {};
+  level_3bit_type town_hall : 3 = {};
+  level_3bit_type schoolhouse : 3 = {};
+  bool warehouse : 1 = {};
+  bool unused05a : 1 = {};
+  bool stables : 1 = {};
+  bool custom_house : 1 = {};
+  level_2bit_type printing_press : 2 = {};
+  level_3bit_type weavers_house : 3 = {};
+  level_3bit_type tobacconists_house : 3 = {};
+  level_3bit_type rum_distillers_house : 3 = {};
+  level_2bit_type capitol_unused : 2 = {};
+  level_3bit_type fur_traders_house : 3 = {};
+  level_2bit_type carpenters_shop : 2 = {};
+  level_2bit_type church : 2 = {};
+  level_3bit_type blacksmiths_house : 3 = {};
+  uint8_t unused05b : 6 = {};
 
   bool operator==( Buildings const& ) const = default;
 };
@@ -1125,22 +1125,22 @@ cdr::result<Buildings> from_canonical(
 ** CustomHouseFlags
 *****************************************************************/
 struct CustomHouseFlags {
-  bool food : 1;
-  bool sugar : 1;
-  bool tobacco : 1;
-  bool cotton : 1;
-  bool furs : 1;
-  bool lumber : 1;
-  bool ore : 1;
-  bool silver : 1;
-  bool horses : 1;
-  bool rum : 1;
-  bool cigars : 1;
-  bool cloth : 1;
-  bool coats : 1;
-  bool trade_goods : 1;
-  bool tools : 1;
-  bool muskets : 1;
+  bool food : 1 = {};
+  bool sugar : 1 = {};
+  bool tobacco : 1 = {};
+  bool cotton : 1 = {};
+  bool furs : 1 = {};
+  bool lumber : 1 = {};
+  bool ore : 1 = {};
+  bool silver : 1 = {};
+  bool horses : 1 = {};
+  bool rum : 1 = {};
+  bool cigars : 1 = {};
+  bool cloth : 1 = {};
+  bool coats : 1 = {};
+  bool trade_goods : 1 = {};
+  bool tools : 1 = {};
+  bool muskets : 1 = {};
 
   bool operator==( CustomHouseFlags const& ) const = default;
 };
@@ -1167,11 +1167,11 @@ cdr::result<CustomHouseFlags> from_canonical(
 ** NationInfo
 *****************************************************************/
 struct NationInfo {
-  nation_4bit_type nation_id : 4;
-  bool vis_to_english : 1;
-  bool vis_to_french : 1;
-  bool vis_to_spanish : 1;
-  bool vis_to_dutch : 1;
+  nation_4bit_type nation_id : 4 = {};
+  bool vis_to_english : 1 = {};
+  bool vis_to_french : 1 = {};
+  bool vis_to_spanish : 1 = {};
+  bool vis_to_dutch : 1 = {};
 
   bool operator==( NationInfo const& ) const = default;
 };
@@ -1198,8 +1198,8 @@ cdr::result<NationInfo> from_canonical(
 ** Unknown15
 *****************************************************************/
 struct Unknown15 {
-  uint8_t unknown15a : 7;
-  bool damaged : 1;
+  uint8_t unknown15a : 7 = {};
+  bool damaged : 1 = {};
 
   bool operator==( Unknown15 const& ) const = default;
 };
@@ -1226,8 +1226,8 @@ cdr::result<Unknown15> from_canonical(
 ** CargoItems
 *****************************************************************/
 struct CargoItems {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
 
   bool operator==( CargoItems const& ) const = default;
 };
@@ -1254,32 +1254,32 @@ cdr::result<CargoItems> from_canonical(
 ** FoundingFathers
 *****************************************************************/
 struct FoundingFathers {
-  bool adam_smith : 1;
-  bool jakob_fugger : 1;
-  bool peter_minuit : 1;
-  bool peter_stuyvesant : 1;
-  bool jan_de_witt : 1;
-  bool ferdinand_magellan : 1;
-  bool francisco_coronado : 1;
-  bool hernando_de_soto : 1;
-  bool henry_hudson : 1;
-  bool sieur_de_la_salle : 1;
-  bool hernan_cortes : 1;
-  bool george_washington : 1;
-  bool paul_revere : 1;
-  bool francis_drake : 1;
-  bool john_paul_jones : 1;
-  bool thomas_jefferson : 1;
-  bool pocahontas : 1;
-  bool thomas_paine : 1;
-  bool simon_bolivar : 1;
-  bool benjamin_franklin : 1;
-  bool william_brewster : 1;
-  bool william_penn : 1;
-  bool jean_de_brebeuf : 1;
-  bool juan_de_sepulveda : 1;
-  bool bartolme_de_las_casas : 1;
-  uint8_t unknown00 : 7;
+  bool adam_smith : 1 = {};
+  bool jakob_fugger : 1 = {};
+  bool peter_minuit : 1 = {};
+  bool peter_stuyvesant : 1 = {};
+  bool jan_de_witt : 1 = {};
+  bool ferdinand_magellan : 1 = {};
+  bool francisco_coronado : 1 = {};
+  bool hernando_de_soto : 1 = {};
+  bool henry_hudson : 1 = {};
+  bool sieur_de_la_salle : 1 = {};
+  bool hernan_cortes : 1 = {};
+  bool george_washington : 1 = {};
+  bool paul_revere : 1 = {};
+  bool francis_drake : 1 = {};
+  bool john_paul_jones : 1 = {};
+  bool thomas_jefferson : 1 = {};
+  bool pocahontas : 1 = {};
+  bool thomas_paine : 1 = {};
+  bool simon_bolivar : 1 = {};
+  bool benjamin_franklin : 1 = {};
+  bool william_brewster : 1 = {};
+  bool william_penn : 1 = {};
+  bool jean_de_brebeuf : 1 = {};
+  bool juan_de_sepulveda : 1 = {};
+  bool bartolme_de_las_casas : 1 = {};
+  uint8_t unknown00 : 7 = {};
 
   bool operator==( FoundingFathers const& ) const = default;
 };
@@ -1306,22 +1306,22 @@ cdr::result<FoundingFathers> from_canonical(
 ** BoycottBitmap
 *****************************************************************/
 struct BoycottBitmap {
-  bool food : 1;
-  bool sugar : 1;
-  bool tobacco : 1;
-  bool cotton : 1;
-  bool furs : 1;
-  bool lumber : 1;
-  bool ore : 1;
-  bool silver : 1;
-  bool horses : 1;
-  bool rum : 1;
-  bool cigars : 1;
-  bool cloth : 1;
-  bool coats : 1;
-  bool trade_goods : 1;
-  bool tools : 1;
-  bool muskets : 1;
+  bool food : 1 = {};
+  bool sugar : 1 = {};
+  bool tobacco : 1 = {};
+  bool cotton : 1 = {};
+  bool furs : 1 = {};
+  bool lumber : 1 = {};
+  bool ore : 1 = {};
+  bool silver : 1 = {};
+  bool horses : 1 = {};
+  bool rum : 1 = {};
+  bool cigars : 1 = {};
+  bool cloth : 1 = {};
+  bool coats : 1 = {};
+  bool trade_goods : 1 = {};
+  bool tools : 1 = {};
+  bool muskets : 1 = {};
 
   bool operator==( BoycottBitmap const& ) const = default;
 };
@@ -1348,11 +1348,11 @@ cdr::result<BoycottBitmap> from_canonical(
 ** ALCS
 *****************************************************************/
 struct ALCS {
-  bool artillery_near : 1;
-  bool learned : 1;
-  bool capital : 1;
-  bool scouted : 1;
-  uint8_t unused09 : 4;
+  bool artillery_near : 1 = {};
+  bool learned : 1 = {};
+  bool capital : 1 = {};
+  bool scouted : 1 = {};
+  uint8_t unused09 : 4 = {};
 
   bool operator==( ALCS const& ) const = default;
 };
@@ -1379,8 +1379,8 @@ cdr::result<ALCS> from_canonical(
 ** TILE
 *****************************************************************/
 struct TILE {
-  terrain_5bit_type tile : 5;
-  hills_river_3bit_type hill_river : 3;
+  terrain_5bit_type tile : 5 = {};
+  hills_river_3bit_type hill_river : 3 = {};
 
   bool operator==( TILE const& ) const = default;
 };
@@ -1407,14 +1407,14 @@ cdr::result<TILE> from_canonical(
 ** MASK
 *****************************************************************/
 struct MASK {
-  has_unit_1bit_type has_unit : 1;
-  has_city_1bit_type has_city : 1;
-  suppress_1bit_type suppress : 1;
-  road_1bit_type road : 1;
-  purchased_1bit_type purchased : 1;
-  pacific_1bit_type pacific : 1;
-  plowed_1bit_type plowed : 1;
-  suppress_1bit_type unused : 1;
+  has_unit_1bit_type has_unit : 1 = {};
+  has_city_1bit_type has_city : 1 = {};
+  suppress_1bit_type suppress : 1 = {};
+  road_1bit_type road : 1 = {};
+  purchased_1bit_type purchased : 1 = {};
+  pacific_1bit_type pacific : 1 = {};
+  plowed_1bit_type plowed : 1 = {};
+  suppress_1bit_type unused : 1 = {};
 
   bool operator==( MASK const& ) const = default;
 };
@@ -1441,8 +1441,8 @@ cdr::result<MASK> from_canonical(
 ** PATH
 *****************************************************************/
 struct PATH {
-  region_id_4bit_type region_id : 4;
-  nation_4bit_short_type visitor_nation : 4;
+  region_id_4bit_type region_id : 4 = {};
+  nation_4bit_short_type visitor_nation : 4 = {};
 
   bool operator==( PATH const& ) const = default;
 };
@@ -1469,11 +1469,11 @@ cdr::result<PATH> from_canonical(
 ** SEEN
 *****************************************************************/
 struct SEEN {
-  region_id_4bit_type score : 4;
-  visible_to_english_1bit_type vis2en : 1;
-  visible_to_french_1bit_type vis2fr : 1;
-  visible_to_spanish_1bit_type vis2sp : 1;
-  visible_to_dutch_1bit_type vis2du : 1;
+  region_id_4bit_type score : 4 = {};
+  visible_to_english_1bit_type vis2en : 1 = {};
+  visible_to_french_1bit_type vis2fr : 1 = {};
+  visible_to_spanish_1bit_type vis2sp : 1 = {};
+  visible_to_dutch_1bit_type vis2du : 1 = {};
 
   bool operator==( SEEN const& ) const = default;
 };
@@ -1500,8 +1500,8 @@ cdr::result<SEEN> from_canonical(
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
 struct Stop1LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4;
-  uint8_t loads_count : 4;
+  uint8_t unloads_count : 4 = {};
+  uint8_t loads_count : 4 = {};
 
   bool operator==( Stop1LoadsAndUnloadsCount const& ) const = default;
 };
@@ -1528,12 +1528,12 @@ cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
 ** Stop1LoadsCargo
 *****************************************************************/
 struct Stop1LoadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop1LoadsCargo const& ) const = default;
 };
@@ -1560,12 +1560,12 @@ cdr::result<Stop1LoadsCargo> from_canonical(
 ** Stop1UnloadsCargo
 *****************************************************************/
 struct Stop1UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop1UnloadsCargo const& ) const = default;
 };
@@ -1592,8 +1592,8 @@ cdr::result<Stop1UnloadsCargo> from_canonical(
 ** Stop2LoadsAndUnloadsCount
 *****************************************************************/
 struct Stop2LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4;
-  uint8_t loads_count : 4;
+  uint8_t unloads_count : 4 = {};
+  uint8_t loads_count : 4 = {};
 
   bool operator==( Stop2LoadsAndUnloadsCount const& ) const = default;
 };
@@ -1620,12 +1620,12 @@ cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
 ** Stop2LoadsCargo
 *****************************************************************/
 struct Stop2LoadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop2LoadsCargo const& ) const = default;
 };
@@ -1652,12 +1652,12 @@ cdr::result<Stop2LoadsCargo> from_canonical(
 ** Stop2UnloadsCargo
 *****************************************************************/
 struct Stop2UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop2UnloadsCargo const& ) const = default;
 };
@@ -1684,8 +1684,8 @@ cdr::result<Stop2UnloadsCargo> from_canonical(
 ** Stop3LoadsAndUnloadsCount
 *****************************************************************/
 struct Stop3LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4;
-  uint8_t loads_count : 4;
+  uint8_t unloads_count : 4 = {};
+  uint8_t loads_count : 4 = {};
 
   bool operator==( Stop3LoadsAndUnloadsCount const& ) const = default;
 };
@@ -1712,12 +1712,12 @@ cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
 ** Stop3LoadsCargo
 *****************************************************************/
 struct Stop3LoadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop3LoadsCargo const& ) const = default;
 };
@@ -1744,12 +1744,12 @@ cdr::result<Stop3LoadsCargo> from_canonical(
 ** Stop3UnloadsCargo
 *****************************************************************/
 struct Stop3UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop3UnloadsCargo const& ) const = default;
 };
@@ -1776,8 +1776,8 @@ cdr::result<Stop3UnloadsCargo> from_canonical(
 ** Stop4LoadsAndUnloadsCount
 *****************************************************************/
 struct Stop4LoadsAndUnloadsCount {
-  uint8_t unloads_count : 4;
-  uint8_t loads_count : 4;
+  uint8_t unloads_count : 4 = {};
+  uint8_t loads_count : 4 = {};
 
   bool operator==( Stop4LoadsAndUnloadsCount const& ) const = default;
 };
@@ -1804,12 +1804,12 @@ cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
 ** Stop4LoadsCargo
 *****************************************************************/
 struct Stop4LoadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop4LoadsCargo const& ) const = default;
 };
@@ -1836,12 +1836,12 @@ cdr::result<Stop4LoadsCargo> from_canonical(
 ** Stop4UnloadsCargo
 *****************************************************************/
 struct Stop4UnloadsCargo {
-  cargo_4bit_type cargo_1 : 4;
-  cargo_4bit_type cargo_2 : 4;
-  cargo_4bit_type cargo_3 : 4;
-  cargo_4bit_type cargo_4 : 4;
-  cargo_4bit_type cargo_5 : 4;
-  cargo_4bit_type cargo_6 : 4;
+  cargo_4bit_type cargo_1 : 4 = {};
+  cargo_4bit_type cargo_2 : 4 = {};
+  cargo_4bit_type cargo_3 : 4 = {};
+  cargo_4bit_type cargo_4 : 4 = {};
+  cargo_4bit_type cargo_5 : 4 = {};
+  cargo_4bit_type cargo_6 : 4 = {};
 
   bool operator==( Stop4UnloadsCargo const& ) const = default;
 };
