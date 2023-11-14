@@ -353,6 +353,18 @@ void autosave( SSConst const& ss, TS& ts ) {
 }
 
 bool should_autosave( SSConst const& ss ) {
+  // TODO: here is a tip from one site that we should verify and
+  // probably try to replicate, since it sounds like a good idea:
+  //
+  //   "It may be helpful to note that Colonization has two au-
+  //   tosave slots. File COLONY09.SAV is saved at the end of
+  //   every turn (when the year changes). File COLONY08.SAV is
+  //   saved at the end of each decade in the game. These are
+  //   available in the load screen, but not the save screen."
+  //
+  // That said, we want to make sure to avoid serializing the
+  // game twice on turns where both slots would normally save.
+  //
   if( !ss.settings.game_options
            .flags[e_game_flag_option::autosave] )
     return false;
