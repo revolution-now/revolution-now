@@ -27,6 +27,7 @@ local sort = table.sort
 local format = string.format
 
 local dbg = util.dbg
+local deep_compare = util.deep_compare
 
 local StructureParser = structure_parser.StructureParser
 
@@ -323,21 +324,55 @@ function CppEmitter:entity( parent, field )
                       format( 'field %s not found.', field ) )
   assert( type( tbl ) == 'table',
           format( 'field %s is not a table', field ) )
-  -- res.cells = self:lookup_cells( tbl ) -- do we need this?
+  assert( type( res ) == 'table' )
+  local function set_name( name )
+    res.__name = name
+    if type( res.value_type ) == 'table' then
+      res.value_type.__name = name
+    end
+  end
+  -- This allows us to detect when the same struct/bit-struct is
+  -- used in two places with identical fields and the same name.
+  -- In that case we will just dedupe it and only emit one. How-
+  -- ever, if they have the same name but not identical defini-
+  -- tions then we will attach a suffix to them to that they
+  -- don't collide when compiled.
+  local function insert_and_dedupe(info, finished,
+                                   finished_by_name,
+                                   count_by_name )
+    for k, _ in pairs( info ) do self:dbg( '  * %s', k ) end
+    assert( res.__key_order )
+    count_by_name[field] = count_by_name[field] or 0
+    if finished_by_name[field] then
+      local other = assert( finished_by_name[field] )
+      if not deep_compare( res, other ) then
+        self:dbg(
+            'type %s appears twice by name but with non-identical definitions.',
+            field )
+        local new_name = format( '%s_%d', field, assert(
+                                     count_by_name[field] ) + 1 )
+        set_name( new_name )
+        insert( finished, res )
+        finished_by_name[new_name] = res
+      end
+    else
+      insert( finished, res )
+      finished_by_name[field] = res
+    end
+    count_by_name[field] = count_by_name[field] + 1
+  end
+  set_name( field )
   if tbl.struct then
-    insert( self.finished_structs_, res )
+    self:dbg( 'adding finished struct for field %s.', field )
+    insert_and_dedupe( tbl.struct, self.finished_structs_,
+                       self.finished_structs_by_name_,
+                       self.finished_structs_by_name_count_ )
   elseif tbl.bit_struct then
     self:dbg( 'adding finished bit struct for field %s.', field )
-    for k, _ in pairs( tbl.bit_struct ) do
-      self:dbg( '  * %s', k )
-    end
-    assert( res.__key_order )
-    insert( self.finished_bit_structs_, res )
-  end
-  assert( type( res ) == 'table' )
-  res.__name = field
-  if type( res.value_type ) == 'table' then
-    res.value_type.__name = field
+    insert_and_dedupe( tbl.bit_struct,
+                       self.finished_bit_structs_,
+                       self.finished_bit_structs_by_name_,
+                       self.finished_bit_structs_by_name_count_ )
   end
   return res
 end
@@ -351,6 +386,7 @@ local function replace_non_identifier_chars( raw )
   raw = raw:gsub( '=', 'e' )
   raw = raw:gsub( '?', 'q' )
   raw = raw:gsub( '#', 'h' )
+  raw = raw:gsub( '/', '_' )
   return raw
 end
 
@@ -1157,6 +1193,18 @@ function CppEmitter.new( metadata )
   obj.base_ = base
   obj.finished_bit_structs_ = {}
   obj.finished_structs_ = {}
+
+  -- These allow us to detect when the same struct/bit-struct is
+  -- used in two places with identical fields and the same name.
+  -- In that case we will just dedupe it and only emit one. How-
+  -- ever, if they have the same name but not identical defini-
+  -- tions then we will attach a suffix to them to that they
+  -- don't collide when compiled.
+  obj.finished_structs_by_name_ = {}
+  obj.finished_structs_by_name_count_ = {}
+  obj.finished_bit_structs_by_name_ = {}
+  obj.finished_bit_structs_by_name_count_ = {}
+
   setmetatable( obj, {
     __newindex=function() error( 'cannot modify.', 2 ) end,
     __index=CppEmitterMeta,

@@ -293,7 +293,7 @@ enum class nation_4bit_type : uint8_t {
   netherlands = 0b0011,
   inca        = 0b0100,
   aztec       = 0b0101,
-  awarak      = 0b0110,
+  arawak      = 0b0110,
   iroquois    = 0b0111,
   cherokee    = 0b1000,
   apache      = 0b1001,
@@ -325,7 +325,7 @@ enum class nation_type : uint8_t {
   netherlands = 0x03,
   inca        = 0x04,
   aztec       = 0x05,
-  awarak      = 0x06,
+  arawak      = 0x06,
   iroquois    = 0x07,
   cherokee    = 0x08,
   apache      = 0x09,
@@ -563,28 +563,26 @@ cdr::result<region_id_4bit_type> from_canonical(
                          cdr::tag_t<region_id_4bit_type> );
 
 /****************************************************************
-** relation_type
+** relation_3bit_type
 *****************************************************************/
-enum class relation_type : uint8_t {
-  not_met      = 0x00,
-  war          = 0x20,
-  peace        = 0x60,
-  unknown_rel2 = 0x64,
-  unknown_rel  = 0x66,
+enum class relation_3bit_type : uint8_t {
+  self_vanished_not_met = 0b000,  // original: "self/vanished/not met"
+  war                   = 0b010,
+  peace                 = 0b110,
 };
 
 // String conversion.
-void to_str( relation_type const& o, std::string& out, base::ADL_t );
+void to_str( relation_3bit_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         relation_type const& o,
-                         cdr::tag_t<relation_type> );
+                         relation_3bit_type const& o,
+                         cdr::tag_t<relation_3bit_type> );
 
-cdr::result<relation_type> from_canonical(
+cdr::result<relation_3bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<relation_type> );
+                         cdr::tag_t<relation_3bit_type> );
 
 /****************************************************************
 ** road_1bit_type
@@ -682,16 +680,24 @@ enum class terrain_5bit_type : uint8_t {
   pr  = 0b00011,  // original: "pr "
   gr  = 0b00100,  // original: "gr "
   sa  = 0b00101,  // original: "sa "
-  sw  = 0b00110,  // original: "sw "
-  mr  = 0b00111,  // original: "mr "
+  mr  = 0b00110,  // original: "mr "
+  sw  = 0b00111,  // original: "sw "
   tuf = 0b01000,
   def = 0b01001,
   plf = 0b01010,
   prf = 0b01011,
   grf = 0b01100,
   saf = 0b01101,
-  swf = 0b01110,
-  mrf = 0b01111,
+  mrf = 0b01110,
+  swf = 0b01111,
+  tuw = 0b10000,
+  dew = 0b10001,
+  plw = 0b10010,
+  prw = 0b10011,
+  grw = 0b10100,
+  saw = 0b10101,
+  mrw = 0b10110,
+  sww = 0b10111,
   arc = 0b11000,
   ttt = 0b11001,  // original: "~~~"
   tnt = 0b11010,  // original: "~:~"
@@ -1345,6 +1351,64 @@ cdr::result<BoycottBitmap> from_canonical(
                          cdr::tag_t<BoycottBitmap> );
 
 /****************************************************************
+** RelationByNations
+*****************************************************************/
+struct RelationByNations {
+  uint8_t attitudeq : 4 = {};
+  relation_3bit_type status : 3 = {};
+  bool irritated_by_piracy : 1 = {};
+
+  bool operator==( RelationByNations const& ) const = default;
+};
+
+// String conversion.
+void to_str( RelationByNations const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByNations& o );
+
+bool write_binary( base::IBinaryIO& b, RelationByNations const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByNations const& o,
+                         cdr::tag_t<RelationByNations> );
+
+cdr::result<RelationByNations> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByNations> );
+
+/****************************************************************
+** RelationByIndian
+*****************************************************************/
+struct RelationByIndian {
+  uint8_t attitudeq : 4 = {};
+  relation_3bit_type status : 3 = {};
+  bool unused : 1 = {};
+
+  bool operator==( RelationByIndian const& ) const = default;
+};
+
+// String conversion.
+void to_str( RelationByIndian const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByIndian& o );
+
+bool write_binary( base::IBinaryIO& b, RelationByIndian const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByIndian const& o,
+                         cdr::tag_t<RelationByIndian> );
+
+cdr::result<RelationByIndian> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByIndian> );
+
+/****************************************************************
 ** ALCS
 *****************************************************************/
 struct ALCS {
@@ -1374,6 +1438,35 @@ cdr::result<ALCS> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<ALCS> );
+
+/****************************************************************
+** RelationByNations2
+*****************************************************************/
+struct RelationByNations2 {
+  uint8_t attitudeq : 4 = {};
+  relation_3bit_type status : 3 = {};
+  bool unused : 1 = {};
+
+  bool operator==( RelationByNations2 const& ) const = default;
+};
+
+// String conversion.
+void to_str( RelationByNations2 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByNations2& o );
+
+bool write_binary( base::IBinaryIO& b, RelationByNations2 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByNations2 const& o,
+                         cdr::tag_t<RelationByNations2> );
+
+cdr::result<RelationByNations2> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByNations2> );
 
 /****************************************************************
 ** TILE
@@ -2059,6 +2152,35 @@ cdr::result<PLAYER> from_canonical(
                          cdr::tag_t<PLAYER> );
 
 /****************************************************************
+** OTHER
+*****************************************************************/
+struct OTHER {
+  bytes<18> unknown51a = {};
+  std::array<uint16_t, 2> click_before_open_colony_x_y = {};
+  bytes<2> unknown51b = {};
+
+  bool operator==( OTHER const& ) const = default;
+};
+
+// String conversion.
+void to_str( OTHER const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, OTHER& o );
+
+bool write_binary( base::IBinaryIO& b, OTHER const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         OTHER const& o,
+                         cdr::tag_t<OTHER> );
+
+cdr::result<OTHER> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<OTHER> );
+
+/****************************************************************
 ** Tiles
 *****************************************************************/
 struct Tiles {
@@ -2218,8 +2340,8 @@ struct COLONY {
   Stock stock = {};
   PopulationOnMap population_on_map = {};
   FortificationOnMap fortification_on_map = {};
-  bytes<4> rebel_dividend = {};
-  bytes<4> rebel_divisor = {};
+  int32_t rebel_dividend = {};
+  int32_t rebel_divisor = {};
 
   bool operator==( COLONY const& ) const = default;
 };
@@ -2314,40 +2436,6 @@ cdr::result<UNIT> from_canonical(
                          cdr::tag_t<UNIT> );
 
 /****************************************************************
-** RelationByIndian
-*****************************************************************/
-struct RelationByIndian {
-  relation_type inca = {};
-  relation_type aztec = {};
-  relation_type awarak = {};
-  relation_type iroquois = {};
-  relation_type cherokee = {};
-  relation_type apache = {};
-  relation_type sioux = {};
-  relation_type tupi = {};
-
-  bool operator==( RelationByIndian const& ) const = default;
-};
-
-// String conversion.
-void to_str( RelationByIndian const& o, std::string& out, base::ADL_t );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, RelationByIndian& o );
-
-bool write_binary( base::IBinaryIO& b, RelationByIndian const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         RelationByIndian const& o,
-                         cdr::tag_t<RelationByIndian> );
-
-cdr::result<RelationByIndian> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<RelationByIndian> );
-
-/****************************************************************
 ** Trade
 *****************************************************************/
 struct Trade {
@@ -2405,8 +2493,8 @@ struct NATION {
   uint16_t current_crosses = {};
   uint16_t needed_crosses = {};
   std::array<uint8_t, 2> point_return_from_europe = {};
-  bytes<4> unknown25b = {};
-  RelationByIndian relation_by_indian = {};
+  std::array<RelationByNations, 4> relation_by_nations = {};
+  std::array<RelationByIndian, 8> relation_by_indian = {};
   bytes<4> unknown26a = {};
   bytes<2> unknown26b = {};
   bytes<6> unknown26c = {};
@@ -2497,36 +2585,6 @@ cdr::result<DWELLING> from_canonical(
                          cdr::tag_t<DWELLING> );
 
 /****************************************************************
-** RelationByNations
-*****************************************************************/
-struct RelationByNations {
-  relation_type england = {};
-  relation_type france = {};
-  relation_type spain = {};
-  relation_type netherlands = {};
-
-  bool operator==( RelationByNations const& ) const = default;
-};
-
-// String conversion.
-void to_str( RelationByNations const& o, std::string& out, base::ADL_t );
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, RelationByNations& o );
-
-bool write_binary( base::IBinaryIO& b, RelationByNations const& o );
-
-// Cdr conversions.
-cdr::value to_canonical( cdr::converter& conv,
-                         RelationByNations const& o,
-                         cdr::tag_t<RelationByNations> );
-
-cdr::result<RelationByNations> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<RelationByNations> );
-
-/****************************************************************
 ** TRIBE
 *****************************************************************/
 struct TRIBE {
@@ -2538,8 +2596,8 @@ struct TRIBE {
   bytes<5> unknown31b = {};
   std::array<int16_t, 16> stock = {};
   bytes<12> unknown32 = {};
-  RelationByNations relation_by_nations = {};
-  bytes<8> unknown33 = {};
+  std::array<RelationByNations2, 4> relation_by_nations = {};
+  bytes<8> zeros33 = {};
   std::array<uint16_t, 4> alarm_by_player = {};
 
   bool operator==( TRIBE const& ) const = default;
@@ -2571,7 +2629,9 @@ struct STUFF {
   uint16_t counter_decreasing_on_new_colony = {};
   bytes<2> unknown35 = {};
   uint16_t counter_increasing_on_new_colony = {};
-  std::array<bytes<1>, 696> unknown36 = {};
+  bytes<543> unknown36a = {};
+  bytes<1> show_colony_prod_quantities = {};
+  bytes<152> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};
@@ -2655,7 +2715,7 @@ cdr::result<TRADEROUTE> from_canonical(
 struct ColonySAV {
   HEADER header = {};
   std::array<PLAYER, 4> player = {};
-  bytes<24> other = {};
+  OTHER other = {};
   std::vector<COLONY> colony = {};
   std::vector<UNIT> unit = {};
   std::array<NATION, 4> nation = {};

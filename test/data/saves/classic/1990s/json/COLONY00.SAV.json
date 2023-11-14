@@ -162,7 +162,14 @@
       "diplomacy": "00"
     }
   ],
-  "OTHER": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 29 00 28 00 00 00",
+  "OTHER": {
+    "unknown51a": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+    "click_before_open_colony x, y": [
+      41,
+      40
+    ],
+    "unknown51b": "00 00"
+  },
   "COLONY": [
     {
       "x, y": [
@@ -392,8 +399,8 @@
         "for spanish": "none",
         "for dutch": "fort"
       },
-      "rebel_dividend": "9b 02 00 00",
-      "rebel_divisor": "66 05 00 00"
+      "rebel_dividend": 667,
+      "rebel_divisor": 1382
     },
     {
       "x, y": [
@@ -623,8 +630,8 @@
         "for spanish": "none",
         "for dutch": "stockade"
       },
-      "rebel_dividend": "80 00 00 00",
-      "rebel_divisor": "23 01 00 00"
+      "rebel_dividend": 128,
+      "rebel_divisor": 291
     },
     {
       "x, y": [
@@ -854,8 +861,8 @@
         "for spanish": "fort",
         "for dutch": "none"
       },
-      "rebel_dividend": "76 05 00 00",
-      "rebel_divisor": "82 05 00 00"
+      "rebel_dividend": 1398,
+      "rebel_divisor": 1410
     },
     {
       "x, y": [
@@ -1085,8 +1092,8 @@
         "for spanish": "none",
         "for dutch": "fort"
       },
-      "rebel_dividend": "9b 05 00 00",
-      "rebel_divisor": "8f 07 00 00"
+      "rebel_dividend": 1435,
+      "rebel_divisor": 1935
     },
     {
       "x, y": [
@@ -1316,8 +1323,8 @@
         "for spanish": "none",
         "for dutch": "fortress"
       },
-      "rebel_dividend": "bf 07 00 00",
-      "rebel_divisor": "bf 07 00 00"
+      "rebel_dividend": 1983,
+      "rebel_divisor": 1983
     },
     {
       "x, y": [
@@ -1547,8 +1554,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "9b 00 00 00",
-      "rebel_divisor": "00 02 00 00"
+      "rebel_dividend": 155,
+      "rebel_divisor": 512
     },
     {
       "x, y": [
@@ -1778,8 +1785,8 @@
         "for spanish": "none",
         "for dutch": "fortress"
       },
-      "rebel_dividend": "a7 07 00 00",
-      "rebel_divisor": "a7 07 00 00"
+      "rebel_dividend": 1959,
+      "rebel_divisor": 1959
     },
     {
       "x, y": [
@@ -2009,8 +2016,8 @@
         "for spanish": "none",
         "for dutch": "fortress"
       },
-      "rebel_dividend": "3f 08 00 00",
-      "rebel_divisor": "3f 08 00 00"
+      "rebel_dividend": 2111,
+      "rebel_divisor": 2111
     },
     {
       "x, y": [
@@ -2240,8 +2247,8 @@
         "for spanish": "stockade",
         "for dutch": "none"
       },
-      "rebel_dividend": "5b 05 00 00",
-      "rebel_divisor": "58 06 00 00"
+      "rebel_dividend": 1371,
+      "rebel_divisor": 1624
     },
     {
       "x, y": [
@@ -2471,8 +2478,8 @@
         "for spanish": "stockade",
         "for dutch": "none"
       },
-      "rebel_dividend": "e0 05 00 00",
-      "rebel_divisor": "d3 06 00 00"
+      "rebel_dividend": 1504,
+      "rebel_divisor": 1747
     },
     {
       "x, y": [
@@ -2702,8 +2709,8 @@
         "for spanish": "none",
         "for dutch": "fortress"
       },
-      "rebel_dividend": "78 07 00 00",
-      "rebel_divisor": "78 07 00 00"
+      "rebel_dividend": 1912,
+      "rebel_divisor": 1912
     },
     {
       "x, y": [
@@ -2933,8 +2940,8 @@
         "for spanish": "fortress",
         "for dutch": "fortress"
       },
-      "rebel_dividend": "0f 07 00 00",
-      "rebel_divisor": "0f 07 00 00"
+      "rebel_dividend": 1807,
+      "rebel_divisor": 1807
     },
     {
       "x, y": [
@@ -3164,8 +3171,8 @@
         "for spanish": "none",
         "for dutch": "stockade"
       },
-      "rebel_dividend": "e2 01 00 00",
-      "rebel_divisor": "51 05 00 00"
+      "rebel_dividend": 482,
+      "rebel_divisor": 1361
     },
     {
       "x, y": [
@@ -3395,8 +3402,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "7f 00 00 00",
-      "rebel_divisor": "87 01 00 00"
+      "rebel_dividend": 127,
+      "rebel_divisor": 391
     },
     {
       "x, y": [
@@ -3626,8 +3633,8 @@
         "for spanish": "none",
         "for dutch": "stockade"
       },
-      "rebel_dividend": "9e 01 00 00",
-      "rebel_divisor": "65 03 00 00"
+      "rebel_dividend": 414,
+      "rebel_divisor": 869
     },
     {
       "x, y": [
@@ -3857,8 +3864,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "23 01 00 00",
-      "rebel_divisor": "a1 01 00 00"
+      "rebel_dividend": 291,
+      "rebel_divisor": 417
     },
     {
       "x, y": [
@@ -4088,8 +4095,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "92 00 00 00",
-      "rebel_divisor": "23 01 00 00"
+      "rebel_dividend": 146,
+      "rebel_divisor": 291
     },
     {
       "x, y": [
@@ -4319,8 +4326,8 @@
         "for spanish": "none",
         "for dutch": "stockade"
       },
-      "rebel_dividend": "0c 02 00 00",
-      "rebel_divisor": "26 05 00 00"
+      "rebel_dividend": 524,
+      "rebel_divisor": 1318
     },
     {
       "x, y": [
@@ -4550,8 +4557,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "40 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 64,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -4781,8 +4788,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "a4 00 00 00",
-      "rebel_divisor": "23 01 00 00"
+      "rebel_dividend": 164,
+      "rebel_divisor": 291
     },
     {
       "x, y": [
@@ -5012,8 +5019,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "40 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 64,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -5243,8 +5250,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "4c 00 00 00",
-      "rebel_divisor": "de 02 00 00"
+      "rebel_dividend": 76,
+      "rebel_divisor": 734
     },
     {
       "x, y": [
@@ -5474,8 +5481,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "bb 00 00 00",
-      "rebel_divisor": "00 02 00 00"
+      "rebel_dividend": 187,
+      "rebel_divisor": 512
     },
     {
       "x, y": [
@@ -5705,8 +5712,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "02 01 00 00",
-      "rebel_divisor": "0b 02 00 00"
+      "rebel_dividend": 258,
+      "rebel_divisor": 523
     },
     {
       "x, y": [
@@ -5936,8 +5943,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "5b 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 91,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -6167,8 +6174,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "21 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 33,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -6398,8 +6405,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "1d 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 29,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -6629,8 +6636,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "1a 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 26,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -6860,8 +6867,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "16 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 22,
+      "rebel_divisor": 191
     },
     {
       "x, y": [
@@ -7091,8 +7098,8 @@
         "for spanish": "none",
         "for dutch": "none"
       },
-      "rebel_dividend": "40 00 00 00",
-      "rebel_divisor": "bf 00 00 00"
+      "rebel_dividend": 64,
+      "rebel_divisor": 191
     }
   ],
   "UNIT": [
@@ -7751,7 +7758,7 @@
       ],
       "type": "Brave",
       "nation_info": {
-        "nation_id": "Awarak",
+        "nation_id": "Arawak",
         "vis_to_english": false,
         "vis_to_french": false,
         "vis_to_spanish": false,
@@ -8075,7 +8082,7 @@
       ],
       "type": "Brave",
       "nation_info": {
-        "nation_id": "Awarak",
+        "nation_id": "Arawak",
         "vis_to_english": false,
         "vis_to_french": false,
         "vis_to_spanish": false,
@@ -8507,7 +8514,7 @@
       ],
       "type": "Brave",
       "nation_info": {
-        "nation_id": "Awarak",
+        "nation_id": "Arawak",
         "vis_to_english": false,
         "vis_to_french": false,
         "vis_to_spanish": false,
@@ -13097,7 +13104,7 @@
       ],
       "type": "Brave",
       "nation_info": {
-        "nation_id": "Awarak",
+        "nation_id": "Arawak",
         "vis_to_english": false,
         "vis_to_french": false,
         "vis_to_spanish": false,
@@ -17325,17 +17332,70 @@
         42,
         19
       ],
-      "unknown25b": "00 e0 60 e0",
-      "relation_by_indian": {
-        "Inca": "not met",
-        "Aztec": "unknown_rel2",
-        "Awarak": "not met",
-        "Iroquois": "peace",
-        "Cherokee": "not met",
-        "Apache": "peace",
-        "Sioux": "not met",
-        "Tupi": "not met"
-      },
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": true
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": true
+        }
+      ],
+      "relation_by_indian": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 4,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        }
+      ],
       "unknown26a": "00 06 00 00",
       "unknown26b": "11 1e",
       "unknown26c": "e1 00 00 0c 91 09",
@@ -17507,17 +17567,70 @@
         42,
         19
       ],
-      "unknown25b": "60 00 60 e0",
-      "relation_by_indian": {
-        "Inca": "peace",
-        "Aztec": "peace",
-        "Awarak": "peace",
-        "Iroquois": "peace",
-        "Cherokee": "peace",
-        "Apache": "peace",
-        "Sioux": "peace",
-        "Tupi": "peace"
-      },
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": true
+        }
+      ],
+      "relation_by_indian": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
       "unknown26a": "05 00 00 00",
       "unknown26b": "0a 1d",
       "unknown26c": "74 01 01 0d c0 2a",
@@ -17689,17 +17802,70 @@
         54,
         22
       ],
-      "unknown25b": "60 60 00 a2",
-      "relation_by_indian": {
-        "Inca": "not met",
-        "Aztec": "peace",
-        "Awarak": "not met",
-        "Iroquois": "peace",
-        "Cherokee": "not met",
-        "Apache": "peace",
-        "Sioux": "not met",
-        "Tupi": "not met"
-      },
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 2,
+          "status": "war",
+          "irritated_by_piracy": true
+        }
+      ],
+      "relation_by_indian": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        }
+      ],
       "unknown26a": "00 00 00 00",
       "unknown26b": "11 1c",
       "unknown26c": "74 00 00 01 fc 00",
@@ -17871,17 +18037,70 @@
         51,
         44
       ],
-      "unknown25b": "60 e0 22 00",
-      "relation_by_indian": {
-        "Inca": "peace",
-        "Aztec": "not met",
-        "Awarak": "peace",
-        "Iroquois": "peace",
-        "Cherokee": "peace",
-        "Apache": "peace",
-        "Sioux": "peace",
-        "Tupi": "peace"
-      },
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "irritated_by_piracy": true
+        },
+        {
+          "attitude?": 2,
+          "status": "war",
+          "irritated_by_piracy": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "irritated_by_piracy": false
+        }
+      ],
+      "relation_by_indian": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
       "unknown26a": "00 00 00 00",
       "unknown26b": "02 08",
       "unknown26c": "5b 01 00 00 00 00",
@@ -18022,7 +18241,7 @@
         43,
         55
       ],
-      "nation_id": "Awarak",
+      "nation_id": "Arawak",
       "ALCS": {
         "artillery_near": false,
         "learned": false,
@@ -18540,7 +18759,7 @@
         37,
         61
       ],
-      "nation_id": "Awarak",
+      "nation_id": "Arawak",
       "ALCS": {
         "artillery_near": false,
         "learned": false,
@@ -18799,7 +19018,7 @@
         38,
         68
       ],
-      "nation_id": "Awarak",
+      "nation_id": "Arawak",
       "ALCS": {
         "artillery_near": false,
         "learned": false,
@@ -19132,7 +19351,7 @@
         41,
         68
       ],
-      "nation_id": "Awarak",
+      "nation_id": "Arawak",
       "ALCS": {
         "artillery_near": false,
         "learned": false,
@@ -19417,13 +19636,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 00 fd 00 02",
-      "relation_by_nations": {
-        "England": "not met",
-        "France": "peace",
-        "Spain": "not met",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         5,
         0,
@@ -19460,13 +19695,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 f9 04 07 00",
-      "relation_by_nations": {
-        "England": "unknown_rel2",
-        "France": "peace",
-        "Spain": "peace",
-        "Netherlands": "not met"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 4,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         100,
         8,
@@ -19503,13 +19754,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 00 02 00 03",
-      "relation_by_nations": {
-        "England": "not met",
-        "France": "peace",
-        "Spain": "not met",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         8,
         0,
@@ -19546,13 +19813,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 fe 01 04 06",
-      "relation_by_nations": {
-        "England": "peace",
-        "France": "peace",
-        "Spain": "peace",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         67,
         0,
@@ -19589,13 +19872,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 00 fa 00 00",
-      "relation_by_nations": {
-        "England": "not met",
-        "France": "peace",
-        "Spain": "not met",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         7,
         0,
@@ -19632,13 +19931,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 05 03 07 07",
-      "relation_by_nations": {
-        "England": "peace",
-        "France": "peace",
-        "Spain": "peace",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         0,
         0,
@@ -19675,13 +19990,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 00 05 00 06",
-      "relation_by_nations": {
-        "England": "not met",
-        "France": "peace",
-        "Spain": "not met",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         2,
         0,
@@ -19718,13 +20049,29 @@
         0
       ],
       "unknown32": "00 00 00 00 00 00 00 00 00 00 00 07",
-      "relation_by_nations": {
-        "England": "not met",
-        "France": "peace",
-        "Spain": "not met",
-        "Netherlands": "peace"
-      },
-      "unknown33": "00 00 00 00 00 00 00 00",
+      "relation_by_nations": [
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "self/vanished/not met",
+          "unused": false
+        },
+        {
+          "attitude?": 0,
+          "status": "peace",
+          "unused": false
+        }
+      ],
+      "zeros33": "00 00 00 00 00 00 00 00",
       "alarm_by_player": [
         4,
         0,
@@ -19738,704 +20085,9 @@
     "counter_decreasing_on_new_colony": 1431,
     "unknown35": "14 00",
     "counter_increasing_on_new_colony": 5,
-    "unknown36": [
-      "05",
-      "00",
-      "00",
-      "2a",
-      "5b",
-      "00",
-      "4b",
-      "4a",
-      "84",
-      "00",
-      "a6",
-      "ff",
-      "ff",
-      "00",
-      "ff",
-      "12",
-      "32",
-      "06",
-      "30",
-      "04",
-      "0a",
-      "01",
-      "0a",
-      "a0",
-      "03",
-      "bc",
-      "05",
-      "00",
-      "00",
-      "44",
-      "17",
-      "02",
-      "03",
-      "01",
-      "08",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "05",
-      "02",
-      "00",
-      "14",
-      "05",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "04",
-      "00",
-      "00",
-      "00",
-      "02",
-      "01",
-      "01",
-      "00",
-      "05",
-      "03",
-      "00",
-      "01",
-      "1f",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "09",
-      "00",
-      "00",
-      "00",
-      "07",
-      "02",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "27",
-      "00",
-      "00",
-      "2a",
-      "00",
-      "0a",
-      "00",
-      "2f",
-      "03",
-      "00",
-      "01",
-      "01",
-      "01",
-      "03",
-      "04",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "03",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "01",
-      "05",
-      "01",
-      "05",
-      "05",
-      "05",
-      "05",
-      "05",
-      "01",
-      "01",
-      "01",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "18",
-      "00",
-      "0c",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "10",
-      "00",
-      "11",
-      "00",
-      "03",
-      "02",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "92",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "04",
-      "00",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "07",
-      "00",
-      "05",
-      "01",
-      "01",
-      "05",
-      "01",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "05",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "38",
-      "00",
-      "94",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "38",
-      "00",
-      "12",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "21",
-      "00",
-      "39",
-      "03",
-      "02",
-      "16",
-      "02",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "a6",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "74",
-      "40",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "ff",
-      "00",
-      "94",
-      "50",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "ff",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "08",
-      "00",
-      "04",
-      "00",
-      "00",
-      "00",
-      "0f",
-      "00",
-      "01",
-      "40",
-      "00",
-      "20",
-      "18",
-      "28",
-      "60",
-      "30",
-      "18",
-      "4c",
-      "02",
-      "16",
-      "0f",
-      "1b",
-      "1f",
-      "0f",
-      "0a",
-      "08",
-      "00",
-      "04",
-      "03",
-      "05",
-      "0a",
-      "05",
-      "03",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "18",
-      "00",
-      "00",
-      "08",
-      "08",
-      "10",
-      "08",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "20",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "18",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "28",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "50",
-      "10",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "20",
-      "10",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "18",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00",
-      "00"
-    ],
+    "unknown36a": "05 00 00 2a 5b 00 4b 4a 84 00 a6 ff ff 00 ff 12 32 06 30 04 0a 01 0a a0 03 bc 05 00 00 44 17 02 03 01 08 00 00 00 00 ff ff 00 ff 00 05 02 00 14 05 00 00 00 00 00 04 00 00 00 02 01 01 00 05 03 00 01 1f 01 00 00 00 00 00 09 00 00 00 07 02 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00 27 00 00 2a 00 0a 00 2f 03 00 01 01 01 03 04 00 00 00 00 00 03 00 00 00 00 00 00 00 00 00 00 00 01 05 01 05 05 05 05 05 01 01 01 01 00 00 00 00 00 18 00 0c 00 00 00 00 00 00 00 00 00 00 00 00 00 10 00 11 00 03 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 92 00 00 00 00 00 00 00 00 00 00 00 00 00 04 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 07 00 05 01 01 05 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 05 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 38 00 94 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 38 00 12 00 00 00 00 00 00 00 00 00 00 00 00 00 21 00 39 03 02 16 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 a6 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 74 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 ff 00 94 50 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00 00 00 00 00 00 00 00 00 08 00 04 00 00 00 0f 00",
+    "show_colony_prod_quantities": "01",
+    "unknown36b": "40 00 20 18 28 60 30 18 4c 02 16 0f 1b 1f 0f 0a 08 00 04 03 05 0a 05 03 00 00 00 00 00 00 18 00 00 08 08 10 08 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 00 00 00 00 00 00 00 00 00 18 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 28 00 00 00 00 00 00 00 00 00 00 00 50 10 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 20 10 00 00 00 00 00 00 00 00 00 00 00 00 18 00 00 00 00 00 00 00 00 00 00",
     "x": 36,
     "y": 45,
     "zoom_level": 0,
@@ -23089,7 +22741,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -23249,7 +22901,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^^"
     },
     {
@@ -24013,7 +23665,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^ "
     },
     {
@@ -24297,7 +23949,7 @@
       "hill_river": "~~"
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -24489,7 +24141,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -24525,7 +24177,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~ "
     },
     {
@@ -24753,7 +24405,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -24769,7 +24421,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -25173,7 +24825,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -25181,7 +24833,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -25225,7 +24877,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -25349,7 +25001,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -25413,7 +25065,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~ "
     },
     {
@@ -25969,7 +25621,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "  "
     },
     {
@@ -26097,7 +25749,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26265,7 +25917,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26273,7 +25925,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26337,7 +25989,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26517,7 +26169,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26525,7 +26177,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26561,7 +26213,7 @@
       "hill_river": "^^"
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26673,7 +26325,7 @@
       "hill_river": "^ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -26753,7 +26405,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^^"
     },
     {
@@ -26981,7 +26633,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -27005,7 +26657,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~~"
     },
     {
@@ -27021,7 +26673,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27127,121 +26779,121 @@
     {
       "tile": "~~~",
       "hill_river": "  "
-    },
-    {
-      "tile": "sw ",
-      "hill_river": "^ "
-    },
-    {
-      "tile": "swF",
-      "hill_river": "~~"
-    },
-    {
-      "tile": "pr ",
-      "hill_river": "  "
-    },
-    {
-      "tile": "prF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "gr ",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "mrF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "grF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "saF",
-      "hill_river": "~ "
-    },
-    {
-      "tile": "saF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "swF",
-      "hill_river": "~ "
     },
     {
       "tile": "mr ",
+      "hill_river": "^ "
+    },
+    {
+      "tile": "mrF",
+      "hill_river": "~~"
+    },
+    {
+      "tile": "pr ",
+      "hill_river": "  "
+    },
+    {
+      "tile": "prF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "gr ",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "swF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "grF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "saF",
+      "hill_river": "~ "
+    },
+    {
+      "tile": "saF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "mrF",
+      "hill_river": "~ "
+    },
+    {
+      "tile": "sw ",
       "hill_river": "~ "
     },
     {
@@ -27333,7 +26985,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27341,7 +26993,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27369,7 +27021,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "~~"
     },
     {
@@ -27461,7 +27113,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27565,7 +27217,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27573,7 +27225,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -27601,12 +27253,92 @@
       "hill_river": "  "
     },
     {
+      "tile": "swF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "swF",
+      "hill_river": "~~"
+    },
+    {
       "tile": "mrF",
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
-      "hill_river": "~~"
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
     },
     {
       "tile": "swF",
@@ -27625,87 +27357,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "mrF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27825,7 +27477,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -27833,7 +27485,7 @@
       "hill_river": "^ "
     },
     {
-      "tile": "mr ",
+      "tile": "sw ",
       "hill_river": "^ "
     },
     {
@@ -27937,7 +27589,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "~ "
     },
     {
@@ -27945,7 +27597,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -28061,7 +27713,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -28069,7 +27721,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~ "
     },
     {
@@ -28169,11 +27821,11 @@
       "hill_river": "^ "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "~ "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "~ "
     },
     {
@@ -28293,7 +27945,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~ "
     },
     {
@@ -28305,7 +27957,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -28405,7 +28057,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -28529,7 +28181,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -28637,7 +28289,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -28757,15 +28409,15 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29001,7 +28653,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^^"
     },
     {
@@ -29217,18 +28869,6 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "saF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "saF",
-      "hill_river": "  "
-    },
-    {
       "tile": "swF",
       "hill_river": "  "
     },
@@ -29237,7 +28877,19 @@
       "hill_river": "  "
     },
     {
+      "tile": "saF",
+      "hill_river": "  "
+    },
+    {
       "tile": "mrF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "saF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29417,11 +29069,11 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29433,7 +29085,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29465,7 +29117,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29633,7 +29285,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^ "
     },
     {
@@ -29641,7 +29293,7 @@
       "hill_river": "^^"
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29653,11 +29305,11 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~~"
     },
     {
@@ -29685,7 +29337,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -29905,7 +29557,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "  "
     },
     {
@@ -29913,7 +29565,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mr ",
+      "tile": "sw ",
       "hill_river": "  "
     },
     {
@@ -30045,7 +29697,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -30053,15 +29705,15 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
       "tile": "mrF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -30105,7 +29757,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "~ "
     },
     {
@@ -30133,15 +29785,15 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
-      "tile": "mr ",
+      "tile": "sw ",
       "hill_river": "  "
     },
     {
-      "tile": "mr ",
+      "tile": "sw ",
       "hill_river": "  "
     },
     {
@@ -30285,7 +29937,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -30333,7 +29985,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -30369,7 +30021,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -30481,7 +30133,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "mrF",
+      "tile": "swF",
       "hill_river": "  "
     },
     {
@@ -30721,7 +30373,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~~"
     },
     {
@@ -30953,7 +30605,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -30981,7 +30633,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31181,11 +30833,11 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31221,7 +30873,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31381,7 +31033,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31649,7 +31301,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31745,7 +31397,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -31781,7 +31433,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32017,7 +31669,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32201,7 +31853,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32209,7 +31861,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32237,7 +31889,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32425,7 +32077,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32477,11 +32129,11 @@
       "hill_river": "~~"
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^^"
     },
     {
@@ -32565,7 +32217,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -32797,7 +32449,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -33021,7 +32673,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -33141,7 +32793,7 @@
       "hill_river": "~ "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -33365,7 +33017,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "swF",
+      "tile": "mrF",
       "hill_river": "  "
     },
     {
@@ -33609,7 +33261,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^^"
     },
     {
@@ -33841,235 +33493,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
-      "hill_river": "^ "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~:~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "grF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "gr ",
-      "hill_river": "^ "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "pr ",
-      "hill_river": "^ "
-    },
-    {
-      "tile": "prF",
-      "hill_river": "  "
-    },
-    {
-      "tile": "~~~",
-      "hill_river": "  "
-    },
-    {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^ "
     },
     {
@@ -34137,6 +33561,234 @@
       "hill_river": "  "
     },
     {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "grF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "gr ",
+      "hill_river": "^ "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "pr ",
+      "hill_river": "^ "
+    },
+    {
+      "tile": "prF",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "mr ",
+      "hill_river": "^ "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~~~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
+      "tile": "~:~",
+      "hill_river": "  "
+    },
+    {
       "tile": "~:~",
       "hill_river": "  "
     },
@@ -34741,7 +34393,7 @@
       "hill_river": "  "
     },
     {
-      "tile": "sw ",
+      "tile": "mr ",
       "hill_river": "^ "
     },
     {

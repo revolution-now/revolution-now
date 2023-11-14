@@ -84,41 +84,49 @@ expect<rn::MapSquare, string> map_square_from_tile(
       res.ground  = rn::e_ground_terrain::marsh;
       break;
     case sav::terrain_5bit_type::tuf:
+    case sav::terrain_5bit_type::tuw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::tundra;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::def:
+    case sav::terrain_5bit_type::dew:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::desert;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::plf:
+    case sav::terrain_5bit_type::plw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::plains;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::prf:
+    case sav::terrain_5bit_type::prw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::prairie;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::grf:
+    case sav::terrain_5bit_type::grw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::grassland;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::saf:
+    case sav::terrain_5bit_type::saw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::savannah;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::swf:
+    case sav::terrain_5bit_type::sww:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::swamp;
       res.overlay = rn::e_land_overlay::forest;
       break;
     case sav::terrain_5bit_type::mrf:
+    case sav::terrain_5bit_type::mrw:
       res.surface = rn::e_surface::land;
       res.ground  = rn::e_ground_terrain::marsh;
       res.overlay = rn::e_land_overlay::forest;

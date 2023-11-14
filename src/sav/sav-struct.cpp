@@ -528,7 +528,7 @@ void to_str( nation_4bit_type const& o, std::string& out, base::ADL_t ) {
     case nation_4bit_type::netherlands: out += "Netherlands"; return;
     case nation_4bit_type::inca: out += "Inca"; return;
     case nation_4bit_type::aztec: out += "Aztec"; return;
-    case nation_4bit_type::awarak: out += "Awarak"; return;
+    case nation_4bit_type::arawak: out += "Arawak"; return;
     case nation_4bit_type::iroquois: out += "Iroquois"; return;
     case nation_4bit_type::cherokee: out += "Cherokee"; return;
     case nation_4bit_type::apache: out += "Apache"; return;
@@ -549,7 +549,7 @@ cdr::value to_canonical( cdr::converter&,
     case nation_4bit_type::netherlands: return "Netherlands";
     case nation_4bit_type::inca: return "Inca";
     case nation_4bit_type::aztec: return "Aztec";
-    case nation_4bit_type::awarak: return "Awarak";
+    case nation_4bit_type::arawak: return "Arawak";
     case nation_4bit_type::iroquois: return "Iroquois";
     case nation_4bit_type::cherokee: return "Cherokee";
     case nation_4bit_type::apache: return "Apache";
@@ -572,7 +572,7 @@ cdr::result<nation_4bit_type> from_canonical(
     { "Netherlands", nation_4bit_type::netherlands },
     { "Inca", nation_4bit_type::inca },
     { "Aztec", nation_4bit_type::aztec },
-    { "Awarak", nation_4bit_type::awarak },
+    { "Arawak", nation_4bit_type::arawak },
     { "Iroquois", nation_4bit_type::iroquois },
     { "Cherokee", nation_4bit_type::cherokee },
     { "Apache", nation_4bit_type::apache },
@@ -597,7 +597,7 @@ void to_str( nation_type const& o, std::string& out, base::ADL_t ) {
     case nation_type::netherlands: out += "Netherlands"; return;
     case nation_type::inca: out += "Inca"; return;
     case nation_type::aztec: out += "Aztec"; return;
-    case nation_type::awarak: out += "Awarak"; return;
+    case nation_type::arawak: out += "Arawak"; return;
     case nation_type::iroquois: out += "Iroquois"; return;
     case nation_type::cherokee: out += "Cherokee"; return;
     case nation_type::apache: out += "Apache"; return;
@@ -618,7 +618,7 @@ cdr::value to_canonical( cdr::converter&,
     case nation_type::netherlands: return "Netherlands";
     case nation_type::inca: return "Inca";
     case nation_type::aztec: return "Aztec";
-    case nation_type::awarak: return "Awarak";
+    case nation_type::arawak: return "Arawak";
     case nation_type::iroquois: return "Iroquois";
     case nation_type::cherokee: return "Cherokee";
     case nation_type::apache: return "Apache";
@@ -641,7 +641,7 @@ cdr::result<nation_type> from_canonical(
     { "Netherlands", nation_type::netherlands },
     { "Inca", nation_type::inca },
     { "Aztec", nation_type::aztec },
-    { "Awarak", nation_type::awarak },
+    { "Arawak", nation_type::arawak },
     { "Iroquois", nation_type::iroquois },
     { "Cherokee", nation_type::cherokee },
     { "Apache", nation_type::apache },
@@ -1112,48 +1112,42 @@ cdr::result<region_id_4bit_type> from_canonical(
 }
 
 /****************************************************************
-** relation_type
+** relation_3bit_type
 *****************************************************************/
-void to_str( relation_type const& o, std::string& out, base::ADL_t ) {
+void to_str( relation_3bit_type const& o, std::string& out, base::ADL_t ) {
   switch( o ) {
-    case relation_type::not_met: out += "not met"; return;
-    case relation_type::war: out += "war"; return;
-    case relation_type::peace: out += "peace"; return;
-    case relation_type::unknown_rel2: out += "unknown_rel2"; return;
-    case relation_type::unknown_rel: out += "unknown_rel"; return;
+    case relation_3bit_type::self_vanished_not_met: out += "self/vanished/not met"; return;
+    case relation_3bit_type::war: out += "war"; return;
+    case relation_3bit_type::peace: out += "peace"; return;
   }
   out += "<unrecognized>";
 }
 
 cdr::value to_canonical( cdr::converter&,
-                         relation_type const& o,
-                         cdr::tag_t<relation_type> ) {
+                         relation_3bit_type const& o,
+                         cdr::tag_t<relation_3bit_type> ) {
   switch( o ) {
-    case relation_type::not_met: return "not met";
-    case relation_type::war: return "war";
-    case relation_type::peace: return "peace";
-    case relation_type::unknown_rel2: return "unknown_rel2";
-    case relation_type::unknown_rel: return "unknown_rel";
+    case relation_3bit_type::self_vanished_not_met: return "self/vanished/not met";
+    case relation_3bit_type::war: return "war";
+    case relation_3bit_type::peace: return "peace";
   }
   return cdr::null;
 }
 
-cdr::result<relation_type> from_canonical(
+cdr::result<relation_3bit_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<relation_type> ) {
+                         cdr::tag_t<relation_3bit_type> ) {
   UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
-  static std::map<std::string, relation_type> const m{
-    { "not met", relation_type::not_met },
-    { "war", relation_type::war },
-    { "peace", relation_type::peace },
-    { "unknown_rel2", relation_type::unknown_rel2 },
-    { "unknown_rel", relation_type::unknown_rel },
+  static std::map<std::string, relation_3bit_type> const m{
+    { "self/vanished/not met", relation_3bit_type::self_vanished_not_met },
+    { "war", relation_3bit_type::war },
+    { "peace", relation_3bit_type::peace },
   };
   if( auto it = m.find( str ); it != m.end() )
     return it->second;
   else
-    return BAD_ENUM_STR_VALUE( "relation_type", str );
+    return BAD_ENUM_STR_VALUE( "relation_3bit_type", str );
 }
 
 /****************************************************************
@@ -1317,16 +1311,24 @@ void to_str( terrain_5bit_type const& o, std::string& out, base::ADL_t ) {
     case terrain_5bit_type::pr: out += "pr "; return;
     case terrain_5bit_type::gr: out += "gr "; return;
     case terrain_5bit_type::sa: out += "sa "; return;
-    case terrain_5bit_type::sw: out += "sw "; return;
     case terrain_5bit_type::mr: out += "mr "; return;
+    case terrain_5bit_type::sw: out += "sw "; return;
     case terrain_5bit_type::tuf: out += "tuF"; return;
     case terrain_5bit_type::def: out += "deF"; return;
     case terrain_5bit_type::plf: out += "plF"; return;
     case terrain_5bit_type::prf: out += "prF"; return;
     case terrain_5bit_type::grf: out += "grF"; return;
     case terrain_5bit_type::saf: out += "saF"; return;
-    case terrain_5bit_type::swf: out += "swF"; return;
     case terrain_5bit_type::mrf: out += "mrF"; return;
+    case terrain_5bit_type::swf: out += "swF"; return;
+    case terrain_5bit_type::tuw: out += "tuW"; return;
+    case terrain_5bit_type::dew: out += "deW"; return;
+    case terrain_5bit_type::plw: out += "plW"; return;
+    case terrain_5bit_type::prw: out += "prW"; return;
+    case terrain_5bit_type::grw: out += "grW"; return;
+    case terrain_5bit_type::saw: out += "saW"; return;
+    case terrain_5bit_type::mrw: out += "mrW"; return;
+    case terrain_5bit_type::sww: out += "swW"; return;
     case terrain_5bit_type::arc: out += "arc"; return;
     case terrain_5bit_type::ttt: out += "~~~"; return;
     case terrain_5bit_type::tnt: out += "~:~"; return;
@@ -1344,16 +1346,24 @@ cdr::value to_canonical( cdr::converter&,
     case terrain_5bit_type::pr: return "pr ";
     case terrain_5bit_type::gr: return "gr ";
     case terrain_5bit_type::sa: return "sa ";
-    case terrain_5bit_type::sw: return "sw ";
     case terrain_5bit_type::mr: return "mr ";
+    case terrain_5bit_type::sw: return "sw ";
     case terrain_5bit_type::tuf: return "tuF";
     case terrain_5bit_type::def: return "deF";
     case terrain_5bit_type::plf: return "plF";
     case terrain_5bit_type::prf: return "prF";
     case terrain_5bit_type::grf: return "grF";
     case terrain_5bit_type::saf: return "saF";
-    case terrain_5bit_type::swf: return "swF";
     case terrain_5bit_type::mrf: return "mrF";
+    case terrain_5bit_type::swf: return "swF";
+    case terrain_5bit_type::tuw: return "tuW";
+    case terrain_5bit_type::dew: return "deW";
+    case terrain_5bit_type::plw: return "plW";
+    case terrain_5bit_type::prw: return "prW";
+    case terrain_5bit_type::grw: return "grW";
+    case terrain_5bit_type::saw: return "saW";
+    case terrain_5bit_type::mrw: return "mrW";
+    case terrain_5bit_type::sww: return "swW";
     case terrain_5bit_type::arc: return "arc";
     case terrain_5bit_type::ttt: return "~~~";
     case terrain_5bit_type::tnt: return "~:~";
@@ -1373,16 +1383,24 @@ cdr::result<terrain_5bit_type> from_canonical(
     { "pr ", terrain_5bit_type::pr },
     { "gr ", terrain_5bit_type::gr },
     { "sa ", terrain_5bit_type::sa },
-    { "sw ", terrain_5bit_type::sw },
     { "mr ", terrain_5bit_type::mr },
+    { "sw ", terrain_5bit_type::sw },
     { "tuF", terrain_5bit_type::tuf },
     { "deF", terrain_5bit_type::def },
     { "plF", terrain_5bit_type::plf },
     { "prF", terrain_5bit_type::prf },
     { "grF", terrain_5bit_type::grf },
     { "saF", terrain_5bit_type::saf },
-    { "swF", terrain_5bit_type::swf },
     { "mrF", terrain_5bit_type::mrf },
+    { "swF", terrain_5bit_type::swf },
+    { "tuW", terrain_5bit_type::tuw },
+    { "deW", terrain_5bit_type::dew },
+    { "plW", terrain_5bit_type::plw },
+    { "prW", terrain_5bit_type::prw },
+    { "grW", terrain_5bit_type::grw },
+    { "saW", terrain_5bit_type::saw },
+    { "mrW", terrain_5bit_type::mrw },
+    { "swW", terrain_5bit_type::sww },
     { "arc", terrain_5bit_type::arc },
     { "~~~", terrain_5bit_type::ttt },
     { "~:~", terrain_5bit_type::tnt },
@@ -3087,6 +3105,122 @@ cdr::result<BoycottBitmap> from_canonical(
 }
 
 /****************************************************************
+** RelationByNations
+*****************************************************************/
+void to_str( RelationByNations const& o, std::string& out, base::ADL_t t ) {
+  out += "RelationByNations{";
+  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
+  out += "status="; to_str( o.status, out, t ); out += ',';
+  out += "irritated_by_piracy="; to_str( o.irritated_by_piracy, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByNations& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.attitudeq = (bits & 0b1111); bits >>= 4;
+  o.status = static_cast<relation_3bit_type>( bits & 0b111 ); bits >>= 3;
+  o.irritated_by_piracy = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, RelationByNations const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.irritated_by_piracy & 0b1); bits <<= 3;
+  bits |= (static_cast<uint8_t>( o.status ) & 0b111); bits <<= 4;
+  bits |= (o.attitudeq & 0b1111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByNations const& o,
+                         cdr::tag_t<RelationByNations> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "attitude?", o.attitudeq );
+  conv.to_field( tbl, "status", o.status );
+  conv.to_field( tbl, "irritated_by_piracy", o.irritated_by_piracy );
+  tbl["__key_order"] = cdr::list{
+    "attitude?",
+    "status",
+    "irritated_by_piracy",
+  };
+  return tbl;
+}
+
+cdr::result<RelationByNations> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByNations> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  RelationByNations res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "attitude?", attitudeq );
+  CONV_FROM_FIELD( "status", status );
+  CONV_FROM_FIELD( "irritated_by_piracy", irritated_by_piracy );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** RelationByIndian
+*****************************************************************/
+void to_str( RelationByIndian const& o, std::string& out, base::ADL_t t ) {
+  out += "RelationByIndian{";
+  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
+  out += "status="; to_str( o.status, out, t ); out += ',';
+  out += "unused="; to_str( o.unused, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByIndian& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.attitudeq = (bits & 0b1111); bits >>= 4;
+  o.status = static_cast<relation_3bit_type>( bits & 0b111 ); bits >>= 3;
+  o.unused = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, RelationByIndian const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.unused & 0b1); bits <<= 3;
+  bits |= (static_cast<uint8_t>( o.status ) & 0b111); bits <<= 4;
+  bits |= (o.attitudeq & 0b1111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByIndian const& o,
+                         cdr::tag_t<RelationByIndian> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "attitude?", o.attitudeq );
+  conv.to_field( tbl, "status", o.status );
+  conv.to_field( tbl, "unused", o.unused );
+  tbl["__key_order"] = cdr::list{
+    "attitude?",
+    "status",
+    "unused",
+  };
+  return tbl;
+}
+
+cdr::result<RelationByIndian> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByIndian> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  RelationByIndian res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "attitude?", attitudeq );
+  CONV_FROM_FIELD( "status", status );
+  CONV_FROM_FIELD( "unused", unused );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** ALCS
 *****************************************************************/
 void to_str( ALCS const& o, std::string& out, base::ADL_t t ) {
@@ -3152,6 +3286,64 @@ cdr::result<ALCS> from_canonical(
   CONV_FROM_FIELD( "capital", capital );
   CONV_FROM_FIELD( "scouted", scouted );
   CONV_FROM_BITSTRING_FIELD( "unused09", unused09, 4 );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** RelationByNations2
+*****************************************************************/
+void to_str( RelationByNations2 const& o, std::string& out, base::ADL_t t ) {
+  out += "RelationByNations2{";
+  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
+  out += "status="; to_str( o.status, out, t ); out += ',';
+  out += "unused="; to_str( o.unused, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, RelationByNations2& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.attitudeq = (bits & 0b1111); bits >>= 4;
+  o.status = static_cast<relation_3bit_type>( bits & 0b111 ); bits >>= 3;
+  o.unused = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, RelationByNations2 const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.unused & 0b1); bits <<= 3;
+  bits |= (static_cast<uint8_t>( o.status ) & 0b111); bits <<= 4;
+  bits |= (o.attitudeq & 0b1111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         RelationByNations2 const& o,
+                         cdr::tag_t<RelationByNations2> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "attitude?", o.attitudeq );
+  conv.to_field( tbl, "status", o.status );
+  conv.to_field( tbl, "unused", o.unused );
+  tbl["__key_order"] = cdr::list{
+    "attitude?",
+    "status",
+    "unused",
+  };
+  return tbl;
+}
+
+cdr::result<RelationByNations2> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<RelationByNations2> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  RelationByNations2 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "attitude?", attitudeq );
+  CONV_FROM_FIELD( "status", status );
+  CONV_FROM_FIELD( "unused", unused );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -4814,6 +5006,63 @@ cdr::result<PLAYER> from_canonical(
 }
 
 /****************************************************************
+** OTHER
+*****************************************************************/
+void to_str( OTHER const& o, std::string& out, base::ADL_t t ) {
+  out += "OTHER{";
+  out += "unknown51a="; to_str( o.unknown51a, out, t ); out += ',';
+  out += "click_before_open_colony_x_y="; to_str( o.click_before_open_colony_x_y, out, t ); out += ',';
+  out += "unknown51b="; to_str( o.unknown51b, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, OTHER& o ) {
+  return true
+    && read_binary( b, o.unknown51a )
+    && read_binary( b, o.click_before_open_colony_x_y )
+    && read_binary( b, o.unknown51b )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, OTHER const& o ) {
+  return true
+    && write_binary( b, o.unknown51a )
+    && write_binary( b, o.click_before_open_colony_x_y )
+    && write_binary( b, o.unknown51b )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         OTHER const& o,
+                         cdr::tag_t<OTHER> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "unknown51a", o.unknown51a );
+  conv.to_field( tbl, "click_before_open_colony x, y", o.click_before_open_colony_x_y );
+  conv.to_field( tbl, "unknown51b", o.unknown51b );
+  tbl["__key_order"] = cdr::list{
+    "unknown51a",
+    "click_before_open_colony x, y",
+    "unknown51b",
+  };
+  return tbl;
+}
+
+cdr::result<OTHER> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<OTHER> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  OTHER res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "unknown51a", unknown51a );
+  CONV_FROM_FIELD( "click_before_open_colony x, y", click_before_open_colony_x_y );
+  CONV_FROM_FIELD( "unknown51b", unknown51b );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** Tiles
 *****************************************************************/
 void to_str( Tiles const& o, std::string& out, base::ADL_t t ) {
@@ -5525,93 +5774,6 @@ cdr::result<UNIT> from_canonical(
 }
 
 /****************************************************************
-** RelationByIndian
-*****************************************************************/
-void to_str( RelationByIndian const& o, std::string& out, base::ADL_t t ) {
-  out += "RelationByIndian{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "awarak="; to_str( o.awarak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, RelationByIndian& o ) {
-  return true
-    && read_binary( b, o.inca )
-    && read_binary( b, o.aztec )
-    && read_binary( b, o.awarak )
-    && read_binary( b, o.iroquois )
-    && read_binary( b, o.cherokee )
-    && read_binary( b, o.apache )
-    && read_binary( b, o.sioux )
-    && read_binary( b, o.tupi )
-    ;
-}
-
-bool write_binary( base::IBinaryIO& b, RelationByIndian const& o ) {
-  return true
-    && write_binary( b, o.inca )
-    && write_binary( b, o.aztec )
-    && write_binary( b, o.awarak )
-    && write_binary( b, o.iroquois )
-    && write_binary( b, o.cherokee )
-    && write_binary( b, o.apache )
-    && write_binary( b, o.sioux )
-    && write_binary( b, o.tupi )
-    ;
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         RelationByIndian const& o,
-                         cdr::tag_t<RelationByIndian> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "Inca", o.inca );
-  conv.to_field( tbl, "Aztec", o.aztec );
-  conv.to_field( tbl, "Awarak", o.awarak );
-  conv.to_field( tbl, "Iroquois", o.iroquois );
-  conv.to_field( tbl, "Cherokee", o.cherokee );
-  conv.to_field( tbl, "Apache", o.apache );
-  conv.to_field( tbl, "Sioux", o.sioux );
-  conv.to_field( tbl, "Tupi", o.tupi );
-  tbl["__key_order"] = cdr::list{
-    "Inca",
-    "Aztec",
-    "Awarak",
-    "Iroquois",
-    "Cherokee",
-    "Apache",
-    "Sioux",
-    "Tupi",
-  };
-  return tbl;
-}
-
-cdr::result<RelationByIndian> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<RelationByIndian> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  RelationByIndian res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "Inca", inca );
-  CONV_FROM_FIELD( "Aztec", aztec );
-  CONV_FROM_FIELD( "Awarak", awarak );
-  CONV_FROM_FIELD( "Iroquois", iroquois );
-  CONV_FROM_FIELD( "Cherokee", cherokee );
-  CONV_FROM_FIELD( "Apache", apache );
-  CONV_FROM_FIELD( "Sioux", sioux );
-  CONV_FROM_FIELD( "Tupi", tupi );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
 ** Trade
 *****************************************************************/
 void to_str( Trade const& o, std::string& out, base::ADL_t t ) {
@@ -5708,7 +5870,7 @@ void to_str( NATION const& o, std::string& out, base::ADL_t t ) {
   out += "current_crosses="; to_str( o.current_crosses, out, t ); out += ',';
   out += "needed_crosses="; to_str( o.needed_crosses, out, t ); out += ',';
   out += "point_return_from_europe="; to_str( o.point_return_from_europe, out, t ); out += ',';
-  out += "unknown25b="; to_str( o.unknown25b, out, t ); out += ',';
+  out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
   out += "relation_by_indian="; to_str( o.relation_by_indian, out, t ); out += ',';
   out += "unknown26a="; to_str( o.unknown26a, out, t ); out += ',';
   out += "unknown26b="; to_str( o.unknown26b, out, t ); out += ',';
@@ -5743,7 +5905,7 @@ bool read_binary( base::IBinaryIO& b, NATION& o ) {
     && read_binary( b, o.current_crosses )
     && read_binary( b, o.needed_crosses )
     && read_binary( b, o.point_return_from_europe )
-    && read_binary( b, o.unknown25b )
+    && read_binary( b, o.relation_by_nations )
     && read_binary( b, o.relation_by_indian )
     && read_binary( b, o.unknown26a )
     && read_binary( b, o.unknown26b )
@@ -5777,7 +5939,7 @@ bool write_binary( base::IBinaryIO& b, NATION const& o ) {
     && write_binary( b, o.current_crosses )
     && write_binary( b, o.needed_crosses )
     && write_binary( b, o.point_return_from_europe )
-    && write_binary( b, o.unknown25b )
+    && write_binary( b, o.relation_by_nations )
     && write_binary( b, o.relation_by_indian )
     && write_binary( b, o.unknown26a )
     && write_binary( b, o.unknown26b )
@@ -5813,7 +5975,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "current_crosses", o.current_crosses );
   conv.to_field( tbl, "needed_crosses", o.needed_crosses );
   conv.to_field( tbl, "point_return_from_europe", o.point_return_from_europe );
-  conv.to_field( tbl, "unknown25b", o.unknown25b );
+  conv.to_field( tbl, "relation_by_nations", o.relation_by_nations );
   conv.to_field( tbl, "relation_by_indian", o.relation_by_indian );
   conv.to_field( tbl, "unknown26a", o.unknown26a );
   conv.to_field( tbl, "unknown26b", o.unknown26b );
@@ -5843,7 +6005,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "current_crosses",
     "needed_crosses",
     "point_return_from_europe",
-    "unknown25b",
+    "relation_by_nations",
     "relation_by_indian",
     "unknown26a",
     "unknown26b",
@@ -5883,7 +6045,7 @@ cdr::result<NATION> from_canonical(
   CONV_FROM_FIELD( "current_crosses", current_crosses );
   CONV_FROM_FIELD( "needed_crosses", needed_crosses );
   CONV_FROM_FIELD( "point_return_from_europe", point_return_from_europe );
-  CONV_FROM_FIELD( "unknown25b", unknown25b );
+  CONV_FROM_FIELD( "relation_by_nations", relation_by_nations );
   CONV_FROM_FIELD( "relation_by_indian", relation_by_indian );
   CONV_FROM_FIELD( "unknown26a", unknown26a );
   CONV_FROM_FIELD( "unknown26b", unknown26b );
@@ -6038,69 +6200,6 @@ cdr::result<DWELLING> from_canonical(
 }
 
 /****************************************************************
-** RelationByNations
-*****************************************************************/
-void to_str( RelationByNations const& o, std::string& out, base::ADL_t t ) {
-  out += "RelationByNations{";
-  out += "england="; to_str( o.england, out, t ); out += ',';
-  out += "france="; to_str( o.france, out, t ); out += ',';
-  out += "spain="; to_str( o.spain, out, t ); out += ',';
-  out += "netherlands="; to_str( o.netherlands, out, t );
-  out += '}';
-}
-
-// Binary conversion.
-bool read_binary( base::IBinaryIO& b, RelationByNations& o ) {
-  return true
-    && read_binary( b, o.england )
-    && read_binary( b, o.france )
-    && read_binary( b, o.spain )
-    && read_binary( b, o.netherlands )
-    ;
-}
-
-bool write_binary( base::IBinaryIO& b, RelationByNations const& o ) {
-  return true
-    && write_binary( b, o.england )
-    && write_binary( b, o.france )
-    && write_binary( b, o.spain )
-    && write_binary( b, o.netherlands )
-    ;
-}
-
-cdr::value to_canonical( cdr::converter& conv,
-                         RelationByNations const& o,
-                         cdr::tag_t<RelationByNations> ) {
-  cdr::table tbl;
-  conv.to_field( tbl, "England", o.england );
-  conv.to_field( tbl, "France", o.france );
-  conv.to_field( tbl, "Spain", o.spain );
-  conv.to_field( tbl, "Netherlands", o.netherlands );
-  tbl["__key_order"] = cdr::list{
-    "England",
-    "France",
-    "Spain",
-    "Netherlands",
-  };
-  return tbl;
-}
-
-cdr::result<RelationByNations> from_canonical(
-                         cdr::converter& conv,
-                         cdr::value const& v,
-                         cdr::tag_t<RelationByNations> ) {
-  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  RelationByNations res = {};
-  std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "England", england );
-  CONV_FROM_FIELD( "France", france );
-  CONV_FROM_FIELD( "Spain", spain );
-  CONV_FROM_FIELD( "Netherlands", netherlands );
-  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
-  return res;
-}
-
-/****************************************************************
 ** TRIBE
 *****************************************************************/
 void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
@@ -6114,7 +6213,7 @@ void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
   out += "stock="; to_str( o.stock, out, t ); out += ',';
   out += "unknown32="; to_str( o.unknown32, out, t ); out += ',';
   out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
-  out += "unknown33="; to_str( o.unknown33, out, t ); out += ',';
+  out += "zeros33="; to_str( o.zeros33, out, t ); out += ',';
   out += "alarm_by_player="; to_str( o.alarm_by_player, out, t );
   out += '}';
 }
@@ -6131,7 +6230,7 @@ bool read_binary( base::IBinaryIO& b, TRIBE& o ) {
     && read_binary( b, o.stock )
     && read_binary( b, o.unknown32 )
     && read_binary( b, o.relation_by_nations )
-    && read_binary( b, o.unknown33 )
+    && read_binary( b, o.zeros33 )
     && read_binary( b, o.alarm_by_player )
     ;
 }
@@ -6147,7 +6246,7 @@ bool write_binary( base::IBinaryIO& b, TRIBE const& o ) {
     && write_binary( b, o.stock )
     && write_binary( b, o.unknown32 )
     && write_binary( b, o.relation_by_nations )
-    && write_binary( b, o.unknown33 )
+    && write_binary( b, o.zeros33 )
     && write_binary( b, o.alarm_by_player )
     ;
 }
@@ -6165,7 +6264,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "stock", o.stock );
   conv.to_field( tbl, "unknown32", o.unknown32 );
   conv.to_field( tbl, "relation_by_nations", o.relation_by_nations );
-  conv.to_field( tbl, "unknown33", o.unknown33 );
+  conv.to_field( tbl, "zeros33", o.zeros33 );
   conv.to_field( tbl, "alarm_by_player", o.alarm_by_player );
   tbl["__key_order"] = cdr::list{
     "capitol (x, y)",
@@ -6177,7 +6276,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "stock",
     "unknown32",
     "relation_by_nations",
-    "unknown33",
+    "zeros33",
     "alarm_by_player",
   };
   return tbl;
@@ -6199,7 +6298,7 @@ cdr::result<TRIBE> from_canonical(
   CONV_FROM_FIELD( "stock", stock );
   CONV_FROM_FIELD( "unknown32", unknown32 );
   CONV_FROM_FIELD( "relation_by_nations", relation_by_nations );
-  CONV_FROM_FIELD( "unknown33", unknown33 );
+  CONV_FROM_FIELD( "zeros33", zeros33 );
   CONV_FROM_FIELD( "alarm_by_player", alarm_by_player );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
@@ -6214,7 +6313,9 @@ void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
   out += "counter_decreasing_on_new_colony="; to_str( o.counter_decreasing_on_new_colony, out, t ); out += ',';
   out += "unknown35="; to_str( o.unknown35, out, t ); out += ',';
   out += "counter_increasing_on_new_colony="; to_str( o.counter_increasing_on_new_colony, out, t ); out += ',';
-  out += "unknown36="; to_str( o.unknown36, out, t ); out += ',';
+  out += "unknown36a="; to_str( o.unknown36a, out, t ); out += ',';
+  out += "show_colony_prod_quantities="; to_str( o.show_colony_prod_quantities, out, t ); out += ',';
+  out += "unknown36b="; to_str( o.unknown36b, out, t ); out += ',';
   out += "x="; to_str( o.x, out, t ); out += ',';
   out += "y="; to_str( o.y, out, t ); out += ',';
   out += "zoom_level="; to_str( o.zoom_level, out, t ); out += ',';
@@ -6231,7 +6332,9 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
     && read_binary( b, o.counter_decreasing_on_new_colony )
     && read_binary( b, o.unknown35 )
     && read_binary( b, o.counter_increasing_on_new_colony )
-    && read_binary( b, o.unknown36 )
+    && read_binary( b, o.unknown36a )
+    && read_binary( b, o.show_colony_prod_quantities )
+    && read_binary( b, o.unknown36b )
     && read_binary( b, o.x )
     && read_binary( b, o.y )
     && read_binary( b, o.zoom_level )
@@ -6247,7 +6350,9 @@ bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
     && write_binary( b, o.counter_decreasing_on_new_colony )
     && write_binary( b, o.unknown35 )
     && write_binary( b, o.counter_increasing_on_new_colony )
-    && write_binary( b, o.unknown36 )
+    && write_binary( b, o.unknown36a )
+    && write_binary( b, o.show_colony_prod_quantities )
+    && write_binary( b, o.unknown36b )
     && write_binary( b, o.x )
     && write_binary( b, o.y )
     && write_binary( b, o.zoom_level )
@@ -6265,7 +6370,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "counter_decreasing_on_new_colony", o.counter_decreasing_on_new_colony );
   conv.to_field( tbl, "unknown35", o.unknown35 );
   conv.to_field( tbl, "counter_increasing_on_new_colony", o.counter_increasing_on_new_colony );
-  conv.to_field( tbl, "unknown36", o.unknown36 );
+  conv.to_field( tbl, "unknown36a", o.unknown36a );
+  conv.to_field( tbl, "show_colony_prod_quantities", o.show_colony_prod_quantities );
+  conv.to_field( tbl, "unknown36b", o.unknown36b );
   conv.to_field( tbl, "x", o.x );
   conv.to_field( tbl, "y", o.y );
   conv.to_field( tbl, "zoom_level", o.zoom_level );
@@ -6277,7 +6384,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "counter_decreasing_on_new_colony",
     "unknown35",
     "counter_increasing_on_new_colony",
-    "unknown36",
+    "unknown36a",
+    "show_colony_prod_quantities",
+    "unknown36b",
     "x",
     "y",
     "zoom_level",
@@ -6299,7 +6408,9 @@ cdr::result<STUFF> from_canonical(
   CONV_FROM_FIELD( "counter_decreasing_on_new_colony", counter_decreasing_on_new_colony );
   CONV_FROM_FIELD( "unknown35", unknown35 );
   CONV_FROM_FIELD( "counter_increasing_on_new_colony", counter_increasing_on_new_colony );
-  CONV_FROM_FIELD( "unknown36", unknown36 );
+  CONV_FROM_FIELD( "unknown36a", unknown36a );
+  CONV_FROM_FIELD( "show_colony_prod_quantities", show_colony_prod_quantities );
+  CONV_FROM_FIELD( "unknown36b", unknown36b );
   CONV_FROM_FIELD( "x", x );
   CONV_FROM_FIELD( "y", y );
   CONV_FROM_FIELD( "zoom_level", zoom_level );
