@@ -166,7 +166,7 @@ void rn_bidirectional_scenario_1( rn::RootState& out ) {
 // NOTE: it shouldn't really be necessary to modify this test
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
-TEST_CASE( "[sav/bridge] OG to RN [scenario 1]" ) {
+TEST_CASE( "[sav/bridge] OG to NG [scenario 1]" ) {
   sav::ColonySAV classic;
   og_bidirectional_scenario_1( classic );
 
@@ -191,7 +191,7 @@ TEST_CASE( "[sav/bridge] OG to RN [scenario 1]" ) {
 // NOTE: it shouldn't really be necessary to modify this test
 // case itself; instead, just add new stuff into the scenario
 // preparation each time a new element is translated.
-TEST_CASE( "[sav/bridge] RN to OG [scenario 1]" ) {
+TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   rn::RootState modern;
   rn_bidirectional_scenario_1( modern );
 
@@ -222,6 +222,159 @@ TEST_CASE( "[sav/bridge] RN to OG [scenario 1]" ) {
            expected.prime_resource_seed );
   REQUIRE( converted.unknown39d == expected.unknown39d );
   REQUIRE( converted.trade_route == expected.trade_route );
+}
+
+/****************************************************************
+** Scenario 2 (only for OG -> NG).
+*****************************************************************/
+// You can put things in this scenario that only support con-
+// verting from the OG to the NG.
+void og_bidirectional_scenario_2( sav::ColonySAV& out ) {
+  // Header.
+  auto& H      = out.header;
+  H.colonize   = { 'C', 'O', 'L', 'O', 'N', 'I', 'Z', 'E', 0 };
+  H.map_size_x = 8;
+  H.map_size_y = 10;
+
+  out.tile.resize( H.map_size_x * H.map_size_y );
+  // Initialize everything to ocean. We need to do this because
+  // the default values of TILE don't produce that, unlike in the
+  // RN version. Also, the OG seems to put ocean around the
+  // outter border as well, so this works there.
+  for( sav::TILE& tile : out.tile )
+    tile = sav::TILE{ .tile = sav::terrain_5bit_type::ttt };
+  using T   = sav::TILE;
+  using Ter = sav::terrain_5bit_type;
+  using HR  = sav::hills_river_3bit_type;
+
+  out.tile[8 + 1]  = T{ .tile = Ter::tu };
+  out.tile[8 + 2]  = T{ .tile = Ter::de };
+  out.tile[8 + 3]  = T{ .tile = Ter::pl };
+  out.tile[8 + 4]  = T{ .tile = Ter::pr };
+  out.tile[8 + 5]  = T{ .tile = Ter::gr };
+  out.tile[8 + 6]  = T{ .tile = Ter::sa };
+  out.tile[8 + 9]  = T{ .tile = Ter::sw };
+  out.tile[8 + 10] = T{ .tile = Ter::mr };
+  out.tile[8 + 11] = T{ .tile = Ter::tuw };
+  out.tile[8 + 12] = T{ .tile = Ter::dew };
+  out.tile[8 + 13] = T{ .tile = Ter::plw };
+  out.tile[8 + 14] = T{ .tile = Ter::prw };
+  out.tile[8 + 17] = T{ .tile = Ter::grw };
+  out.tile[8 + 18] = T{ .tile = Ter::saw };
+  out.tile[8 + 19] = T{ .tile = Ter::sww };
+  out.tile[8 + 20] = T{ .tile = Ter::mrw };
+
+  out.tile[8 + 21] = T{ .tile = Ter::arc };
+  out.tile[8 + 22] = T{ .tile = Ter::ttt };
+  out.tile[8 + 25] = T{ .tile = Ter::tnt };
+  out.tile[8 + 26] = T{ .tile = Ter::arc };
+
+  out.tile[8 + 2].hill_river  = HR::c;
+  out.tile[8 + 3].hill_river  = HR::t;
+  out.tile[8 + 4].hill_river  = HR::tc;
+  out.tile[8 + 5].hill_river  = HR::cc;
+  out.tile[8 + 6].hill_river  = HR::tt;
+  out.tile[8 + 21].hill_river = HR::empty;
+  out.tile[8 + 26].hill_river = HR::cc;
+
+  // TODO: Add more here.
+}
+
+void rn_bidirectional_scenario_2( rn::RootState& out ) {
+  rn::wrapped::TerrainState terrain_o;
+
+  vector<rn::MapSquare> squares;
+  squares.resize( 6 * 8 );
+  using M     = rn::MapSquare;
+  squares[0]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::tundra };
+  squares[1]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::desert };
+  squares[2]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::plains };
+  squares[3]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::prairie };
+  squares[4]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::grassland };
+  squares[5]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::savannah };
+  squares[6]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::swamp };
+  squares[7]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::marsh };
+  squares[8]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::tundra,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[9]  = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::desert,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[10] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::plains,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[11] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::prairie,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[12] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::grassland,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[13] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::savannah,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[14] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::swamp,
+                   .overlay = rn::e_land_overlay::forest };
+  squares[15] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::marsh,
+                   .overlay = rn::e_land_overlay::forest };
+
+  squares[16] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::arctic };
+  squares[17] = M{ .surface = rn::e_surface::water,
+                   .ground  = rn::e_ground_terrain::arctic };
+  squares[18] = M{ .sea_lane = true };
+  squares[19] = M{ .surface = rn::e_surface::land,
+                   .ground  = rn::e_ground_terrain::arctic,
+                   .overlay = rn::e_land_overlay::mountains };
+
+  squares[1].overlay  = rn::e_land_overlay::hills;
+  squares[2].river    = rn::e_river::minor;
+  squares[3].overlay  = rn::e_land_overlay::hills;
+  squares[3].river    = rn::e_river::minor;
+  squares[4].overlay  = rn::e_land_overlay::mountains;
+  squares[5].river    = rn::e_river::major;
+  squares[16].overlay = nothing;
+  squares[19].overlay = rn::e_land_overlay::mountains;
+
+  terrain_o.real_terrain.map =
+      gfx::Matrix<rn::MapSquare>( std::move( squares ), 6 );
+  out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
+
+  // TODO: add more here.
+}
+
+// NOTE: it shouldn't really be necessary to modify this test
+// case itself; instead, just add new stuff into the scenario
+// preparation each time a new element is translated.
+TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
+  sav::ColonySAV classic;
+  og_bidirectional_scenario_2( classic );
+
+  rn::RootState expected;
+  rn_bidirectional_scenario_2( expected );
+
+  rn::RootState converted;
+  REQUIRE( convert_to_rn( classic, converted ) == valid );
+
+  REQUIRE( converted.version == expected.version );
+  REQUIRE( converted.settings == expected.settings );
+  REQUIRE( converted.events == expected.events );
+  REQUIRE( converted.units == expected.units );
+  REQUIRE( converted.players == expected.players );
+  REQUIRE( converted.turn == expected.turn );
+  REQUIRE( converted.colonies == expected.colonies );
+  REQUIRE( converted.natives == expected.natives );
+  REQUIRE( converted.land_view == expected.land_view );
+  REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
 }
 
 } // namespace
