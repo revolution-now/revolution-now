@@ -1,0 +1,17 @@
+Population increase and decrease in native dwellings
+====================================================
+
+  * There is a counter that increases by the current population
+    amount each turn. This way, the population increases more
+    slowly the lower the population. When it hits 20 then a new
+    brave is created on the map. If a brave already exists on the
+    map then the population is increased by one. If the popula-
+    tion is already at the max, then the counter does not in-
+    crease. This behavior does not seem to vary based on diffi-
+    culty level or capital status. If the counter is incremented
+    and it goes above 20, it is still reset to 0. The counter is
+    a signed int, because you can set it to e.g. -30 and it will
+    count up from -30 to +20 before increasing population.
+
+  * When disbanding a free brave, it does not affect the popula-
+    tion of the dwelling. Neither does killing one via combat.

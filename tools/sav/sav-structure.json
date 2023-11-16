@@ -1225,7 +1225,8 @@
                 "ALCS",
                 "population",
                 "mission",
-                "unknown28",
+                "growth_counter",
+                "unknown28a",
                 "last_bought",
                 "last_sold",
                 "alarm"
@@ -1246,7 +1247,8 @@
             },
             "population": {"size": 1, "type": "uint"},
             "mission": {"size": 1, "type": "int", "__hint": "-1 if none. Otherwise nation idx (0,1,2,3)."},
-            "unknown28": {"size": 2},
+            "growth_counter": {"size": 1, "type": "int"},
+            "unknown28a": {"size": 1},
             "last_bought": {"size": 1},
             "last_sold": {"size": 1},
             "alarm":

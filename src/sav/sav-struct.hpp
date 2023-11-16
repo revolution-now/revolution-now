@@ -2558,7 +2558,8 @@ struct DWELLING {
   ALCS alcs = {};
   uint8_t population = {};
   int8_t mission = {};
-  bytes<2> unknown28 = {};
+  int8_t growth_counter = {};
+  bytes<1> unknown28a = {};
   bytes<1> last_bought = {};
   bytes<1> last_sold = {};
   std::array<Alarm, 4> alarm = {};

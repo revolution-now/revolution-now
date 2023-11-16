@@ -8311,7 +8311,8 @@
       },
       "population": 13,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8348,7 +8349,8 @@
       },
       "population": 10,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8385,7 +8387,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8422,7 +8425,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8459,7 +8463,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8496,7 +8501,8 @@
       },
       "population": 4,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8533,7 +8539,8 @@
       },
       "population": 4,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8570,7 +8577,8 @@
       },
       "population": 4,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8607,7 +8615,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8644,7 +8653,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8681,7 +8691,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8718,7 +8729,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8755,7 +8767,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8792,7 +8805,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8829,7 +8843,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8866,7 +8881,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8903,7 +8919,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8940,7 +8957,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -8977,7 +8995,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9014,7 +9033,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9051,7 +9071,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9088,7 +9109,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "12 ff",
+      "growth_counter": 18,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9125,7 +9147,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9162,7 +9185,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9199,7 +9223,8 @@
       },
       "population": 9,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9236,7 +9261,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9273,7 +9299,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9310,7 +9337,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9347,7 +9375,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9384,7 +9413,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9421,7 +9451,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9458,7 +9489,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9495,7 +9527,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9532,7 +9565,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9569,7 +9603,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9606,7 +9641,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9643,7 +9679,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9680,7 +9717,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9717,7 +9755,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9754,7 +9793,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9791,7 +9831,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9828,7 +9869,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9865,7 +9907,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9902,7 +9945,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9939,7 +9983,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -9976,7 +10021,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10013,7 +10059,8 @@
       },
       "population": 5,
       "mission": 18,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10050,7 +10097,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10087,7 +10135,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10124,7 +10173,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10161,7 +10211,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10198,7 +10249,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "12 ff",
+      "growth_counter": 18,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10235,7 +10287,8 @@
       },
       "population": 3,
       "mission": 19,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10272,7 +10325,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10309,7 +10363,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10346,7 +10401,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10383,7 +10439,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10420,7 +10477,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10457,7 +10515,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10494,7 +10553,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10531,7 +10591,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10568,7 +10629,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10605,7 +10667,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10642,7 +10705,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10679,7 +10743,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10716,7 +10781,8 @@
       },
       "population": 3,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10753,7 +10819,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10790,7 +10857,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10827,7 +10895,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10864,7 +10933,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10901,7 +10971,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10938,7 +11009,8 @@
       },
       "population": 5,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -10975,7 +11047,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [
@@ -11012,7 +11085,8 @@
       },
       "population": 7,
       "mission": -1,
-      "unknown28": "00 ff",
+      "growth_counter": 0,
+      "unknown28a": "ff",
       "last_bought": "ff",
       "last_sold": "ff",
       "alarm": [

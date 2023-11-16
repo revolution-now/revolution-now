@@ -6116,7 +6116,8 @@ void to_str( DWELLING const& o, std::string& out, base::ADL_t t ) {
   out += "alcs="; to_str( o.alcs, out, t ); out += ',';
   out += "population="; to_str( o.population, out, t ); out += ',';
   out += "mission="; to_str( o.mission, out, t ); out += ',';
-  out += "unknown28="; to_str( o.unknown28, out, t ); out += ',';
+  out += "growth_counter="; to_str( o.growth_counter, out, t ); out += ',';
+  out += "unknown28a="; to_str( o.unknown28a, out, t ); out += ',';
   out += "last_bought="; to_str( o.last_bought, out, t ); out += ',';
   out += "last_sold="; to_str( o.last_sold, out, t ); out += ',';
   out += "alarm="; to_str( o.alarm, out, t );
@@ -6131,7 +6132,8 @@ bool read_binary( base::IBinaryIO& b, DWELLING& o ) {
     && read_binary( b, o.alcs )
     && read_binary( b, o.population )
     && read_binary( b, o.mission )
-    && read_binary( b, o.unknown28 )
+    && read_binary( b, o.growth_counter )
+    && read_binary( b, o.unknown28a )
     && read_binary( b, o.last_bought )
     && read_binary( b, o.last_sold )
     && read_binary( b, o.alarm )
@@ -6145,7 +6147,8 @@ bool write_binary( base::IBinaryIO& b, DWELLING const& o ) {
     && write_binary( b, o.alcs )
     && write_binary( b, o.population )
     && write_binary( b, o.mission )
-    && write_binary( b, o.unknown28 )
+    && write_binary( b, o.growth_counter )
+    && write_binary( b, o.unknown28a )
     && write_binary( b, o.last_bought )
     && write_binary( b, o.last_sold )
     && write_binary( b, o.alarm )
@@ -6161,7 +6164,8 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "ALCS", o.alcs );
   conv.to_field( tbl, "population", o.population );
   conv.to_field( tbl, "mission", o.mission );
-  conv.to_field( tbl, "unknown28", o.unknown28 );
+  conv.to_field( tbl, "growth_counter", o.growth_counter );
+  conv.to_field( tbl, "unknown28a", o.unknown28a );
   conv.to_field( tbl, "last_bought", o.last_bought );
   conv.to_field( tbl, "last_sold", o.last_sold );
   conv.to_field( tbl, "alarm", o.alarm );
@@ -6171,7 +6175,8 @@ cdr::value to_canonical( cdr::converter& conv,
     "ALCS",
     "population",
     "mission",
-    "unknown28",
+    "growth_counter",
+    "unknown28a",
     "last_bought",
     "last_sold",
     "alarm",
@@ -6191,7 +6196,8 @@ cdr::result<DWELLING> from_canonical(
   CONV_FROM_FIELD( "ALCS", alcs );
   CONV_FROM_FIELD( "population", population );
   CONV_FROM_FIELD( "mission", mission );
-  CONV_FROM_FIELD( "unknown28", unknown28 );
+  CONV_FROM_FIELD( "growth_counter", growth_counter );
+  CONV_FROM_FIELD( "unknown28a", unknown28a );
   CONV_FROM_FIELD( "last_bought", last_bought );
   CONV_FROM_FIELD( "last_sold", last_sold );
   CONV_FROM_FIELD( "alarm", alarm );
