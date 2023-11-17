@@ -754,8 +754,8 @@ void to_str( orders_type const& o, std::string& out, base::ADL_t ) {
     case orders_type::sentry: out += "sentry"; return;
     case orders_type::trading: out += "trading"; return;
     case orders_type::g0to: out += "goto"; return;
-    case orders_type::fortified: out += "fortified"; return;
     case orders_type::fortify: out += "fortify"; return;
+    case orders_type::fortified: out += "fortified"; return;
     case orders_type::plow: out += "plow"; return;
     case orders_type::road: out += "road"; return;
     case orders_type::unknowna: out += "unknowna"; return;
@@ -773,8 +773,8 @@ cdr::value to_canonical( cdr::converter&,
     case orders_type::sentry: return "sentry";
     case orders_type::trading: return "trading";
     case orders_type::g0to: return "goto";
-    case orders_type::fortified: return "fortified";
     case orders_type::fortify: return "fortify";
+    case orders_type::fortified: return "fortified";
     case orders_type::plow: return "plow";
     case orders_type::road: return "road";
     case orders_type::unknowna: return "unknowna";
@@ -794,8 +794,8 @@ cdr::result<orders_type> from_canonical(
     { "sentry", orders_type::sentry },
     { "trading", orders_type::trading },
     { "goto", orders_type::g0to },
-    { "fortified", orders_type::fortified },
     { "fortify", orders_type::fortify },
+    { "fortified", orders_type::fortified },
     { "plow", orders_type::plow },
     { "road", orders_type::road },
     { "unknowna", orders_type::unknowna },
