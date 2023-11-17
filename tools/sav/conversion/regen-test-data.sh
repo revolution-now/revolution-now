@@ -8,13 +8,14 @@ die() {
 }
 
 this="$(dirname "$0")"
-root="$(realpath "$this/../../")"
+root="$(realpath "$this/../../../")"
 cd "$root"
 
 ### From here on, all paths are relative to root.
 
 classic_saves="test/data/saves/classic"
 sav="tools/sav"
+conversion="tools/sav/conversion"
 
 [[ -d "$classic_saves" ]]
 
@@ -27,7 +28,7 @@ sav_to_json() {
   [[ -d "$json_dir" ]]
   local basename="$(basename "$SAV")"
   local out_file="$json_dir/$basename.json"
-  "$sav/binary-to-json.sh" "$SAV" "$out_file"
+  "$conversion/binary-to-json.sh" "$SAV" "$out_file"
 }
 
 json_to_sav() {
@@ -43,7 +44,7 @@ json_to_sav() {
   # ates the json, then goes back to the SAV, so the json should
   # exist.
   [[ -e "$out_file" ]]
-  "$sav/json-to-binary.sh" "$json" "$out_file"
+  "$conversion/json-to-binary.sh" "$json" "$out_file"
 }
 
 convert_batch_to_json() {
@@ -68,8 +69,8 @@ convert_batch_to_binary() {
 
 main() {
   batches="
-    $classic_saves/1990s/
-    $classic_saves/dutch-viceroy-playthrough/
+    $classic_saves/1990s
+    $classic_saves/dutch-viceroy-playthrough
   "
   for batch in $batches; do
     convert_batch_to_json "$batch"

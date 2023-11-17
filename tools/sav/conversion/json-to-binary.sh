@@ -7,6 +7,8 @@ die() {
 }
 
 this="$(dirname "$0")"
+sav="$(realpath "$this/../")"
+schema="$(realpath "$sav/schema")"
 
 json="$1"
 [[ -f "$json" ]] || die "must specify input file as first argument to $0."
@@ -19,8 +21,8 @@ out="${2:-"${json%.json}"}"
 source "$this/luarocks-env.sh"
 export LUA_PATH="$this/?.lua;$LUA_PATH"
 
-lua                          \
-  "$this/json-to-binary.lua" \
-  "$this/sav-structure.json" \
-  "$json"                    \
+lua                            \
+  "$this/json-to-binary.lua"   \
+  "$schema/sav-structure.json" \
+  "$json"                      \
   "$out"
