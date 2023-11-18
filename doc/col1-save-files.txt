@@ -23,14 +23,8 @@ These do or may provide unique info beyond the primary source above:
 Problems with fields
 ===========================================
 
-  * active_unit may be signed since when there are no active
-    units it seems to be 65535. This looks like it also applies
-    to the colony of origin and dwelling of origin fields, which
-    can be 255.
   * unknown35 has something to do with colony count (along with
     the fields above/below it apparently).
-  * relation_type seems to have an additional value even in new
-    saves (64).
 
 TODO
 ========================================================
