@@ -2078,7 +2078,7 @@ struct HEADER {
   uint16_t turn = {};
   bytes<1> tile_selection_mode = {};
   bytes<1> unknown40 = {};
-  uint16_t active_unit = {};
+  int16_t active_unit = {};
   bytes<6> unknown41 = {};
   uint16_t dwelling_count = {};
   uint16_t unit_count = {};
@@ -2480,7 +2480,7 @@ struct NATION {
   uint16_t liberty_bells_total = {};
   uint16_t liberty_bells_last_turn = {};
   bytes<2> unknown22 = {};
-  uint16_t next_founding_father = {};
+  int16_t next_founding_father = {};
   uint16_t founding_father_count = {};
   bytes<2> prob_founding_father_count_end = {};
   uint8_t villages_burned = {};

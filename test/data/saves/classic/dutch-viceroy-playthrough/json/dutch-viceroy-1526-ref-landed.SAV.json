@@ -64,7 +64,7 @@
     "turn": 34,
     "tile_selection_mode": "01",
     "unknown40": "00",
-    "active_unit": 65535,
+    "active_unit": -1,
     "unknown41": "03 00 03 00 03 00",
     "dwelling_count": 74,
     "unit_count": 131,

@@ -19498,7 +19498,7 @@
       "liberty_bells_total": 13998,
       "liberty_bells_last_turn": 434,
       "unknown22": "05 00",
-      "next_founding_father": 65535,
+      "next_founding_father": -1,
       "founding_father_count": 25,
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 15,
