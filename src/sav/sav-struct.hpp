@@ -252,6 +252,38 @@ cdr::result<level_3bit_type> from_canonical(
                          cdr::tag_t<level_3bit_type> );
 
 /****************************************************************
+** nation_2byte_type
+*****************************************************************/
+enum class nation_2byte_type : uint16_t {
+  england     = 0x0000,
+  france      = 0x0001,
+  spain       = 0x0002,
+  netherlands = 0x0003,
+  inca        = 0x0004,
+  aztec       = 0x0005,
+  arawak      = 0x0006,
+  iroquois    = 0x0007,
+  cherokee    = 0x0008,
+  apache      = 0x0009,
+  sioux       = 0x000A,
+  tupi        = 0x000B,
+  none        = 0xFFFF,
+};
+
+// String conversion.
+void to_str( nation_2byte_type const& o, std::string& out, base::ADL_t );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         nation_2byte_type const& o,
+                         cdr::tag_t<nation_2byte_type> );
+
+cdr::result<nation_2byte_type> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_2byte_type> );
+
+/****************************************************************
 ** nation_4bit_short_type
 *****************************************************************/
 enum class nation_4bit_short_type : uint8_t {
@@ -2079,12 +2111,15 @@ struct HEADER {
   bytes<1> tile_selection_mode = {};
   bytes<1> unknown40 = {};
   int16_t active_unit = {};
-  bytes<6> unknown41 = {};
+  nation_2byte_type nation_turn = {};
+  nation_2byte_type curr_nation_map_view = {};
+  nation_2byte_type human_player = {};
   uint16_t dwelling_count = {};
   uint16_t unit_count = {};
   uint16_t colony_count = {};
-  uint8_t trade_route_count = {};
-  bytes<5> unknown42 = {};
+  uint16_t trade_route_count = {};
+  uint16_t show_entire_map = {};
+  nation_2byte_type fixed_nation_map_view = {};
   difficulty_type difficulty = {};
   bytes<1> unknown43a = {};
   bytes<1> unknown43b = {};

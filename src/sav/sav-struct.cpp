@@ -449,6 +449,75 @@ cdr::result<level_3bit_type> from_canonical(
 }
 
 /****************************************************************
+** nation_2byte_type
+*****************************************************************/
+void to_str( nation_2byte_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case nation_2byte_type::england: out += "England"; return;
+    case nation_2byte_type::france: out += "France"; return;
+    case nation_2byte_type::spain: out += "Spain"; return;
+    case nation_2byte_type::netherlands: out += "Netherlands"; return;
+    case nation_2byte_type::inca: out += "Inca"; return;
+    case nation_2byte_type::aztec: out += "Aztec"; return;
+    case nation_2byte_type::arawak: out += "Arawak"; return;
+    case nation_2byte_type::iroquois: out += "Iroquois"; return;
+    case nation_2byte_type::cherokee: out += "Cherokee"; return;
+    case nation_2byte_type::apache: out += "Apache"; return;
+    case nation_2byte_type::sioux: out += "Sioux"; return;
+    case nation_2byte_type::tupi: out += "Tupi"; return;
+    case nation_2byte_type::none: out += "None"; return;
+  }
+  out += "<unrecognized>";
+}
+
+cdr::value to_canonical( cdr::converter&,
+                         nation_2byte_type const& o,
+                         cdr::tag_t<nation_2byte_type> ) {
+  switch( o ) {
+    case nation_2byte_type::england: return "England";
+    case nation_2byte_type::france: return "France";
+    case nation_2byte_type::spain: return "Spain";
+    case nation_2byte_type::netherlands: return "Netherlands";
+    case nation_2byte_type::inca: return "Inca";
+    case nation_2byte_type::aztec: return "Aztec";
+    case nation_2byte_type::arawak: return "Arawak";
+    case nation_2byte_type::iroquois: return "Iroquois";
+    case nation_2byte_type::cherokee: return "Cherokee";
+    case nation_2byte_type::apache: return "Apache";
+    case nation_2byte_type::sioux: return "Sioux";
+    case nation_2byte_type::tupi: return "Tupi";
+    case nation_2byte_type::none: return "None";
+  }
+  return cdr::null;
+}
+
+cdr::result<nation_2byte_type> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<nation_2byte_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, nation_2byte_type> const m{
+    { "England", nation_2byte_type::england },
+    { "France", nation_2byte_type::france },
+    { "Spain", nation_2byte_type::spain },
+    { "Netherlands", nation_2byte_type::netherlands },
+    { "Inca", nation_2byte_type::inca },
+    { "Aztec", nation_2byte_type::aztec },
+    { "Arawak", nation_2byte_type::arawak },
+    { "Iroquois", nation_2byte_type::iroquois },
+    { "Cherokee", nation_2byte_type::cherokee },
+    { "Apache", nation_2byte_type::apache },
+    { "Sioux", nation_2byte_type::sioux },
+    { "Tupi", nation_2byte_type::tupi },
+    { "None", nation_2byte_type::none },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "nation_2byte_type", str );
+}
+
+/****************************************************************
 ** nation_4bit_short_type
 *****************************************************************/
 void to_str( nation_4bit_short_type const& o, std::string& out, base::ADL_t ) {
@@ -4708,12 +4777,15 @@ void to_str( HEADER const& o, std::string& out, base::ADL_t t ) {
   out += "tile_selection_mode="; to_str( o.tile_selection_mode, out, t ); out += ',';
   out += "unknown40="; to_str( o.unknown40, out, t ); out += ',';
   out += "active_unit="; to_str( o.active_unit, out, t ); out += ',';
-  out += "unknown41="; to_str( o.unknown41, out, t ); out += ',';
+  out += "nation_turn="; to_str( o.nation_turn, out, t ); out += ',';
+  out += "curr_nation_map_view="; to_str( o.curr_nation_map_view, out, t ); out += ',';
+  out += "human_player="; to_str( o.human_player, out, t ); out += ',';
   out += "dwelling_count="; to_str( o.dwelling_count, out, t ); out += ',';
   out += "unit_count="; to_str( o.unit_count, out, t ); out += ',';
   out += "colony_count="; to_str( o.colony_count, out, t ); out += ',';
   out += "trade_route_count="; to_str( o.trade_route_count, out, t ); out += ',';
-  out += "unknown42="; to_str( o.unknown42, out, t ); out += ',';
+  out += "show_entire_map="; to_str( o.show_entire_map, out, t ); out += ',';
+  out += "fixed_nation_map_view="; to_str( o.fixed_nation_map_view, out, t ); out += ',';
   out += "difficulty="; to_str( o.difficulty, out, t ); out += ',';
   out += "unknown43a="; to_str( o.unknown43a, out, t ); out += ',';
   out += "unknown43b="; to_str( o.unknown43b, out, t ); out += ',';
@@ -4748,12 +4820,15 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.tile_selection_mode )
     && read_binary( b, o.unknown40 )
     && read_binary( b, o.active_unit )
-    && read_binary( b, o.unknown41 )
+    && read_binary( b, o.nation_turn )
+    && read_binary( b, o.curr_nation_map_view )
+    && read_binary( b, o.human_player )
     && read_binary( b, o.dwelling_count )
     && read_binary( b, o.unit_count )
     && read_binary( b, o.colony_count )
     && read_binary( b, o.trade_route_count )
-    && read_binary( b, o.unknown42 )
+    && read_binary( b, o.show_entire_map )
+    && read_binary( b, o.fixed_nation_map_view )
     && read_binary( b, o.difficulty )
     && read_binary( b, o.unknown43a )
     && read_binary( b, o.unknown43b )
@@ -4787,12 +4862,15 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.tile_selection_mode )
     && write_binary( b, o.unknown40 )
     && write_binary( b, o.active_unit )
-    && write_binary( b, o.unknown41 )
+    && write_binary( b, o.nation_turn )
+    && write_binary( b, o.curr_nation_map_view )
+    && write_binary( b, o.human_player )
     && write_binary( b, o.dwelling_count )
     && write_binary( b, o.unit_count )
     && write_binary( b, o.colony_count )
     && write_binary( b, o.trade_route_count )
-    && write_binary( b, o.unknown42 )
+    && write_binary( b, o.show_entire_map )
+    && write_binary( b, o.fixed_nation_map_view )
     && write_binary( b, o.difficulty )
     && write_binary( b, o.unknown43a )
     && write_binary( b, o.unknown43b )
@@ -4828,12 +4906,15 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "tile_selection_mode", o.tile_selection_mode );
   conv.to_field( tbl, "unknown40", o.unknown40 );
   conv.to_field( tbl, "active_unit", o.active_unit );
-  conv.to_field( tbl, "unknown41", o.unknown41 );
+  conv.to_field( tbl, "nation_turn", o.nation_turn );
+  conv.to_field( tbl, "curr_nation_map_view", o.curr_nation_map_view );
+  conv.to_field( tbl, "human_player", o.human_player );
   conv.to_field( tbl, "dwelling_count", o.dwelling_count );
   conv.to_field( tbl, "unit_count", o.unit_count );
   conv.to_field( tbl, "colony_count", o.colony_count );
   conv.to_field( tbl, "trade_route_count", o.trade_route_count );
-  conv.to_field( tbl, "unknown42", o.unknown42 );
+  conv.to_field( tbl, "show_entire_map", o.show_entire_map );
+  conv.to_field( tbl, "fixed_nation_map_view", o.fixed_nation_map_view );
   conv.to_field( tbl, "difficulty", o.difficulty );
   conv.to_field( tbl, "unknown43a", o.unknown43a );
   conv.to_field( tbl, "unknown43b", o.unknown43b );
@@ -4863,12 +4944,15 @@ cdr::value to_canonical( cdr::converter& conv,
     "tile_selection_mode",
     "unknown40",
     "active_unit",
-    "unknown41",
+    "nation_turn",
+    "curr_nation_map_view",
+    "human_player",
     "dwelling_count",
     "unit_count",
     "colony_count",
     "trade_route_count",
-    "unknown42",
+    "show_entire_map",
+    "fixed_nation_map_view",
     "difficulty",
     "unknown43a",
     "unknown43b",
@@ -4908,12 +4992,15 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "tile_selection_mode", tile_selection_mode );
   CONV_FROM_FIELD( "unknown40", unknown40 );
   CONV_FROM_FIELD( "active_unit", active_unit );
-  CONV_FROM_FIELD( "unknown41", unknown41 );
+  CONV_FROM_FIELD( "nation_turn", nation_turn );
+  CONV_FROM_FIELD( "curr_nation_map_view", curr_nation_map_view );
+  CONV_FROM_FIELD( "human_player", human_player );
   CONV_FROM_FIELD( "dwelling_count", dwelling_count );
   CONV_FROM_FIELD( "unit_count", unit_count );
   CONV_FROM_FIELD( "colony_count", colony_count );
   CONV_FROM_FIELD( "trade_route_count", trade_route_count );
-  CONV_FROM_FIELD( "unknown42", unknown42 );
+  CONV_FROM_FIELD( "show_entire_map", show_entire_map );
+  CONV_FROM_FIELD( "fixed_nation_map_view", fixed_nation_map_view );
   CONV_FROM_FIELD( "difficulty", difficulty );
   CONV_FROM_FIELD( "unknown43a", unknown43a );
   CONV_FROM_FIELD( "unknown43b", unknown43b );
