@@ -203,6 +203,42 @@ cdr::result<difficulty_type> from_canonical(
 }
 
 /****************************************************************
+** eof_of_turn_sign_type
+*****************************************************************/
+void to_str( eof_of_turn_sign_type const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case eof_of_turn_sign_type::not_shown: out += "Not shown"; return;
+    case eof_of_turn_sign_type::flashing: out += "Flashing"; return;
+  }
+  out += "<unrecognized>";
+}
+
+cdr::value to_canonical( cdr::converter&,
+                         eof_of_turn_sign_type const& o,
+                         cdr::tag_t<eof_of_turn_sign_type> ) {
+  switch( o ) {
+    case eof_of_turn_sign_type::not_shown: return "Not shown";
+    case eof_of_turn_sign_type::flashing: return "Flashing";
+  }
+  return cdr::null;
+}
+
+cdr::result<eof_of_turn_sign_type> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<eof_of_turn_sign_type> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, eof_of_turn_sign_type> const m{
+    { "Not shown", eof_of_turn_sign_type::not_shown },
+    { "Flashing", eof_of_turn_sign_type::flashing },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "eof_of_turn_sign_type", str );
+}
+
+/****************************************************************
 ** fortification_level_type
 *****************************************************************/
 void to_str( fortification_level_type const& o, std::string& out, base::ADL_t ) {
@@ -4790,7 +4826,8 @@ void to_str( HEADER const& o, std::string& out, base::ADL_t t ) {
   out += "unknown43a="; to_str( o.unknown43a, out, t ); out += ',';
   out += "unknown43b="; to_str( o.unknown43b, out, t ); out += ',';
   out += "founding_father="; to_str( o.founding_father, out, t ); out += ',';
-  out += "unknown44="; to_str( o.unknown44, out, t ); out += ',';
+  out += "unknown44a="; to_str( o.unknown44a, out, t ); out += ',';
+  out += "end_of_turn_sign="; to_str( o.end_of_turn_sign, out, t ); out += ',';
   out += "nation_relation="; to_str( o.nation_relation, out, t ); out += ',';
   out += "unknown45="; to_str( o.unknown45, out, t ); out += ',';
   out += "expeditionary_force="; to_str( o.expeditionary_force, out, t ); out += ',';
@@ -4833,7 +4870,8 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.unknown43a )
     && read_binary( b, o.unknown43b )
     && read_binary( b, o.founding_father )
-    && read_binary( b, o.unknown44 )
+    && read_binary( b, o.unknown44a )
+    && read_binary( b, o.end_of_turn_sign )
     && read_binary( b, o.nation_relation )
     && read_binary( b, o.unknown45 )
     && read_binary( b, o.expeditionary_force )
@@ -4875,7 +4913,8 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.unknown43a )
     && write_binary( b, o.unknown43b )
     && write_binary( b, o.founding_father )
-    && write_binary( b, o.unknown44 )
+    && write_binary( b, o.unknown44a )
+    && write_binary( b, o.end_of_turn_sign )
     && write_binary( b, o.nation_relation )
     && write_binary( b, o.unknown45 )
     && write_binary( b, o.expeditionary_force )
@@ -4919,7 +4958,8 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown43a", o.unknown43a );
   conv.to_field( tbl, "unknown43b", o.unknown43b );
   conv.to_field( tbl, "founding_father", o.founding_father );
-  conv.to_field( tbl, "unknown44", o.unknown44 );
+  conv.to_field( tbl, "unknown44a", o.unknown44a );
+  conv.to_field( tbl, "end_of_turn_sign", o.end_of_turn_sign );
   conv.to_field( tbl, "nation_relation", o.nation_relation );
   conv.to_field( tbl, "unknown45", o.unknown45 );
   conv.to_field( tbl, "expeditionary_force", o.expeditionary_force );
@@ -4957,7 +4997,8 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown43a",
     "unknown43b",
     "founding_father",
-    "unknown44",
+    "unknown44a",
+    "end_of_turn_sign",
     "nation_relation",
     "unknown45",
     "expeditionary_force",
@@ -5005,7 +5046,8 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "unknown43a", unknown43a );
   CONV_FROM_FIELD( "unknown43b", unknown43b );
   CONV_FROM_FIELD( "founding_father", founding_father );
-  CONV_FROM_FIELD( "unknown44", unknown44 );
+  CONV_FROM_FIELD( "unknown44a", unknown44a );
+  CONV_FROM_FIELD( "end_of_turn_sign", end_of_turn_sign );
   CONV_FROM_FIELD( "nation_relation", nation_relation );
   CONV_FROM_FIELD( "unknown45", unknown45 );
   CONV_FROM_FIELD( "expeditionary_force", expeditionary_force );

@@ -388,6 +388,11 @@
         {
             "land": "00",
             "sea": "01"
+        },
+        "eof_of_turn_sign_type":
+        {
+            "Not shown": "00 00",
+            "Flashing": "01 00"
         }
     },
     "HEADER":
@@ -425,7 +430,8 @@
                 "unknown43a",
                 "unknown43b",
                 "founding_father",
-                "unknown44",
+                "unknown44a",
+                "end_of_turn_sign",
                 "nation_relation",
                 "unknown45",
                 "expeditionary_force",
@@ -581,7 +587,8 @@
             "unknown43a": {"size": 1},
             "unknown43b": {"size": 1},
             "founding_father": {"size": 25},
-            "unknown44": {"size": 6},
+            "unknown44a": {"size": 4},
+            "end_of_turn_sign": {"size": 2, "type": "eof_of_turn_sign_type"},
             "nation_relation": {"size": 8},
             "unknown45": {"size": 10},
             "expeditionary_force":

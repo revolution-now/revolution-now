@@ -78,7 +78,8 @@
     "unknown43a": "00",
     "unknown43b": "07",
     "founding_father": "ff ff ff ff ff 00 ff ff ff ff ff ff ff 03 ff ff 03 ff ff 03 ff ff ff ff ff",
-    "unknown44": "01 00 01 00 01 00",
+    "unknown44a": "01 00 01 00",
+    "end_of_turn_sign": "Flashing",
     "nation_relation": "ff ff ff ff ff ff ff ff",
     "unknown45": "5d 00 01 00 ff ff 02 00 09 00",
     "expeditionary_force": {
