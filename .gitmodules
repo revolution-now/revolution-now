@@ -1,6 +1,6 @@
 [submodule "extern/base-util"]
 	path = extern/base-util
-	url = ../base-util.git
+	url = ../../no-more-secrets/base-util.git
 [submodule "extern/fmt"]
 	path = extern/fmt
 	url = https://github.com/fmtlib/fmt.git
@@ -21,7 +21,7 @@
 	url = ../rn-music.git
 [submodule "extern/rg-2-midi"]
 	path = extern/rg-2-midi
-	url = ../rg-2-midi
+	url = ../../no-more-secrets/rg-2-midi
 [submodule "extern/Catch2"]
 	path = extern/Catch2
 	url = ../Catch2.git
@@ -30,4 +30,4 @@
 	url = ../stb
 [submodule "extern/smcol_saves_utility"]
 	path = extern/smcol_saves_utility
-	url = ../smcol_saves_utility
+	url = ../../no-more-secrets/smcol_saves_utility
