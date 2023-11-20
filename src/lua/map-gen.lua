@@ -968,10 +968,11 @@ end
 -----------------------------------------------------------------
 -- Lost City Rumors
 -----------------------------------------------------------------
-local function distribute_lost_city_rumors( placement_seed )
+-- This accepts the one-byte seed used by the OG and replicates
+-- the distribution that would result.
+local function distribute_lost_city_rumors( seed )
   local size = world_size()
-  local coords = dist.compute_lost_city_rumors( size,
-                                                placement_seed )
+  local coords = dist.compute_lost_city_rumors( size, seed )
   for _, coord in ipairs( coords ) do
     local square = square_at( coord )
     if square.surface == 'land' and square.ground ~= 'arctic' then
@@ -1102,19 +1103,30 @@ local function distribute_prime_forest_resources( y_offset )
                  tostring( #coords / (size.w * size.h) ) )
 end
 
-local function distribute_prime_resources( placement_seed )
-  -- These need to both have the same seed so that we can make
-  -- sure that they remain four tiles apart (horizontally), which
-  -- they will due to their hard coded x_offsets, in order to
-  -- mirror the original game's placement logic.
-  distribute_prime_ground_resources( placement_seed )
-  distribute_prime_forest_resources( placement_seed )
-end
-
-local function set_random_placement_seed()
-  local placement_seed = math.random( 0, 256 )
-  ROOT.terrain:set_placement_seed( placement_seed )
-  return placement_seed
+-----------------------------------------------------------------
+-- Bonus (LCR + prime resource) generation.
+-----------------------------------------------------------------
+-- This accepts the one-byte seed used by the OG and replicates
+-- the distribution that would result.
+local function distribute_bonuses( seed )
+  if not seed then
+    -- The OG uses a one byte seed. Actually, because of the dis-
+    -- tribution algorithm used, only its value mod 32 matters.
+    seed = math.random( 0, 256 )
+    ROOT.terrain:set_placement_seed( seed )
+  end
+  -- The OG uses the same seed for all of these, and it matters
+  -- because we need to be able to exactly regenerate the dis-
+  -- tributes of both of these so that we can load the OG's saved
+  -- games, and since we've replicated the distribution algos, we
+  -- need to replicate the seeds used as well. Also note that the
+  -- forest distribution algo assumes that we will use the same
+  -- seed as the ground one so that it can ensure that the forest
+  -- resources get placed 4 tiles away from the ground resources,
+  -- as in the OG.
+  distribute_prime_ground_resources( seed )
+  distribute_prime_forest_resources( seed )
+  distribute_lost_city_rumors( seed )
 end
 
 -----------------------------------------------------------------
@@ -1584,14 +1596,9 @@ local function generate_land( options )
   -- seem to flow on hills/mountains in the OG.
   create_hills( options )
   create_mountains( options )
-
   create_rivers( options )
-
   forest_cover()
-
-  local placement_seed = set_random_placement_seed()
-  distribute_prime_resources( placement_seed )
-  distribute_lost_city_rumors( placement_seed )
+  distribute_bonuses()
 end
 
 -----------------------------------------------------------------
@@ -1624,9 +1631,7 @@ local function generate_testing_land()
     end
   end )
 
-  local placement_seed = set_random_placement_seed()
-  distribute_prime_resources( placement_seed )
-  distribute_lost_city_rumors( placement_seed )
+  distribute_bonuses()
 
   -- on_all( function( coord, square )
   --   if square.surface == "land" then
@@ -1686,15 +1691,13 @@ end
 -- ating a map with the map editor where you'd like to have the
 -- standard distribution algorithm applied after the map is fin-
 -- ished.
-function M.redistribute_resources( placement_seed )
+function M.redistribute_resources( seed )
   on_all( function( _, square )
     square.lost_city_rumor = false
     square.ground_resource = nil
     square.forest_resource = nil
   end )
-  placement_seed = placement_seed or set_random_placement_seed()
-  distribute_prime_resources( placement_seed )
-  distribute_lost_city_rumors( placement_seed )
+  distribute_bonuses( seed )
   ROOT_TS.map_updater:redraw()
 end
 
@@ -1754,10 +1757,18 @@ local function generate( options )
     generate_battlefield()
     return
   elseif options.type == 'america' then
-    import_map_file( 'test/data/saves/classic/map/AMER-NEW.MP' )
-    local placement_seed = set_random_placement_seed()
-    distribute_prime_resources( placement_seed )
-    distribute_lost_city_rumors( placement_seed )
+    -- TODO: the OG seems hard-coded to detect when a file named
+    -- AMER2.MP is loaded and it will place a mountain on the
+    -- one-tile island off of the tip of South America, likely to
+    -- prevent founding a colony there (which would allow cheat-
+    -- ing). We should add a function in this module to scan for
+    -- islands and put mountains on them. During normal map gen-
+    -- eration (as in the OG) one-tile islands are removed alto-
+    -- gether, so we don't have to worry about. However, the OG's
+    -- America map does have an island on it, and we want to
+    -- replicate that.
+    import_map_file( 'test/data/saves/classic/map/AMER2.MP' )
+    distribute_bonuses()
     create_pacific_ocean()
     create_indian_villages( options )
     return
