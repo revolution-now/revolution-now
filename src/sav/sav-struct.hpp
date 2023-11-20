@@ -116,25 +116,25 @@ cdr::result<difficulty_type> from_canonical(
                          cdr::tag_t<difficulty_type> );
 
 /****************************************************************
-** eof_of_turn_sign_type
+** end_of_turn_sign_type
 *****************************************************************/
-enum class eof_of_turn_sign_type : uint16_t {
+enum class end_of_turn_sign_type : uint16_t {
   not_shown = 0x0000,
   flashing  = 0x0001,
 };
 
 // String conversion.
-void to_str( eof_of_turn_sign_type const& o, std::string& out, base::ADL_t );
+void to_str( end_of_turn_sign_type const& o, std::string& out, base::ADL_t );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         eof_of_turn_sign_type const& o,
-                         cdr::tag_t<eof_of_turn_sign_type> );
+                         end_of_turn_sign_type const& o,
+                         cdr::tag_t<end_of_turn_sign_type> );
 
-cdr::result<eof_of_turn_sign_type> from_canonical(
+cdr::result<end_of_turn_sign_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<eof_of_turn_sign_type> );
+                         cdr::tag_t<end_of_turn_sign_type> );
 
 /****************************************************************
 ** fortification_level_type
@@ -2146,7 +2146,7 @@ struct HEADER {
   bytes<1> unknown43b = {};
   bytes<25> founding_father = {};
   bytes<4> unknown44a = {};
-  eof_of_turn_sign_type end_of_turn_sign = {};
+  end_of_turn_sign_type end_of_turn_sign = {};
   bytes<8> nation_relation = {};
   bytes<10> unknown45 = {};
   ExpeditionaryForce expeditionary_force = {};

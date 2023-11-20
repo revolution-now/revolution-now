@@ -203,39 +203,39 @@ cdr::result<difficulty_type> from_canonical(
 }
 
 /****************************************************************
-** eof_of_turn_sign_type
+** end_of_turn_sign_type
 *****************************************************************/
-void to_str( eof_of_turn_sign_type const& o, std::string& out, base::ADL_t ) {
+void to_str( end_of_turn_sign_type const& o, std::string& out, base::ADL_t ) {
   switch( o ) {
-    case eof_of_turn_sign_type::not_shown: out += "Not shown"; return;
-    case eof_of_turn_sign_type::flashing: out += "Flashing"; return;
+    case end_of_turn_sign_type::not_shown: out += "Not shown"; return;
+    case end_of_turn_sign_type::flashing: out += "Flashing"; return;
   }
   out += "<unrecognized>";
 }
 
 cdr::value to_canonical( cdr::converter&,
-                         eof_of_turn_sign_type const& o,
-                         cdr::tag_t<eof_of_turn_sign_type> ) {
+                         end_of_turn_sign_type const& o,
+                         cdr::tag_t<end_of_turn_sign_type> ) {
   switch( o ) {
-    case eof_of_turn_sign_type::not_shown: return "Not shown";
-    case eof_of_turn_sign_type::flashing: return "Flashing";
+    case end_of_turn_sign_type::not_shown: return "Not shown";
+    case end_of_turn_sign_type::flashing: return "Flashing";
   }
   return cdr::null;
 }
 
-cdr::result<eof_of_turn_sign_type> from_canonical(
+cdr::result<end_of_turn_sign_type> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<eof_of_turn_sign_type> ) {
+                         cdr::tag_t<end_of_turn_sign_type> ) {
   UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
-  static std::map<std::string, eof_of_turn_sign_type> const m{
-    { "Not shown", eof_of_turn_sign_type::not_shown },
-    { "Flashing", eof_of_turn_sign_type::flashing },
+  static std::map<std::string, end_of_turn_sign_type> const m{
+    { "Not shown", end_of_turn_sign_type::not_shown },
+    { "Flashing", end_of_turn_sign_type::flashing },
   };
   if( auto it = m.find( str ); it != m.end() )
     return it->second;
   else
-    return BAD_ENUM_STR_VALUE( "eof_of_turn_sign_type", str );
+    return BAD_ENUM_STR_VALUE( "end_of_turn_sign_type", str );
 }
 
 /****************************************************************
