@@ -16,8 +16,7 @@
         "SEEN",
         "unknown_map38a",
         "unknown_map38b",
-        "unknown39a",
-        "unknown39b",
+        "unknown_map38c",
         "prime_resource_seed",
         "unknown39d",
         "TRADE_ROUTE"
@@ -1359,7 +1358,7 @@
             "counter_increasing_on_new_colony": {"size": 2, "type": "uint"},
             "unknown36a": {"size": 543},
             "show_colony_prod_quantities": {"size": 1},
-            "unknown36b": {"size": 152},
+            "unknown36b": {"size": 4, "count": 38},
             "x": {"size": 2, "type": "uint"},
             "y": {"size": 2, "type": "uint"},
             "zoom_level": {"size": 1, "type": "uint"},
@@ -1442,10 +1441,9 @@
     },
     "unknown_map38a": {"size": 18, "count": 14},
     "unknown_map38b": {"size": 18, "count": 14},
-    "unknown39a": {"size": 104},
-    "unknown39b": {"size": 3, "__hint": "some report that this can affect the professions that villages teach, which are likely computed (with some randomness) and not stored. RNG fix causes professions to fluctuate with each visit."},
-    "prime_resource_seed": {"size": 2, "__hint": "these may contain both the prime resource and LCR seeds, possibly in nibbles."},
-    "unknown39d": {"size": 1},
+    "unknown_map38c": {"size": 18, "count": 6},
+    "prime_resource_seed": {"size": 1, "type": "uint", "__hint": "seed for both prime resources and lost city rumors."},
+    "unknown39d": {"size": 1, "__hint": "Seems to be constant throughout the game.  Could be the high byte of the prime_resource_seed, though if it is then it would have no visible effect since the seed's value only matters mod 32."},
     "TRADE_ROUTE":
     {
         "count": 12,

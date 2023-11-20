@@ -133,10 +133,9 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   if( !read_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while reading unknown_map38b section." );
-  if( !read_binary( b, out.unknown39a ) )
-    return fmt::format( "while reading unknown39a section." );
-  if( !read_binary( b, out.unknown39b ) )
-    return fmt::format( "while reading unknown39b section." );
+  if( !read_binary( b, out.unknown_map38c ) )
+    return fmt::format(
+        "while reading unknown_map38c section." );
   if( !read_binary( b, out.prime_resource_seed ) )
     return fmt::format( "while reading prime resource seed." );
   if( !read_binary( b, out.unknown39d ) )
@@ -234,10 +233,9 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while writing unknown_map38b section." );
-  if( !write_binary( b, out.unknown39a ) )
-    return fmt::format( "while writing unknown39a section." );
-  if( !write_binary( b, out.unknown39b ) )
-    return fmt::format( "while writing unknown39b section." );
+  if( !write_binary( b, out.unknown_map38c ) )
+    return fmt::format(
+        "while writing unknown_map38c section." );
   if( !write_binary( b, out.prime_resource_seed ) )
     return fmt::format( "while writing prime resource seed." );
   if( !write_binary( b, out.unknown39d ) )

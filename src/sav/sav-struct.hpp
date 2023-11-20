@@ -2689,7 +2689,7 @@ struct STUFF {
   uint16_t counter_increasing_on_new_colony = {};
   bytes<543> unknown36a = {};
   bytes<1> show_colony_prod_quantities = {};
-  bytes<152> unknown36b = {};
+  std::array<bytes<4>, 38> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};
@@ -2786,9 +2786,8 @@ struct ColonySAV {
   std::vector<SEEN> seen = {};
   std::array<bytes<18>, 14> unknown_map38a = {};
   std::array<bytes<18>, 14> unknown_map38b = {};
-  bytes<104> unknown39a = {};
-  bytes<3> unknown39b = {};
-  bytes<2> prime_resource_seed = {};
+  std::array<bytes<18>, 6> unknown_map38c = {};
+  uint8_t prime_resource_seed = {};
   bytes<1> unknown39d = {};
   std::array<TRADEROUTE, 12> trade_route = {};
 
