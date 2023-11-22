@@ -987,9 +987,9 @@ cdr::result<GameOptions> from_canonical(
                          cdr::tag_t<GameOptions> );
 
 /****************************************************************
-** ColonyReportOptions
+** ColonyReportOptionsToDisable
 *****************************************************************/
-struct ColonyReportOptions {
+struct ColonyReportOptionsToDisable {
   bool labels_on_cargo_and_terrain : 1 = {};
   bool labels_on_buildings : 1 = {};
   bool report_new_cargos_available : 1 = {};
@@ -1002,26 +1002,26 @@ struct ColonyReportOptions {
   bool report_rebel_majorities : 1 = {};
   uint8_t unused03 : 6 = {};
 
-  bool operator==( ColonyReportOptions const& ) const = default;
+  bool operator==( ColonyReportOptionsToDisable const& ) const = default;
 };
 
 // String conversion.
-void to_str( ColonyReportOptions const& o, std::string& out, base::ADL_t );
+void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::ADL_t );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o );
+bool read_binary( base::IBinaryIO& b, ColonyReportOptionsToDisable& o );
 
-bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o );
+bool write_binary( base::IBinaryIO& b, ColonyReportOptionsToDisable const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         ColonyReportOptions const& o,
-                         cdr::tag_t<ColonyReportOptions> );
+                         ColonyReportOptionsToDisable const& o,
+                         cdr::tag_t<ColonyReportOptionsToDisable> );
 
-cdr::result<ColonyReportOptions> from_canonical(
+cdr::result<ColonyReportOptionsToDisable> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<ColonyReportOptions> );
+                         cdr::tag_t<ColonyReportOptionsToDisable> );
 
 /****************************************************************
 ** Flags
@@ -2123,7 +2123,7 @@ struct HEADER {
   TutorialHelp tutorial_help = {};
   bytes<1> unknown03 = {};
   GameOptions game_options = {};
-  ColonyReportOptions colony_report_options = {};
+  ColonyReportOptionsToDisable colony_report_options_to_disable = {};
   Flags flags = {};
   bytes<2> unknown39 = {};
   uint16_t year = {};

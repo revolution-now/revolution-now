@@ -1984,10 +1984,10 @@ cdr::result<GameOptions> from_canonical(
 }
 
 /****************************************************************
-** ColonyReportOptions
+** ColonyReportOptionsToDisable
 *****************************************************************/
-void to_str( ColonyReportOptions const& o, std::string& out, base::ADL_t t ) {
-  out += "ColonyReportOptions{";
+void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::ADL_t t ) {
+  out += "ColonyReportOptionsToDisable{";
   out += "labels_on_cargo_and_terrain="; to_str( o.labels_on_cargo_and_terrain, out, t ); out += ',';
   out += "labels_on_buildings="; to_str( o.labels_on_buildings, out, t ); out += ',';
   out += "report_new_cargos_available="; to_str( o.report_new_cargos_available, out, t ); out += ',';
@@ -2003,7 +2003,7 @@ void to_str( ColonyReportOptions const& o, std::string& out, base::ADL_t t ) {
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o ) {
+bool read_binary( base::IBinaryIO& b, ColonyReportOptionsToDisable& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.labels_on_cargo_and_terrain = (bits & 0b1); bits >>= 1;
@@ -2020,7 +2020,7 @@ bool read_binary( base::IBinaryIO& b, ColonyReportOptions& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o ) {
+bool write_binary( base::IBinaryIO& b, ColonyReportOptionsToDisable const& o ) {
   uint16_t bits = 0;
   bits |= (o.unused03 & 0b111111); bits <<= 1;
   bits |= (o.report_rebel_majorities & 0b1); bits <<= 1;
@@ -2037,8 +2037,8 @@ bool write_binary( base::IBinaryIO& b, ColonyReportOptions const& o ) {
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         ColonyReportOptions const& o,
-                         cdr::tag_t<ColonyReportOptions> ) {
+                         ColonyReportOptionsToDisable const& o,
+                         cdr::tag_t<ColonyReportOptionsToDisable> ) {
   cdr::table tbl;
   conv.to_field( tbl, "labels_on_cargo_and_terrain", o.labels_on_cargo_and_terrain );
   conv.to_field( tbl, "labels_on_buildings", o.labels_on_buildings );
@@ -2067,12 +2067,12 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<ColonyReportOptions> from_canonical(
+cdr::result<ColonyReportOptionsToDisable> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<ColonyReportOptions> ) {
+                         cdr::tag_t<ColonyReportOptionsToDisable> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  ColonyReportOptions res = {};
+  ColonyReportOptionsToDisable res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "labels_on_cargo_and_terrain", labels_on_cargo_and_terrain );
   CONV_FROM_FIELD( "labels_on_buildings", labels_on_buildings );
@@ -4804,7 +4804,7 @@ void to_str( HEADER const& o, std::string& out, base::ADL_t t ) {
   out += "tutorial_help="; to_str( o.tutorial_help, out, t ); out += ',';
   out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
   out += "game_options="; to_str( o.game_options, out, t ); out += ',';
-  out += "colony_report_options="; to_str( o.colony_report_options, out, t ); out += ',';
+  out += "colony_report_options_to_disable="; to_str( o.colony_report_options_to_disable, out, t ); out += ',';
   out += "flags="; to_str( o.flags, out, t ); out += ',';
   out += "unknown39="; to_str( o.unknown39, out, t ); out += ',';
   out += "year="; to_str( o.year, out, t ); out += ',';
@@ -4848,7 +4848,7 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.tutorial_help )
     && read_binary( b, o.unknown03 )
     && read_binary( b, o.game_options )
-    && read_binary( b, o.colony_report_options )
+    && read_binary( b, o.colony_report_options_to_disable )
     && read_binary( b, o.flags )
     && read_binary( b, o.unknown39 )
     && read_binary( b, o.year )
@@ -4891,7 +4891,7 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.tutorial_help )
     && write_binary( b, o.unknown03 )
     && write_binary( b, o.game_options )
-    && write_binary( b, o.colony_report_options )
+    && write_binary( b, o.colony_report_options_to_disable )
     && write_binary( b, o.flags )
     && write_binary( b, o.unknown39 )
     && write_binary( b, o.year )
@@ -4936,7 +4936,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "tutorial_help", o.tutorial_help );
   conv.to_field( tbl, "unknown03", o.unknown03 );
   conv.to_field( tbl, "game_options", o.game_options );
-  conv.to_field( tbl, "colony_report_options", o.colony_report_options );
+  conv.to_field( tbl, "colony_report_options_to_disable", o.colony_report_options_to_disable );
   conv.to_field( tbl, "flags", o.flags );
   conv.to_field( tbl, "unknown39", o.unknown39 );
   conv.to_field( tbl, "year", o.year );
@@ -4975,7 +4975,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "tutorial_help",
     "unknown03",
     "game_options",
-    "colony_report_options",
+    "colony_report_options_to_disable",
     "flags",
     "unknown39",
     "year",
@@ -5024,7 +5024,7 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "tutorial_help", tutorial_help );
   CONV_FROM_FIELD( "unknown03", unknown03 );
   CONV_FROM_FIELD( "game_options", game_options );
-  CONV_FROM_FIELD( "colony_report_options", colony_report_options );
+  CONV_FROM_FIELD( "colony_report_options_to_disable", colony_report_options_to_disable );
   CONV_FROM_FIELD( "flags", flags );
   CONV_FROM_FIELD( "unknown39", unknown39 );
   CONV_FROM_FIELD( "year", year );

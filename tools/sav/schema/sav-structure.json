@@ -407,7 +407,7 @@
                 "tutorial_help",
                 "unknown03",
                 "game_options",
-                "colony_report_options",
+                "colony_report_options_to_disable",
                 "flags",
                 "unknown39",
                 "year",
@@ -496,8 +496,9 @@
                     "show_indian_moves": {"size": 1, "type": "bit_bool"}
                 }
             },
-            "colony_report_options":
+            "colony_report_options_to_disable":
             {
+                "__hint": "Note that 'true' means to disable the given option.",
                 "bit_struct":
                 {
                     "__key_order": [
@@ -1359,8 +1360,8 @@
             "unknown36a": {"size": 543},
             "show_colony_prod_quantities": {"size": 1},
             "unknown36b": {"size": 4, "count": 38},
-            "x": {"size": 2, "type": "uint"},
-            "y": {"size": 2, "type": "uint"},
+            "x": {"size": 2, "type": "uint", "__hint": "white selector square x"},
+            "y": {"size": 2, "type": "uint", "__hint": "white selector square y"},
             "zoom_level": {"size": 1, "type": "uint"},
             "unknown37": {"size": 1},
             "viewport_x": {"size": 2, "type": "uint"},
@@ -1400,7 +1401,7 @@
             ],
             "has_unit": {"size": 1, "type": "has_unit_1bit_type"},
             "has_city": {"size": 1, "type": "has_city_1bit_type"},
-            "suppress": {"size": 1, "type": "suppress_1bit_type", "__hint": "one of the bits in here is probably used to indicate that a silver resource is partially depleted (along with the suppress bit)."},
+            "suppress": {"size": 1, "type": "suppress_1bit_type", "__hint": "See supplemental info for more information."},
             "road": {"size": 1, "type": "road_1bit_type"},
             "purchased": {"size": 1, "type": "purchased_1bit_type"},
             "pacific": {"size": 1, "type": "pacific_1bit_type"},

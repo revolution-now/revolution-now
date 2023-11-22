@@ -27,7 +27,7 @@
       "show_foreign_moves": true,
       "show_indian_moves": true
     },
-    "colony_report_options": {
+    "colony_report_options_to_disable": {
       "labels_on_cargo_and_terrain": false,
       "labels_on_buildings": false,
       "report_new_cargos_available": false,
