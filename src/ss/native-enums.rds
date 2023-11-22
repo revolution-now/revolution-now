@@ -10,20 +10,22 @@
 # ===============================================================
 namespace "rn"
 
+# Note: this mirrors the OG's ordering, and also seems to reflect
+# the ordering of the general might of the tribes.
 enum.e_tribe {
+  # Empires.
+  inca,
+  aztec,
+
+  # Agrarian.
+  arawak,
+  iroquois,
+  cherokee,
+
   # Semi-nomadic.
   apache,
   sioux,
   tupi,
-
-  # Agrarian.
-  arawak,
-  cherokee,
-  iroquois,
-
-  # Empires.
-  aztec,
-  inca,
 }
 
 enum.e_native_unit_type {

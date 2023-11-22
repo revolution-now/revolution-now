@@ -17,14 +17,14 @@ natives {
         dwelling {
           id: 1
           is_capital: true
-          population: 6
+          population: 8
         }
         ownership {
           location {
-            x: 3
-            y: 2
+            x: 1
+            y: 3
           }
-          tribe: cherokee
+          tribe: aztec
         }
       }
     },
@@ -39,9 +39,9 @@ natives {
         ownership {
           location {
             x: 3
-            y: 6
+            y: 1
           }
-          tribe: iroquois
+          tribe: cherokee
         }
       }
     },
@@ -50,23 +50,6 @@ natives {
       val {
         dwelling {
           id: 3
-          is_capital: true
-          population: 8
-        }
-        ownership {
-          location {
-            x: 2
-            y: 3
-          }
-          tribe: aztec
-        }
-      }
-    },
-    {
-      key: 4
-      val {
-        dwelling {
-          id: 4
           is_capital: true
           population: 3
         }
@@ -80,10 +63,10 @@ natives {
       }
     },
     {
-      key: 5
+      key: 4
       val {
         dwelling {
-          id: 5
+          id: 4
           is_capital: true
           population: 6
         }
@@ -97,19 +80,33 @@ natives {
       }
     },
     {
+      key: 5
+      val {
+        dwelling {
+          id: 5
+          is_capital: true
+          population: 11
+        }
+        ownership.location {
+          x: 2
+          y: 5
+        }
+      }
+    },
+    {
       key: 6
       val {
         dwelling {
           id: 6
           is_capital: true
-          population: 11
+          population: 3
         }
         ownership {
           location {
-            x: 2
-            y: 5
+            x: 1
+            y: 6
           }
-          tribe: inca
+          tribe: apache
         }
       }
     },
@@ -119,195 +116,203 @@ natives {
         dwelling {
           id: 7
           is_capital: true
-          population: 3
+          population: 6
         }
-        ownership.location {
-          x: 1
-          y: 6
+        ownership {
+          location {
+            x: 3
+            y: 6
+          }
+          tribe: iroquois
         }
       }
     },
   ]
   next_dwelling_id: 8
   owned_land_without_minuit: [
+    .val: 1,
     {
       key.x: 1
-      val: 3
+      val: 1
     },
     {
       key.x: 2
-      val: 3
+      val: 2
     },
     {
       key.x: 3
-      val: 3
+      val: 2
+    },
+    {
+      key.x: 4
+      val: 2
     },
     {
       key.y: 1
-      val: 3
+      val: 1
     },
     {
       key {
         x: 1
         y: 1
       }
-      val: 3
+      val: 1
     },
     {
       key {
         x: 2
         y: 1
       }
-      val: 3
+      val: 2
     },
     {
       key {
         x: 3
         y: 1
       }
-      val: 4
+      val: 3
     },
     {
       key {
         x: 4
         y: 1
       }
-      val: 4
+      val: 3
     },
     {
       key {
         x: 5
         y: 1
       }
-      val: 4
+      val: 3
     },
     {
       key.y: 2
-      val: 3
+      val: 1
     },
     {
       key {
         x: 1
         y: 2
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 2
         y: 2
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 3
         y: 2
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 4
         y: 2
       }
-      val: 5
+      val: 4
     },
     {
       key {
         x: 5
         y: 2
       }
-      val: 5
+      val: 4
     },
     {
       key.y: 3
-      val: 6
+      val: 5
     },
     {
       key {
         x: 1
-        y: 3
-      }
-      val: 6
-    },
-    {
-      key {
-        x: 2
-        y: 3
-      }
-      val: 6
-    },
-    {
-      key {
-        x: 3
-        y: 3
-      }
-      val: 6
-    },
-    {
-      key {
-        x: 4
-        y: 3
-      }
-      val: 6
-    },
-    {
-      key {
-        x: 5
         y: 3
       }
       val: 5
     },
     {
+      key {
+        x: 2
+        y: 3
+      }
+      val: 5
+    },
+    {
+      key {
+        x: 3
+        y: 3
+      }
+      val: 5
+    },
+    {
+      key {
+        x: 4
+        y: 3
+      }
+      val: 5
+    },
+    {
+      key {
+        x: 5
+        y: 3
+      }
+      val: 4
+    },
+    {
       key.y: 4
-      val: 6
+      val: 5
     },
     {
       key {
         x: 1
         y: 4
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 2
         y: 4
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 3
         y: 4
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 4
         y: 4
       }
-      val: 6
+      val: 5
     },
     {
       key {
         x: 5
         y: 4
       }
-      val: 6
+      val: 5
     },
     {
       key.y: 5
-      val: 7
+      val: 6
     },
     {
       key {
         x: 1
         y: 5
       }
-      val: 7
+      val: 6
     },
     {
       key {
@@ -321,32 +326,32 @@ natives {
         x: 3
         y: 5
       }
-      val: 6
+      val: 7
     },
     {
       key {
         x: 4
         y: 5
       }
-      val: 6
+      val: 7
     },
     {
       key {
         x: 5
         y: 5
       }
-      val: 6
+      val: 5
     },
     {
       key.y: 6
-      val: 7
+      val: 6
     },
     {
       key {
         x: 1
         y: 6
       }
-      val: 7
+      val: 6
     },
     {
       key {
@@ -360,32 +365,32 @@ natives {
         x: 3
         y: 6
       }
-      val: 6
+      val: 7
     },
     {
       key {
         x: 4
         y: 6
       }
-      val: 6
+      val: 7
     },
     {
       key {
         x: 5
         y: 6
       }
-      val: 6
+      val: 5
     },
     {
       key.y: 7
-      val: 7
+      val: 6
     },
     {
       key {
         x: 1
         y: 7
       }
-      val: 7
+      val: 6
     },
     {
       key {
@@ -399,22 +404,22 @@ natives {
         x: 3
         y: 7
       }
-      val: 6
+      val: 7
     },
     {
       key {
         x: 4
         y: 7
       }
-      val: 6
+      val: 7
     },
   ]
   tribes {
-    apache {}
+    apache.type: apache
     arawak.type: arawak
     aztec.type: aztec
     cherokee.type: cherokee
-    inca.type: inca
+    inca {}
     iroquois.type: iroquois
     tupi.type: tupi
   }
@@ -488,8 +493,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 3
-            y: 2
+            x: 1
+            y: 3
           }
           dwelling_id: 1
         }
@@ -505,7 +510,7 @@ units {
         ownership.world {
           coord {
             x: 3
-            y: 6
+            y: 1
           }
           dwelling_id: 2
         }
@@ -520,8 +525,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 2
-            y: 3
+            x: 4
+            y: 2
           }
           dwelling_id: 3
         }
@@ -537,7 +542,7 @@ units {
         ownership.world {
           coord {
             x: 4
-            y: 2
+            y: 3
           }
           dwelling_id: 4
         }
@@ -552,8 +557,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 4
-            y: 3
+            x: 2
+            y: 5
           }
           dwelling_id: 5
         }
@@ -568,8 +573,8 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 2
-            y: 5
+            x: 1
+            y: 6
           }
           dwelling_id: 6
         }
@@ -584,7 +589,7 @@ units {
       val.native.state {
         ownership.world {
           coord {
-            x: 1
+            x: 3
             y: 6
           }
           dwelling_id: 7
@@ -722,7 +727,7 @@ zzz_terrain {
     data: [
       .val.sea_lane: true,
       {
-        key.x: 5
+        key.x: 6
         val.ground_resource: fish
       },
       {
@@ -731,7 +736,10 @@ zzz_terrain {
       },
       {
         key.y: 1
-        val.sea_lane: true
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key {
@@ -739,17 +747,11 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: grassland
+          ground: plains
           overlay: forest
+          road: true
           surface: land
         }
-      },
-      {
-        key {
-          x: 4
-          y: 1
-        }
-        val.ground_resource: fish
       },
       {
         key {
@@ -764,18 +766,11 @@ zzz_terrain {
       },
       {
         key {
-          x: 1
-          y: 2
-        }
-        val.ground_resource: fish
-      },
-      {
-        key {
           x: 2
           y: 2
         }
         val {
-          ground: plains
+          ground: desert
           overlay: forest
           surface: land
         }
@@ -788,7 +783,6 @@ zzz_terrain {
         val {
           ground: grassland
           overlay: forest
-          road: true
           surface: land
         }
       },
@@ -798,7 +792,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: desert
+          ground_resource: oasis
           overlay: forest
           road: true
           surface: land
@@ -810,7 +805,6 @@ zzz_terrain {
           y: 2
         }
         val {
-          forest_resource: beaver
           ground: plains
           overlay: forest
           surface: land
@@ -833,8 +827,8 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: marsh
-          overlay: forest
+          ground: grassland
+          road: true
           surface: land
         }
       },
@@ -844,8 +838,8 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: tundra
-          road: true
+          ground: savannah
+          overlay: forest
           surface: land
         }
       },
@@ -855,7 +849,8 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: tundra
+          ground: savannah
+          ground_resource: sugar
           overlay: forest
           surface: land
         }
@@ -866,7 +861,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: plains
+          ground: desert
           overlay: forest
           road: true
           surface: land
@@ -878,17 +873,10 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           overlay: mountains
           surface: land
         }
-      },
-      {
-        key {
-          x: 6
-          y: 3
-        }
-        val.ground_resource: fish
       },
       {
         key {
@@ -899,7 +887,10 @@ zzz_terrain {
       },
       {
         key.y: 4
-        val.sea_lane: true
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key {
@@ -914,7 +905,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: savannah
+          ground: tundra
           overlay: forest
           surface: land
         }
@@ -925,8 +916,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          forest_resource: minerals
-          ground: swamp
+          ground: grassland
           overlay: forest
           surface: land
         }
@@ -936,7 +926,10 @@ zzz_terrain {
           x: 7
           y: 4
         }
-        val.sea_lane: true
+        val {
+          ground_resource: fish
+          sea_lane: true
+        }
       },
       {
         key.y: 5
@@ -960,8 +953,8 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: plains
-          ground_resource: wheat
+          forest_resource: oasis
+          ground: desert
           road: true
           surface: land
         }
@@ -972,10 +965,17 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: marsh
+          ground: plains
           overlay: forest
           surface: land
         }
+      },
+      {
+        key {
+          x: 5
+          y: 5
+        }
+        val.ground_resource: fish
       },
       {
         key {
@@ -1003,6 +1003,13 @@ zzz_terrain {
       },
       {
         key {
+          x: 2
+          y: 6
+        }
+        val.ground_resource: fish
+      },
+      {
+        key {
           x: 3
           y: 6
         }
@@ -1022,10 +1029,14 @@ zzz_terrain {
       },
       {
         key.y: 7
-        val {
-          ground_resource: fish
-          sea_lane: true
+        val.sea_lane: true
+      },
+      {
+        key {
+          x: 1
+          y: 7
         }
+        val.ground_resource: fish
       },
       {
         key {
