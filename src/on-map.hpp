@@ -37,12 +37,11 @@ struct TS;
 // be used.
 struct UnitOnMapMover {
   static void native_unit_to_map_non_interactive(
-      SS& ss, NativeUnitId id, Coord dst_tile,
-      DwellingId dwelling_id );
+      SS& ss, NativeUnitId id, Coord dst_tile );
 
-  static wait<> native_unit_to_map_interactive(
-      SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
-      DwellingId dwelling_id );
+  static wait<> native_unit_to_map_interactive( SS& ss, TS& ts,
+                                                NativeUnitId id,
+                                                Coord dst_tile );
 
  private:
   static void to_map_non_interactive( SS& ss, TS& ts,

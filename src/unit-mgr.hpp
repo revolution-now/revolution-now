@@ -123,10 +123,9 @@ std::vector<UnitId> offboard_units_on_ship( SS& ss, TS& ts,
 *****************************************************************/
 // Creates a unit that is registered (with a valid ID) but with
 // no ownership.
-UnitId       create_free_unit( UnitsState&            units_state,
-                               Player const&          player,
-                               UnitComposition const& comp );
-NativeUnitId create_free_unit( SS& ss, e_native_unit_type type );
+UnitId create_free_unit( UnitsState&            units_state,
+                         Player const&          player,
+                         UnitComposition const& comp );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
@@ -174,8 +173,6 @@ void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
 /****************************************************************
 ** Native-specific
 *****************************************************************/
-// This will check-fail if the unit is free and thus is not asso-
-// ciated with a dwelling or tribe.
 Tribe const& tribe_for_unit( SSConst const&    ss,
                              NativeUnit const& native_unit );
 Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit );

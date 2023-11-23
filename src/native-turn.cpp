@@ -145,8 +145,7 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
         anim_seq_for_unit_move( ss, native_unit.id,
                                 direction ) );
   co_await UnitOnMapMover::native_unit_to_map_interactive(
-      ss, ts, native_unit.id, dst,
-      ss.units.dwelling_for( native_unit.id ) );
+      ss, ts, native_unit.id, dst );
 }
 
 wait<> handle_native_unit_command(
@@ -293,11 +292,9 @@ wait<> natives_turn(
     // tives' turn.
     unit.movement_points =
         unit_attr( unit.type ).movement_points;
-    UNWRAP_CHECK( world,
-                  p_state->ownership
-                      .get_if<NativeUnitOwnership::world>() );
     e_tribe const tribe_type =
-        ss.natives.tribe_for( world.dwelling_id ).type;
+        ss.natives.tribe_for( p_state->ownership.dwelling_id )
+            .type;
     auto& units = tribe_to_units[tribe_type];
     CHECK( !units.contains( unit_id ),
            "something has gone wrong: {} encountered twice.",

@@ -95,8 +95,13 @@ TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
   World                W;
   vector<NativeUnitId> units, expected;
 
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
+
   auto add = [&]( e_native_unit_type type ) {
-    units.push_back( W.add_free_unit( type ).id );
+    units.push_back( W.add_native_unit_on_map(
+                          type, { .x = 1, .y = 1 }, dwelling_id )
+                         .id );
   };
 
   SECTION( "single" ) {
@@ -126,11 +131,17 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
   World                 W;
   vector<GenericUnitId> units, expected;
 
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::iroquois ).id;
+
   auto add = [&]<typename T>( T type ) {
     if constexpr( is_same_v<T, e_unit_type> )
       units.push_back( W.add_free_unit( type ).id() );
     else
-      units.push_back( W.add_free_unit( type ).id );
+      units.push_back(
+          W.add_native_unit_on_map( type, { .x = 1, .y = 1 },
+                                    dwelling_id )
+              .id );
   };
 
   SECTION( "single" ) {

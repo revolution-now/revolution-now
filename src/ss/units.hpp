@@ -100,15 +100,14 @@ struct UnitsState {
 
   maybe<Coord> maybe_coord_for( UnitId id ) const;
   Coord        coord_for( UnitId id ) const;
-  maybe<Coord> maybe_coord_for( NativeUnitId id ) const;
-  Coord        coord_for( NativeUnitId id ) const;
   maybe<Coord> maybe_coord_for( GenericUnitId id ) const;
   Coord        coord_for( GenericUnitId id ) const;
+  // Always succeeds.
+  Coord coord_for( NativeUnitId id ) const;
 
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
   UnitId        holder_of( UnitId id ) const;
 
-  // Check-fail if the unit is a free unit.
   DwellingId dwelling_for( NativeUnitId id ) const;
 
   // If the unit is a missionary and it is inside a dwelling then
@@ -155,8 +154,7 @@ struct UnitsState {
 
   // The id of this unit must be zero (i.e., you can't select the
   // ID); a new ID will be generated for this unit and returned.
-  [[nodiscard]] UnitId       add_unit( Unit&& unit );
-  [[nodiscard]] NativeUnitId add_unit( NativeUnit&& unit );
+  [[nodiscard]] UnitId add_unit( Unit&& unit );
 
   // Should not be holding any references to the unit after this.
   void destroy_unit( NativeUnitId id );
@@ -184,6 +182,10 @@ struct UnitsState {
   friend struct UnitOwnershipChanger;
   friend struct UnitOnMapMover;
 
+  friend NativeUnitId create_unit_on_map_non_interactive(
+      SS& ss, e_native_unit_type type, Coord coord,
+      DwellingId dwelling_id );
+
   // These are all private and must be called via the friend en-
   // tities above in order to ensure that the proper cleanup is
   // done and invariants are maintained.
@@ -191,8 +193,14 @@ struct UnitsState {
   void destroy_unit( UnitId id );
 
   void change_to_map( UnitId id, Coord target );
-  void change_to_map( NativeUnitId id, Coord target,
-                      DwellingId dwelling_id );
+
+  // This one is private because it needs to be followed up by a
+  // few actions that are needed when a unit moves on the map
+  // (which also must be done when a unit is created on the map).
+  [[nodiscard]] NativeUnitId add_unit_on_map(
+      NativeUnit&& unit, Coord target, DwellingId dwelling_id );
+
+  void move_unit_on_map( NativeUnitId id, Coord target );
 
   void change_to_colony( UnitId id, ColonyId col_id );
 
@@ -212,7 +220,6 @@ struct UnitsState {
   // new owernership in order to uphold invariants. This function
   // should rarely be called.
   void disown_unit( UnitId id );
-  void disown_unit( NativeUnitId id );
 
  private:
   [[nodiscard]] GenericUnitId next_unit_id();

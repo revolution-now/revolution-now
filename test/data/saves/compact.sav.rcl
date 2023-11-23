@@ -17,14 +17,14 @@ natives {
         dwelling {
           id: 1
           is_capital: true
-          population: 3
+          population: 6
         }
         ownership {
           location {
-            x: 4
+            x: 3
             y: 2
           }
-          tribe: tupi
+          tribe: cherokee
         }
       }
     },
@@ -51,14 +51,14 @@ natives {
         dwelling {
           id: 3
           is_capital: true
-          population: 6
+          population: 8
         }
         ownership {
           location {
-            x: 3
-            y: 1
+            x: 2
+            y: 3
           }
-          tribe: cherokee
+          tribe: aztec
         }
       }
     },
@@ -68,14 +68,14 @@ natives {
         dwelling {
           id: 4
           is_capital: true
-          population: 8
+          population: 3
         }
         ownership {
           location {
-            x: 2
-            y: 3
+            x: 4
+            y: 2
           }
-          tribe: aztec
+          tribe: tupi
         }
       }
     },
@@ -132,37 +132,33 @@ natives {
   owned_land_without_minuit: [
     {
       key.x: 1
-      val: 4
+      val: 3
     },
     {
       key.x: 2
-      val: 4
+      val: 3
     },
     {
       key.x: 3
-      val: 4
-    },
-    {
-      key.x: 4
       val: 3
     },
     {
       key.y: 1
-      val: 4
+      val: 3
     },
     {
       key {
         x: 1
         y: 1
       }
-      val: 4
+      val: 3
     },
     {
       key {
         x: 2
         y: 1
       }
-      val: 4
+      val: 3
     },
     {
       key {
@@ -183,11 +179,11 @@ natives {
         x: 5
         y: 1
       }
-      val: 1
+      val: 4
     },
     {
       key.y: 2
-      val: 4
+      val: 3
     },
     {
       key {
@@ -490,9 +486,9 @@ units {
     {
       key: 1
       val.native {
-        ownership.world {
+        ownership {
           coord {
-            x: 4
+            x: 3
             y: 2
           }
           dwelling_id: 1
@@ -506,7 +502,7 @@ units {
     {
       key: 2
       val.native {
-        ownership.world {
+        ownership {
           coord {
             x: 3
             y: 6
@@ -522,10 +518,10 @@ units {
     {
       key: 3
       val.native {
-        ownership.world {
+        ownership {
           coord {
-            x: 3
-            y: 1
+            x: 2
+            y: 3
           }
           dwelling_id: 3
         }
@@ -538,10 +534,10 @@ units {
     {
       key: 4
       val.native {
-        ownership.world {
+        ownership {
           coord {
-            x: 2
-            y: 3
+            x: 4
+            y: 2
           }
           dwelling_id: 4
         }
@@ -554,7 +550,7 @@ units {
     {
       key: 5
       val.native {
-        ownership.world {
+        ownership {
           coord {
             x: 4
             y: 3
@@ -570,7 +566,7 @@ units {
     {
       key: 6
       val.native {
-        ownership.world {
+        ownership {
           coord {
             x: 2
             y: 5
@@ -586,7 +582,7 @@ units {
     {
       key: 7
       val.native {
-        ownership.world {
+        ownership {
           coord {
             x: 1
             y: 6
@@ -746,9 +742,8 @@ zzz_terrain {
           y: 1
         }
         val {
-          ground: grassland
+          ground: tundra
           overlay: forest
-          road: true
           surface: land
         }
       },
@@ -769,7 +764,7 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
+          ground: tundra
           overlay: forest
           surface: land
         }
@@ -780,8 +775,9 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: tundra
+          ground: prairie
           overlay: forest
+          road: true
           surface: land
         }
       },
@@ -791,8 +787,8 @@ zzz_terrain {
           y: 2
         }
         val {
-          ground: plains
-          ground_resource: wheat
+          ground: grassland
+          ground_resource: tobacco
           overlay: forest
           road: true
           surface: land
@@ -826,7 +822,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: marsh
           overlay: forest
           surface: land
         }
@@ -837,7 +833,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
+          ground: prairie
           road: true
           surface: land
         }
@@ -848,8 +844,8 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: savannah
-          ground_resource: sugar
+          ground: prairie
+          ground_resource: cotton
           overlay: forest
           surface: land
         }
@@ -860,7 +856,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: plains
+          ground: savannah
           overlay: forest
           road: true
           surface: land
@@ -872,7 +868,7 @@ zzz_terrain {
           y: 3
         }
         val {
-          ground: grassland
+          ground: savannah
           overlay: mountains
           surface: land
         }
@@ -904,7 +900,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: grassland
+          ground: savannah
           overlay: forest
           surface: land
         }
@@ -915,7 +911,7 @@ zzz_terrain {
           y: 4
         }
         val {
-          ground: savannah
+          ground: swamp
           overlay: forest
           surface: land
         }
@@ -952,8 +948,8 @@ zzz_terrain {
           y: 5
         }
         val {
-          forest_resource: beaver
-          ground: plains
+          forest_resource: tree
+          ground: grassland
           road: true
           surface: land
         }
@@ -964,7 +960,7 @@ zzz_terrain {
           y: 5
         }
         val {
-          ground: desert
+          ground: marsh
           overlay: forest
           surface: land
         }
@@ -993,7 +989,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: prairie
+          ground: tundra
           overlay: forest
           river: minor
           road: true
@@ -1013,7 +1009,7 @@ zzz_terrain {
           y: 6
         }
         val {
-          ground: prairie
+          ground: tundra
           overlay: forest
           road: true
           surface: land

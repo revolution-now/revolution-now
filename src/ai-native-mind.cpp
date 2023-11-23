@@ -59,21 +59,18 @@ NativeUnitCommand AiNativeMind::command_for(
     NativeUnitId native_unit_id ) {
   NativeUnitOwnership const& ownership =
       as_const( ss_.units ).ownership_of( native_unit_id );
-  auto const& world =
-      ownership.get_if<NativeUnitOwnership::world>();
-  if( !world.has_value() ) return NativeUnitCommand::forfeight{};
   NativeUnit const& unit = ss_.units.unit_for( native_unit_id );
   Tribe const&      tribe =
-      ss_.natives.tribe_for( world->dwelling_id );
+      ss_.natives.tribe_for( ownership.dwelling_id );
   CHECK_GT( unit.movement_points, 0 );
   e_direction const rand_d = [&] {
     for( e_direction d : refl::enum_values<e_direction> ) {
-      Coord const moved = world->coord.moved( d );
+      Coord const moved = ownership.coord.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
       if( ss_.colonies.maybe_from_coord( moved ) ) return d;
     }
     for( e_direction d : refl::enum_values<e_direction> ) {
-      Coord const moved = world->coord.moved( d );
+      Coord const moved = ownership.coord.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
       maybe<Society> const society =
           society_on_square( ss_, moved );
@@ -83,7 +80,7 @@ NativeUnitCommand AiNativeMind::command_for(
     }
     return pick_one<e_direction>( rand_ );
   }();
-  Coord const moved = world->coord.moved( rand_d );
+  Coord const moved = ownership.coord.moved( rand_d );
   if( !ss_.terrain.square_exists( moved ) )
     return NativeUnitCommand::forfeight{};
   MapSquare const& square = ss_.terrain.square_at( moved );

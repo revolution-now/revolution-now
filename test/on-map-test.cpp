@@ -106,7 +106,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
              dwelling.id )
             .id;
     UnitOnMapMover::native_unit_to_map_non_interactive(
-        W.ss(), unit_id, { .x = 1, .y = 1 }, dwelling.id );
+        W.ss(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
   }
@@ -388,8 +388,7 @@ TEST_CASE(
           e_declare_war_on_natives::no );
   wait<> const w =
       UnitOnMapMover::native_unit_to_map_interactive(
-          W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 },
-          dwelling.id );
+          W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
 }

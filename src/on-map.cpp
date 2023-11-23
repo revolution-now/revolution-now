@@ -211,11 +211,10 @@ void UnitOnMapMover::to_map_non_interactive(
 }
 
 void UnitOnMapMover::native_unit_to_map_non_interactive(
-    SS& ss, NativeUnitId id, Coord dst_tile,
-    DwellingId dwelling_id ) {
+    SS& ss, NativeUnitId id, Coord dst_tile ) {
   // 1. Move the unit. This is the only place where this function
   //    should be called by normal game code.
-  ss.units.change_to_map( id, dst_tile, dwelling_id );
+  ss.units.move_unit_on_map( id, dst_tile );
 
   // 2. Unsentry surrounding european units.
   unsentry_units_next_to_tile( ss, dst_tile );
@@ -256,13 +255,11 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 }
 
 wait<> UnitOnMapMover::native_unit_to_map_interactive(
-    SS& ss, TS& ts, NativeUnitId id, Coord dst_tile,
-    DwellingId dwelling_id ) {
+    SS& ss, TS& ts, NativeUnitId id, Coord dst_tile ) {
   NativeUnit const& native_unit = ss.units.unit_for( id );
   e_tribe const     tribe_type =
       tribe_type_for_unit( ss, native_unit );
-  native_unit_to_map_non_interactive( ss, id, dst_tile,
-                                      dwelling_id );
+  native_unit_to_map_non_interactive( ss, id, dst_tile );
 
   co_await try_meet_europeans( ss, ts, tribe_type, dst_tile );
 }

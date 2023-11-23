@@ -65,13 +65,8 @@ valid_or<string> wrapped::UnitsState::validate() const {
                        "unit {} is in the `free` state.", id );
         break;
       }
-      case UnitState::e::native: {
-        auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.ownership;
-        REFL_VALIDATE( !holds<NativeUnitOwnership::free>( st ),
-                       "unit {} is in the `free` state.", id );
+      case UnitState::e::native:
         break;
-      }
     }
   }
 
@@ -147,10 +142,8 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
       }
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.ownership;
-        if_get( st, NativeUnitOwnership::world, val ) {
-          units_from_coords_[val.coord].insert( id );
-        }
+        NativeUnitOwnership const& ownership = o.ownership;
+        units_from_coords_[ownership.coord].insert( id );
         break;
       }
     }
@@ -199,17 +192,16 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.ownership;
-        if_get( st, NativeUnitOwnership::world, val ) {
-          CHECK(
-              !braves_for_dwelling_.contains( val.dwelling_id ),
-              "multiple native units (id={} and id={}) have the "
-              "same dwelling_id={}.",
-              id, braves_for_dwelling_[val.dwelling_id],
-              val.dwelling_id );
-          braves_for_dwelling_[val.dwelling_id] = {
-              NativeUnitId{ to_underlying( id ) } };
-        }
+        NativeUnitOwnership const& ownership = o.ownership;
+        CHECK(
+            !braves_for_dwelling_.contains(
+                ownership.dwelling_id ),
+            "multiple native units (id={} and id={}) have the "
+            "same dwelling_id={}.",
+            id, braves_for_dwelling_[ownership.dwelling_id],
+            ownership.dwelling_id );
+        braves_for_dwelling_[ownership.dwelling_id] = {
+            NativeUnitId{ to_underlying( id ) } };
         break;
       }
       case UnitState::e::euro:
@@ -429,20 +421,8 @@ Coord UnitsState::coord_for( UnitId id ) const {
   return coord;
 }
 
-maybe<Coord> UnitsState::maybe_coord_for(
-    NativeUnitId id ) const {
-  switch( auto& o = ownership_of( id ); o.to_enum() ) {
-    case NativeUnitOwnership::e::world:
-      return o.get<NativeUnitOwnership::world>().coord;
-    case NativeUnitOwnership::e::free:
-      return nothing;
-  };
-}
-
 Coord UnitsState::coord_for( NativeUnitId id ) const {
-  UNWRAP_CHECK_MSG( coord, maybe_coord_for( id ),
-                    "unit is not on map." );
-  return coord;
+  return ownership_of( id ).coord;
 }
 
 maybe<Coord> UnitsState::maybe_coord_for(
@@ -451,7 +431,7 @@ maybe<Coord> UnitsState::maybe_coord_for(
     case e_unit_kind::euro:
       return maybe_coord_for( check_euro_unit( id ) );
     case e_unit_kind::native:
-      return maybe_coord_for( check_native_unit( id ) );
+      return coord_for( check_native_unit( id ) );
   }
 }
 
@@ -481,11 +461,7 @@ UnitId UnitsState::holder_of( UnitId id ) const {
 }
 
 DwellingId UnitsState::dwelling_for( NativeUnitId id ) const {
-  UNWRAP_CHECK(
-      world,
-      state_of( id )
-          .ownership.get_if<NativeUnitOwnership::world>() );
-  return world.dwelling_id;
+  return ownership_of( id ).dwelling_id;
 }
 
 maybe<DwellingId> UnitsState::maybe_dwelling_for_missionary(
@@ -517,6 +493,23 @@ UnitOwnership::harbor& UnitsState::harbor_view_state_of(
   UNWRAP_CHECK_MSG( st, maybe_harbor_view_state_of( id ),
                     "unit is not in the old world state." );
   return st;
+}
+
+void UnitsState::move_unit_on_map( NativeUnitId id,
+                                   Coord        target ) {
+  auto& [curr_coord, dwelling_id] = ownership_of( id );
+  CHECK( braves_for_dwelling_.contains( dwelling_id ) );
+  CHECK( braves_for_dwelling_[dwelling_id].contains( id ) );
+  // Now remove it from its current position.
+  auto set_it = base::find( units_from_coords_, curr_coord );
+  CHECK( set_it != units_from_coords_.end() );
+  auto& units_set = set_it->second;
+  units_set.erase( GenericUnitId{ to_underlying( id ) } );
+  if( units_set.empty() ) units_from_coords_.erase( set_it );
+  // And add it to the new location.
+  units_from_coords_[target].insert(
+      GenericUnitId{ to_underlying( id ) } );
+  curr_coord = target;
 }
 
 void UnitsState::disown_unit( UnitId id ) {
@@ -566,49 +559,11 @@ void UnitsState::disown_unit( UnitId id ) {
   ownership = UnitOwnership::free{};
 }
 
-void UnitsState::disown_unit( NativeUnitId id ) {
-  auto& ownership = ownership_of( id );
-  switch( auto& v = ownership; v.to_enum() ) {
-    case NativeUnitOwnership::e::free: //
-      break;
-    case NativeUnitOwnership::e::world: {
-      auto& [coord, dwelling_id] =
-          v.get<NativeUnitOwnership::world>();
-      // First remove the unit's dwelling association.
-      CHECK( braves_for_dwelling_.contains( dwelling_id ) );
-      CHECK( braves_for_dwelling_[dwelling_id].contains( id ) );
-      braves_for_dwelling_[dwelling_id].erase( id );
-      // Now remove it from the map.
-      auto set_it = base::find( units_from_coords_, coord );
-      CHECK( set_it != units_from_coords_.end() );
-      auto& units_set = set_it->second;
-      units_set.erase( GenericUnitId{ to_underlying( id ) } );
-      if( units_set.empty() ) units_from_coords_.erase( set_it );
-      break;
-    }
-  };
-  ownership = NativeUnitOwnership::free{};
-}
-
 void UnitsState::change_to_map( UnitId id, Coord target ) {
   disown_unit( id );
   units_from_coords_[target].insert(
       GenericUnitId{ to_underlying( id ) } );
   ownership_of( id ) = UnitOwnership::world{ /*coord=*/target };
-}
-
-void UnitsState::change_to_map( NativeUnitId id, Coord target,
-                                DwellingId dwelling_id ) {
-  disown_unit( id );
-  units_from_coords_[target].insert(
-      GenericUnitId{ to_underlying( id ) } );
-  ownership_of( id ) = NativeUnitOwnership::world{
-      .coord = target, .dwelling_id = dwelling_id };
-  // Note: this dwelling may already have a brave associated with
-  // it, even though the game only allows one active brave per
-  // dwelling. This is because sometimes temporary braves are
-  // created to act as visual targets when attacking a dwelling.
-  braves_for_dwelling_[dwelling_id].insert( id );
 }
 
 void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
@@ -704,7 +659,8 @@ UnitId UnitsState::add_unit( Unit&& unit ) {
   return unit_id;
 }
 
-NativeUnitId UnitsState::add_unit( NativeUnit&& unit ) {
+NativeUnitId UnitsState::add_unit_on_map(
+    NativeUnit&& unit, Coord target, DwellingId dwelling_id ) {
   CHECK( unit.id == NativeUnitId{ 0 },
          "unit ID must be zero when creating unit." );
   GenericUnitId const id = next_unit_id();
@@ -716,9 +672,16 @@ NativeUnitId UnitsState::add_unit( NativeUnit&& unit ) {
   CHECK( !deleted_.contains( id ) );
   o_.units[id] = UnitState::native{
       .unit      = std::move( unit ),
-      .ownership = NativeUnitOwnership::free{} };
+      .ownership = NativeUnitOwnership{
+          .coord = target, .dwelling_id = dwelling_id } };
   native_units_[native_id] =
       &o_.units[id].get<UnitState::native>();
+  units_from_coords_[target].insert( id );
+  // Note: this dwelling may already have a brave associated with
+  // it, even though the game only allows one active brave per
+  // dwelling. This is because sometimes temporary braves are
+  // created to act as visual targets when attacking a dwelling.
+  braves_for_dwelling_[dwelling_id].insert( native_id );
   return native_id;
 }
 
@@ -740,7 +703,20 @@ void UnitsState::destroy_unit( NativeUnitId native_id ) {
   CHECK( o_.units.contains( id ) );
   CHECK( native_units_.contains( native_id ) );
   CHECK( !deleted_.contains( id ) );
-  disown_unit( native_id );
+
+  auto& [coord, dwelling_id] = ownership_of( native_id );
+  // First remove the unit's dwelling association.
+  CHECK( braves_for_dwelling_.contains( dwelling_id ) );
+  CHECK(
+      braves_for_dwelling_[dwelling_id].contains( native_id ) );
+  braves_for_dwelling_[dwelling_id].erase( native_id );
+  // Now remove it from the map.
+  auto set_it = base::find( units_from_coords_, coord );
+  CHECK( set_it != units_from_coords_.end() );
+  auto& units_set = set_it->second;
+  units_set.erase( GenericUnitId{ to_underlying( id ) } );
+  if( units_set.empty() ) units_from_coords_.erase( set_it );
+
   o_.units.erase( id );
   native_units_.erase( native_id );
   deleted_.insert( id );

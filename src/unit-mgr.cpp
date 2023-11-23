@@ -139,11 +139,6 @@ UnitId create_free_unit( UnitsState&            units_state,
       create_unregistered_unit( player, comp ) );
 }
 
-NativeUnitId create_free_unit( SS&                ss,
-                               e_native_unit_type type ) {
-  return ss.units.add_unit( create_unregistered_unit( type ) );
-}
-
 Unit create_unregistered_unit( Player const&          player,
                                UnitComposition const& comp ) {
   wrapped::Unit refl_unit{
@@ -177,10 +172,14 @@ UnitId create_unit_on_map_non_interactive(
 NativeUnitId create_unit_on_map_non_interactive(
     SS& ss, e_native_unit_type type, Coord coord,
     DwellingId dwelling_id ) {
-  NativeUnitId const id = create_free_unit( ss, type );
+  NativeUnitId const native_unit_id = ss.units.add_unit_on_map(
+      create_unregistered_unit( type ), coord, dwelling_id );
+  // This performs few actions that are needed when a unit moves
+  // on the map (which also must be done when a unit is created
+  // on the map).
   UnitOnMapMover::native_unit_to_map_non_interactive(
-      ss, id, coord, dwelling_id );
-  return id;
+      ss, native_unit_id, coord );
+  return native_unit_id;
 }
 
 wait<maybe<UnitId>> create_unit_on_map(
@@ -353,26 +352,20 @@ Tribe const& tribe_for_unit( SSConst const&    ss,
                              NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
-  UNWRAP_CHECK( world,
-                ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives.tribe_for( world.dwelling_id );
+  return ss.natives.tribe_for( ownership.dwelling_id );
 }
 
 Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       as_const( ss.units ).ownership_of( native_unit.id );
-  UNWRAP_CHECK( world,
-                ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives.tribe_for( world.dwelling_id );
+  return ss.natives.tribe_for( ownership.dwelling_id );
 }
 
 e_tribe tribe_type_for_unit( SSConst const&    ss,
                              NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
-  UNWRAP_CHECK( world,
-                ownership.get_if<NativeUnitOwnership::world>() );
-  return ss.natives.tribe_type_for( world.dwelling_id );
+  return ss.natives.tribe_type_for( ownership.dwelling_id );
 }
 
 /****************************************************************

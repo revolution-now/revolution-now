@@ -842,11 +842,9 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
   vector<NativeUnitId> native_unit_ids;
   native_unit_ids.reserve( native_units.size() );
   for( auto [unit_id, p_state] : native_units ) {
-    UNWRAP_CHECK( world,
-                  p_state->ownership
-                      .get_if<NativeUnitOwnership::world>() );
     e_tribe const tribe_type =
-        ss.natives.tribe_for( world.dwelling_id ).type;
+        ss.natives.tribe_for( p_state->ownership.dwelling_id )
+            .type;
     if( !tribes.contains( tribe_type ) ) continue;
     native_unit_ids.push_back( unit_id );
   }

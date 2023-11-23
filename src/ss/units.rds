@@ -91,13 +91,10 @@ sumtype.UnitOwnership {
   },
 }
 
-sumtype.NativeUnitOwnership {
-  free {},
-  world {
-    coord 'Coord',
-    # As in the OG, all braves are owned by a dwelling.
-    dwelling_id 'DwellingId',
-  },
+struct.NativeUnitOwnership {
+  coord 'Coord',
+  # As in the OG, all braves are owned by a dwelling.
+  dwelling_id 'DwellingId',
 }
 
 sumtype.UnitState {
