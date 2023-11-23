@@ -129,8 +129,8 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
 // colonists.
 void bartolome_de_las_casas( SS& ss, TS& ts,
                              Player const& player ) {
-  unordered_map<UnitId, EuroUnitState const*> const& units_all =
-      ss.units.euro_all();
+  unordered_map<UnitId, UnitState::euro const*> const&
+       units_all          = ss.units.euro_all();
   auto free_colonist_type = e_unit_type::free_colonist;
   for( auto& [unit_id, state] : units_all ) {
     Unit& unit = ss.units.unit_for( unit_id );

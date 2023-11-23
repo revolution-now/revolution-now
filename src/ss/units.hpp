@@ -57,10 +57,11 @@ struct UnitsState {
 
   std::unordered_map<GenericUnitId, UnitState> const& all()
       const;
-  std::unordered_map<UnitId, EuroUnitState const*> const&
+  std::unordered_map<UnitId, UnitState::euro const*> const&
   euro_all() const;
-  std::unordered_map<NativeUnitId, NativeUnitState const*> const&
-  native_all() const;
+  std::unordered_map<NativeUnitId,
+                     UnitState::native const*> const&
+                                            native_all() const;
 
   // Is this a European or native unit.
   e_unit_kind unit_kind( GenericUnitId id ) const;
@@ -91,8 +92,8 @@ struct UnitsState {
 
   // Unit must exist.
   UnitState const&           state_of( GenericUnitId id ) const;
-  EuroUnitState const&       state_of( UnitId id ) const;
-  NativeUnitState const&     state_of( NativeUnitId id ) const;
+  UnitState::euro const&     state_of( UnitId id ) const;
+  UnitState::native const&   state_of( NativeUnitId id ) const;
   UnitOwnership const&       ownership_of( UnitId id ) const;
   NativeUnitOwnership const& ownership_of(
       NativeUnitId id ) const;
@@ -217,8 +218,8 @@ struct UnitsState {
   [[nodiscard]] GenericUnitId next_unit_id();
 
   UnitState&           state_of( GenericUnitId id );
-  EuroUnitState&       state_of( UnitId id );
-  NativeUnitState&     state_of( NativeUnitId id );
+  UnitState::euro&     state_of( UnitId id );
+  UnitState::native&   state_of( NativeUnitId id );
   UnitOwnership&       ownership_of( UnitId id );
   NativeUnitOwnership& ownership_of( NativeUnitId id );
 
@@ -260,8 +261,8 @@ struct UnitsState {
 
   // All units of a given kind. The pointers will always be
   // non-null if an element exists in the map.
-  std::unordered_map<UnitId, EuroUnitState const*> euro_units_;
-  std::unordered_map<NativeUnitId, NativeUnitState const*>
+  std::unordered_map<UnitId, UnitState::euro const*> euro_units_;
+  std::unordered_map<NativeUnitId, UnitState::native const*>
       native_units_;
 };
 

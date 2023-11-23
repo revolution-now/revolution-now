@@ -100,22 +100,14 @@ sumtype.NativeUnitOwnership {
   },
 }
 
-struct.EuroUnitState {
-  unit 'Unit',
-  ownership 'UnitOwnership',
-}
-
-struct.NativeUnitState {
-  unit 'NativeUnit',
-  ownership 'NativeUnitOwnership',
-}
-
 sumtype.UnitState {
   euro {
-    state 'EuroUnitState',
+    unit 'Unit',
+    ownership 'UnitOwnership',
   },
   native {
-    state 'NativeUnitState',
+    unit 'NativeUnit',
+    ownership 'NativeUnitOwnership',
   },
 }
 

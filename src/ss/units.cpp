@@ -60,14 +60,14 @@ valid_or<string> wrapped::UnitsState::validate() const {
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        UnitOwnership const& st = o.state.ownership;
+        UnitOwnership const& st = o.ownership;
         REFL_VALIDATE( !holds<UnitOwnership::free>( st ),
                        "unit {} is in the `free` state.", id );
         break;
       }
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.state.ownership;
+        NativeUnitOwnership const& st = o.ownership;
         REFL_VALIDATE( !holds<NativeUnitOwnership::free>( st ),
                        "unit {} is in the `free` state.", id );
         break;
@@ -82,18 +82,17 @@ valid_or<string> wrapped::UnitsState::validate() const {
   for( auto const& [id, unit_state] : units ) {
     SWITCH( unit_state ) {
       CASE( euro ) {
-        UnitOwnership const& st = euro.state.ownership;
-        if( !euro.state.unit.desc().ship ) break;
+        UnitOwnership const& st = euro.ownership;
+        if( !euro.unit.desc().ship ) break;
         maybe<UnitOwnership::harbor const&> harbor =
             st.get_if<UnitOwnership::harbor>();
         if( !harbor.has_value() ) break;
         if( !harbor->port_status.holds<PortStatus::in_port>() )
           break;
-        if( euro.state.unit.orders()
-                .holds<unit_orders::damaged>() )
+        if( euro.unit.orders().holds<unit_orders::damaged>() )
           break;
         REFL_VALIDATE(
-            euro.state.unit.orders().holds<unit_orders::none>(),
+            euro.unit.orders().holds<unit_orders::none>(),
             "unit {} in port is not damaged but does not have "
             "cleared orders.",
             id );
@@ -117,7 +116,7 @@ valid_or<std::string> UnitsState::validate() const {
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        REFL_VALIDATE( o.state.unit.cargo().validate( *this ) );
+        REFL_VALIDATE( o.unit.cargo().validate( *this ) );
         break;
       }
       case UnitState::e::native: {
@@ -140,7 +139,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        UnitOwnership const& st = o.state.ownership;
+        UnitOwnership const& st = o.ownership;
         if_get( st, UnitOwnership::world, val ) {
           units_from_coords_[val.coord].insert( id );
         }
@@ -148,7 +147,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
       }
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.state.ownership;
+        NativeUnitOwnership const& st = o.ownership;
         if_get( st, NativeUnitOwnership::world, val ) {
           units_from_coords_[val.coord].insert( id );
         }
@@ -162,7 +161,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        UnitOwnership const& st = o.state.ownership;
+        UnitOwnership const& st = o.ownership;
         if_get( st, UnitOwnership::colony, val ) {
           worker_units_from_colony_[val.id].insert(
               UnitId{ to_underlying( id ) } );
@@ -179,7 +178,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        UnitOwnership const& st = o.state.ownership;
+        UnitOwnership const& st = o.ownership;
         if_get( st, UnitOwnership::dwelling, val ) {
           CHECK(
               !missionary_in_dwelling_.contains( val.id ),
@@ -200,7 +199,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        NativeUnitOwnership const& st = o.state.ownership;
+        NativeUnitOwnership const& st = o.ownership;
         if_get( st, NativeUnitOwnership::world, val ) {
           CHECK(
               !braves_for_dwelling_.contains( val.dwelling_id ),
@@ -223,13 +222,12 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
     switch( unit_state.to_enum() ) {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
-        euro_units_[UnitId{ to_underlying( id ) }] = &o.state;
+        euro_units_[UnitId{ to_underlying( id ) }] = &o;
         break;
       }
       case UnitState::e::native: {
         auto& o = unit_state.get<UnitState::native>();
-        native_units_[NativeUnitId{ to_underlying( id ) }] =
-            &o.state;
+        native_units_[NativeUnitId{ to_underlying( id ) }] = &o;
         break;
       }
     }
@@ -277,12 +275,12 @@ unordered_map<GenericUnitId, UnitState> const& UnitsState::all()
   return o_.units;
 }
 
-unordered_map<UnitId, EuroUnitState const*> const&
+unordered_map<UnitId, UnitState::euro const*> const&
 UnitsState::euro_all() const {
   return euro_units_;
 }
 
-unordered_map<NativeUnitId, NativeUnitState const*> const&
+unordered_map<NativeUnitId, UnitState::native const*> const&
 UnitsState::native_all() const {
   return native_units_;
 }
@@ -303,13 +301,13 @@ UnitState& UnitsState::state_of( GenericUnitId id ) {
   return unit_state;
 }
 
-EuroUnitState const& UnitsState::state_of( UnitId id ) const {
+UnitState::euro const& UnitsState::state_of( UnitId id ) const {
   UNWRAP_CHECK_MSG( unit_state, base::lookup( euro_units_, id ),
                     "unit {} does not exist.", id );
   return *unit_state;
 }
 
-NativeUnitState const& UnitsState::state_of(
+UnitState::native const& UnitsState::state_of(
     NativeUnitId id ) const {
   UNWRAP_CHECK_MSG( unit_state,
                     base::lookup( native_units_, id ),
@@ -317,20 +315,20 @@ NativeUnitState const& UnitsState::state_of(
   return *unit_state;
 }
 
-EuroUnitState& UnitsState::state_of( UnitId id ) {
+UnitState::euro& UnitsState::state_of( UnitId id ) {
   UnitState& generic_state =
       state_of( GenericUnitId{ to_underlying( id ) } );
   UNWRAP_CHECK( euro_unit_state,
                 generic_state.get_if<UnitState::euro>() );
-  return euro_unit_state.state;
+  return euro_unit_state;
 }
 
-NativeUnitState& UnitsState::state_of( NativeUnitId id ) {
+UnitState::native& UnitsState::state_of( NativeUnitId id ) {
   UnitState& generic_state =
       state_of( GenericUnitId{ to_underlying( id ) } );
   UNWRAP_CHECK( native_unit_state,
                 generic_state.get_if<UnitState::native>() );
-  return native_unit_state.state;
+  return native_unit_state;
 }
 
 UnitOwnership const& UnitsState::ownership_of(
@@ -363,7 +361,7 @@ Unit& UnitsState::unit_for( UnitId id ) {
 base::maybe<Unit const&> UnitsState::maybe_euro_unit_for(
     GenericUnitId id ) const {
   UnitId const unit_id{ to_underlying( id ) };
-  maybe<EuroUnitState const*> const state =
+  maybe<UnitState::euro const*> const state =
       base::lookup( euro_units_, unit_id );
   if( !state.has_value() ) return nothing;
   CHECK( *state != nullptr );
@@ -373,9 +371,7 @@ base::maybe<Unit const&> UnitsState::maybe_euro_unit_for(
 base::maybe<Unit&> UnitsState::maybe_euro_unit_for(
     GenericUnitId id ) {
   UNWRAP_CHECK( state, base::lookup( o_.units, id ) );
-  maybe<EuroUnitState&> euro =
-      state.get_if<UnitState::euro>().member(
-          &UnitState::euro::state );
+  maybe<UnitState::euro&> euro = state.get_if<UnitState::euro>();
   if( !euro.has_value() ) return nothing;
   return euro->unit;
 }
@@ -403,7 +399,7 @@ NativeUnit& UnitsState::native_unit_for( GenericUnitId id ) {
   UNWRAP_CHECK( state, base::lookup( o_.units, id ) );
   UNWRAP_CHECK( native_state,
                 state.get_if<UnitState::native>() );
-  return native_state.state.unit;
+  return native_state.unit;
 }
 
 NativeUnit const& UnitsState::unit_for( NativeUnitId id ) const {
@@ -701,11 +697,10 @@ UnitId UnitsState::add_unit( Unit&& unit ) {
   CHECK( !o_.units.contains( id ) );
   CHECK( !euro_units_.contains( unit_id ) );
   CHECK( !deleted_.contains( id ) );
-  o_.units[id] = UnitState::euro{
-      .state = { .unit      = std::move( unit ),
-                 .ownership = UnitOwnership::free{} } };
-  euro_units_[unit_id] =
-      &o_.units[id].get<UnitState::euro>().state;
+  o_.units[id] =
+      UnitState::euro{ .unit      = std::move( unit ),
+                       .ownership = UnitOwnership::free{} };
+  euro_units_[unit_id] = &o_.units[id].get<UnitState::euro>();
   return unit_id;
 }
 
@@ -720,10 +715,10 @@ NativeUnitId UnitsState::add_unit( NativeUnit&& unit ) {
   CHECK( !native_units_.contains( native_id ) );
   CHECK( !deleted_.contains( id ) );
   o_.units[id] = UnitState::native{
-      .state = { .unit      = std::move( unit ),
-                 .ownership = NativeUnitOwnership::free{} } };
+      .unit      = std::move( unit ),
+      .ownership = NativeUnitOwnership::free{} };
   native_units_[native_id] =
-      &o_.units[id].get<UnitState::native>().state;
+      &o_.units[id].get<UnitState::native>();
   return native_id;
 }
 
