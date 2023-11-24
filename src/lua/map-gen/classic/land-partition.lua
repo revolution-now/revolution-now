@@ -136,7 +136,10 @@ end
 local function set_coords_to_partition(output, world_size,
                                        land_coords, n )
   for _, coord in ipairs( land_coords ) do
-    output[coord.y * world_size.w + coord.x] = n
+    table.insert( output, {
+      rasterized_coord=coord.y * world_size.w + coord.x,
+      n=n,
+    } )
   end
 end
 

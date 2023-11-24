@@ -15,20 +15,31 @@ local M = {}
 -- Imports
 -----------------------------------------------------------------
 local limits = require( 'util.limits' )
+local tables = require( 'util.tables' )
 
 -----------------------------------------------------------------
--- Aliases/Globals
+-- Globals
 -----------------------------------------------------------------
 -- Declare all globals used.
-local format = string.format
-local floor = math.floor
 local abs = math.abs
-local random = math.random
-local pairs = pairs
 local assert, error = assert, error
+local floor = math.floor
+local format = string.format
+local ipairs = ipairs
+local random = math.random
+
+local unordered_pairs = pairs
+local pairs = function( _ )
+  error( 'should not use pairs as it is not deterministic.' )
+end
 
 -- No reading or writing of globals from here on.
 local _ENV = nil
+
+-----------------------------------------------------------------
+-- Aliases
+-----------------------------------------------------------------
+local sort_by_key = tables.sort_by_key
 
 -----------------------------------------------------------------
 -- Weights
@@ -163,7 +174,7 @@ local function check_weights( weights )
   for i = 0, 4 do
     local sum = 0
     local group = weights[i]
-    for _, v in pairs( group ) do sum = sum + v end
+    for _, v in unordered_pairs( group ) do sum = sum + v end
     assert( sum == 100, format(
                 'weights for segment %d do not sum to 100.', i ) )
   end
@@ -197,10 +208,10 @@ local function weights_for_row( map_height, weights, row )
   assert( adjacent_slice_idx >= 0 )
   assert( adjacent_slice_idx <= 4 )
   local unique_types = {}
-  for type, _ in pairs( weights[slice_idx] ) do
+  for type, _ in unordered_pairs( weights[slice_idx] ) do
     unique_types[type] = true
   end
-  for type, _ in pairs( weights[adjacent_slice_idx] ) do
+  for type, _ in unordered_pairs( weights[adjacent_slice_idx] ) do
     unique_types[type] = true
   end
   local total = 0
@@ -217,7 +228,7 @@ local function weights_for_row( map_height, weights, row )
   assert( weight1 <= 1.0 )
   assert( weight2 <= 1.0 )
   local linear_combo_weights = {}
-  for type, _ in pairs( unique_types ) do
+  for type, _ in unordered_pairs( unique_types ) do
     local slice1 = weights[slice_idx][type] or 0
     local slice2 = weights[adjacent_slice_idx][type] or 0
     linear_combo_weights[type] =
@@ -225,7 +236,7 @@ local function weights_for_row( map_height, weights, row )
     total = total + linear_combo_weights[type]
   end
   -- Normalize the weights so that they sum to 1.
-  for type, weight in pairs( linear_combo_weights ) do
+  for type, weight in unordered_pairs( linear_combo_weights ) do
     linear_combo_weights[type] = weight / total
   end
   return linear_combo_weights
@@ -243,7 +254,9 @@ end
 function M.select_from_weights( weights )
   local cut = random()
   local total = 0.0
-  for type, weight in pairs( weights ) do
+  local sorted_weights = sort_by_key( weights )
+  for _, kv in ipairs( sorted_weights ) do
+    local type, weight = kv.k, kv.v
     total = total + weight
     if total > cut then return type end
   end

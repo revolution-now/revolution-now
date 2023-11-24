@@ -25,4 +25,13 @@ function M.table_size( tbl )
   return count
 end
 
+-- Takes a table and converts it to a list of {k=<key>, v=<val>}
+-- tables where the list of sorted by key.
+function M.sort_by_key( tbl )
+  local res = {}
+  for k, v in pairs( tbl ) do table.insert( res, { k=k, v=v } ) end
+  table.sort( res, function( l, r ) return l.k < r.k end )
+  return res
+end
+
 return M

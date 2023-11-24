@@ -36,6 +36,11 @@ local max = math.max
 
 local import_map_file = classic_sav.import_map_file
 
+local unordered_pairs = pairs
+local pairs = function( _ )
+  error( 'should not use pairs as it is not deterministic.' )
+end
+
 -----------------------------------------------------------------
 -- Constants
 -----------------------------------------------------------------
@@ -710,7 +715,7 @@ local function paint_native_land_partitions( partitions )
     [6]='tundra',
     [7]='swamp',
   }
-  for rasterized_coord, n in pairs( partitions ) do
+  for rasterized_coord, n in unordered_pairs( partitions ) do
     local coord = {
       x=rasterized_coord % size.w,
       y=rasterized_coord // size.w,
@@ -846,7 +851,9 @@ local function create_indian_villages_using_partition(options,
   for _, tribe in ipairs( tribes ) do dwellings[tribe] = {} end
   local coords_for_partition = {}
   for i = 1, #tribes do coords_for_partition[i] = {} end
-  for rasterized_coord, n in pairs( partitions ) do
+  for _, tbl in ipairs( partitions ) do
+    local rasterized_coord = tbl.rasterized_coord
+    local n = tbl.n
     local tribe = tribes[n + 1]
     local coord = {
       x=rasterized_coord % size.w,
@@ -894,7 +901,7 @@ local function create_indian_villages_using_partition(options,
   end
   -- Assign dwelling populations now that we've populated the
   -- "capital" field.
-  for tribe, tribe_dwellings in pairs( dwellings ) do
+  for tribe, tribe_dwellings in unordered_pairs( dwellings ) do
     for _, dwelling in ipairs( tribe_dwellings ) do
       set_dwelling_population( tribe, dwelling )
     end
@@ -931,7 +938,7 @@ local function log_dwelling_expertises( level )
     dwelling_id = dwelling_id + 1
   end
   local sorted_buckets = {}
-  for expertise, weight in pairs( histogram ) do
+  for expertise, weight in unordered_pairs( histogram ) do
     table.insert( sorted_buckets,
                   { expertise=expertise, weight=weight } )
   end
@@ -1742,7 +1749,7 @@ local function generate( options )
   -- fields will have their default values.
   -- TODO: move this into a dedicated options module that can be
   -- shared.
-  for k, v in pairs( M.default_options() ) do
+  for k, v in unordered_pairs( M.default_options() ) do
     if options[k] == nil then options[k] = v end
   end
   options = secure_options( options )
