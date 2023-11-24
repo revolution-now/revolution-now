@@ -11,14 +11,6 @@
 --]] ------------------------------------------------------------
 local M = {}
 
--- FIXME: global
-function assert_eq( lhs, rhs )
-  if lhs ~= rhs then
-    error( 'assertion failed: ' .. tostring( lhs ) .. ' != ' ..
-               tostring( rhs ) .. '.' )
-  end
-end
-
 function M.starts_with( str, start )
   return str:sub( 1, #start ) == start
 end

@@ -38,7 +38,7 @@ local function land_coords_left_right_of_line( coords, line )
   return left, right
 end
 
-local function log( fmt, ... )
+local function log( _, ... )
   -- io.write( string.format( fmt .. '\n', ... ) )
 end
 
@@ -58,7 +58,7 @@ local function split_vertical( land_coords, world_size )
   local x_bottom
   local scale = (1.0 - VARIATION) + math.random() *
                     (VARIATION * 2)
-  for iters = 1, 1000 do
+  for _ = 1, 1000 do
     log( 'iter 1' )
     local iters = 0
     repeat
@@ -72,7 +72,7 @@ local function split_vertical( land_coords, world_size )
                               land_coords, line )
       log( 'iter 2: left=%d, right=%d', #left, #right )
     until #right > #left * scale
-    for i = 1, x_max - x_min do
+    for _ = 1, x_max - x_min do
       local line = { m=(x_bottom - x_top) / world_size.h,
                      b=x_top }
       local left, right = land_coords_left_right_of_line(
@@ -100,7 +100,7 @@ local function split_horizontal( land_coords, world_size )
   local y_right
   local scale = (1.0 - VARIATION) + math.random() *
                     (VARIATION * 2)
-  for iters = 1, 1000 do
+  for _ = 1, 1000 do
     log( 'iter a' )
     local iters = 0
     repeat
@@ -116,7 +116,7 @@ local function split_horizontal( land_coords, world_size )
                                land_coords, line )
       log( 'iter b: above=%d, below=%d', #above, #below )
     until #below > #above * scale
-    for i = 1, y_max - y_min do
+    for _ = 1, y_max - y_min do
       local line = {
         m=(y_right - y_left) / world_size.w,
         b=y_left,
