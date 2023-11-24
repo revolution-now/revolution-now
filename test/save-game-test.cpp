@@ -257,6 +257,39 @@ TEST_CASE(
   REQUIRE( ( backup == W.root() ) );
 }
 
+TEST_CASE( "[save-game] determinism" ) {
+  auto generate = []( fs::path const& dst ) {
+    World W;
+    W.expensive_run_lua_init();
+    // FIXME
+    W.initialize_ts();
+    if( fs::exists( dst ) ) fs::remove( dst );
+    CHECK( !fs::exists( dst ) );
+    static SaveGameOptions const opts{
+        .verbosity = e_savegame_verbosity::compact,
+    };
+    expect_rands( W );
+    generate_save_file( W, dst, opts );
+  };
+
+  // FIXME: find a better way to get a random temp folder.
+  static fs::path const fst = "/tmp/test-compact-1.sav.rcl";
+  static fs::path const snd = "/tmp/test-compact-2.sav.rcl";
+
+  // Generate two new games and make sure they are identical.
+  generate( fst );
+  generate( snd );
+
+  UNWRAP_CHECK( fst_text,
+                base::read_text_file_as_string( fst ) );
+  UNWRAP_CHECK( snd_text,
+                base::read_text_file_as_string( snd ) );
+
+  // Use parenthesis here so that it doesn't dump the entire save
+  // file to the console if they don't match.
+  REQUIRE( ( fst_text == snd_text ) );
+}
+
 TEST_CASE( "[save-game] no regen" ) {
   // This will flag if we forget to turn off file regeneration.
   // It may cause issues though if we turn on random test order-
