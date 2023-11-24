@@ -715,7 +715,9 @@ local function paint_native_land_partitions( partitions )
     [6]='tundra',
     [7]='swamp',
   }
-  for rasterized_coord, n in unordered_pairs( partitions ) do
+  for _, tbl in ipairs( partitions ) do
+    local rasterized_coord = tbl.rasterized_coord
+    local n = tbl.n
     local coord = {
       x=rasterized_coord % size.w,
       y=rasterized_coord // size.w,
