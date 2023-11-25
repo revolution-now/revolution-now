@@ -196,8 +196,8 @@ DwellingCombatOutcome::destruction compute_dwelling_destruction(
   }
 
   e_tribe const tribe = ss.natives.tribe_for( dwelling.id ).type;
-  UNWRAP_CHECK( dwellings,
-                ss.natives.dwellings_for_tribe( tribe ) );
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( tribe );
   if( dwellings.size() == 1 ) {
     CHECK_EQ( *dwellings.begin(), dwelling.id );
     // Last dwelling of tribe; tribe is being wiped out.

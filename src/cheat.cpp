@@ -360,8 +360,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     vector<Coord> res;
     res.reserve( ss.natives.dwellings_all().size() );
     for( e_tribe const tribe : destroyed ) {
-      UNWRAP_CHECK( dwellings,
-                    ss.natives.dwellings_for_tribe( tribe ) );
+      unordered_set<DwellingId> const& dwellings =
+          ss.natives.dwellings_for_tribe( tribe );
       for( DwellingId const dwelling_id : dwellings )
         res.push_back( ss.natives.coord_for( dwelling_id ) );
     }

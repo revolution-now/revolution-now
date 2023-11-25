@@ -70,8 +70,8 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   }
 
   // 2. Get all dwellings for this tribe.
-  UNWRAP_CHECK( dwellings,
-                ss.natives.dwellings_for_tribe( tribe ) );
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( tribe );
 
   // 3. For each occupied square, see if it is owned by one of
   // the above dwellings.

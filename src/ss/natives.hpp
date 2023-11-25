@@ -63,9 +63,9 @@ struct NativesState {
   std::unordered_map<DwellingId, DwellingState> const&
   dwellings_all() const;
 
-  // If the tribe exists then this will yield the dwelling ids.
-  base::maybe<std::unordered_set<DwellingId> const&>
-  dwellings_for_tribe( e_tribe tribe ) const;
+  // If the tribe does not exist then the result will be empty.
+  std::unordered_set<DwellingId> const& dwellings_for_tribe(
+      e_tribe tribe ) const;
 
   Dwelling const& dwelling_for( DwellingId id ) const;
   Dwelling&       dwelling_for( DwellingId id );

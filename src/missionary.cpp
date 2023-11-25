@@ -87,8 +87,8 @@ bool should_burn_mission_on_attack(
 vector<UnitId> player_missionaries_in_tribe(
     SSConst const& ss, Player const& player,
     e_tribe tribe_type ) {
-  UNWRAP_CHECK( dwellings,
-                ss.natives.dwellings_for_tribe( tribe_type ) );
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( tribe_type );
   vector<UnitId> res;
   res.reserve( dwellings.size() );
   for( DwellingId const dwelling_id : dwellings ) {

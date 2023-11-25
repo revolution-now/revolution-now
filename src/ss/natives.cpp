@@ -216,9 +216,15 @@ e_tribe NativesState::tribe_type_for( DwellingId id ) const {
   return ownership_for( id ).tribe;
 }
 
-base::maybe<std::unordered_set<DwellingId> const&>
+std::unordered_set<DwellingId> const&
 NativesState::dwellings_for_tribe( e_tribe tribe ) const {
-  return base::lookup( dwellings_from_tribe_, tribe );
+  base::maybe<std::unordered_set<DwellingId> const&> res =
+      base::lookup( dwellings_from_tribe_, tribe );
+  if( !res.has_value() ) {
+    static std::unordered_set<DwellingId> const empty;
+    return empty;
+  }
+  return *res;
 }
 
 DwellingId NativesState::add_dwelling( e_tribe    tribe,
@@ -327,10 +333,8 @@ void NativesState::mark_land_unowned_for_dwellings(
 }
 
 void NativesState::mark_land_unowned_for_tribe( e_tribe tribe ) {
-  maybe<std::unordered_set<DwellingId> const&> dwelling_ids =
-      dwellings_for_tribe( tribe );
-  CHECK( dwelling_ids.has_value() );
-  mark_land_unowned_for_dwellings( *dwelling_ids );
+  mark_land_unowned_for_dwellings(
+      dwellings_for_tribe( tribe ) );
 }
 
 /****************************************************************

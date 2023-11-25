@@ -76,8 +76,8 @@ void destroy_dwelling( SS& ss, TS& ts, DwellingId dwelling_id ) {
 
 void destroy_tribe( SS& ss, TS& ts, e_tribe tribe ) {
   if( !ss.natives.tribe_exists( tribe ) ) return;
-  UNWRAP_CHECK( dwellings,
-                ss.natives.dwellings_for_tribe( tribe ) );
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( tribe );
   // 1. Release all land owned by this tribe. Batch together all
   // dwellings in this call for efficiency.
   ss.natives.mark_land_unowned_for_dwellings( dwellings );

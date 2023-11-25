@@ -174,8 +174,7 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
   auto dwellings_for_tribe =
       W.natives().dwellings_for_tribe( e_tribe::iroquois );
-  REQUIRE( dwellings_for_tribe.has_value() );
-  REQUIRE( dwellings_for_tribe->empty() );
+  REQUIRE( dwellings_for_tribe.empty() );
 }
 
 TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
@@ -267,10 +266,12 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE( read_owned_land( { .x = 0, .y = 2 } ) ==
            dwelling3_id );
   REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE( W.natives().dwellings_for_tribe(
-               e_tribe::iroquois ) != nothing );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::sioux ) !=
-           nothing );
+  REQUIRE_FALSE( W.natives()
+                     .dwellings_for_tribe( e_tribe::iroquois )
+                     .empty() );
+  REQUIRE_FALSE( W.natives()
+                     .dwellings_for_tribe( e_tribe::sioux )
+                     .empty() );
 
   destroy( e_tribe::iroquois );
 
@@ -299,10 +300,12 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE( read_owned_land( { .x = 0, .y = 2 } ) ==
            dwelling3_id );
   REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE( W.natives().dwellings_for_tribe(
-               e_tribe::iroquois ) == nothing );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::sioux ) !=
-           nothing );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::iroquois )
+               .empty() );
+  REQUIRE_FALSE( W.natives()
+                     .dwellings_for_tribe( e_tribe::sioux )
+                     .empty() );
   // Call again; should be no-op.
   destroy( e_tribe::iroquois );
 
@@ -333,10 +336,12 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 2 } ) ==
                  dwelling3_id );
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE( W.natives().dwellings_for_tribe(
-               e_tribe::iroquois ) == nothing );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::sioux ) ==
-           nothing );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::iroquois )
+               .empty() );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::sioux )
+               .empty() );
   // Call again; should be no-op.
   destroy( e_tribe::sioux );
 }

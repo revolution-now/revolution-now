@@ -62,12 +62,9 @@ TEST_CASE(
   World W;
   W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::iroquois );
-  REQUIRE_FALSE( W.natives()
-                     .dwellings_for_tribe( e_tribe::cherokee )
-                     .has_value() );
-  REQUIRE( W.natives()
-               .dwellings_for_tribe( e_tribe::iroquois )
-               .has_value() );
+  REQUIRE_FALSE( !W.natives()
+                      .dwellings_for_tribe( e_tribe::cherokee )
+                      .empty() );
   REQUIRE(
       W.natives().dwellings_for_tribe( e_tribe::iroquois ) ==
       unordered_set<DwellingId>{ DwellingId{ 1 },
@@ -106,16 +103,19 @@ TEST_CASE(
 TEST_CASE( "[ss/natives] destroy_tribe_last_step" ) {
   World W;
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::arawak ) );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) ==
-           nothing );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::arawak )
+               .empty() );
   W.add_tribe( e_tribe::arawak );
   REQUIRE( W.natives().tribe_exists( e_tribe::arawak ) );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) !=
-           nothing );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::arawak )
+               .empty() );
   W.natives().destroy_tribe_last_step( e_tribe::arawak );
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::arawak ) );
-  REQUIRE( W.natives().dwellings_for_tribe( e_tribe::arawak ) ==
-           nothing );
+  REQUIRE( W.natives()
+               .dwellings_for_tribe( e_tribe::arawak )
+               .empty() );
 }
 
 TEST_CASE( "[ss/natives] mark_land_unowned_for_dwellings" ) {
