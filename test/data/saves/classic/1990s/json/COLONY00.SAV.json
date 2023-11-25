@@ -81,7 +81,8 @@
     "unknown44a": "01 00 01 00",
     "end_of_turn_sign": "Flashing",
     "nation_relation": "ff ff 01 01 d2 00 ff ff",
-    "unknown45": "64 00 02 00 00 00 01 00 0a 00",
+    "rebel_sentiment_report": 100,
+    "unknown45a": "02 00 00 00 01 00 0a 00",
     "expeditionary_force": {
       "regulars": 0,
       "dragoons": 3,
@@ -17307,7 +17308,8 @@
       "founding_father_count": 6,
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 8,
-      "unknown23": "36 00 00 00 00",
+      "rebel_sentiment": 54,
+      "unknown23": "00 00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -17542,7 +17544,8 @@
       "founding_father_count": 9,
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 0,
-      "unknown23": "39 4a 00 00 00",
+      "rebel_sentiment": 57,
+      "unknown23": "4a 00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -17777,7 +17780,8 @@
       "founding_father_count": 3,
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 7,
-      "unknown23": "1c 00 00 00 00",
+      "rebel_sentiment": 28,
+      "unknown23": "00 00 00 00",
       "artillery_bought_count": 0,
       "boycott_bitmap": {
         "food": false,
@@ -18012,7 +18016,8 @@
       "founding_father_count": 23,
       "prob_founding_father_count_end": "00 00",
       "villages_burned": 6,
-      "unknown23": "64 00 00 00 00",
+      "rebel_sentiment": 100,
+      "unknown23": "00 00 00 00",
       "artillery_bought_count": 4,
       "boycott_bitmap": {
         "food": false,

@@ -432,7 +432,8 @@
                 "unknown44a",
                 "end_of_turn_sign",
                 "nation_relation",
-                "unknown45",
+                "rebel_sentiment_report",
+                "unknown45a",
                 "expeditionary_force",
                 "backup_force",
                 "price_group_state",
@@ -590,7 +591,8 @@
             "unknown44a": {"size": 4},
             "end_of_turn_sign": {"size": 2, "type": "end_of_turn_sign_type"},
             "nation_relation": {"size": 8},
-            "unknown45": {"size": 10},
+            "rebel_sentiment_report": {"size": 2, "type": "int", "__hint": "0-100, displayed in continental congress report for all players."},
+            "unknown45a": {"size": 8},
             "expeditionary_force":
             {
                 "no_indent": true,
@@ -1067,6 +1069,7 @@
                 "founding_father_count",
                 "prob_founding_father_count_end",
                 "villages_burned",
+                "rebel_sentiment",
                 "unknown23",
                 "artillery_bought_count",
                 "boycott_bitmap",
@@ -1156,7 +1159,8 @@
             "founding_father_count": {"size": 2, "type": "uint"},
             "prob_founding_father_count_end": {"size": 2},
             "villages_burned": {"size": 1, "type": "uint"},
-            "unknown23": {"size": 5},
+            "rebel_sentiment": {"size": 1, "type": "int", "__hint": "0-100, rebel sentiment for nation. Computed each turn, but appears unused; instead rebel_sentiment_report in the header is used for all nations."},
+            "unknown23": {"size": 4},
             "artillery_bought_count": {"size": 2, "type": "uint"},
             "boycott_bitmap":
             {

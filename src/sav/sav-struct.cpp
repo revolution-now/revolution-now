@@ -4829,7 +4829,8 @@ void to_str( HEADER const& o, std::string& out, base::ADL_t t ) {
   out += "unknown44a="; to_str( o.unknown44a, out, t ); out += ',';
   out += "end_of_turn_sign="; to_str( o.end_of_turn_sign, out, t ); out += ',';
   out += "nation_relation="; to_str( o.nation_relation, out, t ); out += ',';
-  out += "unknown45="; to_str( o.unknown45, out, t ); out += ',';
+  out += "rebel_sentiment_report="; to_str( o.rebel_sentiment_report, out, t ); out += ',';
+  out += "unknown45a="; to_str( o.unknown45a, out, t ); out += ',';
   out += "expeditionary_force="; to_str( o.expeditionary_force, out, t ); out += ',';
   out += "backup_force="; to_str( o.backup_force, out, t ); out += ',';
   out += "price_group_state="; to_str( o.price_group_state, out, t ); out += ',';
@@ -4873,7 +4874,8 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.unknown44a )
     && read_binary( b, o.end_of_turn_sign )
     && read_binary( b, o.nation_relation )
-    && read_binary( b, o.unknown45 )
+    && read_binary( b, o.rebel_sentiment_report )
+    && read_binary( b, o.unknown45a )
     && read_binary( b, o.expeditionary_force )
     && read_binary( b, o.backup_force )
     && read_binary( b, o.price_group_state )
@@ -4916,7 +4918,8 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.unknown44a )
     && write_binary( b, o.end_of_turn_sign )
     && write_binary( b, o.nation_relation )
-    && write_binary( b, o.unknown45 )
+    && write_binary( b, o.rebel_sentiment_report )
+    && write_binary( b, o.unknown45a )
     && write_binary( b, o.expeditionary_force )
     && write_binary( b, o.backup_force )
     && write_binary( b, o.price_group_state )
@@ -4961,7 +4964,8 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown44a", o.unknown44a );
   conv.to_field( tbl, "end_of_turn_sign", o.end_of_turn_sign );
   conv.to_field( tbl, "nation_relation", o.nation_relation );
-  conv.to_field( tbl, "unknown45", o.unknown45 );
+  conv.to_field( tbl, "rebel_sentiment_report", o.rebel_sentiment_report );
+  conv.to_field( tbl, "unknown45a", o.unknown45a );
   conv.to_field( tbl, "expeditionary_force", o.expeditionary_force );
   conv.to_field( tbl, "backup_force", o.backup_force );
   conv.to_field( tbl, "price_group_state", o.price_group_state );
@@ -5000,7 +5004,8 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown44a",
     "end_of_turn_sign",
     "nation_relation",
-    "unknown45",
+    "rebel_sentiment_report",
+    "unknown45a",
     "expeditionary_force",
     "backup_force",
     "price_group_state",
@@ -5049,7 +5054,8 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "unknown44a", unknown44a );
   CONV_FROM_FIELD( "end_of_turn_sign", end_of_turn_sign );
   CONV_FROM_FIELD( "nation_relation", nation_relation );
-  CONV_FROM_FIELD( "unknown45", unknown45 );
+  CONV_FROM_FIELD( "rebel_sentiment_report", rebel_sentiment_report );
+  CONV_FROM_FIELD( "unknown45a", unknown45a );
   CONV_FROM_FIELD( "expeditionary_force", expeditionary_force );
   CONV_FROM_FIELD( "backup_force", backup_force );
   CONV_FROM_FIELD( "price_group_state", price_group_state );
@@ -5990,6 +5996,7 @@ void to_str( NATION const& o, std::string& out, base::ADL_t t ) {
   out += "founding_father_count="; to_str( o.founding_father_count, out, t ); out += ',';
   out += "prob_founding_father_count_end="; to_str( o.prob_founding_father_count_end, out, t ); out += ',';
   out += "villages_burned="; to_str( o.villages_burned, out, t ); out += ',';
+  out += "rebel_sentiment="; to_str( o.rebel_sentiment, out, t ); out += ',';
   out += "unknown23="; to_str( o.unknown23, out, t ); out += ',';
   out += "artillery_bought_count="; to_str( o.artillery_bought_count, out, t ); out += ',';
   out += "boycott_bitmap="; to_str( o.boycott_bitmap, out, t ); out += ',';
@@ -6025,6 +6032,7 @@ bool read_binary( base::IBinaryIO& b, NATION& o ) {
     && read_binary( b, o.founding_father_count )
     && read_binary( b, o.prob_founding_father_count_end )
     && read_binary( b, o.villages_burned )
+    && read_binary( b, o.rebel_sentiment )
     && read_binary( b, o.unknown23 )
     && read_binary( b, o.artillery_bought_count )
     && read_binary( b, o.boycott_bitmap )
@@ -6059,6 +6067,7 @@ bool write_binary( base::IBinaryIO& b, NATION const& o ) {
     && write_binary( b, o.founding_father_count )
     && write_binary( b, o.prob_founding_father_count_end )
     && write_binary( b, o.villages_burned )
+    && write_binary( b, o.rebel_sentiment )
     && write_binary( b, o.unknown23 )
     && write_binary( b, o.artillery_bought_count )
     && write_binary( b, o.boycott_bitmap )
@@ -6095,6 +6104,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "founding_father_count", o.founding_father_count );
   conv.to_field( tbl, "prob_founding_father_count_end", o.prob_founding_father_count_end );
   conv.to_field( tbl, "villages_burned", o.villages_burned );
+  conv.to_field( tbl, "rebel_sentiment", o.rebel_sentiment );
   conv.to_field( tbl, "unknown23", o.unknown23 );
   conv.to_field( tbl, "artillery_bought_count", o.artillery_bought_count );
   conv.to_field( tbl, "boycott_bitmap", o.boycott_bitmap );
@@ -6125,6 +6135,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "founding_father_count",
     "prob_founding_father_count_end",
     "villages_burned",
+    "rebel_sentiment",
     "unknown23",
     "artillery_bought_count",
     "boycott_bitmap",
@@ -6165,6 +6176,7 @@ cdr::result<NATION> from_canonical(
   CONV_FROM_FIELD( "founding_father_count", founding_father_count );
   CONV_FROM_FIELD( "prob_founding_father_count_end", prob_founding_father_count_end );
   CONV_FROM_FIELD( "villages_burned", villages_burned );
+  CONV_FROM_FIELD( "rebel_sentiment", rebel_sentiment );
   CONV_FROM_FIELD( "unknown23", unknown23 );
   CONV_FROM_FIELD( "artillery_bought_count", artillery_bought_count );
   CONV_FROM_FIELD( "boycott_bitmap", boycott_bitmap );

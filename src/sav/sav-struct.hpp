@@ -2148,7 +2148,8 @@ struct HEADER {
   bytes<4> unknown44a = {};
   end_of_turn_sign_type end_of_turn_sign = {};
   bytes<8> nation_relation = {};
-  bytes<10> unknown45 = {};
+  int16_t rebel_sentiment_report = {};
+  bytes<8> unknown45a = {};
   ExpeditionaryForce expeditionary_force = {};
   BackupForce backup_force = {};
   PriceGroupState price_group_state = {};
@@ -2541,7 +2542,8 @@ struct NATION {
   uint16_t founding_father_count = {};
   bytes<2> prob_founding_father_count_end = {};
   uint8_t villages_burned = {};
-  bytes<5> unknown23 = {};
+  int8_t rebel_sentiment = {};
+  bytes<4> unknown23 = {};
   uint16_t artillery_bought_count = {};
   BoycottBitmap boycott_bitmap = {};
   int32_t royal_money = {};
