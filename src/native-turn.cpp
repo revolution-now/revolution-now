@@ -206,7 +206,7 @@ wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
   // ation over the units, and 2) it turned out to be twice as
   // fast on large maps when profiled, surprisingly.
   set<NativeUnitId> units =
-      units_for_tribe( ss, mind.tribe_type() );
+      units_for_tribe_ordered( ss, mind.tribe_type() );
 
   // Note: unlike for european units, it is ok to do this reset-
   // ting of the movement points here because we know that the

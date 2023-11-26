@@ -73,7 +73,8 @@ TEST_CASE(
   };
 
   auto unit_count = [&]() -> int {
-    return units_for_tribe( W.ss(), tribe_type ).size();
+    return units_for_tribe_unordered( W.ss(), tribe_type )
+        .size();
   };
 
   SECTION( "tupi" ) {

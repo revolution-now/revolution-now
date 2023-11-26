@@ -368,19 +368,36 @@ e_tribe tribe_type_for_unit( SSConst const&    ss,
   return ss.natives.tribe_type_for( ownership.dwelling_id );
 }
 
-// FIXME: this should probably be cached at some point, though
-// not sure where to put it since it requires info from both the
-// ss/units and ss/natives modules.
-set<NativeUnitId> units_for_tribe( SSConst const& ss,
-                                   e_tribe target_tribe_type ) {
-  auto const&       native_units = ss.units.native_all();
+vector<NativeUnitId> units_for_tribe(
+    SSConst const& ss, e_tribe target_tribe_type ) {
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( target_tribe_type );
+  vector<NativeUnitId> units;
+  // In the vast majority of cases we will have at most one brave
+  // per dwelling, so this should be fine. Sometimes we create a
+  // phantom brave to act as the target of attacks on dwellings,
+  // so add two just in case we call in that case, though we
+  // probably won't.
+  units.reserve( dwellings.size() + 2 );
+  for( DwellingId const dwelling_id : dwellings ) {
+    unordered_set<NativeUnitId> const& braves =
+        ss.units.braves_for_dwelling( dwelling_id );
+    for( NativeUnitId const native_unit_id : braves )
+      units.push_back( native_unit_id );
+  }
+  return units;
+}
+
+set<NativeUnitId> units_for_tribe_ordered(
+    SSConst const& ss, e_tribe target_tribe_type ) {
+  unordered_set<DwellingId> const& dwellings =
+      ss.natives.dwellings_for_tribe( target_tribe_type );
   set<NativeUnitId> units;
-  for( auto [unit_id, p_state] : native_units ) {
-    e_tribe const tribe_type =
-        ss.natives.tribe_for( p_state->ownership.dwelling_id )
-            .type;
-    if( tribe_type != target_tribe_type ) continue;
-    units.insert( unit_id );
+  for( DwellingId const dwelling_id : dwellings ) {
+    unordered_set<NativeUnitId> const& braves =
+        ss.units.braves_for_dwelling( dwelling_id );
+    for( NativeUnitId const native_unit_id : braves )
+      units.insert( native_unit_id );
   }
   return units;
 }
