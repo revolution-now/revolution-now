@@ -58,7 +58,8 @@ base::valid_or<string> wrapped::NativesState::validate() const {
   DwellingId max_id{ -1 };
 
   for( auto const& [id, state] : dwellings ) {
-    max_id = std::max( max_id, id );
+    Dwelling const& dwelling = state.dwelling;
+    max_id                   = std::max( max_id, id );
 
     // Each dwelling has a unique location.
     Coord where = state.ownership.location;
@@ -71,6 +72,12 @@ base::valid_or<string> wrapped::NativesState::validate() const {
                    "dwelling {} is part of tribe {} but that "
                    "tribe does not exist.",
                    id, state.ownership.tribe );
+
+    // Dwelling's population is positive.
+    REFL_VALIDATE(
+        dwelling.population >= 0,
+        "dwelling {} has a non-positive population: {}", id,
+        dwelling.population );
   }
 
   // next dwelling ID is larger than any used dwelling ID.
