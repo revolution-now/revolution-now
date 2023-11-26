@@ -61,7 +61,7 @@ struct UnitsState {
   euro_all() const;
   std::unordered_map<NativeUnitId,
                      UnitState::native const*> const&
-                                            native_all() const;
+  native_all() const;
 
   // Is this a European or native unit.
   e_unit_kind unit_kind( GenericUnitId id ) const;
