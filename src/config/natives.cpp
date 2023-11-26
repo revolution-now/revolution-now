@@ -102,6 +102,11 @@ base::valid_or<string> config_natives_t::validate() const {
       "the probability weight for a seasoned scout to get "
       "promoted while speaking to a chief must be zero since a "
       "seasoned scout cannot get promoted." );
+
+  REFL_VALIDATE(
+      growth_counter_threshold > 0,
+      "growth_counter_threshold must be larger than 0." );
+
   return base::valid;
 }
 

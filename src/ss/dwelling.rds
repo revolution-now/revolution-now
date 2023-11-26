@@ -99,8 +99,21 @@ struct.Dwelling {
   # cessfully) for it to be burned. It is lowered on each suc-
   # cessful attack, and the village is "burned" when it hits
   # zero. This number will recover over time if it is partially
-  # lowered.
+  # lowered (see the growth_counter field). Note that when dis-
+  # banding a free brave, it does not affect the population of
+  # the dwelling, and neither does killing one via combat.
   population 'int',
+
+  # This is a counter that increases by the current population
+  # amount each turn. This way, the population increases more
+  # slowly the lower the population. When it hits a critical
+  # value (20 in the OG) then a new brave is created on the map.
+  # If a brave already exists on the map then the population is
+  # increased by one. If the population is already at the max,
+  # then the counter does not increase. As in the OG, if the
+  # counter is incremented and it goes above 20, it is still
+  # reset to 0.
+  growth_counter 'int',
 
   trading 'DwellingTradingState',
 

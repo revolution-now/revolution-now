@@ -368,6 +368,23 @@ e_tribe tribe_type_for_unit( SSConst const&    ss,
   return ss.natives.tribe_type_for( ownership.dwelling_id );
 }
 
+// FIXME: this should probably be cached at some point, though
+// not sure where to put it since it requires info from both the
+// ss/units and ss/natives modules.
+set<NativeUnitId> units_for_tribe( SSConst const& ss,
+                                   e_tribe target_tribe_type ) {
+  auto const&       native_units = ss.units.native_all();
+  set<NativeUnitId> units;
+  for( auto [unit_id, p_state] : native_units ) {
+    e_tribe const tribe_type =
+        ss.natives.tribe_for( p_state->ownership.dwelling_id )
+            .type;
+    if( tribe_type != target_tribe_type ) continue;
+    units.insert( unit_id );
+  }
+  return units;
+}
+
 /****************************************************************
 ** Multi
 *****************************************************************/

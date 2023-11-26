@@ -180,6 +180,13 @@ Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit );
 e_tribe tribe_type_for_unit( SSConst const&    ss,
                              NativeUnit const& native_unit );
 
+// Uses a set so that they will automatically be sorted. FIXME:
+// this should probably be cached at some point, though not sure
+// where to put it since it requires info from both the ss/units
+// and ss/natives modules.
+std::set<NativeUnitId> units_for_tribe(
+    SSConst const& ss, e_tribe target_tribe_type );
+
 /****************************************************************
 ** Multi
 *****************************************************************/

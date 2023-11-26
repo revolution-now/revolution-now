@@ -706,3 +706,9 @@ combat {
     money_stolen_abs_range_max: 25000
   }
 }
+
+# When a dwelling's growth_counter (which gets incremented each
+# turn by an amount equal to the population) reaches this value
+# then either a new free brave is created (if needed) or else the
+# dwelling's population increases.
+growth_counter_threshold: 20

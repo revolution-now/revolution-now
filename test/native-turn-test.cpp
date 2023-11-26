@@ -27,6 +27,7 @@
 #include "src/ts.hpp"
 
 // ss
+#include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/units.hpp"
@@ -88,13 +89,14 @@ struct MockNativesTurnDeps final : INativesTurnDeps {
                ( SS*, TS*, NativeUnit&, Coord ), ( const ) );
   MOCK_METHOD( wait<>, raid_colony,
                (SS*, TS*, NativeUnit&, Colony&), ( const ) );
+  MOCK_METHOD( void, evolve_dwellings_for_tribe,
+               ( SS*, e_tribe ), ( const ) );
 };
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE(
-    "[native-turn] natives_turn, unit iteration, travel" ) {
+TEST_CASE( "[native-turn] unit iteration, travel" ) {
   World W;
 
   auto f = [&] {
@@ -519,7 +521,7 @@ TEST_CASE(
   }
 }
 
-TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
+TEST_CASE( "[native-turn] attack euro unit" ) {
   World             W;
   MockLandViewPlane mock_land_view;
   W.planes().back().land_view = &mock_land_view;
@@ -540,6 +542,8 @@ TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
+    mock_deps.EXPECT__evolve_dwellings_for_tribe(
+        &W.ss(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -556,6 +560,8 @@ TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
   SECTION( "brave, one euro, brave wins" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
+    mock_deps.EXPECT__evolve_dwellings_for_tribe(
+        &W.ss(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -579,6 +585,8 @@ TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
     Unit const& free_colonist2 = W.add_unit_on_map(
         e_unit_type::free_colonist, defender_loc );
+    mock_deps.EXPECT__evolve_dwellings_for_tribe(
+        &W.ss(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -593,6 +601,46 @@ TEST_CASE( "[native-turn] natives_turn, attack euro unit" ) {
     REQUIRE( free_colonist1.movement_points() == 1 );
     REQUIRE( free_colonist2.movement_points() == 1 );
   }
+}
+
+TEST_CASE( "[native-turn] brave spawns" ) {
+  World W;
+  // MockLandViewPlane mock_land_view;
+  // W.planes().back().land_view = &mock_land_view;
+  MockNativesTurnDeps mock_deps;
+
+  auto f = [&] {
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+  };
+
+  MockINativeMind& native_mind =
+      W.native_mind( e_tribe::arawak );
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
+  maybe<NativeUnitId> native_unit_id;
+
+  mock_deps
+      .EXPECT__evolve_dwellings_for_tribe( &W.ss(),
+                                           e_tribe::arawak )
+      .invokes( [&] {
+        native_unit_id = W.add_native_unit_on_map(
+                              e_native_unit_type::mounted_brave,
+                              { .x = 0, .y = 0 }, dwelling_id )
+                             .id;
+      } );
+
+  native_mind.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
+      .returns( NativeUnitId{ 1 } );
+  native_mind.EXPECT__command_for( NativeUnitId{ 1 } )
+      .returns( NativeUnitCommand::forfeight{} );
+  f();
+  REQUIRE( native_unit_id == NativeUnitId{ 1 } );
+  REQUIRE( W.units().exists( *native_unit_id ) );
+  NativeUnit const& mounted_brave =
+      W.units().unit_for( NativeUnitId{ 1 } );
+  REQUIRE( mounted_brave.type ==
+           e_native_unit_type::mounted_brave );
+  REQUIRE( mounted_brave.movement_points == 0 );
 }
 
 } // namespace

@@ -556,5 +556,9 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   require_sentried( dragoon2 );
 }
 
+TEST_CASE( "[unit-mgr] units_for_tribe" ) {
+  World W;
+}
+
 } // namespace
 } // namespace rn

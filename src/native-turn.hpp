@@ -25,6 +25,8 @@ struct NativeUnit;
 struct SS;
 struct TS;
 
+enum class e_tribe;
+
 /****************************************************************
 ** INativesTurnDeps.
 *****************************************************************/
@@ -33,14 +35,17 @@ struct TS;
 struct INativesTurnDeps {
   virtual ~INativesTurnDeps() = default;
 
-  // Dependencies. Parameters need to be mock friendly.
-  // ------------------------------------------------------------
+  // Dependencies. NOTE: Parameters need to be mock friendly.
+
   virtual wait<> raid_unit( SS* ss, TS* ts, NativeUnit& attacker,
                             Coord dst ) const = 0;
 
   virtual wait<> raid_colony( SS* ss, TS* ts,
                               NativeUnit& attacker,
                               Colony&     colony ) const = 0;
+
+  virtual void evolve_dwellings_for_tribe(
+      SS* ss, e_tribe tribe_type ) const = 0;
 };
 
 /****************************************************************

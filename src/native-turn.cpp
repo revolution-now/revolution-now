@@ -27,7 +27,9 @@
 #include "raid.hpp"
 #include "roles.hpp"
 #include "society.hpp"
+#include "tribe-evolve.hpp"
 #include "ts.hpp"
+#include "unit-mgr.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
 
@@ -189,8 +191,33 @@ wait<> handle_native_unit_command(
 }
 
 wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
-                   IVisibility const& viz, INativeMind& mind,
-                   set<NativeUnitId>& units ) {
+                   IVisibility const& viz, INativeMind& mind ) {
+  // Evolve non-unit aspects of the tribe. This must be done be-
+  // fore moving the units because it may result in a brave get-
+  // ting created.
+  deps.evolve_dwellings_for_tribe( &ss, mind.tribe_type() );
+
+  // Gather all units. This must be done after evolving the
+  // dwellings so that it includes any new units that are cre-
+  // ated. At this point in the turn no further native units
+  // should be created, since we've already evolved the
+  // dwellings. However, native units can be lost. We use a
+  // std::set here for two reasons: 1) we get deterministic iter-
+  // ation over the units, and 2) it turned out to be twice as
+  // fast on large maps when profiled, surprisingly.
+  set<NativeUnitId> units =
+      units_for_tribe( ss, mind.tribe_type() );
+
+  // Note: unlike for european units, it is ok to do this reset-
+  // ting of the movement points here because we know that the
+  // game will never be saved and reloaded during the natives'
+  // turn.
+  for( NativeUnitId const id : units ) {
+    NativeUnit& unit = ss.units.unit_for( id );
+    unit.movement_points =
+        unit_attr( unit.type ).movement_points;
+  }
+
   // As a circuit breaker to prevent the AI from never exhausting
   // all of the movement points of all of its units, we'll give
   // the AI a maximum of 100 tries per unit. If it can't finish
@@ -253,6 +280,11 @@ struct RealNativesTurnDeps final : INativesTurnDeps {
                       Colony& colony ) const override {
     return rn::raid_colony( *ss, *ts, attacker, colony );
   }
+
+  void evolve_dwellings_for_tribe(
+      SS* ss, e_tribe tribe_type ) const override {
+    return rn::evolve_dwellings_for_tribe( *ss, tribe_type );
+  }
 };
 
 /****************************************************************
@@ -267,41 +299,6 @@ wait<> natives_turn(
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
 
-  // TODO: Evolve dwellings. Note: We need to do this first for
-  // all tribes so that when we get to the units phase, all of
-  // the units that will be created this turn have been created,
-  // so that way we only have to iterate over them once to group
-  // them into their respective tribes.
-
-  // Collect all native units for each tribe. At this point in
-  // the turn no further native units should be created, since
-  // we've already evolved the dwellings. However, native units
-  // can be lost. We use a std::set here for two reasons: 1) we
-  // get deterministic iteration over the units, and 2) it turned
-  // out to be twice as fast on large maps when profiled, sur-
-  // prisingly.
-  auto const& native_units = ss.units.native_all();
-  map<e_tribe, set<NativeUnitId>> tribe_to_units;
-
-  timer.checkpoint( "gathering units" );
-  for( auto [unit_id, p_state] : native_units ) {
-    NativeUnit& unit = ss.units.unit_for( unit_id );
-    // Note: unlike for european units, it is ok to do this re-
-    // setting of the movement points here because we know that
-    // the game will never be saved and reloaded during the na-
-    // tives' turn.
-    unit.movement_points =
-        unit_attr( unit.type ).movement_points;
-    e_tribe const tribe_type =
-        ss.natives.tribe_for( p_state->ownership.dwelling_id )
-            .type;
-    auto& units = tribe_to_units[tribe_type];
-    CHECK( !units.contains( unit_id ),
-           "something has gone wrong: {} encountered twice.",
-           unit_id );
-    units.insert( unit_id );
-  }
-
   unique_ptr<IVisibility const> const viz =
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
@@ -310,9 +307,7 @@ wait<> natives_turn(
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeMind& mind = ts.native_minds[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( deps, ss, ts, *viz, mind,
-                         tribe_to_units[tribe] );
-    CHECK( tribe_to_units[tribe].empty() );
+    co_await tribe_turn( deps, ss, ts, *viz, mind );
   }
 }
 
