@@ -103,7 +103,7 @@ TEST_CASE(
     REQUIRE( unit_count() == 0 );
 
     for( int i = 1; i <= 16; ++i ) {
-      INFO( format( "i: {}", i ) );
+      INFO( fmt::format( "i: {}", i ) );
       f();
       REQUIRE( dwelling.population == 1 );
       REQUIRE( dwelling.growth_counter == 3 + i );
@@ -139,7 +139,7 @@ TEST_CASE(
     REQUIRE( unit_count() == 1 );
 
     for( int i = 1; i <= 16; ++i ) {
-      INFO( format( "i: {}", i ) );
+      INFO( fmt::format( "i: {}", i ) );
       f();
       REQUIRE( dwelling.population == 1 );
       REQUIRE( dwelling.growth_counter == 3 + i );
@@ -162,7 +162,7 @@ TEST_CASE(
     REQUIRE( unit_count() == 1 );
 
     for( int i = 1; i <= 7; ++i ) {
-      INFO( format( "i: {}", i ) );
+      INFO( fmt::format( "i: {}", i ) );
       f();
       REQUIRE( dwelling.population == 2 );
       REQUIRE( dwelling.growth_counter == 4 + i * 2 );
@@ -192,7 +192,7 @@ TEST_CASE(
     REQUIRE( unit_count() == 1 );
 
     for( int i = 1; i <= 4; ++i ) {
-      INFO( format( "i: {}", i ) );
+      INFO( fmt::format( "i: {}", i ) );
       f();
       REQUIRE( dwelling.population == 3 );
       REQUIRE( dwelling.growth_counter == 6 + i * 3 );
