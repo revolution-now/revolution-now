@@ -368,7 +368,7 @@ e_tribe tribe_type_for_unit( SSConst const&    ss,
   return ss.natives.tribe_type_for( ownership.dwelling_id );
 }
 
-vector<NativeUnitId> units_for_tribe(
+vector<NativeUnitId> units_for_tribe_unordered(
     SSConst const& ss, e_tribe target_tribe_type ) {
   unordered_set<DwellingId> const& dwellings =
       ss.natives.dwellings_for_tribe( target_tribe_type );
