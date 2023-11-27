@@ -66,6 +66,31 @@ echo "renaming file to: $renamed_file"
 echo "$tmp_conv_file --> $renamed_file"
 mv "$tmp_conv_file" "$renamed_file"
 
+# When this is 1 we will not delete previous versions; they will
+# just accumulate (which they can do since they all will have
+# unique file names). This uses a lot of space. When it is 0 then
+# we only keep the last two for comparison.
+keep_all=0
+
+if (( keep_all == 0 )); then
+  if [[ -e "$out_dir/previous" ]]; then
+    echo "moving previous to deleteme..."
+    (cd "$out_dir" && mv previous deleteme)
+  fi
+
+  if [[ -L "$out_dir/deleteme" ]]; then
+    # If there is a file pointed to by delete me then delete it.
+    if [[ -e "$out_dir/deleteme" ]]; then
+      echo "deleting file pointed to by deleteme..."
+      (cd "$out_dir" && rm "$(readlink -f deleteme)")
+    fi
+    [[   -L "$out_dir/deleteme" ]]
+    [[ ! -e "$out_dir/deleteme" ]]
+    echo "deleting deleteme..."
+    (cd "$out_dir" && rm deleteme)
+  fi
+fi
+
 if [[ -e "$out_dir/latest" ]]; then
   echo "moving latest to previous..."
   (cd "$out_dir" && mv latest previous)
