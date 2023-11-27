@@ -31,6 +31,9 @@
 // refl
 #include "src/refl/to-str.hpp"
 
+// base
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 #include "visibility.rds.hpp"
@@ -40,6 +43,7 @@ namespace {
 
 using namespace std;
 
+using ::Catch::UnorderedEquals;
 using ::mock::matchers::_;
 
 /****************************************************************
@@ -556,8 +560,128 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   require_sentried( dragoon2 );
 }
 
-TEST_CASE( "[unit-mgr] units_for_tribe" ) {
+TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   World W;
+
+  e_tribe           tribe_type = {};
+  set<NativeUnitId> expected;
+
+  auto f = [&] {
+    return units_for_tribe_ordered( W.ss(), tribe_type );
+  };
+
+  expected   = {};
+  tribe_type = e_tribe::apache;
+  REQUIRE( f() == expected );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  auto [apache_dwelling_id_1, apache_brave_id_1] =
+      W.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
+                                    e_tribe::apache );
+  expected   = { apache_brave_id_1 };
+  tribe_type = e_tribe::apache;
+  REQUIRE( f() == expected );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  NativeUnitId const apache_brave_id_2 =
+      W.add_native_unit_on_map(
+           e_native_unit_type::mounted_brave, { .x = 2, .y = 2 },
+           apache_dwelling_id_1 )
+          .id;
+  expected   = { apache_brave_id_1, apache_brave_id_2 };
+  tribe_type = e_tribe::apache;
+  REQUIRE( f() == expected );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  auto [apache_dwelling_id_2, apache_brave_id_3] =
+      W.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
+                                    e_tribe::apache );
+  expected   = { apache_brave_id_1, apache_brave_id_2,
+                 apache_brave_id_3 };
+  tribe_type = e_tribe::apache;
+  REQUIRE( f() == expected );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  auto [aztec_dwelling_id_1, aztec_brave_id_1] =
+      W.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
+                                    e_tribe::aztec );
+  expected   = { apache_brave_id_1, apache_brave_id_2,
+                 apache_brave_id_3 };
+  tribe_type = e_tribe::apache;
+  REQUIRE( f() == expected );
+  expected   = { aztec_brave_id_1 };
+  tribe_type = e_tribe::aztec;
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
+  World W;
+
+  e_tribe              tribe_type = {};
+  vector<NativeUnitId> expected;
+
+  auto f = [&] {
+    return units_for_tribe_unordered( W.ss(), tribe_type );
+  };
+
+  expected   = {};
+  tribe_type = e_tribe::apache;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+
+  auto [apache_dwelling_id_1, apache_brave_id_1] =
+      W.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
+                                    e_tribe::apache );
+  expected   = { apache_brave_id_1 };
+  tribe_type = e_tribe::apache;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+
+  NativeUnitId const apache_brave_id_2 =
+      W.add_native_unit_on_map(
+           e_native_unit_type::mounted_brave, { .x = 2, .y = 2 },
+           apache_dwelling_id_1 )
+          .id;
+  expected   = { apache_brave_id_1, apache_brave_id_2 };
+  tribe_type = e_tribe::apache;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+
+  auto [apache_dwelling_id_2, apache_brave_id_3] =
+      W.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
+                                    e_tribe::apache );
+  expected   = { apache_brave_id_1, apache_brave_id_2,
+                 apache_brave_id_3 };
+  tribe_type = e_tribe::apache;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+  expected   = {};
+  tribe_type = e_tribe::aztec;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+
+  auto [aztec_dwelling_id_1, aztec_brave_id_1] =
+      W.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
+                                    e_tribe::aztec );
+  expected   = { apache_brave_id_1, apache_brave_id_2,
+                 apache_brave_id_3 };
+  tribe_type = e_tribe::apache;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
+  expected   = { aztec_brave_id_1 };
+  tribe_type = e_tribe::aztec;
+  REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 }
 
 } // namespace
