@@ -819,8 +819,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         .colony_id = colony.id,
         .attacker  = { .id              = attacker->id,
                        .modifiers       = {},
-                       .base_weight     = 1.0,
-                       .modified_weight = 1.0,
+                       .base_weight     = 0.0,
+                       .modified_weight = 0.0,
                        .outcome =
                            NativeUnitCombatOutcome::destroyed{} },
         .defender  = {
@@ -844,8 +844,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         .colony_id = colony.id,
         .attacker  = { .id              = attacker->id,
                        .modifiers       = {},
-                       .base_weight     = 1.0,
-                       .modified_weight = 1.0,
+                       .base_weight     = 0.0,
+                       .modified_weight = 0.0,
                        .outcome =
                            NativeUnitCombatOutcome::destroyed{} },
         .defender  = {
@@ -869,8 +869,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         .colony_id = colony.id,
         .attacker  = { .id              = attacker->id,
                        .modifiers       = {},
-                       .base_weight     = 1.0,
-                       .modified_weight = 1.0,
+                       .base_weight     = 0.0,
+                       .modified_weight = 0.0,
                        .outcome =
                            NativeUnitCombatOutcome::destroyed{} },
         .defender  = {
@@ -974,7 +974,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                               .base_weight     = 1.0,
                               .modified_weight = 1.0,
                               .outcome =
-                                  NativeUnitCombatOutcome::no_change{} },
+                                  NativeUnitCombatOutcome::destroyed{} },
         .defender         = {
                     .id              = defender->id(),
                     .modifiers       = {},
@@ -1085,7 +1085,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                               .base_weight     = 3.0,
                               .modified_weight = 3.0,
                               .outcome =
-                                  NativeUnitCombatOutcome::no_change{} },
+                                  NativeUnitCombatOutcome::destroyed{} },
         .defender         = {
                     .id              = defender->id(),
                     .modifiers       = {},

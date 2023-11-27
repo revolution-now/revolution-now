@@ -567,14 +567,37 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
                     .outcome         = defender_outcome } };
 }
 
+// The mechanics for a brave attacking a colony in the OG (which
+// we replicate here) are different than for most other types of
+// combat:
+//
+//   1. After attacking a colony the brave always gets destroyed
+//      (population of its dwelling is unchanged).
+//   2. If it is the last colony then the brave always attacks
+//      with zero strength, so the defender never loses, though
+//      there may be side effects.
+//   3. If it is not the last colony then the attacker attacks
+//      with non-zero strength and can win the battle in the
+//      sense that the defender may lose and/or the colony may be
+//      destroyed. That said, the brave still gets destroyed. The
+//      brave is considered to have "won" though, and the combat
+//      effects messages reflect that.
+//
+// The OG implements (2) above by effectively setting the Brave's
+// attack to zero when there is only one colony remaining.
 CombatBraveAttackColony RealCombat::brave_attack_colony(
     NativeUnit const& attacker, Unit const& defender,
     Colony const& colony ) {
   if( ss_.colonies.for_nation( colony.nation ).size() > 1 ) {
     // When the player has more than one colony then the battle
-    // between the units proceeds normally, e.g. the brave can
-    // win and demote a soldier, destroy a colonist, destroy the
-    // colony, cause the defender to get promoted, etc.
+    // between the units proceeds normally for the most part.
+    // That is, the brave can win and demote a soldier, destroy a
+    // colonist, destroy the colony, cause the defender to get
+    // promoted, etc. However, regardless of the outcome, the
+    // brave always gets destroyed (this distinguishes it from a
+    // normal battle). That said, if the brave wins the combat,
+    // it is still considered to be the winner even though it
+    // will be destroyed as a result.
     CombatBraveAttackEuro const units_combat =
         brave_attack_euro( attacker, defender );
     // Note that this colony destruction happens even when the
@@ -586,18 +609,28 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
     if( colony_destroyed )
       defender_stats.outcome =
           EuroUnitCombatOutcome::destroyed{};
+    auto attacker_stats_modified = units_combat.attacker;
+    // Even though the brave can win here, it will still be de-
+    // stroyed, so we compute the outcome as if it lost.
+    attacker_stats_modified.outcome =
+        native_unit_combat_outcome( attacker, /*won=*/false );
     return { .winner           = units_combat.winner,
              .colony_id        = colony.id,
              .colony_destroyed = colony_destroyed,
-             .attacker         = units_combat.attacker,
+             .attacker         = attacker_stats_modified,
              .defender         = defender_stats };
   }
   // This is the player's first/last colony; in this case, the OG
   // handles the side effects as usual (such as e.g. stealing
   // money or damaging buildings), but always causes the brave to
   // lose the combat, so i.e. no colonies or military units are
-  // ever lost or damaged, and the colony is never lost.
-  double const attack_points = unit_attr( attacker.type ).combat;
+  // ever lost or damaged, and the colony is never lost. Note
+  // that this is a bit different from the case of multiple
+  // colonies above, even though the brave is always destroyed in
+  // both cases (the difference is that in the case of a single
+  // colony, the brave can never win the battle, e.g. it can
+  // never demote a soldier).
+  double const attack_points  = 0; // OG has this zero.
   double const defense_points = defender.desc().combat;
   Coord const  attacker_coord =
       ss_.units.coord_for( attacker.id );
