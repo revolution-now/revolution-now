@@ -35,6 +35,11 @@ LUA_STARTUP( lua::state& st ) {
   auto u  = st.usertype.create<U>();
 
   u["viewport"] = &U::viewport;
+
+  u["reveal_complete_map"] = []( U& o ) {
+    // NOTE: need to redraw map after this.
+    o.map_revealed = MapRevealed::entire{};
+  };
 };
 
 } // namespace
