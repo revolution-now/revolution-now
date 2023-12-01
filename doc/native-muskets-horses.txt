@@ -1,38 +1,220 @@
-Native Muskets/Horses Retention
-===============================
+Native Muskets/Horses Acquisition
+=================================
 
-Stealing from battle: the natives will steal muskets and/or
-horses if and only if they are the attackers and they win.
+* Stealing from battle: the natives will steal muskets and/or
+  horses if and only if they are the attackers and they win.
+
+* Acquisition via trade with europeans.
+
+* Some sources say that native tribes can trade among themselves,
+  and so horses/muskets might get obtained this way. Need to see
+  if this can be observed.
+
+* After losing a battle and a brave gets destroyed that was
+  holding horses or muskets, it is said that the tribe may retain
+  some of those.
+
+Native Muskets/Horses Retention/Evolution
+=========================================
 
 Regarding the muskets and horses that each tribe has stored, here
 are some observations:
 
-  * Each brave with muskets accounts for 50 out of the total
-    amount of the tribe.  The converse may not be true.
+  Horses
+  ------
 
-  * The number of muskets in the tribe can grow even long after
-    having sold them.
+    * Unanswered questions:
 
-  * Selling muskets: when selling muskets to a tribe, the amount
-    sold gets multiplied, but only sometimes. E.g., upon selling
-    100 muskets to a tribe, in one case the tribe was then listed
-    as having only 50 muskets, and it remained that way. Another
-    time it was listed as having 100 initially, and it grew to
-    250 on its own. Another time it was 150 and remained con-
-    stant.
+        * Not yet clear on all of the ways that horse_herds can
+          go above 1. Trade is one example, but there may be oth-
+          ers.
 
-  * When disbanding a brave, the tribe will lose 50 muskets. So
-    the game's reading on number of muskets per tribe must be in-
-    cluding free braves.
+        * When we trade horses with the natives, how does that
+          affect horse_herds and horse_breeding?
 
-  * When defeating an armed brave in combat, the tribe's musket
-    count goes down sometimes, but not others. Even in the cases
-    where we defeat all armed braves but one, the total musket
-    count quickly goes back up to e.g. 300. The tribe seems to
-    produce muskets provided that it has at least 50.
+        * When a brave acquires horses via combat, how does that
+          affect horse_herds and horse_breeding?
 
-  * Once a tribe's musket count goes to zero it stays there.
+        * When a brave loses horses in combat and the tribe re-
+          tains them, what effect does that have on
+          horse_breeding?
 
-Still not sure how it really works; there must be some internal
-stash together with some kind of growth factor and randomness.
-Might need to look in the sav files to understand it.
+        * If horse_herds > 1, how does that effect the max value
+          of horse_breeding?
+
+    * Max value of horse_breeding (which seems independent of the
+      value of horse_herds):
+
+      Civilized (Inca):
+         3 braves: 112  (Inca)     = 50 + 8 + 3*18
+         2 braves:  94  (Inca)     = 50 + 8 + 2*18
+         1 braves:  76  (Inca)     = 50 + 8 + 1*18
+         0 braves:  58  (Inca)     = 50 + 8 + 0*18
+
+      Advanced (Aztec):
+        10 braves: 196  (Aztec)    = 50 + 6 + 10*14
+         8 braves: 168  (Aztec)    = 50 + 6 +  8*14
+
+      Agrarian:
+        13 braves: 184  (iroquois) = 50 + 4 + 13*10
+        11 braves: 164  (iroquois) = 50 + 4 + 11*10
+         1 braves:  64  (cherokee) = 50 + 4 +  1*10
+
+      Semi-nomadic:
+         9 braves: 106  (Sioux)    = 50 + 0 + 9*6 + 2
+         8 braves:  98  (Sioux)    = 50 + 0 + 8*6
+         7 braves:  92  (Sioux)    = 50 + 0 + 7*6
+         6 braves:  86  (Sioux)    = 50 + 0 + 6*6
+         5 braves:  80  (Sioux)    = 50 + 0 + 5*6
+         4 braves:  74  (Sioux)    = 50 + 0 + 4*6
+         3 braves:  68  (Sioux)    = 50 + 0 + 3*6
+         2 braves:  62  (Sioux)    = 50 + 0 + 2*6
+         1 braves:  56  (Sioux)    = 50 + 0 + 1*6
+         0 braves:  50  (Sioux)    = 50 + 0 + 0*6
+
+      If the value somehow ends up larger than this then it will
+      be reduced.
+
+    * It seems impossible for a tribe to lose horses once they
+      acquire them, since having horse_herds > 0 will always lead
+      to breading, but it is not clear how to get horse_herds to
+      go down to zero without eliminating all dwellings.
+
+    * The horses readout on the indian advisor report does not
+      include the herds held by braves.
+
+    * A tribe's horse_herd field indicates how many "herds" it
+      has. This is the value shown on the indian advisor report.
+      This value can increase when:
+
+        Confirmed:
+          * A brave without horses wins in battle against a unit
+            with horses (even a scout), then ++horse_herds. But
+            that doesn't seem to happen if the brave already has
+            horses. Note that horse_breeding is not increased
+            here because the brave is already receiving the
+            horses.
+          * Giving/selling horses to the tribe via trade. Note
+            that this increases horse_breeding as well, by 25.
+          * Attacking a colony and stealing horses during a raid.
+            Seems to apply even if a small amount (e.g. 10)
+            horses are stolen. Does this increase horse_breeding?
+        Not confirmed:
+          * Inter-tribe trade
+        Confirmed negative:
+          * Brave with horses wins in battle against a unit with
+            horses.
+          * When a scout is captured when speaking to the chief.
+          * Attacking a wagon train containing horses.
+
+    * The tribe's horse_breeding field increases each turn by an
+      amount equal to horse_herds. A brave requires 25 horses to
+      get a horse. At some point later, when there is a brave in
+      need of horses and that brave has moved over its dwelling,
+      and this field is above 25, 25 will be subtracted from it
+      and the brave will get a horse (even a brave that already
+      exists). However, when the value is larger than some amount
+      (50?), it appears that 50 will be subtracted to obtain the
+      horse. When all braves have horses it will keep increasing
+      and will stop at some value (once it was 94, another time
+      64) (check if this is difficulty dependent or dependent on
+      the value of horse_herds or population).
+
+    * When a new horse herd is given to a tribe via trade, the
+      horse_herds goes up by 1, but the horse_breeding field also
+      goes up by an amount equal to:
+
+         horse_breeding += floor( traded_amount/4 )  [Iroquois]
+
+      When horses are acquired by combat only horse_herds in-
+      creases by 1 since the brave will take the horses, which is
+      equivalent to 25 horse_breeding.
+
+    * When a dwelling gets destroyed, both the horse_herds and
+      the horse_breeding will decrease according to this formula:
+
+        new_value = old_value - floor( old_value/N )
+
+      where N is the number of dwellings including the one being
+      destroyed. Using the floor is important so that guarantee
+      that we always have some left for the remaining
+      dwelling(s).
+
+    * The fact that there is some uncertainty in when 25 is sub-
+      tracted from horse_breeding and a brave gets a horse can
+      probably be explained by the fact that maybe a brave needs
+      to wait until it returns to its dwelling to get the horses.
+
+    * It seems that when a brave acquires horses that uses up its
+      entire turn, so first it has to move onto its dwelling,
+      then it has to acquire horses, then its turn ends.
+
+    * Dwellings seem to trade horses according to normal rules,
+      namely that they won't trade them twice in a row (although
+      this needs to be confirmed; a violation of this may once
+      have been observed while trading with an Inca capital).
+
+    * If we only trade 1 horse with the natives, horse_herds
+      still increases.
+
+  Muskets
+  -------
+
+    * A tribe that acquires muskets can eventually lose them.
+
+    * The muskets readout on the indian advisor report includes
+      muskets held by braves (50 each). That said, there are some
+      inconsistencies:
+
+        * It doesn't always decrease when a brave with muskets is
+          destroyed. This could be explained by the game having a
+          probability of the muskets being retained by the tribe.
+
+    * The tribe's muskets field appears to be some kind of enum;
+      it has been observed to hold the following values:
+
+        0: ??
+        1: ??
+        2: ??
+        3: ??
+
+      That said, this could be a bit field:
+
+        bit 0: ??
+        bit 1: ??
+
+  Suspected but not verified:
+
+    * When a brave acquires muskets via combat it does not go to
+      the tribe's stockpile. Though if the brave then gets de-
+      stroyed the muskets might go to the stockpile.
+
+    * Each brave with muskets accounts for 50 out of the total
+      amount of the tribe.  The converse may not be true.
+
+    * The number of muskets in the tribe can grow even long after
+      having sold them.
+
+    * Selling muskets: when selling muskets to a tribe, the amount
+      sold gets multiplied, but only sometimes. E.g., upon selling
+      100 muskets to a tribe, in one case the tribe was then listed
+      as having only 50 muskets, and it remained that way. Another
+      time it was listed as having 100 initially, and it grew to
+      250 on its own. Another time it was 150 and remained con-
+      stant.
+
+    * When disbanding a brave, the tribe will lose 50 muskets. So
+      the game's reading on number of muskets per tribe must be in-
+      cluding free braves.
+
+    * When defeating an armed brave in combat, the tribe's musket
+      count goes down sometimes, but not others. Even in the cases
+      where we defeat all armed braves but one, the total musket
+      count quickly goes back up to e.g. 300. The tribe seems to
+      produce muskets provided that it has at least 50. This actu-
+      ally could be due to a combination of two effects: the reten-
+      tion of horses/muskets by the tribe when a brave dies, and
+      two the fact that horses/muskets readouts may not include
+      those held by free braves.
+
+    * Once a tribe's musket count goes to zero it stays there.
