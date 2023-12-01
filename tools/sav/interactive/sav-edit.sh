@@ -24,9 +24,16 @@ echo "converting $sav_file to JSON file $tmp_file..."
 $conv/binary-to-json.sh "$sav_file" "$tmp_file"
 [[ -e "$tmp_file" ]]
 
+echo "backing up $tmp_file to $tmp_file.copy..."
+cp "$tmp_file" "$tmp_file.copy"
+[[ -e "$tmp_file.copy" ]]
+
 nvim "$tmp_file"
 
-echo "converting JSON file $tmp_file to $sav_file..."
-$conv/json-to-binary.sh "$tmp_file" "$sav_file"
+# Only save if the file was edited.
+if ! diff "$tmp_file" "$tmp_file.copy" >/dev/null; then
+  echo "converting JSON file $tmp_file to $sav_file..."
+  $conv/json-to-binary.sh "$tmp_file" "$sav_file"
+fi
 
 echo "finished."
