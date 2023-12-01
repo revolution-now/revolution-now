@@ -6583,8 +6583,8 @@
         52
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": true,
         "scouted": false,
@@ -6621,8 +6621,8 @@
         51
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6659,8 +6659,8 @@
         46
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6697,8 +6697,8 @@
         57
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6735,8 +6735,8 @@
         43
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6773,8 +6773,8 @@
         56
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6811,8 +6811,8 @@
         37
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6849,8 +6849,8 @@
         43
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6887,8 +6887,8 @@
         48
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6925,8 +6925,8 @@
         46
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -6963,8 +6963,8 @@
         51
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7001,8 +7001,8 @@
         33
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7039,8 +7039,8 @@
         46
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7077,8 +7077,8 @@
         51
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7115,8 +7115,8 @@
         37
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7153,8 +7153,8 @@
         43
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7191,8 +7191,8 @@
         63
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7229,8 +7229,8 @@
         27
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7267,8 +7267,8 @@
         63
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7305,8 +7305,8 @@
         31
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -7348,7 +7348,9 @@
       "unknown31a": "80 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
@@ -7407,7 +7409,9 @@
       "unknown31a": "80 00 02 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 06 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 06 00",
       "stock": [
         0,
         0,
@@ -7466,7 +7470,9 @@
       "unknown31a": "80 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 07 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 07 00",
       "stock": [
         0,
         0,
@@ -7525,7 +7531,9 @@
       "unknown31a": "a0 00 02 00",
       "muskets": 4,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 02 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 02 00",
       "stock": [
         0,
         0,
@@ -7584,7 +7592,9 @@
       "unknown31a": "80 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 31 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 31 00",
       "stock": [
         0,
         0,
@@ -7643,7 +7653,9 @@
       "unknown31a": "e0 00 00 00",
       "muskets": 0,
       "horse_herds": 1,
-      "unknown31b": "00 02 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 2,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
@@ -7702,7 +7714,9 @@
       "unknown31a": "80 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
@@ -7761,7 +7775,9 @@
       "unknown31a": "00 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,

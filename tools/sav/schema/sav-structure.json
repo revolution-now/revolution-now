@@ -1256,7 +1256,7 @@
             "__key_order": [
                 "x, y",
                 "nation_id",
-                "ALCS",
+                "BLCS",
                 "population",
                 "mission",
                 "growth_counter",
@@ -1267,12 +1267,12 @@
             ],
             "x, y": {"size": 1, "count": 2, "type": "uint", "no_indent": true},
             "nation_id": {"size": 1, "type": "nation_type"},
-            "ALCS":
+            "BLCS":
             {
                 "bit_struct":
                 {
-                    "__key_order": ["artillery_near", "learned", "capital", "scouted", "unused09"],
-                    "artillery_near": {"size": 1, "type": "bit_bool"},
+                    "__key_order": ["brave_missing", "learned", "capital", "scouted", "unused09"],
+                    "brave_missing": {"size": 1, "type": "bit_bool"},
                     "learned": {"size": 1, "type": "bit_bool"},
                     "capital": {"size": 1, "type": "bit_bool"},
                     "scouted": {"size": 1, "type": "bit_bool"},
@@ -1308,7 +1308,9 @@
                 "unknown31a",
                 "muskets",
                 "horse_herds",
-                "unknown31b",
+                "unknown31c",
+                "horse_breeding",
+                "unknown31d",
                 "stock",
                 "unknown32",
                 "relation_by_nations",
@@ -1320,7 +1322,9 @@
             "unknown31a": {"size": 4},
             "muskets": {"size": 1, "type": "uint", "__hint": "not including muskets equipped by braves"},
             "horse_herds": {"size": 1, "type": "uint"},
-            "unknown31b": {"size": 5},
+            "unknown31c": {"size": 1},
+            "horse_breeding": {"size": 1, "type": "uint"},
+            "unknown31d": {"size": 3},
             "stock": {"size": 2, "cols": 16, "type": "int", "no_indent": true, "__hint": "stock of each good used for trading. can be negative."},
             "unknown32": {"size": 12},
             "relation_by_nations":

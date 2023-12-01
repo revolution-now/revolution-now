@@ -1462,35 +1462,35 @@ cdr::result<RelationByIndian> from_canonical(
                          cdr::tag_t<RelationByIndian> );
 
 /****************************************************************
-** ALCS
+** BLCS
 *****************************************************************/
-struct ALCS {
-  bool artillery_near : 1 = {};
+struct BLCS {
+  bool brave_missing : 1 = {};
   bool learned : 1 = {};
   bool capital : 1 = {};
   bool scouted : 1 = {};
   uint8_t unused09 : 4 = {};
 
-  bool operator==( ALCS const& ) const = default;
+  bool operator==( BLCS const& ) const = default;
 };
 
 // String conversion.
-void to_str( ALCS const& o, std::string& out, base::ADL_t );
+void to_str( BLCS const& o, std::string& out, base::ADL_t );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, ALCS& o );
+bool read_binary( base::IBinaryIO& b, BLCS& o );
 
-bool write_binary( base::IBinaryIO& b, ALCS const& o );
+bool write_binary( base::IBinaryIO& b, BLCS const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         ALCS const& o,
-                         cdr::tag_t<ALCS> );
+                         BLCS const& o,
+                         cdr::tag_t<BLCS> );
 
-cdr::result<ALCS> from_canonical(
+cdr::result<BLCS> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<ALCS> );
+                         cdr::tag_t<BLCS> );
 
 /****************************************************************
 ** RelationByNations2
@@ -2614,7 +2614,7 @@ cdr::result<Alarm> from_canonical(
 struct DWELLING {
   std::array<uint8_t, 2> x_y = {};
   nation_type nation_id = {};
-  ALCS alcs = {};
+  BLCS blcs = {};
   uint8_t population = {};
   int8_t mission = {};
   int8_t growth_counter = {};
@@ -2653,7 +2653,9 @@ struct TRIBE {
   bytes<4> unknown31a = {};
   uint8_t muskets = {};
   uint8_t horse_herds = {};
-  bytes<5> unknown31b = {};
+  bytes<1> unknown31c = {};
+  uint8_t horse_breeding = {};
+  bytes<3> unknown31d = {};
   std::array<int16_t, 16> stock = {};
   bytes<12> unknown32 = {};
   std::array<RelationByNations2, 4> relation_by_nations = {};

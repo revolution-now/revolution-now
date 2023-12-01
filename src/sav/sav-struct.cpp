@@ -3326,11 +3326,11 @@ cdr::result<RelationByIndian> from_canonical(
 }
 
 /****************************************************************
-** ALCS
+** BLCS
 *****************************************************************/
-void to_str( ALCS const& o, std::string& out, base::ADL_t t ) {
-  out += "ALCS{";
-  out += "artillery_near="; to_str( o.artillery_near, out, t ); out += ',';
+void to_str( BLCS const& o, std::string& out, base::ADL_t t ) {
+  out += "BLCS{";
+  out += "brave_missing="; to_str( o.brave_missing, out, t ); out += ',';
   out += "learned="; to_str( o.learned, out, t ); out += ',';
   out += "capital="; to_str( o.capital, out, t ); out += ',';
   out += "scouted="; to_str( o.scouted, out, t ); out += ',';
@@ -3339,10 +3339,10 @@ void to_str( ALCS const& o, std::string& out, base::ADL_t t ) {
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, ALCS& o ) {
+bool read_binary( base::IBinaryIO& b, BLCS& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
-  o.artillery_near = (bits & 0b1); bits >>= 1;
+  o.brave_missing = (bits & 0b1); bits >>= 1;
   o.learned = (bits & 0b1); bits >>= 1;
   o.capital = (bits & 0b1); bits >>= 1;
   o.scouted = (bits & 0b1); bits >>= 1;
@@ -3350,27 +3350,27 @@ bool read_binary( base::IBinaryIO& b, ALCS& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, ALCS const& o ) {
+bool write_binary( base::IBinaryIO& b, BLCS const& o ) {
   uint8_t bits = 0;
   bits |= (o.unused09 & 0b1111); bits <<= 1;
   bits |= (o.scouted & 0b1); bits <<= 1;
   bits |= (o.capital & 0b1); bits <<= 1;
   bits |= (o.learned & 0b1); bits <<= 1;
-  bits |= (o.artillery_near & 0b1); bits <<= 0;
+  bits |= (o.brave_missing & 0b1); bits <<= 0;
   return b.write_bytes<1>( bits );
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         ALCS const& o,
-                         cdr::tag_t<ALCS> ) {
+                         BLCS const& o,
+                         cdr::tag_t<BLCS> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "artillery_near", o.artillery_near );
+  conv.to_field( tbl, "brave_missing", o.brave_missing );
   conv.to_field( tbl, "learned", o.learned );
   conv.to_field( tbl, "capital", o.capital );
   conv.to_field( tbl, "scouted", o.scouted );
   conv.to_field( tbl, "unused09", bits<4>{ o.unused09 } );
   tbl["__key_order"] = cdr::list{
-    "artillery_near",
+    "brave_missing",
     "learned",
     "capital",
     "scouted",
@@ -3379,14 +3379,14 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<ALCS> from_canonical(
+cdr::result<BLCS> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<ALCS> ) {
+                         cdr::tag_t<BLCS> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  ALCS res = {};
+  BLCS res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "artillery_near", artillery_near );
+  CONV_FROM_FIELD( "brave_missing", brave_missing );
   CONV_FROM_FIELD( "learned", learned );
   CONV_FROM_FIELD( "capital", capital );
   CONV_FROM_FIELD( "scouted", scouted );
@@ -6254,7 +6254,7 @@ void to_str( DWELLING const& o, std::string& out, base::ADL_t t ) {
   out += "DWELLING{";
   out += "x_y="; to_str( o.x_y, out, t ); out += ',';
   out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
-  out += "alcs="; to_str( o.alcs, out, t ); out += ',';
+  out += "blcs="; to_str( o.blcs, out, t ); out += ',';
   out += "population="; to_str( o.population, out, t ); out += ',';
   out += "mission="; to_str( o.mission, out, t ); out += ',';
   out += "growth_counter="; to_str( o.growth_counter, out, t ); out += ',';
@@ -6270,7 +6270,7 @@ bool read_binary( base::IBinaryIO& b, DWELLING& o ) {
   return true
     && read_binary( b, o.x_y )
     && read_binary( b, o.nation_id )
-    && read_binary( b, o.alcs )
+    && read_binary( b, o.blcs )
     && read_binary( b, o.population )
     && read_binary( b, o.mission )
     && read_binary( b, o.growth_counter )
@@ -6285,7 +6285,7 @@ bool write_binary( base::IBinaryIO& b, DWELLING const& o ) {
   return true
     && write_binary( b, o.x_y )
     && write_binary( b, o.nation_id )
-    && write_binary( b, o.alcs )
+    && write_binary( b, o.blcs )
     && write_binary( b, o.population )
     && write_binary( b, o.mission )
     && write_binary( b, o.growth_counter )
@@ -6302,7 +6302,7 @@ cdr::value to_canonical( cdr::converter& conv,
   cdr::table tbl;
   conv.to_field( tbl, "x, y", o.x_y );
   conv.to_field( tbl, "nation_id", o.nation_id );
-  conv.to_field( tbl, "ALCS", o.alcs );
+  conv.to_field( tbl, "BLCS", o.blcs );
   conv.to_field( tbl, "population", o.population );
   conv.to_field( tbl, "mission", o.mission );
   conv.to_field( tbl, "growth_counter", o.growth_counter );
@@ -6313,7 +6313,7 @@ cdr::value to_canonical( cdr::converter& conv,
   tbl["__key_order"] = cdr::list{
     "x, y",
     "nation_id",
-    "ALCS",
+    "BLCS",
     "population",
     "mission",
     "growth_counter",
@@ -6334,7 +6334,7 @@ cdr::result<DWELLING> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "x, y", x_y );
   CONV_FROM_FIELD( "nation_id", nation_id );
-  CONV_FROM_FIELD( "ALCS", alcs );
+  CONV_FROM_FIELD( "BLCS", blcs );
   CONV_FROM_FIELD( "population", population );
   CONV_FROM_FIELD( "mission", mission );
   CONV_FROM_FIELD( "growth_counter", growth_counter );
@@ -6356,7 +6356,9 @@ void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
   out += "unknown31a="; to_str( o.unknown31a, out, t ); out += ',';
   out += "muskets="; to_str( o.muskets, out, t ); out += ',';
   out += "horse_herds="; to_str( o.horse_herds, out, t ); out += ',';
-  out += "unknown31b="; to_str( o.unknown31b, out, t ); out += ',';
+  out += "unknown31c="; to_str( o.unknown31c, out, t ); out += ',';
+  out += "horse_breeding="; to_str( o.horse_breeding, out, t ); out += ',';
+  out += "unknown31d="; to_str( o.unknown31d, out, t ); out += ',';
   out += "stock="; to_str( o.stock, out, t ); out += ',';
   out += "unknown32="; to_str( o.unknown32, out, t ); out += ',';
   out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
@@ -6373,7 +6375,9 @@ bool read_binary( base::IBinaryIO& b, TRIBE& o ) {
     && read_binary( b, o.unknown31a )
     && read_binary( b, o.muskets )
     && read_binary( b, o.horse_herds )
-    && read_binary( b, o.unknown31b )
+    && read_binary( b, o.unknown31c )
+    && read_binary( b, o.horse_breeding )
+    && read_binary( b, o.unknown31d )
     && read_binary( b, o.stock )
     && read_binary( b, o.unknown32 )
     && read_binary( b, o.relation_by_nations )
@@ -6389,7 +6393,9 @@ bool write_binary( base::IBinaryIO& b, TRIBE const& o ) {
     && write_binary( b, o.unknown31a )
     && write_binary( b, o.muskets )
     && write_binary( b, o.horse_herds )
-    && write_binary( b, o.unknown31b )
+    && write_binary( b, o.unknown31c )
+    && write_binary( b, o.horse_breeding )
+    && write_binary( b, o.unknown31d )
     && write_binary( b, o.stock )
     && write_binary( b, o.unknown32 )
     && write_binary( b, o.relation_by_nations )
@@ -6407,7 +6413,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown31a", o.unknown31a );
   conv.to_field( tbl, "muskets", o.muskets );
   conv.to_field( tbl, "horse_herds", o.horse_herds );
-  conv.to_field( tbl, "unknown31b", o.unknown31b );
+  conv.to_field( tbl, "unknown31c", o.unknown31c );
+  conv.to_field( tbl, "horse_breeding", o.horse_breeding );
+  conv.to_field( tbl, "unknown31d", o.unknown31d );
   conv.to_field( tbl, "stock", o.stock );
   conv.to_field( tbl, "unknown32", o.unknown32 );
   conv.to_field( tbl, "relation_by_nations", o.relation_by_nations );
@@ -6419,7 +6427,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown31a",
     "muskets",
     "horse_herds",
-    "unknown31b",
+    "unknown31c",
+    "horse_breeding",
+    "unknown31d",
     "stock",
     "unknown32",
     "relation_by_nations",
@@ -6441,7 +6451,9 @@ cdr::result<TRIBE> from_canonical(
   CONV_FROM_FIELD( "unknown31a", unknown31a );
   CONV_FROM_FIELD( "muskets", muskets );
   CONV_FROM_FIELD( "horse_herds", horse_herds );
-  CONV_FROM_FIELD( "unknown31b", unknown31b );
+  CONV_FROM_FIELD( "unknown31c", unknown31c );
+  CONV_FROM_FIELD( "horse_breeding", horse_breeding );
+  CONV_FROM_FIELD( "unknown31d", unknown31d );
   CONV_FROM_FIELD( "stock", stock );
   CONV_FROM_FIELD( "unknown32", unknown32 );
   CONV_FROM_FIELD( "relation_by_nations", relation_by_nations );

@@ -20167,8 +20167,8 @@
         42
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": true,
         "scouted": true,
@@ -20205,8 +20205,8 @@
         35
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": true,
         "scouted": true,
@@ -20243,8 +20243,8 @@
         21
       ],
       "nation_id": "Cherokee",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": true,
         "scouted": true,
@@ -20281,8 +20281,8 @@
         23
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": true,
         "scouted": true,
@@ -20319,8 +20319,8 @@
         23
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20357,8 +20357,8 @@
         42
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -20395,8 +20395,8 @@
         37
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20433,8 +20433,8 @@
         31
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20471,8 +20471,8 @@
         28
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20509,8 +20509,8 @@
         48
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -20547,8 +20547,8 @@
         36
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20585,8 +20585,8 @@
         41
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20623,8 +20623,8 @@
         58
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20661,8 +20661,8 @@
         46
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20699,8 +20699,8 @@
         16
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20737,8 +20737,8 @@
         46
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20775,8 +20775,8 @@
         27
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20813,8 +20813,8 @@
         51
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20851,8 +20851,8 @@
         18
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20889,8 +20889,8 @@
         31
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20927,8 +20927,8 @@
         11
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -20965,8 +20965,8 @@
         8
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -21003,8 +21003,8 @@
         33
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21041,8 +21041,8 @@
         37
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21079,8 +21079,8 @@
         36
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21117,8 +21117,8 @@
         43
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -21155,8 +21155,8 @@
         33
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21193,8 +21193,8 @@
         52
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21231,8 +21231,8 @@
         36
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21269,8 +21269,8 @@
         56
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21307,8 +21307,8 @@
         32
       ],
       "nation_id": "Aztec",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -21345,8 +21345,8 @@
         18
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -21383,8 +21383,8 @@
         22
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21421,8 +21421,8 @@
         21
       ],
       "nation_id": "Cherokee",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21459,8 +21459,8 @@
         28
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": false,
@@ -21497,8 +21497,8 @@
         56
       ],
       "nation_id": "Tupi",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21535,8 +21535,8 @@
         6
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21573,8 +21573,8 @@
         31
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -21611,8 +21611,8 @@
         38
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21649,8 +21649,8 @@
         8
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": true,
@@ -21687,8 +21687,8 @@
         41
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21725,8 +21725,8 @@
         67
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21763,8 +21763,8 @@
         13
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21801,8 +21801,8 @@
         12
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21839,8 +21839,8 @@
         52
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -21877,8 +21877,8 @@
         57
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -21915,8 +21915,8 @@
         58
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -21953,8 +21953,8 @@
         66
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": true,
         "capital": false,
         "scouted": false,
@@ -21991,8 +21991,8 @@
         56
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22029,8 +22029,8 @@
         11
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22067,8 +22067,8 @@
         51
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22105,8 +22105,8 @@
         66
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -22143,8 +22143,8 @@
         68
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -22181,8 +22181,8 @@
         7
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22219,8 +22219,8 @@
         7
       ],
       "nation_id": "Sioux",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22257,8 +22257,8 @@
         37
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -22295,8 +22295,8 @@
         63
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22333,8 +22333,8 @@
         63
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -22371,8 +22371,8 @@
         67
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22409,8 +22409,8 @@
         8
       ],
       "nation_id": "Iroquois",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22447,8 +22447,8 @@
         67
       ],
       "nation_id": "Arawak",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22485,8 +22485,8 @@
         63
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": true,
@@ -22523,8 +22523,8 @@
         67
       ],
       "nation_id": "Inca",
-      "ALCS": {
-        "artillery_near": false,
+      "BLCS": {
+        "brave_missing": false,
         "learned": false,
         "capital": false,
         "scouted": false,
@@ -22566,7 +22566,9 @@
       "unknown31a": "00 00 00 00",
       "muskets": 0,
       "horse_herds": 31,
-      "unknown31b": "00 44 00 54 00",
+      "unknown31c": "00",
+      "horse_breeding": 68,
+      "unknown31d": "00 54 00",
       "stock": [
         0,
         0,
@@ -22625,7 +22627,9 @@
       "unknown31a": "00 00 05 00",
       "muskets": 0,
       "horse_herds": 47,
-      "unknown31b": "00 2c 01 6c 00",
+      "unknown31c": "00",
+      "horse_breeding": 44,
+      "unknown31d": "01 6c 00",
       "stock": [
         4158,
         -1,
@@ -22684,7 +22688,9 @@
       "unknown31a": "00 00 01 00",
       "muskets": 0,
       "horse_herds": 2,
-      "unknown31b": "00 00 00 27 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 27 00",
       "stock": [
         0,
         0,
@@ -22743,7 +22749,9 @@
       "unknown31a": "40 00 08 00",
       "muskets": 0,
       "horse_herds": 9,
-      "unknown31b": "00 00 00 25 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 25 00",
       "stock": [
         0,
         0,
@@ -22802,7 +22810,9 @@
       "unknown31a": "00 00 00 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 01 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 01 00",
       "stock": [
         0,
         0,
@@ -22861,7 +22871,9 @@
       "unknown31a": "80 00 01 00",
       "muskets": 0,
       "horse_herds": 0,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
@@ -22920,7 +22932,9 @@
       "unknown31a": "00 00 01 00",
       "muskets": 0,
       "horse_herds": 47,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
@@ -22979,7 +22993,9 @@
       "unknown31a": "00 00 00 00",
       "muskets": 0,
       "horse_herds": 3,
-      "unknown31b": "00 00 00 00 00",
+      "unknown31c": "00",
+      "horse_breeding": 0,
+      "unknown31d": "00 00 00",
       "stock": [
         0,
         0,
