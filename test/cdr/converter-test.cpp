@@ -557,14 +557,12 @@ TEST_CASE( "[cdr/converter] backtrace" ) {
   string expected =
       "failed to convert value of type string to int.\n"
       "frame trace (most recent frame last):\n"
-      "---------------------------------------------------\n"
       "std::unordered_map<std::string, int, "
       "std::hash<std::string>, s...\n"
       " \\-index 1\n"
       "   \\-std::pair<std::string const, int>\n"
       "     \\-value for key 'val'\n"
-      "       \\-int\n"
-      "---------------------------------------------------";
+      "       \\-int";
   REQUIRE( run_conversion_from_canonical<M>( v ) ==
            conv.err( expected ) );
 }

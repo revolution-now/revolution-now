@@ -52,12 +52,11 @@ vector<string> const& converter::error_stack() const {
 string converter::dump_error_stack() const {
   string out;
   out += "frame trace (most recent frame last):\n";
-  out += "---------------------------------------------------\n";
   string spaces;
   // This will probably need to be tweaked when compiler versions
   // change. The idea is to make whatever substitutions are nec-
   // essary to make the output clean and readable.
-  static initializer_list<pair<string, string>> to_replace{
+  static initializer_list<pair<string, string>> replacements{
       { base::demangled_typename<string>(), "std::string" },
       { "::__1", "" },
       { "::(anonymous namespace)", "" },
@@ -65,7 +64,7 @@ string converter::dump_error_stack() const {
   };
   for( string const& frame : error_stack() ) {
     string sanitized =
-        base::str_replace_all( frame, to_replace );
+        base::str_replace_all( frame, replacements );
     if( sanitized.size() > 62 ) {
       sanitized.resize( 62 );
       sanitized = base::trim( sanitized );
@@ -77,14 +76,15 @@ string converter::dump_error_stack() const {
     else
       spaces = "  " + spaces;
   }
-  out += "---------------------------------------------------";
+  if( !out.empty() )
+    out.resize( out.size() - 1 ); // cut traing newline.
   return out;
 }
 
 error converter::from_canonical_readable_error(
     error const& err_obj ) const {
-  return error( fmt::format( "{}\n", err_obj.what() ) +
-                dump_error_stack() );
+  return error( fmt::format( "{}\n{}", err_obj.what(),
+                             dump_error_stack() ) );
 }
 
 } // namespace cdr

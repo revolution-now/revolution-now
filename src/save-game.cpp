@@ -417,7 +417,7 @@ wait<base::NoDiscard<bool>> load_slot( SS& ss, TS& ts,
   expect<fs::path> result = load_game( ss, ts, slot );
   if( !result.has_value() ) {
     co_await ts.gui.message_box( "Error: failed to load game." );
-    lg.error( "failed to load game: {}.", result.error() );
+    lg.error( "failed to load game: {}", result.error() );
     co_return false;
   }
   co_await ts.gui.message_box(
