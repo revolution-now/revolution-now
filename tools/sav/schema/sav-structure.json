@@ -392,6 +392,11 @@
         {
             "Not shown": "00 00",
             "Flashing": "01 00"
+        },
+        "yes_no_byte":
+        {
+            "no": "00",
+            "yes": "01"
         }
     },
     "HEADER":
@@ -1305,7 +1310,8 @@
             "__key_order": [
                 "capitol (x, y)",
                 "tech",
-                "unknown31a",
+                "tribe_flags",
+                "unknown31b",
                 "muskets",
                 "horse_herds",
                 "unknown31c",
@@ -1319,7 +1325,16 @@
             ],
             "capitol (x, y)": {"size": 1, "type": "uint", "cols": 2, "no_indent": true},
             "tech": {"size": 1, "type": "tech_type"},
-            "unknown31a": {"size": 4},
+            "tribe_flags":
+            {
+                "bit_struct":
+                {
+                    "__key_order": ["unknown01", "extinct"],
+                    "unknown01": {"size": 7},
+                    "extinct": {"size": 1, "type": "bit_bool"}
+                }
+            },
+            "unknown31b": {"size": 3},
             "muskets": {"size": 1, "type": "uint", "__hint": "not including muskets equipped by braves"},
             "horse_herds": {"size": 1, "type": "uint"},
             "unknown31c": {"size": 1},
@@ -1366,7 +1381,7 @@
             "unknown35": {"size": 2},
             "counter_increasing_on_new_colony": {"size": 2, "type": "uint"},
             "unknown36a": {"size": 543},
-            "show_colony_prod_quantities": {"size": 1},
+            "show_colony_prod_quantities": {"size": 1, "type": "yes_no_byte"},
             "unknown36b": {"size": 4, "count": 38},
             "x": {"size": 2, "type": "uint", "__hint": "white selector square x"},
             "y": {"size": 2, "type": "uint", "__hint": "white selector square y"},

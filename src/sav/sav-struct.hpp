@@ -917,6 +917,27 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
                          cdr::tag_t<visible_to_spanish_1bit_type> );
 
 /****************************************************************
+** yes_no_byte
+*****************************************************************/
+enum class yes_no_byte : uint8_t {
+  no  = 0x00,
+  yes = 0x01,
+};
+
+// String conversion.
+void to_str( yes_no_byte const& o, std::string& out, base::ADL_t );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         yes_no_byte const& o,
+                         cdr::tag_t<yes_no_byte> );
+
+cdr::result<yes_no_byte> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<yes_no_byte> );
+
+/****************************************************************
 ** TutorialHelp
 *****************************************************************/
 struct TutorialHelp {
@@ -1491,6 +1512,34 @@ cdr::result<BLCS> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<BLCS> );
+
+/****************************************************************
+** TribeFlags
+*****************************************************************/
+struct TribeFlags {
+  uint8_t unknown01 : 7 = {};
+  bool extinct : 1 = {};
+
+  bool operator==( TribeFlags const& ) const = default;
+};
+
+// String conversion.
+void to_str( TribeFlags const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TribeFlags& o );
+
+bool write_binary( base::IBinaryIO& b, TribeFlags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TribeFlags const& o,
+                         cdr::tag_t<TribeFlags> );
+
+cdr::result<TribeFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TribeFlags> );
 
 /****************************************************************
 ** RelationByNations2
@@ -2650,7 +2699,8 @@ cdr::result<DWELLING> from_canonical(
 struct TRIBE {
   std::array<uint8_t, 2> capitol_x_y = {};
   tech_type tech = {};
-  bytes<4> unknown31a = {};
+  TribeFlags tribe_flags = {};
+  bytes<3> unknown31b = {};
   uint8_t muskets = {};
   uint8_t horse_herds = {};
   bytes<1> unknown31c = {};
@@ -2692,7 +2742,7 @@ struct STUFF {
   bytes<2> unknown35 = {};
   uint16_t counter_increasing_on_new_colony = {};
   bytes<543> unknown36a = {};
-  bytes<1> show_colony_prod_quantities = {};
+  yes_no_byte show_colony_prod_quantities = {};
   std::array<bytes<4>, 38> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};

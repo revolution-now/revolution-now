@@ -1796,6 +1796,42 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
 }
 
 /****************************************************************
+** yes_no_byte
+*****************************************************************/
+void to_str( yes_no_byte const& o, std::string& out, base::ADL_t ) {
+  switch( o ) {
+    case yes_no_byte::no: out += "no"; return;
+    case yes_no_byte::yes: out += "yes"; return;
+  }
+  out += "<unrecognized>";
+}
+
+cdr::value to_canonical( cdr::converter&,
+                         yes_no_byte const& o,
+                         cdr::tag_t<yes_no_byte> ) {
+  switch( o ) {
+    case yes_no_byte::no: return "no";
+    case yes_no_byte::yes: return "yes";
+  }
+  return cdr::null;
+}
+
+cdr::result<yes_no_byte> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<yes_no_byte> ) {
+  UNWRAP_RETURN( str, conv.ensure_type<std::string>( v ) );
+  static std::map<std::string, yes_no_byte> const m{
+    { "no", yes_no_byte::no },
+    { "yes", yes_no_byte::yes },
+  };
+  if( auto it = m.find( str ); it != m.end() )
+    return it->second;
+  else
+    return BAD_ENUM_STR_VALUE( "yes_no_byte", str );
+}
+
+/****************************************************************
 ** TutorialHelp
 *****************************************************************/
 void to_str( TutorialHelp const& o, std::string& out, base::ADL_t t ) {
@@ -3391,6 +3427,58 @@ cdr::result<BLCS> from_canonical(
   CONV_FROM_FIELD( "capital", capital );
   CONV_FROM_FIELD( "scouted", scouted );
   CONV_FROM_BITSTRING_FIELD( "unused09", unused09, 4 );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** TribeFlags
+*****************************************************************/
+void to_str( TribeFlags const& o, std::string& out, base::ADL_t t ) {
+  out += "TribeFlags{";
+  out += "unknown01="; to_str( bits<7>{ o.unknown01 }, out, t ); out += ',';
+  out += "extinct="; to_str( o.extinct, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TribeFlags& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.unknown01 = (bits & 0b1111111); bits >>= 7;
+  o.extinct = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, TribeFlags const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.extinct & 0b1); bits <<= 7;
+  bits |= (o.unknown01 & 0b1111111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         TribeFlags const& o,
+                         cdr::tag_t<TribeFlags> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "unknown01", bits<7>{ o.unknown01 } );
+  conv.to_field( tbl, "extinct", o.extinct );
+  tbl["__key_order"] = cdr::list{
+    "unknown01",
+    "extinct",
+  };
+  return tbl;
+}
+
+cdr::result<TribeFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TribeFlags> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  TribeFlags res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_BITSTRING_FIELD( "unknown01", unknown01, 7 );
+  CONV_FROM_FIELD( "extinct", extinct );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -6353,7 +6441,8 @@ void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
   out += "TRIBE{";
   out += "capitol_x_y="; to_str( o.capitol_x_y, out, t ); out += ',';
   out += "tech="; to_str( o.tech, out, t ); out += ',';
-  out += "unknown31a="; to_str( o.unknown31a, out, t ); out += ',';
+  out += "tribe_flags="; to_str( o.tribe_flags, out, t ); out += ',';
+  out += "unknown31b="; to_str( o.unknown31b, out, t ); out += ',';
   out += "muskets="; to_str( o.muskets, out, t ); out += ',';
   out += "horse_herds="; to_str( o.horse_herds, out, t ); out += ',';
   out += "unknown31c="; to_str( o.unknown31c, out, t ); out += ',';
@@ -6372,7 +6461,8 @@ bool read_binary( base::IBinaryIO& b, TRIBE& o ) {
   return true
     && read_binary( b, o.capitol_x_y )
     && read_binary( b, o.tech )
-    && read_binary( b, o.unknown31a )
+    && read_binary( b, o.tribe_flags )
+    && read_binary( b, o.unknown31b )
     && read_binary( b, o.muskets )
     && read_binary( b, o.horse_herds )
     && read_binary( b, o.unknown31c )
@@ -6390,7 +6480,8 @@ bool write_binary( base::IBinaryIO& b, TRIBE const& o ) {
   return true
     && write_binary( b, o.capitol_x_y )
     && write_binary( b, o.tech )
-    && write_binary( b, o.unknown31a )
+    && write_binary( b, o.tribe_flags )
+    && write_binary( b, o.unknown31b )
     && write_binary( b, o.muskets )
     && write_binary( b, o.horse_herds )
     && write_binary( b, o.unknown31c )
@@ -6410,7 +6501,8 @@ cdr::value to_canonical( cdr::converter& conv,
   cdr::table tbl;
   conv.to_field( tbl, "capitol (x, y)", o.capitol_x_y );
   conv.to_field( tbl, "tech", o.tech );
-  conv.to_field( tbl, "unknown31a", o.unknown31a );
+  conv.to_field( tbl, "tribe_flags", o.tribe_flags );
+  conv.to_field( tbl, "unknown31b", o.unknown31b );
   conv.to_field( tbl, "muskets", o.muskets );
   conv.to_field( tbl, "horse_herds", o.horse_herds );
   conv.to_field( tbl, "unknown31c", o.unknown31c );
@@ -6424,7 +6516,8 @@ cdr::value to_canonical( cdr::converter& conv,
   tbl["__key_order"] = cdr::list{
     "capitol (x, y)",
     "tech",
-    "unknown31a",
+    "tribe_flags",
+    "unknown31b",
     "muskets",
     "horse_herds",
     "unknown31c",
@@ -6448,7 +6541,8 @@ cdr::result<TRIBE> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "capitol (x, y)", capitol_x_y );
   CONV_FROM_FIELD( "tech", tech );
-  CONV_FROM_FIELD( "unknown31a", unknown31a );
+  CONV_FROM_FIELD( "tribe_flags", tribe_flags );
+  CONV_FROM_FIELD( "unknown31b", unknown31b );
   CONV_FROM_FIELD( "muskets", muskets );
   CONV_FROM_FIELD( "horse_herds", horse_herds );
   CONV_FROM_FIELD( "unknown31c", unknown31c );
