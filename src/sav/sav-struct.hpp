@@ -2704,8 +2704,8 @@ struct TRIBE {
   uint8_t muskets = {};
   uint8_t horse_herds = {};
   bytes<1> unknown31c = {};
-  uint8_t horse_breeding = {};
-  bytes<3> unknown31d = {};
+  uint16_t horse_breeding = {};
+  bytes<2> unknown31d = {};
   std::array<int16_t, 16> stock = {};
   bytes<12> unknown32 = {};
   std::array<RelationByNations2, 4> relation_by_nations = {};
@@ -2840,7 +2840,11 @@ struct ColonySAV {
   std::vector<SEEN> seen = {};
   std::array<bytes<18>, 14> unknown_map38a = {};
   std::array<bytes<18>, 14> unknown_map38b = {};
-  std::array<bytes<18>, 6> unknown_map38c = {};
+  std::array<bytes<18>, 2> unknown_map38c1 = {};
+  std::array<bytes<2>, 9> unknown_map38c2 = {};
+  bytes<16> unknown_map38c3 = {};
+  std::array<uint16_t, 14> strategy = {};
+  bytes<10> unknown_map38d = {};
   uint8_t prime_resource_seed = {};
   bytes<1> unknown39d = {};
   std::array<TRADEROUTE, 12> trade_route = {};

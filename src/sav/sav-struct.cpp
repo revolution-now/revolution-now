@@ -6871,7 +6871,11 @@ void to_str( ColonySAV const& o, std::string& out, base::ADL_t t ) {
   out += "seen="; to_str( o.seen, out, t ); out += ',';
   out += "unknown_map38a="; to_str( o.unknown_map38a, out, t ); out += ',';
   out += "unknown_map38b="; to_str( o.unknown_map38b, out, t ); out += ',';
-  out += "unknown_map38c="; to_str( o.unknown_map38c, out, t ); out += ',';
+  out += "unknown_map38c1="; to_str( o.unknown_map38c1, out, t ); out += ',';
+  out += "unknown_map38c2="; to_str( o.unknown_map38c2, out, t ); out += ',';
+  out += "unknown_map38c3="; to_str( o.unknown_map38c3, out, t ); out += ',';
+  out += "strategy="; to_str( o.strategy, out, t ); out += ',';
+  out += "unknown_map38d="; to_str( o.unknown_map38d, out, t ); out += ',';
   out += "prime_resource_seed="; to_str( o.prime_resource_seed, out, t ); out += ',';
   out += "unknown39d="; to_str( o.unknown39d, out, t ); out += ',';
   out += "trade_route="; to_str( o.trade_route, out, t );
@@ -6899,7 +6903,11 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "SEEN", o.seen );
   conv.to_field( tbl, "unknown_map38a", o.unknown_map38a );
   conv.to_field( tbl, "unknown_map38b", o.unknown_map38b );
-  conv.to_field( tbl, "unknown_map38c", o.unknown_map38c );
+  conv.to_field( tbl, "unknown_map38c1", o.unknown_map38c1 );
+  conv.to_field( tbl, "unknown_map38c2", o.unknown_map38c2 );
+  conv.to_field( tbl, "unknown_map38c3", o.unknown_map38c3 );
+  conv.to_field( tbl, "strategy", o.strategy );
+  conv.to_field( tbl, "unknown_map38d", o.unknown_map38d );
   conv.to_field( tbl, "prime_resource_seed", o.prime_resource_seed );
   conv.to_field( tbl, "unknown39d", o.unknown39d );
   conv.to_field( tbl, "TRADE_ROUTE", o.trade_route );
@@ -6919,7 +6927,11 @@ cdr::value to_canonical( cdr::converter& conv,
     "SEEN",
     "unknown_map38a",
     "unknown_map38b",
-    "unknown_map38c",
+    "unknown_map38c1",
+    "unknown_map38c2",
+    "unknown_map38c3",
+    "strategy",
+    "unknown_map38d",
     "prime_resource_seed",
     "unknown39d",
     "TRADE_ROUTE",
@@ -6949,7 +6961,11 @@ cdr::result<ColonySAV> from_canonical(
   CONV_FROM_FIELD( "SEEN", seen );
   CONV_FROM_FIELD( "unknown_map38a", unknown_map38a );
   CONV_FROM_FIELD( "unknown_map38b", unknown_map38b );
-  CONV_FROM_FIELD( "unknown_map38c", unknown_map38c );
+  CONV_FROM_FIELD( "unknown_map38c1", unknown_map38c1 );
+  CONV_FROM_FIELD( "unknown_map38c2", unknown_map38c2 );
+  CONV_FROM_FIELD( "unknown_map38c3", unknown_map38c3 );
+  CONV_FROM_FIELD( "strategy", strategy );
+  CONV_FROM_FIELD( "unknown_map38d", unknown_map38d );
   CONV_FROM_FIELD( "prime_resource_seed", prime_resource_seed );
   CONV_FROM_FIELD( "unknown39d", unknown39d );
   CONV_FROM_FIELD( "TRADE_ROUTE", trade_route );

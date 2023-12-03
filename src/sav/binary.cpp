@@ -133,9 +133,20 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   if( !read_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while reading unknown_map38b section." );
-  if( !read_binary( b, out.unknown_map38c ) )
+  if( !read_binary( b, out.unknown_map38c1 ) )
     return fmt::format(
-        "while reading unknown_map38c section." );
+        "while reading unknown_map38c1 section." );
+  if( !read_binary( b, out.unknown_map38c2 ) )
+    return fmt::format(
+        "while reading unknown_map38c2 section." );
+  if( !read_binary( b, out.unknown_map38c3 ) )
+    return fmt::format(
+        "while reading unknown_map38c3 section." );
+  if( !read_binary( b, out.strategy ) )
+    return fmt::format( "while reading strategy section." );
+  if( !read_binary( b, out.unknown_map38d ) )
+    return fmt::format(
+        "while reading unknown_map38d section." );
   if( !read_binary( b, out.prime_resource_seed ) )
     return fmt::format( "while reading prime resource seed." );
   if( !read_binary( b, out.unknown39d ) )
@@ -233,9 +244,20 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   if( !write_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while writing unknown_map38b section." );
-  if( !write_binary( b, out.unknown_map38c ) )
+  if( !write_binary( b, out.unknown_map38c1 ) )
     return fmt::format(
-        "while writing unknown_map38c section." );
+        "while writing unknown_map38c1 section." );
+  if( !write_binary( b, out.unknown_map38c2 ) )
+    return fmt::format(
+        "while writing unknown_map38c2 section." );
+  if( !write_binary( b, out.unknown_map38c3 ) )
+    return fmt::format(
+        "while writing unknown_map38c3 section." );
+  if( !write_binary( b, out.strategy ) )
+    return fmt::format( "while writing strategy section." );
+  if( !write_binary( b, out.unknown_map38d ) )
+    return fmt::format(
+        "while writing unknown_map38d section." );
   if( !write_binary( b, out.prime_resource_seed ) )
     return fmt::format( "while writing prime resource seed." );
   if( !write_binary( b, out.unknown39d ) )

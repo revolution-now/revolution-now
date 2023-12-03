@@ -216,7 +216,14 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   REQUIRE( converted.seen == expected.seen );
   REQUIRE( converted.unknown_map38a == expected.unknown_map38a );
   REQUIRE( converted.unknown_map38b == expected.unknown_map38b );
-  REQUIRE( converted.unknown_map38c == expected.unknown_map38c );
+  REQUIRE( converted.unknown_map38c1 ==
+           expected.unknown_map38c1 );
+  REQUIRE( converted.unknown_map38c2 ==
+           expected.unknown_map38c2 );
+  REQUIRE( converted.unknown_map38c3 ==
+           expected.unknown_map38c3 );
+  REQUIRE( converted.strategy == expected.strategy );
+  REQUIRE( converted.unknown_map38d == expected.unknown_map38d );
   REQUIRE( converted.prime_resource_seed ==
            expected.prime_resource_seed );
   REQUIRE( converted.unknown39d == expected.unknown39d );

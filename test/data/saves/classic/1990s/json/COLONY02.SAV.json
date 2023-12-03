@@ -22604,7 +22604,7 @@
       "horse_herds": 31,
       "unknown31c": "00",
       "horse_breeding": 68,
-      "unknown31d": "00 54 00",
+      "unknown31d": "54 00",
       "stock": [
         0,
         0,
@@ -22668,8 +22668,8 @@
       "muskets": 0,
       "horse_herds": 47,
       "unknown31c": "00",
-      "horse_breeding": 44,
-      "unknown31d": "01 6c 00",
+      "horse_breeding": 300,
+      "unknown31d": "6c 00",
       "stock": [
         4119,
         0,
@@ -22734,7 +22734,7 @@
       "horse_herds": 2,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 27 00",
+      "unknown31d": "27 00",
       "stock": [
         0,
         0,
@@ -22799,7 +22799,7 @@
       "horse_herds": 9,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 25 00",
+      "unknown31d": "25 00",
       "stock": [
         0,
         0,
@@ -22864,7 +22864,7 @@
       "horse_herds": 0,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 01 00",
+      "unknown31d": "01 00",
       "stock": [
         0,
         0,
@@ -22929,7 +22929,7 @@
       "horse_herds": 0,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 00 00",
+      "unknown31d": "00 00",
       "stock": [
         0,
         0,
@@ -22994,7 +22994,7 @@
       "horse_herds": 40,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 00 00",
+      "unknown31d": "00 00",
       "stock": [
         0,
         0,
@@ -23059,7 +23059,7 @@
       "horse_herds": 3,
       "unknown31c": "00",
       "horse_breeding": 0,
-      "unknown31d": "00 00 00",
+      "unknown31d": "00 00",
       "stock": [
         0,
         0,
@@ -127604,14 +127604,39 @@
     "00 18 75 f3 f9 fd ff df 87 00 00 00 00 00 76 c3 00 00",
     "00 00 e0 00 00 f0 f1 f1 c1 00 00 00 00 30 61 00 00 00"
   ],
-  "unknown_map38c": [
+  "unknown_map38c1": [
     "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
-    "00 00 74 02 0c 00 04 00 48 00 13 00 1d 00 04 00 00 00",
-    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 96 04",
-    "16 00 0a 00 99 00 40 00 4c 00 05 00 05 00 03 00 01 00",
-    "02 00 01 00 06 00 03 00 13 00 4a e8 82 72 38 1f 0d 00"
+    "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"
   ],
+  "unknown_map38c2": [
+    "00 00",
+    "74 02",
+    "0c 00",
+    "04 00",
+    "48 00",
+    "13 00",
+    "1d 00",
+    "04 00",
+    "00 00"
+  ],
+  "unknown_map38c3": "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00",
+  "strategy": [
+    1174,
+    22,
+    10,
+    153,
+    64,
+    76,
+    5,
+    5,
+    3,
+    1,
+    2,
+    1,
+    6,
+    3
+  ],
+  "unknown_map38d": "13 00 4a e8 82 72 38 1f 0d 00",
   "prime_resource_seed": 88,
   "unknown39d": "6a",
   "TRADE_ROUTE": [
