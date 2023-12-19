@@ -214,10 +214,9 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   REQUIRE( converted.mask == expected.mask );
   REQUIRE( converted.path == expected.path );
   REQUIRE( converted.seen == expected.seen );
-  REQUIRE( converted.unknown_map38a == expected.unknown_map38a );
+  REQUIRE( converted.sea_lane_connectivity ==
+           expected.sea_lane_connectivity );
   REQUIRE( converted.unknown_map38b == expected.unknown_map38b );
-  REQUIRE( converted.unknown_map38c1 ==
-           expected.unknown_map38c1 );
   REQUIRE( converted.unknown_map38c2 ==
            expected.unknown_map38c2 );
   REQUIRE( converted.unknown_map38c3 ==

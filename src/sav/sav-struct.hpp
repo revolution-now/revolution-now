@@ -1692,6 +1692,40 @@ cdr::result<SEEN> from_canonical(
                          cdr::tag_t<SEEN> );
 
 /****************************************************************
+** SeaLaneConnectivity
+*****************************************************************/
+struct SeaLaneConnectivity {
+  bool north : 1 = {};
+  bool neast : 1 = {};
+  bool east : 1 = {};
+  bool seast : 1 = {};
+  bool south : 1 = {};
+  bool swest : 1 = {};
+  bool west : 1 = {};
+  bool nwest : 1 = {};
+
+  bool operator==( SeaLaneConnectivity const& ) const = default;
+};
+
+// String conversion.
+void to_str( SeaLaneConnectivity const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, SeaLaneConnectivity& o );
+
+bool write_binary( base::IBinaryIO& b, SeaLaneConnectivity const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         SeaLaneConnectivity const& o,
+                         cdr::tag_t<SeaLaneConnectivity> );
+
+cdr::result<SeaLaneConnectivity> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<SeaLaneConnectivity> );
+
+/****************************************************************
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
 struct Stop1LoadsAndUnloadsCount {
@@ -2838,9 +2872,8 @@ struct ColonySAV {
   std::vector<MASK> mask = {};
   std::vector<PATH> path = {};
   std::vector<SEEN> seen = {};
-  std::array<bytes<18>, 14> unknown_map38a = {};
-  std::array<bytes<18>, 14> unknown_map38b = {};
-  std::array<bytes<18>, 2> unknown_map38c1 = {};
+  std::array<SeaLaneConnectivity, 270> sea_lane_connectivity = {};
+  std::array<bytes<18>, 15> unknown_map38b = {};
   std::array<bytes<2>, 9> unknown_map38c2 = {};
   bytes<16> unknown_map38c3 = {};
   std::array<uint16_t, 14> strategy = {};

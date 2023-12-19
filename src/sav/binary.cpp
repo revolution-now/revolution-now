@@ -127,15 +127,12 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   HAS_VALUE_OR_RET( read_vector( b, "seen", tile_count,
                                  kMaxTiles, out.seen ) );
 
-  if( !read_binary( b, out.unknown_map38a ) )
+  if( !read_binary( b, out.sea_lane_connectivity ) )
     return fmt::format(
-        "while reading unknown_map38a section." );
+        "while reading sea_lane_connectivity section." );
   if( !read_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while reading unknown_map38b section." );
-  if( !read_binary( b, out.unknown_map38c1 ) )
-    return fmt::format(
-        "while reading unknown_map38c1 section." );
   if( !read_binary( b, out.unknown_map38c2 ) )
     return fmt::format(
         "while reading unknown_map38c2 section." );
@@ -238,15 +235,12 @@ valid_or<string> write( IBinaryIO& b, ColonySAV const& out ) {
   HAS_VALUE_OR_RET( write_vector( b, "path", out.path ) );
   HAS_VALUE_OR_RET( write_vector( b, "seen", out.seen ) );
 
-  if( !write_binary( b, out.unknown_map38a ) )
+  if( !write_binary( b, out.sea_lane_connectivity ) )
     return fmt::format(
-        "while writing unknown_map38a section." );
+        "while writing sea_lane_connectivity section." );
   if( !write_binary( b, out.unknown_map38b ) )
     return fmt::format(
         "while writing unknown_map38b section." );
-  if( !write_binary( b, out.unknown_map38c1 ) )
-    return fmt::format(
-        "while writing unknown_map38c1 section." );
   if( !write_binary( b, out.unknown_map38c2 ) )
     return fmt::format(
         "while writing unknown_map38c2 section." );
