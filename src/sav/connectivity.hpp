@@ -24,9 +24,9 @@ namespace sav {
 // likely intended to be populated, namely without what appears
 // to be a bug in the OG's algorithm. See below for info on the
 // bug.
-void populate_sea_lane_connectivity(
-    std::vector<TILE> const& tiles,
-    std::vector<PATH> const& path, CONNECTIVITY& connectivity );
+void populate_connectivity( std::vector<TILE> const& tiles,
+                            std::vector<PATH> const& path,
+                            CONNECTIVITY& connectivity );
 
 // Do not use, since it has never worked totally correctly.
 //
@@ -58,6 +58,10 @@ void populate_sea_lane_connectivity(
 // exists) is sometimes incorrectly suppressed in a way that is
 // difficult to predict in all cases. This algorithm does not
 // replicate that.
+//
+// What is described above applies to the sea lane connectivity;
+// for land connectivity the bug is similar except that it is
+// sometimes observed to happen even when x has connectivity.
 //
 // Again, do not use this because there is no point in repli-
 // cating the bug and it doesn't even do so correctly in all

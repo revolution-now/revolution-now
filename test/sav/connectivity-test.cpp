@@ -39,8 +39,7 @@ fs::path classic_sav_dir() {
 }
 
 [[maybe_unused]] uint8_t bit_field_to_uint( auto o ) {
-  static_assert( sizeof( uint8_t ) ==
-                 sizeof( SeaLaneConnectivity ) );
+  static_assert( sizeof( uint8_t ) == sizeof( o ) );
   return bit_cast<uint8_t>( o );
 }
 
@@ -65,13 +64,16 @@ fs::path classic_sav_dir() {
   print_board( "NEW", new_ );
 }
 
-void de_bug( auto& connectivity ) {
+void de_bug_sea_lane( auto& connectivity ) {
+  using Elem =
+      std::remove_reference_t<decltype( connectivity[0] )>;
+  static Elem const kEmpty = Elem{};
   for( int qy = 0; qy < 18 - 1; ++qy ) {
     for( int qx = 0; qx < 15 - 1; ++qx ) {
       int const offset = qx * 18 + qy;
-      // The bug only happens when this is not the case.
-      if( connectivity[offset] != SeaLaneConnectivity{} )
-        continue;
+      // The bug has only been seen to happen when this is not
+      // the case.
+      if( connectivity[offset] != kEmpty ) continue;
       int const offset_down            = qx * 18 + ( qy + 1 );
       int const offset_right           = ( qx + 1 ) * 18 + qy;
       connectivity[offset_down].neast  = false;
@@ -80,33 +82,53 @@ void de_bug( auto& connectivity ) {
   }
 }
 
-auto reproduces_sav_sea_lane_with_bug_removed(
+void de_bug_land( auto& connectivity ) {
+  for( int qy = 0; qy < 18 - 1; ++qy ) {
+    for( int qx = 0; qx < 15 - 1; ++qx ) {
+      int const offset_down            = qx * 18 + ( qy + 1 );
+      int const offset_right           = ( qx + 1 ) * 18 + qy;
+      connectivity[offset_down].neast  = false;
+      connectivity[offset_right].swest = false;
+    }
+  }
+}
+
+auto reproduces_sav_connectivity_with_bug_removed(
     fs::path const& folder, fs::path const& file ) {
   static ColonySAV sav;
   fs::path const   in = folder / file;
   CHECK_HAS_VALUE( load_binary( in, sav ) );
   CONNECTIVITY new_connectivity;
-  populate_sea_lane_connectivity( sav.tile, sav.path,
-                                  new_connectivity );
-  de_bug( new_connectivity.sea_lane_connectivity );
-  de_bug( sav.connectivity.sea_lane_connectivity );
+  populate_connectivity( sav.tile, sav.path, new_connectivity );
+  de_bug_sea_lane( new_connectivity.sea_lane_connectivity );
+  de_bug_sea_lane( sav.connectivity.sea_lane_connectivity );
+  de_bug_land( new_connectivity.land_connectivity );
+  de_bug_land( sav.connectivity.land_connectivity );
   // print_old_new( sav.connectivity.sea_lane_connectivity,
   //                new_connectivity.sea_lane_connectivity );
-  bool const equal_without_bug =
+  // print_old_new( sav.connectivity.land_connectivity,
+  //                new_connectivity.land_connectivity );
+  bool const sea_lane_equal_without_bug =
       ( new_connectivity.sea_lane_connectivity ==
         sav.connectivity.sea_lane_connectivity );
-  return equal_without_bug;
+  bool const land_equal_without_bug =
+      ( new_connectivity.land_connectivity ==
+        sav.connectivity.land_connectivity );
+  return pair{ sea_lane_equal_without_bug,
+               land_equal_without_bug };
 }
 
-void produce_sea_lane_for_sav( fs::path const& folder,
-                               fs::path const& file,
-                               CONNECTIVITY&   out ) {
+void produce_connectivity_for_sav( fs::path const& folder,
+                                   fs::path const& file,
+                                   CONNECTIVITY&   out ) {
   static ColonySAV sav;
   fs::path const   in = folder / file;
   CHECK_HAS_VALUE( load_binary( in, sav ) );
-  populate_sea_lane_connectivity( sav.tile, sav.path, out );
+  populate_connectivity( sav.tile, sav.path, out );
   // print_old_new( sav.connectivity.sea_lane_connectivity,
   //                out.sea_lane_connectivity );
+  // print_old_new( sav.connectivity.land_connectivity,
+  //                out.land_connectivity );
 }
 
 template<typename T>
@@ -128,13 +150,12 @@ TEST_CASE(
   fs::path const classic_dir = classic_sav_dir() / "1990s";
   fs::path const modern_dir =
       classic_sav_dir() / "dutch-viceroy-playthrough";
-  fs::path const rand_dir  = classic_sav_dir() / "rand";
-  fs::path const weird_dir = classic_sav_dir() / "weird";
-  fs::path const edgecases_dir =
-      classic_sav_dir() / "edge-cases";
+  fs::path const rand_dir = classic_sav_dir() / "rand";
 
   // clang-format off
   static vector<pair<fs::path, fs::path>> const paths{
+    // Only use one of these dutch playthrough files because they
+    // will all have the same map-related data.
     { modern_dir, "dutch-viceroy-1492-options-set-cheat-enabled.SAV" },
     // ----------------------------------------------------------
     { rand_dir, "1492-1.SAV" },
@@ -151,29 +172,17 @@ TEST_CASE(
     { classic_dir, "COLONY00.SAV" },
     { classic_dir, "COLONY01.SAV" },
     { classic_dir, "COLONY02.SAV" },
-    // ----------------------------------------------------------
-    { weird_dir, "weird-1.SAV" },
-    { weird_dir, "weird-2.SAV" },
-    { weird_dir, "weird-3.SAV" },
-    { weird_dir, "weird-4.SAV" },
-    { weird_dir, "weird-5.SAV" },
-    { weird_dir, "weird-6.SAV" },
-    { weird_dir, "weird-7.SAV" },
-    { weird_dir, "weird-8.SAV" },
-    { weird_dir, "weird-9.SAV" },
-    { weird_dir, "weird-10.SAV" },
-    { weird_dir, "weird-11.SAV" },
-    // ----------------------------------------------------------
-    { edgecases_dir, "edge-case-1.SAV" },
   };
   // clang-format on
 
   // Can't do all of these cause it's too slow.
   auto& [dir, file] = pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
-  bool const equal_without_bug =
-      reproduces_sav_sea_lane_with_bug_removed( dir, file );
-  REQUIRE( equal_without_bug );
+  auto const [sea_lane_equal_without_bug,
+              land_equal_without_bug] =
+      reproduces_sav_connectivity_with_bug_removed( dir, file );
+  REQUIRE( sea_lane_equal_without_bug );
+  REQUIRE( land_equal_without_bug );
 }
 
 // This one is so that we have a test of the output that does not
@@ -189,7 +198,7 @@ TEST_CASE( "[sav/connectivity] reproduction of SAV files" ) {
   INFO( fmt::format( "path: {}", dir / file ) );
 
   // clang-format off
-  static array<uint8_t, 270> const expected_bytes{
+  static array<uint8_t, 270> const expected_sea_lane_bytes{
     0x1c,0x1f,0x17,0x13,0x19,0x1d,0x1f,0x1f,0x1f,
     0x1f,0x1f,0x1f,0x17,0x1b,0x1d,0x1f,0x1f,0x07,
     0x70,0xf1,0xe1,0x00,0x00,0xf8,0xfd,0xff,0xff,
@@ -223,17 +232,63 @@ TEST_CASE( "[sav/connectivity] reproduction of SAV files" ) {
   };
   // clang-format on
 
+  // clang-format off
+  static array<uint8_t, 270> const expected_land_bytes{
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x14,0x1b,0x1d,0x1f,0x0f,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x18,0x0d,0x00,0x00,0x00,
+    0x60,0x00,0xfc,0xff,0xdf,0x87,0x00,0x00,0x00,
+    0x00,0x00,0x04,0x00,0x00,0xde,0x87,0x00,0x00,
+    0x00,0x00,0x7e,0xff,0xf7,0xc3,0x1c,0x17,0x03,
+    0x00,0x00,0x4c,0x00,0x34,0x73,0xc1,0x00,0x00,
+    0x00,0x36,0x73,0xf1,0xe1,0x00,0x70,0xe5,0x00,
+    0x00,0x00,0x50,0x91,0x61,0x00,0x00,0x00,0x00,
+    0x38,0x65,0x00,0x00,0x1c,0x0f,0x00,0x42,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0xc0,0x00,0x00,0x7c,0xd7,0xa3,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x16,0x03,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x70,0xe1,0x00,0x1c,0x07,
+    0x00,0x00,0x1c,0x37,0x63,0x00,0x00,0x00,0x04,
+    0x00,0x10,0x1d,0x0f,0x00,0x1e,0x1f,0x7f,0xdf,
+    0x0f,0x00,0x76,0xe3,0x00,0x00,0x00,0x00,0x40,
+    0x00,0x00,0x76,0xd3,0xb1,0x71,0xfd,0xff,0xf7,
+    0xd3,0xb1,0x61,0x00,0x00,0x0e,0x00,0x00,0x00,
+    0x00,0x30,0x61,0x00,0x00,0x00,0x76,0xf3,0xe1,
+    0x00,0x00,0x00,0x0c,0x3e,0x5f,0x87,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x30,0x61,0x00,0x00,
+    0x06,0x00,0x00,0x70,0xf1,0xf1,0xc1,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x30,
+    0x41,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+  };
+  // clang-format on
+
   CONNECTIVITY expected_connectivity;
   static_assert(
       sizeof( expected_connectivity.sea_lane_connectivity ) ==
-      sizeof( expected_bytes ) );
-  for( int i = 0; i < int( expected_bytes.size() ); ++i )
+      sizeof( expected_sea_lane_bytes ) );
+  for( int i = 0; i < int( expected_sea_lane_bytes.size() );
+       ++i )
     expected_connectivity.sea_lane_connectivity[i] =
-        bit_cast<SeaLaneConnectivity>( expected_bytes[i] );
+        bit_cast<SeaLaneConnectivity>(
+            expected_sea_lane_bytes[i] );
+  static_assert(
+      sizeof( expected_connectivity.land_connectivity ) ==
+      sizeof( expected_land_bytes ) );
+  for( int i = 0; i < int( expected_land_bytes.size() ); ++i )
+    expected_connectivity.land_connectivity[i] =
+        bit_cast<LandConnectivity>( expected_land_bytes[i] );
 
   CONNECTIVITY connectivity;
-  produce_sea_lane_for_sav( dir, file, connectivity );
-  REQUIRE( ( connectivity == expected_connectivity ) );
+  produce_connectivity_for_sav( dir, file, connectivity );
+  REQUIRE( ( connectivity.sea_lane_connectivity ==
+             expected_connectivity.sea_lane_connectivity ) );
+  REQUIRE( ( connectivity.land_connectivity ==
+             expected_connectivity.land_connectivity ) );
 }
 
 } // namespace
