@@ -2802,6 +2802,36 @@ cdr::result<TRIBE> from_canonical(
                          cdr::tag_t<TRIBE> );
 
 /****************************************************************
+** ForeignAffairsReport
+*****************************************************************/
+struct ForeignAffairsReport {
+  std::array<uint8_t, 4> populations = {};
+  bytes<4> unknown36ab = {};
+  std::array<uint8_t, 4> merchant_marine = {};
+  std::array<uint8_t, 4> ship_counts = {};
+
+  bool operator==( ForeignAffairsReport const& ) const = default;
+};
+
+// String conversion.
+void to_str( ForeignAffairsReport const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, ForeignAffairsReport& o );
+
+bool write_binary( base::IBinaryIO& b, ForeignAffairsReport const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ForeignAffairsReport const& o,
+                         cdr::tag_t<ForeignAffairsReport> );
+
+cdr::result<ForeignAffairsReport> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ForeignAffairsReport> );
+
+/****************************************************************
 ** STUFF
 *****************************************************************/
 struct STUFF {
@@ -2809,9 +2839,11 @@ struct STUFF {
   uint16_t counter_decreasing_on_new_colony = {};
   bytes<2> unknown35 = {};
   uint16_t counter_increasing_on_new_colony = {};
-  bytes<543> unknown36a = {};
+  bytes<7> unknown36aa = {};
+  ForeignAffairsReport foreign_affairs_report = {};
+  bytes<520> unknown36ac = {};
   yes_no_byte show_colony_prod_quantities = {};
-  std::array<bytes<4>, 38> unknown36b = {};
+  bytes<152> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};

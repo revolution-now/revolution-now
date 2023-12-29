@@ -6734,6 +6734,69 @@ cdr::result<TRIBE> from_canonical(
 }
 
 /****************************************************************
+** ForeignAffairsReport
+*****************************************************************/
+void to_str( ForeignAffairsReport const& o, std::string& out, base::ADL_t t ) {
+  out += "ForeignAffairsReport{";
+  out += "populations="; to_str( o.populations, out, t ); out += ',';
+  out += "unknown36ab="; to_str( o.unknown36ab, out, t ); out += ',';
+  out += "merchant_marine="; to_str( o.merchant_marine, out, t ); out += ',';
+  out += "ship_counts="; to_str( o.ship_counts, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, ForeignAffairsReport& o ) {
+  return true
+    && read_binary( b, o.populations )
+    && read_binary( b, o.unknown36ab )
+    && read_binary( b, o.merchant_marine )
+    && read_binary( b, o.ship_counts )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, ForeignAffairsReport const& o ) {
+  return true
+    && write_binary( b, o.populations )
+    && write_binary( b, o.unknown36ab )
+    && write_binary( b, o.merchant_marine )
+    && write_binary( b, o.ship_counts )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         ForeignAffairsReport const& o,
+                         cdr::tag_t<ForeignAffairsReport> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "populations", o.populations );
+  conv.to_field( tbl, "unknown36ab", o.unknown36ab );
+  conv.to_field( tbl, "merchant_marine", o.merchant_marine );
+  conv.to_field( tbl, "ship_counts", o.ship_counts );
+  tbl["__key_order"] = cdr::list{
+    "populations",
+    "unknown36ab",
+    "merchant_marine",
+    "ship_counts",
+  };
+  return tbl;
+}
+
+cdr::result<ForeignAffairsReport> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ForeignAffairsReport> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  ForeignAffairsReport res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "populations", populations );
+  CONV_FROM_FIELD( "unknown36ab", unknown36ab );
+  CONV_FROM_FIELD( "merchant_marine", merchant_marine );
+  CONV_FROM_FIELD( "ship_counts", ship_counts );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** STUFF
 *****************************************************************/
 void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
@@ -6742,7 +6805,9 @@ void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
   out += "counter_decreasing_on_new_colony="; to_str( o.counter_decreasing_on_new_colony, out, t ); out += ',';
   out += "unknown35="; to_str( o.unknown35, out, t ); out += ',';
   out += "counter_increasing_on_new_colony="; to_str( o.counter_increasing_on_new_colony, out, t ); out += ',';
-  out += "unknown36a="; to_str( o.unknown36a, out, t ); out += ',';
+  out += "unknown36aa="; to_str( o.unknown36aa, out, t ); out += ',';
+  out += "foreign_affairs_report="; to_str( o.foreign_affairs_report, out, t ); out += ',';
+  out += "unknown36ac="; to_str( o.unknown36ac, out, t ); out += ',';
   out += "show_colony_prod_quantities="; to_str( o.show_colony_prod_quantities, out, t ); out += ',';
   out += "unknown36b="; to_str( o.unknown36b, out, t ); out += ',';
   out += "x="; to_str( o.x, out, t ); out += ',';
@@ -6761,7 +6826,9 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
     && read_binary( b, o.counter_decreasing_on_new_colony )
     && read_binary( b, o.unknown35 )
     && read_binary( b, o.counter_increasing_on_new_colony )
-    && read_binary( b, o.unknown36a )
+    && read_binary( b, o.unknown36aa )
+    && read_binary( b, o.foreign_affairs_report )
+    && read_binary( b, o.unknown36ac )
     && read_binary( b, o.show_colony_prod_quantities )
     && read_binary( b, o.unknown36b )
     && read_binary( b, o.x )
@@ -6779,7 +6846,9 @@ bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
     && write_binary( b, o.counter_decreasing_on_new_colony )
     && write_binary( b, o.unknown35 )
     && write_binary( b, o.counter_increasing_on_new_colony )
-    && write_binary( b, o.unknown36a )
+    && write_binary( b, o.unknown36aa )
+    && write_binary( b, o.foreign_affairs_report )
+    && write_binary( b, o.unknown36ac )
     && write_binary( b, o.show_colony_prod_quantities )
     && write_binary( b, o.unknown36b )
     && write_binary( b, o.x )
@@ -6799,7 +6868,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "counter_decreasing_on_new_colony", o.counter_decreasing_on_new_colony );
   conv.to_field( tbl, "unknown35", o.unknown35 );
   conv.to_field( tbl, "counter_increasing_on_new_colony", o.counter_increasing_on_new_colony );
-  conv.to_field( tbl, "unknown36a", o.unknown36a );
+  conv.to_field( tbl, "unknown36aa", o.unknown36aa );
+  conv.to_field( tbl, "foreign_affairs_report", o.foreign_affairs_report );
+  conv.to_field( tbl, "unknown36ac", o.unknown36ac );
   conv.to_field( tbl, "show_colony_prod_quantities", o.show_colony_prod_quantities );
   conv.to_field( tbl, "unknown36b", o.unknown36b );
   conv.to_field( tbl, "x", o.x );
@@ -6813,7 +6884,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "counter_decreasing_on_new_colony",
     "unknown35",
     "counter_increasing_on_new_colony",
-    "unknown36a",
+    "unknown36aa",
+    "foreign_affairs_report",
+    "unknown36ac",
     "show_colony_prod_quantities",
     "unknown36b",
     "x",
@@ -6837,7 +6910,9 @@ cdr::result<STUFF> from_canonical(
   CONV_FROM_FIELD( "counter_decreasing_on_new_colony", counter_decreasing_on_new_colony );
   CONV_FROM_FIELD( "unknown35", unknown35 );
   CONV_FROM_FIELD( "counter_increasing_on_new_colony", counter_increasing_on_new_colony );
-  CONV_FROM_FIELD( "unknown36a", unknown36a );
+  CONV_FROM_FIELD( "unknown36aa", unknown36aa );
+  CONV_FROM_FIELD( "foreign_affairs_report", foreign_affairs_report );
+  CONV_FROM_FIELD( "unknown36ac", unknown36ac );
   CONV_FROM_FIELD( "show_colony_prod_quantities", show_colony_prod_quantities );
   CONV_FROM_FIELD( "unknown36b", unknown36b );
   CONV_FROM_FIELD( "x", x );
