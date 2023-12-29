@@ -2843,7 +2843,7 @@ struct STUFF {
   ForeignAffairsReport foreign_affairs_report = {};
   bytes<520> unknown36ac = {};
   yes_no_byte show_colony_prod_quantities = {};
-  bytes<152> unknown36b = {};
+  std::array<bytes<4>, 38> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};

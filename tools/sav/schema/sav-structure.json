@@ -1398,7 +1398,7 @@
             },
             "unknown36ac": {"size": 520},
             "show_colony_prod_quantities": {"size": 1, "type": "yes_no_byte"},
-            "unknown36b": {"size": 152},
+            "unknown36b": {"size": 4, "count": 38},
             "x": {"size": 2, "type": "uint", "__hint": "white selector square x"},
             "y": {"size": 2, "type": "uint", "__hint": "white selector square y"},
             "zoom_level": {"size": 1, "type": "uint"},
