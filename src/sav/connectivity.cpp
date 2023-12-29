@@ -47,38 +47,13 @@ bool tile_exists( point q ) {
   return true;
 }
 
-maybe<point> find_sea_lane_anchor( vector<TILE> const& tiles,
-                                   vector<PATH> const& path,
-                                   point const         q ) {
-  static auto anchor_deltas = {
-      size{ .w = 1, .h = 1 },
-      size{ .w = 1, .h = 2 },
-      size{ .w = 2, .h = 1 },
-      size{ .w = 2, .h = 2 },
-  };
-  point const p = q * 4;
-  for( size const s : anchor_deltas ) {
-    point const candidate = p + s;
-    if( !tile_exists( candidate ) ) continue;
-    int const offset = candidate.y * 58 + candidate.x;
-    CHECK_LT( offset, int( path.size() ) );
-    // _1 is a value of 1 which the OG uses for all tiles that
-    // are connected to either the left or right edge of the map,
-    // even if the left and right edges are not themselves con-
-    // nected via water.
-    if( path[offset].region_id != region_id_4bit_type::_1 )
-      continue;
-    // Make sure these are water tiles.
-    if( tiles[offset].tile != terrain_5bit_type::ttt &&
-        tiles[offset].tile != terrain_5bit_type::tnt )
-      continue;
-    return candidate;
-  }
-  return nothing;
+bool is_tile_water( terrain_5bit_type tile ) {
+  return ( tile == terrain_5bit_type::ttt ||
+           tile == terrain_5bit_type::tnt );
 }
 
-maybe<point> find_land_anchor( vector<TILE> const& tiles,
-                               point const         q ) {
+maybe<point> find_anchor_impl( point const q,
+                               auto&&      tile_valid ) {
   static auto anchor_deltas = {
       size{ .w = 1, .h = 1 },
       size{ .w = 1, .h = 2 },
@@ -90,11 +65,7 @@ maybe<point> find_land_anchor( vector<TILE> const& tiles,
     point const candidate = p + s;
     if( !tile_exists( candidate ) ) continue;
     int const offset = candidate.y * 58 + candidate.x;
-    // Make sure these are land tiles.
-    if( tiles[offset].tile == terrain_5bit_type::ttt ||
-        tiles[offset].tile == terrain_5bit_type::tnt )
-      continue;
-    return candidate;
+    if( tile_valid( offset ) ) return candidate;
   }
   return nothing;
 }
@@ -157,9 +128,9 @@ bool has_path( point const src, point const dst, int upper_bound,
   return false;
 }
 
-bool has_6_sea_lane_distance_or_less( vector<TILE> const& tiles,
-                                      vector<PATH> const& path,
-                                      point p1, point p2 ) {
+bool has_6_distance_or_less( vector<TILE> const& tiles,
+                             vector<PATH> const& path, point p1,
+                             point p2 ) {
   auto connected = [&]( point src, point dst ) {
     CHECK_LE( abs( src.x - dst.x ), 1 );
     CHECK_LE( abs( src.y - dst.y ), 1 );
@@ -167,92 +138,27 @@ bool has_6_sea_lane_distance_or_less( vector<TILE> const& tiles,
       return false;
     int const src_offset = src.y * 58 + src.x;
     int const dst_offset = dst.y * 58 + dst.x;
-    CHECK_LT( src_offset, int( path.size() ) );
-    CHECK_LT( dst_offset, int( path.size() ) );
-    CHECK( path[src_offset].region_id ==
-           region_id_4bit_type::_1 );
-    CHECK(
-        ( tiles[src_offset].tile == terrain_5bit_type::ttt ||
-          tiles[src_offset].tile == terrain_5bit_type::tnt ) );
-    if( tiles[dst_offset].tile != terrain_5bit_type::ttt &&
-        tiles[dst_offset].tile != terrain_5bit_type::tnt )
+    CHECK_LT( src_offset, int( tiles.size() ) );
+    CHECK_LT( dst_offset, int( tiles.size() ) );
+    // Tiles not visible in-game don't count. The OG assigns a 0
+    // region type to these "border" tiles.
+    if( path[dst_offset].region_id == region_id_4bit_type::_0 )
       return false;
-    return ( path[dst_offset].region_id ==
-             region_id_4bit_type::_1 );
+    return is_tile_water( tiles[src_offset].tile ) ==
+           is_tile_water( tiles[dst_offset].tile );
   };
   return has_path( p1, p2, 6, connected );
 }
 
-bool has_6_land_distance_or_less( vector<TILE> const& tiles,
-                                  point p1, point p2 ) {
-  auto connected = [&]( point src, point dst ) {
-    CHECK_LE( abs( src.x - dst.x ), 1 );
-    CHECK_LE( abs( src.y - dst.y ), 1 );
-    if( !tile_exists( src ) || !tile_exists( dst ) )
-      return false;
-    // The OG appears to have "arctic" tiles for rows 0 and 71
-    // (first and last), which are the two rows not visible in
-    // the game. However, even though arctic tiles are considered
-    // as land tiles, they don't count for connectivity purposes
-    // here, probably because they are not accessible to any
-    // units. For sea lane we don't have to worry about this be-
-    // cause the first and last rows have a region_id of 0 which
-    // the sea lane algo will exclude.
-    if( src.y == 0 || src.y == 71 ) return false;
-    int const src_offset = src.y * 58 + src.x;
-    int const dst_offset = dst.y * 58 + dst.x;
-    CHECK(
-        ( tiles[src_offset].tile != terrain_5bit_type::ttt &&
-          tiles[src_offset].tile != terrain_5bit_type::tnt ) );
-    if( tiles[dst_offset].tile == terrain_5bit_type::ttt ||
-        tiles[dst_offset].tile == terrain_5bit_type::tnt )
-      return false;
-    return true;
-  };
-  return has_path( p1, p2, 6, connected );
-}
-
-bool has_sea_lane_connection( vector<TILE> const& tiles,
-                              vector<PATH> const& path, point q1,
-                              point q2 ) {
-  CHECK( quad_exists( q1 ) );
-  CHECK( quad_exists( q2 ) );
-  maybe<point> const anchor1 =
-      find_sea_lane_anchor( tiles, path, q1 );
-  if( !anchor1.has_value() ) return false;
-  maybe<point> const anchor2 =
-      find_sea_lane_anchor( tiles, path, q2 );
-  if( !anchor2.has_value() ) return false;
-  return has_6_sea_lane_distance_or_less( tiles, path, *anchor1,
-                                          *anchor2 );
-}
-
-bool has_land_connection( vector<TILE> const& tiles, point q1,
-                          point q2 ) {
-  CHECK( quad_exists( q1 ) );
-  CHECK( quad_exists( q2 ) );
-  maybe<point> const anchor1 = find_land_anchor( tiles, q1 );
-  if( !anchor1.has_value() ) return false;
-  maybe<point> const anchor2 = find_land_anchor( tiles, q2 );
-  if( !anchor2.has_value() ) return false;
-  return has_6_land_distance_or_less( tiles, *anchor1,
-                                      *anchor2 );
-}
-
-void populate_sea_lane_connectivity(
-    vector<TILE> const& tiles, vector<PATH> const& path,
-    CONNECTIVITY& connectivity ) {
-  base::ScopedTimer timer( "populate_sea_lane_connectivity" );
-  CHECK_EQ( int( path.size() ), 58 * 72 );
-  CHECK_EQ( int( connectivity.sea_lane_connectivity.size() ),
-            18 * 15 );
-  auto connectivity_quad =
-      [&]( point q ) -> maybe<SeaLaneConnectivity&> {
+template<typename T, typename Func>
+void populate_connectivity_impl( array<T, 270>& connectivity,
+                                 Func&& has_connection ) {
+  CHECK_EQ( int( connectivity.size() ), 18 * 15 );
+  auto connectivity_quad = [&]( point q ) -> maybe<T&> {
     if( !quad_exists( q ) ) return nothing;
     int const offset = q.x * 18 + q.y;
-    CHECK_LT( offset,
-              int( connectivity.sea_lane_connectivity.size() ) );
-    return connectivity.sea_lane_connectivity[offset];
+    CHECK_LT( offset, int( connectivity.size() ) );
+    return connectivity[offset];
   };
 
   for( int qy = 0; qy < 18; ++qy ) {
@@ -271,91 +177,9 @@ void populate_sea_lane_connectivity(
       auto if_connected_do = [&]( auto action ) {
         auto [fst, snd] = connectivity_quads();
         if( fst.has_value() && snd.has_value() &&
-            has_sea_lane_connection(
-                tiles, path, { .x = qx, .y = qy },
-                { .x = qx + quad_delta_x,
-                  .y = qy + quad_delta_y } ) )
-          action( fst, snd );
-      };
-
-      // Because of the way we're iterating over    ? = (qy,qx)
-      // the tiles (left to right, then top to     +---+---+---+
-      // bottom), and because connections are al-  |   |   |   |
-      // ways made in a symmetric way, that means  +---+---+---+
-      // that for each new quad that we're com-    |   | ? | 4 |
-      // puting, we only need to compute the con-  +---+---+---+
-      // nections for the four surrounding quads   | 1 | 2 | 3 |
-      // marked with numbers, since the others     +---+---+---+
-      // will have already been filled in:
-
-      // #1
-      quad_delta_x = -1;
-      quad_delta_y = 1;
-      if_connected_do( []( auto fst, auto snd ) {
-        fst->swest = true;
-        snd->neast = true;
-      } );
-
-      // #2
-      quad_delta_x = 0;
-      quad_delta_y = 1;
-      if_connected_do( []( auto fst, auto snd ) {
-        fst->south = true;
-        snd->north = true;
-      } );
-
-      // #3
-      quad_delta_x = 1;
-      quad_delta_y = 1;
-      if_connected_do( []( auto fst, auto snd ) {
-        fst->seast = true;
-        snd->nwest = true;
-      } );
-
-      // #4
-      quad_delta_x = 1;
-      quad_delta_y = 0;
-      if_connected_do( []( auto fst, auto snd ) {
-        fst->east = true;
-        snd->west = true;
-      } );
-    }
-  }
-}
-
-void populate_land_connectivity( vector<TILE> const& tiles,
-                                 CONNECTIVITY& connectivity ) {
-  base::ScopedTimer timer( "populate_land_connectivity" );
-  CHECK_EQ( int( connectivity.land_connectivity.size() ),
-            18 * 15 );
-  auto connectivity_quad =
-      [&]( point q ) -> maybe<LandConnectivity&> {
-    if( !quad_exists( q ) ) return nothing;
-    int const offset = q.x * 18 + q.y;
-    CHECK_LT( offset,
-              int( connectivity.land_connectivity.size() ) );
-    return connectivity.land_connectivity[offset];
-  };
-
-  for( int qy = 0; qy < 18; ++qy ) {
-    for( int qx = 0; qx < 15; ++qx ) {
-      int quad_delta_y = 0;
-      int quad_delta_x = 0;
-
-      auto connectivity_quads = [&] {
-        return pair{
-            connectivity_quad( { .x = qx, .y = qy } ),
-            connectivity_quad( { .x = qx + quad_delta_x,
-                                 .y = qy + quad_delta_y } ),
-        };
-      };
-
-      auto if_connected_do = [&]( auto action ) {
-        auto [fst, snd] = connectivity_quads();
-        if( fst.has_value() && snd.has_value() &&
-            has_land_connection( tiles, { .x = qx, .y = qy },
-                                 { .x = qx + quad_delta_x,
-                                   .y = qy + quad_delta_y } ) )
+            has_connection( { .x = qx, .y = qy },
+                            { .x = qx + quad_delta_x,
+                              .y = qy + quad_delta_y } ) )
           action( fst, snd );
       };
 
@@ -412,85 +236,55 @@ void populate_land_connectivity( vector<TILE> const& tiles,
 void populate_connectivity( vector<TILE> const& tiles,
                             vector<PATH> const& path,
                             CONNECTIVITY&       connectivity ) {
-  base::ScopedTimer timer( "populate_connectivity" );
-  populate_sea_lane_connectivity( tiles, path, connectivity );
-  populate_land_connectivity( tiles, connectivity );
-}
-
-void populate_sea_lane_connectivity_with_bug(
-    vector<TILE> const& tiles, vector<PATH> const& path,
-    CONNECTIVITY& connectivity ) {
-  populate_sea_lane_connectivity( tiles, path, connectivity );
-
-  auto quad = [&]( point q ) -> SeaLaneConnectivity& {
-    CHECK( quad_exists( q ) );
-    int const offset = q.x * 18 + q.y;
-    CHECK_LT( offset,
-              int( connectivity.sea_lane_connectivity.size() ) );
-    return connectivity.sea_lane_connectivity[offset];
+  auto has_connection = [&]( point q1, point q2,
+                             auto&& find_anchor ) {
+    CHECK( quad_exists( q1 ) );
+    CHECK( quad_exists( q2 ) );
+    maybe<point> const anchor1 = find_anchor( q1 );
+    if( !anchor1.has_value() ) return false;
+    maybe<point> const anchor2 = find_anchor( q2 );
+    if( !anchor2.has_value() ) return false;
+    return has_6_distance_or_less( tiles, path, *anchor1,
+                                   *anchor2 );
   };
 
-  auto sea_lane = [&]( point p ) {
-    int const offset = p.y * 58 + p.x;
-    CHECK_LT( offset, int( tiles.size() ) );
-    if( tiles[offset].tile != terrain_5bit_type::ttt &&
-        tiles[offset].tile != terrain_5bit_type::tnt )
-      return false;
-    if( path[offset].region_id != region_id_4bit_type::_1 )
-      return false;
-    return true;
-  };
+  // Sea lane connectivity.
+  {
+    base::ScopedTimer timer( "populate_sea_lane_connectivity" );
+    populate_connectivity_impl(
+        connectivity.sea_lane_connectivity,
+        [&]( point p1, point p2 ) {
+          return has_connection( p1, p2, [&]( point q ) {
+            return find_anchor_impl( q, [&]( int offset ) {
+              CHECK_LT( offset, int( path.size() ) );
+              // _1 is a value of 1 which the OG uses for all
+              // tiles that are connected to either the left or
+              // right edge of the map, even if the left and
+              // right edges are not themselves connected via wa-
+              // ter. Note that a region ID of 1 is also used for
+              // one of the land masses, but that will be ruled
+              // out when we check for water below.
+              if( path[offset].region_id !=
+                  region_id_4bit_type::_1 )
+                return false;
+              return is_tile_water( tiles[offset].tile );
+            } );
+          } );
+        } );
+  }
 
-  for( int qy = 17; qy >= 2; --qy ) {
-    for( int qx = 13; qx >= 0; --qx ) {
-      point const q{ .x = qx, .y = qy };
-
-      //  _  3  _
-      //  _  4  2
-      //  _  1  _
-      auto&       c1 = quad( q + size{ .w = 0, .h = 0 } );
-      auto&       c2 = quad( q + size{ .w = 1, .h = -1 } );
-      auto const& c3 = quad( q + size{ .w = 0, .h = -2 } );
-      auto const& c4 = quad( q + size{ .w = 0, .h = -1 } );
-
-      if( !c1.neast ) continue;
-      if( c4 != SeaLaneConnectivity{} ) continue;
-
-      if( c3 == SeaLaneConnectivity{} ) continue;
-
-      //         . . . .
-      //         . . . .
-      //         . . . .
-      //         . . . D G
-      // . . . . . . . . C . . .
-      // . . . . . . . . . . . .
-      // . . . . . . . . . . . .
-      // . . . . . . . . B . . .
-      //         p . . A H
-      //         . . . .
-      //         . . . .
-      //         . . . .
-      point const p = q* size{ .w = 4, .h = 4 };
-
-      // clang-format off
-      bool const slA = sea_lane( p + size{ .w = 3, .h = 0 } );
-      bool const slB = sea_lane( p + size{ .w = 4, .h = -1 } );
-      bool const slH = sea_lane( p + size{ .w = 4, .h = 0 } );
-      bool const nslC = !sea_lane( p + size{ .w = 4, .h = -4 } );
-      bool const nslD = !sea_lane( p + size{ .w = 3, .h = -5 } );
-      bool const nslG = !sea_lane( p + size{ .w = 4, .h = -5 } );
-      // clang-format on
-
-      bool const clear_bottom = slA || slB || !slH;
-      bool const clear_top    = nslC || nslD || nslG;
-
-      bool const clear = clear_top || clear_bottom;
-
-      if( clear ) {
-        c1.neast = false;
-        c2.swest = false;
-      }
-    }
+  // Land connectivity.
+  {
+    base::ScopedTimer timer( "populate_land_connectivity" );
+    populate_connectivity_impl(
+        connectivity.land_connectivity,
+        [&]( point p1, point p2 ) {
+          return has_connection( p1, p2, [&]( point q ) {
+            return find_anchor_impl( q, [&]( int offset ) {
+              return !is_tile_water( tiles[offset].tile );
+            } );
+          } );
+        } );
   }
 }
 
