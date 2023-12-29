@@ -238,6 +238,7 @@ function M.NewBinaryLoader( metadata, binary_file )
     end,
     __metatable=false,
   } )
+  obj.base_ = base
   obj.sav_file_ = assert( io.open( binary_file, 'rb' ) )
   setmetatable( obj, {
     __newindex=function() error( 'cannot modify.', 2 ) end,

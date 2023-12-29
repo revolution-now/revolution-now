@@ -3892,6 +3892,94 @@ cdr::result<SeaLaneConnectivity> from_canonical(
 }
 
 /****************************************************************
+** LandConnectivity
+*****************************************************************/
+void to_str( LandConnectivity const& o, std::string& out, base::ADL_t t ) {
+  out += "LandConnectivity{";
+  out += "north="; to_str( o.north, out, t ); out += ',';
+  out += "neast="; to_str( o.neast, out, t ); out += ',';
+  out += "east="; to_str( o.east, out, t ); out += ',';
+  out += "seast="; to_str( o.seast, out, t ); out += ',';
+  out += "south="; to_str( o.south, out, t ); out += ',';
+  out += "swest="; to_str( o.swest, out, t ); out += ',';
+  out += "west="; to_str( o.west, out, t ); out += ',';
+  out += "nwest="; to_str( o.nwest, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, LandConnectivity& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.north = (bits & 0b1); bits >>= 1;
+  o.neast = (bits & 0b1); bits >>= 1;
+  o.east = (bits & 0b1); bits >>= 1;
+  o.seast = (bits & 0b1); bits >>= 1;
+  o.south = (bits & 0b1); bits >>= 1;
+  o.swest = (bits & 0b1); bits >>= 1;
+  o.west = (bits & 0b1); bits >>= 1;
+  o.nwest = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, LandConnectivity const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.nwest & 0b1); bits <<= 1;
+  bits |= (o.west & 0b1); bits <<= 1;
+  bits |= (o.swest & 0b1); bits <<= 1;
+  bits |= (o.south & 0b1); bits <<= 1;
+  bits |= (o.seast & 0b1); bits <<= 1;
+  bits |= (o.east & 0b1); bits <<= 1;
+  bits |= (o.neast & 0b1); bits <<= 1;
+  bits |= (o.north & 0b1); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         LandConnectivity const& o,
+                         cdr::tag_t<LandConnectivity> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "north", o.north );
+  conv.to_field( tbl, "neast", o.neast );
+  conv.to_field( tbl, "east", o.east );
+  conv.to_field( tbl, "seast", o.seast );
+  conv.to_field( tbl, "south", o.south );
+  conv.to_field( tbl, "swest", o.swest );
+  conv.to_field( tbl, "west", o.west );
+  conv.to_field( tbl, "nwest", o.nwest );
+  tbl["__key_order"] = cdr::list{
+    "north",
+    "neast",
+    "east",
+    "seast",
+    "south",
+    "swest",
+    "west",
+    "nwest",
+  };
+  return tbl;
+}
+
+cdr::result<LandConnectivity> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<LandConnectivity> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  LandConnectivity res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "north", north );
+  CONV_FROM_FIELD( "neast", neast );
+  CONV_FROM_FIELD( "east", east );
+  CONV_FROM_FIELD( "seast", seast );
+  CONV_FROM_FIELD( "south", south );
+  CONV_FROM_FIELD( "swest", swest );
+  CONV_FROM_FIELD( "west", west );
+  CONV_FROM_FIELD( "nwest", nwest );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
 void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
@@ -6763,6 +6851,57 @@ cdr::result<STUFF> from_canonical(
 }
 
 /****************************************************************
+** CONNECTIVITY
+*****************************************************************/
+void to_str( CONNECTIVITY const& o, std::string& out, base::ADL_t t ) {
+  out += "CONNECTIVITY{";
+  out += "sea_lane_connectivity="; to_str( o.sea_lane_connectivity, out, t ); out += ',';
+  out += "land_connectivity="; to_str( o.land_connectivity, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, CONNECTIVITY& o ) {
+  return true
+    && read_binary( b, o.sea_lane_connectivity )
+    && read_binary( b, o.land_connectivity )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, CONNECTIVITY const& o ) {
+  return true
+    && write_binary( b, o.sea_lane_connectivity )
+    && write_binary( b, o.land_connectivity )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         CONNECTIVITY const& o,
+                         cdr::tag_t<CONNECTIVITY> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "sea_lane_connectivity", o.sea_lane_connectivity );
+  conv.to_field( tbl, "land_connectivity", o.land_connectivity );
+  tbl["__key_order"] = cdr::list{
+    "sea_lane_connectivity",
+    "land_connectivity",
+  };
+  return tbl;
+}
+
+cdr::result<CONNECTIVITY> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<CONNECTIVITY> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  CONNECTIVITY res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "sea_lane_connectivity", sea_lane_connectivity );
+  CONV_FROM_FIELD( "land_connectivity", land_connectivity );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** TRADEROUTE
 *****************************************************************/
 void to_str( TRADEROUTE const& o, std::string& out, base::ADL_t t ) {
@@ -6957,8 +7096,7 @@ void to_str( ColonySAV const& o, std::string& out, base::ADL_t t ) {
   out += "mask="; to_str( o.mask, out, t ); out += ',';
   out += "path="; to_str( o.path, out, t ); out += ',';
   out += "seen="; to_str( o.seen, out, t ); out += ',';
-  out += "sea_lane_connectivity="; to_str( o.sea_lane_connectivity, out, t ); out += ',';
-  out += "unknown_map38b="; to_str( o.unknown_map38b, out, t ); out += ',';
+  out += "connectivity="; to_str( o.connectivity, out, t ); out += ',';
   out += "unknown_map38c2="; to_str( o.unknown_map38c2, out, t ); out += ',';
   out += "unknown_map38c3="; to_str( o.unknown_map38c3, out, t ); out += ',';
   out += "strategy="; to_str( o.strategy, out, t ); out += ',';
@@ -6988,8 +7126,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "MASK", o.mask );
   conv.to_field( tbl, "PATH", o.path );
   conv.to_field( tbl, "SEEN", o.seen );
-  conv.to_field( tbl, "sea_lane_connectivity", o.sea_lane_connectivity );
-  conv.to_field( tbl, "unknown_map38b", o.unknown_map38b );
+  conv.to_field( tbl, "CONNECTIVITY", o.connectivity );
   conv.to_field( tbl, "unknown_map38c2", o.unknown_map38c2 );
   conv.to_field( tbl, "unknown_map38c3", o.unknown_map38c3 );
   conv.to_field( tbl, "strategy", o.strategy );
@@ -7011,8 +7148,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "MASK",
     "PATH",
     "SEEN",
-    "sea_lane_connectivity",
-    "unknown_map38b",
+    "CONNECTIVITY",
     "unknown_map38c2",
     "unknown_map38c3",
     "strategy",
@@ -7044,8 +7180,7 @@ cdr::result<ColonySAV> from_canonical(
   CONV_FROM_FIELD( "MASK", mask );
   CONV_FROM_FIELD( "PATH", path );
   CONV_FROM_FIELD( "SEEN", seen );
-  CONV_FROM_FIELD( "sea_lane_connectivity", sea_lane_connectivity );
-  CONV_FROM_FIELD( "unknown_map38b", unknown_map38b );
+  CONV_FROM_FIELD( "CONNECTIVITY", connectivity );
   CONV_FROM_FIELD( "unknown_map38c2", unknown_map38c2 );
   CONV_FROM_FIELD( "unknown_map38c3", unknown_map38c3 );
   CONV_FROM_FIELD( "strategy", strategy );
