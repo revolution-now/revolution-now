@@ -1249,5 +1249,42 @@ TEST_CASE( "[gfx/cartesian] centered*" ) {
   REQUIRE( centered_in( delta, rect ) == expect );
 }
 
+/****************************************************************
+** std::hash<gfx::point>
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] hash point" ) {
+  static std::hash<point> const hasher{};
+
+  point p = {};
+
+  p = {};
+  REQUIRE( hasher( p ) == 0x0000000000000000ULL );
+
+  p = { .x = 1 };
+  REQUIRE( hasher( p ) == 0x0000000000000001ULL );
+
+  p = { .y = 1 };
+  REQUIRE( hasher( p ) == 0x0000000100000000ULL );
+
+  p = { .x = 1, .y = 1 };
+  REQUIRE( hasher( p ) == 0x0000000100000001ULL );
+
+  p = { .x = -1, .y = 1 };
+  REQUIRE( hasher( p ) == 0x00000001ffffffffULL );
+
+  p = { .x = 1, .y = -1 };
+  REQUIRE( hasher( p ) == 0xffffffff00000001ULL );
+
+  p = { .x = 0x34500, .y = 0x56770 };
+  REQUIRE( hasher( p ) == 0x0005677000034500ULL );
+
+  p = { .x = -1, .y = -1 };
+  REQUIRE( hasher( p ) == 0xffffffffffffffffULL );
+
+  p = { .x = numeric_limits<int>::max(),
+        .y = numeric_limits<int>::max() };
+  REQUIRE( hasher( p ) == 0x7fffffff7fffffffULL );
+}
+
 } // namespace
 } // namespace gfx
