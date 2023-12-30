@@ -19,6 +19,7 @@
 #include "gfx/cartesian.hpp"
 
 // base
+#include "base/cc-specific.hpp"
 #include "base/timer.hpp"
 
 // C++ standard library
@@ -35,6 +36,9 @@ using ::base::nothing;
 using ::gfx::point;
 using ::gfx::size;
 
+/****************************************************************
+** Helpers
+*****************************************************************/
 bool quad_exists( point q ) {
   if( q.y < 0 || q.x < 0 ) return false;
   if( q.y >= 18 || q.x >= 15 ) return false;
@@ -52,8 +56,11 @@ bool is_tile_water( terrain_5bit_type tile ) {
            tile == terrain_5bit_type::tnt );
 }
 
-maybe<point> find_anchor_impl( point const q,
-                               auto&&      tile_valid ) {
+bool is_tile_land( terrain_5bit_type tile ) {
+  return !is_tile_water( tile );
+}
+
+maybe<point> find_anchor( point const q, auto&& tile_valid ) {
   static auto anchor_deltas = {
       size{ .w = 1, .h = 1 },
       size{ .w = 1, .h = 2 },
@@ -70,20 +77,24 @@ maybe<point> find_anchor_impl( point const q,
   return nothing;
 }
 
-// This is similar to the A* algorithm, but is not guaranteed to
-// return the shortest path; it will potentially return any valid
-// path whose distances is <= to upper_bound.
+// This is similar to the A* algorithm, but it is "weaker" in
+// that it does not need to find the shortest path; it just re-
+// turns true as soon as it finds a path with length <=
+// upper_bound. This is because the consumer doesn't care what
+// the actual path is, it just cares that the destination is
+// reachable from the source in a certain number of jumps.
 bool has_path( point const src, point const dst, int upper_bound,
-               auto connected_fn ) {
+               auto&& are_tiles_connected ) {
   unordered_map<point, /*distance=*/int>     explore;
   unordered_map<point, /*min_distance=*/int> explored;
   explore[src] = 0;
   while( !explore.empty() ) {
-    // Find the point in the `explore` list that is closest to
-    // the destination by pythagorean distance in the hopes that
-    // this will be the optimal strategy to get to the destina-
-    // tion as quickly as possible (it usually is).
-    auto [p, dist] = *[&] {
+    auto const [p, dist] = *[&] {
+      // This block is an optimization and not stricly necessary.
+      // It finds the point in the `explore` list that is closest
+      // to the destination by pythagorean distance in the hopes
+      // that this will be the optimal strategy to get to the
+      // destination as quickly as possible (it usually is).
       double shortest_distance = numeric_limits<double>::max();
       auto   shortest_it       = explore.begin();
       for( auto it = explore.begin(); it != explore.end();
@@ -110,7 +121,7 @@ bool has_path( point const src, point const dst, int upper_bound,
         if( dx == 0 && dy == 0 ) continue;
         size const  d{ .w = dx, .h = dy };
         point const new_p = p + d;
-        if( !connected_fn( p, new_p ) ) continue;
+        if( !are_tiles_connected( p, new_p ) ) continue;
         if( explored.contains( new_p ) ) {
           if( explored[new_p] <= new_dist ) continue;
           explored.erase( new_p );
@@ -128,31 +139,63 @@ bool has_path( point const src, point const dst, int upper_bound,
   return false;
 }
 
-bool has_6_distance_or_less( vector<TILE> const& tiles,
-                             vector<PATH> const& path, point p1,
-                             point p2 ) {
-  auto connected = [&]( point src, point dst ) {
-    CHECK_LE( abs( src.x - dst.x ), 1 );
-    CHECK_LE( abs( src.y - dst.y ), 1 );
-    if( !tile_exists( src ) || !tile_exists( dst ) )
-      return false;
-    int const src_offset = src.y * 58 + src.x;
-    int const dst_offset = dst.y * 58 + dst.x;
-    CHECK_LT( src_offset, int( tiles.size() ) );
-    CHECK_LT( dst_offset, int( tiles.size() ) );
-    // Tiles not visible in-game don't count. The OG assigns a 0
-    // region type to these "border" tiles.
-    if( path[dst_offset].region_id == region_id_4bit_type::_0 )
-      return false;
-    return is_tile_water( tiles[src_offset].tile ) ==
-           is_tile_water( tiles[dst_offset].tile );
-  };
-  return has_path( p1, p2, 6, connected );
+/****************************************************************
+** ConnectivityFinder
+*****************************************************************/
+struct ConnectivityFinder {
+  template<typename T, typename Func>
+  void populate_connectivity(
+      array<T, 270>& connectivity,
+      Func&&         is_valid_anchor_tile ) const;
+
+  bool are_quads_connected( point q1, point q2,
+                            auto&& is_valid_anchor_tile ) const;
+
+  bool are_tiles_connected( point src, point dst ) const;
+
+  vector<TILE> const& tiles_;
+  vector<PATH> const& path_;
+};
+
+bool ConnectivityFinder::are_tiles_connected( point src,
+                                              point dst ) const {
+  CHECK_LE( abs( src.x - dst.x ), 1 );
+  CHECK_LE( abs( src.y - dst.y ), 1 );
+  if( !tile_exists( src ) || !tile_exists( dst ) ) return false;
+  int const src_offset = src.y * 58 + src.x;
+  int const dst_offset = dst.y * 58 + dst.x;
+  CHECK_LT( src_offset, int( tiles_.size() ) );
+  CHECK_LT( dst_offset, int( tiles_.size() ) );
+  CHECK_LT( src_offset, int( path_.size() ) );
+  CHECK_LT( dst_offset, int( path_.size() ) );
+  return ( path_[dst_offset].region_id ==
+           path_[src_offset].region_id ) &&
+         ( is_tile_water( tiles_[src_offset].tile ) ==
+           is_tile_water( tiles_[dst_offset].tile ) );
 }
 
+bool ConnectivityFinder::are_quads_connected(
+    point q1, point q2, auto&& is_valid_anchor_tile ) const {
+  CHECK( quad_exists( q1 ) );
+  CHECK( quad_exists( q2 ) );
+  maybe<point> const anchor1 =
+      find_anchor( q1, is_valid_anchor_tile );
+  if( !anchor1.has_value() ) return false;
+  maybe<point> const anchor2 =
+      find_anchor( q2, is_valid_anchor_tile );
+  if( !anchor2.has_value() ) return false;
+  return has_path( *anchor1, *anchor2, 6,
+                   [this]( point p1, point p2 ) {
+                     return are_tiles_connected( p1, p2 );
+                   } );
+};
+
 template<typename T, typename Func>
-void populate_connectivity_impl( array<T, 270>& connectivity,
-                                 Func&& has_connection ) {
+void ConnectivityFinder::populate_connectivity(
+    array<T, 270>& connectivity,
+    Func&&         is_valid_anchor_tile ) const {
+  base::ScopedTimer timer( "populate_connectivity: "s +
+                           base::demangled_typename<T>() );
   CHECK_EQ( int( connectivity.size() ), 18 * 15 );
   auto connectivity_quad = [&]( point q ) -> maybe<T&> {
     if( !quad_exists( q ) ) return nothing;
@@ -177,9 +220,10 @@ void populate_connectivity_impl( array<T, 270>& connectivity,
       auto if_connected_do = [&]( auto action ) {
         auto [fst, snd] = connectivity_quads();
         if( fst.has_value() && snd.has_value() &&
-            has_connection( { .x = qx, .y = qy },
-                            { .x = qx + quad_delta_x,
-                              .y = qy + quad_delta_y } ) )
+            are_quads_connected( { .x = qx, .y = qy },
+                                 { .x = qx + quad_delta_x,
+                                   .y = qy + quad_delta_y },
+                                 is_valid_anchor_tile ) )
           action( fst, snd );
       };
 
@@ -236,56 +280,31 @@ void populate_connectivity_impl( array<T, 270>& connectivity,
 void populate_connectivity( vector<TILE> const& tiles,
                             vector<PATH> const& path,
                             CONNECTIVITY&       connectivity ) {
-  auto has_connection = [&]( point q1, point q2,
-                             auto&& find_anchor ) {
-    CHECK( quad_exists( q1 ) );
-    CHECK( quad_exists( q2 ) );
-    maybe<point> const anchor1 = find_anchor( q1 );
-    if( !anchor1.has_value() ) return false;
-    maybe<point> const anchor2 = find_anchor( q2 );
-    if( !anchor2.has_value() ) return false;
-    return has_6_distance_or_less( tiles, path, *anchor1,
-                                   *anchor2 );
-  };
+  ConnectivityFinder const finder{ .tiles_ = tiles,
+                                   .path_  = path };
 
   // Sea lane connectivity.
-  {
-    base::ScopedTimer timer( "populate_sea_lane_connectivity" );
-    populate_connectivity_impl(
-        connectivity.sea_lane_connectivity,
-        [&]( point p1, point p2 ) {
-          return has_connection( p1, p2, [&]( point q ) {
-            return find_anchor_impl( q, [&]( int offset ) {
-              CHECK_LT( offset, int( path.size() ) );
-              // _1 is a value of 1 which the OG uses for all
-              // tiles that are connected to either the left or
-              // right edge of the map, even if the left and
-              // right edges are not themselves connected via wa-
-              // ter. Note that a region ID of 1 is also used for
-              // one of the land masses, but that will be ruled
-              // out when we check for water below.
-              if( path[offset].region_id !=
-                  region_id_4bit_type::_1 )
-                return false;
-              return is_tile_water( tiles[offset].tile );
-            } );
-          } );
-        } );
-  }
+  finder.populate_connectivity(
+      connectivity.sea_lane_connectivity, [&]( int offset ) {
+        CHECK_LT( offset, int( path.size() ) );
+        CHECK_LT( offset, int( tiles.size() ) );
+        // _1 is a value of 1 which the OG uses for all tiles
+        // that are connected to either the left or right edge of
+        // the map, even if the left and right edges are not
+        // themselves connected. Note that a region ID of 1 is
+        // also used for one of the land masses, but that will be
+        // ruled out when we check for water.
+        return ( path[offset].region_id ==
+                 region_id_4bit_type::_1 ) &&
+               is_tile_water( tiles[offset].tile );
+      } );
 
   // Land connectivity.
-  {
-    base::ScopedTimer timer( "populate_land_connectivity" );
-    populate_connectivity_impl(
-        connectivity.land_connectivity,
-        [&]( point p1, point p2 ) {
-          return has_connection( p1, p2, [&]( point q ) {
-            return find_anchor_impl( q, [&]( int offset ) {
-              return !is_tile_water( tiles[offset].tile );
-            } );
-          } );
-        } );
-  }
+  finder.populate_connectivity(
+      connectivity.land_connectivity, [&]( int offset ) {
+        CHECK_LT( offset, int( tiles.size() ) );
+        return is_tile_land( tiles[offset].tile );
+      } );
 }
 
 } // namespace sav
