@@ -392,11 +392,16 @@ valid_or<std::string> convert_to_rn( sav::MapFile const& in,
 }
 
 valid_or<std::string> convert_to_og( rn::RealTerrain const& in,
-                                     sav::ColonySAV& out ) {
+                                     sav::MapFile& out ) {
   ScopedTimer timer( "convert map from RN to OG" );
-  HAS_VALUE_OR_RET(
-      map_squares_to_tiles( in, out.header.map_size_x,
-                            out.header.map_size_y, out.tile ) );
+  sav::HEADER header;
+  HAS_VALUE_OR_RET( map_squares_to_tiles(
+      in, header.map_size_x, header.map_size_y, out.tile ) );
+
+  // This only populates the region IDs, but that is fine for a
+  // pure map conversion.
+  populate_region_ids( as_const( out ).tile, out.path );
+
   return valid;
 }
 

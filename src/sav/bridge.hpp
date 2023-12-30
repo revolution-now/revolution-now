@@ -41,6 +41,6 @@ base::valid_or<std::string> convert_to_rn(
     sav::MapFile const& in, rn::RealTerrain& out );
 
 base::valid_or<std::string> convert_to_og(
-    rn::RealTerrain const& in, sav::ColonySAV& out );
+    rn::RealTerrain const& in, sav::MapFile& out );
 
 } // namespace bridge
