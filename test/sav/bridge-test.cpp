@@ -38,6 +38,38 @@ using ::base::nothing;
 using ::base::valid;
 
 /****************************************************************
+** Helpers.
+*****************************************************************/
+[[maybe_unused]] uint8_t bit_field_to_uint( auto o ) {
+  static_assert( sizeof( uint8_t ) == sizeof( o ) );
+  return bit_cast<uint8_t>( o );
+}
+
+[[maybe_unused]] void print_connectivity_board(
+    string_view name, auto const& board, int width,
+    int height ) {
+  fmt::println( "  {}:", name );
+  int const height_quads = ( height + 3 ) / 4;
+  int const width_quads  = ( width + 3 ) / 4;
+  for( int qy = 0; qy < height_quads; ++qy ) {
+    fmt::print( "    " );
+    for( int qx = 0; qx < width_quads; ++qx ) {
+      int const     offset = qx * height_quads + qy;
+      auto const    val    = board[offset];
+      uint8_t const casted = bit_field_to_uint( val );
+      fmt::print( "{:02x} ", casted );
+    }
+    fmt::println( "" );
+  }
+}
+
+[[maybe_unused]] void print_connectivity_old_new(
+    auto const& old, auto const& new_, int width, int height ) {
+  print_connectivity_board( "OLD", old, width, height );
+  print_connectivity_board( "NEW", new_, width, height );
+}
+
+/****************************************************************
 ** Scenario 1 (must support bi-directional conversion).
 *****************************************************************/
 void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
@@ -58,6 +90,24 @@ void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
   using Ter = sav::terrain_5bit_type;
   using HR  = sav::hills_river_3bit_type;
 
+  // Keep this updated.
+  //
+  //   x: land
+  //   o: water
+  //
+  //   . . . .  . . . .
+  //   . x x x  x x x .
+  //   . x x x  x x x .
+  //   . x x x  x x o .
+  //
+  //   . o x .  . . . .
+  //   . . . .  . . . .
+  //   . . . .  . . . .
+  //   . . . .  . . . .
+  //
+  //   . . . .  . . . .
+  //   . . . .  . . . .
+  //
   out.tile[8 + 1]  = T{ .tile = Ter::tu };
   out.tile[8 + 2]  = T{ .tile = Ter::de };
   out.tile[8 + 3]  = T{ .tile = Ter::pl };
@@ -87,6 +137,17 @@ void og_bidirectional_scenario_1( sav::ColonySAV& out ) {
   out.tile[8 + 6].hill_river  = HR::tt;
   out.tile[8 + 21].hill_river = HR::empty;
   out.tile[8 + 26].hill_river = HR::cc;
+
+  out.path = vector<sav::PATH>( 8 * 10 ); // TODO: temporary.
+
+  // Index goes down columns first.
+  //
+  //   04 40
+  //   00 00
+  //   00 00
+  //
+  out.connectivity.land_connectivity[0].east = true;
+  out.connectivity.land_connectivity[3].west = true;
 
   // TODO: Add more here.
 }
@@ -214,7 +275,15 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
   REQUIRE( converted.mask == expected.mask );
   REQUIRE( converted.path == expected.path );
   REQUIRE( converted.seen == expected.seen );
-  REQUIRE( converted.connectivity == expected.connectivity );
+#if 0
+  print_connectivity_old_new(
+      expected.connectivity.sea_lane_connectivity,
+      converted.connectivity.sea_lane_connectivity, 8, 10 );
+  print_connectivity_old_new(
+      expected.connectivity.land_connectivity,
+      converted.connectivity.land_connectivity, 8, 10 );
+#endif
+  REQUIRE( ( converted.connectivity == expected.connectivity ) );
   REQUIRE( converted.unknown_map38c2 ==
            expected.unknown_map38c2 );
   REQUIRE( converted.unknown_map38c3 ==
@@ -232,7 +301,7 @@ TEST_CASE( "[sav/bridge] NG to OG [scenario 1]" ) {
 *****************************************************************/
 // You can put things in this scenario that only support con-
 // verting from the OG to the NG.
-void og_bidirectional_scenario_2( sav::ColonySAV& out ) {
+void og_unidirectional_scenario_1( sav::ColonySAV& out ) {
   // Header.
   auto& H      = out.header;
   H.colonize   = { 'C', 'O', 'L', 'O', 'N', 'I', 'Z', 'E', 0 };
@@ -283,7 +352,7 @@ void og_bidirectional_scenario_2( sav::ColonySAV& out ) {
   // TODO: Add more here.
 }
 
-void rn_bidirectional_scenario_2( rn::RootState& out ) {
+void rn_unidirectional_scenario_1( rn::RootState& out ) {
   rn::wrapped::TerrainState terrain_o;
 
   vector<rn::MapSquare> squares;
@@ -360,10 +429,10 @@ void rn_bidirectional_scenario_2( rn::RootState& out ) {
 // preparation each time a new element is translated.
 TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   sav::ColonySAV classic;
-  og_bidirectional_scenario_2( classic );
+  og_unidirectional_scenario_1( classic );
 
   rn::RootState expected;
-  rn_bidirectional_scenario_2( expected );
+  rn_unidirectional_scenario_1( expected );
 
   rn::RootState converted;
   REQUIRE( convert_to_rn( classic, converted ) == valid );

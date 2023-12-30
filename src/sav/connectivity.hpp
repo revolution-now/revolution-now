@@ -15,10 +15,20 @@
 // sav
 #include "sav-struct.hpp"
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // C++ standard library
 #include <vector>
 
 namespace sav {
+
+// This function populates the region IDs in the PATH section
+// given a tile map. It will attempt to use the same region ID
+// convention as the OG. Note that the other field
+// (visitor_nation) must be populated separately.
+void populate_region_ids( std::vector<TILE> const& tiles,
+                          std::vector<PATH>&       path );
 
 // This function populates the connectivity sections the way they
 // were likely intended to be populated, namely without what ap-
@@ -50,8 +60,11 @@ namespace sav {
 //
 // This algorithm does not replicate that behavior.
 //
+// Note that this relies on the TILE map and PATH map (only the
+// region IDs) being present and populated correctly.
 void populate_connectivity( std::vector<TILE> const& tiles,
                             std::vector<PATH> const& path,
+                            gfx::size                map_size,
                             CONNECTIVITY& connectivity );
 
 } // namespace sav

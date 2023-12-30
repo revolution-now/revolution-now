@@ -11,6 +11,7 @@
 #include "bridge.hpp"
 
 // sav
+#include "connectivity.hpp"
 #include "map-file.hpp"
 #include "sav-struct.hpp"
 
@@ -366,6 +367,16 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
   HAS_VALUE_OR_RET( map_squares_to_tiles(
       in.zzz_terrain.refl().real_terrain, out.header.map_size_x,
       out.header.map_size_y, out.tile ) );
+
+  // TODO: This only populates the region IDs; we need to popu-
+  // late the visitor_nation field separately.
+  populate_region_ids( as_const( out ).tile, out.path );
+
+  CHECK_GT( out.header.map_size_x, 0 );
+  populate_connectivity(
+      as_const( out ).tile, as_const( out ).path,
+      { .w = out.header.map_size_x, .h = out.header.map_size_y },
+      out.connectivity );
 
   // TODO: add more here.
 

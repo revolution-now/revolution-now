@@ -39,18 +39,6 @@ using ::gfx::size;
 /****************************************************************
 ** Helpers
 *****************************************************************/
-bool quad_exists( point q ) {
-  if( q.y < 0 || q.x < 0 ) return false;
-  if( q.y >= 18 || q.x >= 15 ) return false;
-  return true;
-}
-
-bool tile_exists( point q ) {
-  if( q.y < 0 || q.x < 0 ) return false;
-  if( q.y >= 72 || q.x >= 58 ) return false;
-  return true;
-}
-
 bool is_tile_water( terrain_5bit_type tile ) {
   return ( tile == terrain_5bit_type::ttt ||
            tile == terrain_5bit_type::tnt );
@@ -58,23 +46,6 @@ bool is_tile_water( terrain_5bit_type tile ) {
 
 bool is_tile_land( terrain_5bit_type tile ) {
   return !is_tile_water( tile );
-}
-
-maybe<point> find_anchor( point const q, auto&& tile_valid ) {
-  static auto anchor_deltas = {
-      size{ .w = 1, .h = 1 },
-      size{ .w = 1, .h = 2 },
-      size{ .w = 2, .h = 1 },
-      size{ .w = 2, .h = 2 },
-  };
-  point const p = q * 4;
-  for( size const s : anchor_deltas ) {
-    point const candidate = p + s;
-    if( !tile_exists( candidate ) ) continue;
-    int const offset = candidate.y * 58 + candidate.x;
-    if( tile_valid( offset ) ) return candidate;
-  }
-  return nothing;
 }
 
 // This is similar to the A* algorithm, but it is "weaker" in
@@ -153,17 +124,57 @@ struct ConnectivityFinder {
 
   bool are_tiles_connected( point src, point dst ) const;
 
+  maybe<point> find_anchor( point const q,
+                            auto&&      tile_valid ) const;
+
+  bool quad_exists( point q ) const {
+    if( q.y < 0 || q.x < 0 ) return false;
+    if( q.y >= map_height_quads_ || q.x >= map_width_quads_ )
+      return false;
+    return true;
+  }
+
+  bool tile_exists( point q ) const {
+    if( q.y < 0 || q.x < 0 ) return false;
+    if( q.y >= map_height_ || q.x >= map_width_ ) return false;
+    return true;
+  }
+
   vector<TILE> const& tiles_;
   vector<PATH> const& path_;
+
+  int const map_width_;
+  int const map_height_;
+
+  int const map_width_quads_  = ( map_width_ + 3 ) / 4;
+  int const map_height_quads_ = ( map_height_ + 3 ) / 4;
 };
+
+maybe<point> ConnectivityFinder::find_anchor(
+    point const q, auto&& tile_valid ) const {
+  static auto anchor_deltas = {
+      size{ .w = 1, .h = 1 },
+      size{ .w = 1, .h = 2 },
+      size{ .w = 2, .h = 1 },
+      size{ .w = 2, .h = 2 },
+  };
+  point const p = q * 4;
+  for( size const s : anchor_deltas ) {
+    point const candidate = p + s;
+    if( !tile_exists( candidate ) ) continue;
+    int const offset = candidate.y * map_width_ + candidate.x;
+    if( tile_valid( offset ) ) return candidate;
+  }
+  return nothing;
+}
 
 bool ConnectivityFinder::are_tiles_connected( point src,
                                               point dst ) const {
   CHECK_LE( abs( src.x - dst.x ), 1 );
   CHECK_LE( abs( src.y - dst.y ), 1 );
   if( !tile_exists( src ) || !tile_exists( dst ) ) return false;
-  int const src_offset = src.y * 58 + src.x;
-  int const dst_offset = dst.y * 58 + dst.x;
+  int const src_offset = src.y * map_width_ + src.x;
+  int const dst_offset = dst.y * map_width_ + dst.x;
   CHECK_LT( src_offset, int( tiles_.size() ) );
   CHECK_LT( dst_offset, int( tiles_.size() ) );
   CHECK_LT( src_offset, int( path_.size() ) );
@@ -196,16 +207,18 @@ void ConnectivityFinder::populate_connectivity(
     Func&&         is_valid_anchor_tile ) const {
   base::ScopedTimer timer( "populate_connectivity: "s +
                            base::demangled_typename<T>() );
-  CHECK_EQ( int( connectivity.size() ), 18 * 15 );
+  // We support smaller maps than the OG for testing.
+  CHECK_GE( int( connectivity.size() ),
+            map_height_quads_ * map_width_quads_ );
   auto connectivity_quad = [&]( point q ) -> maybe<T&> {
     if( !quad_exists( q ) ) return nothing;
-    int const offset = q.x * 18 + q.y;
+    int const offset = q.x * map_height_quads_ + q.y;
     CHECK_LT( offset, int( connectivity.size() ) );
     return connectivity[offset];
   };
 
-  for( int qy = 0; qy < 18; ++qy ) {
-    for( int qx = 0; qx < 15; ++qx ) {
+  for( int qy = 0; qy < map_height_quads_; ++qy ) {
+    for( int qx = 0; qx < map_width_quads_; ++qx ) {
       int quad_delta_y = 0;
       int quad_delta_x = 0;
 
@@ -279,9 +292,14 @@ void ConnectivityFinder::populate_connectivity(
 *****************************************************************/
 void populate_connectivity( vector<TILE> const& tiles,
                             vector<PATH> const& path,
+                            size                map_size,
                             CONNECTIVITY&       connectivity ) {
-  ConnectivityFinder const finder{ .tiles_ = tiles,
-                                   .path_  = path };
+  CHECK_EQ( int( tiles.size() % map_size.w ), 0 );
+  CHECK_EQ( int( tiles.size() ), map_size.area() );
+  ConnectivityFinder const finder{ .tiles_      = tiles,
+                                   .path_       = path,
+                                   .map_width_  = map_size.w,
+                                   .map_height_ = map_size.h };
 
   // Sea lane connectivity.
   finder.populate_connectivity(
@@ -305,6 +323,14 @@ void populate_connectivity( vector<TILE> const& tiles,
         CHECK_LT( offset, int( tiles.size() ) );
         return is_tile_land( tiles[offset].tile );
       } );
+}
+
+void populate_region_ids( vector<TILE> const& tiles,
+                          vector<PATH>&       path ) {
+  path.resize( tiles.size() );
+  static PATH const kEmpty{};
+  fill( path.begin(), path.end(), kEmpty );
+  // TODO
 }
 
 } // namespace sav
