@@ -21,6 +21,7 @@
 // base
 #include "base/cc-specific.hpp"
 #include "base/timer.hpp"
+#include "base/unique-func.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -33,6 +34,7 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::base::unique_func;
 using ::gfx::point;
 using ::gfx::size;
 
@@ -114,44 +116,45 @@ bool has_path( point const src, point const dst, int upper_bound,
 ** ConnectivityFinder
 *****************************************************************/
 struct ConnectivityFinder {
-  template<typename T, typename Func>
+  template<typename T>
   void populate_connectivity(
-      array<T, 270>& connectivity,
-      Func&&         is_valid_anchor_tile ) const;
+      array<T, 270>& connectivity ) const;
 
-  bool are_quads_connected( point q1, point q2,
-                            auto&& is_valid_anchor_tile ) const;
+  bool are_quads_connected( point q1, point q2 ) const;
 
   bool are_tiles_connected( point src, point dst ) const;
 
-  maybe<point> find_anchor( point const q,
-                            auto&&      tile_valid ) const;
+  maybe<point> find_anchor( point const q ) const;
 
   bool quad_exists( point q ) const {
     if( q.y < 0 || q.x < 0 ) return false;
-    if( q.y >= map_height_quads_ || q.x >= map_width_quads_ )
+    if( q.y >= map_height_quads || q.x >= map_width_quads )
       return false;
     return true;
   }
 
   bool tile_exists( point q ) const {
     if( q.y < 0 || q.x < 0 ) return false;
-    if( q.y >= map_height_ || q.x >= map_width_ ) return false;
+    if( q.y >= map_height || q.x >= map_width ) return false;
     return true;
   }
 
-  vector<TILE> const& tiles_;
-  vector<PATH> const& path_;
+  vector<TILE> const& tiles;
+  vector<PATH> const& path;
 
-  int const map_width_;
-  int const map_height_;
+  int const map_width;
+  int const map_height;
 
-  int const map_width_quads_  = ( map_width_ + 3 ) / 4;
-  int const map_height_quads_ = ( map_height_ + 3 ) / 4;
+  int const map_width_quads  = ( map_width + 3 ) / 4;
+  int const map_height_quads = ( map_height + 3 ) / 4;
+
+  unique_func<bool( int ) const> is_tile_valid = []( int ) {
+    return false;
+  };
 };
 
 maybe<point> ConnectivityFinder::find_anchor(
-    point const q, auto&& tile_valid ) const {
+    point const q ) const {
   static auto anchor_deltas = {
       size{ .w = 1, .h = 1 },
       size{ .w = 1, .h = 2 },
@@ -162,8 +165,8 @@ maybe<point> ConnectivityFinder::find_anchor(
   for( size const s : anchor_deltas ) {
     point const candidate = p + s;
     if( !tile_exists( candidate ) ) continue;
-    int const offset = candidate.y * map_width_ + candidate.x;
-    if( tile_valid( offset ) ) return candidate;
+    int const offset = candidate.y * map_width + candidate.x;
+    if( is_tile_valid( offset ) ) return candidate;
   }
   return nothing;
 }
@@ -173,27 +176,25 @@ bool ConnectivityFinder::are_tiles_connected( point src,
   CHECK_LE( abs( src.x - dst.x ), 1 );
   CHECK_LE( abs( src.y - dst.y ), 1 );
   if( !tile_exists( src ) || !tile_exists( dst ) ) return false;
-  int const src_offset = src.y * map_width_ + src.x;
-  int const dst_offset = dst.y * map_width_ + dst.x;
-  CHECK_LT( src_offset, int( tiles_.size() ) );
-  CHECK_LT( dst_offset, int( tiles_.size() ) );
-  CHECK_LT( src_offset, int( path_.size() ) );
-  CHECK_LT( dst_offset, int( path_.size() ) );
-  return ( path_[dst_offset].region_id ==
-           path_[src_offset].region_id ) &&
-         ( is_tile_water( tiles_[src_offset].tile ) ==
-           is_tile_water( tiles_[dst_offset].tile ) );
+  int const src_offset = src.y * map_width + src.x;
+  int const dst_offset = dst.y * map_width + dst.x;
+  CHECK_LT( src_offset, int( tiles.size() ) );
+  CHECK_LT( dst_offset, int( tiles.size() ) );
+  CHECK_LT( src_offset, int( path.size() ) );
+  CHECK_LT( dst_offset, int( path.size() ) );
+  return ( path[dst_offset].region_id ==
+           path[src_offset].region_id ) &&
+         ( is_tile_water( tiles[src_offset].tile ) ==
+           is_tile_water( tiles[dst_offset].tile ) );
 }
 
-bool ConnectivityFinder::are_quads_connected(
-    point q1, point q2, auto&& is_valid_anchor_tile ) const {
+bool ConnectivityFinder::are_quads_connected( point q1,
+                                              point q2 ) const {
   CHECK( quad_exists( q1 ) );
   CHECK( quad_exists( q2 ) );
-  maybe<point> const anchor1 =
-      find_anchor( q1, is_valid_anchor_tile );
+  maybe<point> const anchor1 = find_anchor( q1 );
   if( !anchor1.has_value() ) return false;
-  maybe<point> const anchor2 =
-      find_anchor( q2, is_valid_anchor_tile );
+  maybe<point> const anchor2 = find_anchor( q2 );
   if( !anchor2.has_value() ) return false;
   return has_path( *anchor1, *anchor2, 6,
                    [this]( point p1, point p2 ) {
@@ -201,24 +202,23 @@ bool ConnectivityFinder::are_quads_connected(
                    } );
 };
 
-template<typename T, typename Func>
+template<typename T>
 void ConnectivityFinder::populate_connectivity(
-    array<T, 270>& connectivity,
-    Func&&         is_valid_anchor_tile ) const {
+    array<T, 270>& connectivity ) const {
   base::ScopedTimer timer( "populate_connectivity: "s +
                            base::demangled_typename<T>() );
   // We support smaller maps than the OG for testing.
   CHECK_GE( int( connectivity.size() ),
-            map_height_quads_ * map_width_quads_ );
+            map_height_quads * map_width_quads );
   auto connectivity_quad = [&]( point q ) -> maybe<T&> {
     if( !quad_exists( q ) ) return nothing;
-    int const offset = q.x * map_height_quads_ + q.y;
+    int const offset = q.x * map_height_quads + q.y;
     CHECK_LT( offset, int( connectivity.size() ) );
     return connectivity[offset];
   };
 
-  for( int qy = 0; qy < map_height_quads_; ++qy ) {
-    for( int qx = 0; qx < map_width_quads_; ++qx ) {
+  for( int qy = 0; qy < map_height_quads; ++qy ) {
+    for( int qx = 0; qx < map_width_quads; ++qx ) {
       int quad_delta_y = 0;
       int quad_delta_x = 0;
 
@@ -235,8 +235,7 @@ void ConnectivityFinder::populate_connectivity(
         if( fst.has_value() && snd.has_value() &&
             are_quads_connected( { .x = qx, .y = qy },
                                  { .x = qx + quad_delta_x,
-                                   .y = qy + quad_delta_y },
-                                 is_valid_anchor_tile ) )
+                                   .y = qy + quad_delta_y } ) )
           action( fst, snd );
       };
 
@@ -296,33 +295,34 @@ void populate_connectivity( vector<TILE> const& tiles,
                             CONNECTIVITY&       connectivity ) {
   CHECK_EQ( int( tiles.size() % map_size.w ), 0 );
   CHECK_EQ( int( tiles.size() ), map_size.area() );
-  ConnectivityFinder const finder{ .tiles_      = tiles,
-                                   .path_       = path,
-                                   .map_width_  = map_size.w,
-                                   .map_height_ = map_size.h };
+  ConnectivityFinder finder{ .tiles      = tiles,
+                             .path       = path,
+                             .map_width  = map_size.w,
+                             .map_height = map_size.h };
 
   // Sea lane connectivity.
+  finder.is_tile_valid = [&]( int offset ) {
+    CHECK_LT( offset, int( path.size() ) );
+    CHECK_LT( offset, int( tiles.size() ) );
+    // _1 is a value of 1 which the OG uses for all tiles that
+    // are connected to either the left or right edge of the map,
+    // even if the left and right edges are not themselves con-
+    // nected. Note that a region ID of 1 is also used for one of
+    // the land masses, but that will be ruled out when we check
+    // for water.
+    return ( path[offset].region_id ==
+             region_id_4bit_type::_1 ) &&
+           is_tile_water( tiles[offset].tile );
+  };
   finder.populate_connectivity(
-      connectivity.sea_lane_connectivity, [&]( int offset ) {
-        CHECK_LT( offset, int( path.size() ) );
-        CHECK_LT( offset, int( tiles.size() ) );
-        // _1 is a value of 1 which the OG uses for all tiles
-        // that are connected to either the left or right edge of
-        // the map, even if the left and right edges are not
-        // themselves connected. Note that a region ID of 1 is
-        // also used for one of the land masses, but that will be
-        // ruled out when we check for water.
-        return ( path[offset].region_id ==
-                 region_id_4bit_type::_1 ) &&
-               is_tile_water( tiles[offset].tile );
-      } );
+      connectivity.sea_lane_connectivity );
 
   // Land connectivity.
-  finder.populate_connectivity(
-      connectivity.land_connectivity, [&]( int offset ) {
-        CHECK_LT( offset, int( tiles.size() ) );
-        return is_tile_land( tiles[offset].tile );
-      } );
+  finder.is_tile_valid = [&]( int offset ) {
+    CHECK_LT( offset, int( tiles.size() ) );
+    return is_tile_land( tiles[offset].tile );
+  };
+  finder.populate_connectivity( connectivity.land_connectivity );
 }
 
 void populate_region_ids( vector<TILE> const& tiles,
