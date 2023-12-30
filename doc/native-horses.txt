@@ -1,0 +1,207 @@
+Native Horses
+=============
+
+Data/Definitions
+----------------
+
+  horse_herds: per tribe.
+
+    * A tribe's horse_herd field indicates how many "herds" it has.
+    * A tribe has horses if and only if this value is > 0.
+    * When this value is > 0 then breeding can occur.
+    * Allowed range: [0,inf)
+
+  horse_breeding: per tribe.
+
+    * The tribe's horse_breeding field increases each turn by an
+      amount equal to horse_herds. When it reaches 25 or larger
+      then a brave will move to a dwelling and will be given
+      horses, and 25 will be subtracted from the value.
+
+Acquisition
+-----------
+
+  * A brave without horses wins in battle against a unit with
+    horses (even a scout), then ++horse_herds. But that doesn't
+    seem to happen if the brave already has horses. Note that
+    horse_breeding is not increased here because the brave is
+    already receiving the horses.
+  * Giving/selling horses to the tribe via trade. Note that
+    this increases horse_breeding as well, by 25.
+  * Attacking a colony and stealing horses during a raid. Seems
+    to apply even if a small amount (e.g. 10) horses are
+    stolen. This appears to increase horse_breeding as well by
+    25, even when small numbers are stolen.
+  * Demanding horses as reparations (probably is a part of the
+    usual demands of whatever commodities the colony has in
+    stock). In this case horse_herds goes up by one. The brave
+    also gets horses. horse_breeding may go up, but not sure.
+  * Inter-tribe trade
+
+  Confirmed negative:
+    * Brave with horses wins in battle against a unit with
+      horses.
+    * When a scout is captured when speaking to the chief.
+    * Attacking a wagon train containing horses.
+
+  * When a new horse herd is given to a tribe via trade, the
+    horse_herds goes up by 1, but the horse_breeding field also
+    goes up by an amount equal to:
+
+       horse_breeding += floor( traded_amount/4 )
+
+    When horses are acquired by combat only horse_herds increases
+    by 1 since the brave will take the horses, which is equiva-
+    lent to 25 horse_breeding.
+
+  * Dwellings seem to trade horses according to normal rules,
+    namely that they won't trade them twice in a row (although
+    this needs to be confirmed; a violation of this may once have
+    been observed while trading with an Inca capital).
+
+  * If we only trade 1 horse with the natives, horse_herds still
+    increases.
+
+Horse Breeding
+--------------
+
+  * The tribe's horse_breeding field increases each turn by an
+    amount equal to horse_herds. A brave requires 25 horses to
+    get a horse. At some point later, when there is a brave in
+    need of horses and that brave has moved over its dwelling,
+    and this field is above 25, 25 will be subtracted from it and
+    the brave will get a horse (even a brave that already ex-
+    ists). However, in some cases it seems that the value sub-
+    tracted is 50, but it is not understood how/why/when this
+    happens (see bugs section below). It does not seem to be
+    simply a function of horse_breeding. This quantity has a max-
+    imum value, given by the following formula:
+
+      max_value = 50 + N + D*M + a
+
+    where D is the number of dwellings, N is (0,4,6,8) and M is
+    (6,10,14,18) for the tech levels. Strangely, a is zero in all
+    cases except for Semi-nomadic when D >= 9 (bug?).
+
+  * The fact that there is some uncertainty in when 25 is sub-
+    tracted from horse_breeding and a brave gets a horse can
+    probably be explained by the fact that maybe a brave needs to
+    wait until it returns to its dwelling to get the horses.
+
+  * It seems that when a brave acquires horses that uses up its
+    entire turn, so first it has to move onto its dwelling, then
+    it has to acquire horses, then its turn ends.
+
+  * Max value of horse_breeding (which seems independent of the
+    value of horse_herds):
+
+      Civilized (Inca):
+         7 dwellings: 184  (Inca)     = 50 + 8 + 7*18
+         3 dwellings: 112  (Inca)     = 50 + 8 + 3*18
+         2 dwellings:  94  (Inca)     = 50 + 8 + 2*18
+         1 dwellings:  76  (Inca)     = 50 + 8 + 1*18
+         0 dwellings:  58  (Inca)     = 50 + 8 + 0*18
+
+      Advanced (Aztec):
+        16 dwellings: 280  (Aztec)    = 50 + 6 + 16*14
+        10 dwellings: 196  (Aztec)    = 50 + 6 + 10*14
+         8 dwellings: 168  (Aztec)    = 50 + 6 +  8*14
+
+      Agrarian:
+        13 dwellings: 184  (iroquois) = 50 + 4 + 13*10
+        11 dwellings: 164  (iroquois) = 50 + 4 + 11*10
+         4 dwellings:  94  (cherokee) = 50 + 4 +  4*10
+         3 dwellings:  84  (cherokee) = 50 + 4 +  3*10
+         1 dwellings:  64  (cherokee) = 50 + 4 +  1*10
+
+      Semi-nomadic:
+        13 dwellings: 130  (Sioux)    = 50 + 0 + 13*6 + 2
+         9 dwellings: 106  (Sioux)    = 50 + 0 +  9*6 + 2
+         8 dwellings:  98  (Sioux)    = 50 + 0 +  8*6
+         7 dwellings:  92  (Sioux)    = 50 + 0 +  7*6
+         6 dwellings:  86  (Sioux)    = 50 + 0 +  6*6
+         5 dwellings:  80  (Sioux)    = 50 + 0 +  5*6
+         4 dwellings:  74  (Sioux)    = 50 + 0 +  4*6
+         3 dwellings:  68  (Sioux)    = 50 + 0 +  3*6
+         2 dwellings:  62  (Sioux)    = 50 + 0 +  2*6
+         1 dwellings:  56  (Sioux)    = 50 + 0 +  1*6
+         0 dwellings:  50  (Sioux)    = 50 + 0 +  0*6
+
+    If the value somehow ends up larger than this then it will be
+    reduced.
+
+Horse Loss
+----------
+
+  * It seems impossible for a tribe to completely lose horses
+    once they acquire them, since having horse_herds > 0 will al-
+    ways lead to breading, but it doesn't seem possible to get
+    horse_herds to go down to zero without eliminating all
+    dwellings.
+
+  * When a brave with horses loses in combat there is a 50%
+    chance that the tribe will retain the horses, which means
+    that the horse_breeding number will increase by 25. Other-
+    wise, the unit simply disappears and nothing else happens.
+
+  * When a dwelling gets destroyed, both the horse_herds and the
+    horse_breeding will decrease according to this formula:
+
+      new_value = old_value - floor( old_value/N )
+
+    where N is the number of dwellings including the one being
+    destroyed. Using the floor is important so that guarantee
+    that we always have some left for the remaining dwelling(s).
+
+Inter-tribe Trade
+-----------------
+
+  * Happens via horse_herds, not horse_breeding.
+  * Happens if and only if a brave from one tribe moves adjacent
+    to a brave (or dwelling) from another tribe where at least
+    one tribe has horse_herds > 0.
+  * When a trade happens, both tribes end up with an amount of
+    horse_herds equal to the maximum of the two values between
+    the two tribes.
+  * Since this happens iff braves meet, the question of how often
+    it happens is equivalent to the question of when/how often
+    braves meet. The answer seems to be that they never meet un-
+    less they are forced to for some reason. The game must have
+    some mechanism for preventing this. As part of implementing
+    horse trading properly, we probably need to figure out how
+    braves move.
+
+Indian Advisor Report
+---------------------
+
+  * The horses readout on the indian advisor report does not in-
+    clude the herds held by braves.
+
+Bugs
+----
+
+  * This seems likely to be a bug, but the way that
+    horse_breeding actually seems to get incremented is according
+    to the following algo/formula:
+
+      1. Pick one tribe (not sure how it chooses, but it is de-
+         terministic it seems): Iroquois, Inca
+      2. Increase horse_breediung by NE*horse_herds, where NE is
+         the total number of non-extinct tribes as specified by
+         the extinct flag.
+
+    This behavior doesn't seem to make any sense; it could be a
+    result of an incorrectly-implemented inter-tribe trading
+    mechanism for horses.
+
+  * When an existing brave gets horses it only requires 25 from
+    horse_breeding, but when a new brave is created and receives
+    horses off the bat, it appears to take 50 in cases where
+    horse_breeding is over 50, otherwise it just takes 25. Not
+    sure if this is a bug. But either way, we won't be repro-
+    ducing it because it doesn't seem to make sense. Creating a
+    new brave and equipping it with horses should require the
+    same number of horses as creating it with horses. Also, the
+    number of horses required even for creating a brave with
+    horses seems inconsistent as it can be either 25 or 50 de-
+    pending on the value of horse_breeding.
