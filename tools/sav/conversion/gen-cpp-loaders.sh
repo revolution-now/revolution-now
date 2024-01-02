@@ -10,7 +10,6 @@ root="$tools/.."
 
 out_dir="$root/src/sav"
 
-source "$this/luarocks-env.sh"
 export LUA_PATH="$conv/?.lua;$LUA_PATH"
 
 lua                             \
