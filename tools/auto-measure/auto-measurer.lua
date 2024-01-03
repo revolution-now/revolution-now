@@ -122,7 +122,7 @@ local function exit_game()
   info( 'exiting game.' )
   game_menu()
   seq{ up, enter } -- Select "Exit to DOS".
-  pcall( seq, { down } ) -- Highlight 'Yes'.
+  down() -- Highlight 'Yes'.
   -- Somehow, even though this succeeds in ending the program,
   -- the xdotool returns an error.
   pcall( xdotool, 'key', '--window', dosbox, 'Return', '2>&1' )
