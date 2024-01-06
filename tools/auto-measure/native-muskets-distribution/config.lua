@@ -1,6 +1,6 @@
 return {
   target_trials=200,
-  difficulty='conquistador',
-  tribe_name='tupi',
-  brave='old',
+  difficulty='viceroy',
+  tribe_name='inca',
+  brave='new',
 }
