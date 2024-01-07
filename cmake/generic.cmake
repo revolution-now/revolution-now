@@ -31,6 +31,7 @@ function( set_warning_options target )
            -Wno-reserved-identifier
            -Wno-ctad-maybe-unsupported
            -Wno-undefined-func-template
+           -Wno-switch-default
            # TODO: this looks like a new warning that is not
            # ready for primetime yet, and/or it flags too many
            # things. Try re-enabling it at some point in the fu-
