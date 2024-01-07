@@ -773,7 +773,7 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
           categories[*category] );
   if( !type.has_value() ) co_return;
   UNWRAP_CHECK( player, ss.players.players[nation] );
-  maybe<UnitId> unit_id =
+  [[maybe_unused]] maybe<UnitId> unit_id =
       co_await create_unit_on_map( ss, ts, player, *type, tile );
 }
 

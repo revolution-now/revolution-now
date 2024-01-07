@@ -32,13 +32,6 @@
 #include <utility>
 #include <variant>
 
-// When clang gets this C++20 feature (p0848r3) then this guard
-// can be removed. When this is defined, it will ensure that the
-// maybe<T> has trivial special member functions when T does.
-#if !defined( __clang__ )
-#  define HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
-#endif
-
 namespace base {
 
 /****************************************************************
@@ -142,19 +135,14 @@ class [[nodiscard]] maybe { /* clang-format on */
   /**************************************************************
   ** Default Constructor
   ***************************************************************/
-#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
   constexpr maybe()
   requires( std::is_trivially_default_constructible_v<T> )
   = default;
-#endif
 
   // This does not initialize the union member.
   constexpr maybe() noexcept
-#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
   requires( !std::is_trivially_default_constructible_v<T> )
-#endif
-    : active_{ false } {
-  }
+    : active_{ false } {}
 
   constexpr maybe( nothing_t ) noexcept : maybe() {}
 
@@ -173,7 +161,6 @@ class [[nodiscard]] maybe { /* clang-format on */
   }
 
  public:
-#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
   constexpr ~maybe() noexcept
   requires( std::is_trivially_destructible_v<T> )
   = default;
@@ -182,9 +169,6 @@ class [[nodiscard]] maybe { /* clang-format on */
   {
     destroy_if_active();
   }
-#else
-  constexpr ~maybe() noexcept { destroy_if_active(); }
-#endif
 
   /**************************************************************
   ** Value Constructors

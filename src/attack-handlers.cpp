@@ -1000,7 +1000,7 @@ wait<> AttackDwellingHandler::perform() {
     co_await ts_.planes.land_view().animate( seq );
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.
-    maybe<UnitDeleted> const unit_deleted =
+    [[maybe_unused]] auto const unit_deleted =
         co_await UnitOwnershipChanger( ss_, treasure_id )
             .change_to_map( ts_, dwelling_location );
   }
@@ -1021,7 +1021,7 @@ wait<> AttackDwellingHandler::perform() {
     // a brave from an unencountered tribe. We do this last be-
     // cause any UI sequence that this leads to will be unrelated
     // to the burning of the dwelling.
-    maybe<UnitDeleted> const unit_deleted =
+    [[maybe_unused]] auto const unit_deleted =
         co_await UnitOwnershipChanger(
             ss_, *destruction.missionary_to_release )
             .change_to_map( ts_, dwelling_location );

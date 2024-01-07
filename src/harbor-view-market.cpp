@@ -93,8 +93,6 @@ wait<> HarborMarketCommodities::perform_click(
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborMarketCommodities::object_here(
     Coord const& where ) const {
-  maybe<pair<e_commodity, Rect>> res;
-
   Rect const r     = rect( Coord{} );
   Rect const boxes = r / g_tile_delta;
   UNWRAP_CHECK( comm_idx,

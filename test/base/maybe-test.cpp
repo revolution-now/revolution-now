@@ -142,8 +142,6 @@ static_assert(
 /****************************************************************
 ** [static] Propagation of triviality.
 *****************************************************************/
-// p0848r3.html
-#ifdef HAS_CONDITIONALLY_TRIVIAL_SPECIAL_MEMBERS
 static_assert( is_trivially_copy_constructible_v<M<int>> );
 static_assert( is_trivially_move_constructible_v<M<int>> );
 static_assert( is_trivially_copy_assignable_v<M<int>> );
@@ -161,7 +159,6 @@ static_assert( !is_trivially_move_constructible_v<M<string>> );
 static_assert( !is_trivially_copy_assignable_v<M<string>> );
 static_assert( !is_trivially_move_assignable_v<M<string>> );
 static_assert( !is_trivially_destructible_v<M<string>> );
-#endif
 
 /****************************************************************
 ** [static] Avoiding bool ambiguity.
@@ -1774,7 +1771,7 @@ TEST_CASE( "[maybe] bind" ) {
       return ( nc.c == 'g' ) ? M<NoCopy>{ std::move( nc ) }
                              : nothing;
     };
-    M<NoCopy> m;
+    [[maybe_unused]] M<NoCopy> m;
     REQUIRE( M<NoCopy>{}.bind( f ) == nothing );
     REQUIRE( M<NoCopy>{ 'a' }.bind( f ) == nothing );
     REQUIRE( M<NoCopy>{ 'g' }.bind( f ) == NoCopy{ 'g' } );

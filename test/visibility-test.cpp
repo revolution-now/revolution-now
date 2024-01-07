@@ -974,7 +974,6 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   World W;
   W.create_small_map();
   FogSquare   expected_fogged;
-  MapSquare   expected_unfogged;
   Coord       coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
