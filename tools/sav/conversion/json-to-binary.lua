@@ -46,7 +46,7 @@ local function main( args )
   -- Get program arguments.
   local structure_json = assert( args[1] )
   local input_json_file = assert( args[2] )
-  local colony_sav_file = assert( args[3] )
+  local colony_sav = assert( args[3] )
 
   -- Input JSON file.
   info( 'parsing input JSON sav file %s...', input_json_file )
@@ -58,7 +58,7 @@ local function main( args )
   sav_writer.save{
     structure_json=structure_json,
     colony_json=colony_json,
-    colony_sav_file=colony_sav_file,
+    colony_sav=colony_sav,
   }
 
   return 0

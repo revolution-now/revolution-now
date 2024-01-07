@@ -33,7 +33,7 @@ local json_decode = json_transcode.decode
 function M.save( args )
   local structure_json = assert( args.structure_json )
   local colony_json = assert( args.colony_json )
-  local colony_sav_file = assert( args.colony_sav_file )
+  local colony_sav = assert( args.colony_sav )
 
   -- Structure document.
   info( 'decoding json structure file %s...', structure_json )
@@ -43,19 +43,19 @@ function M.save( args )
   assert( structure.HEADER )
 
   -- Binary SAV file.
-  check( colony_sav_file:match( '%.SAV$' ),
-         'colony_sav %s has invalid format.', colony_sav_file )
-  local colony_sav = assert( io.open( colony_sav_file, 'wb' ) )
+  check( colony_sav:match( '%.SAV$' ),
+         'colony_sav %s has invalid format.', colony_sav )
+  local out = assert( io.open( colony_sav, 'wb' ) )
 
   -- Traverse structure and emit binary.
-  info( 'writing binary save file %s', colony_sav_file )
+  info( 'writing binary save file %s', colony_sav )
   local saver = BinarySaver( structure.__metadata, colony_json,
-                             colony_sav )
+                             out )
   assert( saver )
   saver:struct( structure )
 
   -- Cleanup.
-  colony_sav:close()
+  out:close()
   return 0
 end
 
