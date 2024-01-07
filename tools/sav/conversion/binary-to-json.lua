@@ -10,7 +10,7 @@
 |
 --]] ------------------------------------------------------------
 local json_transcode = require( 'json-transcode' )
-local sav_loader = require( 'sav-loader' )
+local sav_reader = require( 'sav-reader' )
 local util = require( 'util' )
 
 -----------------------------------------------------------------
@@ -47,7 +47,7 @@ local function main( args )
   local colony_sav = assert( args[2] )
   local output_json = assert( args[3] )
 
-  local parsed = sav_loader.load{
+  local parsed = sav_reader.load{
     structure_json=structure_json,
     colony_sav=colony_sav,
   }
