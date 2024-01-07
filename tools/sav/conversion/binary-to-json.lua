@@ -9,8 +9,8 @@
 | Description: Converts binary SAV to json.
 |
 --]] ------------------------------------------------------------
-local binary_loader = require( 'binary-loader' )
 local json_transcode = require( 'json-transcode' )
+local sav_loader = require( 'sav-loader' )
 local util = require( 'util' )
 
 -----------------------------------------------------------------
@@ -19,13 +19,9 @@ local util = require( 'util' )
 local exit = os.exit
 
 local err = util.err
-local check = util.check
-local fatal = util.fatal
 local info = util.info
 
-local NewBinaryLoader = binary_loader.NewBinaryLoader
 local pprint_ordered = json_transcode.pprint_ordered
-local json_decode = json_transcode.decode
 
 -----------------------------------------------------------------
 -- Helpers.
@@ -47,36 +43,17 @@ local function main( args )
   end
   if #args > 3 then warn( 'extra unused arguments detected' ) end
 
-  -- Structure document.
   local structure_json = assert( args[1] )
-  info( 'decoding json structure file %s...', structure_json )
-  local structure = json_decode(
-                        io.open( structure_json, 'r' ):read( 'a' ) )
-  assert( structure.__metadata )
-  assert( structure.HEADER )
-
-  -- Binary SAV file.
   local colony_sav = assert( args[2] )
-  check( colony_sav:match( '%.SAV$' ),
-         'colony_sav %s has invalid format.', colony_sav )
+  local output_json = assert( args[3] )
+
+  local parsed = sav_loader.load{
+    structure_json=structure_json,
+    colony_sav=colony_sav,
+  }
 
   -- Output JSON file.
-  local output_json = assert( args[3] )
   local out = assert( io.open( output_json, 'w' ) )
-
-  -- Parsing.
-  info( 'reading save file %s', colony_sav )
-  local loader = assert( NewBinaryLoader( structure.__metadata,
-                                          colony_sav ) )
-  local parsed = loader:struct( structure )
-
-  -- Print stats.
-  local stats = loader:stats()
-  info( 'finished parsing. stats:' )
-  info( 'bytes read: %d', stats.bytes_read )
-  if stats.bytes_remaining > 0 then
-    fatal( 'bytes remaining: %d', stats.bytes_remaining )
-  end
 
   -- Encoding and outputting JSON.
   info( 'encoding json output to file %s...', output_json )
