@@ -2832,6 +2832,210 @@ cdr::result<ForeignAffairsReport> from_canonical(
                          cdr::tag_t<ForeignAffairsReport> );
 
 /****************************************************************
+** UnknownTribeData1
+*****************************************************************/
+struct UnknownTribeData1 {
+  bytes<1> inca = {};
+  bytes<1> aztec = {};
+  bytes<1> arawak = {};
+  bytes<1> iroquois = {};
+  bytes<1> cherokee = {};
+  bytes<1> apache = {};
+  bytes<1> sioux = {};
+  bytes<1> tupi = {};
+
+  bool operator==( UnknownTribeData1 const& ) const = default;
+};
+
+// String conversion.
+void to_str( UnknownTribeData1 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData1& o );
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData1 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData1 const& o,
+                         cdr::tag_t<UnknownTribeData1> );
+
+cdr::result<UnknownTribeData1> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData1> );
+
+/****************************************************************
+** UnknownTribeData2
+*****************************************************************/
+struct UnknownTribeData2 {
+  bytes<1> inca = {};
+  bytes<1> aztec = {};
+  bytes<1> arawak = {};
+  bytes<1> iroquois = {};
+  bytes<1> cherokee = {};
+  bytes<1> apache = {};
+  bytes<1> sioux = {};
+  bytes<1> tupi = {};
+
+  bool operator==( UnknownTribeData2 const& ) const = default;
+};
+
+// String conversion.
+void to_str( UnknownTribeData2 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData2& o );
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData2 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData2 const& o,
+                         cdr::tag_t<UnknownTribeData2> );
+
+cdr::result<UnknownTribeData2> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData2> );
+
+/****************************************************************
+** TribeDwellingCount
+*****************************************************************/
+struct TribeDwellingCount {
+  uint8_t inca = {};
+  uint8_t aztec = {};
+  uint8_t arawak = {};
+  uint8_t iroquois = {};
+  uint8_t cherokee = {};
+  uint8_t apache = {};
+  uint8_t sioux = {};
+  uint8_t tupi = {};
+
+  bool operator==( TribeDwellingCount const& ) const = default;
+};
+
+// String conversion.
+void to_str( TribeDwellingCount const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TribeDwellingCount& o );
+
+bool write_binary( base::IBinaryIO& b, TribeDwellingCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TribeDwellingCount const& o,
+                         cdr::tag_t<TribeDwellingCount> );
+
+cdr::result<TribeDwellingCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TribeDwellingCount> );
+
+/****************************************************************
+** UnknownTribeData4
+*****************************************************************/
+struct UnknownTribeData4 {
+  bytes<1> inca = {};
+  bytes<1> aztec = {};
+  bytes<1> arawak = {};
+  bytes<1> iroquois = {};
+  bytes<1> cherokee = {};
+  bytes<1> apache = {};
+  bytes<1> sioux = {};
+  bytes<1> tupi = {};
+
+  bool operator==( UnknownTribeData4 const& ) const = default;
+};
+
+// String conversion.
+void to_str( UnknownTribeData4 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData4& o );
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData4 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData4 const& o,
+                         cdr::tag_t<UnknownTribeData4> );
+
+cdr::result<UnknownTribeData4> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData4> );
+
+/****************************************************************
+** UnknownTribeData5
+*****************************************************************/
+struct UnknownTribeData5 {
+  bytes<1> inca = {};
+  bytes<1> aztec = {};
+  bytes<1> arawak = {};
+  bytes<1> iroquois = {};
+  bytes<1> cherokee = {};
+  bytes<1> apache = {};
+  bytes<1> sioux = {};
+  bytes<1> tupi = {};
+
+  bool operator==( UnknownTribeData5 const& ) const = default;
+};
+
+// String conversion.
+void to_str( UnknownTribeData5 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData5& o );
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData5 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData5 const& o,
+                         cdr::tag_t<UnknownTribeData5> );
+
+cdr::result<UnknownTribeData5> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData5> );
+
+/****************************************************************
+** UnknownTribeData6
+*****************************************************************/
+struct UnknownTribeData6 {
+  bytes<1> inca = {};
+  bytes<1> aztec = {};
+  bytes<1> arawak = {};
+  bytes<1> iroquois = {};
+  bytes<1> cherokee = {};
+  bytes<1> apache = {};
+  bytes<1> sioux = {};
+  bytes<1> tupi = {};
+
+  bool operator==( UnknownTribeData6 const& ) const = default;
+};
+
+// String conversion.
+void to_str( UnknownTribeData6 const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData6& o );
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData6 const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData6 const& o,
+                         cdr::tag_t<UnknownTribeData6> );
+
+cdr::result<UnknownTribeData6> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData6> );
+
+/****************************************************************
 ** STUFF
 *****************************************************************/
 struct STUFF {
@@ -2841,9 +3045,16 @@ struct STUFF {
   uint16_t counter_increasing_on_new_colony = {};
   bytes<7> unknown36aa = {};
   ForeignAffairsReport foreign_affairs_report = {};
-  bytes<520> unknown36ac = {};
+  std::array<bytes<64>, 8> unknown36ac = {};
+  bytes<8> unknown36ad = {};
   yes_no_byte show_colony_prod_quantities = {};
-  std::array<bytes<4>, 38> unknown36b = {};
+  UnknownTribeData1 unknown_tribe_data_1 = {};
+  UnknownTribeData2 unknown_tribe_data_2 = {};
+  TribeDwellingCount tribe_dwelling_count = {};
+  UnknownTribeData4 unknown_tribe_data_4 = {};
+  UnknownTribeData5 unknown_tribe_data_5 = {};
+  UnknownTribeData6 unknown_tribe_data_6 = {};
+  bytes<104> unknown36b = {};
   uint16_t x = {};
   uint16_t y = {};
   uint8_t zoom_level = {};

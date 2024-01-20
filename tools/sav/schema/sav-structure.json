@@ -1371,7 +1371,14 @@
                 "unknown36aa",
                 "foreign_affairs_report",
                 "unknown36ac",
+                "unknown36ad",
                 "show_colony_prod_quantities",
+                "unknown_tribe_data_1",
+                "unknown_tribe_data_2",
+                "tribe_dwelling_count",
+                "unknown_tribe_data_4",
+                "unknown_tribe_data_5",
+                "unknown_tribe_data_6",
                 "unknown36b",
                 "x",
                 "y",
@@ -1396,9 +1403,100 @@
                     "ship_counts": {"size": 1, "type": "uint", "cols": 4, "no_indent": true, "__hint": "See supplemental-info.md for details"}
                 }
             },
-            "unknown36ac": {"size": 520},
+            "unknown36ac": {"size": 64, "cols": 8},
+            "unknown36ad": {"size": 8},
             "show_colony_prod_quantities": {"size": 1, "type": "yes_no_byte"},
-            "unknown36b": {"size": 4, "count": 38},
+            "unknown_tribe_data_1":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1},
+                    "aztec": {"size": 1},
+                    "arawak": {"size": 1},
+                    "iroquois": {"size": 1},
+                    "cherokee": {"size": 1},
+                    "apache": {"size": 1},
+                    "sioux": {"size": 1},
+                    "tupi": {"size": 1}
+                }
+            },
+            "unknown_tribe_data_2":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1},
+                    "aztec": {"size": 1},
+                    "arawak": {"size": 1},
+                    "iroquois": {"size": 1},
+                    "cherokee": {"size": 1},
+                    "apache": {"size": 1},
+                    "sioux": {"size": 1},
+                    "tupi": {"size": 1}
+                }
+            },
+            "tribe_dwelling_count":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1, "type": "uint"},
+                    "aztec": {"size": 1, "type": "uint"},
+                    "arawak": {"size": 1, "type": "uint"},
+                    "iroquois": {"size": 1, "type": "uint"},
+                    "cherokee": {"size": 1, "type": "uint"},
+                    "apache": {"size": 1, "type": "uint"},
+                    "sioux": {"size": 1, "type": "uint"},
+                    "tupi": {"size": 1, "type": "uint"}
+                }
+            },
+            "unknown_tribe_data_4":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1},
+                    "aztec": {"size": 1},
+                    "arawak": {"size": 1},
+                    "iroquois": {"size": 1},
+                    "cherokee": {"size": 1},
+                    "apache": {"size": 1},
+                    "sioux": {"size": 1},
+                    "tupi": {"size": 1}
+                }
+            },
+            "unknown_tribe_data_5":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1},
+                    "aztec": {"size": 1},
+                    "arawak": {"size": 1},
+                    "iroquois": {"size": 1},
+                    "cherokee": {"size": 1},
+                    "apache": {"size": 1},
+                    "sioux": {"size": 1},
+                    "tupi": {"size": 1}
+                }
+            },
+            "unknown_tribe_data_6":
+            {
+                "struct":
+                {
+                    "__key_order": ["inca", "aztec", "arawak", "iroquois", "cherokee", "apache", "sioux", "tupi"],
+                    "inca": {"size": 1},
+                    "aztec": {"size": 1},
+                    "arawak": {"size": 1},
+                    "iroquois": {"size": 1},
+                    "cherokee": {"size": 1},
+                    "apache": {"size": 1},
+                    "sioux": {"size": 1},
+                    "tupi": {"size": 1}
+                }
+            },
+            "unknown36b": {"size": 104},
             "x": {"size": 2, "type": "uint", "__hint": "white selector square x"},
             "y": {"size": 2, "type": "uint", "__hint": "white selector square y"},
             "zoom_level": {"size": 1, "type": "uint"},

@@ -6797,6 +6797,528 @@ cdr::result<ForeignAffairsReport> from_canonical(
 }
 
 /****************************************************************
+** UnknownTribeData1
+*****************************************************************/
+void to_str( UnknownTribeData1 const& o, std::string& out, base::ADL_t t ) {
+  out += "UnknownTribeData1{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData1& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData1 const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData1 const& o,
+                         cdr::tag_t<UnknownTribeData1> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<UnknownTribeData1> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData1> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  UnknownTribeData1 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** UnknownTribeData2
+*****************************************************************/
+void to_str( UnknownTribeData2 const& o, std::string& out, base::ADL_t t ) {
+  out += "UnknownTribeData2{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData2& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData2 const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData2 const& o,
+                         cdr::tag_t<UnknownTribeData2> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<UnknownTribeData2> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData2> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  UnknownTribeData2 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** TribeDwellingCount
+*****************************************************************/
+void to_str( TribeDwellingCount const& o, std::string& out, base::ADL_t t ) {
+  out += "TribeDwellingCount{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TribeDwellingCount& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, TribeDwellingCount const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         TribeDwellingCount const& o,
+                         cdr::tag_t<TribeDwellingCount> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<TribeDwellingCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TribeDwellingCount> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  TribeDwellingCount res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** UnknownTribeData4
+*****************************************************************/
+void to_str( UnknownTribeData4 const& o, std::string& out, base::ADL_t t ) {
+  out += "UnknownTribeData4{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData4& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData4 const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData4 const& o,
+                         cdr::tag_t<UnknownTribeData4> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<UnknownTribeData4> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData4> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  UnknownTribeData4 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** UnknownTribeData5
+*****************************************************************/
+void to_str( UnknownTribeData5 const& o, std::string& out, base::ADL_t t ) {
+  out += "UnknownTribeData5{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData5& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData5 const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData5 const& o,
+                         cdr::tag_t<UnknownTribeData5> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<UnknownTribeData5> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData5> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  UnknownTribeData5 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** UnknownTribeData6
+*****************************************************************/
+void to_str( UnknownTribeData6 const& o, std::string& out, base::ADL_t t ) {
+  out += "UnknownTribeData6{";
+  out += "inca="; to_str( o.inca, out, t ); out += ',';
+  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
+  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
+  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
+  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
+  out += "apache="; to_str( o.apache, out, t ); out += ',';
+  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
+  out += "tupi="; to_str( o.tupi, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, UnknownTribeData6& o ) {
+  return true
+    && read_binary( b, o.inca )
+    && read_binary( b, o.aztec )
+    && read_binary( b, o.arawak )
+    && read_binary( b, o.iroquois )
+    && read_binary( b, o.cherokee )
+    && read_binary( b, o.apache )
+    && read_binary( b, o.sioux )
+    && read_binary( b, o.tupi )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, UnknownTribeData6 const& o ) {
+  return true
+    && write_binary( b, o.inca )
+    && write_binary( b, o.aztec )
+    && write_binary( b, o.arawak )
+    && write_binary( b, o.iroquois )
+    && write_binary( b, o.cherokee )
+    && write_binary( b, o.apache )
+    && write_binary( b, o.sioux )
+    && write_binary( b, o.tupi )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         UnknownTribeData6 const& o,
+                         cdr::tag_t<UnknownTribeData6> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "inca", o.inca );
+  conv.to_field( tbl, "aztec", o.aztec );
+  conv.to_field( tbl, "arawak", o.arawak );
+  conv.to_field( tbl, "iroquois", o.iroquois );
+  conv.to_field( tbl, "cherokee", o.cherokee );
+  conv.to_field( tbl, "apache", o.apache );
+  conv.to_field( tbl, "sioux", o.sioux );
+  conv.to_field( tbl, "tupi", o.tupi );
+  tbl["__key_order"] = cdr::list{
+    "inca",
+    "aztec",
+    "arawak",
+    "iroquois",
+    "cherokee",
+    "apache",
+    "sioux",
+    "tupi",
+  };
+  return tbl;
+}
+
+cdr::result<UnknownTribeData6> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<UnknownTribeData6> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  UnknownTribeData6 res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "inca", inca );
+  CONV_FROM_FIELD( "aztec", aztec );
+  CONV_FROM_FIELD( "arawak", arawak );
+  CONV_FROM_FIELD( "iroquois", iroquois );
+  CONV_FROM_FIELD( "cherokee", cherokee );
+  CONV_FROM_FIELD( "apache", apache );
+  CONV_FROM_FIELD( "sioux", sioux );
+  CONV_FROM_FIELD( "tupi", tupi );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** STUFF
 *****************************************************************/
 void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
@@ -6808,7 +7330,14 @@ void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
   out += "unknown36aa="; to_str( o.unknown36aa, out, t ); out += ',';
   out += "foreign_affairs_report="; to_str( o.foreign_affairs_report, out, t ); out += ',';
   out += "unknown36ac="; to_str( o.unknown36ac, out, t ); out += ',';
+  out += "unknown36ad="; to_str( o.unknown36ad, out, t ); out += ',';
   out += "show_colony_prod_quantities="; to_str( o.show_colony_prod_quantities, out, t ); out += ',';
+  out += "unknown_tribe_data_1="; to_str( o.unknown_tribe_data_1, out, t ); out += ',';
+  out += "unknown_tribe_data_2="; to_str( o.unknown_tribe_data_2, out, t ); out += ',';
+  out += "tribe_dwelling_count="; to_str( o.tribe_dwelling_count, out, t ); out += ',';
+  out += "unknown_tribe_data_4="; to_str( o.unknown_tribe_data_4, out, t ); out += ',';
+  out += "unknown_tribe_data_5="; to_str( o.unknown_tribe_data_5, out, t ); out += ',';
+  out += "unknown_tribe_data_6="; to_str( o.unknown_tribe_data_6, out, t ); out += ',';
   out += "unknown36b="; to_str( o.unknown36b, out, t ); out += ',';
   out += "x="; to_str( o.x, out, t ); out += ',';
   out += "y="; to_str( o.y, out, t ); out += ',';
@@ -6829,7 +7358,14 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
     && read_binary( b, o.unknown36aa )
     && read_binary( b, o.foreign_affairs_report )
     && read_binary( b, o.unknown36ac )
+    && read_binary( b, o.unknown36ad )
     && read_binary( b, o.show_colony_prod_quantities )
+    && read_binary( b, o.unknown_tribe_data_1 )
+    && read_binary( b, o.unknown_tribe_data_2 )
+    && read_binary( b, o.tribe_dwelling_count )
+    && read_binary( b, o.unknown_tribe_data_4 )
+    && read_binary( b, o.unknown_tribe_data_5 )
+    && read_binary( b, o.unknown_tribe_data_6 )
     && read_binary( b, o.unknown36b )
     && read_binary( b, o.x )
     && read_binary( b, o.y )
@@ -6849,7 +7385,14 @@ bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
     && write_binary( b, o.unknown36aa )
     && write_binary( b, o.foreign_affairs_report )
     && write_binary( b, o.unknown36ac )
+    && write_binary( b, o.unknown36ad )
     && write_binary( b, o.show_colony_prod_quantities )
+    && write_binary( b, o.unknown_tribe_data_1 )
+    && write_binary( b, o.unknown_tribe_data_2 )
+    && write_binary( b, o.tribe_dwelling_count )
+    && write_binary( b, o.unknown_tribe_data_4 )
+    && write_binary( b, o.unknown_tribe_data_5 )
+    && write_binary( b, o.unknown_tribe_data_6 )
     && write_binary( b, o.unknown36b )
     && write_binary( b, o.x )
     && write_binary( b, o.y )
@@ -6871,7 +7414,14 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown36aa", o.unknown36aa );
   conv.to_field( tbl, "foreign_affairs_report", o.foreign_affairs_report );
   conv.to_field( tbl, "unknown36ac", o.unknown36ac );
+  conv.to_field( tbl, "unknown36ad", o.unknown36ad );
   conv.to_field( tbl, "show_colony_prod_quantities", o.show_colony_prod_quantities );
+  conv.to_field( tbl, "unknown_tribe_data_1", o.unknown_tribe_data_1 );
+  conv.to_field( tbl, "unknown_tribe_data_2", o.unknown_tribe_data_2 );
+  conv.to_field( tbl, "tribe_dwelling_count", o.tribe_dwelling_count );
+  conv.to_field( tbl, "unknown_tribe_data_4", o.unknown_tribe_data_4 );
+  conv.to_field( tbl, "unknown_tribe_data_5", o.unknown_tribe_data_5 );
+  conv.to_field( tbl, "unknown_tribe_data_6", o.unknown_tribe_data_6 );
   conv.to_field( tbl, "unknown36b", o.unknown36b );
   conv.to_field( tbl, "x", o.x );
   conv.to_field( tbl, "y", o.y );
@@ -6887,7 +7437,14 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown36aa",
     "foreign_affairs_report",
     "unknown36ac",
+    "unknown36ad",
     "show_colony_prod_quantities",
+    "unknown_tribe_data_1",
+    "unknown_tribe_data_2",
+    "tribe_dwelling_count",
+    "unknown_tribe_data_4",
+    "unknown_tribe_data_5",
+    "unknown_tribe_data_6",
     "unknown36b",
     "x",
     "y",
@@ -6913,7 +7470,14 @@ cdr::result<STUFF> from_canonical(
   CONV_FROM_FIELD( "unknown36aa", unknown36aa );
   CONV_FROM_FIELD( "foreign_affairs_report", foreign_affairs_report );
   CONV_FROM_FIELD( "unknown36ac", unknown36ac );
+  CONV_FROM_FIELD( "unknown36ad", unknown36ad );
   CONV_FROM_FIELD( "show_colony_prod_quantities", show_colony_prod_quantities );
+  CONV_FROM_FIELD( "unknown_tribe_data_1", unknown_tribe_data_1 );
+  CONV_FROM_FIELD( "unknown_tribe_data_2", unknown_tribe_data_2 );
+  CONV_FROM_FIELD( "tribe_dwelling_count", tribe_dwelling_count );
+  CONV_FROM_FIELD( "unknown_tribe_data_4", unknown_tribe_data_4 );
+  CONV_FROM_FIELD( "unknown_tribe_data_5", unknown_tribe_data_5 );
+  CONV_FROM_FIELD( "unknown_tribe_data_6", unknown_tribe_data_6 );
   CONV_FROM_FIELD( "unknown36b", unknown36b );
   CONV_FROM_FIELD( "x", x );
   CONV_FROM_FIELD( "y", y );
