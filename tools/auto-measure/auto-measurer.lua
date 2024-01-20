@@ -6,10 +6,12 @@
 local cmd = require'moon.cmd'
 local file = require'moon.file'
 local logger = require'moon.logger'
-local printer = require'moon.printer'
-local sav_loader = require'sav.conversion.sav-loader'
-local str = require'moon.str'
 local moon_tbl = require'moon.tbl'
+local printer = require'moon.printer'
+local sav_reader = require'sav.conversion.sav-reader'
+local sav_writer = require'sav.conversion.sav-writer'
+local setters = require'setters'
+local str = require'moon.str'
 local time = require'moon.time'
 
 -----------------------------------------------------------------
@@ -18,24 +20,30 @@ local time = require'moon.time'
 local format = string.format
 local exit = os.exit
 local getenv = os.getenv
+local insert = table.insert
 
 local append_string_to_file = file.append_string_to_file
 local bar = logger.bar
 local command = cmd.command
 local exists = file.exists
 local info = logger.info
+local dbg = logger.dbg
 local on_ordered_kv = moon_tbl.on_ordered_kv
+local deep_copy = moon_tbl.deep_copy
 local printfln = printer.printfln
 local read_file_lines = file.read_file_lines
 local sleep = time.sleep
 local trim = str.trim
 
-assert( sav_loader.load )
+assert( sav_reader.load )
+assert( sav_writer.save )
 
 -----------------------------------------------------------------
 -- Constants.
 -----------------------------------------------------------------
 local KEY_DELAY = 50
+
+logger.level = logger.levels.INFO
 
 -----------------------------------------------------------------
 -- Folders.
@@ -45,6 +53,7 @@ local COLONIZE = format(
                      '%s/games/colonization/data/MPS/COLONIZE',
                      HOME )
 local RN = format( '%s/dev/revolution-now', HOME )
+local SAV = format( '%s/tools/sav', RN )
 
 info( 'HOME:' .. HOME )
 info( 'COLONIZE:' .. COLONIZE )
@@ -62,13 +71,24 @@ local function find_window_named( regex )
   return xdotool( 'search', '--name', regex )
 end
 
-local dosbox = nil
+local __dosbox = nil
+
+local function find_dosbox()
+  local success, res = pcall( find_window_named,
+                              'DOSBox.*VICEROY' )
+  if success then return res end
+end
+
+local function dosbox()
+  if not __dosbox then __dosbox = assert( find_dosbox() ) end
+  return __dosbox
+end
 
 -----------------------------------------------------------------
 -- General X commands.
 -----------------------------------------------------------------
 local function press_keys( ... )
-  xdotool( 'key', '--delay=' .. KEY_DELAY, '--window', dosbox,
+  xdotool( 'key', '--delay=' .. KEY_DELAY, '--window', dosbox(),
            ... )
 end
 
@@ -119,36 +139,47 @@ local function save_game()
 end
 
 local function exit_game()
+  -- Do nothing if the DOSBox window is not open.
+  if not find_dosbox() then return end
   info( 'exiting game.' )
   game_menu()
   seq{ up, enter } -- Select "Exit to DOS".
   down() -- Highlight 'Yes'.
   -- Somehow, even though this succeeds in ending the program,
   -- the xdotool returns an error.
-  pcall( xdotool, 'key', '--window', dosbox, 'Return', '2>&1' )
+  pcall( xdotool, 'key', '--window', dosbox(), 'Return', '2>&1' )
+end
+
+-----------------------------------------------------------------
+-- Read/Write SAV.
+-----------------------------------------------------------------
+local function read_sav( name )
+  return sav_reader.load{
+    structure_json=format( '%s/schema/sav-structure.json', SAV ),
+    colony_sav=format( '%s/%s', COLONIZE, name ),
+  }
+end
+
+local function write_sav( name, json )
+  sav_writer.save{
+    structure_json=format( '%s/schema/sav-structure.json', SAV ),
+    colony_json=json,
+    colony_sav=format( '%s/%s', COLONIZE, name ),
+  }
 end
 
 -----------------------------------------------------------------
 -- Result detection.
 -----------------------------------------------------------------
-local function read_sav( name )
-  local sav = format( '%s/tools/sav', RN )
-  local SAV = sav_loader.load{
-    structure_json=format( '%s/schema/sav-structure.json', sav ),
-    colony_sav=format( '%s/%s', COLONIZE, name ),
-  }
-  return SAV
-end
-
 local function record_outcome( args )
   local outfile = assert( args.outfile )
   local config = assert( args.config )
   local analyzer = assert( args.analyzer )
-  local SAV = read_sav( 'COLONY06.SAV' )
-  assert( SAV.HEADER )
+  local sav = read_sav( 'COLONY06.SAV' )
+  assert( sav.HEADER )
 
   -- This invokes test-case-specific logic.
-  local results = analyzer.collect_results( config, SAV )
+  local results = analyzer.collect_results( config, sav )
 
   local line = ''
   on_ordered_kv( results, function( k, v )
@@ -197,6 +228,7 @@ local function loop( args )
   local outfile = assert( args.outfile )
   local analyzer = assert( args.analyzer )
   local exp_name = assert( args.exp_name )
+  info( 'running for %s...', exp_name )
   for _ = 1, num_trials do
     info( 'starting trial %d...', stats.__count )
     load_game()
@@ -210,28 +242,42 @@ local function loop( args )
     }
     print_stats( config, stats, exp_name )
   end
-  exit_game()
 end
 
 -----------------------------------------------------------------
--- main.
+-- Config setter.
 -----------------------------------------------------------------
-local function main( args )
-  assert( getenv( 'DISPLAY' ),
-          'the DISPLAY environment variable must be set.' )
+local function set_config( config, analyzer )
+  local setter_funcs = {}
+  for k, v in pairs( config ) do
+    local setter = setters[k]
+    if setter then
+      assert( type( setter ) == 'function' )
+      local wrapper = function( json )
+        info( 'invoking setter for "%s"...', k )
+        setter( json, v )
+      end
+      insert( setter_funcs, wrapper )
+    end
+  end
+  local sav_file_name = 'COLONY07.SAV'
+  local json = read_sav( sav_file_name )
+  for _, func in ipairs( setter_funcs ) do func( json ) end
+  analyzer.post_config_setup( config, json )
+  write_sav( sav_file_name, json )
+end
 
-  local dir = assert( args[1] )
+-----------------------------------------------------------------
+-- Driver for single run.
+-----------------------------------------------------------------
+local function run_single( args )
+  local dir = assert( args.dir )
+  local analyzer = assert( args.analyzer )
+  local config = assert( args.config )
 
-  local analyzer = require( format( '%s.analyzer', dir ) )
-  assert( analyzer.experiment_name )
-  assert( analyzer.collect_results )
-  assert( analyzer.action )
-
-  local config = assert( require( format( '%s.config', dir ) ) )
-  assert( config.target_trials ) -- sanity check.
-
-  dosbox = assert( find_window_named( 'DOSBox.*VICEROY' ),
-                   'failed to find DOSBox window' )
+  dbg( 'Config:' )
+  for k, v in pairs( config ) do dbg( '-%s=%s', k, v ) end
+  set_config( config, analyzer )
 
   local num_trials = config.target_trials
   local stats = { __count=0 }
@@ -247,7 +293,6 @@ local function main( args )
     if #existing >= config.target_trials then
       info( 'Target trials already achieved. exiting.' )
       print_stats( config, stats, exp_name )
-      exit_game()
       return 0
     end
     num_trials = config.target_trials - #existing
@@ -266,6 +311,54 @@ local function main( args )
     exp_name=exp_name,
   }
   info( 'finished.' )
+  return 0
+end
+
+-----------------------------------------------------------------
+-- Config flattener.
+-----------------------------------------------------------------
+local function flatten_configs( master )
+  local res = { {} }
+  for k, v in pairs( master ) do
+    if type( v ) ~= 'table' then v = { v } end
+    local new_res = {}
+    for _, elem in ipairs( v ) do
+      local copy = deep_copy( res )
+      for _, config in ipairs( copy ) do
+        config[k] = elem
+        insert( new_res, config )
+      end
+    end
+    res = new_res
+  end
+  return res
+end
+
+-----------------------------------------------------------------
+-- main.
+-----------------------------------------------------------------
+local function main( args )
+  assert( getenv( 'DISPLAY' ),
+          'the DISPLAY environment variable must be set.' )
+
+  local dir = assert( args[1] )
+
+  local analyzer = require( format( '%s.analyzer', dir ) )
+  assert( analyzer.experiment_name )
+  assert( analyzer.post_config_setup )
+  assert( analyzer.collect_results )
+  assert( analyzer.action )
+
+  local master_config = assert( require(
+                                    format( '%s.config', dir ) ) )
+  assert( master_config.target_trials ) -- sanity check.
+
+  local configs = flatten_configs( master_config )
+
+  for _, config in ipairs( configs ) do
+    run_single{ dir=dir, analyzer=analyzer, config=config }
+  end
+  exit_game()
   return 0
 end
 

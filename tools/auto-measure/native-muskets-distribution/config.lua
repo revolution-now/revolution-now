@@ -1,6 +1,17 @@
 return {
-  target_trials=200,
-  difficulty='viceroy',
-  tribe_name='inca',
+  difficulty={
+    'discoverer', --
+    'explorer', --
+    'conquistador', --
+    'governor', --
+    'viceroy', --
+  },
+  tribe_name={
+    'tupi', --
+    'iroquois', --
+    'aztec', --
+    'inca', --
+  },
   brave='new',
+  target_trials=1000,
 }
