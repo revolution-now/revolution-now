@@ -230,20 +230,15 @@ end
 function M.NewBinaryLoader( metadata, binary_file )
   local base = StructureParser( metadata )
   local obj = {}
-  local BinaryLoaderMeta = setmetatable( {}, {
+  obj.base_ = base
+  obj.sav_file_ = assert( io.open( binary_file, 'rb' ) )
+  setmetatable( obj, {
     __newindex=function() error( 'cannot modify.', 2 ) end,
     __index=function( _, key )
       if BinaryLoader[key] then return BinaryLoader[key] end
       return base[key]
     end,
-    __metatable=false,
-  } )
-  obj.base_ = base
-  obj.sav_file_ = assert( io.open( binary_file, 'rb' ) )
-  setmetatable( obj, {
-    __newindex=function() error( 'cannot modify.', 2 ) end,
-    __index=BinaryLoaderMeta,
-    __gc=function( self ) self:close() end,
+    __gc=function( self ) self.sav_file_:close() end,
     __metatable=false,
   } )
   return obj

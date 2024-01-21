@@ -10,6 +10,8 @@ local logger = require'moon.logger'
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
+local insert = table.insert
+local floor = math.floor
 
 local sleep = time.sleep
 local info = logger.info
@@ -68,14 +70,109 @@ local function on_all_tribes( json, op )
   for i, tribe in ipairs( json.TRIBE ) do op( i, tribe ) end
 end
 
+local function get_mode( stats, name )
+  local val = stats['mode=' .. name] or 0
+  assert( type( val ) == 'number' )
+  local int, frac = math.modf( val )
+  assert( frac == 0 )
+  assert( int >= 0 )
+  return int
+end
+
+local function get_stats_fields( stats )
+  local NOT_RECEIVED = get_mode( stats, 'NOT_RECEIVED' )
+  local RECEIVED_AND_CONSUMED = get_mode( stats,
+                                          'RECEIVED_AND_CONSUMED' )
+  local RECEIVED_AND_RETAINED = get_mode( stats,
+                                          'RECEIVED_AND_RETAINED' )
+  local total = NOT_RECEIVED + RECEIVED_AND_CONSUMED +
+                    RECEIVED_AND_RETAINED
+  local RECEIVED = total - NOT_RECEIVED
+  return {
+    NOT_RECEIVED=NOT_RECEIVED,
+    RECEIVED=RECEIVED,
+    RECEIVED_AND_CONSUMED=RECEIVED_AND_CONSUMED,
+    RECEIVED_AND_RETAINED=RECEIVED_AND_RETAINED,
+    total=total,
+  }
+end
+
+local function tech_levels( tribes )
+  local res = {}
+  for _, t in ipairs( tribes ) do
+    insert( res, assert( tribe_to_techlevel[t] ) )
+  end
+  return res
+end
+
+local function probabilities_for_outcome(main_config,
+                                         global_stats, f )
+  local data = {}
+  for _, d in ipairs( main_config.difficulty ) do
+    local row = {}
+    insert( data, row )
+    for _, t in ipairs( main_config.tribe_name ) do
+      local exp_name = M.experiment_name{
+        difficulty=d,
+        tribe_name=t,
+        brave=main_config.brave,
+      }
+      local stats = assert( global_stats[exp_name] )
+      local fields = get_stats_fields( stats )
+      local fraction = f( fields )
+      local percent = floor( 100 * fraction + .5 )
+      insert( row, format( '%d%%', percent ) )
+    end
+  end
+  return data
+end
+
+local function table_def(main_config, global_stats, title,
+                         calculator )
+  local title_suffix = ' (Old Brave)'
+  if main_config.brave == 'new' then
+    title_suffix = ' (New Brave)'
+  end
+  return {
+    title=title .. title_suffix,
+    column_names=tech_levels( main_config.tribe_name ),
+    row_names=main_config.difficulty,
+    data=probabilities_for_outcome( main_config, global_stats,
+                                    calculator ),
+  }
+end
+
+local function probability_receives_muskets_table(main_config,
+                                                  global_stats )
+  local calculator = function( fields )
+    return fields.RECEIVED / fields.total
+  end
+  return table_def( main_config, global_stats,
+                    'Probability Receives Muskets', calculator )
+end
+
+local function probability_consumes_muskets_table(main_config,
+                                                  global_stats )
+  local calculator = function( fields )
+    return fields.RECEIVED_AND_CONSUMED / fields.RECEIVED
+  end
+  return table_def( main_config, global_stats,
+                    'Probability Consumes Muskets', calculator )
+end
+
 -----------------------------------------------------------------
 -- Functions.
 -----------------------------------------------------------------
 function M.experiment_name( config )
-  local tribe_name = assert( config.tribe_name )
+  local function assert_not_list( o )
+    assert( o )
+    assert( type( o ) ~= 'table' )
+    return o
+  end
+  local tribe_name = assert_not_list( config.tribe_name )
   local techlevel = assert( tribe_to_techlevel[tribe_name] )
-  local difficulty = assert( config.difficulty )
-  local brave = assert( config.brave )
+  local difficulty = assert_not_list( config.difficulty )
+  local brave = assert_not_list( config.brave )
   return format( '%s-%s-%s-brave', difficulty, techlevel, brave )
 end
 
@@ -177,6 +274,13 @@ function M.collect_results( config, SAV )
 
   -- Can add more keys here if needed.
   return { mode=mode }
+end
+
+function M.summary_tables( main_config, global_stats )
+  return {
+    probability_receives_muskets_table( main_config, global_stats ),
+    probability_consumes_muskets_table( main_config, global_stats ),
+  }
 end
 
 -----------------------------------------------------------------

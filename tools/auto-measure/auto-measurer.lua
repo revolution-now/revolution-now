@@ -23,13 +23,14 @@ local getenv = os.getenv
 local insert = table.insert
 
 local append_string_to_file = file.append_string_to_file
-local bar = logger.bar
+local bar = printer.bar
 local command = cmd.command
+local dbg = logger.dbg
+local deep_copy = moon_tbl.deep_copy
 local exists = file.exists
 local info = logger.info
-local dbg = logger.dbg
 local on_ordered_kv = moon_tbl.on_ordered_kv
-local deep_copy = moon_tbl.deep_copy
+local print_data_table = printer.print_data_table
 local printfln = printer.printfln
 local read_file_lines = file.read_file_lines
 local sleep = time.sleep
@@ -277,7 +278,6 @@ local function run_single( args )
 
   dbg( 'Config:' )
   for k, v in pairs( config ) do dbg( '-%s=%s', k, v ) end
-  set_config( config, analyzer )
 
   local num_trials = config.target_trials
   local stats = { __count=0 }
@@ -293,7 +293,7 @@ local function run_single( args )
     if #existing >= config.target_trials then
       info( 'Target trials already achieved. exiting.' )
       print_stats( config, stats, exp_name )
-      return 0
+      return stats
     end
     num_trials = config.target_trials - #existing
     print_stats( config, stats, exp_name )
@@ -302,6 +302,7 @@ local function run_single( args )
           num_trials )
   end
 
+  set_config( config, analyzer )
   loop{
     config=config,
     stats=stats,
@@ -311,7 +312,7 @@ local function run_single( args )
     exp_name=exp_name,
   }
   info( 'finished.' )
-  return 0
+  return stats
 end
 
 -----------------------------------------------------------------
@@ -335,6 +336,21 @@ local function flatten_configs( master )
 end
 
 -----------------------------------------------------------------
+-- Results summary table.
+-----------------------------------------------------------------
+local function print_results_summary(master_config, global_stats,
+                                     analyzer )
+  local tbls = analyzer.summary_tables( master_config,
+                                        global_stats )
+  for _, tbl in ipairs( tbls ) do
+    bar( '=' )
+    print( tbl.title )
+    bar( '=' )
+    print_data_table( tbl )
+  end
+end
+
+-----------------------------------------------------------------
 -- main.
 -----------------------------------------------------------------
 local function main( args )
@@ -348,6 +364,7 @@ local function main( args )
   assert( analyzer.post_config_setup )
   assert( analyzer.collect_results )
   assert( analyzer.action )
+  assert( analyzer.summary_tables )
 
   local master_config = assert( require(
                                     format( '%s.config', dir ) ) )
@@ -355,9 +372,17 @@ local function main( args )
 
   local configs = flatten_configs( master_config )
 
+  local global_stats = {}
   for _, config in ipairs( configs ) do
-    run_single{ dir=dir, analyzer=analyzer, config=config }
+    local stats = run_single{
+      dir=dir,
+      analyzer=analyzer,
+      config=config,
+    }
+    local exp_name = analyzer.experiment_name( config )
+    global_stats[exp_name] = stats
   end
+  print_results_summary( master_config, global_stats, analyzer )
   exit_game()
   return 0
 end
