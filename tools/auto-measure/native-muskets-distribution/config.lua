@@ -12,6 +12,6 @@ return {
     'aztec', --
     'inca', --
   },
-  brave='new',
+  brave='old',
   target_trials=1000,
 }
