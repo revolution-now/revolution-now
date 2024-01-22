@@ -1,0 +1,162 @@
+# vim: syntax=yaml
+Native Muskets
+==============
+
+Data/Definitions
+----------------
+
+  * muskets: per tribe.
+
+    * This represents the stockpile held by the tribe.
+
+Acquisition
+-----------
+
+  * [TODO] When a brave attacks and wins a battle against a unit
+    that loses muskets in the process then it will always acquire
+    those muskets. The affect this has on the `muskets` value
+    is...
+
+  * [TODO] When a colony is raided an muskets are stolen, the
+    following happens...
+
+  * [TODO] When muskets are sold to a tribe via trade then this
+    happens...
+
+  * [TODO] When muskets are demanded via reparations this happen-
+    s...
+
+  * [TODO] When muskets are acquired via inter-tribe trade, this
+    happens...
+
+  * [TODO] When a brave with muskets wins against a unit that
+    loses their muskets as a result, this happens...
+
+  * [TODO] When a wagon train containing muskets is attacked,
+    this happens...
+
+  * [TODO] If only 1 musket is sold to the natives, what happens
+    to their stockpile? 100 muskets?
+
+  * [TODO] Does a tribe's musket stockpile have a max value?
+
+Musket Distribution
+-------------------
+
+  * When a brave is given muskets randomly whether to decrease
+    the muskets number, and the probability of decrease depends
+    on difficulty level:
+
+      Discoverer:   100%
+      Explorer:      50%
+      Conquistador:  33%
+      Governor:      25%
+      Viceroy:       20%
+
+    The formula is:
+
+      P = 1/(1+D)
+
+    where D is 0 for Discoverer, 1 for Explorer, etc.
+
+  * When a brave that already exists is given muskets, it appears
+    to consume its turn.
+
+  * When a brave that already exists is over a dwelling and can
+    be given muskets, there is a small probability that it will
+    not be given them. The probability that it will be given mus-
+    kets is:
+
+            semi-nomadic  agrarian  advanced  civilized
+       Prob          79%       88%       92%        94%
+
+    Not quite sure if these numbers are reliable and/or what they
+    mean. They may be capturing some other variables that dif-
+    fered between the tribes that wasn't apparent. Also may have
+    something to do with how braves move. More investigation is
+    needed.
+
+Musket Replication
+------------------
+
+  * There isn't musket replication properly as happens with
+    horses, however the randomness with which the `muskets` field
+    is decreased can have the effect (randomly) of creating more
+    muskets than were initially given to the natives. On discov-
+    erer, since the decrease probability is 100%, muskets are
+    fully conserved there.
+
+Musket Loss
+-----------
+
+  * A tribe that acquires muskets can eventually lose them. This
+    can happen either by destroying dwellings or braves with mus-
+    kets.
+
+  * [TODO] When a brave with muskets gets destroyed...
+
+  * [TODO] When a tribe has muskets and one of its dwellings gets
+    destroyed the muskets count goes down by...
+
+  * [TODO] Do dwellings sell muskets? If so, then what happens to
+    their stockpile?
+
+Inter-tribe Trade
+-----------------
+
+Indian Advisor Report
+---------------------
+
+  * The muskets readout does not appear to be stored anywhere;
+    instead it is computed as follows:
+
+       Muskets = 50*muskets + 50*armed_braves_count
+                            + 50*mounted_warriors_count
+
+    That said, we may do this readout a bit differently. This is
+    because the value of `muskets` can arm an arbitrary number of
+    braves due to the randomness with which `muskets` is de-
+    creased. Therefore, if we use the above formula, then the
+    total muskets that a tribe has can appear to increase, which
+    isn't sensical to the player (though note that on Discoverer,
+    `muskets` is always decreased, and so this readout is accu-
+    rate/conserved on that difficulty level). Instead maybe we'll
+    separate it into two fields:
+
+       Musket Reserves = 50*muskets
+       Armed Units     = 50*armed_braves_count
+                       + 50*mounted_warriors_count
+
+    Then on higher difficulty levels, one could say that the na-
+    tives use the reserves more efficiently.
+
+Difficulty Level
+----------------
+
+  * Probability of decreasing the stockpile of `muskets` when
+    giving muskets to a brave depends on difficulty level.
+
+Bugs
+----
+
+  * None found so far.
+
+Suspected but not verified:
+
+  * The muskets readout on the indian advisor report includes
+    muskets held by braves (50 each). That said, there are some
+    inconsistencies:
+
+      * It doesn't always decrease when a brave with muskets is
+        destroyed. This could be explained by the game having a
+        probability of the muskets being retained by the tribe.
+
+  * When defeating an armed brave in combat, the tribe's musket
+    count goes down sometimes, but not others. Even in the cases
+    where we defeat all armed braves but one, the total musket
+    count quickly goes back up to e.g. 300. The tribe seems to
+    produce muskets provided that it has at least 50. This actu-
+    ally could be due to a combination of two effects: the reten-
+    tion of muskets by the tribe when a brave dies, and two the
+    fact that muskets readouts may not include those held by free
+    braves.

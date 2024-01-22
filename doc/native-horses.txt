@@ -1,5 +1,10 @@
+# vim: syntax=yaml
 Native Horses
 =============
+
+TODO:
+
+  * Difficulty level analysis.
 
 Data/Definitions
 ----------------
@@ -176,6 +181,11 @@ Indian Advisor Report
 
   * The horses readout on the indian advisor report does not in-
     clude the herds held by braves.
+
+Difficulty Level
+----------------
+
+TODO
 
 Bugs
 ----
