@@ -1,0 +1,18 @@
+Probability Receives Muskets (New Brave)
+================================================================================
+                semi-nomadic  agrarian  advanced  civilized
+discoverer              100%      100%      100%       100%
+explorer                100%      100%      100%       100%
+conquistador            100%      100%      100%       100%
+governor                100%      100%      100%       100%
+viceroy                 100%      100%      100%       100%
+
+Probability Consumes Muskets (New Brave)
+================================================================================
+                semi-nomadic  agrarian  advanced  civilized
+discoverer              100%      100%      100%       100%
+explorer                 50%       49%       49%        49%
+conquistador             31%       33%       35%        34%
+governor                 26%       25%       26%        21%
+viceroy                  19%       19%       20%        18%
+
