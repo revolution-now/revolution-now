@@ -1,0 +1,18 @@
+Probability Receives Muskets (Old Brave)
+================================================================================
+                semi-nomadic  agrarian  advanced  civilized
+discoverer               79%       89%       93%        94%
+explorer                 80%       89%       92%        93%
+conquistador             80%       89%       93%        95%
+governor                 79%       87%       92%        94%
+viceroy                  79%       88%       92%        95%
+
+Probability Consumes Muskets (Old Brave)
+================================================================================
+                semi-nomadic  agrarian  advanced  civilized
+discoverer              100%      100%      100%       100%
+explorer                 51%       48%       48%        48%
+conquistador             34%       35%       31%        33%
+governor                 26%       24%       24%        27%
+viceroy                  20%       21%       18%        18%
+

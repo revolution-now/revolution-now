@@ -18,6 +18,7 @@ local time = require'moon.time'
 -- Aliases
 -----------------------------------------------------------------
 local format = string.format
+local rep = string.rep
 local exit = os.exit
 local getenv = os.getenv
 local insert = table.insert
@@ -30,7 +31,7 @@ local deep_copy = moon_tbl.deep_copy
 local exists = file.exists
 local info = logger.info
 local on_ordered_kv = moon_tbl.on_ordered_kv
-local print_data_table = printer.print_data_table
+local format_data_table = printer.format_data_table
 local printfln = printer.printfln
 local read_file_lines = file.read_file_lines
 local sleep = time.sleep
@@ -338,16 +339,22 @@ end
 -----------------------------------------------------------------
 -- Results summary table.
 -----------------------------------------------------------------
-local function print_results_summary(master_config, global_stats,
-                                     analyzer )
-  local tbls = analyzer.summary_tables( master_config,
-                                        global_stats )
+local function print_results_summary(main_config, global_stats,
+                                     analyzer, summary_path )
+  local tbls =
+      analyzer.summary_tables( main_config, global_stats )
+  local out = assert( io.open( summary_path, 'w' ) )
   for _, tbl in ipairs( tbls ) do
     bar( '=' )
     print( tbl.title )
     bar( '=' )
-    print_data_table( tbl )
+    local tbl_str = format_data_table( tbl )
+    print( tbl_str )
+    out:write( tbl.title .. '\n' )
+    out:write( rep( '=', 80 ) .. '\n' )
+    out:write( tbl_str .. '\n\n' )
   end
+  out:close()
 end
 
 -----------------------------------------------------------------
@@ -365,12 +372,16 @@ local function main( args )
   assert( analyzer.collect_results )
   assert( analyzer.action )
   assert( analyzer.summary_tables )
+  assert( analyzer.summary_file )
 
-  local master_config = assert( require(
-                                    format( '%s.config', dir ) ) )
-  assert( master_config.target_trials ) -- sanity check.
+  local main_config = assert(
+                          require( format( '%s.config', dir ) ) )
+  assert( main_config.target_trials ) -- sanity check.
+  local summary_file = assert(
+                           analyzer.summary_file( main_config ) )
+  local summary_path = format( '%s/%s', dir, summary_file )
 
-  local configs = flatten_configs( master_config )
+  local configs = flatten_configs( main_config )
 
   local global_stats = {}
   for _, config in ipairs( configs ) do
@@ -382,7 +393,8 @@ local function main( args )
     local exp_name = analyzer.experiment_name( config )
     global_stats[exp_name] = stats
   end
-  print_results_summary( master_config, global_stats, analyzer )
+  print_results_summary( main_config, global_stats, analyzer,
+                         summary_path )
   exit_game()
   return 0
 end

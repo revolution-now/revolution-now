@@ -283,6 +283,15 @@ function M.summary_tables( main_config, global_stats )
   }
 end
 
+-- Only the 'brave' field matters here because each summary file
+-- will contain all difficulty levels and tribes levels in a
+-- table, so the brave status is the only free variable.
+function M.summary_file( main_config )
+  local brave = assert( main_config.brave )
+  assert( brave == 'old' or brave == 'new' )
+  return format( 'summary-%s-brave.txt', brave )
+end
+
 -----------------------------------------------------------------
 -- Finished.
 -----------------------------------------------------------------
