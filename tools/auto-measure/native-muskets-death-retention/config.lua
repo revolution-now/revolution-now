@@ -31,5 +31,5 @@ return {
   },
 
   -- General fields.
-  target_trials=200,
+  target_trials=400,
 }

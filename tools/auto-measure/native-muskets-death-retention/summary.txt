@@ -1,0 +1,6 @@
+Probability Saves Muskets
+================================================================================
+              semi-nomadic  civilized
+discoverer             52%        46%
+viceroy                48%        50%
+
