@@ -13,6 +13,7 @@ local sav_writer = require'sav.conversion.sav-writer'
 local setters = require'setters'
 local str = require'moon.str'
 local time = require'moon.time'
+local posix = require'posix'
 
 -----------------------------------------------------------------
 -- Aliases
@@ -36,6 +37,8 @@ local printfln = printer.printfln
 local read_file_lines = file.read_file_lines
 local sleep = time.sleep
 local trim = str.trim
+
+local mkdir = posix.mkdir
 
 assert( sav_reader.load )
 assert( sav_writer.save )
@@ -170,6 +173,14 @@ local function write_sav( name, json )
   }
 end
 
+local function remove_sav_target()
+  local sav_file = format( '%s/%s', COLONIZE, 'COLONY06.SAV' )
+  if exists( sav_file ) then
+    os.remove( sav_file )
+    assert( not exists( sav_file ) )
+  end
+end
+
 -----------------------------------------------------------------
 -- Result detection.
 -----------------------------------------------------------------
@@ -231,11 +242,21 @@ local function loop( args )
   local analyzer = assert( args.analyzer )
   local exp_name = assert( args.exp_name )
   info( 'running for %s...', exp_name )
+  local target_sav = format( '%s/%s', COLONIZE, 'COLONY06.SAV' )
   for _ = 1, num_trials do
     info( 'starting trial %d...', stats.__count )
     load_game()
     analyzer.action( action_api )
+    -- First remove the file to which we will be saving as a
+    -- simple way to verify that the file was actually saved. It
+    -- is difficult to otherwise verify that directly because we
+    -- have to trust that we successfully opened the game menu to
+    -- save it, which can't know directly because we can't "see"
+    -- the contents of the game window.
+    remove_sav_target()
+    assert( not exists( target_sav ) )
     save_game()
+    assert( exists( target_sav ), 'failed to save file' )
     record_outcome{
       analyzer=analyzer,
       config=config,
@@ -283,6 +304,8 @@ local function run_single( args )
   local num_trials = config.target_trials
   local stats = { __count=0 }
   local exp_name = analyzer.experiment_name( config )
+  local scenarios_dir = format( '%s/scenarios', dir )
+  mkdir( scenarios_dir )
   local outfile = format( '%s/scenarios/%s.txt', dir, exp_name )
   if exists( outfile ) then
     local existing = read_file_lines( outfile )
