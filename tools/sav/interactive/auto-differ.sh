@@ -36,7 +36,7 @@ conv() {
   echo "right: $right"
   [[ -e "$right" ]]
 
-  diff -u5 "$left" "$right" | nvim -R -
+  diff -u5 "$left" "$right" | nvim -c 'set syntax=diff' -R -
 }
 
 export -f conv
