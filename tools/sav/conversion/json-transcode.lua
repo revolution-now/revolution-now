@@ -15,12 +15,16 @@ local M = {}
 -- Imports.
 -----------------------------------------------------------------
 local lunajson = require( 'lunajson' )
+local time = require( 'moon.time' )
+local logger = require( 'moon.logger' )
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 -- local format = string.format
 local yield = coroutine.yield
+local timeit_micros = time.timeit_micros
+local dbg = logger.dbg
 
 -----------------------------------------------------------------
 -- Constants.
@@ -39,8 +43,10 @@ function M.decode( json_string )
   -- Store the length of an array in array[0]. This can be used
   -- to distinguish empty arrays from empty objects.
   local arraylen = true
-  local tbl =
-      lunajson.decode( json_string, pos, nullv, arraylen )
+  local decode_time, tbl = timeit_micros( function()
+    return lunajson.decode( json_string, pos, nullv, arraylen )
+  end )
+  dbg( 'json decode time: %dms', decode_time // 1000 )
   assert( tbl )
   return tbl
 end
