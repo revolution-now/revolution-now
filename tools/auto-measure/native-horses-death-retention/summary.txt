@@ -1,0 +1,6 @@
+Probability Saves Horses
+================================================================================
+              semi-nomadic  civilized
+discoverer             48%        53%
+viceroy                59%        42%
+
