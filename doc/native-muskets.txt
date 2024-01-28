@@ -12,33 +12,74 @@ Data/Definitions
 Acquisition
 -----------
 
-  * [TODO] When a brave attacks and wins a battle against a unit
-    that loses muskets in the process then it will always acquire
-    those muskets. The affect this has on the `muskets` value
-    is...
+  * When a brave attacks and wins a battle against a unit that
+    loses muskets in the process then it will always acquire
+    those muskets, but the tribes stockpile does not increase.
 
-  * [TODO] When a colony is raided an muskets are stolen, the
-    following happens...
+  * When a brave with muskets wins against a unit that loses
+    their muskets as a result, the tribe's stockpile does not in-
+    crease.
 
-  * [TODO] When muskets are sold to a tribe via trade then this
-    happens...
+  * When muskets are sold to a dwelling they go into the tribe's
+    "stock", which does not appear to have a limit. Note that the
+    stockpile decreases at a rate of 1 per turn, though that is
+    probably not relevant here (and this behavior is probably
+    similar to trading other commodities).
 
-  * [TODO] When muskets are demanded via reparations this happen-
-    s...
+    If, in a given sale, they purchase an amount >= 25, then, in
+    addition to those muskets going into their stockpile as usual,
+    the `muskets` military stockpile goes up by an amount:
 
-  * [TODO] When muskets are acquired via inter-tribe trade, this
-    happens...
+        muskets += min( floor( amount_purchased / 25 ), 2 )
 
-  * [TODO] When a brave with muskets wins against a unit that
-    loses their muskets as a result, this happens...
+    So in other words their stock goes up by the amount purchased
+    and also their military `muskets` stockpile goes up by the
+    number of even multiples of 25 that they purchased (with a
+    max of 2). So if they purchased 49 then it goes up by 1,
+    while if they purchase 50 it goes up by two. If they purchase
+    75 it still only goes up by two.
 
-  * [TODO] When a wagon train containing muskets is attacked,
-    this happens...
+    Counterintuitively, muskets in a tribe's stockpile cannot/do
+    not transfer directly into their military muskets stockpile.
+    It seems that the only way that selling muskets to a tribe
+    can increase their military stockpile (`muskets`) is if they
+    are sold, in a single sale, more than 25 muskets.
 
-  * [TODO] If only 1 musket is sold to the natives, what happens
-    to their stockpile? 100 muskets?
+  * When a wagon train containing muskets is attacked, the braves
+    do not ever seem to steal the muskets, let alone add them to
+    their stockpile.
 
-  * [TODO] Does a tribe's musket stockpile have a max value?
+  * When a colony is raided an muskets are stolen, the military
+    muskets stockpile increases by this formula:
+
+        muskets += clamp( floor( amount_stolen / 25 ), 1, 2 )
+
+    where the clamp is inclusive and this has been observed to
+    apply to a stolen amount of as little as 5 (in which case
+    muskets += 1) and to an amount as large as 82 (in which case
+    muskets += 2). Note that the value of 82 was stolen when the
+    colony had a warehouse expansion and a quantity of 300 mus-
+    kets, since otherwise they wouldn't have stolen that much.
+
+  * When muskets are demanded via reparations and the brave
+    asking does not have muskets then it will immediately acquire
+    muskets and the tribe's stockpile will remain the same. If
+    the brave asking already has muskets then the muskets will be
+    added to the tribe's stockpile. The amount demanded and/or
+    received does not seem to affect the amount that the tribe
+    actually takes; the tribe always seems to take one unit, i.e.
+    arming one brave or increasing the stockpile by 1.
+
+  * There does not seem to be any inter-tribe trading of muskets.
+    The SG mentions it though, so it may be a bug that it is
+    omitted, or perhaps we just don't know the mechanism. It does
+    not seem to happen automatically when braves of two tribes
+    come into contact as is done with horses.
+
+  * When trading muskets with a tribe, the same rules apply about
+    not purchasing the same thing twice in a row. So even if the
+    tribe can clearly use muskets, a dwelling will not buy them
+    twice in a row.
 
 Musket Distribution
 -------------------
@@ -93,13 +134,20 @@ Musket Loss
     can happen either by destroying dwellings or braves with mus-
     kets.
 
-  * [TODO] When a brave with muskets gets destroyed...
+  * When a brave with muskets gets destroyed there is a proba-
+    bility that the tribe will retain the muskets. Here "retain"
+    means ++muskets. In fact, this mechanism can make the muskets
+    drift to a value higher than that tribe has ever been given.
+    The probability is 1/2, and this is independent of tribe or
+    difficulty level.
 
-  * [TODO] When a tribe has muskets and one of its dwellings gets
-    destroyed the muskets count goes down by...
+  * When a tribe has muskets and one of its dwellings gets de-
+    stroyed the muskets do not change; they get sent to the re-
+    maining dwellings. Is this a bug? Seems inconsistent with
+    horses.
 
-  * [TODO] Do dwellings sell muskets? If so, then what happens to
-    their stockpile?
+  * Dwellings have not been observed to sell muskets, so not sure
+    what would happen if they did.
 
 Inter-tribe Trade
 -----------------
@@ -139,24 +187,9 @@ Difficulty Level
 Bugs
 ----
 
-  * None found so far.
+  * Seems that when a dwelling is destroyed the tribe's musket
+    count does not decrease, unlike with horses. Not sure if this
+    is a bug or not. But we will reproduce it.
 
-Suspected but not verified:
-
-  * The muskets readout on the indian advisor report includes
-    muskets held by braves (50 each). That said, there are some
-    inconsistencies:
-
-      * It doesn't always decrease when a brave with muskets is
-        destroyed. This could be explained by the game having a
-        probability of the muskets being retained by the tribe.
-
-  * When defeating an armed brave in combat, the tribe's musket
-    count goes down sometimes, but not others. Even in the cases
-    where we defeat all armed braves but one, the total musket
-    count quickly goes back up to e.g. 300. The tribe seems to
-    produce muskets provided that it has at least 50. This actu-
-    ally could be due to a combination of two effects: the reten-
-    tion of muskets by the tribe when a brave dies, and two the
-    fact that muskets readouts may not include those held by free
-    braves.
+  * There does not seem to be any inter-tribe trade of muskets.
+    Or if there is, perhaps we just don't know the mechanism.

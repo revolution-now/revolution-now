@@ -2,10 +2,6 @@
 Native Horses
 =============
 
-TODO:
-
-  * Difficulty level analysis.
-
 Data/Definitions
 ----------------
 
@@ -41,7 +37,7 @@ Acquisition
     usual demands of whatever commodities the colony has in
     stock). In this case horse_herds goes up by one. The brave
     also gets horses. horse_breeding may go up, but not sure.
-  * Inter-tribe trade
+  * Inter-tribe trade.
 
   Confirmed negative:
     * Brave with horses wins in battle against a unit with
@@ -148,6 +144,7 @@ Horse Loss
     chance that the tribe will retain the horses, which means
     that the horse_breeding number will increase by 25. Other-
     wise, the unit simply disappears and nothing else happens.
+    This seems to be independent of tribe and difficulty.
 
   * When a dwelling gets destroyed, both the horse_herds and the
     horse_breeding will decrease according to this formula:
@@ -181,11 +178,6 @@ Indian Advisor Report
 
   * The horses readout on the indian advisor report does not in-
     clude the herds held by braves.
-
-Difficulty Level
-----------------
-
-TODO
 
 Bugs
 ----
