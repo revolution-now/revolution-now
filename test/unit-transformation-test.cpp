@@ -2520,6 +2520,355 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
   REQUIRE( res == expected );
 }
 
+TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
+  UnitComposition           from{};
+  UnitComposition           to{};
+  maybe<UnitTransformation> res;
+  maybe<UnitTransformation> expected;
+
+  {
+    from     = UnitComposition( e_unit_type::free_colonist );
+    to       = UnitComposition( e_unit_type::free_colonist );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+  }
+
+  {
+    from     = UnitComposition( e_unit_type::expert_farmer );
+    to       = UnitComposition( e_unit_type::expert_farmer );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+  }
+
+  {
+    from     = UnitComposition( e_unit_type::free_colonist );
+    to       = UnitComposition( e_unit_type::missionary );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::blessing,
+                e_unit_type_modifier_delta::add } },
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::blessing,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+  }
+
+  {
+    from     = UnitComposition( e_unit_type::soldier );
+    to       = UnitComposition( e_unit_type::missionary );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::muskets,
+                e_unit_type_modifier_delta::del },
+              { e_unit_type_modifier::blessing,
+                e_unit_type_modifier_delta::add } },
+        .commodity_deltas = { { e_commodity::muskets, 50 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from = UnitComposition(
+        UnitType::create( e_unit_type::dragoon,
+                          e_unit_type::indentured_servant )
+            .value() );
+    to  = UnitComposition( e_unit_type::indentured_servant );
+    res = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::horses,
+                e_unit_type_modifier_delta::del },
+              { e_unit_type_modifier::muskets,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::horses, 50 },
+                              { e_commodity::muskets, 50 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from = UnitComposition(
+        UnitType::create( e_unit_type::dragoon,
+                          e_unit_type::indentured_servant )
+            .value() );
+    to       = UnitComposition( e_unit_type::free_colonist );
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from = UnitComposition(
+        UnitType::create( e_unit_type::dragoon,
+                          e_unit_type::indentured_servant )
+            .value() );
+    to       = UnitComposition( e_unit_type::veteran_dragoon );
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from     = UnitComposition( e_unit_type::dragoon );
+    to       = UnitComposition( e_unit_type::veteran_dragoon );
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from = UnitComposition(
+        UnitType::create( e_unit_type::dragoon,
+                          e_unit_type::indentured_servant )
+            .value() );
+    to = UnitComposition(
+        UnitType::create( e_unit_type::soldier,
+                          e_unit_type::indentured_servant )
+            .value() );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::horses,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::horses, 50 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from = UnitComposition(
+        UnitType::create( e_unit_type::dragoon,
+                          e_unit_type::indentured_servant )
+            .value() );
+    to = UnitComposition(
+        UnitType::create( e_unit_type::scout,
+                          e_unit_type::indentured_servant )
+            .value() );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::muskets,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::muskets, 50 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from     = UnitComposition( e_unit_type::veteran_dragoon );
+    to       = UnitComposition( e_unit_type::veteran_colonist );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::horses,
+                e_unit_type_modifier_delta::del },
+              { e_unit_type_modifier::muskets,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::horses, 50 },
+                              { e_commodity::muskets, 50 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from =
+        UnitComposition::create(
+            UnitType::create( e_unit_type::pioneer,
+                              e_unit_type::free_colonist )
+                .value(),
+            /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+            .value();
+    to       = UnitComposition( e_unit_type::free_colonist );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::tools,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::tools, 80 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from =
+        UnitComposition::create(
+            UnitType::create( e_unit_type::pioneer,
+                              e_unit_type::free_colonist )
+                .value(),
+            /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+            .value();
+    to = UnitComposition::create(
+             UnitType::create( e_unit_type::pioneer,
+                               e_unit_type::free_colonist )
+                 .value(),
+             /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+             .value();
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp         = to,
+        .modifier_deltas  = {},
+        .commodity_deltas = {},
+    };
+    REQUIRE( res == expected );
+  }
+
+  {
+    from =
+        UnitComposition::create(
+            e_unit_type::hardy_pioneer,
+            /*inventory=*/{ { e_unit_inventory::tools, 100 } } )
+            .value();
+    to       = UnitComposition( e_unit_type::petty_criminal );
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+
+  {
+    from =
+        UnitComposition::create(
+            e_unit_type::hardy_pioneer,
+            /*inventory=*/{ { e_unit_inventory::tools, 100 } } )
+            .value();
+    to       = UnitComposition( e_unit_type::hardy_colonist );
+    res      = query_unit_transformation( from, to );
+    expected = UnitTransformation{
+        .new_comp = to,
+        .modifier_deltas =
+            { { e_unit_type_modifier::tools,
+                e_unit_type_modifier_delta::del } },
+        .commodity_deltas = { { e_commodity::tools, 100 } },
+    };
+    REQUIRE( res == expected );
+
+    swap( from, to );
+
+    res      = query_unit_transformation( from, to );
+    expected = nothing;
+    REQUIRE( res == expected );
+  }
+}
+
 TEST_CASE( "[unit-transformation] unit_lose_commodity" ) {
   UnitComposition                         comp{};
   Commodity                               comm;

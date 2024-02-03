@@ -278,6 +278,18 @@ vector<UnitTransformation> possible_unit_transformations(
   return res;
 }
 
+maybe<UnitTransformation> query_unit_transformation(
+    UnitComposition const& from_comp,
+    UnitComposition const& to_comp ) {
+  vector<UnitTransformation> general_results =
+      possible_unit_transformations( from_comp,
+                                     /*commodity_store=*/{} );
+  erase_if( general_results, LC( _.new_comp != to_comp ) );
+  CHECK_LE( general_results.size(), 1u );
+  if( !general_results.empty() ) return general_results[0];
+  return nothing;
+}
+
 UnitTransformation strip_to_base_type(
     UnitComposition const& comp ) {
   vector<UnitTransformation> general_results =

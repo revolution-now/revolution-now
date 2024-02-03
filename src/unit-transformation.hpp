@@ -52,6 +52,13 @@ std::vector<UnitTransformation> possible_unit_transformations(
     std::unordered_map<e_commodity, int> const&
         commodity_store );
 
+// Test if one can be converted to another through a valid path
+// using only the commodities available from the source unit. If
+// a valid path is found then return the transformation details.
+maybe<UnitTransformation> query_unit_transformation(
+    UnitComposition const& from_comp,
+    UnitComposition const& to_comp );
+
 // Strip a unit of all commodities and modifiers and return the
 // single base type along with the commodity and modifier deltas
 // that it took to get there. The commodity deltas will always be
