@@ -2335,6 +2335,8 @@ TEST_CASE(
   NativeUnitId            unit_id = {};
   NativeUnitCombatOutcome outcome;
 
+  Tribe& tribe = W.add_tribe( e_tribe::cherokee );
+
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
 
@@ -2446,12 +2448,14 @@ TEST_CASE(
   }
 
   SECTION( "promoted, brave --> mounted_brave" ) {
+    tribe.horse_herds      = 10;
     NativeUnit const& unit = W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_brave };
+        .to = e_native_unit_type::mounted_brave,
+        .tribe_gains_horse_herd = true };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_brave );
@@ -2462,7 +2466,7 @@ TEST_CASE(
     // The unit should keep its current movement points instead
     // of having them increase from 1 to 4.
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 11 );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
@@ -2493,7 +2497,8 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_warrior };
+        .to = e_native_unit_type::mounted_warrior,
+        .tribe_gains_horse_herd = true };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_warrior );
@@ -2504,7 +2509,7 @@ TEST_CASE(
     // The unit should keep its current movement points instead
     // of having them increase from 1 to 4.
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 1 );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }

@@ -33,4 +33,11 @@ void retain_horses_from_destroyed_brave( SSConst const& ss,
 // this is only called when the result is in the affirmative.
 void retain_muskets_from_destroyed_brave( Tribe& tribe );
 
+// This is called when a brave without horses wins in combat
+// against a european unit that loses its horses (or gets de-
+// stroyed with horses) in the process. In that situation the
+// brave gains the horses (handled elsewhere) and the tribe in-
+// creases the number of their herds, which this function does.
+void gain_horses_from_winning_combat( Tribe& tribe );
+
 } // namespace rn

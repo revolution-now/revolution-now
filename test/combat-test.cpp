@@ -933,8 +933,8 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
               .modified_weight = 1.0,
               .outcome =
                   NativeUnitCombatOutcome::promoted{
-                      .to =
-                          e_native_unit_type::mounted_brave } },
+                      .to = e_native_unit_type::mounted_brave,
+                      .tribe_gains_horse_herd = true } },
         .defender = {
             .id              = defender->id(),
             .base_weight     = 1.0,
@@ -951,14 +951,15 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .4 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::promoted{
-                              .to = e_native_unit_type::
-                                  mounted_warrior } },
+        .winner = e_combat_winner::attacker,
+        .attacker =
+            { .id              = attacker->id,
+              .base_weight     = 2.0,
+              .modified_weight = 2.0,
+              .outcome =
+                  NativeUnitCombatOutcome::promoted{
+                      .to = e_native_unit_type::mounted_warrior,
+                      .tribe_gains_horse_herd = true } },
         .defender = { .id              = defender->id(),
                       .base_weight     = 3.0,
                       .modified_weight = 3.0,

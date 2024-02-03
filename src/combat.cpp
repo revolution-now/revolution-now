@@ -195,8 +195,9 @@ NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
       }
     }
   }();
+  auto const& equipment = config_natives.arms.equipment;
   refl::enum_map<e_brave_equipment, bool> const new_eq = [&] {
-    auto eq = config_natives.arms.equipment[native_unit.type];
+    auto eq = equipment[native_unit.type];
     if( trans.modifier_deltas[e_unit_type_modifier::horses] ==
         e_unit_type_modifier_delta::del )
       eq[e_brave_equipment::horses] = true;
@@ -206,13 +207,20 @@ NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
     return eq;
   }();
   e_native_unit_type const new_type = [&] {
-    for( auto const& [type, eq] : config_natives.arms.equipment )
-      if( eq == new_eq ) //
+    for( auto const& [type, eq_for_type] : equipment )
+      if( new_eq == eq_for_type ) //
         return type;
     SHOULD_NOT_BE_HERE;
   }();
-  if( new_type != native_unit.type )
-    return NativeUnitCombatOutcome::promoted{ .to = new_type };
+  if( new_type != native_unit.type ) {
+    bool const gained_horses =
+        !equipment[native_unit.type]
+                  [e_brave_equipment::horses] &&
+        equipment[new_type][e_brave_equipment::horses];
+    return NativeUnitCombatOutcome::promoted{
+        .to                     = new_type,
+        .tribe_gains_horse_herd = gained_horses };
+  }
   return NativeUnitCombatOutcome::no_change{};
 }
 

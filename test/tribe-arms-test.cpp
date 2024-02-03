@@ -116,6 +116,32 @@ TEST_CASE( "[tribe-arms] retain_horses_from_destroyed_brave" ) {
   REQUIRE( tribe.horse_breeding == 50 );
 }
 
+TEST_CASE( "[tribe-arms] gain_horses_from_winning_combat" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&] { gain_horses_from_winning_combat( tribe ); };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 2 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 3 );
+  REQUIRE( tribe.horse_breeding == 0 );
+}
+
 TEST_CASE(
     "[tribe-arms] retain_horses_from_destroyed_brave max "
     "value" ) {

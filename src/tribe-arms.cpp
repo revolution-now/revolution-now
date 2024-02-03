@@ -66,4 +66,8 @@ void retain_muskets_from_destroyed_brave( Tribe& tribe ) {
   ++tribe.muskets;
 }
 
+void gain_horses_from_winning_combat( Tribe& tribe ) {
+  ++tribe.horse_herds;
+}
+
 } // namespace rn

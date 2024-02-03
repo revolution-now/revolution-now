@@ -875,6 +875,9 @@ void perform_native_unit_combat_effects(
     }
     CASE( promoted ) {
       unit.type = promoted.to;
+      if( promoted.tribe_gains_horse_herd )
+        gain_horses_from_winning_combat(
+            tribe_for_unit( ss, unit ) );
       break;
     }
   }

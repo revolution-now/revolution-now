@@ -121,10 +121,14 @@ sumtype.NativeUnitCombatOutcome {
   },
   promoted {
     # Note that in the OG, this only seems to happen when the
-    # brave is the attacker (and wins); moreover, in that case,
-    # it happens 100% of the time (assuming that any horses/mus-
-    # kets lost by the european unit can be taken by the brave).
+    # brave is the attacker (and wins) against a defender that
+    # loses either horses or muskets in the process (and assuming
+    # that any horses/muskets lost by the european unit can be
+    # taken by the brave).
     to 'e_native_unit_type',
+    # If the brave gains horses then, in addition to the unit
+    # type changing, the tribe gains one horse herd.
+    tribe_gains_horse_herd 'bool',
   },
 }
 
