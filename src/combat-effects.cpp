@@ -157,8 +157,8 @@ static maybe<std::string> brave_promotion_message(
   string_view const from_name_plural =
       config_natives.unit_types[from].name_plural;
   auto const acquisition = [&]() -> maybe<e_brave_equipment> {
-    auto const& from_equip = config_natives.equipment[from];
-    auto const& to_equip   = config_natives.equipment[to];
+    auto const& from_equip = config_natives.arms.equipment[from];
+    auto const& to_equip   = config_natives.arms.equipment[to];
     // In the OG's rules only one of these can be obtained at a
     // time since there is no unit that can lose both muskets and
     // horses in one battle. Also, braves can't lose horses or

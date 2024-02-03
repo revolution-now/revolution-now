@@ -44,15 +44,6 @@ unit_types {
   }
 }
 
-# How many units of horses/muskets need to be added/removed from
-# the unit to transition from one type to another.
-equipment {
-  brave:           { muskets=false, horses=false }
-  armed_brave:     { muskets=true,  horses=false }
-  mounted_brave:   { muskets=false, horses=true  }
-  mounted_warrior: { muskets=true,  horses=true  }
-}
-
 dwelling_types {
   semi_nomadic {
     radius:         small
@@ -720,5 +711,14 @@ arms {
     agrarian:     { N=4, M=10, A=0 }
     advanced:     { N=6, M=14, A=0 }
     civilized:    { N=8, M=18, A=0 }
+  }
+
+  # How many units of horses/muskets need to be added/removed
+  # from the unit to transition from one type to another.
+  equipment {
+    brave:           { muskets=false, horses=false }
+    armed_brave:     { muskets=true,  horses=false }
+    mounted_brave:   { muskets=false, horses=true  }
+    mounted_warrior: { muskets=true,  horses=true  }
   }
 }

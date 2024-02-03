@@ -157,7 +157,7 @@ NativeUnitCombatOutcome native_unit_lost_combat_outcome(
   // doesn't seemt to matter since they are both 50%, so on av-
   // erage we'd get the same outcome either way.
   auto retains = [&]( e_brave_equipment eq ) {
-    return config_natives.equipment[unit.type][eq] &&
+    return config_natives.arms.equipment[unit.type][eq] &&
            rand.bernoulli(
                config_natives.arms.retention_after_death[eq]
                    .probability );

@@ -375,6 +375,18 @@ struct.Arms {
   retention_after_death 'refl::enum_map<e_brave_equipment, config::Probability>',
 
   max_horse_breeding 'refl::enum_map<e_native_level, MaxHorseBreeding>',
+
+  # How many units of horses/muskets each native unit type pros-
+  # esses.
+  equipment [[
+    refl::enum_map<
+      e_native_unit_type,
+      refl::enum_map<
+        e_brave_equipment,
+        bool
+      >
+    >
+  ]],
 }
 
 namespace "rn"
@@ -427,18 +439,6 @@ struct.config_natives_t {
   # Config data to do with the tribe's posession of muskets and
   # horses used to arm braves.
   arms 'config::natives::Arms',
-
-  # How many units of horses/muskets each native unit type pros-
-  # esses.
-  equipment [[
-    refl::enum_map<
-      e_native_unit_type,
-      refl::enum_map<
-        e_brave_equipment,
-        bool
-      >
-    >
-  ]],
 
   _features { equality, validation }
 }
