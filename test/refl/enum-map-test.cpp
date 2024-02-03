@@ -210,7 +210,7 @@ struct NonCopyable {
   NonCopyable() = default;
   NonCopyable( int m ) : n( m ) {}
 
-  NonCopyable( NonCopyable const& ) = delete;
+  NonCopyable( NonCopyable const& )            = delete;
   NonCopyable& operator=( NonCopyable const& ) = delete;
 
   NonCopyable& operator=( NonCopyable&& ) = default;
@@ -253,6 +253,33 @@ TEST_CASE( "[enum-map] iteration order" ) {
       { e_count::fifteen, false },
   };
   REQUIRE( out == expected );
+}
+
+TEST_CASE( "[enum-map] count_non_default_values" ) {
+  enum_map<e_color, int> m;
+
+  REQUIRE( m.count_non_default_values() == 0 );
+
+  m[e_color::blue] = 1;
+  REQUIRE( m.count_non_default_values() == 1 );
+
+  m[e_color::blue] = 3;
+  REQUIRE( m.count_non_default_values() == 1 );
+
+  m[e_color::red] = 2;
+  REQUIRE( m.count_non_default_values() == 2 );
+
+  m[e_color::green] = -1;
+  REQUIRE( m.count_non_default_values() == 3 );
+
+  m[e_color::red] = 0;
+  REQUIRE( m.count_non_default_values() == 2 );
+
+  m[e_color::blue] = 0;
+  REQUIRE( m.count_non_default_values() == 1 );
+
+  m[e_color::green] = 0;
+  REQUIRE( m.count_non_default_values() == 0 );
 }
 
 } // namespace

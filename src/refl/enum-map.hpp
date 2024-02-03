@@ -106,6 +106,18 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     return this->as_base()[idx].second;
   }
 
+  // Return the number of entries whose values are not equal to
+  // the default-constructed value. This is the closest thing
+  // that we get to a concept of a "size" with this container.
+  int count_non_default_values() const {
+    int               count = 0;
+    static ValT const empty = {};
+    for( auto const& [k, v] : *this )
+      if( v != empty ) //
+        ++count;
+    return count;
+  }
+
   // Make sure that the following base class methods are not
   // callable since calling them is not correct for this class;
   // enum_maps always contain every enum key, and are of a fixed
