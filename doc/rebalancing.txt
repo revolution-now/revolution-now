@@ -201,3 +201,18 @@ General changes to the game:
     be easy to do, but not yet sure if it is a good idea. Maybe
     we can turn it on/off with a flag, called "Amnesia Mode"
     where it would remind you.
+
+    If one has to remember or record those village attributes
+    themselves then perhaps it's easier to feel that they are ac-
+    tually immersed in a world that is both mysterious and indif-
+    ferent to them, at least until they colonize it. If one could
+    just hover the mouse over a village and get that information,
+    wouldn't take something away from the game?
+
+    Maybe a midor late-game Exploration founding father could
+    cause that information to be turned on. That way it is still
+    a struggle early in the game, but becomes less so as the game
+    progresses in order to balance against the larger number of
+    villages that have been discovered. Someone recommended the
+    founded father that makes all missionaries function as ex-
+    perts (Jean de Brebeuf).
