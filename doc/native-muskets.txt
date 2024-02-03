@@ -5,7 +5,7 @@ Native Muskets
 Data/Definitions
 ----------------
 
-  * muskets: per tribe.
+  muskets: per tribe.
 
     * This represents the stockpile held by the tribe.
 
@@ -131,8 +131,8 @@ Musket Loss
 -----------
 
   * A tribe that acquires muskets can eventually lose them. This
-    can happen either by destroying dwellings or braves with mus-
-    kets.
+    can happen either by destroying (all) dwellings or braves
+    with muskets.
 
   * When a brave with muskets gets destroyed there is a proba-
     bility that the tribe will retain the muskets. Here "retain"

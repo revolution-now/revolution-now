@@ -114,9 +114,8 @@ sumtype.ColonyArtilleryCombatOutcome {
 sumtype.NativeUnitCombatOutcome {
   no_change {},
   destroyed {
-    # According to the strategy guide, there is a chance that a
-    # tribe will retain the horses/muskets of a brave even when
-    # it is eliminated.
+    # There is a chance that a tribe will retain the horses/mus-
+    # kets of a brave when it is eliminated.
     tribe_retains_horses 'bool',
     tribe_retains_muskets 'bool',
   },

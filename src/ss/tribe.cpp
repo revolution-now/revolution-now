@@ -72,10 +72,11 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["type"]         = &U::type;
-    u["muskets"]      = &U::muskets;
-    u["horses"]       = &U::horses;
-    u["relationship"] = &U::relationship;
+    u["type"]           = &U::type;
+    u["muskets"]        = &U::muskets;
+    u["horse_herds"]    = &U::horse_herds;
+    u["horse_breeding"] = &U::horse_breeding;
+    u["relationship"]   = &U::relationship;
   }();
 };
 

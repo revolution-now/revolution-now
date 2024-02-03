@@ -64,22 +64,12 @@ struct.TribeRelationship {
 struct.Tribe {
   type 'e_tribe',
 
-  # When muskets and/or horses are sold to a dwelling they are
-  # then owned by the tribe and shared among all dwellings. They
-  # can also be acquired by a brave when winning a battle in
-  # which the brave is the attacker and the defender loses some-
-  # thing that the brave can gain.
-  #
-  # TODO: not really clear on the dynamics of the horses and mus-
-  # kets held internally by a native tribe. There are some pre-
-  # liminary investigation notes in this file:
-  #
-  #   doc/native-muskets-horses.txt.
-  #
-  # More experiments need to be done.
-  #
+  # These are the muskets used to arm braves.
   muskets 'int',
-  horses 'int',
+
+  # These are the horses used to mount braves.
+  horse_herds 'int',
+  horse_breeding 'int',
 
   # Describes a tribe's relationship with a European nation. If a
   # the initial encounter has not yet happened then it will as-

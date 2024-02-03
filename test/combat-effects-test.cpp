@@ -2357,22 +2357,72 @@ TEST_CASE(
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
 
-  SECTION( "destroyed" ) {
+  SECTION( "destroyed (no retention)" ) {
     NativeUnit const& unit = W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::destroyed{
+        .tribe_retains_horses  = false,
+        .tribe_retains_muskets = false };
+    f();
+    REQUIRE( !W.units().exists( unit_id ) );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
+  }
+
+  SECTION( "destroyed (retains muskets)" ) {
+    NativeUnit const& unit = W.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    unit_id = unit.id;
+    outcome = NativeUnitCombatOutcome::destroyed{
+        .tribe_retains_horses  = false,
+        .tribe_retains_muskets = true };
+    f();
+    REQUIRE( !W.units().exists( unit_id ) );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 1 );
+  }
+
+  SECTION( "destroyed (retains horses)" ) {
+    NativeUnit const& unit = W.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    unit_id                                  = unit.id;
+    W.tribe( e_tribe::cherokee ).horse_herds = 1;
+    outcome = NativeUnitCombatOutcome::destroyed{
+        .tribe_retains_horses  = true,
+        .tribe_retains_muskets = false };
+    f();
+    REQUIRE( !W.units().exists( unit_id ) );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 1 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 25 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
+  }
+
+  SECTION( "destroyed (retains both)" ) {
+    NativeUnit const& unit = W.add_native_unit_on_map(
+        e_native_unit_type::brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    unit_id                                  = unit.id;
+    W.tribe( e_tribe::cherokee ).horse_herds = 2;
+    W.tribe( e_tribe::cherokee ).muskets     = 2;
+    outcome = NativeUnitCombatOutcome::destroyed{
         .tribe_retains_horses  = true,
         .tribe_retains_muskets = true };
     f();
     REQUIRE( !W.units().exists( unit_id ) );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 50 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 50 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 2 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 25 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 3 );
   }
 
   SECTION( "promoted, brave --> armed_brave" ) {
@@ -2390,7 +2440,8 @@ TEST_CASE(
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
 
@@ -2411,7 +2462,8 @@ TEST_CASE(
     // The unit should keep its current movement points instead
     // of having them increase from 1 to 4.
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
 
@@ -2430,7 +2482,8 @@ TEST_CASE(
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points == 4 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
 
@@ -2451,7 +2504,8 @@ TEST_CASE(
     // The unit should keep its current movement points instead
     // of having them increase from 1 to 4.
     REQUIRE( unit.movement_points == 1 );
-    REQUIRE( W.tribe( e_tribe::cherokee ).horses == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
+    REQUIRE( W.tribe( e_tribe::cherokee ).horse_breeding == 0 );
     REQUIRE( W.tribe( e_tribe::cherokee ).muskets == 0 );
   }
 }

@@ -10,20 +10,18 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "wait.hpp"
 
 // ss
 #include "ss/dwelling-id.hpp"
-#include "ss/native-enums.rds.hpp"
 
 namespace rn {
 
 struct SS;
 struct TS;
-struct Tribe;
+
+enum class e_tribe;
 
 /****************************************************************
 ** Destroying things.
@@ -53,16 +51,5 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
 
 // Displays the message that a tribe is gone.
 wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe );
-
-/****************************************************************
-** Acquiring Horses/Muskets.
-*****************************************************************/
-// Called when a brave with horses is defeated in combat (de-
-// stroyed) and the tribe retains the horses.
-void tribe_take_horses_from_destroyed_brave( Tribe& tribe );
-
-// Called when a brave with muskets is defeated in combat (de-
-// stroyed) and the tribe retains the muskets.
-void tribe_take_muskets_from_destroyed_brave( Tribe& tribe );
 
 } // namespace rn

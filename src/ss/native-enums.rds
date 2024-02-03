@@ -48,3 +48,8 @@ enum.e_native_skill {
   fur_trading,
   scouting,
 }
+
+enum.e_brave_equipment {
+  muskets,
+  horses,
+}

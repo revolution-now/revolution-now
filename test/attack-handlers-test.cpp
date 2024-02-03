@@ -674,10 +674,12 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     expect_combat();
     W.expect_some_animation();
     REQUIRE( tribe.muskets == 0 );
-    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
     REQUIRE( f() == expected );
-    REQUIRE( tribe.muskets == 50 );
-    REQUIRE( tribe.muskets == 50 );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 25 );
     Unit const& attacker =
         W.units().unit_for( combat.attacker.id );
     REQUIRE_FALSE( W.units().exists( combat.defender.id ) );

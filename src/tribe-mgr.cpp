@@ -105,12 +105,4 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
   co_await tribe_wiped_out_message( ts, tribe );
 }
 
-void tribe_take_horses_from_destroyed_brave( Tribe& tribe ) {
-  tribe.horses += 50;
-}
-
-void tribe_take_muskets_from_destroyed_brave( Tribe& tribe ) {
-  tribe.muskets += 50;
-}
-
 } // namespace rn

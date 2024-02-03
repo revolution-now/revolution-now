@@ -47,30 +47,10 @@ unit_types {
 # How many units of horses/muskets need to be added/removed from
 # the unit to transition from one type to another.
 equipment {
-  armed_brave {
-    armed_brave:     { muskets =  0, horses =  0 }
-    brave:           { muskets = -1, horses =  0 }
-    mounted_brave:   { muskets = -1, horses =  1 }
-    mounted_warrior: { muskets =  0, horses =  1 }
-  }
-  brave {
-    armed_brave:     { muskets =  1, horses =  0 }
-    brave:           { muskets =  0, horses =  0 }
-    mounted_brave:   { muskets =  0, horses =  1 }
-    mounted_warrior: { muskets =  1, horses =  1 }
-  }
-  mounted_brave {
-    armed_brave:     { muskets =  1, horses = -1 }
-    brave:           { muskets =  0, horses = -1 }
-    mounted_brave:   { muskets =  0, horses =  0 }
-    mounted_warrior: { muskets =  1, horses =  0 }
-  }
-  mounted_warrior {
-    armed_brave:     { muskets =  0, horses = -1 }
-    brave:           { muskets = -1, horses = -1 }
-    mounted_brave:   { muskets = -1, horses =  0 }
-    mounted_warrior: { muskets =  0, horses =  0 }
-  }
+  brave:           { muskets = 0, horses = 0 }
+  armed_brave:     { muskets = 1, horses = 0 }
+  mounted_brave:   { muskets = 0, horses = 1 }
+  mounted_warrior: { muskets = 1, horses = 1 }
 }
 
 dwelling_types {
@@ -712,3 +692,33 @@ combat {
 # then either a new free brave is created (if needed) or else the
 # dwelling's population increases.
 growth_counter_threshold: 20
+
+# Config data to do with the tribe's posession of muskets and
+# horses used to arm braves.
+arms {
+  # When a brave is destroyed and that brave posesses muskets or
+  # horses (or both), these give the probability that the tribe
+  # will retain those things. In the case of a mounted warrior
+  # (which has both) the probabilities are applied independently.
+  retention_after_death {
+    horses.probability:  0.5
+    muskets.probability: 0.5
+  }
+
+  # Experiments with the OG show that a tribe's horse_breeding
+  # field has a maximum value given by:
+  #
+  #   max_value = 50 + N + D*M + A
+  #
+  # where D is the number of dwellings, and N, M, A are constants
+  # that are dependent on the native tech level. Strangely, A is
+  # zero in all cases except for Semi-nomadic when D >= 9. Since
+  # that seems to be an anomaly, we'll just let it be zero al-
+  # ways.
+  max_horse_breeding {
+    semi_nomadic: { N=0, M=6,  A=0 }
+    agrarian:     { N=4, M=10, A=0 }
+    advanced:     { N=6, M=14, A=0 }
+    civilized:    { N=8, M=18, A=0 }
+  }
+}

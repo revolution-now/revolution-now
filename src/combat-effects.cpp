@@ -22,7 +22,7 @@
 #include "ieuro-mind.hpp"
 #include "map-search.hpp"
 #include "society.hpp"
-#include "tribe-mgr.hpp"
+#include "tribe-arms.hpp"
 #include "tribe.rds.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -156,16 +156,16 @@ static maybe<std::string> brave_promotion_message(
       config_natives.tribes[tribe].name_singular;
   string_view const from_name_plural =
       config_natives.unit_types[from].name_plural;
-  auto const acquisition = [&]() -> maybe<string> {
-    auto const& equip = config_natives.equipment[from][to];
+  auto const acquisition = [&]() -> maybe<e_brave_equipment> {
+    auto const& from_equip = config_natives.equipment[from];
+    auto const& to_equip   = config_natives.equipment[to];
     // In the OG's rules only one of these can be obtained at a
     // time since there is no unit that can lose both muskets and
     // horses in one battle. Also, braves can't lose horses or
     // muskets in a battle, they just get destroyed.
-    if( equip[config::natives::e_brave_equipment::muskets] > 0 )
-      return "muskets";
-    if( equip[config::natives::e_brave_equipment::horses] > 0 )
-      return "horses";
+    for( auto const eq : refl::enum_values<e_brave_equipment> )
+      if( to_equip[eq] > from_equip[eq] ) //
+        return eq;
     return nothing;
   }();
   if( !acquisition.has_value() ) return nothing;
@@ -867,9 +867,9 @@ void perform_native_unit_combat_effects(
     CASE( destroyed ) {
       Tribe& tribe = tribe_for_unit( ss, unit );
       if( destroyed.tribe_retains_horses )
-        tribe_take_horses_from_destroyed_brave( tribe );
+        retain_horses_from_destroyed_brave( ss, tribe );
       if( destroyed.tribe_retains_muskets )
-        tribe_take_muskets_from_destroyed_brave( tribe );
+        retain_muskets_from_destroyed_brave( tribe );
       ss.units.destroy_unit( unit.id );
       break;
     }
