@@ -145,37 +145,49 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
   }
 }
 
-NativeUnitCombatOutcome native_unit_combat_outcome(
-    IRand& rand, NativeUnit const& unit, bool won ) {
-  // TODO: In the OG, experiments seem to indicate that the
-  // braves will take muskets/horses only when they are the at-
-  // tackers in the battle. Moreover, in that situation, they
-  // will take the horses/muskets 100% of the time, assuming they
-  // are available and the brave unit can accept them.
-  if( won )
-    return NativeUnitCombatOutcome::no_change{};
-  else {
-    // The brave has been destroyed, so compute if the tribe will
-    // retain its horses or muskets (if it has any). It has been
-    // confirmed in the OG that the brave can retain both if it
-    // has both (i.e. mounted warrior) and the behavior seems to
-    // be the same whether the brave was the attacker or de-
-    // fender. Not sure if the game applies the horses/muskets
-    // probabilities separately in the case of a mounted warrior,
-    // but that doesn't seemt to matter since they are both 50%,
-    // so on average we'd get the same outcome either way.
-    auto retains = [&]( e_brave_equipment eq ) {
-      return config_natives.equipment[unit.type][eq] &&
-             rand.bernoulli(
-                 config_natives.arms.retention_after_death[eq]
-                     .probability );
-    };
-    return NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses =
-            retains( e_brave_equipment::horses ),
-        .tribe_retains_muskets =
-            retains( e_brave_equipment::muskets ) };
-  }
+NativeUnitCombatOutcome native_unit_lost_combat_outcome(
+    IRand& rand, NativeUnit const& unit ) {
+  // The brave has been destroyed, so compute if the tribe will
+  // retain its horses or muskets (if it has any). It has been
+  // confirmed in the OG that the brave can retain both if it has
+  // both (i.e. mounted warrior) and the behavior seems to be the
+  // same whether the brave was the attacker or defender. Not
+  // sure if the game applies the horses/muskets probabilities
+  // separately in the case of a mounted warrior, but that
+  // doesn't seemt to matter since they are both 50%, so on av-
+  // erage we'd get the same outcome either way.
+  auto retains = [&]( e_brave_equipment eq ) {
+    return config_natives.equipment[unit.type][eq] &&
+           rand.bernoulli(
+               config_natives.arms.retention_after_death[eq]
+                   .probability );
+  };
+  return NativeUnitCombatOutcome::destroyed{
+      .tribe_retains_horses =
+          retains( e_brave_equipment::horses ),
+      .tribe_retains_muskets =
+          retains( e_brave_equipment::muskets ) };
+}
+
+NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
+    NativeUnit const& ) {
+  // In the OG, experiments seem to indicate that the braves will
+  // take muskets/horses only when they are the attackers in the
+  // battle. Moreover, in that situation, they will take the
+  // horses/muskets 100% of the time, assuming they are available
+  // and the brave unit can accept them.
+  //
+  // TODO: when braves start to attack, they should take muskets
+  // and horses whenever possible.
+  //
+  // TODO: The brave will take horses also when defeating a
+  // scout.
+  return NativeUnitCombatOutcome::no_change{};
+}
+
+NativeUnitCombatOutcome
+native_unit_won_defending_combat_outcome() {
+  return NativeUnitCombatOutcome::no_change{};
 }
 
 DwellingCombatOutcome::destruction compute_dwelling_destruction(
@@ -534,8 +546,9 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
               .tribe = tribe_type_for_unit( ss_, defender ) },
           defender_coord, winner == e_combat_winner::attacker );
   NativeUnitCombatOutcome const defender_outcome =
-      native_unit_combat_outcome(
-          rand_, defender, winner == e_combat_winner::defender );
+      ( winner == e_combat_winner::defender )
+          ? native_unit_won_defending_combat_outcome()
+          : native_unit_lost_combat_outcome( rand_, defender );
   return CombatEuroAttackBrave{
       .winner   = winner,
       .attacker = { .id              = attacker.id(),
@@ -558,15 +571,16 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
       ss_.units.coord_for( attacker.id );
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
-  NativeUnitCombatOutcome const attacker_outcome =
-      native_unit_combat_outcome(
-          rand_, attacker, winner == e_combat_winner::attacker );
   EuroUnitCombatOutcome const defender_outcome =
       euro_unit_combat_outcome(
           ss_, rand_, defender,
           Society::native{
               .tribe = tribe_type_for_unit( ss_, attacker ) },
           attacker_coord, winner == e_combat_winner::defender );
+  NativeUnitCombatOutcome const attacker_outcome =
+      ( winner == e_combat_winner::attacker )
+          ? native_unit_won_attacking_combat_outcome( attacker )
+          : native_unit_lost_combat_outcome( rand_, attacker );
   return CombatBraveAttackEuro{
       .winner   = winner,
       .attacker = { .id              = attacker.id,
@@ -626,8 +640,8 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
     auto attacker_stats_modified = units_combat.attacker;
     // Even though the brave can win here, it will still be de-
     // stroyed, so we compute the outcome as if it lost.
-    attacker_stats_modified.outcome = native_unit_combat_outcome(
-        rand_, attacker, /*won=*/false );
+    attacker_stats_modified.outcome =
+        native_unit_lost_combat_outcome( rand_, attacker );
     return { .winner           = units_combat.winner,
              .colony_id        = colony.id,
              .colony_destroyed = colony_destroyed,
@@ -649,8 +663,7 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
   Coord const  attacker_coord =
       ss_.units.coord_for( attacker.id );
   NativeUnitCombatOutcome const attacker_outcome =
-      native_unit_combat_outcome( rand_, attacker,
-                                  /*won=*/false );
+      native_unit_lost_combat_outcome( rand_, attacker );
   // It seems that in the OG, even though the defender can never
   // lose, it can still be promoted.
   EuroUnitCombatOutcome const defender_outcome =

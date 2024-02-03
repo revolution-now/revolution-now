@@ -744,9 +744,9 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 } );
     W.expect_defender_wins( .4 );
+    W.expect_promotion( false );
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
-    W.expect_promotion( false );
     expected = {
         .winner   = e_combat_winner::defender,
         .attacker = { .id              = attacker->id,
@@ -771,9 +771,9 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 } );
     W.expect_defender_wins( .4 );
+    W.expect_promotion( false );
     W.expect_retains_horses( true );
     W.expect_retains_muskets( false );
-    W.expect_promotion( false );
     expected = {
         .winner   = e_combat_winner::defender,
         .attacker = { .id              = attacker->id,
@@ -797,9 +797,9 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 } );
     W.expect_defender_wins( .4 );
+    W.expect_promotion( true );
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
-    W.expect_promotion( true );
     expected = {
         .winner   = e_combat_winner::defender,
         .attacker = { .id              = attacker->id,
@@ -828,9 +828,9 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 } );
     W.expect_defender_wins( .4 );
+    W.expect_promotion( true );
     W.expect_retains_horses( true );
     W.expect_retains_muskets( true );
-    W.expect_promotion( true );
     expected = {
         .winner   = e_combat_winner::defender,
         .attacker = { .id              = attacker->id,
