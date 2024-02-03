@@ -902,12 +902,14 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .333333 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
+        .winner = e_combat_winner::attacker,
+        .attacker =
+            { .id              = attacker->id,
+              .base_weight     = 1.0,
+              .modified_weight = 1.0,
+              .outcome =
+                  NativeUnitCombatOutcome::promoted{
+                      .to = e_native_unit_type::armed_brave } },
         .defender = { .id              = defender->id(),
                       .base_weight     = 2.0,
                       .modified_weight = 2.0,
@@ -924,10 +926,259 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
+        .winner = e_combat_winner::attacker,
+        .attacker =
+            { .id              = attacker->id,
+              .base_weight     = 1.0,
+              .modified_weight = 1.0,
+              .outcome =
+                  NativeUnitCombatOutcome::promoted{
+                      .to =
+                          e_native_unit_type::mounted_brave } },
+        .defender = {
+            .id              = defender->id(),
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "armed_brave->dragoon, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::dragoon,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .4 );
+    expected = {
         .winner   = e_combat_winner::attacker,
         .attacker = { .id              = attacker->id,
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::promoted{
+                              .to = e_native_unit_type::
+                                  mounted_warrior } },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::soldier } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "armed_brave->free_colonist, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::free_colonist,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .666666 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = {
+            .id              = defender->id(),
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "armed_brave->soldier, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::soldier,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .5 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_brave->dragoon, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::dragoon,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .4 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::soldier } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_brave->free_colonist, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::free_colonist,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .666666 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = {
+            .id              = defender->id(),
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_brave->soldier, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::soldier,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .5 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::promoted{
+                              .to = e_native_unit_type::
+                                  mounted_warrior } },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_brave->scout, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::scout,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .666666 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = {
+            .id              = defender->id(),
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_warrior->dragoon, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::dragoon,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .5 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::soldier } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_warrior->scout, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::scout,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .75 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = {
+            .id              = defender->id(),
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_warrior->soldier, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::soldier,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .6 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
+                      .outcome =
+                          NativeUnitCombatOutcome::no_change{} },
+        .defender = { .id              = defender->id(),
+                      .base_weight     = 2.0,
+                      .modified_weight = 2.0,
+                      .outcome = EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "mounted_warrior->free_colonist, brave wins" ) {
+    attacker = &W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling.id );
+    defender = &W.add_unit_on_map( e_unit_type::free_colonist,
+                                   { .x = 1, .y = 0 } );
+    W.expect_attacker_wins( .75 );
+    expected = {
+        .winner   = e_combat_winner::attacker,
+        .attacker = { .id              = attacker->id,
+                      .base_weight     = 3.0,
+                      .modified_weight = 3.0,
                       .outcome =
                           NativeUnitCombatOutcome::no_change{} },
         .defender = {

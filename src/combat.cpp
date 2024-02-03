@@ -21,10 +21,12 @@
 #include "society.rds.hpp"
 #include "treasure.hpp"
 #include "unit-mgr.hpp"
+#include "unit-transformation.hpp"
 
 // config
 #include "config/combat.rds.hpp"
 #include "config/natives.hpp"
+#include "config/unit-type.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -36,8 +38,8 @@
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/unit-type.hpp"
+// rds
+#include "rds/switch-macro.hpp"
 
 using namespace std;
 
@@ -169,19 +171,48 @@ NativeUnitCombatOutcome native_unit_lost_combat_outcome(
           retains( e_brave_equipment::muskets ) };
 }
 
+// In the OG braves will take muskets/horses only when they are
+// the attackers in the battle and, moreover, in that situation,
+// they will take them 100% of the time, assuming they are avail-
+// able and the brave unit can accept them.
 NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
-    NativeUnit const& ) {
-  // In the OG, experiments seem to indicate that the braves will
-  // take muskets/horses only when they are the attackers in the
-  // battle. Moreover, in that situation, they will take the
-  // horses/muskets 100% of the time, assuming they are available
-  // and the brave unit can accept them.
-  //
-  // TODO: when braves start to attack, they should take muskets
-  // and horses whenever possible.
-  //
-  // TODO: The brave will take horses also when defeating a
-  // scout.
+    NativeUnit const& native_unit, Unit const& defender,
+    EuroUnitCombatOutcome const& euro_outcome ) {
+  UnitTransformation const trans = [&] {
+    SWITCH( euro_outcome ) {
+      CASE( captured ) { SHOULD_NOT_BE_HERE; }
+      CASE( captured_and_demoted ) { SHOULD_NOT_BE_HERE; }
+      CASE( no_change ) { SHOULD_NOT_BE_HERE; }
+      CASE( promoted ) { SHOULD_NOT_BE_HERE; }
+      CASE( demoted ) {
+        UNWRAP_CHECK( trans,
+                      query_unit_transformation(
+                          defender.composition(), demoted.to ) );
+        return trans;
+      }
+      CASE( destroyed ) {
+        return strip_to_base_type( defender.composition() );
+      }
+    }
+  }();
+  refl::enum_map<e_brave_equipment, bool> const new_eq = [&] {
+    auto eq = config_natives.arms.equipment[native_unit.type];
+    if( trans.modifier_deltas[e_unit_type_modifier::horses] ==
+        e_unit_type_modifier_delta::del )
+      eq[e_brave_equipment::horses] = true;
+    if( trans.modifier_deltas[e_unit_type_modifier::muskets] ==
+        e_unit_type_modifier_delta::del )
+      eq[e_brave_equipment::muskets] = true;
+    return eq;
+  }();
+  e_native_unit_type const new_type = [&] {
+    for( auto const& [type, eq] : config_natives.arms.equipment )
+      if( eq == new_eq ) //
+        return type;
+    SHOULD_NOT_BE_HERE;
+  }();
+  if( new_type != native_unit.type )
+    return NativeUnitCombatOutcome::promoted{ .to = new_type };
   return NativeUnitCombatOutcome::no_change{};
 }
 
@@ -579,7 +610,8 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
           attacker_coord, winner == e_combat_winner::defender );
   NativeUnitCombatOutcome const attacker_outcome =
       ( winner == e_combat_winner::attacker )
-          ? native_unit_won_attacking_combat_outcome( attacker )
+          ? native_unit_won_attacking_combat_outcome(
+                attacker, defender, defender_outcome )
           : native_unit_lost_combat_outcome( rand_, attacker );
   return CombatBraveAttackEuro{
       .winner   = winner,
