@@ -194,3 +194,10 @@ General changes to the game:
 
     The idea is that, once a piece of info becomes first visible,
     then it will remain visible thereafter, even as it changes.
+
+  * There is a question of whether the game should help the
+    player remember properties of each native dwelling, e.g. what
+    they teach and what they want to trade. This would of course
+    be easy to do, but not yet sure if it is a good idea. Maybe
+    we can turn it on/off with a flag, called "Amnesia Mode"
+    where it would remind you.

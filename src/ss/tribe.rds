@@ -18,6 +18,10 @@ include "refl/enum-map.hpp"
 namespace "rn"
 
 # Describes a tribe's relationship with a European nation.
+# TODO: Having this alone implies that the relationship is sym-
+# metrical; the OG appears to have relationship data going in
+# both directions. We need to see if those values are kept sym-
+# metrical or not.
 struct.TribeRelationship {
   # Have we yet made our initial encounter with this tribe. The
   # following fields are irrelevant if so.
