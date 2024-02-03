@@ -29,7 +29,6 @@
 #include "ss/native-unit.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 

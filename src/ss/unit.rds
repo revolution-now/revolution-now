@@ -12,7 +12,7 @@
 include "ss/cargo.hpp"
 include "ss/mv-points.hpp"
 include "ss/nation.rds.hpp"
-include "ss/unit-composer.hpp"
+include "ss/unit-composition.hpp"
 include "ss/unit-id.hpp"
 
 namespace "rn"

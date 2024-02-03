@@ -175,7 +175,7 @@ TEST_CASE( "[lua] after initialization" ) {
       assert( type( unit_mgr.create_unit_on_map ) == 'function' )
       local soldier_type =
           unit_type.UnitType.create( "soldier" )
-      local soldier_comp = unit_composer
+      local soldier_comp = unit_composition
                           .UnitComposition
                           .create_with_type_obj( soldier_type )
       local unit1 = unit_mgr.create_unit_on_map( "dutch",

@@ -22,6 +22,7 @@
 
 // Revolution Now
 #include "src/plane-stack.hpp"
+#include "src/unit-transformation.hpp"
 #include "src/visibility.hpp"
 
 // ss
@@ -418,7 +419,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "hardy_pioneer" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::hardy_pioneer, W.kLand );
-    unit.consume_20_tools( W.default_player() );
+    consume_20_tools( W.ss(), W.ts(), unit );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );
     REQUIRE( unit.type_obj() ==

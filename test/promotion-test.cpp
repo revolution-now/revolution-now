@@ -18,9 +18,11 @@
 #include "test/mocking.hpp"
 #include "test/mocks/irand.hpp"
 
+// Revolution Now
+#include "src/unit-transformation.hpp"
+
 // ss
 #include "src/ss/ref.hpp"
-#include "src/ss/unit-composer.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -296,7 +298,7 @@ TEST_CASE(
         UnitType::create( e_unit_type::pioneer,
                           e_unit_type::petty_criminal ) );
     Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
-    unit.consume_20_tools( W.default_player() );
+    consume_20_tools( W.ss(), W.ts(), unit );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );
     REQUIRE( unit.type_obj() ==

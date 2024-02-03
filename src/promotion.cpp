@@ -26,7 +26,6 @@
 #include "ss/colony.rds.hpp"
 #include "ss/native-enums.hpp"
 #include "ss/ref.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 

@@ -18,7 +18,6 @@
 
 // ss
 #include "ss/dwelling.rds.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
 

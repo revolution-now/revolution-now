@@ -26,7 +26,7 @@ local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
 local market = global( 'market' )
 local price_group = global( 'price_group' )
-local unit_composer = global( 'unit_composer' )
+local unit_composition = global( 'unit_composition' )
 local unit_mgr = global( 'unit_mgr' )
 local unit_type = global( 'unit_type' )
 
@@ -75,10 +75,12 @@ end
 -----------------------------------------------------------------
 local function build_unit_type( type, base_type )
   if base_type == nil then
-    return unit_composer.UnitComposition.create_with_type_obj(
+    return unit_composition.UnitComposition
+               .create_with_type_obj(
                unit_type.UnitType.create( type ) )
   else
-    return unit_composer.UnitComposition.create_with_type_obj(
+    return unit_composition.UnitComposition
+               .create_with_type_obj(
                unit_type.UnitType.create_with_base( type,
                                                     base_type ) )
   end

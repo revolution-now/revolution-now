@@ -119,7 +119,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "unit_";
-  out = { "unit_composer", "unit_mgr", "unit_type" };
+  out = { "unit_composition", "unit_mgr", "unit_type" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "unit_t";
@@ -250,7 +250,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "unit_c";
-  out = { "unit_composer.UnitComposition.create_with_type" };
+  out = { "unit_composition.UnitComposition.create_with_type" };
   REQUIRE_THAT( ac_i( in ), Equals( out ) );
 
   in  = "unit_mgr.a";

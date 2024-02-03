@@ -39,6 +39,7 @@
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
+#include "unit-transformation.hpp"
 #include "views.hpp"
 
 // config
@@ -49,7 +50,6 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/units.hpp"
 
 // config
@@ -1248,11 +1248,11 @@ class UnitsAtGateColonyView
             ColViewObject::commodity{ .comm = new_comm } };
   }
 
-  static maybe<UnitTransformationFromCommodityResult>
+  static maybe<UnitTransformationFromCommodity>
   transformed_unit_composition_from_commodity(
       Unit const& unit, Commodity const& comm ) {
-    vector<UnitTransformationFromCommodityResult> possibilities =
-        unit.with_commodity_added( comm );
+    vector<UnitTransformationFromCommodity> possibilities =
+        with_commodity_added( unit, comm );
     adjust_for_independence_status(
         possibilities,
         // FIXME
@@ -1266,7 +1266,7 @@ class UnitsAtGateColonyView
       return false; // don't erase.
     } );
 
-    maybe<UnitTransformationFromCommodityResult> res;
+    maybe<UnitTransformationFromCommodity> res;
     if( possibilities.size() == 1 ) res = possibilities[0];
     return res;
   }

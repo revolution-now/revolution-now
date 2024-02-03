@@ -15,6 +15,8 @@
 #include "logger.hpp"
 #include "map-square.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
+#include "unit-transformation.hpp"
 #include "visibility.hpp"
 
 // config
@@ -80,11 +82,8 @@ bool has_road( TerrainState const& terrain_state, Coord tile ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-void perform_road_work( UnitsState const&   units_state,
-                        TerrainState const& terrain_state,
-                        Player const&       player,
-                        IMapUpdater& map_updater, Unit& unit ) {
-  Coord location = units_state.coord_for( unit.id() );
+void perform_road_work( SS& ss, TS& ts, Unit& unit ) {
+  Coord location = ss.units.coord_for( unit.id() );
   UNWRAP_CHECK( road_orders,
                 unit.orders().get_if<unit_orders::road>() );
   CHECK( unit.type() == e_unit_type::pioneer ||
@@ -103,7 +102,7 @@ void perform_road_work( UnitsState const&   units_state,
   // on the same square and the other unit finished first. In
   // that case, we will just clear this unit's orders and not
   // charge it any tools.
-  if( has_road( terrain_state, location ) ) {
+  if( has_road( ss.terrain, location ) ) {
     log( "cancelled" );
     unit.clear_orders();
     return;
@@ -112,13 +111,13 @@ void perform_road_work( UnitsState const&   units_state,
   int const turns_worked = road_orders.turns_worked;
   int const road_turns   = turns_required(
       unit.type(),
-      effective_terrain( terrain_state.square_at( location ) ) );
+      effective_terrain( ss.terrain.square_at( location ) ) );
   CHECK_LE( turns_worked, road_turns );
   if( turns_worked == road_turns ) {
     // We're finished building the road.
-    set_road( map_updater, location );
+    set_road( ts.map_updater, location );
     unit.clear_orders();
-    unit.consume_20_tools( player );
+    consume_20_tools( ss, ts, unit );
     log( "finished" );
     return;
   }

@@ -14,12 +14,12 @@
 
 // Revolution Now
 #include "harbor-units.rds.hpp"
-#include "unit-composer.hpp"
 #include "unit-deleted.hpp"
 #include "unit-id.hpp"
 
 // ss
 #include "ss/nation.rds.hpp"
+#include "ss/unit-composition.hpp"
 #include "ss/unit-type.rds.hpp"
 
 // gfx

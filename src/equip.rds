@@ -8,9 +8,12 @@
 # Description: Rds definitions for the equip module.
 #
 # ===============================================================
+# Revolution Now
+include "unit-transformation.rds.hpp"
+
 # ss
 include "ss/commodity.rds.hpp"
-include "ss/unit-composer.hpp"
+include "ss/unit-composition.hpp"
 include "ss/unit-type.rds.hpp"
 
 # refl

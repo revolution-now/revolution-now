@@ -22,7 +22,6 @@
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
-#include "src/ss/unit-composer.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
 #include "src/ss/woodcut.rds.hpp"

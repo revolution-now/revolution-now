@@ -27,7 +27,6 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/units.hpp"
 
 // Must be last.

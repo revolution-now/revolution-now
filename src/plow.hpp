@@ -30,6 +30,7 @@ struct IMapUpdater;
 struct MapSquare;
 struct Player;
 struct SS;
+struct TS;
 struct SSConst;
 struct TerrainState;
 
@@ -79,9 +80,9 @@ bool has_pioneer_working( SSConst const& ss, Coord tile );
 // in which to place it (if any) and will add the lumber to the
 // colony's stockpile. It will return the lumber yield info in
 // the result so that a message can be displayed to the user.
-[[nodiscard]] PlowResult perform_plow_work(
-    SS& ss, Player const& player, IMapUpdater& map_updater,
-    Unit& unit );
+[[nodiscard]] PlowResult perform_plow_work( SS& ss, TS& ts,
+                                            Player const& player,
+                                            Unit&         unit );
 
 bool can_plow( Unit const& unit );
 

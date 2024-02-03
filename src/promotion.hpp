@@ -18,7 +18,7 @@
 
 // ss
 #include "ss/native-enums.rds.hpp"
-#include "ss/unit-composer.hpp"
+#include "ss/unit-composition.hpp"
 #include "ss/unit-type.hpp"
 
 // C++ standard library

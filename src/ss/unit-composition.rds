@@ -1,33 +1,24 @@
 # ===============================================================
-# unit-composer.rds
+# unit-composition.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2021-10-05.
+# Created by David P. Sicilia on 2024-02-03.
 #
-# Description: RDS definitions for the unit-composer module.
+# Description: Rds definitions for the ss/unit-composition module.
 #
 # ===============================================================
-# gs
-include "ss/unit-type.rds.hpp"
+# ss
+include "ss/unit-type.hpp"
 
 # refl
 include "refl/enum-map.hpp"
-
-# C++ standard library
-include "<unordered_map>"
-
-namespace "rn"
-
-enum.e_unit_type_modifier_delta {
-  add,
-  del,
-}
 
 namespace "rn.wrapped"
 
 struct.UnitComposition {
   type 'rn::UnitType',
+
   inventory 'refl::enum_map<e_unit_inventory, int>',
 
   _features { equality, validation }

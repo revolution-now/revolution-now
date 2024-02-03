@@ -646,8 +646,7 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   }
 
   if( unit.orders().holds<unit_orders::road>() ) {
-    perform_road_work( ss.units, ss.terrain, as_const( player ),
-                       ts.map_updater, unit );
+    perform_road_work( ss, ts, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
       co_await ts.planes.land_view().ensure_visible_unit( id );
@@ -658,8 +657,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   }
 
   if( unit.orders().holds<unit_orders::plow>() ) {
-    PlowResult const plow_result = perform_plow_work(
-        ss, as_const( player ), ts.map_updater, unit );
+    PlowResult const plow_result =
+        perform_plow_work( ss, ts, as_const( player ), unit );
     if( auto o =
             plow_result.get_if<PlowResult::cleared_forest>();
         o.has_value() && o->yield.has_value() ) {

@@ -36,6 +36,7 @@
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
+#include "unit-transformation.hpp"
 
 // config
 #include "config/colony.rds.hpp"
@@ -658,7 +659,7 @@ void change_colony_nation( SS& ss, TS& ts, Colony& colony,
 
 void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
                               Colony& colony ) {
-  UnitTransformationResult const transform_res =
+  UnitTransformation const transform_res =
       strip_to_base_type( unit.composition() );
   change_unit_type( ss, ts, unit, transform_res.new_comp );
   for( auto [type, q] : transform_res.commodity_deltas ) {

@@ -11,11 +11,7 @@
 #include "unit.hpp"
 
 // Revolution Now
-#include "error.hpp"
-#include "plow.hpp"
 #include "promotion.hpp"
-#include "road.hpp"
-#include "unit-mgr.hpp"
 
 // config
 #include "config/nation.hpp"
@@ -23,7 +19,6 @@
 #include "config/unit-type.hpp"
 
 // ss
-#include "ss/player.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
@@ -179,47 +174,6 @@ string debug_string( Unit const& unit ) {
 maybe<e_unit_type> Unit::demoted_type() const {
   UNWRAP_RETURN( demoted, on_death_demoted_type( type_obj() ) );
   return demoted.type();
-}
-
-vector<UnitTransformationFromCommodityResult>
-Unit::with_commodity_added( Commodity const& commodity ) const {
-  return unit_receive_commodity( o_.composition, commodity );
-}
-
-vector<UnitTransformationFromCommodityResult>
-Unit::with_commodity_removed(
-    Commodity const& commodity ) const {
-  return unit_lose_commodity( o_.composition, commodity );
-}
-
-void Unit::consume_20_tools( Player const& player ) {
-  vector<UnitTransformationFromCommodityResult> results =
-      with_commodity_removed( Commodity{
-          .type = e_commodity::tools, .quantity = 20 } );
-  vector<UnitTransformationFromCommodityResult> valid_results;
-  for( auto const& result : results ) {
-    // It would be e.g. -80 because one valid transformation is
-    // that we could subtract more than 20 tools, give the
-    // blessing mod, and turn the unit into a missionary. But we
-    // are not looking for that here.
-    if( result.quantity_used != -20 ) continue;
-    if( result.modifier_deltas.empty() ||
-        result.modifier_deltas ==
-            unordered_map<e_unit_type_modifier,
-                          e_unit_type_modifier_delta>{
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } } ) {
-      valid_results.push_back( result );
-    }
-  }
-  CHECK( valid_results.size() == 1,
-         "could not find viable target unit after tools "
-         "removed. results: {}",
-         results );
-  // This won't always change the type; e.g. it might just re-
-  // place the type with the same type but with fewer tools in
-  // the inventory.
-  change_type( player, valid_results[0].new_comp );
 }
 
 /****************************************************************

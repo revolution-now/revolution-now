@@ -18,6 +18,8 @@
 #include "map-square.hpp"
 #include "terrain.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
+#include "unit-transformation.hpp"
 
 // config
 #include "config/command.rds.hpp"
@@ -150,9 +152,9 @@ bool has_pioneer_working( SSConst const& ss, Coord tile ) {
 /****************************************************************
 ** Unit State
 *****************************************************************/
-PlowResult perform_plow_work( SS& ss, Player const& player,
-                              IMapUpdater& map_updater,
-                              Unit&        unit ) {
+PlowResult perform_plow_work( SS& ss, TS& ts,
+                              Player const& player,
+                              Unit&         unit ) {
   Coord location = ss.units.coord_for( unit.id() );
   UNWRAP_CHECK( plow_orders,
                 unit.orders().get_if<unit_orders::plow>() );
@@ -191,9 +193,9 @@ PlowResult perform_plow_work( SS& ss, Player const& player,
       if( yield.has_value() ) apply_lumber_yield( ss, *yield );
     }
     // We're finished plowing.
-    plow_square( ss.terrain, map_updater, location );
+    plow_square( ss.terrain, ts.map_updater, location );
     unit.clear_orders();
-    unit.consume_20_tools( player );
+    consume_20_tools( ss, ts, unit );
     log( "finished" );
     return res;
   }

@@ -109,13 +109,6 @@ struct ND Unit {
   // yet moved.
   bool has_full_mv_points() const;
 
-  /******************** Roads / Plowing ************************/
-
-  // The unit must have at least 20 tools, which will be sub-
-  // tracted. If the unit ends up with zero tools then the type
-  // will be demoted.
-  void consume_20_tools( Player const& player );
-
   /************************* Orders ****************************/
 
   // Returns true if the unit's orders are other than `none`.
@@ -157,18 +150,6 @@ struct ND Unit {
 
  public:
   maybe<e_unit_type> demoted_type() const;
-
-  // Can unit receive commodity, and if so how many and what unit
-  // type will it become? This will not mutate the unit in any
-  // way. If you want to affect the change, then you have to look
-  // at the results, pick one that you want, and then call
-  // change_type with the UnitComposition that it contains.
-  std::vector<UnitTransformationFromCommodityResult>
-  with_commodity_added( Commodity const& commodity ) const;
-
-  // Similar to the above, but removing.
-  std::vector<UnitTransformationFromCommodityResult>
-  with_commodity_removed( Commodity const& commodity ) const;
 
   // Implement refl::WrapsReflected.
   Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}

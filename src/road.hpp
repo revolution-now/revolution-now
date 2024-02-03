@@ -23,10 +23,11 @@
 
 namespace rn {
 
+struct SS;
+struct TS;
 struct IMapUpdater;
 struct MapSquare;
 struct TerrainState;
-struct UnitsState;
 struct IVisibility;
 
 /****************************************************************
@@ -50,10 +51,7 @@ bool has_road( MapSquare const& square );
 // you will know that the unit finished building the road when
 // its orders are cleared. If the unit has the remainder of its
 // tools removed by this function then the unit will be demoted.
-void perform_road_work( UnitsState const&   units_state,
-                        TerrainState const& terrain_state,
-                        Player const&       player,
-                        IMapUpdater& map_updater, Unit& unit );
+void perform_road_work( SS& ss, TS& ts, Unit& unit );
 
 bool can_build_road( Unit const& unit );
 

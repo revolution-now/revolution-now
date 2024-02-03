@@ -20,7 +20,6 @@
 #include "test/util/coro.hpp"
 
 // ss
-#include "src/ss/unit-composer.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
 

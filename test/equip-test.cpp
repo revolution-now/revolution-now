@@ -24,7 +24,6 @@
 // ss
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/units.hpp"
 
 // refl

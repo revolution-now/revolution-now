@@ -17,7 +17,7 @@ include "missionary.rds.hpp"
 # ss
 include "ss/dwelling-id.hpp"
 include "ss/native-enums.rds.hpp"
-include "ss/unit-composer.hpp"
+include "ss/unit-composition.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 

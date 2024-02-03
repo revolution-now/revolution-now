@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "market.hpp"
+#include "unit-transformation.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -21,7 +22,6 @@
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
-#include "ss/unit-composer.hpp"
 #include "ss/units.hpp"
 
 using namespace std;
@@ -44,7 +44,7 @@ vector<HarborEquipOption> harbor_equip_options(
           res[comm] = 100;
         return res;
       }();
-  vector<UnitTransformationResult> transformations =
+  vector<UnitTransformation> transformations =
       possible_unit_transformations( unit_comp,
                                      commodity_store );
   vector<HarborEquipOption> options;
@@ -225,7 +225,7 @@ vector<ColonyEquipOption> colony_equip_options(
       res[comm] = colony.commodities[comm];
     return res;
   }();
-  vector<UnitTransformationResult> const transformations =
+  vector<UnitTransformation> const transformations =
       possible_unit_transformations( unit_comp,
                                      commodity_store );
   vector<ColonyEquipOption> options;

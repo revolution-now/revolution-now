@@ -1,0 +1,42 @@
+# ===============================================================
+# unit-transformation.rds
+#
+# Project: Revolution Now
+#
+# Created by dsicilia on 2021-10-05.
+#
+# Description: RDS definitions for the unit-transformation module.
+#
+# ===============================================================
+# ss
+include "ss/unit-composition.hpp"
+
+# C++ standard library
+include "<unordered_map>"
+
+namespace "rn"
+
+enum.e_unit_type_modifier_delta {
+  add,
+  del,
+}
+
+struct.UnitTransformation {
+  new_comp 'UnitComposition',
+
+  modifier_deltas [[std::unordered_map<e_unit_type_modifier,
+                                       e_unit_type_modifier_delta>]],
+
+  # Positive means that it has been extracted FROM the unit, neg-
+  # ative means it has been consumed BY the unit.
+  commodity_deltas 'std::unordered_map<e_commodity, int>',
+}
+
+struct.UnitTransformationFromCommodity {
+  new_comp 'UnitComposition',
+
+  modifier_deltas [[std::unordered_map<e_unit_type_modifier,
+                                       e_unit_type_modifier_delta>]],
+
+  quantity_used 'int',
+}

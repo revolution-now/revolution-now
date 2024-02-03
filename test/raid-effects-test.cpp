@@ -21,7 +21,6 @@
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
-#include "src/ss/unit-composer.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
 
