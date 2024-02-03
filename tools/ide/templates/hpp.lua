@@ -24,7 +24,7 @@ local RN_ROOT = util.rn_root_dir()
 -----------------------------------------------------------------
 local function config_header_for_module( module )
   local library = module:match( '^([^/]+)/' )
-  if not library then return 'core-config.hpp' end
+  if not library then return nil end
   local configs = {
     base='config.hpp', --
   }
