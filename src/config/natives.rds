@@ -435,7 +435,7 @@ struct.config_natives_t {
       e_native_unit_type,
       refl::enum_map<
         e_brave_equipment,
-        int
+        bool
       >
     >
   ]],

@@ -165,12 +165,10 @@ NativeUnitCombatOutcome native_unit_combat_outcome(
     // but that doesn't seemt to matter since they are both 50%,
     // so on average we'd get the same outcome either way.
     auto retains = [&]( e_brave_equipment eq ) {
-      auto const& equip = config_natives.equipment[unit.type];
-      CHECK_GE( equip[eq], 0 );
-      if( equip[eq] == 0 ) return false;
-      return rand.bernoulli(
-          config_natives.arms.retention_after_death[eq]
-              .probability );
+      return config_natives.equipment[unit.type][eq] &&
+             rand.bernoulli(
+                 config_natives.arms.retention_after_death[eq]
+                     .probability );
     };
     return NativeUnitCombatOutcome::destroyed{
         .tribe_retains_horses =

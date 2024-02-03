@@ -164,7 +164,7 @@ static maybe<std::string> brave_promotion_message(
     // horses in one battle. Also, braves can't lose horses or
     // muskets in a battle, they just get destroyed.
     for( auto const eq : refl::enum_values<e_brave_equipment> )
-      if( to_equip[eq] > from_equip[eq] ) //
+      if( to_equip[eq] && !from_equip[eq] ) //
         return eq;
     return nothing;
   }();

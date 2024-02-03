@@ -47,10 +47,10 @@ unit_types {
 # How many units of horses/muskets need to be added/removed from
 # the unit to transition from one type to another.
 equipment {
-  brave:           { muskets = 0, horses = 0 }
-  armed_brave:     { muskets = 1, horses = 0 }
-  mounted_brave:   { muskets = 0, horses = 1 }
-  mounted_warrior: { muskets = 1, horses = 1 }
+  brave:           { muskets=false, horses=false }
+  armed_brave:     { muskets=true,  horses=false }
+  mounted_brave:   { muskets=false, horses=true  }
+  mounted_warrior: { muskets=true,  horses=true  }
 }
 
 dwelling_types {
