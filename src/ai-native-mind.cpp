@@ -52,7 +52,8 @@ NativeUnitId AiNativeMind::select_unit(
 //   sometimes a brave can approach a wagon train and demand all
 //   of a particular good within it. In the OG, there seems to
 //   also be a bug where they will ask even if the wagon train is
-//   empty.
+//   empty. If the good is horses/muskets then probably we should
+//   treat this like if they had demanded it from a colony.
 
 // Implement INativeMind.
 NativeUnitCommand AiNativeMind::command_for(
