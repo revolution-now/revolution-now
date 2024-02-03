@@ -11,12 +11,16 @@
 # ss
 include "ss/unit-composition.hpp"
 
+# refl
+include "refl/enum-map.hpp"
+
 # C++ standard library
 include "<unordered_map>"
 
 namespace "rn"
 
 enum.e_unit_type_modifier_delta {
+  none, # must be first.
   add,
   del,
 }
@@ -24,8 +28,8 @@ enum.e_unit_type_modifier_delta {
 struct.UnitTransformation {
   new_comp 'UnitComposition',
 
-  modifier_deltas [[std::unordered_map<e_unit_type_modifier,
-                                       e_unit_type_modifier_delta>]],
+  modifier_deltas [[refl::enum_map<e_unit_type_modifier,
+                                   e_unit_type_modifier_delta>]],
 
   # Positive means that it has been extracted FROM the unit, neg-
   # ative means it has been consumed BY the unit.
@@ -35,8 +39,8 @@ struct.UnitTransformation {
 struct.UnitTransformationFromCommodity {
   new_comp 'UnitComposition',
 
-  modifier_deltas [[std::unordered_map<e_unit_type_modifier,
-                                       e_unit_type_modifier_delta>]],
+  modifier_deltas [[refl::enum_map<e_unit_type_modifier,
+                                   e_unit_type_modifier_delta>]],
 
   quantity_used 'int',
 }

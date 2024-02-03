@@ -1259,10 +1259,12 @@ class UnitsAtGateColonyView
         /*independence_declared=*/false );
 
     erase_if( possibilities, []( auto const& xform_res ) {
-      for( auto [mod, _] : xform_res.modifier_deltas )
+      for( auto [mod, delta] : xform_res.modifier_deltas ) {
+        if( delta == e_unit_type_modifier_delta::none ) continue;
         if( !config_unit_type.composition.modifier_traits[mod]
                  .player_can_grant )
           return true;
+      }
       return false; // don't erase.
     } );
 

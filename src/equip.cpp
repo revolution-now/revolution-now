@@ -49,7 +49,8 @@ vector<HarborEquipOption> harbor_equip_options(
                                      commodity_store );
   vector<HarborEquipOption> options;
   for( auto const& transformation : transformations ) {
-    if( transformation.modifier_deltas.size() != 1 )
+    if( transformation.modifier_deltas
+            .count_non_default_values() != 1 )
       // Only consider transformations that entail precisely one
       // modifier change, that way we ignore the ones where the
       // unit changes to itself (zero modifier changes) and where
@@ -62,8 +63,12 @@ vector<HarborEquipOption> harbor_equip_options(
       // would make things more complicated and it is unlikely
       // that we need to support that on the harbor dock.
       continue;
-    auto [modifier, modifier_delta] =
-        *transformation.modifier_deltas.begin();
+    auto [modifier, modifier_delta] = *find_if(
+        transformation.modifier_deltas.begin(),
+        transformation.modifier_deltas.end(),
+        []( auto const& e ) {
+          return e.second != e_unit_type_modifier_delta::none;
+        } );
     if( !config_unit_type.composition.modifier_traits[modifier]
              .player_can_grant )
       // This will prevent us from e.g. granting "independence"
@@ -130,6 +135,8 @@ string harbor_equip_description(
     HarborEquipOption const& option ) {
   string res;
   switch( option.modifier_delta ) {
+    case e_unit_type_modifier_delta::none:
+      SHOULD_NOT_BE_HERE;
     case e_unit_type_modifier_delta::add:
       switch( option.modifier ) {
         case e_unit_type_modifier::blessing:
@@ -232,6 +239,8 @@ vector<ColonyEquipOption> colony_equip_options(
   for( auto const& transformation : transformations ) {
     for( auto& [modifier, modifier_delta] :
          transformation.modifier_deltas ) {
+      if( modifier_delta == e_unit_type_modifier_delta::none )
+        continue;
       if( !config_unit_type.composition.modifier_traits[modifier]
                .player_can_grant )
         // This will prevent us from e.g. granting "independence"

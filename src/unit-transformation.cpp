@@ -46,7 +46,8 @@ vector<UnitTransformationFromCommodity> unit_delta_commodity(
   res.reserve( general_results.size() );
   for( UnitTransformation const& utr : general_results ) {
     if( utr.commodity_deltas.size() != 1 ) continue;
-    if( utr.modifier_deltas.size() > 1 ) continue;
+    if( utr.modifier_deltas.count_non_default_values() > 1 )
+      continue;
     DCHECK( utr.commodity_deltas.size() == 1 );
     // quantity_delta is positive if the unit takes some.
     auto [comm, quantity_delta] = *utr.commodity_deltas.begin();
@@ -241,8 +242,8 @@ vector<UnitTransformation> possible_unit_transformations(
       UNWRAP_CHECK( new_comp,
                     UnitComposition::create( new_unit_type_obj,
                                              new_inventory ) );
-      unordered_map<e_unit_type_modifier,
-                    e_unit_type_modifier_delta>
+      refl::enum_map<e_unit_type_modifier,
+                     e_unit_type_modifier_delta>
                                                  modifier_deltas;
       unordered_set<e_unit_type_modifier> const& new_mods =
           new_unit_type_obj.unit_type_modifiers();
@@ -333,10 +334,12 @@ void consume_20_tools( SS& ss, TS& ts, Unit& unit ) {
     // blessing mod, and turn the unit into a missionary. But we
     // are not looking for that here.
     if( result.quantity_used != -20 ) continue;
-    if( result.modifier_deltas.empty() ||
+    if( result.modifier_deltas ==
+            refl::enum_map<e_unit_type_modifier,
+                           e_unit_type_modifier_delta>{} ||
         result.modifier_deltas ==
-            unordered_map<e_unit_type_modifier,
-                          e_unit_type_modifier_delta>{
+            refl::enum_map<e_unit_type_modifier,
+                           e_unit_type_modifier_delta>{
                 { e_unit_type_modifier::tools,
                   e_unit_type_modifier_delta::del } } ) {
       valid_results.push_back( result );
