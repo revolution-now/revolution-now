@@ -687,6 +687,25 @@ growth_counter_threshold: 20
 # Config data to do with the tribe's posession of muskets and
 # horses used to arm braves.
 arms {
+  # How many muskets (as understood by a european player) are
+  # equivalent to the arming of one brave. Although this quantity
+  # of muskets is not strictly necessary for creating an armed
+  # brave (the game's mechanism for doing that is a bit more com-
+  # plicated than that), this value does appear in many of the
+  # formulas involved in the mechanics of the natives acquisition
+  # of muskets. Making this smaller makes the game harder.
+  muskets_per_armed_brave:  25
+
+  # How many horses (as understood by a european player) are
+  # equivalent to the mounting of one brave. Although this quan-
+  # tity of horses is not strictly necessary for creating a
+  # mounted brave (the game's mechanism for doing that is a bit
+  # more complicated than that), this value does appear in many
+  # of the formulas involved in the mechanics of the natives ac-
+  # quisition and breeding of horses. Making this smaller makes
+  # the game harder.
+  horses_per_mounted_brave: 25
+
   # When a brave is destroyed and that brave posesses muskets or
   # horses (or both), these give the probability that the tribe
   # will retain those things. In the case of a mounted warrior
@@ -714,7 +733,9 @@ arms {
   }
 
   # How many units of horses/muskets need to be added/removed
-  # from the unit to transition from one type to another.
+  # from the unit to transition from one type to another. It is
+  # NOT recommended to change any of these otherwise the game may
+  # malfunction.
   equipment {
     brave:           { muskets=false, horses=false }
     armed_brave:     { muskets=true,  horses=false }

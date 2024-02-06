@@ -142,6 +142,102 @@ TEST_CASE( "[tribe-arms] gain_horses_from_winning_combat" ) {
   REQUIRE( tribe.horse_breeding == 0 );
 }
 
+TEST_CASE( "[tribe-arms] acquire_muskets_from_colony_raid" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&]( int q ) {
+    acquire_muskets_from_colony_raid( tribe, q );
+  };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 0 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 1 );
+  REQUIRE( tribe.muskets == 1 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.muskets == 2 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.muskets == 3 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 49 );
+  REQUIRE( tribe.muskets == 4 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 50 );
+  REQUIRE( tribe.muskets == 6 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 100 );
+  REQUIRE( tribe.muskets == 8 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+}
+
+TEST_CASE( "[tribe-arms] acquire_horses_from_colony_raid" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::cherokee );
+
+  auto f = [&]( int q ) {
+    acquire_horses_from_colony_raid( W.ss(), tribe, q );
+  };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 0 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f( 1 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 25 );
+
+  f( 10 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 2 );
+  REQUIRE( tribe.horse_breeding == 50 );
+
+  f( 25 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 3 );
+  REQUIRE( tribe.horse_breeding == 54 );
+
+  f( 49 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 4 );
+  REQUIRE( tribe.horse_breeding == 54 );
+
+  f( 50 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 5 );
+  REQUIRE( tribe.horse_breeding == 54 );
+
+  f( 300000 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 6 );
+  REQUIRE( tribe.horse_breeding == 54 );
+}
+
 TEST_CASE(
     "[tribe-arms] retain_horses_from_destroyed_brave max "
     "value" ) {

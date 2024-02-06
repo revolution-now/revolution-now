@@ -57,7 +57,8 @@ void add_to_horse_breeding( SSConst const& ss,
 *****************************************************************/
 void retain_horses_from_destroyed_brave( SSConst const& ss,
                                          Tribe&         tribe ) {
-  int const delta = 25;
+  int const& delta =
+      config_natives.arms.horses_per_mounted_brave;
   add_to_horse_breeding( ss, tribe.type, delta,
                          tribe.horse_breeding );
 }
@@ -68,6 +69,26 @@ void retain_muskets_from_destroyed_brave( Tribe& tribe ) {
 
 void gain_horses_from_winning_combat( Tribe& tribe ) {
   ++tribe.horse_herds;
+}
+
+void acquire_muskets_from_colony_raid( Tribe& tribe,
+                                       int    quantity ) {
+  if( quantity == 0 ) return;
+  int const& delta = config_natives.arms.muskets_per_armed_brave;
+  // This should also have been valided by the config validator.
+  CHECK_GT( delta, 0 );
+  tribe.muskets += clamp( quantity / delta, 1, 2 );
+}
+
+void acquire_horses_from_colony_raid( SSConst const& ss,
+                                      Tribe&         tribe,
+                                      int            quantity ) {
+  if( quantity == 0 ) return;
+  ++tribe.horse_herds;
+  int const& delta =
+      config_natives.arms.horses_per_mounted_brave;
+  add_to_horse_breeding( ss, tribe.type, delta,
+                         tribe.horse_breeding );
 }
 
 } // namespace rn

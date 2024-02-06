@@ -16,6 +16,7 @@
 #include "damaged.hpp"
 #include "ieuro-mind.hpp"
 #include "rand-enum.hpp"
+#include "tribe-arms.hpp"
 #include "unit-ownership.hpp"
 
 // config
@@ -198,13 +199,25 @@ BraveAttackColonyEffect select_brave_attack_colony_effect(
 }
 
 void perform_brave_attack_colony_effect(
-    SS& ss, TS& ts, Colony& colony,
+    SS& ss, TS& ts, Colony& colony, Tribe& tribe,
     BraveAttackColonyEffect const& effect ) {
   SWITCH( effect ) {
     CASE( none ) { return; }
     CASE( commodity_stolen ) {
       Commodity const& what = commodity_stolen.what;
       CHECK_GE( colony.commodities[what.type], what.quantity );
+      switch( what.type ) {
+        case rn::e_commodity::muskets:
+          acquire_muskets_from_colony_raid( tribe,
+                                            what.quantity );
+          break;
+        case rn::e_commodity::horses:
+          acquire_horses_from_colony_raid( ss, tribe,
+                                           what.quantity );
+          break;
+        default:
+          break;
+      }
       colony.commodities[what.type] -= what.quantity;
       return;
     }

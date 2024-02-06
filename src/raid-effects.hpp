@@ -26,6 +26,7 @@ struct IRand;
 struct SS;
 struct SSConst;
 struct TS;
+struct Tribe;
 
 enum class e_tribe;
 
@@ -36,7 +37,7 @@ BraveAttackColonyEffect select_brave_attack_colony_effect(
     SSConst const& ss, IRand& rand, Colony const& colony );
 
 void perform_brave_attack_colony_effect(
-    SS& ss, TS& ts, Colony& colony,
+    SS& ss, TS& ts, Colony& colony, Tribe& tribe,
     BraveAttackColonyEffect const& effect );
 
 wait<> display_brave_attack_colony_effect_msg(

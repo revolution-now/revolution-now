@@ -40,8 +40,10 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "ss/natives.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/tribe.rds.hpp"
 #include "ss/units.hpp"
 
 using namespace std;
@@ -134,7 +136,7 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
 // to the normal brave attack handler.
 static wait<> raid_colony_battle(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
-    e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
+    Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
   IEuroMind& euro_mind = ts.euro_minds[colony.nation];
   Unit&      defender  = ss.units.unit_for( combat.defender.id );
@@ -151,7 +153,7 @@ static wait<> raid_colony_battle(
       combat_effects_msg( ss, combat );
 
   // Perform all effects.
-  perform_brave_attack_colony_effect( ss, ts, colony,
+  perform_brave_attack_colony_effect( ss, ts, colony, tribe,
                                       side_effect );
   perform_native_unit_combat_effects( ss, attacker,
                                       combat.attacker.outcome );
@@ -160,13 +162,13 @@ static wait<> raid_colony_battle(
 
   // !! NOTE: the attacker will no longer exist at this point.
 
-  INativeMind& native_mind = ts.native_minds[tribe_type];
+  INativeMind& native_mind = ts.native_minds[tribe.type];
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
       native_mind, euro_mind );
   co_await display_brave_attack_colony_effect_msg(
-      ss, euro_mind, colony, side_effect, tribe_type );
+      ss, euro_mind, colony, side_effect, tribe.type );
   native_mind.on_attack_colony_finished( combat, side_effect );
 }
 
@@ -245,6 +247,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
                                      colony );
   IEuroMind&    euro_mind  = ts.euro_minds[colony.nation];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
+  Tribe&        tribe      = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
@@ -278,8 +281,8 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
     co_await raid_colony_burn( ss, ts, attacker, colony,
                                tribe_type, combat );
   else
-    co_await raid_colony_battle( ss, ts, attacker, colony,
-                                 tribe_type, combat );
+    co_await raid_colony_battle( ss, ts, attacker, colony, tribe,
+                                 combat );
 }
 
 } // namespace rn

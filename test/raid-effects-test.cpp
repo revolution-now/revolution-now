@@ -21,6 +21,7 @@
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/unit.hpp"
 #include "src/ss/units.hpp"
 
@@ -637,9 +638,11 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   Unit const& ship2 =
       W.add_unit_on_map( e_unit_type::frigate, colony.location );
 
+  Tribe& tribe = W.add_tribe( e_tribe::tupi );
+
   auto f = [&] {
     perform_brave_attack_colony_effect( W.ss(), W.ts(), colony,
-                                        effect );
+                                        tribe, effect );
   };
 
   // No effect.
@@ -653,6 +656,9 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   REQUIRE( ship2.orders() == unit_orders::none{} );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
 
   // Commodity stolen.
   effect = BraveAttackColonyEffect::commodity_stolen{
@@ -669,6 +675,9 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   REQUIRE( ship2.orders() == unit_orders::none{} );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
 
   // Money stolen.
   effect =
@@ -682,6 +691,9 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   REQUIRE( ship2.orders() == unit_orders::none{} );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
 
   // Building destroyed.
   effect = BraveAttackColonyEffect::building_destroyed{
@@ -712,6 +724,9 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   REQUIRE( ship2.orders() == unit_orders::none{} );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 1 } } );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
 
   // Ship in port damaged.
   effect = BraveAttackColonyEffect::ship_in_port_damaged{
@@ -747,6 +762,247 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
            unit_orders::damaged{ .turns_until_repair = 5 } );
   REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
            UnitOwnership::world{ .coord = { .x = 1, .y = 2 } } );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+}
+
+TEST_CASE(
+    "[raid] perform_brave_attack_colony_effect (muskets "
+    "stolen)" ) {
+  World W;
+
+  BraveAttackColonyEffect effect =
+      BraveAttackColonyEffect::commodity_stolen{
+          .what = Commodity{ .type = e_commodity::muskets } };
+  int& quantity =
+      effect.get<BraveAttackColonyEffect::commodity_stolen>()
+          .what.quantity;
+
+  Tribe& tribe = W.add_tribe( e_tribe::tupi );
+
+  Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
+  colony.commodities[e_commodity::sugar]   = 50;
+  colony.commodities[e_commodity::coats]   = 70;
+  colony.commodities[e_commodity::muskets] = 300;
+  colony.commodities[e_commodity::horses]  = 300;
+
+  Colony old_colony = colony;
+
+  auto f = [&] {
+    perform_brave_attack_colony_effect( W.ss(), W.ts(), colony,
+                                        tribe, effect );
+  };
+
+  SECTION( "stole 1 muskets" ) {
+    quantity = 1;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 299 );
+    old_colony.commodities[e_commodity::muskets] = 299;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 2 muskets" ) {
+    quantity = 2;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 298 );
+    old_colony.commodities[e_commodity::muskets] = 298;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 24 muskets" ) {
+    quantity = 24;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 276 );
+    old_colony.commodities[e_commodity::muskets] = 276;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 25 muskets" ) {
+    quantity = 25;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 275 );
+    old_colony.commodities[e_commodity::muskets] = 275;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 49 muskets" ) {
+    quantity = 49;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 251 );
+    old_colony.commodities[e_commodity::muskets] = 251;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 50 muskets" ) {
+    quantity = 50;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 250 );
+    old_colony.commodities[e_commodity::muskets] = 250;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 51 muskets" ) {
+    quantity = 51;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 249 );
+    old_colony.commodities[e_commodity::muskets] = 249;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "stole 100 muskets" ) {
+    quantity             = 100;
+    tribe.muskets        = 5;
+    tribe.horse_herds    = 5;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( colony.commodities[e_commodity::muskets] == 200 );
+    old_colony.commodities[e_commodity::muskets] = 200;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 5 + 2 );
+    REQUIRE( tribe.horse_herds == 5 + 0 );
+    REQUIRE( tribe.horse_breeding == 5 + 0 );
+  }
+}
+
+TEST_CASE(
+    "[raid] perform_brave_attack_colony_effect (horses "
+    "stolen)" ) {
+  World W;
+
+  BraveAttackColonyEffect effect =
+      BraveAttackColonyEffect::commodity_stolen{
+          .what = Commodity{ .type = e_commodity::horses } };
+  int& quantity =
+      effect.get<BraveAttackColonyEffect::commodity_stolen>()
+          .what.quantity;
+
+  Tribe& tribe = W.add_tribe( e_tribe::tupi );
+
+  Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
+  colony.commodities[e_commodity::sugar]   = 50;
+  colony.commodities[e_commodity::coats]   = 70;
+  colony.commodities[e_commodity::muskets] = 300;
+  colony.commodities[e_commodity::horses]  = 300;
+
+  Colony old_colony = colony;
+
+  auto f = [&] {
+    perform_brave_attack_colony_effect( W.ss(), W.ts(), colony,
+                                        tribe, effect );
+  };
+
+  SECTION( "stole 1 horses" ) {
+    quantity = 1;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 299 );
+    old_colony.commodities[e_commodity::horses] = 299;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 2 horses" ) {
+    quantity = 2;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 298 );
+    old_colony.commodities[e_commodity::horses] = 298;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 24 horses" ) {
+    quantity = 24;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 276 );
+    old_colony.commodities[e_commodity::horses] = 276;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 25 horses" ) {
+    quantity = 25;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 275 );
+    old_colony.commodities[e_commodity::horses] = 275;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 49 horses" ) {
+    quantity = 49;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 251 );
+    old_colony.commodities[e_commodity::horses] = 251;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 50 horses" ) {
+    quantity = 50;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 250 );
+    old_colony.commodities[e_commodity::horses] = 250;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 51 horses" ) {
+    quantity = 51;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 249 );
+    old_colony.commodities[e_commodity::horses] = 249;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 25 );
+  }
+
+  SECTION( "stole 100 horses" ) {
+    quantity             = 100;
+    tribe.muskets        = 5;
+    tribe.horse_herds    = 5;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( colony.commodities[e_commodity::horses] == 200 );
+    old_colony.commodities[e_commodity::horses] = 200;
+    REQUIRE( colony == old_colony );
+    REQUIRE( tribe.muskets == 5 + 0 );
+    REQUIRE( tribe.horse_herds == 5 + 1 );
+    REQUIRE( tribe.horse_breeding == 5 + 25 );
+  }
 }
 
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {

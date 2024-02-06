@@ -40,4 +40,18 @@ void retain_muskets_from_destroyed_brave( Tribe& tribe );
 // creases the number of their herds, which this function does.
 void gain_horses_from_winning_combat( Tribe& tribe );
 
+// When a brave raids a colony and steals `quantity` muskets from
+// the colony's stock.
+void acquire_muskets_from_colony_raid( Tribe& tribe,
+                                       int    quantity );
+
+// When a brave raids a colony and steals some quantity of horses
+// from the colony's stock. Experiments seem to have indicated
+// that the resulting behavior does not depend in any way on the
+// quantity stolen, though we still pass it in just to check if
+// it is zero.
+void acquire_horses_from_colony_raid( SSConst const& ss,
+                                      Tribe&         tribe,
+                                      int            quantity );
+
 } // namespace rn

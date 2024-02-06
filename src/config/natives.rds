@@ -372,6 +372,9 @@ struct.MaxHorseBreeding {
 }
 
 struct.Arms {
+  muskets_per_armed_brave 'int',
+  horses_per_mounted_brave 'int',
+
   retention_after_death 'refl::enum_map<e_brave_equipment, config::Probability>',
 
   max_horse_breeding 'refl::enum_map<e_native_level, MaxHorseBreeding>',
@@ -387,6 +390,8 @@ struct.Arms {
       >
     >
   ]],
+
+  _features { equality, validation }
 }
 
 namespace "rn"
