@@ -17,6 +17,26 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+// Need to pass in equipment here because this needs to be used
+// by the validation code which cannot access it via the global
+// config_natives object because that hasn't been populated yet.
+maybe<e_native_unit_type> find_brave_impl( auto const& equipment,
+                                           bool        muskets,
+                                           bool        horses ) {
+  for( auto const& [brave, eq] : equipment )
+    if( eq[e_brave_equipment::muskets] == muskets &&
+        eq[e_brave_equipment::horses] == horses )
+      return brave;
+  return nothing;
+}
+
+} // namespace
+
+/****************************************************************
+** Validation.
+*****************************************************************/
 base::valid_or<string> config::natives::ColonyAttack::validate()
     const {
   int total = 0;
@@ -119,7 +139,32 @@ base::valid_or<string> config::natives::Arms::validate() const {
       horses_per_mounted_brave > 0,
       "horses_per_mounted_brave must be larger than 0." );
 
+  for( bool const muskets : { false, true } ) {
+    for( bool const horses : { false, true } ) {
+      REFL_VALIDATE(
+          find_brave_impl( equipment, muskets, horses )
+              .has_value(),
+          "cannot find a brave with muskets={} and horses={}.",
+          muskets, horses );
+    }
+  }
+
   return base::valid;
+}
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+e_native_unit_type find_brave( bool muskets, bool horses ) {
+  UNWRAP_CHECK_MSG(
+      type,
+      find_brave_impl( config_natives.arms.equipment, muskets,
+                       horses ),
+      "internal error: cannot find brave for muskets={} and "
+      "horses={}, but config validation should have ensured "
+      "that it exists.",
+      muskets, horses );
+  return type;
 }
 
 } // namespace rn

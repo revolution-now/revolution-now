@@ -206,12 +206,9 @@ NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
       eq[e_brave_equipment::muskets] = true;
     return eq;
   }();
-  e_native_unit_type const new_type = [&] {
-    for( auto const& [type, eq_for_type] : equipment )
-      if( new_eq == eq_for_type ) //
-        return type;
-    SHOULD_NOT_BE_HERE;
-  }();
+  e_native_unit_type const new_type =
+      find_brave( new_eq[e_brave_equipment::muskets],
+                  new_eq[e_brave_equipment::horses] );
   if( new_type != native_unit.type ) {
     bool const gained_horses =
         !equipment[native_unit.type]
