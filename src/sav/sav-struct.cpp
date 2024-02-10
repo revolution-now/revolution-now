@@ -2398,6 +2398,58 @@ cdr::result<Event> from_canonical(
 }
 
 /****************************************************************
+** PlayerFlags
+*****************************************************************/
+void to_str( PlayerFlags const& o, std::string& out, base::ADL_t t ) {
+  out += "PlayerFlags{";
+  out += "unknown06a="; to_str( bits<7>{ o.unknown06a }, out, t ); out += ',';
+  out += "named_new_world="; to_str( o.named_new_world, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, PlayerFlags& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.unknown06a = (bits & 0b1111111); bits >>= 7;
+  o.named_new_world = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, PlayerFlags const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.named_new_world & 0b1); bits <<= 7;
+  bits |= (o.unknown06a & 0b1111111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         PlayerFlags const& o,
+                         cdr::tag_t<PlayerFlags> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "unknown06a", bits<7>{ o.unknown06a } );
+  conv.to_field( tbl, "named_new_world", o.named_new_world );
+  tbl["__key_order"] = cdr::list{
+    "unknown06a",
+    "named_new_world",
+  };
+  return tbl;
+}
+
+cdr::result<PlayerFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PlayerFlags> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  PlayerFlags res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_BITSTRING_FIELD( "unknown06a", unknown06a, 7 );
+  CONV_FROM_FIELD( "named_new_world", named_new_world );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** Duration
 *****************************************************************/
 void to_str( Duration const& o, std::string& out, base::ADL_t t ) {
@@ -5336,7 +5388,7 @@ void to_str( PLAYER const& o, std::string& out, base::ADL_t t ) {
   out += "PLAYER{";
   out += "name="; to_str( o.name, out, t ); out += ',';
   out += "country_name="; to_str( o.country_name, out, t ); out += ',';
-  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
+  out += "player_flags="; to_str( o.player_flags, out, t ); out += ',';
   out += "control="; to_str( o.control, out, t ); out += ',';
   out += "founded_colonies="; to_str( o.founded_colonies, out, t ); out += ',';
   out += "diplomacy="; to_str( o.diplomacy, out, t );
@@ -5348,7 +5400,7 @@ bool read_binary( base::IBinaryIO& b, PLAYER& o ) {
   return true
     && read_binary( b, o.name )
     && read_binary( b, o.country_name )
-    && read_binary( b, o.unknown06 )
+    && read_binary( b, o.player_flags )
     && read_binary( b, o.control )
     && read_binary( b, o.founded_colonies )
     && read_binary( b, o.diplomacy )
@@ -5359,7 +5411,7 @@ bool write_binary( base::IBinaryIO& b, PLAYER const& o ) {
   return true
     && write_binary( b, o.name )
     && write_binary( b, o.country_name )
-    && write_binary( b, o.unknown06 )
+    && write_binary( b, o.player_flags )
     && write_binary( b, o.control )
     && write_binary( b, o.founded_colonies )
     && write_binary( b, o.diplomacy )
@@ -5372,14 +5424,14 @@ cdr::value to_canonical( cdr::converter& conv,
   cdr::table tbl;
   conv.to_field( tbl, "name", o.name );
   conv.to_field( tbl, "country_name", o.country_name );
-  conv.to_field( tbl, "unknown06", o.unknown06 );
+  conv.to_field( tbl, "player_flags", o.player_flags );
   conv.to_field( tbl, "control", o.control );
   conv.to_field( tbl, "founded_colonies", o.founded_colonies );
   conv.to_field( tbl, "diplomacy", o.diplomacy );
   tbl["__key_order"] = cdr::list{
     "name",
     "country_name",
-    "unknown06",
+    "player_flags",
     "control",
     "founded_colonies",
     "diplomacy",
@@ -5396,7 +5448,7 @@ cdr::result<PLAYER> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "name", name );
   CONV_FROM_FIELD( "country_name", country_name );
-  CONV_FROM_FIELD( "unknown06", unknown06 );
+  CONV_FROM_FIELD( "player_flags", player_flags );
   CONV_FROM_FIELD( "control", control );
   CONV_FROM_FIELD( "founded_colonies", founded_colonies );
   CONV_FROM_FIELD( "diplomacy", diplomacy );

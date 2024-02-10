@@ -719,10 +719,25 @@
         "count": 4,
         "struct":
         {
-            "__key_order": ["name", "country_name", "unknown06", "control", "founded_colonies", "diplomacy"],
+            "__key_order": [
+                "name",
+                "country_name",
+                "player_flags",
+                "control",
+                "founded_colonies",
+                "diplomacy"
+            ],
             "name": {"size": 24, "type": "str"},
             "country_name": {"size": 24, "type": "str"},
-            "unknown06": {"size": 1},
+            "player_flags":
+            {
+                "bit_struct":
+                {
+                    "__key_order": ["unknown06a", "named_new_world"],
+                    "unknown06a": {"size": 7},
+                    "named_new_world": {"size": 1, "type": "bit_bool", "__hint": "the country_name field has been populated; only used for human player."}
+                }
+            },
             "control": {"size": 1, "type": "control_type"},
             "founded_colonies": {"size": 1, "type": "uint", "__hint": "might be used to pick next colony name"},
             "diplomacy": {"size": 1}
@@ -1337,7 +1352,7 @@
                 }
             },
             "unknown31b": {"size": 3},
-            "muskets": {"size": 1, "type": "uint", "__hint": "not including muskets equipped by braves"},
+            "muskets": {"size": 1, "type": "int", "__hint": "not including muskets equipped by braves"},
             "horse_herds": {"size": 1, "type": "uint"},
             "unknown31c": {"size": 1},
             "horse_breeding": {"size": 2, "type": "uint"},

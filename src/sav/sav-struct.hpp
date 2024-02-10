@@ -1129,6 +1129,34 @@ cdr::result<Event> from_canonical(
                          cdr::tag_t<Event> );
 
 /****************************************************************
+** PlayerFlags
+*****************************************************************/
+struct PlayerFlags {
+  uint8_t unknown06a : 7 = {};
+  bool named_new_world : 1 = {};
+
+  bool operator==( PlayerFlags const& ) const = default;
+};
+
+// String conversion.
+void to_str( PlayerFlags const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, PlayerFlags& o );
+
+bool write_binary( base::IBinaryIO& b, PlayerFlags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         PlayerFlags const& o,
+                         cdr::tag_t<PlayerFlags> );
+
+cdr::result<PlayerFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<PlayerFlags> );
+
+/****************************************************************
 ** Duration
 *****************************************************************/
 struct Duration {
@@ -2300,7 +2328,7 @@ cdr::result<HEADER> from_canonical(
 struct PLAYER {
   array_string<24> name = {};
   array_string<24> country_name = {};
-  bytes<1> unknown06 = {};
+  PlayerFlags player_flags = {};
   control_type control = {};
   uint8_t founded_colonies = {};
   bytes<1> diplomacy = {};
@@ -2769,7 +2797,7 @@ struct TRIBE {
   tech_type tech = {};
   TribeFlags tribe_flags = {};
   bytes<3> unknown31b = {};
-  uint8_t muskets = {};
+  int8_t muskets = {};
   uint8_t horse_herds = {};
   bytes<1> unknown31c = {};
   uint16_t horse_breeding = {};

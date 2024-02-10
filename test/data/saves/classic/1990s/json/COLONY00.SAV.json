@@ -137,7 +137,10 @@
     {
       "name": "Walter Raleigh",
       "country_name": "New England",
-      "unknown06": "00",
+      "player_flags": {
+        "unknown06a": "0000000",
+        "named_new_world": false
+      },
       "control": "WITHDRAWN",
       "founded_colonies": 4,
       "diplomacy": "00"
@@ -145,7 +148,10 @@
     {
       "name": "Jacques Cartier",
       "country_name": "New France",
-      "unknown06": "00",
+      "player_flags": {
+        "unknown06a": "0000000",
+        "named_new_world": false
+      },
       "control": "WITHDRAWN",
       "founded_colonies": 19,
       "diplomacy": "00"
@@ -153,7 +159,10 @@
     {
       "name": "Christopher Columbus",
       "country_name": "New Spain",
-      "unknown06": "00",
+      "player_flags": {
+        "unknown06a": "0000000",
+        "named_new_world": false
+      },
       "control": "AI",
       "founded_colonies": 4,
       "diplomacy": "00"
@@ -161,7 +170,10 @@
     {
       "name": "Michiel De Ruyter",
       "country_name": "New Netherlands",
-      "unknown06": "c0",
+      "player_flags": {
+        "unknown06a": "1000000",
+        "named_new_world": true
+      },
       "control": "PLAYER",
       "founded_colonies": 7,
       "diplomacy": "00"
