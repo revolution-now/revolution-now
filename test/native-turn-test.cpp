@@ -90,7 +90,7 @@ struct MockNativesTurnDeps final : INativesTurnDeps {
   MOCK_METHOD( wait<>, raid_colony,
                (SS*, TS*, NativeUnit&, Colony&), ( const ) );
   MOCK_METHOD( void, evolve_dwellings_for_tribe,
-               ( SS*, e_tribe ), ( const ) );
+               ( SS*, TS*, e_tribe ), ( const ) );
 };
 
 /****************************************************************
@@ -543,7 +543,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
     mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), e_tribe::arawak );
+        &W.ss(), &W.ts(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -561,7 +561,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
     mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), e_tribe::arawak );
+        &W.ss(), &W.ts(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -586,7 +586,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
     Unit const& free_colonist2 = W.add_unit_on_map(
         e_unit_type::free_colonist, defender_loc );
     mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), e_tribe::arawak );
+        &W.ss(), &W.ts(), e_tribe::arawak );
     native_mind.EXPECT__select_unit( set{ brave.id } )
         .returns( brave.id );
     native_mind.EXPECT__command_for( brave.id )
@@ -620,7 +620,7 @@ TEST_CASE( "[native-turn] brave spawns" ) {
   maybe<NativeUnitId> native_unit_id;
 
   mock_deps
-      .EXPECT__evolve_dwellings_for_tribe( &W.ss(),
+      .EXPECT__evolve_dwellings_for_tribe( &W.ss(), &W.ts(),
                                            e_tribe::arawak )
       .invokes( [&] {
         native_unit_id = W.add_native_unit_on_map(

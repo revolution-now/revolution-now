@@ -16,6 +16,8 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/irand.hpp"
 
 // Revolution Now
 #include "src/unit-mgr.hpp"
@@ -23,6 +25,8 @@
 // ss
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -69,7 +73,7 @@ TEST_CASE(
   e_tribe tribe_type = {};
 
   auto f = [&] {
-    evolve_dwellings_for_tribe( W.ss(), tribe_type );
+    evolve_dwellings_for_tribe( W.ss(), W.ts(), tribe_type );
   };
 
   auto unit_count = [&]() -> int {
@@ -383,6 +387,90 @@ TEST_CASE(
     REQUIRE( dwelling.population == 10 );
     REQUIRE( dwelling.growth_counter == 0 );
     REQUIRE( unit_count() == 1 );
+  }
+}
+
+TEST_CASE(
+    "[tribe-evolve] evolve_dwellings_for_tribe: population "
+    "growth with muskets/horses" ) {
+  World W;
+
+  W.settings().difficulty = e_difficulty::explorer;
+
+  e_tribe const tribe_type = e_tribe::arawak;
+  Tribe&        tribe      = W.add_tribe( tribe_type );
+
+  auto f = [&] {
+    evolve_dwellings_for_tribe( W.ss(), W.ts(), tribe_type );
+  };
+
+  auto units = [&] {
+    return units_for_tribe_unordered( W.ss(), tribe_type );
+  };
+
+  auto unit_count = [&] { return units().size(); };
+
+  Dwelling& dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, tribe_type );
+
+  REQUIRE( unit_count() == 0 );
+
+  dwelling.population     = 5;
+  dwelling.growth_counter = 19;
+
+  SECTION( "muskets=0,horses=0" ) {
+    f();
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( dwelling.growth_counter == 0 );
+    REQUIRE( unit_count() == 1 );
+    REQUIRE( W.units().unit_for( units()[0] ).type ==
+             e_native_unit_type::brave );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "muskets=1,horses=0" ) {
+    tribe.muskets = 3;
+    W.rand().EXPECT__bernoulli( .5 ).returns( true );
+    f();
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( dwelling.growth_counter == 0 );
+    REQUIRE( unit_count() == 1 );
+    REQUIRE( W.units().unit_for( units()[0] ).type ==
+             e_native_unit_type::armed_brave );
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "muskets=0,horses=1" ) {
+    tribe.horse_breeding = 26;
+    f();
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( dwelling.growth_counter == 0 );
+    REQUIRE( unit_count() == 1 );
+    REQUIRE( W.units().unit_for( units()[0] ).type ==
+             e_native_unit_type::mounted_brave );
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 1 );
+  }
+
+  SECTION( "muskets=1,horses=0" ) {
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 10;
+    tribe.horse_breeding = 26;
+    W.rand().EXPECT__bernoulli( .5 ).returns( false );
+    f();
+    REQUIRE( dwelling.population == 5 );
+    REQUIRE( dwelling.growth_counter == 0 );
+    REQUIRE( unit_count() == 1 );
+    REQUIRE( W.units().unit_for( units()[0] ).type ==
+             e_native_unit_type::mounted_warrior );
+    REQUIRE( tribe.muskets == 3 );
+    REQUIRE( tribe.horse_herds == 10 );
+    REQUIRE( tribe.horse_breeding == 1 );
   }
 }
 

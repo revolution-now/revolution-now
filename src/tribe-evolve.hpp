@@ -13,9 +13,11 @@
 namespace rn {
 
 struct SS;
+struct TS;
 
 enum class e_tribe;
 
-void evolve_dwellings_for_tribe( SS& ss, e_tribe tribe_type );
+void evolve_dwellings_for_tribe( SS& ss, TS& ts,
+                                 e_tribe tribe_type );
 
 } // namespace rn

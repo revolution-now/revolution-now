@@ -15,9 +15,12 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
+#include "test/mocks/irand.hpp"
 
 // ss
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
 #include "src/ss/terrain.hpp"
 #include "src/ss/tribe.rds.hpp"
 
@@ -31,6 +34,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::Approx;
 
 /****************************************************************
 ** Fake World Setup
@@ -364,6 +369,143 @@ TEST_CASE(
   }
 
   REQUIRE( tribe->horse_herds == 0 );
+}
+
+TEST_CASE( "[tribe-arms] select_brave_spawn" ) {
+  World         W;
+  Tribe&        tribe = W.add_tribe( e_tribe::cherokee );
+  EquippedBrave expected;
+
+  auto f = [&] {
+    return select_brave_spawn( W.ss().as_const, W.rand(),
+                               as_const( tribe ) );
+  };
+
+  W.settings().difficulty = e_difficulty::governor;
+
+  SECTION( "muskets=0,horse_breeding=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_breeding = 0;
+
+    expected = { .type          = e_native_unit_type::brave,
+                 .muskets_delta = 0,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=0,horse_breeding=24" ) {
+    tribe.muskets        = 0;
+    tribe.horse_breeding = 24;
+
+    expected = { .type          = e_native_unit_type::brave,
+                 .muskets_delta = 0,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=5,horse_breeding=0, muskets depleted" ) {
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 0;
+
+    W.rand().EXPECT__bernoulli( .25 ).returns( true );
+    expected = { .type = e_native_unit_type::armed_brave,
+                 .muskets_delta        = -1,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=5,horse_breeding=0, muskets not depleted" ) {
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 0;
+
+    W.rand().EXPECT__bernoulli( .25 ).returns( false );
+    expected = { .type = e_native_unit_type::armed_brave,
+                 .muskets_delta        = 0,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=0,horse_breeding=25" ) {
+    tribe.muskets        = 0;
+    tribe.horse_breeding = 25;
+
+    expected = { .type = e_native_unit_type::mounted_brave,
+                 .muskets_delta        = 0,
+                 .horse_breeding_delta = -25 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=0,horse_breeding=100" ) {
+    tribe.muskets        = 0;
+    tribe.horse_breeding = 100;
+
+    expected = { .type = e_native_unit_type::mounted_brave,
+                 .muskets_delta        = 0,
+                 .horse_breeding_delta = -25 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=1,horse_breeding=26, muskets depleted" ) {
+    tribe.muskets        = 1;
+    tribe.horse_breeding = 26;
+
+    W.rand().EXPECT__bernoulli( .25 ).returns( true );
+    expected = { .type = e_native_unit_type::mounted_warrior,
+                 .muskets_delta        = -1,
+                 .horse_breeding_delta = -25 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "muskets=4,horse_breeding=100, muskets not depleeted" ) {
+    tribe.muskets        = 4;
+    tribe.horse_breeding = 100;
+
+    W.rand().EXPECT__bernoulli( .25 ).returns( false );
+    expected = { .type = e_native_unit_type::mounted_warrior,
+                 .muskets_delta        = 0,
+                 .horse_breeding_delta = -25 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=5,horse_breeding=0,discoverer,depleted" ) {
+    W.settings().difficulty = e_difficulty::discoverer;
+    tribe.muskets           = 5;
+    tribe.horse_breeding    = 0;
+
+    W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
+    expected = { .type = e_native_unit_type::armed_brave,
+                 .muskets_delta        = -1,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "muskets=5,horse_breeding=0,conquistador,not depleted" ) {
+    W.settings().difficulty = e_difficulty::conquistador;
+    tribe.muskets           = 5;
+    tribe.horse_breeding    = 0;
+
+    W.rand()
+        .EXPECT__bernoulli( Approx( .333333, .000001 ) )
+        .returns( false );
+    expected = { .type = e_native_unit_type::armed_brave,
+                 .muskets_delta        = 0,
+                 .horse_breeding_delta = 0 };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "muskets=5,horse_breeding=25,viceroy,depleted" ) {
+    W.settings().difficulty = e_difficulty::viceroy;
+    tribe.muskets           = 5;
+    tribe.horse_breeding    = 25;
+
+    W.rand().EXPECT__bernoulli( .2 ).returns( true );
+    expected = { .type = e_native_unit_type::mounted_warrior,
+                 .muskets_delta        = -1,
+                 .horse_breeding_delta = -25 };
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace

@@ -1,0 +1,20 @@
+# ===============================================================
+# tribe-arms.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-02-08.
+#
+# Description: Rds definitions for the tribe-arms module.
+#
+# ===============================================================
+# ss
+include "ss/native-enums.rds.hpp"
+
+namespace "rn"
+
+struct.EquippedBrave {
+  type 'e_native_unit_type',
+  muskets_delta 'int',
+  horse_breeding_delta 'int',
+}

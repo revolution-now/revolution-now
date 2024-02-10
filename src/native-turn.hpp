@@ -45,7 +45,7 @@ struct INativesTurnDeps {
                               Colony&     colony ) const = 0;
 
   virtual void evolve_dwellings_for_tribe(
-      SS* ss, e_tribe tribe_type ) const = 0;
+      SS* ss, TS* ts, e_tribe tribe_type ) const = 0;
 };
 
 /****************************************************************

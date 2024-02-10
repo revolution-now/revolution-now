@@ -742,4 +742,19 @@ arms {
     mounted_brave:   { muskets=false, horses=true  }
     mounted_warrior: { muskets=true,  horses=true  }
   }
+
+  # When a brave is given muskets the game randomly decides
+  # whether to decrease the muskets number, and the probability
+  # of decrease depends on difficulty level like so:
+  #
+  #   P = 1/(1+D)
+  #
+  # where D is 0 for Discoverer, 1 for Explorer, etc.
+  musket_depletion {
+    discoverer.probability:   1.000000
+    explorer.probability:     0.500000
+    conquistador.probability: 0.333333
+    governor.probability:     0.250000
+    viceroy.probability:      0.200000
+  }
 }

@@ -195,7 +195,7 @@ wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
   // Evolve non-unit aspects of the tribe. This must be done be-
   // fore moving the units because it may result in a brave get-
   // ting created.
-  deps.evolve_dwellings_for_tribe( &ss, mind.tribe_type() );
+  deps.evolve_dwellings_for_tribe( &ss, &ts, mind.tribe_type() );
 
   // Gather all units. This must be done after evolving the
   // dwellings so that it includes any new units that are cre-
@@ -282,8 +282,9 @@ struct RealNativesTurnDeps final : INativesTurnDeps {
   }
 
   void evolve_dwellings_for_tribe(
-      SS* ss, e_tribe tribe_type ) const override {
-    return rn::evolve_dwellings_for_tribe( *ss, tribe_type );
+      SS* ss, TS* ts, e_tribe tribe_type ) const override {
+    return rn::evolve_dwellings_for_tribe( *ss, *ts,
+                                           tribe_type );
   }
 };
 

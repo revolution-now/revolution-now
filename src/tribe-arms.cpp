@@ -13,9 +13,16 @@
 // config
 #include "config/natives.rds.hpp"
 
+// Revolution Now
+#include "irand.hpp"
+
+// config
+#include "config/natives.hpp"
+
 // ss
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/tribe.rds.hpp"
 
 using namespace std;
@@ -89,6 +96,38 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
       config_natives.arms.horses_per_mounted_brave;
   add_to_horse_breeding( ss, tribe.type, delta,
                          tribe.horse_breeding );
+}
+
+EquippedBrave select_brave_spawn( SSConst const& ss, IRand& rand,
+                                  Tribe const& tribe ) {
+  bool const take_muskets = ( tribe.muskets > 0 );
+  bool const take_horses =
+      ( tribe.horse_breeding >=
+        config_natives.arms.horses_per_mounted_brave );
+
+  bool const depletes_muskets = [&] {
+    return take_muskets &&
+           rand.bernoulli(
+               config_natives.arms
+                   .musket_depletion[ss.settings.difficulty]
+                   .probability );
+  }();
+  // In the OG this always happens. This is likely because a
+  // tribe can't really lose horses once they have them, so
+  // therefore there is no need to throttle the depletion. They
+  // can't lose them because the source of horse breeding is the
+  // horse_herds field, which can't go completely to zero unless
+  // the tribe is completely destroyed.
+  bool const depletes_horses = take_horses;
+
+  return EquippedBrave{
+      .type          = find_brave( take_muskets, take_horses ),
+      .muskets_delta = depletes_muskets ? -1 : 0,
+      .horse_breeding_delta =
+          depletes_horses
+              ? -config_natives.arms.horses_per_mounted_brave
+              : 0,
+  };
 }
 
 } // namespace rn

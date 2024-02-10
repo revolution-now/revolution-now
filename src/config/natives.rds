@@ -391,6 +391,8 @@ struct.Arms {
     >
   ]],
 
+  musket_depletion 'refl::enum_map<e_difficulty, config::Probability>',
+
   _features { equality, validation }
 }
 
