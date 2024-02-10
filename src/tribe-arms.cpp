@@ -130,4 +130,14 @@ EquippedBrave select_brave_equip( SSConst const& ss, IRand& rand,
   };
 }
 
+void evolve_tribe_horse_breeding( SSConst const& ss,
+                                  Tribe&         tribe ) {
+  int const delta = tribe.horse_herds;
+  // Not strictly needed, but just to save time so that we don't
+  // need to compute max horse breeding.
+  if( delta == 0 ) return;
+  add_to_horse_breeding( ss, tribe.type, delta,
+                         tribe.horse_breeding );
+}
+
 } // namespace rn

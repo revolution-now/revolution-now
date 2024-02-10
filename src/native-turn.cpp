@@ -212,6 +212,10 @@ wait<> handle_native_unit_command(
 
 wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
                    IVisibility const& viz, INativeMind& mind ) {
+  // Evolve those aspects/properties of the tribe that are common
+  // to the entire tribe, i.e. not dwellingor unit-specific.
+  deps.evolve_tribe_common( &ss, mind.tribe_type() );
+
   // Evolve non-unit aspects of the tribe. This must be done be-
   // fore moving the units because it may result in a brave get-
   // ting created.
@@ -299,6 +303,11 @@ struct RealNativesTurnDeps final : INativesTurnDeps {
   wait<> raid_colony( SS* ss, TS* ts, NativeUnit& attacker,
                       Colony& colony ) const override {
     return rn::raid_colony( *ss, *ts, attacker, colony );
+  }
+
+  void evolve_tribe_common( SS*     ss,
+                            e_tribe tribe_type ) const override {
+    return rn::evolve_tribe_common( *ss, tribe_type );
   }
 
   void evolve_dwellings_for_tribe(

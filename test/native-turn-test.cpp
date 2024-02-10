@@ -90,6 +90,8 @@ struct MockNativesTurnDeps final : INativesTurnDeps {
                ( SS*, TS*, NativeUnit&, Coord ), ( const ) );
   MOCK_METHOD( wait<>, raid_colony,
                (SS*, TS*, NativeUnit&, Colony&), ( const ) );
+  MOCK_METHOD( void, evolve_tribe_common, ( SS*, e_tribe ),
+               ( const ) );
   MOCK_METHOD( void, evolve_dwellings_for_tribe,
                ( SS*, TS*, e_tribe ), ( const ) );
 };
@@ -540,17 +542,19 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
       { .x = 0, .y = 0 }, e_tribe::arawak );
   Coord const defender_loc = { .x = 1, .y = 0 };
 
+  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
+                                         e_tribe::arawak );
+  mock_deps.EXPECT__evolve_dwellings_for_tribe(
+      &W.ss(), &W.ts(), e_tribe::arawak );
+  native_mind.EXPECT__select_unit( set{ brave.id } )
+      .returns( brave.id );
+  native_mind.EXPECT__command_for( brave.id )
+      .returns( NativeUnitCommand::move{ e_direction::e } );
+  mock_euro_mind.EXPECT__show_woodcut( e_woodcut::indian_raid );
+
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
-    mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), &W.ts(), e_tribe::arawak );
-    native_mind.EXPECT__select_unit( set{ brave.id } )
-        .returns( brave.id );
-    native_mind.EXPECT__command_for( brave.id )
-        .returns( NativeUnitCommand::move{ e_direction::e } );
-    mock_euro_mind.EXPECT__show_woodcut(
-        e_woodcut::indian_raid );
     mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
                                  defender_loc );
     f();
@@ -561,14 +565,6 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
   SECTION( "brave, one euro, brave wins" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
-    mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), &W.ts(), e_tribe::arawak );
-    native_mind.EXPECT__select_unit( set{ brave.id } )
-        .returns( brave.id );
-    native_mind.EXPECT__command_for( brave.id )
-        .returns( NativeUnitCommand::move{ e_direction::e } );
-    mock_euro_mind.EXPECT__show_woodcut(
-        e_woodcut::indian_raid );
     mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
                                  defender_loc );
     f();
@@ -586,14 +582,6 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
     Unit const& free_colonist2 = W.add_unit_on_map(
         e_unit_type::free_colonist, defender_loc );
-    mock_deps.EXPECT__evolve_dwellings_for_tribe(
-        &W.ss(), &W.ts(), e_tribe::arawak );
-    native_mind.EXPECT__select_unit( set{ brave.id } )
-        .returns( brave.id );
-    native_mind.EXPECT__command_for( brave.id )
-        .returns( NativeUnitCommand::move{ e_direction::e } );
-    mock_euro_mind.EXPECT__show_woodcut(
-        e_woodcut::indian_raid );
     mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
                                  defender_loc );
     f();
@@ -618,6 +606,8 @@ TEST_CASE( "[native-turn] brave spawns" ) {
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
   maybe<NativeUnitId> native_unit_id;
 
+  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
+                                         e_tribe::arawak );
   mock_deps
       .EXPECT__evolve_dwellings_for_tribe( &W.ss(), &W.ts(),
                                            e_tribe::arawak )
@@ -667,6 +657,8 @@ TEST_CASE( "[native-turn] brave equips" ) {
   tribe.horse_herds    = 10;
   tribe.horse_breeding = 30;
 
+  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
+                                         e_tribe::arawak );
   mock_deps.EXPECT__evolve_dwellings_for_tribe(
       &W.ss(), &W.ts(), e_tribe::arawak );
   // If you have a situation where the below functions are called

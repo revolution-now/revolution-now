@@ -64,4 +64,8 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
 [[nodiscard]] EquippedBrave select_brave_equip(
     SSConst const& ss, IRand& rand, Tribe const& tribe );
 
+// Called each turn to breed horses.
+void evolve_tribe_horse_breeding( SSConst const& ss,
+                                  Tribe&         tribe );
+
 } // namespace rn

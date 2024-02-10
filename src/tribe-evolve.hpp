@@ -20,4 +20,8 @@ enum class e_tribe;
 void evolve_dwellings_for_tribe( SS& ss, TS& ts,
                                  e_tribe tribe_type );
 
+// Evolve those aspects/properties of the tribe that are common
+// to the entire tribe, i.e. not dwellingor unit-specific.
+void evolve_tribe_common( SS& ss, e_tribe tribe_type );
+
 } // namespace rn

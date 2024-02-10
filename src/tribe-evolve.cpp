@@ -87,6 +87,13 @@ void evolve_dwelling( SS& ss, TS& ts, Dwelling& dwelling ) {
 /****************************************************************
 ** Public API.
 *****************************************************************/
+void evolve_tribe_common( SS& ss, e_tribe tribe_type ) {
+  Tribe& tribe = ss.natives.tribe_for( tribe_type );
+
+  // Horses.
+  evolve_tribe_horse_breeding( ss, tribe );
+}
+
 void evolve_dwellings_for_tribe( SS& ss, TS& ts,
                                  e_tribe tribe_type ) {
   unordered_set<DwellingId> const& dwellings =

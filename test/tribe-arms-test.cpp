@@ -508,5 +508,49 @@ TEST_CASE( "[tribe-arms] select_brave_spawn" ) {
   }
 }
 
+TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&] { evolve_tribe_horse_breeding( W.ss(), tribe ); };
+
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  tribe.horse_herds = 1;
+  f();
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 1 );
+
+  f();
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 2 );
+
+  f();
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 3 );
+
+  tribe.horse_herds = 8;
+  f();
+  REQUIRE( tribe.horse_herds == 8 );
+  REQUIRE( tribe.horse_breeding == 11 );
+
+  tribe.horse_herds = 8;
+  f();
+  REQUIRE( tribe.horse_herds == 8 );
+  REQUIRE( tribe.horse_breeding == 19 );
+
+  tribe.horse_herds = 1000;
+  f();
+  REQUIRE( tribe.horse_herds == 1000 );
+  REQUIRE( tribe.horse_breeding == 50 );
+
+  REQUIRE( tribe.muskets == 0 );
+}
+
 } // namespace
 } // namespace rn
