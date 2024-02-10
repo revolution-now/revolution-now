@@ -30,6 +30,7 @@
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 #include "src/ss/woodcut.rds.hpp"
 
@@ -604,9 +605,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
 }
 
 TEST_CASE( "[native-turn] brave spawns" ) {
-  World W;
-  // MockLandViewPlane mock_land_view;
-  // W.planes().back().land_view = &mock_land_view;
+  World               W;
   MockNativesTurnDeps mock_deps;
 
   auto f = [&] {
@@ -641,6 +640,54 @@ TEST_CASE( "[native-turn] brave spawns" ) {
   REQUIRE( mounted_brave.type ==
            e_native_unit_type::mounted_brave );
   REQUIRE( mounted_brave.movement_points == 0 );
+}
+
+TEST_CASE( "[native-turn] brave equips" ) {
+  World               W;
+  MockNativesTurnDeps mock_deps;
+
+  auto f = [&] {
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+  };
+
+  MockINativeMind& native_mind =
+      W.native_mind( e_tribe::arawak );
+  Tribe&           tribe = W.add_tribe( e_tribe::arawak );
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
+  NativeUnit const& brave = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 0 },
+      dwelling_id );
+  NativeUnitId const brave_id = brave.id;
+
+  REQUIRE( brave_id == NativeUnitId{ 1 } );
+  REQUIRE( brave.movement_points == 1 );
+
+  tribe.muskets        = 5;
+  tribe.horse_herds    = 10;
+  tribe.horse_breeding = 30;
+
+  mock_deps.EXPECT__evolve_dwellings_for_tribe(
+      &W.ss(), &W.ts(), e_tribe::arawak );
+  // If you have a situation where the below functions are called
+  // more than once, then it is probably because the brave has
+  // not had its movement points reset to zero properly and so it
+  // keeps asking the brave for orders.
+  native_mind.EXPECT__select_unit( set{ NativeUnitId{ 1 } } )
+      .returns( NativeUnitId{ 1 } );
+  native_mind.EXPECT__command_for( NativeUnitId{ 1 } )
+      .returns( NativeUnitCommand::equip{
+          .how = { .type = e_native_unit_type::mounted_warrior,
+                   .muskets_delta        = -1,
+                   .horse_breeding_delta = -3 } } );
+  f();
+  REQUIRE( W.units().all().size() == 1 );
+  REQUIRE( W.units().exists( brave_id ) );
+  REQUIRE( brave.type == e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.muskets == 4 );
+  REQUIRE( tribe.horse_herds == 10 );
+  REQUIRE( tribe.horse_breeding == 27 );
+  REQUIRE( brave.movement_points == 0 );
 }
 
 } // namespace

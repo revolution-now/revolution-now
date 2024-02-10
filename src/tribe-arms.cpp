@@ -98,7 +98,7 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
                          tribe.horse_breeding );
 }
 
-EquippedBrave select_brave_spawn( SSConst const& ss, IRand& rand,
+EquippedBrave select_brave_equip( SSConst const& ss, IRand& rand,
                                   Tribe const& tribe ) {
   bool const take_muskets = ( tribe.muskets > 0 );
   bool const take_horses =

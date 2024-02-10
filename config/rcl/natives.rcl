@@ -757,4 +757,15 @@ arms {
     governor.probability:     0.250000
     viceroy.probability:      0.200000
   }
+
+  # In the OG it appears that, depending on the tech level of the
+  # tribe, there is a small probability that a brave will not be
+  # equipped when it otherwise could be (i.e., when it is sitting
+  # over a dwelling and the tribe has muskets/horses).
+  delay_equipping {
+    semi_nomadic.probability: 0.20
+    agrarian.probability:     0.12
+    advanced.probability:     0.08
+    civilized.probability:    0.06
+  }
 }

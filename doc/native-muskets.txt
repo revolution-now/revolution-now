@@ -84,9 +84,9 @@ Acquisition
 Musket Distribution
 -------------------
 
-  * When a brave is given muskets randomly whether to decrease
-    the muskets number, and the probability of decrease depends
-    on difficulty level:
+  * When a brave is given muskets the game randomly decides
+    whether to decrease the muskets number, and the probability
+    of decrease depends on difficulty level:
 
       Discoverer:   100%
       Explorer:      50%

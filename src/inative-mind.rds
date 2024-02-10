@@ -8,6 +8,9 @@
 # Description: Rds definitions for the inative-mind module.
 #
 # ===============================================================
+# Revolution Now
+include "tribe-arms.rds.hpp"
+
 # ss
 include "ss/mv-points.hpp"
 
@@ -30,5 +33,11 @@ sumtype.NativeUnitCommand {
   # there are not enough movement points.
   move {
     direction 'e_direction',
+  },
+
+  # This will be done when a brave is over a dwelling and its
+  # tribe has some stockpiled muskets or horses that it can use.
+  equip {
+    how 'EquippedBrave',
   },
 }

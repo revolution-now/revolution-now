@@ -159,6 +159,26 @@ wait<> handle_native_unit_command(
       native_unit.movement_points = 0;
       break;
     }
+    CASE( equip ) {
+      //  According to game rules, this is only allowed when the
+      //  brave is sitting over a dwelling.
+      CHECK( ss.natives.tribe_type_for(
+                 ss.natives.dwelling_from_coord(
+                     ss.units.coord_for( native_unit.id ) ) ) ==
+                 tribe_type,
+             "a tribe cannot equip a brave with muskets or "
+             "horses unless it is sitting atop a dwelling." );
+      Tribe& tribe = ss.natives.tribe_for( tribe_type );
+      tribe.muskets += equip.how.muskets_delta;
+      tribe.horse_breeding += equip.how.horse_breeding_delta;
+      native_unit.type = equip.how.type;
+      // In the OG a brave appears to forfeight its movement
+      // points when being equipped.
+      native_unit.movement_points = 0;
+      CHECK_GE( tribe.muskets, 0 );
+      CHECK_GE( tribe.horse_breeding, 0 );
+      break;
+    }
     CASE( move ) {
       Coord const src = ss.units.coord_for( native_unit.id );
       Coord const dst = src.moved( move.direction );

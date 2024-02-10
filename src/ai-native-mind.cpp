@@ -14,6 +14,10 @@
 #include "irand.hpp"
 #include "rand-enum.hpp"
 #include "society.hpp"
+#include "tribe-arms.hpp"
+
+// config
+#include "config/natives.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -64,6 +68,40 @@ NativeUnitCommand AiNativeMind::command_for(
   Tribe const&      tribe =
       ss_.natives.tribe_for( ownership.dwelling_id );
   CHECK_GT( unit.movement_points, 0 );
+
+  // If the brave is over its dwelling and the tribe has some
+  // muskets/horses then allow the brave to be equipped.
+  if( auto const dwelling_id =
+          ss_.natives.maybe_dwelling_from_coord(
+              ownership.coord );
+      dwelling_id.has_value() ) {
+    e_tribe const tribe_of_dwelling =
+        ss_.natives.tribe_type_for( *dwelling_id );
+    // TODO: the brave should only be over it's own dwelling, but
+    // we're not ready to enforce that yet with a check fail, so
+    // just check if it is the case.
+    // CHECK( *dwelling_id == ownership.dwelling_id );
+    //   or at least:
+    // CHECK( tribe_of_dwelling == tribe.type );
+    if( tribe_of_dwelling == tribe.type ) {
+      EquippedBrave const equipped =
+          select_brave_equip( ss_, rand_, as_const( tribe ) );
+      if( equipped.type != unit.type ) {
+        // In the OG it appears that, depending on the tech level
+        // of the tribe, there is a small probability that a
+        // brave will not be equipped when it otherwise could be
+        // (lower tech levels have a higher probability of not
+        // equipping).
+        bool const delay_equipping = rand_.bernoulli(
+            config_natives.arms
+                .delay_equipping
+                    [config_natives.tribes[tribe.type].level]
+                .probability );
+        if( !delay_equipping )
+          return NativeUnitCommand::equip{ .how = equipped };
+      }
+    }
+  }
   e_direction const rand_d = [&] {
     for( e_direction d : refl::enum_values<e_direction> ) {
       Coord const moved = ownership.coord.moved( d );

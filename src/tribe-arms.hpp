@@ -58,10 +58,10 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
                                       Tribe&         tribe,
                                       int            quantity );
 
-// Choose which type of brave to spawn based on the availability
-// of muskets and horses in the tribe and return the brave type
-// selected as well as any deductions in the tribe's stockpiles.
-[[nodiscard]] EquippedBrave select_brave_spawn(
+// Choose if/how to equip the brave based on the availability of
+// muskets and horses in the tribe and return the brave type se-
+// lected as well as any deductions in the tribe's stockpiles.
+[[nodiscard]] EquippedBrave select_brave_equip(
     SSConst const& ss, IRand& rand, Tribe const& tribe );
 
 } // namespace rn

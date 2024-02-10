@@ -377,7 +377,7 @@ TEST_CASE( "[tribe-arms] select_brave_spawn" ) {
   EquippedBrave expected;
 
   auto f = [&] {
-    return select_brave_spawn( W.ss().as_const, W.rand(),
+    return select_brave_equip( W.ss().as_const, W.rand(),
                                as_const( tribe ) );
   };
 
