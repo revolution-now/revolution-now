@@ -58,6 +58,16 @@ NativeUnitId AiNativeMind::select_unit(
 //   also be a bug where they will ask even if the wagon train is
 //   empty. If the good is horses/muskets then probably we should
 //   treat this like if they had demanded it from a colony.
+// TODO:
+//   When a brave is next to a colony and makes some kind of in-
+//   teraction, it seems to be randomly decided what it will be,
+//   including whether it is good or bad (e.g. could be a gift or
+//   could be demanding reparations). It is probably chosen ran-
+//   domly on the fly according to the sentiments of the natives.
+// TODO:
+//   When a tribe has muskets and/or horses it will summon free
+//   braves (who are lacking thoes things) to their dwelling to
+//   pick some up. We need to figure out the mechanics of this.
 
 // Implement INativeMind.
 NativeUnitCommand AiNativeMind::command_for(
@@ -102,6 +112,30 @@ NativeUnitCommand AiNativeMind::command_for(
       }
     }
   }
+
+  // TODO: in the OG braves never seem to end up adjacent to
+  // braves (or dwellings) of another tribe unless they are
+  // forced to by the positioning of other units around them. The
+  // ai movement weights in the debug info flags seem to allow
+  // them to move adjacent, so maybe there must be some exclusion
+  // mechanism beyond that. It is not statistical -- this has
+  // been observed for hundreds of turns. The times when it hap-
+  // pens seem to be when all of the squares that the unit could
+  // move to would be either invalid or adjacent to another tribe
+  // and so it has no choice.
+  //
+  // Some experiments have shown that a brave will not move onto
+  // a tile that is labeled as the land of another tribe, even if
+  // there are no other braves on the map. We need to better un-
+  // derstand how the game initially assigns those tiles (it may
+  // not; it may just let them get populated as the braves move).
+  // So a brave probably factors in both distance to its dwelling
+  // and the land ownership.
+  //
+  // The reason that this matters is because when one brave moves
+  // adjacent to a brave of another tribe, they immediately trade
+  // horses, which can have a significant impact on the game. So
+  // we need to figure out the movement patterns of braves.
   e_direction const rand_d = [&] {
     for( e_direction d : refl::enum_values<e_direction> ) {
       Coord const moved = ownership.coord.moved( d );
@@ -148,6 +182,7 @@ void AiNativeMind::on_attack_colony_finished(
 
 void AiNativeMind::on_attack_unit_finished(
     CombatBraveAttackEuro const& ) {
+  // TODO: adjust alarm.
 }
 
 } // namespace rn
