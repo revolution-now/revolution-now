@@ -34,8 +34,8 @@ namespace {
 void spawn_brave( SS& ss, IRand& rand, Dwelling const& dwelling,
                   Tribe& tribe ) {
   lg.debug( "created new brave for dwelling {}.", dwelling.id );
-  EquippedBrave const spawned =
-      select_brave_equip( ss.as_const, rand, as_const( tribe ) );
+  EquippedBrave const spawned = select_new_brave_equip(
+      ss.as_const, rand, as_const( tribe ) );
   tribe.muskets += spawned.muskets_delta;
   tribe.horse_breeding += spawned.horse_breeding_delta;
   CHECK_GE( tribe.muskets, 0 );

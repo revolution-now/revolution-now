@@ -149,5 +149,128 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
   }
 }
 
+TEST_CASE(
+    "[ai-native-mind] does not de-equip brave over dwelling" ) {
+  World             W;
+  NativeUnitCommand expected;
+
+  e_tribe const tribe_type = e_tribe::aztec;
+  AiNativeMind  mind( W.ss(), W.rand(), tribe_type );
+
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 1, .y = 1 }, tribe_type ).id;
+  Tribe& tribe = W.tribe( tribe_type );
+
+  SECTION( "mounted_brave,horses=0,muskets=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+
+  SECTION( "mounted_brave,horses=25,muskets=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 25;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+
+  SECTION( "mounted_brave,horses=0,muskets=1" ) {
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    // Probability for discoverer level to deplete muskets.
+    W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
+    // Don't delay equipping.
+    W.rand().EXPECT__bernoulli( 0.08 ).returns( false );
+
+    expected = NativeUnitCommand::equip{
+        .how = EquippedBrave{
+            .type          = e_native_unit_type::mounted_warrior,
+            .muskets_delta = -1,
+            .horse_breeding_delta = 0 } };
+    REQUIRE( mind.command_for( brave.id ) == expected );
+  }
+
+  SECTION( "armed_brave,horses=0,muskets=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+
+  SECTION( "armed_brave,horses=0,muskets=1" ) {
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+
+  SECTION( "armed_brave,horses=25,muskets=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 25;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
+        dwelling_id );
+    // Don't delay equipping.
+    W.rand().EXPECT__bernoulli( 0.08 ).returns( false );
+
+    expected = NativeUnitCommand::equip{
+        .how = EquippedBrave{
+            .type          = e_native_unit_type::mounted_warrior,
+            .muskets_delta = 0,
+            .horse_breeding_delta = -25 } };
+    REQUIRE( mind.command_for( brave.id ) == expected );
+  }
+
+  SECTION( "mounted_warrior,horses=0,muskets=0" ) {
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+
+  SECTION( "mounted_warrior,horses=25,muskets=1" ) {
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 25;
+    NativeUnit& brave    = W.add_native_unit_on_map(
+        e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
+        dwelling_id );
+    W.expect_random_move();
+    REQUIRE_FALSE( mind.command_for( brave.id )
+                       .holds<NativeUnitCommand::equip>() );
+  }
+}
+
 } // namespace
 } // namespace rn

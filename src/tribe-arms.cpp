@@ -20,6 +20,7 @@
 #include "config/natives.hpp"
 
 // ss
+#include "ss/native-enums.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
@@ -55,6 +56,44 @@ void add_to_horse_breeding( SSConst const& ss,
   // Cap it at the max.
   horse_breeding = std::min(
       horse_breeding, max_horse_breeding( ss, tribe_type ) );
+}
+
+EquippedBrave select_brave_equip_impl( SSConst const& ss,
+                                       IRand&         rand,
+                                       Tribe const&   tribe,
+                                       bool has_muskets,
+                                       bool has_horses ) {
+  bool const take_muskets =
+      !has_muskets && ( tribe.muskets > 0 );
+  bool const take_horses =
+      !has_horses &&
+      ( tribe.horse_breeding >=
+        config_natives.arms.horses_per_mounted_brave );
+
+  bool const depletes_muskets = [&] {
+    return take_muskets &&
+           rand.bernoulli(
+               config_natives.arms
+                   .musket_depletion[ss.settings.difficulty]
+                   .probability );
+  }();
+  // In the OG this always happens. This is likely because a
+  // tribe can't really lose horses once they have them, so
+  // therefore there is no need to throttle the depletion. They
+  // can't lose them because the source of horse breeding is the
+  // horse_herds field, which can't go completely to zero unless
+  // the tribe is completely destroyed.
+  bool const depletes_horses = take_horses;
+
+  return EquippedBrave{
+      .type          = find_brave( has_muskets || take_muskets,
+                                   has_horses || take_horses ),
+      .muskets_delta = depletes_muskets ? -1 : 0,
+      .horse_breeding_delta =
+          depletes_horses
+              ? -config_natives.arms.horses_per_mounted_brave
+              : 0,
+  };
 }
 
 } // namespace
@@ -98,36 +137,25 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
                          tribe.horse_breeding );
 }
 
-EquippedBrave select_brave_equip( SSConst const& ss, IRand& rand,
-                                  Tribe const& tribe ) {
-  bool const take_muskets = ( tribe.muskets > 0 );
-  bool const take_horses =
-      ( tribe.horse_breeding >=
-        config_natives.arms.horses_per_mounted_brave );
+EquippedBrave select_new_brave_equip( SSConst const& ss,
+                                      IRand&         rand,
+                                      Tribe const&   tribe ) {
+  return select_brave_equip_impl( ss, rand, tribe,
+                                  /*has_muskets=*/false,
+                                  /*has_horses=*/false );
+}
 
-  bool const depletes_muskets = [&] {
-    return take_muskets &&
-           rand.bernoulli(
-               config_natives.arms
-                   .musket_depletion[ss.settings.difficulty]
-                   .probability );
-  }();
-  // In the OG this always happens. This is likely because a
-  // tribe can't really lose horses once they have them, so
-  // therefore there is no need to throttle the depletion. They
-  // can't lose them because the source of horse breeding is the
-  // horse_herds field, which can't go completely to zero unless
-  // the tribe is completely destroyed.
-  bool const depletes_horses = take_horses;
-
-  return EquippedBrave{
-      .type          = find_brave( take_muskets, take_horses ),
-      .muskets_delta = depletes_muskets ? -1 : 0,
-      .horse_breeding_delta =
-          depletes_horses
-              ? -config_natives.arms.horses_per_mounted_brave
-              : 0,
-  };
+EquippedBrave select_existing_brave_equip(
+    SSConst const& ss, IRand& rand, Tribe const& tribe,
+    e_native_unit_type type ) {
+  bool const has_muskets =
+      config_natives.arms
+          .equipment[type][e_brave_equipment::muskets];
+  bool const has_horses =
+      config_natives.arms
+          .equipment[type][e_brave_equipment::horses];
+  return select_brave_equip_impl( ss, rand, tribe, has_muskets,
+                                  has_horses );
 }
 
 void evolve_tribe_horse_breeding( SSConst const& ss,

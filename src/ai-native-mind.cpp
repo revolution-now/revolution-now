@@ -94,8 +94,8 @@ NativeUnitCommand AiNativeMind::command_for(
     //   or at least:
     // CHECK( tribe_of_dwelling == tribe.type );
     if( tribe_of_dwelling == tribe.type ) {
-      EquippedBrave const equipped =
-          select_brave_equip( ss_, rand_, as_const( tribe ) );
+      EquippedBrave const equipped = select_existing_brave_equip(
+          ss_, rand_, as_const( tribe ), unit.type );
       if( equipped.type != unit.type ) {
         // In the OG it appears that, depending on the tech level
         // of the tribe, there is a small probability that a

@@ -58,11 +58,26 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
                                       Tribe&         tribe,
                                       int            quantity );
 
-// Choose if/how to equip the brave based on the availability of
-// muskets and horses in the tribe and return the brave type se-
-// lected as well as any deductions in the tribe's stockpiles.
-[[nodiscard]] EquippedBrave select_brave_equip(
+// Choose if/how to equip a newly-created brave based on the
+// availability of muskets and horses in the tribe and return the
+// brave type selected as well as any deductions in the tribe's
+// stockpiles.
+[[nodiscard]] EquippedBrave select_new_brave_equip(
     SSConst const& ss, IRand& rand, Tribe const& tribe );
+
+// Same as above but for a brave that already exists. This will
+// not allow any transitions that require discarding arms; e.g.,
+// it won't allow an armed_brave to transition to a
+// mounted_brave, since that would entail shedding muskets.
+//
+// NOTE: in the OG there appears to be a probability that an ex-
+// isting brave that is stitting over a dwelling and which can be
+// equipped will sometimes not be equipped, however that handled
+// by the caller of this function. This function assumes that any
+// equipping that can be done should be done.
+[[nodiscard]] EquippedBrave select_existing_brave_equip(
+    SSConst const& ss, IRand& rand, Tribe const& tribe,
+    e_native_unit_type type );
 
 // Called each turn to breed horses.
 void evolve_tribe_horse_breeding( SSConst const& ss,
