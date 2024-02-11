@@ -57,9 +57,12 @@ Acquisition
     lent to 25 horse_breeding.
 
   * Dwellings seem to trade horses according to normal rules,
-    namely that they won't trade them twice in a row (although
-    this needs to be confirmed; a violation of this may once have
-    been observed while trading with an Inca capital).
+    namely that they won't buy them twice in a row (although this
+    needs to be confirmed; a violation of this may once have been
+    observed while trading with an Inca capital). Also, it needs
+    to be determined whether they will voluntarily sell horses if
+    they have them and, if so, what effect that has on their
+    stock and military stockpiles.
 
   * If we only trade 1 horse with the natives, horse_herds still
     increases.

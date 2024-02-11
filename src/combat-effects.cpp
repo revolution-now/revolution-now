@@ -875,6 +875,9 @@ void perform_native_unit_combat_effects(
     }
     CASE( promoted ) {
       unit.type = promoted.to;
+      // In the OG, although a brave can gain both muskets and/or
+      // horses when attacking and winning, the tribe's stock-
+      // piles only increase for horses.
       if( promoted.tribe_gains_horse_herd )
         gain_horses_from_winning_combat(
             tribe_for_unit( ss, unit ) );

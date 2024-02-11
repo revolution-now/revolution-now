@@ -1,0 +1,133 @@
+# vim: syntax=yaml
+This document contains the remaining items still left to imple-
+ment from these docs:
+
+  * doc/native-muskets.txt
+  * doc/native-horses.txt
+
+Native Muskets
+==============
+
+Acquisition
+-----------
+
+  * When muskets are sold to a dwelling they go into the tribe's
+    "stock", which does not appear to have a limit. Note that the
+    stockpile decreases at a rate of 1 per turn, though that is
+    probably not relevant here (and this behavior is probably
+    similar to trading other commodities).
+
+    If, in a given sale, they purchase an amount >= 25, then, in
+    addition to those muskets going into their stockpile as usual,
+    the `muskets` military stockpile goes up by an amount:
+
+        muskets += min( floor( amount_purchased / 25 ), 2 )
+
+    So in other words their stock goes up by the amount purchased
+    and also their military `muskets` stockpile goes up by the
+    number of even multiples of 25 that they purchased (with a
+    max of 2). So if they purchased 49 then it goes up by 1,
+    while if they purchase 50 it goes up by two. If they purchase
+    75 it still only goes up by two.
+
+    Counterintuitively, muskets in a tribe's stockpile cannot/do
+    not transfer directly into their military muskets stockpile.
+    It seems that the only way that selling muskets to a tribe
+    can increase their military stockpile (`muskets`) is if they
+    are sold, in a single sale, more than 25 muskets.
+
+  * When muskets are demanded via reparations and the brave
+    asking does not have muskets then it will immediately acquire
+    muskets and the tribe's stockpile will remain the same. If
+    the brave asking already has muskets then the muskets will be
+    added to the tribe's stockpile. The amount demanded and/or
+    received does not seem to affect the amount that the tribe
+    actually takes; the tribe always seems to take one unit, i.e.
+    arming one brave or increasing the stockpile by 1.
+
+  * There does not seem to be any inter-tribe trading of muskets.
+    The SG mentions it though, so it may be a bug that it is
+    omitted, or perhaps we just don't know the mechanism. It does
+    not seem to happen automatically when braves of two tribes
+    come into contact as is done with horses.
+
+Musket Loss
+-----------
+
+  * Dwellings have not been observed to sell muskets, so not sure
+    what would happen if they did.
+
+Indian Advisor Report
+---------------------
+
+  * The muskets readout does not appear to be stored anywhere;
+    instead it is computed as follows:
+
+       Muskets = 50*muskets + 50*armed_braves_count
+                            + 50*mounted_warriors_count
+
+    That said, we may do this readout a bit differently. This is
+    because the value of `muskets` can arm an arbitrary number of
+    braves due to the randomness with which `muskets` is de-
+    creased. Therefore, if we use the above formula, then the
+    total muskets that a tribe has can appear to increase, which
+    isn't sensical to the player (though note that on Discoverer,
+    `muskets` is always decreased, and so this readout is accu-
+    rate/conserved on that difficulty level). Instead maybe we'll
+    separate it into two fields:
+
+       Musket Reserves = 50*muskets
+       Armed Units     = 50*armed_braves_count
+                       + 50*mounted_warriors_count
+
+    Then on higher difficulty levels, one could say that the na-
+    tives use the reserves more efficiently.
+
+Native Horses
+=============
+
+Acquisition
+-----------
+
+  * Giving/selling horses to the tribe via trade. Note that
+    this increases horse_breeding as well, by 25.
+  * Demanding horses as reparations (probably is a part of the
+    usual demands of whatever commodities the colony has in
+    stock). In this case horse_herds goes up by one. The brave
+    also gets horses. horse_breeding may go up, but not sure.
+  * Inter-tribe trade.
+  * When a new horse herd is given to a tribe via trade, the
+    horse_herds goes up by 1, but the horse_breeding field also
+    goes up by an amount equal to:
+
+       horse_breeding += floor( traded_amount/4 )
+
+    When horses are acquired by combat only horse_herds increases
+    by 1 since the brave will take the horses, which is equiva-
+    lent to 25 horse_breeding.
+  * If we only trade 1 horse with the natives, horse_herds still
+    increases.
+
+Inter-tribe Trade
+-----------------
+
+  * Happens via horse_herds, not horse_breeding.
+  * Happens if and only if a brave from one tribe moves adjacent
+    to a brave (or dwelling) from another tribe where at least
+    one tribe has horse_herds > 0.
+  * When a trade happens, both tribes end up with an amount of
+    horse_herds equal to the maximum of the two values between
+    the two tribes.
+  * Since this happens iff braves meet, the question of how often
+    it happens is equivalent to the question of when/how often
+    braves meet. The answer seems to be that they never meet un-
+    less they are forced to for some reason. The game must have
+    some mechanism for preventing this. As part of implementing
+    horse trading properly, we probably need to figure out how
+    braves move.
+
+Indian Advisor Report
+---------------------
+
+  * The horses readout on the indian advisor report does not in-
+    clude the herds held by braves.

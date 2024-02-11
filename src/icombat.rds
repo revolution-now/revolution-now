@@ -127,7 +127,10 @@ sumtype.NativeUnitCombatOutcome {
     # taken by the brave).
     to 'e_native_unit_type',
     # If the brave gains horses then, in addition to the unit
-    # type changing, the tribe gains one horse herd.
+    # type changing, the tribe gains one horse herd. In the OG,
+    # although a brave can gain both muskets and/or horses when
+    # attacking and winning, the tribe's stockpiles only increase
+    # for horses.
     tribe_gains_horse_herd 'bool',
   },
 }
