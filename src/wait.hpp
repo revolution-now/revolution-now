@@ -145,6 +145,15 @@ class wait_state {
 /****************************************************************
 ** wait
 *****************************************************************/
+// TODO: Investigate adding these to the wait declaration:
+//
+//   [[clang::coro_lifetimebound]]
+//   [[clang::coro_return_type]]
+//   [[clang::coro_disable_lifetimebound]]
+//   [[clang::coro_wrapper]]
+//
+// At the time of writing, the clang versions in use dont' sup-
+// port them.
 template<typename T = std::monostate>
 class [[nodiscard]] wait {
   template<typename U>
