@@ -68,4 +68,12 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
 void evolve_tribe_horse_breeding( SSConst const& ss,
                                   Tribe&         tribe );
 
+// Each time a dwelling is destroyed (even the last one) this
+// should be called to adjust the tribe's stockpile of muskets
+// and horses.
+//
+// NOTE: this must be called before the dwelling is destroyed.
+void adjust_arms_on_dwelling_destruction( SSConst const& ss,
+                                          Tribe&         tribe );
+
 } // namespace rn

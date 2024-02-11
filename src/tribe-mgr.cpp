@@ -13,6 +13,7 @@
 // Revolution Now
 #include "igui.hpp"
 #include "road.hpp"
+#include "tribe-arms.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
 #include "wait.hpp"
@@ -38,6 +39,8 @@ namespace {
 // dwelling's land.
 void delete_dwelling_ignoring_owned_land(
     SS& ss, TS& ts, DwellingId dwelling_id ) {
+  Tribe& tribe = ss.natives.tribe_for(
+      ss.natives.tribe_type_for( dwelling_id ) );
   // 1. Destroy free braves owned by this dwelling.
   //
   // We make a copy of this because it is probably not safe to
@@ -60,7 +63,10 @@ void delete_dwelling_ignoring_owned_land(
   clear_road( ts.map_updater,
               ss.natives.coord_for( dwelling_id ) );
 
-  // 4. Remove the dwelling objects.
+  // 4. Adjust the tribe's stockpile of muskets/horses.
+  adjust_arms_on_dwelling_destruction( as_const( ss ), tribe );
+
+  // 5. Remove the dwelling objects.
   ss.natives.destroy_dwelling( dwelling_id );
 }
 

@@ -140,4 +140,33 @@ void evolve_tribe_horse_breeding( SSConst const& ss,
                          tribe.horse_breeding );
 }
 
+void adjust_arms_on_dwelling_destruction( SSConst const& ss,
+                                          Tribe& tribe ) {
+  int const num_dwellings =
+      ss.natives.dwellings_for_tribe( tribe.type ).size();
+  CHECK_GT( num_dwellings, 0 );
+  // Note we call this method before the dwelling is destroyed.
+  bool const destroying_last_dwelling = ( num_dwellings == 1 );
+
+  auto scale_down = [&]( int& n ) {
+    if( n == 0 ) return;
+    n = n - n / num_dwellings;
+    if( !destroying_last_dwelling ) { CHECK_GE( n, 1 ); }
+  };
+
+  // Horses.
+  scale_down( tribe.horse_herds );
+  scale_down( tribe.horse_breeding );
+
+  // Muskets. In the OG muskets do not seem to be lost when a
+  // dwelling is destroyed (even the last one when the tribe is
+  // made extinct). Not sure if this is a bug or not. Here we do
+  // reproduce it because it is not obvious that it's a bug, and
+  // it would have an effect on gameplay if it was decreased.
+  // That said, for the sake of tidyness, we'll zero it out if
+  // we're destroying the last dwelling, since that has no effect
+  // on gameplay.
+  if( destroying_last_dwelling ) tribe.muskets = 0;
+}
+
 } // namespace rn

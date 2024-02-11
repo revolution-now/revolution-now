@@ -195,7 +195,7 @@ Bugs
 
     This behavior doesn't seem to make any sense; it could be a
     result of an incorrectly-implemented inter-tribe trading
-    mechanism for horses.
+    mechanism for horses (purely speculation).
 
   * When an existing brave gets horses it only requires 25 from
     horse_breeding, but when a new brave is created and receives

@@ -70,6 +70,11 @@ struct World : testing::World {
 TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   World W;
 
+  Tribe& iroquois         = W.add_tribe( e_tribe::iroquois );
+  iroquois.muskets        = 9;
+  iroquois.horse_herds    = 8;
+  iroquois.horse_breeding = 7;
+
   DwellingId const dwelling1_id =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois ).id;
   DwellingId const dwelling2_id =
@@ -132,6 +137,9 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
            dwelling2_id );
   REQUIRE( read_owned_land( { .x = 2, .y = 2 } ) ==
            dwelling2_id );
+  REQUIRE( iroquois.muskets == 9 );
+  REQUIRE( iroquois.horse_herds == 8 );
+  REQUIRE( iroquois.horse_breeding == 7 );
 
   destroy( dwelling1_id );
 
@@ -151,6 +159,9 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
            dwelling2_id );
   REQUIRE( read_owned_land( { .x = 2, .y = 2 } ) ==
            dwelling2_id );
+  REQUIRE( iroquois.muskets == 9 );
+  REQUIRE( iroquois.horse_herds == 4 );
+  REQUIRE( iroquois.horse_breeding == 4 );
 
   destroy( dwelling2_id );
 
@@ -170,6 +181,9 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
                  dwelling2_id );
   REQUIRE_FALSE( read_owned_land( { .x = 2, .y = 2 } ) ==
                  dwelling2_id );
+  REQUIRE( iroquois.muskets == 0 );
+  REQUIRE( iroquois.horse_herds == 0 );
+  REQUIRE( iroquois.horse_breeding == 0 );
 
   REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
   auto dwellings_for_tribe =
@@ -179,6 +193,11 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
 
 TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   World W;
+
+  Tribe& iroquois         = W.add_tribe( e_tribe::iroquois );
+  iroquois.muskets        = 9;
+  iroquois.horse_herds    = 8;
+  iroquois.horse_breeding = 7;
 
   // Iroquois.
   DwellingId const dwelling1_id =
@@ -217,6 +236,10 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
                                { .x = 2, .y = 2 } );
 
   // Sioux.
+  Tribe& sioux         = W.add_tribe( e_tribe::sioux );
+  sioux.muskets        = 1000;
+  sioux.horse_herds    = 1000;
+  sioux.horse_breeding = 1000;
   DwellingId const dwelling3_id =
       W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::sioux ).id;
   NativeUnitId const brave4_id =
@@ -272,6 +295,9 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE_FALSE( W.natives()
                      .dwellings_for_tribe( e_tribe::sioux )
                      .empty() );
+  REQUIRE( iroquois.muskets == 9 );
+  REQUIRE( iroquois.horse_herds == 8 );
+  REQUIRE( iroquois.horse_breeding == 7 );
 
   destroy( e_tribe::iroquois );
 
@@ -306,6 +332,10 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE_FALSE( W.natives()
                      .dwellings_for_tribe( e_tribe::sioux )
                      .empty() );
+  REQUIRE( iroquois.muskets == 0 );
+  REQUIRE( iroquois.horse_herds == 0 );
+  REQUIRE( iroquois.horse_breeding == 0 );
+
   // Call again; should be no-op.
   destroy( e_tribe::iroquois );
 
@@ -342,6 +372,9 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE( W.natives()
                .dwellings_for_tribe( e_tribe::sioux )
                .empty() );
+  REQUIRE( sioux.muskets == 0 );
+  REQUIRE( sioux.horse_herds == 0 );
+  REQUIRE( sioux.horse_breeding == 0 );
   // Call again; should be no-op.
   destroy( e_tribe::sioux );
 }

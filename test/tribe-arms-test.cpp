@@ -62,6 +62,15 @@ struct World : testing::World {
     };
     build_map( std::move( tiles ), 3 );
   }
+
+  void create_n_dwellings( e_tribe tribe_type, int n ) {
+    gfx::rect_iterator const ri(
+        terrain().world_rect_tiles().to_gfx() );
+    for( Coord const coord : ri ) {
+      if( n-- <= 0 ) return;
+      add_dwelling( coord, tribe_type );
+    }
+  }
 };
 
 /****************************************************************
@@ -254,36 +263,26 @@ TEST_CASE(
     retain_horses_from_destroyed_brave( W.ss(), *tribe );
   };
 
-  auto create_n_dwellings = [&]( int n ) {
-    BASE_CHECK( tribe != nullptr );
-    gfx::rect_iterator const ri(
-        W.terrain().world_rect_tiles().to_gfx() );
-    for( Coord const coord : ri ) {
-      if( n-- <= 0 ) return;
-      W.add_dwelling( coord, tribe->type );
-    }
-  };
-
   // semi_nomadic: { N=0, M=6,  A=0 }
   SECTION( "semi-nomadic" ) {
     tribe = &W.add_tribe( e_tribe::sioux );
 
     SECTION( "dwellings=0" ) { // max = 50
-      create_n_dwellings( 0 );
+      W.create_n_dwellings( tribe->type, 0 );
       tribe->horse_breeding = 45;
       f();
       REQUIRE( tribe->horse_breeding == 50 );
     }
 
     SECTION( "dwellings=1" ) { // max = 56
-      create_n_dwellings( 1 );
+      W.create_n_dwellings( tribe->type, 1 );
       tribe->horse_breeding = 51;
       f();
       REQUIRE( tribe->horse_breeding == 56 );
     }
 
     SECTION( "dwellings=10" ) { // max = 110
-      create_n_dwellings( 10 );
+      W.create_n_dwellings( tribe->type, 10 );
       tribe->horse_breeding = 450;
       f();
       REQUIRE( tribe->horse_breeding == 110 );
@@ -295,21 +294,21 @@ TEST_CASE(
     tribe = &W.add_tribe( e_tribe::cherokee );
 
     SECTION( "dwellings=0" ) { // max = 54
-      create_n_dwellings( 0 );
+      W.create_n_dwellings( tribe->type, 0 );
       tribe->horse_breeding = 45;
       f();
       REQUIRE( tribe->horse_breeding == 54 );
     }
 
     SECTION( "dwellings=1" ) { // max = 64
-      create_n_dwellings( 1 );
+      W.create_n_dwellings( tribe->type, 1 );
       tribe->horse_breeding = 51;
       f();
       REQUIRE( tribe->horse_breeding == 64 );
     }
 
     SECTION( "dwellings=10" ) { // max = 154
-      create_n_dwellings( 10 );
+      W.create_n_dwellings( tribe->type, 10 );
       tribe->horse_breeding = 450;
       f();
       REQUIRE( tribe->horse_breeding == 154 );
@@ -321,21 +320,21 @@ TEST_CASE(
     tribe = &W.add_tribe( e_tribe::aztec );
 
     SECTION( "dwellings=0" ) { // max = 56
-      create_n_dwellings( 0 );
+      W.create_n_dwellings( tribe->type, 0 );
       tribe->horse_breeding = 45;
       f();
       REQUIRE( tribe->horse_breeding == 56 );
     }
 
     SECTION( "dwellings=1" ) { // max = 70
-      create_n_dwellings( 1 );
+      W.create_n_dwellings( tribe->type, 1 );
       tribe->horse_breeding = 51;
       f();
       REQUIRE( tribe->horse_breeding == 70 );
     }
 
     SECTION( "dwellings=10" ) { // max = 196
-      create_n_dwellings( 10 );
+      W.create_n_dwellings( tribe->type, 10 );
       tribe->horse_breeding = 450;
       f();
       REQUIRE( tribe->horse_breeding == 196 );
@@ -347,21 +346,21 @@ TEST_CASE(
     tribe = &W.add_tribe( e_tribe::inca );
 
     SECTION( "dwellings=0" ) { // max = 58
-      create_n_dwellings( 0 );
+      W.create_n_dwellings( tribe->type, 0 );
       tribe->horse_breeding = 45;
       f();
       REQUIRE( tribe->horse_breeding == 58 );
     }
 
     SECTION( "dwellings=1" ) { // max = 76
-      create_n_dwellings( 1 );
+      W.create_n_dwellings( tribe->type, 1 );
       tribe->horse_breeding = 51;
       f();
       REQUIRE( tribe->horse_breeding == 76 );
     }
 
     SECTION( "dwellings=10" ) { // max = 238
-      create_n_dwellings( 10 );
+      W.create_n_dwellings( tribe->type, 10 );
       tribe->horse_breeding = 450;
       f();
       REQUIRE( tribe->horse_breeding == 238 );
@@ -550,6 +549,219 @@ TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
   REQUIRE( tribe.horse_breeding == 50 );
 
   REQUIRE( tribe.muskets == 0 );
+}
+
+TEST_CASE( "[tribe-arms] adjust_arms_on_dwelling_destruction" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&] {
+    adjust_arms_on_dwelling_destruction( W.ss(), tribe );
+  };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  SECTION( "dwellings=1" ) {
+    W.create_n_dwellings( e_tribe::sioux, 1 );
+
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 1;
+    tribe.horse_breeding = 1;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 2;
+    tribe.horse_herds    = 2;
+    tribe.horse_breeding = 2;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 3;
+    tribe.horse_breeding = 3;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 4;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+  }
+
+  SECTION( "dwellings=2" ) {
+    W.create_n_dwellings( e_tribe::sioux, 2 );
+
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 1;
+    tribe.horse_breeding = 1;
+    f();
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 1 );
+
+    tribe.muskets        = 2;
+    tribe.horse_herds    = 2;
+    tribe.horse_breeding = 2;
+    f();
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 1 );
+
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 3;
+    tribe.horse_breeding = 3;
+    f();
+    REQUIRE( tribe.muskets == 3 );
+    REQUIRE( tribe.horse_herds == 2 );
+    REQUIRE( tribe.horse_breeding == 2 );
+
+    tribe.muskets        = 4;
+    tribe.horse_herds    = 4;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( tribe.muskets == 4 );
+    REQUIRE( tribe.horse_herds == 2 );
+    REQUIRE( tribe.horse_breeding == 3 );
+  }
+
+  SECTION( "dwellings=3" ) {
+    W.create_n_dwellings( e_tribe::sioux, 3 );
+
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 1;
+    tribe.horse_breeding = 1;
+    f();
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 1 );
+
+    tribe.muskets        = 2;
+    tribe.horse_herds    = 2;
+    tribe.horse_breeding = 2;
+    f();
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 2 );
+    REQUIRE( tribe.horse_breeding == 2 );
+
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 3;
+    tribe.horse_breeding = 3;
+    f();
+    REQUIRE( tribe.muskets == 3 );
+    REQUIRE( tribe.horse_herds == 2 );
+    REQUIRE( tribe.horse_breeding == 2 );
+
+    tribe.muskets        = 4;
+    tribe.horse_herds    = 4;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( tribe.muskets == 4 );
+    REQUIRE( tribe.horse_herds == 3 );
+    REQUIRE( tribe.horse_breeding == 4 );
+
+    tribe.muskets        = 4;
+    tribe.horse_herds    = 5;
+    tribe.horse_breeding = 6;
+    f();
+    REQUIRE( tribe.muskets == 4 );
+    REQUIRE( tribe.horse_herds == 4 );
+    REQUIRE( tribe.horse_breeding == 4 );
+  }
+
+  SECTION( "dwellings=3" ) {
+    W.create_n_dwellings( e_tribe::sioux, 4 );
+
+    tribe.muskets        = 0;
+    tribe.horse_herds    = 0;
+    tribe.horse_breeding = 0;
+    f();
+    REQUIRE( tribe.muskets == 0 );
+    REQUIRE( tribe.horse_herds == 0 );
+    REQUIRE( tribe.horse_breeding == 0 );
+
+    tribe.muskets        = 1;
+    tribe.horse_herds    = 1;
+    tribe.horse_breeding = 1;
+    f();
+    REQUIRE( tribe.muskets == 1 );
+    REQUIRE( tribe.horse_herds == 1 );
+    REQUIRE( tribe.horse_breeding == 1 );
+
+    tribe.muskets        = 2;
+    tribe.horse_herds    = 2;
+    tribe.horse_breeding = 2;
+    f();
+    REQUIRE( tribe.muskets == 2 );
+    REQUIRE( tribe.horse_herds == 2 );
+    REQUIRE( tribe.horse_breeding == 2 );
+
+    tribe.muskets        = 3;
+    tribe.horse_herds    = 3;
+    tribe.horse_breeding = 3;
+    f();
+    REQUIRE( tribe.muskets == 3 );
+    REQUIRE( tribe.horse_herds == 3 );
+    REQUIRE( tribe.horse_breeding == 3 );
+
+    tribe.muskets        = 4;
+    tribe.horse_herds    = 4;
+    tribe.horse_breeding = 5;
+    f();
+    REQUIRE( tribe.muskets == 4 );
+    REQUIRE( tribe.horse_herds == 3 );
+    REQUIRE( tribe.horse_breeding == 4 );
+
+    tribe.muskets        = 4;
+    tribe.horse_herds    = 5;
+    tribe.horse_breeding = 6;
+    f();
+    REQUIRE( tribe.muskets == 4 );
+    REQUIRE( tribe.horse_herds == 4 );
+    REQUIRE( tribe.horse_breeding == 5 );
+
+    tribe.muskets        = 16;
+    tribe.horse_herds    = 16;
+    tribe.horse_breeding = 16;
+    f();
+    REQUIRE( tribe.muskets == 16 );
+    REQUIRE( tribe.horse_herds == 12 );
+    REQUIRE( tribe.horse_breeding == 12 );
+  }
 }
 
 } // namespace
