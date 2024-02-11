@@ -47,7 +47,8 @@ end
 -- Tabs.
 -----------------------------------------------------------------
 local function create_tabs()
-  local modules = require( TABS_MODULE )
+  local ok, modules = pcall( require, TABS_MODULE )
+  modules = ok and modules or { 'exe/main' }
   for _, stem in ipairs( modules ) do
     open_module( stem )
     -- This is optional but allows us to see the tabs appearing
