@@ -68,7 +68,7 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
   bool const take_horses =
       !has_horses &&
       ( tribe.horse_breeding >=
-        config_natives.arms.horses_per_mounted_brave );
+        config_natives.arms.internal_horses_per_mounted_brave );
 
   bool const depletes_muskets = [&] {
     return take_muskets &&
@@ -91,7 +91,8 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
       .muskets_delta = depletes_muskets ? -1 : 0,
       .horse_breeding_delta =
           depletes_horses
-              ? -config_natives.arms.horses_per_mounted_brave
+              ? -config_natives.arms
+                     .internal_horses_per_mounted_brave
               : 0,
   };
 }
@@ -104,7 +105,7 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
 void retain_horses_from_destroyed_brave( SSConst const& ss,
                                          Tribe&         tribe ) {
   int const& delta =
-      config_natives.arms.horses_per_mounted_brave;
+      config_natives.arms.internal_horses_per_mounted_brave;
   add_to_horse_breeding( ss, tribe.type, delta,
                          tribe.horse_breeding );
 }
@@ -120,7 +121,8 @@ void gain_horses_from_winning_combat( Tribe& tribe ) {
 void acquire_muskets_from_colony_raid( Tribe& tribe,
                                        int    quantity ) {
   if( quantity == 0 ) return;
-  int const& delta = config_natives.arms.muskets_per_armed_brave;
+  int const& delta =
+      config_natives.arms.internal_muskets_per_armed_brave;
   // This should also have been valided by the config validator.
   CHECK_GT( delta, 0 );
   tribe.muskets += clamp( quantity / delta, 1, 2 );
@@ -132,7 +134,7 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
   if( quantity == 0 ) return;
   ++tribe.horse_herds;
   int const& delta =
-      config_natives.arms.horses_per_mounted_brave;
+      config_natives.arms.internal_horses_per_mounted_brave;
   add_to_horse_breeding( ss, tribe.type, delta,
                          tribe.horse_breeding );
 }

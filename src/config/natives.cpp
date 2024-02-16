@@ -131,13 +131,13 @@ base::valid_or<string> config_natives_t::validate() const {
 }
 
 base::valid_or<string> config::natives::Arms::validate() const {
-  REFL_VALIDATE(
-      muskets_per_armed_brave > 0,
-      "muskets_per_armed_brave must be larger than 0." );
+  REFL_VALIDATE( internal_muskets_per_armed_brave > 0,
+                 "internal_muskets_per_armed_brave must be "
+                 "larger than 0." );
 
-  REFL_VALIDATE(
-      horses_per_mounted_brave > 0,
-      "horses_per_mounted_brave must be larger than 0." );
+  REFL_VALIDATE( internal_horses_per_mounted_brave > 0,
+                 "internal_horses_per_mounted_brave must be "
+                 "larger than 0." );
 
   for( bool const muskets : { false, true } ) {
     for( bool const horses : { false, true } ) {
