@@ -155,28 +155,21 @@ Inter-tribe Trade
 Indian Advisor Report
 ---------------------
 
-  * The muskets readout does not appear to be stored anywhere;
-    instead it is computed as follows:
+  * In the OG the muskets readout does not appear to be stored
+    anywhere; instead it is computed as follows:
 
-       Muskets = 50*muskets + 50*armed_braves_count
-                            + 50*mounted_warriors_count
+      Muskets = 50*muskets + 50*armed_braves_count
+                           + 50*mounted_warriors_count
 
-    That said, we may do this readout a bit differently. This is
-    because the value of `muskets` can arm an arbitrary number of
-    braves due to the randomness with which `muskets` is de-
-    creased. Therefore, if we use the above formula, then the
-    total muskets that a tribe has can appear to increase, which
-    isn't sensical to the player (though note that on Discoverer,
-    `muskets` is always decreased, and so this readout is accu-
-    rate/conserved on that difficulty level). Instead maybe we'll
-    separate it into two fields:
-
-       Musket Reserves = 50*muskets
-       Armed Units     = 50*armed_braves_count
-                       + 50*mounted_warriors_count
-
-    Then on higher difficulty levels, one could say that the na-
-    tives use the reserves more efficiently.
+    Note that due to the probabilistic nature with which reserves
+    are depleted, this can cause total muskets to increase with
+    time, which might be a bit confusing to the player, since the
+    natives are not supposed to be able to produce their own mus-
+    kets. But, it is not clear how to report it otherwise. Even
+    if we separate the readouts for musket reserves from those
+    held by armed units, the reserves could still increase if
+    e.g. a brave is armed while not depleting reserves, then that
+    same brave is destroyed and the tribe retains the muskets.
 
 Difficulty Level
 ----------------

@@ -57,32 +57,6 @@ Musket Loss
   * Dwellings have not been observed to sell muskets, so not sure
     what would happen if they did.
 
-Indian Advisor Report
----------------------
-
-  * The muskets readout does not appear to be stored anywhere;
-    instead it is computed as follows:
-
-       Muskets = 50*muskets + 50*armed_braves_count
-                            + 50*mounted_warriors_count
-
-    That said, we may do this readout a bit differently. This is
-    because the value of `muskets` can arm an arbitrary number of
-    braves due to the randomness with which `muskets` is de-
-    creased. Therefore, if we use the above formula, then the
-    total muskets that a tribe has can appear to increase, which
-    isn't sensical to the player (though note that on Discoverer,
-    `muskets` is always decreased, and so this readout is accu-
-    rate/conserved on that difficulty level). Instead maybe we'll
-    separate it into two fields:
-
-       Musket Reserves = 50*muskets
-       Armed Units     = 50*armed_braves_count
-                       + 50*mounted_warriors_count
-
-    Then on higher difficulty levels, one could say that the na-
-    tives use the reserves more efficiently.
-
 Native Horses
 =============
 
@@ -125,9 +99,3 @@ Inter-tribe Trade
     some mechanism for preventing this. As part of implementing
     horse trading properly, we probably need to figure out how
     braves move.
-
-Indian Advisor Report
----------------------
-
-  * The horses readout on the indian advisor report does not in-
-    clude the herds held by braves.

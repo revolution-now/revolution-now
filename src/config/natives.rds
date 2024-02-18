@@ -375,6 +375,9 @@ struct.Arms {
   internal_muskets_per_armed_brave 'int',
   internal_horses_per_mounted_brave 'int',
 
+  display_muskets_per_armed_brave 'int',
+  display_horses_per_mounted_brave 'int',
+
   retention_after_death 'refl::enum_map<e_brave_equipment, config::Probability>',
 
   max_horse_breeding 'refl::enum_map<e_native_level, MaxHorseBreeding>',

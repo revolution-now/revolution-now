@@ -715,6 +715,15 @@ arms {
   # non-internal (display) one below.
   internal_horses_per_mounted_brave: 25
 
+  # Each unit of muskets (horses) or armed (mounted) braves will
+  # be multiplied by this value for the purpose of display on the
+  # indian advisor report. As such, these values don't affect
+  # gameplay; they are chosen to be 50 in order to mirror the
+  # quantities needed for arming/mounting European units so as to
+  # make them more intuitive for the player to understand.
+  display_muskets_per_armed_brave:  50
+  display_horses_per_mounted_brave: 50
+
   # When a brave is destroyed and that brave posesses muskets or
   # horses (or both), these give the probability that the tribe
   # will retain those things. In the case of a mounted warrior

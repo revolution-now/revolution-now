@@ -15,6 +15,7 @@
 
 // Revolution Now
 #include "irand.hpp"
+#include "unit-mgr.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -25,6 +26,7 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/tribe.rds.hpp"
+#include "ss/units.hpp"
 
 using namespace std;
 
@@ -197,6 +199,48 @@ void adjust_arms_on_dwelling_destruction( SSConst const& ss,
   // we're destroying the last dwelling, since that has no effect
   // on gameplay.
   if( destroying_last_dwelling ) tribe.muskets = 0;
+}
+
+ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
+    SSConst const& ss, Tribe const& tribe ) {
+  auto count_units_of_type = [&]( e_native_unit_type type ) {
+    int count = 0;
+    for( auto& [id, p_state] : ss.units.native_all() ) {
+      if( tribe_for_unit( ss, p_state->unit ).type !=
+          tribe.type )
+        continue;
+      if( p_state->unit.type != type ) continue;
+      ++count;
+    }
+    return count;
+  };
+
+  int const armed_brave_count =
+      count_units_of_type( e_native_unit_type::armed_brave );
+  int const mounted_brave_count =
+      count_units_of_type( e_native_unit_type::mounted_brave );
+  int const mounted_warrior_count =
+      count_units_of_type( e_native_unit_type::mounted_warrior );
+
+  int const horse_breeding_count =
+      tribe.horse_breeding /
+      config_natives.arms.internal_horses_per_mounted_brave;
+
+  int const musket_units = tribe.muskets         //
+                           + armed_brave_count   //
+                           + mounted_warrior_count;
+  int const horse_units = tribe.horse_herds      //
+                          + horse_breeding_count //
+                          + mounted_brave_count  //
+                          + mounted_warrior_count;
+
+  return {
+      .muskets =
+          config_natives.arms.display_muskets_per_armed_brave *
+          musket_units,
+      .horses =
+          config_natives.arms.display_horses_per_mounted_brave *
+          horse_units };
 }
 
 } // namespace rn

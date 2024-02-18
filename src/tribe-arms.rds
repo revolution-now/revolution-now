@@ -18,3 +18,38 @@ struct.EquippedBrave {
   muskets_delta 'int',
   horse_breeding_delta 'int',
 }
+
+struct.ArmsReportForIndianAdvisorReport {
+  # In the OG the muskets readout does not appear to be stored
+  # anywhere; instead it is computed as follows:
+  #
+  #   Muskets = 50*muskets
+  #           + 50*armed_brave_count
+  #           + 50*mounted_warrior_count
+  #
+  # Note that due to the probabilistic nature with which reserves
+  # are depleted, this can cause total muskets to increase with
+  # time, which might be a bit confusing to the player, since the
+  # natives are not supposed to be able to produce their own mus-
+  # kets. But, it is not clear how to report it otherwise. Even
+  # if we separate the readouts for musket reserves from those
+  # held by armed units, the reserves could still increase if
+  # e.g. a brave is armed while not depleting reserves, then that
+  # same brave is destroyed and the tribe retains the muskets.
+  muskets 'int',
+
+  # In the OG this is literally just horse_herds; does not in-
+  # clude horse breeding numbers or horses held by braves.
+  #
+  # However, that number as such probably won't be very helpful
+  # or meaningful to the player, so in the NG we do it a bit dif-
+  # ferently in order to make it consistent with how muskets are
+  # done:
+  #
+  #   Horses = 50*horse_herds
+  #          + 50*floor( horse_breeding/25 )
+  #          + 50*mounted_brave_count
+  #          + 50*mounted_warrior_count
+  #
+  horses 'int',
+}

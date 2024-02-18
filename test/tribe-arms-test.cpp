@@ -19,6 +19,7 @@
 #include "test/mocks/irand.hpp"
 
 // ss
+#include "src/ss/dwelling.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/terrain.hpp"
@@ -1013,6 +1014,110 @@ TEST_CASE( "[tribe-arms] adjust_arms_on_dwelling_destruction" ) {
     REQUIRE( tribe.horse_herds == 12 );
     REQUIRE( tribe.horse_breeding == 12 );
   }
+}
+
+TEST_CASE( "[tribe-arms] tribe_arms_for_advisor_report" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  ArmsReportForIndianAdvisorReport expected;
+
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::sioux ).id;
+
+  auto f = [&] {
+    return tribe_arms_for_advisor_report( W.ss().as_const,
+                                          as_const( tribe ) );
+  };
+
+  auto add_unit = [&]( e_native_unit_type type ) {
+    W.add_native_unit_on_map( type, { .x = 0, .y = 0 },
+                              dwelling_id );
+  };
+
+  tribe.muskets        = 0;
+  tribe.horse_herds    = 0;
+  tribe.horse_breeding = 0;
+
+  expected = { .muskets = 0, .horses = 0 };
+  REQUIRE( f() == expected );
+
+  tribe.muskets += 1;
+  expected = { .muskets = 1 * 50, .horses = 0 };
+  REQUIRE( f() == expected );
+
+  tribe.muskets += 1;
+  expected = { .muskets = 2 * 50, .horses = 0 };
+  REQUIRE( f() == expected );
+
+  tribe.muskets += 7;
+  expected = { .muskets = 9 * 50, .horses = 0 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_herds += 1;
+  expected = { .muskets = 9 * 50, .horses = 1 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_herds += 1;
+  expected = { .muskets = 9 * 50, .horses = 2 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_herds += 3;
+  expected = { .muskets = 9 * 50, .horses = 5 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_breeding += 1;
+  expected = { .muskets = 9 * 50, .horses = 5 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_breeding += 23;
+  expected = { .muskets = 9 * 50, .horses = 5 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_breeding += 1;
+  expected = { .muskets = 9 * 50, .horses = 6 * 50 };
+  REQUIRE( f() == expected );
+
+  tribe.horse_breeding += 25;
+  expected = { .muskets = 9 * 50, .horses = 7 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::brave );
+  expected = { .muskets = 9 * 50, .horses = 7 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::armed_brave );
+  expected = { .muskets = 10 * 50, .horses = 7 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::armed_brave );
+  expected = { .muskets = 11 * 50, .horses = 7 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::mounted_brave );
+  expected = { .muskets = 11 * 50, .horses = 8 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::mounted_brave );
+  expected = { .muskets = 11 * 50, .horses = 9 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::mounted_warrior );
+  expected = { .muskets = 12 * 50, .horses = 10 * 50 };
+  REQUIRE( f() == expected );
+
+  add_unit( e_native_unit_type::mounted_warrior );
+  expected = { .muskets = 13 * 50, .horses = 11 * 50 };
+  REQUIRE( f() == expected );
+
+  // Make sure that units from other tribes are not counted.
+  DwellingId const aztec_dwelling_id =
+      W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::aztec ).id;
+  W.add_native_unit_on_map( e_native_unit_type::mounted_warrior,
+                            { .x = 0, .y = 0 },
+                            aztec_dwelling_id );
+  expected = { .muskets = 13 * 50, .horses = 11 * 50 };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

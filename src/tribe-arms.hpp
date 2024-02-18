@@ -91,4 +91,9 @@ void evolve_tribe_horse_breeding( SSConst const& ss,
 void adjust_arms_on_dwelling_destruction( SSConst const& ss,
                                           Tribe&         tribe );
 
+// NOTE: this is an expensive call, so should probably not be
+// called every frame.
+ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
+    SSConst const& ss, Tribe const& tribe );
+
 } // namespace rn
