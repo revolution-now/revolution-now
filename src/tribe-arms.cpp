@@ -318,4 +318,13 @@ void on_receive_horses_via_reparations( SSConst const& ss,
     demander.type = find_brave( has_muskets, /*horses=*/true );
 }
 
+void perform_inter_tribe_horses_trade( Tribe& tribe1,
+                                       Tribe& tribe2 ) {
+  int const max_horse_herds =
+      std::max( tribe1.horse_herds, tribe2.horse_herds );
+
+  tribe1.horse_herds = max_horse_herds;
+  tribe2.horse_herds = max_horse_herds;
+}
+
 } // namespace rn
