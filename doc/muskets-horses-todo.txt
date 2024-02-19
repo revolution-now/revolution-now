@@ -11,26 +11,11 @@ Native Muskets
 Acquisition
 -----------
 
-  * When muskets are demanded via reparations and the brave
-    asking does not have muskets then it will immediately acquire
-    muskets and the tribe's stockpile will remain the same. If
-    the brave asking already has muskets then the muskets will be
-    added to the tribe's stockpile. The amount demanded and/or
-    received does not seem to affect the amount that the tribe
-    actually takes; the tribe always seems to take one unit, i.e.
-    arming one brave or increasing the stockpile by 1.
-
   * There does not seem to be any inter-tribe trading of muskets.
     The SG mentions it though, so it may be a bug that it is
     omitted, or perhaps we just don't know the mechanism. It does
     not seem to happen automatically when braves of two tribes
     come into contact as is done with horses.
-
-Musket Loss
------------
-
-  * Dwellings have not been observed to sell muskets, so not sure
-    what would happen if they did.
 
 Native Horses
 =============
@@ -38,16 +23,7 @@ Native Horses
 Acquisition
 -----------
 
-  * Demanding horses as reparations (probably is a part of the
-    usual demands of whatever commodities the colony has in
-    stock). In this case horse_herds goes up by one. The brave
-    also gets horses. horse_breeding may go up, but not sure.
-
   * Inter-tribe trade.
-
-  * When horses are acquired by combat only horse_herds increases
-    by 1 since the brave will take the horses, which is equiva-
-    lent to 25 horse_breeding.
 
 Inter-tribe Trade
 -----------------

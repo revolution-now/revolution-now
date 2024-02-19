@@ -17,6 +17,7 @@ namespace rn {
 
 struct Tribe;
 struct IRand;
+struct NativeUnit;
 struct SSConst;
 
 /****************************************************************
@@ -111,5 +112,16 @@ void on_horses_sold_to_tribe( SSConst const& ss, Tribe& tribe,
 void on_muskets_gifted_to_tribe( Tribe& tribe );
 void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
                                 int amount );
+
+// This is called when a brave demands muskets via reparations
+// and the european nation concedes.
+void on_receive_muskets_via_reparations( Tribe&      tribe,
+                                         NativeUnit& demander );
+
+// This is called when a brave demands horses via reparations and
+// the european nation concedes.
+void on_receive_horses_via_reparations( SSConst const& ss,
+                                        Tribe&         tribe,
+                                        NativeUnit& demander );
 
 } // namespace rn

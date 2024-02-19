@@ -20,6 +20,7 @@
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
+#include "src/ss/native-unit.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/terrain.hpp"
@@ -1319,6 +1320,111 @@ TEST_CASE( "[tribe-arms] on_horses_gifted_to_tribe" ) {
   REQUIRE( tribe.horse_herds == 9 );
   REQUIRE( tribe.horse_breeding == 54 );
   REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+}
+
+TEST_CASE( "[tribe-arms] on_receive_muskets_via_reparations" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::arawak );
+
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
+
+  NativeUnit& demander = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 0 },
+      dwelling_id );
+
+  auto f = [&] {
+    return on_receive_muskets_via_reparations( tribe, demander );
+  };
+
+  demander.type = e_native_unit_type::brave;
+  tribe.muskets = 0;
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::armed_brave );
+  REQUIRE( tribe.muskets == 0 );
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::armed_brave );
+  REQUIRE( tribe.muskets == 1 );
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::armed_brave );
+  REQUIRE( tribe.muskets == 2 );
+
+  demander.type = e_native_unit_type::mounted_brave;
+
+  f();
+  REQUIRE( demander.type ==
+           e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.muskets == 2 );
+
+  f();
+  REQUIRE( demander.type ==
+           e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.muskets == 3 );
+}
+
+TEST_CASE( "[tribe-arms] on_receive_horses_via_reparations" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::arawak );
+
+  DwellingId const dwelling_id =
+      W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
+
+  NativeUnit& demander = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 0, .y = 0 },
+      dwelling_id );
+
+  auto f = [&] {
+    return on_receive_horses_via_reparations( W.ss(), tribe,
+                                              demander );
+  };
+
+  demander.type        = e_native_unit_type::brave;
+  tribe.horse_herds    = 0;
+  tribe.horse_breeding = 0;
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::mounted_brave );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::mounted_brave );
+  REQUIRE( tribe.horse_herds == 2 );
+  REQUIRE( tribe.horse_breeding == 25 );
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::mounted_brave );
+  REQUIRE( tribe.horse_herds == 3 );
+  REQUIRE( tribe.horse_breeding == 50 );
+
+  f();
+  REQUIRE( demander.type == e_native_unit_type::mounted_brave );
+  REQUIRE( tribe.horse_herds == 4 );
+  REQUIRE( tribe.horse_breeding == 64 );
+
+  demander.type        = e_native_unit_type::armed_brave;
+  tribe.horse_breeding = 0;
+
+  f();
+  REQUIRE( demander.type ==
+           e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.horse_herds == 5 );
+  REQUIRE( tribe.horse_breeding == 0 );
+
+  f();
+  REQUIRE( demander.type ==
+           e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.horse_herds == 6 );
+  REQUIRE( tribe.horse_breeding == 25 );
+
+  f();
+  REQUIRE( demander.type ==
+           e_native_unit_type::mounted_warrior );
+  REQUIRE( tribe.horse_herds == 7 );
+  REQUIRE( tribe.horse_breeding == 50 );
 }
 
 } // namespace

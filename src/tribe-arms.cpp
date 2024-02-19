@@ -283,4 +283,40 @@ void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
                          tribe.horse_breeding );
 }
 
+void on_receive_muskets_via_reparations( Tribe&      tribe,
+                                         NativeUnit& demander ) {
+  bool const has_muskets =
+      config_natives.arms
+          .equipment[demander.type][e_brave_equipment::muskets];
+  bool const has_horses =
+      config_natives.arms
+          .equipment[demander.type][e_brave_equipment::horses];
+
+  if( has_muskets )
+    ++tribe.muskets;
+  else
+    demander.type = find_brave( /*muskets=*/true, has_horses );
+}
+
+void on_receive_horses_via_reparations( SSConst const& ss,
+                                        Tribe&         tribe,
+                                        NativeUnit& demander ) {
+  bool const has_muskets =
+      config_natives.arms
+          .equipment[demander.type][e_brave_equipment::muskets];
+  bool const has_horses =
+      config_natives.arms
+          .equipment[demander.type][e_brave_equipment::horses];
+
+  ++tribe.horse_herds;
+
+  if( has_horses )
+    add_to_horse_breeding(
+        ss, tribe.type,
+        config_natives.arms.internal_horses_per_mounted_brave,
+        tribe.horse_breeding );
+  else
+    demander.type = find_brave( has_muskets, /*horses=*/true );
+}
+
 } // namespace rn
