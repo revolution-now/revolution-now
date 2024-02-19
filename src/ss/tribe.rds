@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # ss
+include "ss/commodity.rds.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
 
@@ -74,6 +75,13 @@ struct.Tribe {
   # These are the horses used to mount braves.
   horse_herds 'int',
   horse_breeding 'int',
+
+  # Stock of each good used for trading. Only increased when
+  # goods are sold to the tribe (as opposed to gifted). Muskets
+  # and horses in this stock do not contribute to those needed to
+  # arm or mount braves; these are for trading only. It also de-
+  # creases by a certain amount per turn.
+  stock 'refl::enum_map<e_commodity, int>',
 
   # Describes a tribe's relationship with a European nation. If a
   # the initial encounter has not yet happened then it will as-
