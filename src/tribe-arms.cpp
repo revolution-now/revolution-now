@@ -318,13 +318,23 @@ void on_receive_horses_via_reparations( SSConst const& ss,
     demander.type = find_brave( has_muskets, /*horses=*/true );
 }
 
-void perform_inter_tribe_horses_trade( Tribe& tribe1,
-                                       Tribe& tribe2 ) {
+bool perform_inter_tribe_trade( Tribe& tribe1, Tribe& tribe2 ) {
   int const max_horse_herds =
       std::max( tribe1.horse_herds, tribe2.horse_herds );
 
+  bool const trade_performed =
+      ( tribe1.horse_herds != max_horse_herds ) ||
+      ( tribe2.horse_herds != max_horse_herds );
+
   tribe1.horse_herds = max_horse_herds;
   tribe2.horse_herds = max_horse_herds;
+
+  // Muskets. The OG does not seem to do inter-tribe musket trad-
+  // ing, despite the SG alluding to it. If it does have it, it
+  // does not work in the same way that inter-tribe horse trading
+  // works.
+
+  return trade_performed;
 }
 
 } // namespace rn

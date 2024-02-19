@@ -1427,14 +1427,14 @@ TEST_CASE( "[tribe-arms] on_receive_horses_via_reparations" ) {
   REQUIRE( tribe.horse_breeding == 50 );
 }
 
-TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
+TEST_CASE( "[tribe-arms] perform_inter_tribe_trade" ) {
   World W;
 
   Tribe& tribe1 = W.add_tribe( e_tribe::arawak );
   Tribe& tribe2 = W.add_tribe( e_tribe::sioux );
 
-  auto f = [&] {
-    perform_inter_tribe_horses_trade( tribe1, tribe2 );
+  auto f = [&]() -> bool {
+    return perform_inter_tribe_trade( tribe1, tribe2 );
   };
 
   tribe1.muskets        = 0;
@@ -1444,7 +1444,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   tribe2.horse_herds    = 0;
   tribe2.horse_breeding = 0;
 
-  f();
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 0 );
   REQUIRE( tribe1.horse_herds == 0 );
   REQUIRE( tribe1.horse_breeding == 0 );
@@ -1453,7 +1453,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe2.muskets = 1;
-  f();
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 0 );
   REQUIRE( tribe1.horse_herds == 0 );
   REQUIRE( tribe1.horse_breeding == 0 );
@@ -1462,7 +1462,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe1.muskets = 8;
-  f();
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 0 );
   REQUIRE( tribe1.horse_breeding == 0 );
@@ -1471,7 +1471,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe2.muskets = 4;
-  f();
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 0 );
   REQUIRE( tribe1.horse_breeding == 0 );
@@ -1480,7 +1480,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe1.horse_breeding = 50;
-  f();
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 0 );
   REQUIRE( tribe1.horse_breeding == 50 );
@@ -1489,7 +1489,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe1.horse_herds = 3;
-  f();
+  REQUIRE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 3 );
   REQUIRE( tribe1.horse_breeding == 50 );
@@ -1498,7 +1498,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe2.horse_herds = 1;
-  f();
+  REQUIRE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 3 );
   REQUIRE( tribe1.horse_breeding == 50 );
@@ -1507,7 +1507,7 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe2.horse_herds = 99;
-  f();
+  REQUIRE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 99 );
   REQUIRE( tribe1.horse_breeding == 50 );
@@ -1516,7 +1516,15 @@ TEST_CASE( "[tribe-arms] inter-tribe muskets/horses trading" ) {
   REQUIRE( tribe2.horse_breeding == 0 );
 
   tribe2.horse_herds = 0;
-  f();
+  REQUIRE( f() );
+  REQUIRE( tribe1.muskets == 8 );
+  REQUIRE( tribe1.horse_herds == 99 );
+  REQUIRE( tribe1.horse_breeding == 50 );
+  REQUIRE( tribe2.muskets == 4 );
+  REQUIRE( tribe2.horse_herds == 99 );
+  REQUIRE( tribe2.horse_breeding == 0 );
+
+  REQUIRE_FALSE( f() );
   REQUIRE( tribe1.muskets == 8 );
   REQUIRE( tribe1.horse_herds == 99 );
   REQUIRE( tribe1.horse_breeding == 50 );

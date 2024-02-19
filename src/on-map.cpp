@@ -23,6 +23,7 @@
 #include "minds.hpp"
 #include "society.hpp"
 #include "treasure.hpp"
+#include "tribe-arms.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unsentry.hpp"
@@ -31,14 +32,19 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/tribe.rds.hpp"
 #include "ss/units.hpp"
 
 // config
 #include "config/nation.rds.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -175,6 +181,64 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
   }
 }
 
+[[nodiscard]] bool try_perform_inter_tribe_trade_impl(
+    SS& ss, Tribe& unit_tribe, Coord center_tile ) {
+  Tribe& tribe1          = unit_tribe;
+  bool   trade_performed = false;
+  for( e_direction d : refl::enum_values<e_direction> ) {
+    Coord const surrounding_tile = center_tile.moved( d );
+    maybe<MapSquare const&> square =
+        ss.terrain.maybe_square_at( surrounding_tile );
+    if( !square.has_value() ) continue;
+    maybe<Society> const society =
+        society_on_square( ss, surrounding_tile );
+    if( !society.has_value() ) continue;
+    SWITCH( *society ) {
+      CASE( european ) { break; }
+      CASE( native ) {
+        if( native.tribe == unit_tribe.type ) continue;
+        Tribe& tribe2 = ss.natives.tribe_for( native.tribe );
+        // This method should be idempotent.
+        if( perform_inter_tribe_trade( tribe1, tribe2 ) )
+          trade_performed = true;
+        break;
+      }
+    }
+  }
+  return trade_performed;
+}
+
+void try_perform_inter_tribe_trade(
+    SS& ss, NativeUnitId native_unit_id ) {
+  Coord const unit_loc = ss.units.coord_for( native_unit_id );
+  NativeUnit const& native_unit =
+      ss.units.unit_for( native_unit_id );
+  Tribe& unit_tribe = tribe_for_unit( ss, native_unit );
+
+  // We need to do this twice due to the way that the inter-tribe
+  // trading mechanism works. When two tribes trade, their
+  // horse_herds (for both tribes) will become the max of the
+  // two. This means that if it happens (rare) that there are
+  // three tribes that are now adjacent, we need to do a second
+  // pass just in case the second trade involves a higher quan-
+  // tity than the first trade. In other words, if there tribes
+  // are in contact, we want all three tribes to end up with the
+  // same number of horse_herds, and that value should be the max
+  // value of the three before the trades. And we need two passes
+  // to ensure that when there are more than two total tribes in-
+  // volved in the trade. That said, if the first pass doesn't do
+  // any trading then there is no need to call the second.
+  //
+  // In the "normal" case where there are only two tribes in-
+  // volved, the second one should be a no-op since overall
+  // inter-tribe trading should be idempotent.
+  if( try_perform_inter_tribe_trade_impl( ss, unit_tribe,
+                                          unit_loc ) )
+    // Second pass; guaranteed to be sufficient.
+    (void)try_perform_inter_tribe_trade_impl( ss, unit_tribe,
+                                              unit_loc );
+}
+
 } // namespace
 
 /****************************************************************
@@ -218,6 +282,9 @@ void UnitOnMapMover::native_unit_to_map_non_interactive(
 
   // 2. Unsentry surrounding european units.
   unsentry_units_next_to_tile( ss, dst_tile );
+
+  // 3. Perform inter-tribe trade if adjacent to another tribe.
+  try_perform_inter_tribe_trade( ss, id );
 }
 
 wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(

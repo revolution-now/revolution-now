@@ -26,6 +26,7 @@
 #include "src/ss/dwelling.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/terrain.hpp"
+#include "src/ss/tribe.rds.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -68,7 +69,7 @@ struct World : testing::World {
     MapSquare const L = make_grassland();
     // clang-format off
     vector<MapSquare> tiles{
-      _, L, _, L, L, L,
+      _, L, L, L, L, L,
       L, L, L, L, L, L,
       _, L, L, L, L, L,
       _, L, L, L, L, L,
@@ -368,8 +369,8 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "[on-map] non-interactive: native_unit_to_map_interactive "
-    "meets europeans" ) {
+    "[on-map] interactive: native_unit_to_map_interactive meets "
+    "europeans" ) {
   World W;
   W.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 1, .y = 1 }, e_nation::dutch );
@@ -391,6 +392,98 @@ TEST_CASE(
           W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 } );
   REQUIRE( !w.exception() );
   REQUIRE( w.ready() );
+}
+
+TEST_CASE(
+    "[on-map] non-interactive: "
+    "native_unit_to_map_non_interactive performs inter-tribe "
+    "trade" ) {
+  World W;
+
+  auto mv_unit = [&]( NativeUnit const& native_unit,
+                      e_direction       d ) {
+    Coord const curr = W.units().coord_for( native_unit.id );
+    Coord const dst  = curr.moved( d );
+    UnitOnMapMover::native_unit_to_map_non_interactive(
+        W.ss(), native_unit.id, dst );
+  };
+
+  Dwelling const& cherokee_dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::cherokee );
+  Dwelling const& aztec_dwelling =
+      W.add_dwelling( { .x = 3, .y = 1 }, e_tribe::aztec );
+  Dwelling const& iroquois_dwelling =
+      W.add_dwelling( { .x = 5, .y = 1 }, e_tribe::iroquois );
+
+  Tribe& cherokee = W.cherokee();
+  Tribe& aztec    = W.aztec();
+  Tribe& iroquois = W.iroquois();
+
+  cherokee.horse_herds = 1;
+  aztec.horse_herds    = 2;
+  iroquois.horse_herds = 3;
+
+  NativeUnit const& cherokee_brave = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 1, .y = 2 },
+      cherokee_dwelling.id );
+  NativeUnit const& aztec_brave = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 3, .y = 2 },
+      aztec_dwelling.id );
+  NativeUnit const& iroquois_brave = W.add_native_unit_on_map(
+      e_native_unit_type::brave, { .x = 5, .y = 2 },
+      iroquois_dwelling.id );
+
+  REQUIRE( cherokee.horse_herds == 1 );
+  REQUIRE( aztec.horse_herds == 2 );
+  REQUIRE( iroquois.horse_herds == 3 );
+
+  SECTION( "cherokee -> aztec dwelling" ) {
+    mv_unit( cherokee_brave, e_direction::n );
+    REQUIRE( cherokee.horse_herds == 1 );
+    REQUIRE( aztec.horse_herds == 2 );
+    REQUIRE( iroquois.horse_herds == 3 );
+
+    mv_unit( cherokee_brave, e_direction::ne );
+    REQUIRE( cherokee.horse_herds == 2 );
+    REQUIRE( aztec.horse_herds == 2 );
+    REQUIRE( iroquois.horse_herds == 3 );
+  }
+
+  SECTION( "cherokee -> aztec brave" ) {
+    mv_unit( cherokee_brave, e_direction::se );
+    REQUIRE( cherokee.horse_herds == 2 );
+    REQUIRE( aztec.horse_herds == 2 );
+    REQUIRE( iroquois.horse_herds == 3 );
+  }
+
+  SECTION( "aztec -> iroquois brave" ) {
+    mv_unit( iroquois_brave, e_direction::w );
+    REQUIRE( cherokee.horse_herds == 1 );
+    REQUIRE( aztec.horse_herds == 3 );
+    REQUIRE( iroquois.horse_herds == 3 );
+  }
+
+  SECTION( "aztec -> iroquois+cherokee braves" ) {
+    mv_unit( cherokee_brave, e_direction::s );
+    mv_unit( cherokee_brave, e_direction::se );
+    mv_unit( iroquois_brave, e_direction::s );
+    mv_unit( iroquois_brave, e_direction::sw );
+    REQUIRE( cherokee.horse_herds == 1 );
+    REQUIRE( aztec.horse_herds == 2 );
+    REQUIRE( iroquois.horse_herds == 3 );
+
+    // This one tests the case when we need two passes in order
+    // to spread a larger number of horses (3) from a later tribe
+    // (iroquois) to all three tribes. The iroquois are "later"
+    // because they are to the south-east of the aztec, thus the
+    // cherokee (1), which are to their south-west, come first
+    // because of the ordering of the e_direction enum.
+    static_assert( e_direction::sw < e_direction::se );
+    mv_unit( aztec_brave, e_direction::s );
+    REQUIRE( cherokee.horse_herds == 3 );
+    REQUIRE( aztec.horse_herds == 3 );
+    REQUIRE( iroquois.horse_herds == 3 );
+  }
 }
 
 } // namespace

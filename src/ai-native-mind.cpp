@@ -115,14 +115,14 @@ NativeUnitCommand AiNativeMind::command_for(
 
   // TODO: in the OG braves never seem to end up adjacent to
   // braves (or dwellings) of another tribe unless they are
-  // forced to by the positioning of other units around them. The
-  // ai movement weights in the debug info flags seem to allow
-  // them to move adjacent, so maybe there must be some exclusion
-  // mechanism beyond that. It is not statistical -- this has
-  // been observed for hundreds of turns. The times when it hap-
-  // pens seem to be when all of the squares that the unit could
-  // move to would be either invalid or adjacent to another tribe
-  // and so it has no choice.
+  // forced to by the positioning of other units or LCRs around
+  // them. The ai movement weights in the debug info flags seem
+  // to allow them to move adjacent, so maybe there must be some
+  // exclusion mechanism beyond that. It is not statistical --
+  // this has been observed for hundreds of turns. The times when
+  // it happens seem to be when all of the squares that the unit
+  // could move to would be either invalid or adjacent to another
+  // tribe and so it has no choice.
   //
   // Some experiments have shown that a brave will not move onto
   // a tile that is labeled as the land of another tribe, even if
@@ -134,8 +134,12 @@ NativeUnitCommand AiNativeMind::command_for(
   //
   // The reason that this matters is because when one brave moves
   // adjacent to a brave of another tribe, they immediately trade
-  // horses, which can have a significant impact on the game. So
-  // we need to figure out the movement patterns of braves.
+  // horses, which can have a significant impact on the game.
+  // Note that the code that initiates the inter-tribe trade when
+  // a brave moves next to another tribe is handled not in this
+  // AI module but in the code that moves the brave to a new
+  // tile, since it is a deterministic part of the game that
+  // doesn't need any AI.
   e_direction const rand_d = [&] {
     for( e_direction d : refl::enum_values<e_direction> ) {
       Coord const moved = ownership.coord.moved( d );

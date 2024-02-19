@@ -56,9 +56,13 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+        _, L, _, L, L, L, //
+        L, L, L, L, L, L, //
+        _, L, L, L, L, L, //
+        L, L, L, L, L, L, //
+        L, L, L, L, L, L, //
+        L, L, L, L, L, L, //
+        L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -241,17 +245,17 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   sioux.horse_herds    = 1000;
   sioux.horse_breeding = 1000;
   DwellingId const dwelling3_id =
-      W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::sioux ).id;
+      W.add_dwelling( { .x = 0, .y = 5 }, e_tribe::sioux ).id;
   NativeUnitId const brave4_id =
       W.add_native_unit_on_map( e_native_unit_type::brave,
-                                { .x = 1, .y = 0 },
+                                { .x = 1, .y = 4 },
                                 dwelling3_id )
           .id;
-  W.square( { .x = 0, .y = 1 } ).road = true;
+  W.square( { .x = 0, .y = 5 } ).road = true;
   W.natives().mark_land_owned( dwelling3_id,
-                               { .x = 0, .y = 0 } );
+                               { .x = 0, .y = 4 } );
   W.natives().mark_land_owned( dwelling3_id,
-                               { .x = 0, .y = 2 } );
+                               { .x = 0, .y = 6 } );
 
   auto read_owned_land = [&]( Coord coord ) {
     return base::lookup(
@@ -283,10 +287,10 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
   REQUIRE( W.natives().dwelling_exists( dwelling3_id ) );
   REQUIRE( W.units().exists( brave4_id ) );
-  REQUIRE( W.square( { .x = 0, .y = 1 } ).road );
-  REQUIRE( read_owned_land( { .x = 0, .y = 0 } ) ==
+  REQUIRE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE( read_owned_land( { .x = 0, .y = 4 } ) ==
            dwelling3_id );
-  REQUIRE( read_owned_land( { .x = 0, .y = 2 } ) ==
+  REQUIRE( read_owned_land( { .x = 0, .y = 6 } ) ==
            dwelling3_id );
   REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
   REQUIRE_FALSE( W.natives()
@@ -320,10 +324,10 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::iroquois ) );
   REQUIRE( W.natives().dwelling_exists( dwelling3_id ) );
   REQUIRE( W.units().exists( brave4_id ) );
-  REQUIRE( W.square( { .x = 0, .y = 1 } ).road );
-  REQUIRE( read_owned_land( { .x = 0, .y = 0 } ) ==
+  REQUIRE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE( read_owned_land( { .x = 0, .y = 4 } ) ==
            dwelling3_id );
-  REQUIRE( read_owned_land( { .x = 0, .y = 2 } ) ==
+  REQUIRE( read_owned_land( { .x = 0, .y = 6 } ) ==
            dwelling3_id );
   REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
   REQUIRE( W.natives()
@@ -360,10 +364,10 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::iroquois ) );
   REQUIRE_FALSE( W.natives().dwelling_exists( dwelling3_id ) );
   REQUIRE_FALSE( W.units().exists( brave4_id ) );
-  REQUIRE_FALSE( W.square( { .x = 0, .y = 1 } ).road );
-  REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 0 } ) ==
+  REQUIRE_FALSE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 4 } ) ==
                  dwelling3_id );
-  REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 2 } ) ==
+  REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 6 } ) ==
                  dwelling3_id );
   REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::sioux ) );
   REQUIRE( W.natives()

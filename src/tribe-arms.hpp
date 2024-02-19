@@ -128,13 +128,8 @@ void on_receive_horses_via_reparations( SSConst const& ss,
 // jacent to another tribe (brave or dwelling). This actually
 // happens rarely though, since braves of one tribe actively
 // avoid moving next to those of another, unless they have to.
-void perform_inter_tribe_horses_trade( Tribe& tribe1,
-                                       Tribe& tribe2 );
-
-// The OG does not seem to have this, despite the SG alluding to
-// it. If it does have it, it does not work in the same way that
-// inter-tribe horse trading works.
-void perform_inter_tribe_muskets_trade( Tribe& tribe1,
-                                        Tribe& tribe2 ) = delete;
+// Returns true if a trade was actually made.
+[[nodiscard]] bool perform_inter_tribe_trade( Tribe& tribe1,
+                                              Tribe& tribe2 );
 
 } // namespace rn
