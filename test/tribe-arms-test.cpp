@@ -1120,5 +1120,206 @@ TEST_CASE( "[tribe-arms] tribe_arms_for_advisor_report" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[tribe-arms] on_muskets_sold_to_tribe" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&]( int quantity ) {
+    return on_muskets_sold_to_tribe( tribe, quantity );
+  };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 0 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 1 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.muskets == 1 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.muskets == 1 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.muskets == 2 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 50 );
+  REQUIRE( tribe.muskets == 4 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 75 );
+  REQUIRE( tribe.muskets == 6 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f( 100 );
+  REQUIRE( tribe.muskets == 8 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+}
+
+TEST_CASE( "[tribe-arms] on_muskets_gifted_to_tribe" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+
+  auto f = [&] { return on_muskets_gifted_to_tribe( tribe ); };
+
+  REQUIRE( tribe.muskets == 0 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 1 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 2 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 3 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+
+  f();
+  REQUIRE( tribe.muskets == 4 );
+  REQUIRE( tribe.stock[e_commodity::muskets] == 0 );
+}
+
+TEST_CASE( "[tribe-arms] on_horses_sold_to_tribe" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::arawak );
+
+  auto f = [&]( int quantity ) {
+    return on_horses_sold_to_tribe( W.ss(), tribe, quantity );
+  };
+
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 0 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 1 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 6 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 6 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.horse_herds == 2 );
+  REQUIRE( tribe.horse_breeding == 12 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 50 );
+  REQUIRE( tribe.horse_herds == 4 );
+  REQUIRE( tribe.horse_breeding == 24 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 75 );
+  REQUIRE( tribe.horse_herds == 6 );
+  REQUIRE( tribe.horse_breeding == 42 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  // horse_breeding hits the max here.
+  f( 100 );
+  REQUIRE( tribe.horse_herds == 8 );
+  REQUIRE( tribe.horse_breeding == 54 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+}
+
+TEST_CASE( "[tribe-arms] on_horses_gifted_to_tribe" ) {
+  World  W;
+  Tribe& tribe = W.add_tribe( e_tribe::arawak );
+
+  auto f = [&]( int quantity ) {
+    return on_horses_gifted_to_tribe( W.ss(), tribe, quantity );
+  };
+
+  REQUIRE( tribe.horse_herds == 0 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 1 );
+  REQUIRE( tribe.horse_herds == 1 );
+  REQUIRE( tribe.horse_breeding == 0 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 2 );
+  REQUIRE( tribe.horse_breeding == 6 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 3 );
+  REQUIRE( tribe.horse_breeding == 12 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.horse_herds == 4 );
+  REQUIRE( tribe.horse_breeding == 18 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 24 );
+  REQUIRE( tribe.horse_herds == 5 );
+  REQUIRE( tribe.horse_breeding == 24 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 25 );
+  REQUIRE( tribe.horse_herds == 6 );
+  REQUIRE( tribe.horse_breeding == 30 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 50 );
+  REQUIRE( tribe.horse_herds == 7 );
+  REQUIRE( tribe.horse_breeding == 42 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  // horse_breeding hits the max here.
+  f( 75 );
+  REQUIRE( tribe.horse_herds == 8 );
+  REQUIRE( tribe.horse_breeding == 54 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+
+  f( 100 );
+  REQUIRE( tribe.horse_herds == 9 );
+  REQUIRE( tribe.horse_breeding == 54 );
+  REQUIRE( tribe.stock[e_commodity::horses] == 0 );
+}
+
 } // namespace
 } // namespace rn

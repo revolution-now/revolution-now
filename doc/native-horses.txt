@@ -70,8 +70,13 @@ Acquisition
       Gifted
       ------
       Any amount of horses given to the tribe causes horse_herds
-      to go up by 1, and none go to their stock (even just 1
-      horse).
+      to go up by 1, while horse_breeding increases by:
+
+         horse_breeding += floor( traded_amount/4 )
+
+      and none go to their stock (this applies even for just 1
+      horse). Note that all commodities have the property that if
+      you gift them then they do not go to the native stock.
 
   * Counterintuitively, horses in a tribe's stockpile cannot/do
     not transfer directly into either of their military horse

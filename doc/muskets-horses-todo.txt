@@ -11,31 +11,6 @@ Native Muskets
 Acquisition
 -----------
 
-  * Trade: there are two possible types of outcomes when muskets
-    are sold to a tribe via trade, depending on whether the natives
-    are asked to pay for them or whether they are gifted.
-
-      Sold
-      ----
-      When muskets are sold to a dwelling they go into the
-      tribe's "stock", which does not appear to have a limit.
-      Note that the stock decreases at a rate of 2 per turn,
-      though that is probably not relevant here.
-
-      If, in a given sale, they purchase an amount >= 25, then,
-      in addition to those muskets going into their stock as
-      usual, the `muskets` military stockpile goes up by an
-      amount:
-
-        muskets += min( floor( amount_purchased / 25 ), 2 )
-
-      Gifted
-      ------
-      Any amount of muskets given to the tribe causes muskets to
-      go up by 1, and none go to their stock (even just 1 mus-
-      ket). This seems to happen for both civilized and
-      semi-nomadic tribes and on any difficulty level.
-
   * When muskets are demanded via reparations and the brave
     asking does not have muskets then it will immediately acquire
     muskets and the tribe's stockpile will remain the same. If
@@ -62,35 +37,6 @@ Native Horses
 
 Acquisition
 -----------
-
-  * Trade: there are two possible types of outcomes when horses
-    are sold to a tribe via trade, depending on whether the na-
-    tives are asked to pay for them or whether they are gifted.
-
-      Sold
-      ----
-      When horses are sold to a dwelling they go into the tribe's
-      "stock", which does not appear to have a limit. Note that
-      the stock decreases at a rate of 2 per turn, though that is
-      probably not relevant here.
-
-      If, in a given sale, they purchase an amount >= 25, then,
-      in addition to those horses going into their stock as
-      usual, the `horse_herds` military stockpile goes up by an
-      amount:
-
-        horse_herds += min( floor( amount_purchased / 25 ), 2 )
-
-      while the horse_breeding field also goes up by an amount
-      equal to:
-
-         horse_breeding += floor( traded_amount/4 )
-
-      Gifted
-      ------
-      Any amount of horses given to the tribe causes horse_herds
-      to go up by 1, and none go to their stock (even just 1
-      horse).
 
   * Demanding horses as reparations (probably is a part of the
     usual demands of whatever commodities the colony has in

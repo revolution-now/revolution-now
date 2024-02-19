@@ -96,4 +96,20 @@ void adjust_arms_on_dwelling_destruction( SSConst const& ss,
 ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
     SSConst const& ss, Tribe const& tribe );
 
+// These are to be called after muskets have been sold to a tribe
+// (i.e., where the natives have paid for them; if they are
+// gifted then call those methods further below). These are not
+// for adjusting the tribe's stock (that should be done else-
+// where); they are only for adjusting the military stockpiles.
+void on_muskets_sold_to_tribe( Tribe& tribe, int amount );
+void on_horses_sold_to_tribe( SSConst const& ss, Tribe& tribe,
+                              int amount );
+
+// Same as above but for when the muskets/horses are gifted to
+// the natives instead of sold. Somehow the OG has somewhat dif-
+// ferent behavior in those two cases.
+void on_muskets_gifted_to_tribe( Tribe& tribe );
+void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
+                                int amount );
+
 } // namespace rn

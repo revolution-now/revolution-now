@@ -243,4 +243,44 @@ ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
           horse_units };
 }
 
+void on_muskets_sold_to_tribe( Tribe& tribe, int amount ) {
+  int const multiple =
+      config_natives.arms.internal_muskets_per_armed_brave;
+  // The config validator should have checked this.
+  CHECK_GT( multiple, 0 );
+
+  if( amount < multiple ) return;
+
+  tribe.muskets += std::min( amount / multiple, 2 );
+}
+
+void on_horses_sold_to_tribe( SSConst const& ss, Tribe& tribe,
+                              int amount ) {
+  int const multiple =
+      config_natives.arms.internal_horses_per_mounted_brave;
+  // The config validator should have checked this.
+  CHECK_GT( multiple, 0 );
+
+  if( amount < multiple ) return;
+
+  tribe.horse_herds += std::min( amount / multiple, 2 );
+
+  int const horse_breeding_delta = amount / 4;
+  add_to_horse_breeding( ss, tribe.type, horse_breeding_delta,
+                         tribe.horse_breeding );
+}
+
+void on_muskets_gifted_to_tribe( Tribe& tribe ) {
+  ++tribe.muskets;
+}
+
+void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
+                                int amount ) {
+  CHECK_GT( amount, 0 );
+  ++tribe.horse_herds;
+  int const horse_breeding_delta = amount / 4;
+  add_to_horse_breeding( ss, tribe.type, horse_breeding_delta,
+                         tribe.horse_breeding );
+}
+
 } // namespace rn

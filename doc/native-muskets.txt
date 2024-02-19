@@ -41,9 +41,11 @@ Acquisition
       Gifted
       ------
       Any amount of muskets given to the tribe causes muskets to
-      go up by 1, and none go to their stock (even just 1 mus-
-      ket). This seems to happen for both civilized and
-      semi-nomadic tribes and on any difficulty level.
+      go up by 1, and none go to their stock (and this applies
+      for even just 1 musket). This seems to happen for both civ-
+      ilized and semi-nomadic tribes and on any difficulty level.
+      Note that all commodities have the property that if you
+      gift them then they do not go to the native stock.
 
   * Counterintuitively, muskets in a tribe's stockpile cannot/do
     not transfer directly into their military muskets stockpile.
