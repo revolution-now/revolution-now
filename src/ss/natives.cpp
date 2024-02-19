@@ -161,7 +161,7 @@ Tribe const& NativesState::tribe_for( e_tribe tribe ) const {
   return res;
 }
 
-Tribe& NativesState::create_or_add_tribe( e_tribe tribe ) {
+Tribe& NativesState::create_or_get_tribe( e_tribe tribe ) {
   CHECK( dwellings_from_tribe_.contains( tribe ) ==
          o_.tribes[tribe].has_value() );
   if( o_.tribes[tribe].has_value() ) return *o_.tribes[tribe];
@@ -381,12 +381,12 @@ LUA_STARTUP( lua::state& st ) {
   u["new_dwelling"] = [&]( U& o, e_tribe tribe,
                            Coord where ) -> Dwelling& {
     Dwelling dwelling;
-    o.create_or_add_tribe( tribe );
+    o.create_or_get_tribe( tribe );
     DwellingId const id =
         o.add_dwelling( tribe, where, std::move( dwelling ) );
     return o.dwelling_for( id );
   };
-  u["create_or_add_tribe"] = &U::create_or_add_tribe;
+  u["create_or_get_tribe"] = &U::create_or_get_tribe;
   u["mark_land_owned"]     = &U::mark_land_owned;
 };
 

@@ -501,7 +501,7 @@ void World::kill_all_colonies( maybe<e_nation> const nation ) {
 // Creating Native Dwellings.
 // --------------------------------------------------------------
 Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
-  natives().create_or_add_tribe( tribe );
+  natives().create_or_get_tribe( tribe );
   DwellingId const id = natives().add_dwelling(
       tribe, where,
       Dwelling{
@@ -531,7 +531,7 @@ pair<DwellingId, NativeUnitId> World::add_dwelling_and_brave_ids(
 }
 
 Tribe& World::add_tribe( e_tribe tribe ) {
-  return natives().create_or_add_tribe( tribe );
+  return natives().create_or_get_tribe( tribe );
 }
 
 Tribe& World::tribe( e_tribe tribe ) {

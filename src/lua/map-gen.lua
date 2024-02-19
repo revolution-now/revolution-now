@@ -792,7 +792,7 @@ local function add_dwelling( coord, tribe )
   assert( coord )
   local square = square_at( coord )
   local natives = ROOT.natives
-  natives:create_or_add_tribe( tribe )
+  natives:create_or_get_tribe( tribe )
   local dwelling = natives:new_dwelling( tribe, coord )
   dwelling.teaches =
       native_expertise.select_expertise_for_dwelling( dwelling )

@@ -53,7 +53,7 @@ struct NativesState {
   Tribe&       tribe_for( e_tribe tribe );
   Tribe const& tribe_for( e_tribe tribe ) const;
 
-  Tribe& create_or_add_tribe( e_tribe tribe );
+  Tribe& create_or_get_tribe( e_tribe tribe );
 
   // ------------------------------------------------------------
   // Dwellings
