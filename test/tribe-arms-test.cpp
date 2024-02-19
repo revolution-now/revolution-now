@@ -129,7 +129,7 @@ TEST_CASE( "[tribe-arms] retain_horses_from_destroyed_brave" ) {
   f();
   REQUIRE( tribe.muskets == 0 );
   REQUIRE( tribe.horse_herds == 0 );
-  REQUIRE( tribe.horse_breeding == 50 );
+  REQUIRE( tribe.horse_breeding == 52 );
 }
 
 TEST_CASE( "[tribe-arms] gain_horses_from_winning_combat" ) {
@@ -265,7 +265,7 @@ TEST_CASE(
     retain_horses_from_destroyed_brave( W.ss(), *tribe );
   };
 
-  // semi_nomadic: { N=0, M=6,  A=0 }
+  // semi_nomadic: { N=0, M=6 }
   SECTION( "semi-nomadic" ) {
     tribe = &W.add_tribe( e_tribe::sioux );
 
@@ -273,25 +273,25 @@ TEST_CASE(
       W.create_n_dwellings( tribe->type, 0 );
       tribe->horse_breeding = 45;
       f();
-      REQUIRE( tribe->horse_breeding == 50 );
+      REQUIRE( tribe->horse_breeding == 52 );
     }
 
     SECTION( "dwellings=1" ) { // max = 56
       W.create_n_dwellings( tribe->type, 1 );
       tribe->horse_breeding = 51;
       f();
-      REQUIRE( tribe->horse_breeding == 56 );
+      REQUIRE( tribe->horse_breeding == 58 );
     }
 
     SECTION( "dwellings=10" ) { // max = 110
       W.create_n_dwellings( tribe->type, 10 );
       tribe->horse_breeding = 450;
       f();
-      REQUIRE( tribe->horse_breeding == 110 );
+      REQUIRE( tribe->horse_breeding == 112 );
     }
   }
 
-  // agrarian: { N=4, M=10, A=0 }
+  // agrarian: { N=4, M=10 }
   SECTION( "agrarian" ) {
     tribe = &W.add_tribe( e_tribe::cherokee );
 
@@ -317,7 +317,7 @@ TEST_CASE(
     }
   }
 
-  // advanced: { N=6, M=14, A=0 }
+  // advanced: { N=6, M=14 }
   SECTION( "aztec" ) {
     tribe = &W.add_tribe( e_tribe::aztec );
 
@@ -343,7 +343,7 @@ TEST_CASE(
     }
   }
 
-  // civilized: { N=8, M=18, A=0 }
+  // civilized: { N=8, M=18 }
   SECTION( "inca" ) {
     tribe = &W.add_tribe( e_tribe::inca );
 
@@ -799,7 +799,7 @@ TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
   tribe.horse_herds = 1000;
   f();
   REQUIRE( tribe.horse_herds == 1000 );
-  REQUIRE( tribe.horse_breeding == 50 );
+  REQUIRE( tribe.horse_breeding == 52 );
 
   REQUIRE( tribe.muskets == 0 );
 }

@@ -736,18 +736,15 @@ arms {
   # Experiments with the OG show that a tribe's horse_breeding
   # field has a maximum value given by:
   #
-  #   max_value = 50 + N + D*M + A
+  #   max_value = 50 + N + M*D
   #
-  # where D is the number of dwellings, and N, M, A are constants
-  # that are dependent on the native tech level. Strangely, A is
-  # zero in all cases except for Semi-nomadic when D >= 9. Since
-  # that seems to be an anomaly, we'll just let it be zero al-
-  # ways.
+  # where D is the number of dwellings, and N, M are constants
+  # that are dependent on the native tech level.
   max_horse_breeding {
-    semi_nomadic: { N=0, M=6,  A=0 }
-    agrarian:     { N=4, M=10, A=0 }
-    advanced:     { N=6, M=14, A=0 }
-    civilized:    { N=8, M=18, A=0 }
+    semi_nomadic: { N=2, M=6  }
+    agrarian:     { N=4, M=10 }
+    advanced:     { N=6, M=14 }
+    civilized:    { N=8, M=18 }
   }
 
   # How many units of horses/muskets need to be added/removed

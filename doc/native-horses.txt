@@ -153,17 +153,17 @@ Horse Breeding
          1 dwellings:  64  (cherokee) = 50 + 4 +  1*10
 
       Semi-nomadic:
-        13 dwellings: 130  (Sioux)    = 50 + 0 + 13*6 + 2
-         9 dwellings: 106  (Sioux)    = 50 + 0 +  9*6 + 2
-         8 dwellings:  98  (Sioux)    = 50 + 0 +  8*6
-         7 dwellings:  92  (Sioux)    = 50 + 0 +  7*6
-         6 dwellings:  86  (Sioux)    = 50 + 0 +  6*6
-         5 dwellings:  80  (Sioux)    = 50 + 0 +  5*6
-         4 dwellings:  74  (Sioux)    = 50 + 0 +  4*6
-         3 dwellings:  68  (Sioux)    = 50 + 0 +  3*6
-         2 dwellings:  62  (Sioux)    = 50 + 0 +  2*6
-         1 dwellings:  56  (Sioux)    = 50 + 0 +  1*6
-         0 dwellings:  50  (Sioux)    = 50 + 0 +  0*6
+        13 dwellings: 130  (Sioux)    = 50 + 2 + 13*6
+         9 dwellings: 106  (Sioux)    = 50 + 2 +  9*6
+         8 dwellings:  98  (Sioux)    = 50 + 2 +  8*6
+         7 dwellings:  92  (Sioux)    = 50 + 2 +  7*6
+         6 dwellings:  86  (Sioux)    = 50 + 2 +  6*6
+         5 dwellings:  80  (Sioux)    = 50 + 2 +  5*6
+         4 dwellings:  74  (Sioux)    = 50 + 2 +  4*6
+         3 dwellings:  68  (Sioux)    = 50 + 2 +  3*6
+         2 dwellings:  62  (Sioux)    = 50 + 2 +  2*6
+         1 dwellings:  56  (Sioux)    = 50 + 2 +  1*6
+         0 dwellings:  50  (Sioux)    = 50 + 2 +  0*6
 
     If the value somehow ends up larger than this then it will be
     reduced.

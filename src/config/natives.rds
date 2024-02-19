@@ -362,13 +362,12 @@ struct.Combat {
   colony_attack 'config::natives::ColonyAttack',
 }
 
-# The max value for horse_breeding is 50 + N + D*M + A where D is
-# the number of dwellings of the tribe and the other coefficients
-# are here.
+# The max value for horse_breeding is 50 + N + D*M where D is the
+# number of dwellings of the tribe and the other coefficients are
+# here.
 struct.MaxHorseBreeding {
   N 'int',
   M 'int',
-  A 'int',
 }
 
 struct.Arms {
