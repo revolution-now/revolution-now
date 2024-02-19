@@ -45,8 +45,8 @@ int max_horse_breeding( SSConst const& ss, e_tribe tribe_type ) {
   //
   //   max_value = 50 + N + D*M
   //
-  // where D is the number of dwellings, and N, M, A are
-  // constants that are dependent on the native tech level.
+  // where D is the number of dwellings, and N, M are constants
+  // that are dependent on the native tech level.
   return 50 + coefficients.N + num_dwellings * coefficients.M;
 }
 
