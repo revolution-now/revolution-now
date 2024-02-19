@@ -28,8 +28,6 @@ Acquisition
     if the brave already has horses. Note that horse_breeding is
     not increased here because the brave is already receiving the
     horses.
-  * Giving/selling horses to the tribe via trade. Note that this
-    increases horse_breeding as well, by 25.
   * Attacking a colony and stealing horses during a raid. Seems
     to apply even if a small amount (e.g. 10) horses are stolen.
     This appears to increase horse_breeding as well by 25, even
@@ -46,13 +44,46 @@ Acquisition
     * When a scout is captured when speaking to the chief.
     * Attacking a wagon train containing horses.
 
-  * When a new horse herd is given to a tribe via trade, the
-    horse_herds goes up by 1, but the horse_breeding field also
-    goes up by an amount equal to:
+  * Trade: there are two possible types of outcomes when horses
+    are sold to a tribe via trade, depending on whether the na-
+    tives are asked to pay for them or whether they are gifted.
 
-       horse_breeding += floor( traded_amount/4 )
+      Sold
+      ----
+      When horses are sold to a dwelling they go into the tribe's
+      "stock", which does not appear to have a limit. Note that
+      the stock decreases at a rate of 2 per turn, though that is
+      probably not relevant here.
 
-    When horses are acquired by combat only horse_herds increases
+      If, in a given sale, they purchase an amount >= 25, then,
+      in addition to those horses going into their stock as
+      usual, the `horse_herds` military stockpile goes up by an
+      amount:
+
+        horse_herds += min( floor( amount_purchased / 25 ), 2 )
+
+      while the horse_breeding field also goes up by an amount
+      equal to:
+
+         horse_breeding += floor( traded_amount/4 )
+
+      Gifted
+      ------
+      Any amount of horses given to the tribe causes horse_herds
+      to go up by 1, and none go to their stock (even just 1
+      horse).
+
+  * Counterintuitively, horses in a tribe's stockpile cannot/do
+    not transfer directly into either of their military horse
+    stockpiles. It seems that the only way that selling horses to
+    a tribe can increase their military stockpiles (`horse_herds`
+    and `horse_breeding`) is if:
+      1. They are sold for money and, in a single sale, at least
+         25 horses are sold.
+      2. They are gifted, in which case any amount given will re-
+         sult in horses_herds increasing by one.
+
+  * When horses are acquired by combat only horse_herds increases
     by 1 since the brave will take the horses, which is equiva-
     lent to 25 horse_breeding.
 
@@ -63,9 +94,6 @@ Acquisition
     to be determined whether they will voluntarily sell horses if
     they have them and, if so, what effect that has on their
     stock and military stockpiles.
-
-  * If we only trade 1 horse with the natives, horse_herds still
-    increases.
 
 Horse Breeding
 --------------

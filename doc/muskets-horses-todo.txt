@@ -11,30 +11,30 @@ Native Muskets
 Acquisition
 -----------
 
-  * When muskets are sold to a dwelling they go into the tribe's
-    "stock", which does not appear to have a limit. Note that the
-    stockpile decreases at a rate of 1 per turn, though that is
-    probably not relevant here (and this behavior is probably
-    similar to trading other commodities).
+  * Trade: there are two possible types of outcomes when muskets
+    are sold to a tribe via trade, depending on whether the natives
+    are asked to pay for them or whether they are gifted.
 
-    If, in a given sale, they purchase an amount >= 25, then, in
-    addition to those muskets going into their stockpile as usual,
-    the `muskets` military stockpile goes up by an amount:
+      Sold
+      ----
+      When muskets are sold to a dwelling they go into the
+      tribe's "stock", which does not appear to have a limit.
+      Note that the stock decreases at a rate of 2 per turn,
+      though that is probably not relevant here.
+
+      If, in a given sale, they purchase an amount >= 25, then,
+      in addition to those muskets going into their stock as
+      usual, the `muskets` military stockpile goes up by an
+      amount:
 
         muskets += min( floor( amount_purchased / 25 ), 2 )
 
-    So in other words their stock goes up by the amount purchased
-    and also their military `muskets` stockpile goes up by the
-    number of even multiples of 25 that they purchased (with a
-    max of 2). So if they purchased 49 then it goes up by 1,
-    while if they purchase 50 it goes up by two. If they purchase
-    75 it still only goes up by two.
-
-    Counterintuitively, muskets in a tribe's stockpile cannot/do
-    not transfer directly into their military muskets stockpile.
-    It seems that the only way that selling muskets to a tribe
-    can increase their military stockpile (`muskets`) is if they
-    are sold, in a single sale, more than 25 muskets.
+      Gifted
+      ------
+      Any amount of muskets given to the tribe causes muskets to
+      go up by 1, and none go to their stock (even just 1 mus-
+      ket). This seems to happen for both civilized and
+      semi-nomadic tribes and on any difficulty level.
 
   * When muskets are demanded via reparations and the brave
     asking does not have muskets then it will immediately acquire
@@ -63,24 +63,45 @@ Native Horses
 Acquisition
 -----------
 
-  * Giving/selling horses to the tribe via trade. Note that
-    this increases horse_breeding as well, by 25.
+  * Trade: there are two possible types of outcomes when horses
+    are sold to a tribe via trade, depending on whether the na-
+    tives are asked to pay for them or whether they are gifted.
+
+      Sold
+      ----
+      When horses are sold to a dwelling they go into the tribe's
+      "stock", which does not appear to have a limit. Note that
+      the stock decreases at a rate of 2 per turn, though that is
+      probably not relevant here.
+
+      If, in a given sale, they purchase an amount >= 25, then,
+      in addition to those horses going into their stock as
+      usual, the `horse_herds` military stockpile goes up by an
+      amount:
+
+        horse_herds += min( floor( amount_purchased / 25 ), 2 )
+
+      while the horse_breeding field also goes up by an amount
+      equal to:
+
+         horse_breeding += floor( traded_amount/4 )
+
+      Gifted
+      ------
+      Any amount of horses given to the tribe causes horse_herds
+      to go up by 1, and none go to their stock (even just 1
+      horse).
+
   * Demanding horses as reparations (probably is a part of the
     usual demands of whatever commodities the colony has in
     stock). In this case horse_herds goes up by one. The brave
     also gets horses. horse_breeding may go up, but not sure.
+
   * Inter-tribe trade.
-  * When a new horse herd is given to a tribe via trade, the
-    horse_herds goes up by 1, but the horse_breeding field also
-    goes up by an amount equal to:
 
-       horse_breeding += floor( traded_amount/4 )
-
-    When horses are acquired by combat only horse_herds increases
+  * When horses are acquired by combat only horse_herds increases
     by 1 since the brave will take the horses, which is equiva-
     lent to 25 horse_breeding.
-  * If we only trade 1 horse with the natives, horse_herds still
-    increases.
 
 Inter-tribe Trade
 -----------------
