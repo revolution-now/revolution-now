@@ -121,5 +121,12 @@ TEST_CASE( "[heap-value] copying" ) {
            std::addressof( hv2.get() ) );
 }
 
+TEST_CASE( "[heap-value] to_str" ) {
+  HV<int> hv;
+
+  // Should implicitly convert to the contained type.
+  REQUIRE( base::to_str( hv ) == "0" );
+}
+
 } // namespace
 } // namespace base
