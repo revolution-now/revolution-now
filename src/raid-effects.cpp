@@ -219,6 +219,8 @@ void perform_brave_attack_colony_effect(
           break;
       }
       colony.commodities[what.type] -= what.quantity;
+      // NOTE: the stolen commodity never goes to the tribe's
+      // stock.
       return;
     }
     CASE( money_stolen ) {
