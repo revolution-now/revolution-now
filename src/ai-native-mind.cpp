@@ -182,6 +182,9 @@ void AiNativeMind::on_attack_colony_finished(
     CombatBraveAttackColony const&,
     BraveAttackColonyEffect const& ) {
   // TODO: adjust alarm.
+  //
+  // NOTE: Some experiments have indicated that when the colony
+  // is burned tribal alarm goes down by half.
 }
 
 void AiNativeMind::on_attack_unit_finished(
