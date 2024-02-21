@@ -197,7 +197,7 @@ class [[nodiscard]] maybe { /* clang-format on */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T>)
-    : active_{ false }, val_{} /* clang-format on */ {
+    : val_{}, active_{ false } {
     new_val( val );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -217,7 +217,7 @@ class [[nodiscard]] maybe { /* clang-format on */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T>)
-    : active_{ false }, val_{} /* clang-format on */ {
+    : val_{}, active_{ false } {
     new_val( std::move( val ) );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -250,7 +250,7 @@ class [[nodiscard]] maybe { /* clang-format on */
         !std::is_same_v<std::remove_cvref_t<U>, std::in_place_t> &&
         !std::is_same_v<std::remove_cvref_t<U>, maybe<T>> &&
          std::is_trivially_default_constructible_v<T> )
-    : active_{ false }, val_{} { /* clang-format on */
+    : val_{}, active_{ false } {
     new_val( std::forward<U>( val ) );
     // Now set to true after no exception has happened.
     active_ = true;
@@ -1038,10 +1038,10 @@ class [[nodiscard]] maybe { /* clang-format on */
     }
   }
 
-  bool active_ = false;
   union {
     T val_;
   };
+  bool active_ = false;
 };
 
 /****************************************************************

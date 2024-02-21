@@ -148,7 +148,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_copy_constructible_v<T> )
       requires( std::is_copy_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T> )
-    : good_{ false }, val_{} /* clang-format on */ {
+    : val_{}, good_{ false } {
     new_val( val );
     good_ = true;
   }
@@ -166,7 +166,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_move_constructible_v<T> )
       requires( std::is_move_constructible_v<T> &&
                 std::is_trivially_default_constructible_v<T> )
-    : good_{ false }, val_{} /* clang-format on */ {
+    : val_{}, good_{ false } {
     new_val( std::move( val ) );
     good_ = true;
   }
@@ -184,7 +184,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_copy_constructible_v<E> )
       requires( std::is_copy_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<E> )
-    : good_{ false }, err_{} /* clang-format on */ {
+    : err_{}, good_{ false } {
     new_err( err );
     good_ = false;
   }
@@ -202,7 +202,7 @@ class [[nodiscard]] expect { /* clang-format on */
       noexcept( std::is_nothrow_move_constructible_v<E> )
       requires( std::is_move_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<E> )
-    : good_{ false }, err_{} /* clang-format on */ {
+    : err_{}, good_{ false } {
     new_err( std::move( err ) );
     good_ = false;
   }
@@ -258,7 +258,7 @@ class [[nodiscard]] expect { /* clang-format on */
       requires( std::is_copy_constructible_v<T> &&
                 std::is_copy_constructible_v<E> &&
                 std::is_trivially_default_constructible_v<T> )
-    : good_{ false }, val_{} /* clang-format on */ {
+    : val_{}, good_{ false } {
     if( other.has_value() )
       new_val( other.val_ );
     else
@@ -1221,11 +1221,11 @@ class [[nodiscard]] expect { /* clang-format on */
     }
   }
 
-  bool good_ = false;
   union {
     T val_;
     E err_;
   };
+  bool good_ = false;
 };
 
 /****************************************************************
