@@ -2802,7 +2802,7 @@ struct TRIBE {
   bytes<1> unknown31c = {};
   uint16_t horse_breeding = {};
   bytes<2> unknown31d = {};
-  std::array<int16_t, 16> stock = {};
+  Stock stock = {};
   bytes<12> unknown32 = {};
   std::array<RelationByNations2, 4> relation_by_nations = {};
   bytes<8> zeros33 = {};
