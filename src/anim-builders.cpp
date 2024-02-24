@@ -360,6 +360,10 @@ AnimationSequence anim_seq_for_naval_battle(
                                      combat.attacker.outcome );
   add_naval_attack_outcome_for_unit( builder, combat.defender.id,
                                      combat.defender.outcome );
+
+  for( auto const& [affected_id, affected] :
+       combat.affected_defender_units )
+    builder.hide_unit( affected_id );
   play_combat_outcome_sound( builder, combat );
 
   // Phase 3: if the attacker wins (and the defender is sunk or
@@ -373,6 +377,9 @@ AnimationSequence anim_seq_for_naval_battle(
               defender_coord );
     builder.new_phase();
     builder.hide_unit( defender_id );
+    for( auto const& [affected_id, affected] :
+         combat.affected_defender_units )
+      builder.hide_unit( affected_id );
     builder.slide_unit( attacker_id, direction );
     builder.play_sound( e_sfx::move );
   }

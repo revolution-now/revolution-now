@@ -235,8 +235,8 @@ struct.CombatShipAttackShip {
   # This is for ships that are on the same square as the de-
   # fending ship when the defender loses (in the OG, these other
   # ships are affected in the sense that they are either damaged
-  # or sunk).
-  affected_defender_units 'std::unordered_map<UnitId, AffectedNavalDefender>',
+  # or sunk). Use std::map for deterministic ordering.
+  affected_defender_units 'std::map<UnitId, AffectedNavalDefender>',
 }
 
 struct.CombatEuroAttackUndefendedColony {

@@ -648,15 +648,8 @@ CombatEffectsMessages combat_effects_msg(
           ss, defender,
           NavalBattleOpponent::unit{ .id = attacker.id() },
           combat.defender.outcome ) };
-  vector<UnitId> affected_unit_ids;
-  for( auto const& [unit_id, affected] :
-       combat.affected_defender_units )
-    affected_unit_ids.push_back( unit_id );
-  sort( affected_unit_ids.begin(), affected_unit_ids.end() );
-  for( UnitId const unit_id : affected_unit_ids ) {
-    auto it = combat.affected_defender_units.find( unit_id );
-    CHECK( it != combat.affected_defender_units.end() );
-    AffectedNavalDefender const& affected_info = it->second;
+  for( auto const& [unit_id, affected_info] :
+       combat.affected_defender_units ) {
     Unit const& affected_unit = ss.units.unit_for( unit_id );
     UnitCombatEffectsMessages const msgs =
         naval_unit_combat_effects_msg(

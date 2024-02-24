@@ -1194,7 +1194,7 @@ TEST_CASE(
     Unit const& defender =
         W.add_unit_on_map( params.defender, W.kSeaDefenderCoord,
                            W.kDefenderNation );
-    unordered_map<UnitId, AffectedNavalDefender> affected;
+    map<UnitId, AffectedNavalDefender> affected;
     for( auto const& [unit_type, outcome] :
          params.affected_defenders ) {
       Unit const& affected_unit = W.add_unit_on_map(
