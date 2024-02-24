@@ -1313,8 +1313,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "evade" ) {
     combat = {
-        .outcome = e_naval_combat_outcome::evade,
-        .winner  = nothing,
+        .winner = nothing,
         .attacker =
             { .outcome =
                   EuroNavalUnitCombatOutcome::no_change{} },
@@ -1351,8 +1350,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "defender damaged, sent to harbor" ) {
     combat = {
-        .outcome = e_naval_combat_outcome::damaged,
-        .winner  = e_combat_winner::attacker,
+        .winner = e_combat_winner::attacker,
         .attacker =
             { .outcome =
                   EuroNavalUnitCombatOutcome::no_change{} },
@@ -1401,7 +1399,6 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
     combat = {
-        .outcome  = e_naval_combat_outcome::damaged,
         .winner   = e_combat_winner::attacker,
         .attacker = { .outcome =
                           EuroNavalUnitCombatOutcome::moved{
@@ -1449,7 +1446,6 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
     combat = {
-        .outcome  = e_naval_combat_outcome::damaged,
         .winner   = e_combat_winner::attacker,
         .attacker = { .outcome =
                           EuroNavalUnitCombatOutcome::moved{
@@ -1490,9 +1486,90 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 0 );
   }
 
+  SECTION( "defender sunk with affected units" ) {
+    UnitId const merchantman_id =
+        W.add_defender( e_unit_type::merchantman );
+    UnitId const privateer_id =
+        W.add_defender( e_unit_type::privateer );
+    UnitId const galleon_id =
+        W.add_defender( e_unit_type::galleon );
+    W.add_commodity_in_cargo( e_commodity::silver, galleon_id );
+    REQUIRE(
+        W.units().unit_for( galleon_id ).cargo().count_items() ==
+        1 );
+    combat = {
+        .winner = e_combat_winner::attacker,
+        .attacker =
+            { .outcome =
+                  EuroNavalUnitCombatOutcome::no_change{} },
+        .defender                = { .outcome =
+                                         EuroNavalUnitCombatOutcome::sunk{} },
+        .affected_defender_units = {
+            { merchantman_id,
+              AffectedNavalDefender{
+                  .id = merchantman_id,
+                  .outcome =
+                      EuroNavalUnitCombatOutcome::sunk{} } },
+            { galleon_id,
+              AffectedNavalDefender{
+                  .id = galleon_id,
+                  .outcome =
+                      EuroNavalUnitCombatOutcome::damaged{
+                          .port = ShipRepairPort::
+                              european_harbor{} } } },
+            { privateer_id,
+              AffectedNavalDefender{
+                  .id = privateer_id,
+                  .outcome =
+                      EuroNavalUnitCombatOutcome::sunk{} } } } };
+    tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
+        e_unit_type::privateer, e_unit_type::merchantman );
+    expect_combat();
+    W.expect_some_animation();
+    REQUIRE( W.units()
+                 .unit_for( combat.attacker.id )
+                 .movement_points() == 8 );
+    {
+      auto A = W.kAttackingNation;
+      auto D = W.kDefendingNation;
+      // These go in order of IDs.
+      W.expect_msg_contains( A, "sunk" );    // defender
+      W.expect_msg_contains( A, "sunk" );    // merchantman
+      W.expect_msg_contains( A, "sunk" );    // privateer
+      W.expect_msg_contains( A, "damaged" ); // galleon
+      W.expect_msg_contains( D, "sunk" );    // defender
+      W.expect_msg_contains( D, "sunk" );    // merchantman
+      W.expect_msg_contains( D, "sunk" );    // privateer
+      W.expect_msg_contains( D, "damaged" ); // galleon
+    }
+    REQUIRE( f() == expected );
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    Unit const& galleon = W.units().unit_for( galleon_id );
+    REQUIRE( !W.units().exists( combat.defender.id ) );
+    REQUIRE( !W.units().exists( merchantman_id ) );
+    REQUIRE( !W.units().exists( privateer_id ) );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kWaterAttack );
+    REQUIRE(
+        as_const( W.units() ).ownership_of( galleon.id() ) ==
+        UnitOwnership::harbor{
+            .port_status = PortStatus::in_port{},
+            .sailed_from = nothing } );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( galleon.nation() == W.kDefendingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( galleon.movement_points() == 6 );
+    REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
+    REQUIRE( galleon.orders() ==
+             unit_orders{ unit_orders::damaged{
+                 .turns_until_repair = 10 } } );
+    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( galleon.cargo().count_items() == 0 );
+  }
+
   SECTION( "attacker sunk" ) {
     combat = {
-        .outcome  = e_naval_combat_outcome::sunk,
         .winner   = e_combat_winner::defender,
         .attacker = { .outcome =
                           EuroNavalUnitCombatOutcome::sunk{} },
@@ -1522,7 +1599,6 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "attacker sunk containing units" ) {
     combat = {
-        .outcome  = e_naval_combat_outcome::sunk,
         .winner   = e_combat_winner::defender,
         .attacker = { .outcome =
                           EuroNavalUnitCombatOutcome::sunk{} },
@@ -1573,8 +1649,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   // which allows the winner to capture the loser's commodities.
   SECTION( "attacker damaged with commodity cargo" ) {
     combat = {
-        .outcome = e_naval_combat_outcome::damaged,
-        .winner  = e_combat_winner::defender,
+        .winner = e_combat_winner::defender,
         .attacker =
             { .outcome =
                   EuroNavalUnitCombatOutcome::damaged{
@@ -1639,8 +1714,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "attacker damaged with unit cargo" ) {
     combat = {
-        .outcome = e_naval_combat_outcome::damaged,
-        .winner  = e_combat_winner::defender,
+        .winner = e_combat_winner::defender,
         .attacker =
             { .outcome =
                   EuroNavalUnitCombatOutcome::damaged{

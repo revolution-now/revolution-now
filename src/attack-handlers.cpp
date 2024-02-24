@@ -522,6 +522,12 @@ wait<> NavalBattleHandler::perform() {
   perform_naval_unit_combat_effects( ss_, ts_, defender_,
                                      attacker_id_,
                                      combat.defender.outcome );
+  // The order of iteration here may be non-deterministic but it
+  // shouldn't cause any issues.
+  for( auto const& [unit_id, affected] :
+       combat.affected_defender_units )
+    perform_naval_affected_unit_combat_effects(
+        ss_, ts_, attacker_id_, affected );
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),

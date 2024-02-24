@@ -24,6 +24,7 @@
 
 namespace rn {
 
+struct AffectedNavalDefender;
 struct CombatBraveAttackColony;
 struct CombatBraveAttackEuro;
 struct CombatColonyArtilleryAttackShip;
@@ -105,5 +106,11 @@ void perform_native_unit_combat_effects(
 void perform_naval_unit_combat_effects(
     SS& ss, TS& ts, Unit& unit, UnitId opponent_id,
     EuroNavalUnitCombatOutcome const& outcome );
+
+// There will be one of these for each of the defender's ships
+// that are on the same square as a losing defender.
+void perform_naval_affected_unit_combat_effects(
+    SS& ss, TS& ts, UnitId opponent_id,
+    AffectedNavalDefender const& affected );
 
 } // namespace rn

@@ -42,12 +42,6 @@ enum.e_combat_winner {
   attacker,
 }
 
-enum.e_naval_combat_outcome {
-  evade,
-  damaged,
-  sunk,
-}
-
 # ===============================================================
 # Combat Outcomes.
 # ===============================================================
@@ -200,6 +194,15 @@ struct.Sinking {
   hull 'int', # from the loser.
 }
 
+# This is for ships that are on the same square as the defending
+# ship when the defender loses (in the OG, these other ships are
+# affected in the sense that they are either damaged or sunk).
+struct.AffectedNavalDefender {
+  id 'UnitId',
+  sink_weights 'Sinking',
+  outcome 'EuroNavalUnitCombatOutcome',
+}
+
 struct.NavalCombatStats {
   id 'UnitId',
   modifiers 'refl::enum_map<e_euro_unit_combat_modifiers, base::maybe<CombatModifierEffect>>',
@@ -219,8 +222,8 @@ struct.CombatEuroAttackEuro {
 }
 
 struct.CombatShipAttackShip {
-  outcome 'e_naval_combat_outcome',
-  winner 'base::maybe<e_combat_winner>',
+  # When winner is nothing when an evade happens.
+  winner 'maybe<e_combat_winner>',
   # The sink vs. damaged weights can't be computed in all cases
   # because they require knowing which unit one the battle; but
   # there won't always be a winner, i.e. if the defender evades.
@@ -228,6 +231,12 @@ struct.CombatShipAttackShip {
 
   attacker 'NavalCombatStats',
   defender 'NavalCombatStats',
+
+  # This is for ships that are on the same square as the de-
+  # fending ship when the defender loses (in the OG, these other
+  # ships are affected in the sense that they are either damaged
+  # or sunk).
+  affected_defender_units 'std::unordered_map<UnitId, AffectedNavalDefender>',
 }
 
 struct.CombatEuroAttackUndefendedColony {

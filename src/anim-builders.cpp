@@ -29,6 +29,9 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -214,17 +217,26 @@ void play_combat_outcome_sound(
 void play_combat_outcome_sound(
     AnimationBuilder&           builder,
     CombatShipAttackShip const& combat ) {
-  switch( combat.outcome ) {
-    case e_naval_combat_outcome::evade:
-      // TODO: better sound here?
-      builder.play_sound( e_sfx::move );
-      break;
-    case e_naval_combat_outcome::damaged:
+  if( !combat.winner.has_value() ) {
+    // Evade. FIXME: better sound here?
+    builder.play_sound( e_sfx::move );
+    return;
+  }
+  auto const& outcome =
+      ( combat.winner == e_combat_winner::attacker )
+          ? combat.defender.outcome
+          : combat.attacker.outcome;
+  SWITCH( outcome ) {
+    CASE( damaged ) {
       builder.play_sound( e_sfx::attacker_won );
       break;
-    case e_naval_combat_outcome::sunk:
+    }
+    CASE( moved ) { SHOULD_NOT_BE_HERE; }
+    CASE( no_change ) { SHOULD_NOT_BE_HERE; }
+    CASE( sunk ) {
       builder.play_sound( e_sfx::sunk_ship );
       break;
+    }
   }
 }
 

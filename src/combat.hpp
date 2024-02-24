@@ -67,6 +67,10 @@ struct RealCombat : public ICombat {
       Colony const& colony ) override;
 
  private:
+  void set_sunk_or_damaged( Unit const& unit, Coord unit_coord,
+                            EuroNavalUnitCombatOutcome& outcome,
+                            bool                        sinks );
+
   SSConst const& ss_;
   IRand&         rand_;
 };

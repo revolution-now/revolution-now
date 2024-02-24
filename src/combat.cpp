@@ -338,6 +338,26 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
                     .outcome         = defender_outcome } };
 }
 
+void RealCombat::set_sunk_or_damaged(
+    Unit const& unit, Coord unit_coord,
+    EuroNavalUnitCombatOutcome& outcome, bool sinks ) {
+  if( sinks ) {
+    outcome = EuroNavalUnitCombatOutcome::sunk{};
+    return;
+  }
+  // Damaged. Try to find a port to repair the ship.
+  maybe<ShipRepairPort> const port = find_repair_port_for_ship(
+      ss_, unit.nation(), unit_coord );
+  if( port.has_value() )
+    outcome =
+        EuroNavalUnitCombatOutcome::damaged{ .port = *port };
+  else
+    // This will happen after independence is declared and the
+    // player has no colonies with a Drydock, in which case there
+    // is no place to send the ship for repair, so it just sinks.
+    outcome = EuroNavalUnitCombatOutcome::sunk{};
+}
+
 /*
 Naval Combat Mechanics from the OG:
 
@@ -433,7 +453,6 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   CHECK( defender_evade.atoms() % 3 == 0 );
   // Fill out what we can so far.
   CombatShipAttackShip res{
-      .outcome      = {},
       .winner       = nothing,
       .sink_weights = nothing,
       .attacker     = { .id           = attacker.id(),
@@ -450,8 +469,7 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
                         .outcome                = {} } };
 
   if( evaded ) {
-    res.outcome = e_naval_combat_outcome::evade;
-    res.winner  = nothing;
+    res.winner = nothing;
     res.attacker.outcome =
         EuroNavalUnitCombatOutcome::no_change{};
     res.defender.outcome =
@@ -486,42 +504,58 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
 
   // Now we can compute the sink weights since we know whose guns
   // and whose hull strength we need.
+  auto does_sink = [this]( Sinking sinking ) {
+    return rand_.bernoulli( double( sinking.guns ) /
+                            ( sinking.guns + sinking.hull ) );
+  };
+
   int const guns = attacker_wins ? attacker_ship_combat.guns
                                  : defender_ship_combat.guns;
   int const hull = attacker_wins ? defender_ship_combat.hull
                                  : attacker_ship_combat.hull;
 
   res.sink_weights.emplace() = { .guns = guns, .hull = hull };
-  bool const loser_sinks =
-      rand_.bernoulli( double( guns ) / ( guns + hull ) );
-
-  auto set_sunk = [&] {
-    loser_stats.outcome = EuroNavalUnitCombatOutcome::sunk{};
-    res.outcome         = e_naval_combat_outcome::sunk;
-  };
-
-  auto set_damaged = [&]( ShipRepairPort const& port ) {
-    loser_stats.outcome =
-        EuroNavalUnitCombatOutcome::damaged{ .port = port };
-    res.outcome = e_naval_combat_outcome::damaged;
-  };
+  bool const loser_sinks     = does_sink( *res.sink_weights );
 
   // Set the outcome of the loser.
-  if( loser_sinks )
-    set_sunk();
-  else {
-    // Damaged.  Try to find a port to repair the ship.
-    if( maybe<ShipRepairPort> const port =
-            find_repair_port_for_ship( ss_, loser_unit.nation(),
-                                       loser_coord );
-        port.has_value() )
-      set_damaged( *port );
-    else
-      // This will happen after independence is declared and the
-      // player has no colonies with a Drydock, in which case
-      // there is no place to send the ship for repair, so it
-      // just sinks.
-      set_sunk();
+  set_sunk_or_damaged( loser_unit, loser_coord,
+                       loser_stats.outcome, loser_sinks );
+
+  // In the OG, when a defending ship loses in combat, not only
+  // will it get either sunk or damaged, but all other ships on
+  // its square will get sunk or damaged as well, and the damaged
+  // vs. sink outcome is computed independently for each ship.
+  //
+  // Note that this has to be the case if the attacking (and win-
+  // ning) ship slides onto the defender's square after winning.
+  if( attacker_wins ) {
+    vector<UnitId> ships_on_defender_square;
+    for( GenericUnitId const generic_unit_id :
+         ss_.units.from_coord( defender_coord ) )
+      ships_on_defender_square.push_back(
+          ss_.units.check_euro_unit( generic_unit_id ) );
+    // For determinism in unit tests.
+    sort( ships_on_defender_square.begin(),
+          ships_on_defender_square.end() );
+    // At least the defender will be on the square.
+    CHECK_GT( ships_on_defender_square.size(), 0u );
+    for( UnitId const unit_id : ships_on_defender_square ) {
+      if( unit_id == defender.id() ) continue;
+      Unit const& other_ship = ss_.units.unit_for( unit_id );
+      UNWRAP_CHECK( other_ship_combat,
+                    other_ship.desc().ship_combat_extra );
+      int const  other_hull = other_ship_combat.hull;
+      auto const sinking =
+          Sinking{ .guns = guns, .hull = other_hull };
+      bool const                 sinks = does_sink( sinking );
+      EuroNavalUnitCombatOutcome outcome;
+      set_sunk_or_damaged( other_ship, defender_coord, outcome,
+                           sinks );
+      res.affected_defender_units[unit_id] =
+          AffectedNavalDefender{ .id           = unit_id,
+                                 .sink_weights = sinking,
+                                 .outcome      = outcome };
+    }
   }
 
   return res;

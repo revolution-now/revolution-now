@@ -950,8 +950,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
                     P::play_sound{ .what = e_sfx::move } } } } };
 
   SECTION( "evade" ) {
-    combat.winner  = e_combat_winner::defender;
-    combat.outcome = e_naval_combat_outcome::evade;
+    combat.winner  = nothing;
 
     combat.attacker.outcome =
         EuroNavalUnitCombatOutcome::no_change{};
@@ -971,7 +970,6 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
 
   SECTION( "attacker wins" ) {
     combat.winner  = e_combat_winner::attacker;
-    combat.outcome = e_naval_combat_outcome::damaged;
 
     combat.attacker.outcome = EuroNavalUnitCombatOutcome::moved{
         .to{ .x = 0, .y = 1 } };
@@ -998,7 +996,6 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
 
   SECTION( "defender wins" ) {
     combat.winner  = e_combat_winner::defender;
-    combat.outcome = e_naval_combat_outcome::sunk;
 
     combat.attacker.outcome = EuroNavalUnitCombatOutcome::sunk{};
     combat.defender.outcome =

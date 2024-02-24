@@ -101,10 +101,7 @@ Sinking vs. damaged:
     chanics of it seem a bit convoluted, so it is unclear how ex-
     actly it works. Essentially though, if one nations armies are
     much stronger, then, when it loses, its ships will tend to
-    sink instead of get damaged with 100% probability.
-  * Non-war ships (i.e., with zero attack) can never be sunk.
-    When we change NAMES.TXT to give e.g. a Galleon a non-zero
-    combat factor, the the game will allow it to sink.
+    sink instead of just getting damaged.
 
 Multiple units per square:
 
@@ -114,16 +111,19 @@ Multiple units per square:
 
   * When there are multiple ships on the defending square and the
     defender loses, all of the ships on the square will be either
-    sunk or damaged. The non-war ships will be damaged, and the
-    non-war ships will be sunk. This could potentially have been
-    done because of the way that col1 represents units on ships,
-    i.e. if only one ship were to be sunk and it contained a unit
-    then the unit would have to be eliminated, but it wouldn't be
-    clear in general which ship the unit was on. We may want to
-    get rid of this rule... However, when the attacker loses (and
-    there are units in the cargo of one of the ships on the at-
-    tacker's square) the attacker and units go away, but the
-    other ships on the attacker's square remain.
+    sunk or damaged (could be either, probably according to
+    normal rules of determining that upon loss, which involves
+    some randomness and other factors). This could potentially
+    have been done because of the way that col1 represents units
+    on ships, i.e. if only one ship were to be sunk and it con-
+    tained a unit then the unit would have to be eliminated, but
+    it wouldn't be clear in general which ship the unit was on.
+    However, this theory doesn't square with the fact that the
+    same does not happen on the attacker's square if the attacker
+    loses. When the attacker loses (and there are units in the
+    cargo of one of the ships on the attacker's square) the at-
+    tacker and units go away, but the other ships on the attack-
+    er's square remain.
   * When an attacking ship loses, the other ships on its square
     are unaffected, but units on the square go away.
 

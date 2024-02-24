@@ -2282,7 +2282,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                                    e_nation::french );
     W.expect_evade( .217391 );
     expected = {
-        .outcome      = e_naval_combat_outcome::evade,
         .winner       = nothing,
         .sink_weights = nothing,
         .attacker =
@@ -2317,7 +2316,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker =
@@ -2354,7 +2352,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .428571 );
     W.expect_no_sinks( 0.923077 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 1, .hull = 12 },
         .attacker =
@@ -2391,7 +2388,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .428571 );
     W.expect_sinks( 0.076923 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 1, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -2424,7 +2420,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .615385 );
     W.expect_no_sinks( .625 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 12, .hull = 20 },
         .attacker     = { .id                     = attacker->id(),
@@ -2457,7 +2452,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .615385 );
     W.expect_sinks( .375 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 12, .hull = 20 },
         .attacker     = { .id                     = attacker->id(),
@@ -2487,7 +2481,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                                    e_nation::french );
     W.expect_evade( .72 );
     expected = {
-        .outcome      = e_naval_combat_outcome::evade,
         .winner       = nothing,
         .sink_weights = nothing,
         .attacker =
@@ -2521,7 +2514,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker =
@@ -2557,7 +2549,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
@@ -2590,7 +2581,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -2623,7 +2613,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -2656,7 +2645,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker =
@@ -2692,7 +2680,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
@@ -2725,7 +2712,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
@@ -2759,7 +2745,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 32, .hull = 64 },
         .attacker     = { .id                     = attacker->id(),
@@ -2792,7 +2777,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker =
@@ -2828,7 +2812,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 12, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -2861,7 +2844,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
@@ -2895,7 +2877,6 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::attacker,
         .sink_weights = Sinking{ .guns = 4, .hull = 32 },
         .attacker     = { .id                     = attacker->id(),
@@ -2913,6 +2894,156 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                 .base_combat_weight     = 16,
                 .modified_combat_weight = 16,
                 .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "frigate->galleon+others, no evade, frigate wins, all "
+      "ships affected" ) {
+    attacker = &W.add_unit_on_map( e_unit_type::frigate,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::galleon,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    // Add some other ships that will be affected when the de-
+    // fender loses.
+    Unit const& privateer = W.add_unit_on_map(
+        e_unit_type::privateer, { .x = 1, .y = 3 },
+        e_nation::french );
+    Unit const& merchantman = W.add_unit_on_map(
+        e_unit_type::merchantman, { .x = 1, .y = 3 },
+        e_nation::french );
+
+    W.expect_no_evade( .5 );
+    W.expect_attacker_wins( .615385 );
+    W.expect_no_sinks( .625 );
+    W.expect_no_sinks( .5 ); // privateer
+    W.expect_sinks( .6 );    // galleon
+    expected = {
+        .winner       = e_combat_winner::attacker,
+        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
+        .attacker     = { .id                     = attacker->id(),
+                          .modifiers              = {},
+                          .evade_weight           = 6 + 1,
+                          .base_combat_weight     = 16,
+                          .modified_combat_weight = 16,
+                          .outcome =
+                              EuroNavalUnitCombatOutcome::moved{
+                                  .to = { .x = 1, .y = 3 } } },
+        .defender =
+            { .id                     = defender->id(),
+              .modifiers              = {},
+              .evade_weight           = 6 + 1,
+              .base_combat_weight     = 10,
+              .modified_combat_weight = 10,
+              .outcome =
+                  EuroNavalUnitCombatOutcome::damaged{
+                      .port =
+                          ShipRepairPort::european_harbor{} } },
+        .affected_defender_units =
+            { { privateer.id(),
+                AffectedNavalDefender{
+                    .id           = privateer.id(),
+                    .sink_weights = { .guns = 12, .hull = 12 },
+                    .outcome =
+                        EuroNavalUnitCombatOutcome::damaged{
+                            .port = ShipRepairPort::
+                                european_harbor{} } } },
+              { merchantman.id(),
+                AffectedNavalDefender{
+                    .id           = merchantman.id(),
+                    .sink_weights = { .guns = 12, .hull = 8 },
+                    .outcome =
+                        EuroNavalUnitCombatOutcome::sunk{} } } }
+
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "frigate->galleon+others, no evade, frigate loses, "
+      "damaged, no other ships affected" ) {
+    attacker = &W.add_unit_on_map( e_unit_type::frigate,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::galleon,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    // Add some other ships that should not be affected when the
+    // defender loses.
+    W.add_unit_on_map( e_unit_type::privateer,
+                       { .x = 1, .y = 3 }, e_nation::french );
+    W.add_unit_on_map( e_unit_type::merchantman,
+                       { .x = 1, .y = 3 }, e_nation::french );
+
+    W.expect_no_evade( .5 );
+    W.expect_defender_wins( .384615 );
+    W.expect_no_sinks( .888888888888888888 );
+    expected = {
+        .winner       = e_combat_winner::defender,
+        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+        .attacker =
+            { .id                     = attacker->id(),
+              .modifiers              = {},
+              .evade_weight           = 6 + 1,
+              .base_combat_weight     = 16,
+              .modified_combat_weight = 16,
+              .outcome =
+                  EuroNavalUnitCombatOutcome::damaged{
+                      .port =
+                          ShipRepairPort::european_harbor{} } },
+        .defender = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 10,
+            .modified_combat_weight = 10,
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION(
+      "frigate+others->privateer, no evade, frigate loses, only "
+      "attacker affected" ) {
+    attacker = &W.add_unit_on_map( e_unit_type::frigate,
+                                   { .x = 0, .y = 3 },
+                                   e_nation::english );
+    defender = &W.add_unit_on_map( e_unit_type::privateer,
+                                   { .x = 1, .y = 3 },
+                                   e_nation::french );
+    // Add some other ships on the attackers square that should
+    // not be affected despite the attacker losing.
+    W.add_unit_on_map( e_unit_type::privateer,
+                       { .x = 0, .y = 3 }, e_nation::english );
+    W.add_unit_on_map( e_unit_type::merchantman,
+                       { .x = 0, .y = 3 }, e_nation::english );
+
+    W.expect_no_evade( .28 );
+    W.expect_defender_wins( .333333 );
+    W.expect_no_sinks( .888888 );
+    expected = {
+        .winner       = e_combat_winner::defender,
+        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+        .attacker =
+            { .id                     = attacker->id(),
+              .modifiers              = {},
+              .evade_weight           = 6 + 1,
+              .base_combat_weight     = 16,
+              .modified_combat_weight = 16,
+              .outcome =
+                  EuroNavalUnitCombatOutcome::damaged{
+                      .port =
+                          ShipRepairPort::european_harbor{} } },
+        .defender = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
+            .outcome =
+                EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 }
@@ -2940,7 +3071,6 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker =
@@ -2976,7 +3106,6 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::sunk,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -3011,7 +3140,6 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker =
@@ -3049,7 +3177,6 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -3090,7 +3217,6 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 12 },
         .attacker     = { .id                     = attacker->id(),
@@ -3126,7 +3252,6 @@ TEST_CASE(
     W.expect_defender_wins( .111111 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .outcome      = e_naval_combat_outcome::damaged,
         .winner       = e_combat_winner::defender,
         .sink_weights = Sinking{ .guns = 0, .hull = 32 },
         .attacker =

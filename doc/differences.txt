@@ -1,29 +1,25 @@
                      Differences from the OG
 =================================================================
 
-                         Sinking Ships
-                         -------------
-  In the OG, When a ship is damaged/sunk, it affects all other
-  ships on the square. The reason for this is not totally clear,
-  but it could be a result of the way that the OG handles keeping
-  units on ships and how when multiple ships are on the same
-  square it is ambiguous as to which ship each unit is on (in
-  fact, they can switch ships). When there are multiple ships on
-  the defending square and the defender loses, all of the ships
-  on the square will be either sunk or damaged. The non-war ships
-  will be damaged, and the non-war ships will be sunk. However,
-  when the attacker loses (and there are units in the cargo of
-  one of the ships on the attacker's square) the attacker and
-  units go away, but the other ships on the attacker's square re-
-  main. When an attacking ship loses, the other ships on its
-  square are unaffected, but units on the square go away, which
-  gives credibility to our hypothesis as to the reason for this.
-  So when a ship is sunk, the game is not sure on which ship the
-  units were, so it needs to just damage/sink all of them, which
-  it also does for consistency even when there are no units on-
-  board. In RN none of this happens; ship battles are treated ex-
-  actly the same as land battles when there are multiple units on
-  a square.
+                 Sinking Ships and Units Onboard
+                 -------------------------------
+  In the OG, when a ship is damaged/sunk, it affects all other
+  ships on the square. When there are multiple ships on the de-
+  fending square and the defender loses, all of the ships and on-
+  board units on the square will be either sunk or damaged, ac-
+  cording to the normal rules for determining that (which in-
+  cludes some randomness as well as considerations as to the
+  total navy size of that player). However, when the attacker
+  loses (and there are units in the cargo of one of the ships on
+  the attacker's square) the attacker and all units go away, but
+  the other ships on the attacker's square remain, without their
+  units. In other words, when an attacking ship loses, the other
+  ships on its square are unaffected, but units on the square go
+  away. We will not be replicating this behavior with respect to
+  onboard units on the attacker's square in the NG, though we
+  will be replicating the fact that all ships on the defending
+  square will be sunk or damaged if the defender loses (and
+  therefore their units must be eliminated).
 
                 Naval Battle Mechanics & Navy Size
                 ----------------------------------

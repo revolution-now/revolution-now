@@ -52,6 +52,20 @@ namespace rn {
 namespace {
 
 /****************************************************************
+** Helpers.
+*****************************************************************/
+void append_effects_msgs(
+    UnitCombatEffectsMessages&       to,
+    UnitCombatEffectsMessages const& from ) {
+  auto append = []( auto& to, auto const& from ) {
+    to.insert( to.end(), from.begin(), from.end() );
+  };
+  append( to.for_owner, from.for_owner );
+  append( to.for_other, from.for_other );
+  append( to.for_both, from.for_both );
+}
+
+/****************************************************************
 ** Combat effects messages for individual attackers/defenders.
 *****************************************************************/
 UnitCombatEffectsMessages euro_unit_combat_effects_msg(
@@ -624,15 +638,34 @@ CombatEffectsMessages combat_effects_msg(
     return { .summaries = summarize_combat_outcome( ss, combat ),
              .defender  = { .for_both = { evade_msg } } };
   }
-  return { .summaries = summarize_combat_outcome( ss, combat ),
-           .attacker  = naval_unit_combat_effects_msg(
-               ss, attacker,
-               NavalBattleOpponent::unit{ .id = defender.id() },
-               combat.attacker.outcome ),
-           .defender = naval_unit_combat_effects_msg(
-               ss, defender,
-               NavalBattleOpponent::unit{ .id = attacker.id() },
-               combat.defender.outcome ) };
+  CombatEffectsMessages res{
+      .summaries = summarize_combat_outcome( ss, combat ),
+      .attacker  = naval_unit_combat_effects_msg(
+          ss, attacker,
+          NavalBattleOpponent::unit{ .id = defender.id() },
+          combat.attacker.outcome ),
+      .defender = naval_unit_combat_effects_msg(
+          ss, defender,
+          NavalBattleOpponent::unit{ .id = attacker.id() },
+          combat.defender.outcome ) };
+  vector<UnitId> affected_unit_ids;
+  for( auto const& [unit_id, affected] :
+       combat.affected_defender_units )
+    affected_unit_ids.push_back( unit_id );
+  sort( affected_unit_ids.begin(), affected_unit_ids.end() );
+  for( UnitId const unit_id : affected_unit_ids ) {
+    auto it = combat.affected_defender_units.find( unit_id );
+    CHECK( it != combat.affected_defender_units.end() );
+    AffectedNavalDefender const& affected_info = it->second;
+    Unit const& affected_unit = ss.units.unit_for( unit_id );
+    UnitCombatEffectsMessages const msgs =
+        naval_unit_combat_effects_msg(
+            ss, affected_unit,
+            NavalBattleOpponent::unit{ .id = attacker.id() },
+            affected_info.outcome );
+    append_effects_msgs( res.defender, msgs );
+  }
+  return res;
 }
 
 CombatEffectsMessages combat_effects_msg(
@@ -916,6 +949,24 @@ void perform_naval_unit_combat_effects(
       CHECK( ss.units.exists( opponent_id ) );
       UnitOwnershipChanger( ss, unit.id() ).destroy();
       break;
+    }
+  }
+}
+
+void perform_naval_affected_unit_combat_effects(
+    SS& ss, TS& ts, UnitId opponent_id,
+    AffectedNavalDefender const& affected ) {
+  Unit& unit = ss.units.unit_for( affected.id );
+  SWITCH( affected.outcome ) {
+    CASE( damaged ) {
+      return perform_naval_unit_combat_effects(
+          ss, ts, unit, opponent_id, affected.outcome );
+    }
+    CASE( moved ) { SHOULD_NOT_BE_HERE; }
+    CASE( no_change ) { SHOULD_NOT_BE_HERE; }
+    CASE( sunk ) {
+      return perform_naval_unit_combat_effects(
+          ss, ts, unit, opponent_id, affected.outcome );
     }
   }
 }
