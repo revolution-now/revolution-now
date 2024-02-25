@@ -14,8 +14,8 @@
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
 #include "igui.hpp"
+#include "irand.hpp"
 #include "logger.hpp"
-#include "rand-enum.hpp"
 #include "ts.hpp"
 
 // config
@@ -145,7 +145,7 @@ e_unit_type pick_next_unit_for_pool(
     weights[e_unit_type::indentured_servant] = 0.0;
   }
 
-  return pick_from_weighted_enum_values( rand, weights );
+  return rand.pick_from_weighted_values( weights );
 }
 
 CrossesCalculation compute_crosses(

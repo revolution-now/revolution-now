@@ -182,8 +182,7 @@ BraveAttackColonyEffect select_brave_attack_colony_effect(
     SSConst const& ss, IRand& rand, Colony const& colony ) {
   auto const& conf = config_natives.combat.colony_attack;
   e_brave_attack_colony_effect const effect =
-      pick_from_weighted_enum_values( rand,
-                                      conf.outcome_weights );
+      rand.pick_from_weighted_values( conf.outcome_weights );
   switch( effect ) {
     case e_brave_attack_colony_effect::none:
       return BraveAttackColonyEffect::none{};

@@ -17,7 +17,6 @@
 #include "logger.hpp"
 #include "missionary.hpp"
 #include "promotion.hpp"
-#include "rand-enum.hpp"
 #include "society.rds.hpp"
 #include "treasure.hpp"
 #include "unit-mgr.hpp"

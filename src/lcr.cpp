@@ -20,7 +20,6 @@
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"
-#include "rand-enum.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -330,7 +329,7 @@ e_burial_mounds_type pick_burial_mounds_result(
     IRand& rand, e_lcr_explorer_category explorer ) {
   refl::enum_map<e_burial_mounds_type, int> const& weights =
       config_lcr.burial_mounds_type_weights[explorer];
-  return pick_from_weighted_enum_values( rand, weights );
+  return rand.pick_from_weighted_values( weights );
 }
 
 e_rumor_type pick_rumor_type_result(
@@ -362,7 +361,7 @@ e_rumor_type pick_rumor_type_result(
   for( auto [_, weight] : weights ) sum += weight;
   if( sum == 0 ) weights[e_rumor_type::none] = 100;
 
-  return pick_from_weighted_enum_values( rand, weights );
+  return rand.pick_from_weighted_values( weights );
 }
 
 bool pick_burial_grounds_result(

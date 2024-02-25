@@ -14,7 +14,6 @@
 // Revolution Now
 #include "irand.hpp"
 #include "land-production.hpp"
-#include "rand-enum.hpp"
 #include "ts.hpp"
 
 // config
@@ -162,7 +161,7 @@ refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
 
 e_native_skill select_expertise_for_dwelling(
     TS& ts, refl::enum_map<e_native_skill, int> weights ) {
-  return pick_from_weighted_enum_values( ts.rand, weights );
+  return ts.rand.pick_from_weighted_values( weights );
 }
 
 /****************************************************************

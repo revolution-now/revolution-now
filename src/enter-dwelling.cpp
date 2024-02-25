@@ -25,7 +25,6 @@
 #include "missionary.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
-#include "rand-enum.hpp"
 #include "ts.hpp"
 #include "unit-classes.hpp"
 #include "unit-ownership.hpp"
@@ -561,9 +560,8 @@ static ChiefAction compute_speak_with_chief_action(
           .has_spoken_with_chief )
     return ChiefAction::none{};
 
-  auto const outcome =
-      pick_from_weighted_enum_values<e_speak_with_chief_result>(
-          ts.rand, conf.positive_outcome_weights );
+  auto const outcome = ts.rand.pick_from_weighted_values(
+      conf.positive_outcome_weights );
   switch( outcome ) {
     case e_speak_with_chief_result::none:
       return ChiefAction::none{};
