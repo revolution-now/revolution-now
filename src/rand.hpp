@@ -16,6 +16,9 @@
 #include "error.hpp"
 #include "irand.hpp"
 
+// base
+#include "base/random.hpp"
+
 // C++ standard library
 #include <random>
 
@@ -28,7 +31,7 @@ namespace rn {
 // stead use a mock of IRand, not this one.
 struct Rand : IRand {
   // Will invoke std::random_device for a seed.
-  Rand();
+  Rand() = default;
 
   Rand( uint32_t seed );
 
@@ -44,7 +47,7 @@ struct Rand : IRand {
   double between_doubles( double lower, double upper ) override;
 
  private:
-  std::default_random_engine engine_;
+  base::random rd_;
 };
 
 } // namespace rn

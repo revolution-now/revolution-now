@@ -56,6 +56,7 @@
 
 // base
 #include "src/base/keyval.hpp"
+#include "src/base/random.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 using namespace std;
@@ -725,5 +726,11 @@ World::World()
     uninitialized_ts_() {}
 
 World::~World() noexcept = default;
+
+base::random& World::random() {
+  if( uninitialized_random_ == nullptr )
+    uninitialized_random_ = make_unique<base::random>();
+  return *uninitialized_random_;
+}
 
 } // namespace rn::testing

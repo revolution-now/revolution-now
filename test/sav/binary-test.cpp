@@ -19,6 +19,7 @@
 
 // base
 #include "src/base/binary-data.hpp"
+#include "src/base/random.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
@@ -77,16 +78,6 @@ bool binary_map_round_trip( fs::path const& folder,
   return file_contents_same( in, out );
 }
 
-template<typename T>
-T const& pick_one( vector<T> const& v ) {
-  BASE_CHECK( !v.empty() );
-  random_device         r;
-  default_random_engine e1( r() );
-
-  uniform_int_distribution<int> uniform_dist( 0, v.size() - 1 );
-  return v[uniform_dist( e1 )];
-}
-
 /****************************************************************
 ** Test Cases
 *****************************************************************/
@@ -125,7 +116,8 @@ TEST_CASE( "[sav/binary] SAV file binary roundtrip" ) {
   // clang-format on
 
   // Can't do all of these cause it's too slow.
-  auto& [dir, file] = pick_one( paths );
+  base::random rd;
+  auto& [dir, file] = rd.pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
   bool const good = binary_sav_round_trip( dir, file, tmp );
   REQUIRE( good );
@@ -143,7 +135,8 @@ TEST_CASE( "[sav/binary] MP file roundtrip" ) {
   // clang-format on
 
   // Can't do all of these cause it's too slow.
-  auto& [dir, file] = pick_one( paths );
+  base::random rd;
+  auto& [dir, file] = rd.pick_one( paths );
   INFO( fmt::format( "path: {}", dir / file ) );
   bool const good = binary_map_round_trip( dir, file, tmp );
   REQUIRE( good );
