@@ -1137,21 +1137,21 @@ TEST_CASE(
   };
 
   struct Affected {
-    e_unit_type                type = {};
-    EuroNavalUnitCombatOutcome outcome;
+    e_unit_type                type    = {};
+    EuroNavalUnitCombatOutcome outcome = {};
   };
 
   struct Params {
-    e_unit_type                attacker = {};
-    e_unit_type                defender = {};
-    maybe<e_combat_winner>     winner   = {};
-    EuroNavalUnitCombatOutcome attacker_outcome;
-    EuroNavalUnitCombatOutcome defender_outcome;
-    e_colony                   attacker_colony   = {};
-    e_colony                   defender_colony   = {};
-    int                        units_on_attacker = 0;
-    int                        units_on_defender = 0;
-    vector<Affected>           affected_defenders;
+    e_unit_type                attacker           = {};
+    e_unit_type                defender           = {};
+    maybe<e_combat_winner>     winner             = {};
+    EuroNavalUnitCombatOutcome attacker_outcome   = {};
+    EuroNavalUnitCombatOutcome defender_outcome   = {};
+    e_colony                   attacker_colony    = {};
+    e_colony                   defender_colony    = {};
+    int                        units_on_attacker  = 0;
+    int                        units_on_defender  = 0;
+    vector<Affected>           affected_defenders = {};
   } params;
 
   auto run = [&] {
