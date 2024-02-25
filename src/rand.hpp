@@ -38,8 +38,7 @@ struct Rand : IRand {
   bool bernoulli( double p ) override;
 
   // Implement IRand.
-  int between_ints( int lower, int upper,
-                    e_interval type ) override;
+  int between_ints( int lower, int upper ) override;
 
   // Implement IRand.
   double between_doubles( double lower, double upper ) override;

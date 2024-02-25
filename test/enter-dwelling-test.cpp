@@ -684,21 +684,15 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: none.
   p_unit = &scout_petty;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 0 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 0 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
   // outcome: gift.
   p_unit = &scout_petty;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 33 );
-  W.rand()
-      .EXPECT__between_ints( 50, 300, e_interval::closed )
-      .returns( 111 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 33 );
+  W.rand().EXPECT__between_ints( 50, 300 ).returns( 111 );
   expected.action = ChiefAction::gift_money{ .quantity = 111 };
   REQUIRE( f() == expected );
 
@@ -709,12 +703,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   dwelling         = &dwelling_inca;
   p_unit           = &scout_seasoned;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 20 );
-  W.rand()
-      .EXPECT__between_ints( 166, 2000, e_interval::closed )
-      .returns( 1111 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 20 );
+  W.rand().EXPECT__between_ints( 166, 2000 ).returns( 1111 );
   expected.action = ChiefAction::gift_money{ .quantity = 1111 };
   REQUIRE( f() == expected );
   dwelling = &dwelling_tupi;
@@ -722,27 +712,21 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: promotion.
   p_unit = &scout_petty;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 80 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 80 );
   expected.action = ChiefAction::promotion{};
   REQUIRE( f() == expected );
 
   // outcome: failed promotion.
   p_unit = &scout_other_expert;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 80 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 80 );
   expected.action = ChiefAction::none{};
   REQUIRE( f() == expected );
 
   // outcome: tales of nearby land non-seasoned.
   p_unit = &scout_petty;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 73 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 73 );
   expected_tiles.clear();
   for( int y = 4 - 9 / 2; y < 4 + 1 + 9 / 2; ++y ) {
     for( int x = 4 - 9 / 2; x < 4 + 1 + 9 / 2; ++x ) {
@@ -764,9 +748,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   // outcome: tales of nearby land seasoned.
   p_unit = &scout_seasoned;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 70 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 70 );
   expected_tiles.clear();
   for( int y = 4 - 13 / 2; y < 4 + 1 + 13 / 2; ++y ) {
     for( int x = 4 - 13 / 2; x < 4 + 1 + 13 / 2; ++x ) {

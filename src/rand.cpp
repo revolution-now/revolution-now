@@ -27,19 +27,9 @@ bool Rand::bernoulli( double p ) {
   return biased_coin( engine_ );
 }
 
-int Rand::between_ints( int lower, int upper, e_interval type ) {
-  auto real_upper = upper;
-  switch( type ) {
-    case e_interval::closed: //
-      CHECK_LE( lower, upper );
-      break;
-    case e_interval::half_open: //
-      CHECK_LT( lower, upper );
-      real_upper--;
-      break;
-  };
-  uniform_int_distribution<int> uniform_dist( lower,
-                                              real_upper );
+int Rand::between_ints( int lower, int upper ) {
+  CHECK_LE( lower, upper );
+  uniform_int_distribution<int> uniform_dist( lower, upper );
   return uniform_dist( engine_ );
 }
 

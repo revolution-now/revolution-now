@@ -54,20 +54,29 @@ int sum_values( PGMap const& m ) {
 *****************************************************************/
 e_commodity to_commodity( e_processed_good good ) {
   switch( good ) {
-    case e_processed_good::rum: return e_commodity::rum;
-    case e_processed_good::cigars: return e_commodity::cigars;
-    case e_processed_good::cloth: return e_commodity::cloth;
-    case e_processed_good::coats: return e_commodity::coats;
+    case e_processed_good::rum:
+      return e_commodity::rum;
+    case e_processed_good::cigars:
+      return e_commodity::cigars;
+    case e_processed_good::cloth:
+      return e_commodity::cloth;
+    case e_processed_good::coats:
+      return e_commodity::coats;
   }
 }
 
 maybe<e_processed_good> from_commodity( e_commodity comm ) {
   switch( comm ) {
-    case e_commodity::rum: return e_processed_good::rum;
-    case e_commodity::cigars: return e_processed_good::cigars;
-    case e_commodity::cloth: return e_processed_good::cloth;
-    case e_commodity::coats: return e_processed_good::coats;
-    default: return nothing;
+    case e_commodity::rum:
+      return e_processed_good::rum;
+    case e_commodity::cigars:
+      return e_processed_good::cigars;
+    case e_commodity::cloth:
+      return e_processed_good::cloth;
+    case e_commodity::coats:
+      return e_processed_good::coats;
+    default:
+      return nothing;
   }
 }
 
@@ -273,7 +282,7 @@ int generate_random_intrinsic_volume( TS& ts, int center,
                                       int window ) {
   int const bottom = center - window / 2;
   int const top    = center + window / 2;
-  return ts.rand.between_ints( bottom, top, e_interval::closed );
+  return ts.rand.between_ints( bottom, top );
 }
 
 /****************************************************************

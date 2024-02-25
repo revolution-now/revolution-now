@@ -572,8 +572,8 @@ static ChiefAction compute_speak_with_chief_action(
           ss.natives.tribe_for( dwelling.id ).type;
       config::IntRange const& gift_range =
           conf.gift_range[config_natives.tribes[tribe].level];
-      int const quantity = ts.rand.between_ints(
-          gift_range.min, gift_range.max, e_interval::closed );
+      int const quantity =
+          ts.rand.between_ints( gift_range.min, gift_range.max );
       return ChiefAction::gift_money{ .quantity = quantity };
     }
     case e_speak_with_chief_result::tales_of_nearby_lands: {

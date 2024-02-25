@@ -98,8 +98,7 @@ TEST_CASE( "[lcr] de soto means no unit lost" ) {
     INFO( fmt::format( "i: {}", i ) );
 
     W.rand()
-        .EXPECT__between_ints( 0, kUpperLimit,
-                               e_interval::half_open )
+        .EXPECT__between_ints( 0, kUpperLimit - 1 )
         .returns( i );
     e_rumor_type type = pick_rumor_type_result(
         W.rand(), e_lcr_explorer_category::other, player );
@@ -179,9 +178,7 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
           StrContains( "You happen upon a small village" ) )
       .returns( make_wait() );
   // Get quantity of chief gift.
-  W.rand()
-      .EXPECT__between_ints( 15, 70, e_interval::closed )
-      .returns( 32 );
+  W.rand().EXPECT__between_ints( 15, 70 ).returns( 32 );
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
@@ -226,9 +223,7 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
           StrContains( "ruins of a lost colony" ) )
       .returns( make_wait() );
   // Get quantity of gift.
-  W.rand()
-      .EXPECT__between_ints( 80, 220, e_interval::closed )
-      .returns( 95 );
+  W.rand().EXPECT__between_ints( 80, 220 ).returns( 95 );
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
@@ -456,9 +451,7 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
           StrContains( "Seven Cities of Cibola" ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  W.rand()
-      .EXPECT__between_ints( 2000, 10500, e_interval::closed )
-      .returns( 5555 );
+  W.rand().EXPECT__between_ints( 2000, 10500 ).returns( 5555 );
   // Enpixelate the treasure.
   land_view_plane.EXPECT__animate( _ );
 
@@ -526,9 +519,7 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
           StrContains( "recovered a treasure worth" ) )
       .returns( make_wait() );
   // Get quantity of treasure.
-  W.rand()
-      .EXPECT__between_ints( 2000, 3500, e_interval::closed )
-      .returns( 2222 );
+  W.rand().EXPECT__between_ints( 2000, 3500 ).returns( 2222 );
   // Enpixelate the treasure.
   land_view_plane.EXPECT__animate( _ );
 
@@ -643,9 +634,7 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
           StrContains( "found some trinkets" ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  W.rand()
-      .EXPECT__between_ints( 70, 200, e_interval::closed )
-      .returns( 155 );
+  W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
@@ -751,9 +740,7 @@ TEST_CASE(
           StrContains( "native burial grounds" ) )
       .returns( make_wait() );
   // Get quantity of the gift.
-  W.rand()
-      .EXPECT__between_ints( 70, 200, e_interval::closed )
-      .returns( 155 );
+  W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
   wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(

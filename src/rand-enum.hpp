@@ -30,8 +30,7 @@ template<refl::ReflectedEnum Enum>
 Enum pick_one( IRand& rand ) {
   constexpr auto count = refl::enum_count<Enum>;
   static_assert( count > 0 );
-  auto idx =
-      rand.between_ints( 0, count, e_interval::half_open );
+  auto idx = rand.between_ints( 0, count - 1 );
   return refl::enum_values<Enum>[idx];
 }
 
@@ -44,9 +43,8 @@ T pick_from_weighted_enum_values(
     IRand& rand, refl::enum_map<T, int> const& weights ) {
   int total = 0;
   for( auto [item, weight] : weights ) total += weight;
-  CHECK_GE( total, 0 );
-  int stop =
-      rand.between_ints( 0, total, e_interval::half_open );
+  CHECK_GT( total, 0 );
+  int stop    = rand.between_ints( 0, total - 1 );
   int running = 0;
   // This iteration will be in order of enum values since that is
   // guaranteed by the container.

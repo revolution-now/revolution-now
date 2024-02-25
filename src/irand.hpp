@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// rds
-#include "irand.rds.hpp"
-
 // luapp
 #include "luapp/ext-userdata.hpp"
 
@@ -39,11 +36,9 @@ struct IRand {
   // Biased coin flip.  Returns true with probability p.
   [[nodiscard]] virtual bool bernoulli( double p ) = 0;
 
-  // Random integer between tbe bounds, where the meaning of "be-
-  // tween" depends on the interval type. If interval is half
-  // open then lower must be < upper.
-  [[nodiscard]] virtual int between_ints( int lower, int upper,
-                                          e_interval type ) = 0;
+  // Random integer between tbe bounds, closed on both ends.
+  [[nodiscard]] virtual int between_ints( int lower,
+                                          int upper ) = 0;
 
   // Random floating point number in [lower, upper).
   [[nodiscard]] virtual double between_doubles(
@@ -60,7 +55,7 @@ struct IRand {
   [[nodiscard]] T const& pick_one(
       std::vector<T> const& v ATTR_LIFETIMEBOUND ) {
     CHECK( !v.empty() );
-    return v[between_ints( 0, v.size(), e_interval::half_open )];
+    return v[between_ints( 0, v.size() - 1 )];
   }
 };
 
@@ -73,7 +68,7 @@ void IRand::shuffle( std::vector<T>& vec ) {
   // i < last_idx because we don't want to consider swapping the
   // last element with itself, which would have not purpose.
   for( int i = 0; i < last_idx; ++i ) {
-    int source = between_ints( i, last_idx, e_interval::closed );
+    int source = between_ints( i, last_idx );
     using std::swap;
     swap( vec[i], vec[source] );
   }

@@ -355,9 +355,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( .25 ).returns( true );
-  W.rand()
-      .EXPECT__between_ints( 200, 400, e_interval::closed )
-      .returns( 315 );
+  W.rand().EXPECT__between_ints( 200, 400 ).returns( 315 );
   expected = 300;
   REQUIRE( f() == expected );
 
@@ -365,9 +363,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = true;
   capital    = false;
-  W.rand()
-      .EXPECT__between_ints( 200, 400, e_interval::closed )
-      .returns( 395 );
+  W.rand().EXPECT__between_ints( 200, 400 ).returns( 395 );
   expected = 500;
   REQUIRE( f() == expected );
 
@@ -375,9 +371,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   tribe      = e_tribe::tupi;
   has_cortes = false;
   capital    = true;
-  W.rand()
-      .EXPECT__between_ints( 200, 400, e_interval::closed )
-      .returns( 395 );
+  W.rand().EXPECT__between_ints( 200, 400 ).returns( 395 );
   expected = 700;
   REQUIRE( f() == expected );
 
@@ -386,9 +380,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( .33 ).returns( true );
-  W.rand()
-      .EXPECT__between_ints( 300, 800, e_interval::closed )
-      .returns( 675 );
+  W.rand().EXPECT__between_ints( 300, 800 ).returns( 675 );
   expected = 600;
   REQUIRE( f() == expected );
 
@@ -397,9 +389,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand()
-      .EXPECT__between_ints( 2000, 6000, e_interval::closed )
-      .returns( 5123 );
+  W.rand().EXPECT__between_ints( 2000, 6000 ).returns( 5123 );
   expected = 5100;
   REQUIRE( f() == expected );
 
@@ -408,9 +398,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand()
-      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
-      .returns( 8123 );
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
   expected = 8100;
   REQUIRE( f() == expected );
 
@@ -419,9 +407,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = false;
   W.settings().difficulty = e_difficulty::viceroy;
-  W.rand()
-      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
-      .returns( 8123 );
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
   expected = 12100;
   REQUIRE( f() == expected );
 
@@ -430,9 +416,7 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = true;
   W.settings().difficulty = e_difficulty::governor;
-  W.rand()
-      .EXPECT__between_ints( 3000, 10000, e_interval::closed )
-      .returns( 8123 );
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
   expected = 24300;
   REQUIRE( f() == expected );
 }

@@ -49,8 +49,7 @@ void expect_shuffle( MockIRand&         rand,
     CHECK( it != simulation.end() );
     int const slot = it - simulation.begin();
     CHECK_GE( slot, 0 );
-    rand.EXPECT__between_ints( i, last_elem, e_interval::closed )
-        .returns( slot );
+    rand.EXPECT__between_ints( i, last_elem ).returns( slot );
     using std::swap;
     swap( simulation[i], simulation[slot] );
   }

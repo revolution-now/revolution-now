@@ -321,9 +321,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "decided to raise your tax rate by [13%].  The tax "
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
-    W.rand()
-        .EXPECT__between_ints( 1, 3, e_interval::closed )
-        .returns( 2 );
+    W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
     W.gui()
         .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
@@ -349,9 +347,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    W.rand()
-        .EXPECT__between_ints( 1, 3, e_interval::closed )
-        .returns( 2 );
+    W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
         .options = { ChoiceConfigOption{
@@ -388,9 +384,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
         "rate is now [63%]. We will graciously allow you "
         "to kiss our royal pinky ring.";
     // Re-marriage number.
-    W.rand()
-        .EXPECT__between_ints( 1, 3, e_interval::closed )
-        .returns( 2 );
+    W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
     ChoiceConfig const config{
         .msg     = expected_msg,
         .options = { ChoiceConfigOption{
@@ -436,9 +430,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
   }
 
   SECTION( "it is here" ) {
-    W.rand()
-        .EXPECT__between_ints( 14, 18, e_interval::closed )
-        .returns( 13 );
+    W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
     SECTION( "next_tax_event_turn=0" ) {
       W.turn().time_point.turns                  = 10;
@@ -478,9 +470,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
               W.found_colony_with_new_unit( Coord{ .x = 2 } );
 
           // Tax change amount.
-          W.rand()
-              .EXPECT__between_ints( 1, 8, e_interval::closed )
-              .returns( 4 );
+          W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
 
           SECTION( "decrease" ) {
             // Tax increase probability.
@@ -599,9 +589,7 @@ TEST_CASE(
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  W.rand()
-      .EXPECT__between_ints( 14, 18, e_interval::closed )
-      .returns( 13 );
+  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
   W.turn().time_point.turns                  = 38;
   player.old_world.taxes.next_tax_event_turn = 37;
@@ -618,9 +606,7 @@ TEST_CASE(
                                     colony2.location ) );
 
   // Tax change amount.
-  W.rand()
-      .EXPECT__between_ints( 1, 8, e_interval::closed )
-      .returns( 4 );
+  W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
 
   // Tax increase probability.
   W.rand().EXPECT__bernoulli( .98 ).returns( true );
@@ -676,9 +662,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  W.rand()
-      .EXPECT__between_ints( 14, 18, e_interval::closed )
-      .returns( 13 );
+  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
   W.turn().time_point.turns                  = 38;
   player.old_world.taxes.next_tax_event_turn = 37;
@@ -694,9 +678,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   colony2.sons_of_liberty.num_rebels_from_bells_only = .4;
 
   // Tax change amount.
-  W.rand()
-      .EXPECT__between_ints( 1, 8, e_interval::closed )
-      .returns( 4 );
+  W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
 
   // Tax increase probability.
   W.rand().EXPECT__bernoulli( .98 ).returns( true );
@@ -730,9 +712,7 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
       "rate is now [75%]. We will graciously allow you "
       "to kiss our royal pinky ring.";
   // Re-marriage number.
-  W.rand()
-      .EXPECT__between_ints( 1, 3, e_interval::closed )
-      .returns( 2 );
+  W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
   ChoiceConfig const config{
       .msg     = expected_msg,
       .options = {
@@ -786,9 +766,7 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
 
   W.settings().difficulty = e_difficulty::conquistador;
 
-  W.rand()
-      .EXPECT__between_ints( 14, 18, e_interval::closed )
-      .returns( 13 );
+  W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
   W.turn().time_point.turns                  = 37;
   player.old_world.taxes.next_tax_event_turn = 37;
@@ -800,9 +778,7 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   W.found_colony_with_new_unit( Coord{ .x = 2 } );
 
   // Tax change amount.
-  W.rand()
-      .EXPECT__between_ints( 1, 8, e_interval::closed )
-      .returns( 4 );
+  W.rand().EXPECT__between_ints( 1, 8 ).returns( 4 );
 
   // Tax increase probability.
   W.rand().EXPECT__bernoulli( .98 ).returns( true );

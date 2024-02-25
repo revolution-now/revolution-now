@@ -29,7 +29,7 @@ namespace rn {
 *****************************************************************/
 struct MockIRand : IRand {
   MOCK_METHOD( bool, bernoulli, (double), () );
-  MOCK_METHOD( int, between_ints, ( int, int, e_interval ), () );
+  MOCK_METHOD( int, between_ints, (int, int), () );
   MOCK_METHOD( double, between_doubles, (double, double), () );
 };
 

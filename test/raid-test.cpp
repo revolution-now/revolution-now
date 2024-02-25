@@ -409,10 +409,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     // building_destroyed:   12
     // ship_in_port_damaged: 25
     W.rand()
-        .EXPECT__between_ints( 0, 100, e_interval::half_open )
+        .EXPECT__between_ints( 0, 100 - 1 )
         .returns( 75 ); // ship in port damaged.
     W.rand()
-        .EXPECT__between_ints( 0, 2, e_interval::half_open )
+        .EXPECT__between_ints( 0, 2 - 1 )
         .returns( 1 ); // frigate damaged.
     mock_euro_mind.EXPECT__message_box(
         "[Dutch] [Soldier] routed! Unit demoted to colonist "
@@ -509,10 +509,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     // building_destroyed:   12
     // ship_in_port_damaged: 25
     W.rand()
-        .EXPECT__between_ints( 0, 100, e_interval::half_open )
+        .EXPECT__between_ints( 0, 100 - 1 )
         .returns( 63 ); // building destroyed.
     W.rand()
-        .EXPECT__between_ints( 0, 16, e_interval::half_open )
+        .EXPECT__between_ints( 0, 16 - 1 )
         .returns( 8 ); // "newspapers" slot.
     mock_euro_mind.EXPECT__message_box(
         "[Dutch] Soldier promoted to [Veteran Soldier] for "
@@ -591,11 +591,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     // building_destroyed:   12
     // ship_in_port_damaged: 25
     W.rand()
-        .EXPECT__between_ints( 0, 100, e_interval::half_open )
+        .EXPECT__between_ints( 0, 100 - 1 )
         .returns( 42 ); // money stolen.
-    W.rand()
-        .EXPECT__between_ints( 30, 200, e_interval::closed )
-        .returns( 123 ); // amount stolen.
+    W.rand().EXPECT__between_ints( 30, 200 ).returns(
+        123 );          // amount stolen.
     mock_euro_mind.EXPECT__message_box(
         "[Arawak] raiding party wiped out in [1]! Colonists "
         "celebrate!" );

@@ -259,13 +259,12 @@ wait<maybe<UnitId>> check_for_new_immigrant(
     CHECK_GE( immigrant_idx, 0 );
     CHECK_LE( immigrant_idx, 2 );
   } else {
-    immigrant_idx =
-        ts.rand.between_ints( 0, 2, e_interval::closed );
-    string msg = fmt::format(
+    immigrant_idx = ts.rand.between_ints( 0, 2 );
+    string msg    = fmt::format(
         "Word of religious freedom has spread! A new immigrant "
-        "([{}]) has arrived on the docks.",
+           "([{}]) has arrived on the docks.",
         unit_attr( player.old_world.immigration
-                       .immigrants_pool[immigrant_idx] )
+                          .immigrants_pool[immigrant_idx] )
             .name );
     co_await ts.gui.message_box( msg );
   }

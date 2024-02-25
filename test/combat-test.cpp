@@ -78,18 +78,14 @@ struct World : testing::World {
       return;
     } else {
       rand().EXPECT__bernoulli( probability ).returns( true );
-      rand()
-          .EXPECT__between_ints( min, max, e_interval::closed )
-          .returns( *amount );
+      rand().EXPECT__between_ints( min, max ).returns( *amount );
       return;
     }
   }
 
   void expect_guaranteed_treasure_amount( int min, int max,
                                           int amount ) {
-    rand()
-        .EXPECT__between_ints( min, max, e_interval::closed )
-        .returns( amount );
+    rand().EXPECT__between_ints( min, max ).returns( amount );
   }
 
   void expect_bernoulli( bool result, double probability ) {

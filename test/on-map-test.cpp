@@ -278,13 +278,9 @@ TEST_CASE(
   };
 
   // Selects rumor result = fountain of youth.
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 58 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 58 );
   // Selects burial mounds type (not relevant).
-  W.rand()
-      .EXPECT__between_ints( 0, 100, e_interval::half_open )
-      .returns( 0 );
+  W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 0 );
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::discovered_fountain_of_youth );
   W.gui().EXPECT__message_box( StrContains( "Youth" ) );
