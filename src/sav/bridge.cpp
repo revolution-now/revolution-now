@@ -311,6 +311,7 @@ valid_or<std::string> map_squares_to_tiles(
   int const total_og_tiles = og_map_size_x * og_map_size_y;
 
   auto const& map = in.map;
+  tiles.clear();
   tiles.reserve( total_og_tiles );
   static sav::TILE kOcean{ .tile = sav::terrain_5bit_type::ttt };
   for( int y = 0; y < og_map_size_y; ++y ) {

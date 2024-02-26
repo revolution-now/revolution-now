@@ -14,6 +14,7 @@
 #include "src/sav/bridge.hpp"
 
 // sav
+#include "src/sav/map-file.hpp"
 #include "src/sav/sav-struct.hpp"
 
 // ss
@@ -447,6 +448,398 @@ TEST_CASE( "[sav/bridge] OG to NG [scenario 2]" ) {
   REQUIRE( converted.natives == expected.natives );
   REQUIRE( converted.land_view == expected.land_view );
   REQUIRE( converted.zzz_terrain == expected.zzz_terrain );
+}
+
+// This test should not ever need to be changed.
+TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
+  using T   = sav::TILE;
+  using MS  = rn::MapSquare;
+  using t5t = sav::terrain_5bit_type;
+  using hr3 = sav::hills_river_3bit_type;
+
+  sav::MapFile classic{ .map_size_x = 5 + 2,
+                        .map_size_y = 6 + 2 };
+  classic.tile.resize( ( 5 + 2 ) * ( 6 + 2 ) );
+
+  rn::MapSquare   expected;
+  rn::RealTerrain modern;
+  modern.map.reset( { .w = 5, .h = 6 } );
+
+  auto classic_at = [&]( rn::Coord coord ) -> decltype( auto ) {
+    coord.x += 1;
+    coord.y += 1;
+    int const width = 5 + 2;
+    int const idx   = coord.x + ( coord.y * width );
+    BASE_CHECK( idx < int( classic.tile.size() ) );
+    return classic.tile[idx];
+  };
+
+  classic_at( { .x = 0, .y = 0 } ) = T{ .tile = t5t::ttt };
+  classic_at( { .x = 1, .y = 0 } ) = T{ .tile = t5t::tnt };
+  classic_at( { .x = 2, .y = 0 } ) = T{ .tile = t5t::tu };
+  classic_at( { .x = 3, .y = 0 } ) = T{ .tile = t5t::mr };
+  classic_at( { .x = 4, .y = 0 } ) = T{ .tile = t5t::sw };
+  classic_at( { .x = 0, .y = 1 } ) = T{ .tile = t5t::arc };
+  classic_at( { .x = 1, .y = 1 } ) =
+      T{ .tile = t5t::de, .hill_river = hr3::c };
+  classic_at( { .x = 2, .y = 1 } ) =
+      T{ .tile = t5t::pl, .hill_river = hr3::cc };
+  classic_at( { .x = 3, .y = 1 } ) =
+      T{ .tile = t5t::pr, .hill_river = hr3::t };
+  classic_at( { .x = 4, .y = 1 } ) =
+      T{ .tile = t5t::sa, .hill_river = hr3::tt };
+  classic_at( { .x = 0, .y = 2 } ) =
+      T{ .tile = t5t::gr, .hill_river = hr3::tc };
+  classic_at( { .x = 1, .y = 2 } ) = T{ .tile = t5t::tuf };
+  classic_at( { .x = 2, .y = 2 } ) = T{ .tile = t5t::grw };
+  classic_at( { .x = 3, .y = 2 } ) = T{ .tile = t5t::saf };
+  classic_at( { .x = 4, .y = 2 } ) = T{ .tile = t5t::prw };
+  classic_at( { .x = 0, .y = 3 } ) = T{ .tile = t5t::plf };
+  classic_at( { .x = 1, .y = 3 } ) = T{ .tile = t5t::dew };
+  classic_at( { .x = 2, .y = 3 } ) =
+      T{ .tile = t5t::arc, .hill_river = hr3::cc };
+  classic_at( { .x = 3, .y = 3 } ) = T{ .tile = t5t::swf };
+  classic_at( { .x = 4, .y = 3 } ) = T{ .tile = t5t::mrw };
+
+  REQUIRE( convert_to_rn( classic, modern ) == valid );
+
+  auto const& map = modern.map;
+  REQUIRE( map.size() == gfx::size{ .w = 5, .h = 6 } );
+
+  expected = MS{ .surface = rn::e_surface::water };
+  REQUIRE( map[{ .x = 0, .y = 0 }] == expected );
+  expected =
+      MS{ .surface = rn::e_surface::water, .sea_lane = true };
+  REQUIRE( map[{ .x = 1, .y = 0 }] == expected );
+
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 2, .y = 0 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::marsh };
+  REQUIRE( map[{ .x = 3, .y = 0 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::swamp };
+  REQUIRE( map[{ .x = 4, .y = 0 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::arctic };
+  REQUIRE( map[{ .x = 0, .y = 1 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::desert,
+                 .overlay = rn::e_land_overlay::hills };
+  REQUIRE( map[{ .x = 1, .y = 1 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::plains,
+                 .overlay = rn::e_land_overlay::mountains };
+  REQUIRE( map[{ .x = 2, .y = 1 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::prairie,
+                 .river   = rn::e_river::minor };
+  REQUIRE( map[{ .x = 3, .y = 1 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::savannah,
+                 .river   = rn::e_river::major };
+  REQUIRE( map[{ .x = 4, .y = 1 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::grassland,
+                 .overlay = rn::e_land_overlay::hills,
+                 .river   = rn::e_river::minor };
+  REQUIRE( map[{ .x = 0, .y = 2 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 1, .y = 2 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::grassland,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 2, .y = 2 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::savannah,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 3, .y = 2 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::prairie,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 4, .y = 2 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::plains,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 0, .y = 3 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::desert,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 1, .y = 3 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::arctic,
+                 .overlay = rn::e_land_overlay::mountains };
+  REQUIRE( map[{ .x = 2, .y = 3 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::swamp,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 3, .y = 3 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::marsh,
+                 .overlay = rn::e_land_overlay::forest };
+  REQUIRE( map[{ .x = 4, .y = 3 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 0, .y = 4 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 1, .y = 4 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 2, .y = 4 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 3, .y = 4 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 4, .y = 4 }] == expected );
+  REQUIRE( map[{ .x = 0, .y = 5 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 1, .y = 5 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 2, .y = 5 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 3, .y = 5 }] == expected );
+  expected = MS{ .surface = rn::e_surface::land,
+                 .ground  = rn::e_ground_terrain::tundra };
+  REQUIRE( map[{ .x = 4, .y = 5 }] == expected );
+}
+
+// This test should not ever need to be changed. NOTE: in this
+// test we don't involve the "w" forest variants, e.g.
+// terrain_5bit_type::tuw, because this conversion happens in the
+// direction of NG -> OG, and so in that case we get to choose
+// which variant we want, and we always go for the more modern
+// "f" variants, e.g. terrain_5bit_type::tuf.
+TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
+  using t5t = sav::terrain_5bit_type;
+  using hr3 = sav::hills_river_3bit_type;
+  using MS  = rn::MapSquare;
+
+  sav::TILE    expected;
+  sav::MapFile classic;
+
+  rn::RealTerrain modern;
+  modern.map.reset( { .w = 5, .h = 6 } );
+
+  auto modern_at = [&]( rn::Coord coord ) -> decltype( auto ) {
+    return modern.map[coord];
+  };
+
+  modern_at( { .x = 0, .y = 0 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::tundra };
+  modern_at( { .x = 1, .y = 0 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::desert };
+  modern_at( { .x = 2, .y = 0 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::plains };
+  modern_at( { .x = 3, .y = 0 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::prairie };
+  modern_at( { .x = 4, .y = 0 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland };
+  modern_at( { .x = 0, .y = 1 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::savannah };
+  modern_at( { .x = 1, .y = 1 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::marsh };
+  modern_at( { .x = 2, .y = 1 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::swamp };
+  modern_at( { .x = 3, .y = 1 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::tundra,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 4, .y = 1 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::desert,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 0, .y = 2 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::plains,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 1, .y = 2 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::prairie,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 2, .y = 2 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 3, .y = 2 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::savannah,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 4, .y = 2 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::marsh,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 0, .y = 3 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::swamp,
+          .overlay = rn::e_land_overlay::forest };
+  modern_at( { .x = 1, .y = 3 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::arctic };
+  modern_at( { .x = 2, .y = 3 } ) =
+      MS{ .surface = rn::e_surface::water, .sea_lane = true };
+  modern_at( { .x = 3, .y = 3 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::arctic,
+          .overlay = rn::e_land_overlay::mountains };
+  modern_at( { .x = 4, .y = 3 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland,
+          .river   = rn::e_river::major };
+  modern_at( { .x = 0, .y = 4 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland,
+          .overlay = rn::e_land_overlay::hills,
+          .river   = rn::e_river::minor };
+  modern_at( { .x = 1, .y = 4 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland,
+          .river   = rn::e_river::minor };
+  modern_at( { .x = 2, .y = 4 } ) =
+      MS{ .surface = rn::e_surface::land,
+          .ground  = rn::e_ground_terrain::grassland,
+          .overlay = rn::e_land_overlay::hills };
+
+  REQUIRE( convert_to_og( modern, classic ) == valid );
+
+  auto const& tile = classic.tile;
+  REQUIRE( tile.size() == ( 5 + 2 ) * ( 6 + 2 ) );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[1 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[2 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[3 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[4 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[5 + ( 0 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 0 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::tu };
+  REQUIRE( tile[1 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::de };
+  REQUIRE( tile[2 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::pl };
+  REQUIRE( tile[3 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::pr };
+  REQUIRE( tile[4 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::gr };
+  REQUIRE( tile[5 + ( 1 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 1 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::sa };
+  REQUIRE( tile[1 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::mr };
+  REQUIRE( tile[2 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::sw };
+  REQUIRE( tile[3 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::tuf };
+  REQUIRE( tile[4 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::def };
+  REQUIRE( tile[5 + ( 2 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 2 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::plf };
+  REQUIRE( tile[1 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::prf };
+  REQUIRE( tile[2 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::grf };
+  REQUIRE( tile[3 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::saf };
+  REQUIRE( tile[4 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::mrf };
+  REQUIRE( tile[5 + ( 3 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 3 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 4 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::swf };
+  REQUIRE( tile[1 + ( 4 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::arc };
+  REQUIRE( tile[2 + ( 4 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::tnt };
+  REQUIRE( tile[3 + ( 4 * 7 )] == expected );
+  expected =
+      sav::TILE{ .tile = t5t::arc, .hill_river = hr3::cc };
+  REQUIRE( tile[4 + ( 4 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::gr, .hill_river = hr3::tt };
+  REQUIRE( tile[5 + ( 4 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 4 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::gr, .hill_river = hr3::tc };
+  REQUIRE( tile[1 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::gr, .hill_river = hr3::t };
+  REQUIRE( tile[2 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::gr, .hill_river = hr3::c };
+  REQUIRE( tile[3 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[4 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[5 + ( 5 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 5 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[1 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[2 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[3 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[4 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[5 + ( 6 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 6 * 7 )] == expected );
+
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[0 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[1 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[2 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[3 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[4 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[5 + ( 7 * 7 )] == expected );
+  expected = sav::TILE{ .tile = t5t::ttt };
+  REQUIRE( tile[6 + ( 7 * 7 )] == expected );
 }
 
 } // namespace

@@ -29,7 +29,7 @@ struct MapFile {
   //
   // So we always expect the same values from MP files generated
   // by the OG, but we will allow other dimensions here just in
-  // case.
+  // case, since it is especially useful for unit testings.
   uint16_t map_size_x = {};
   uint16_t map_size_y = {};
 
@@ -48,8 +48,9 @@ struct MapFile {
   // This may or may not be populated in a given map file; that
   // is because it only seems to get populated when the user se-
   // lects Map->Find Continents. So it should not be relied upon.
-  // It is not clear if the game will compute/recompute this when
-  // loading a map into the game.
+  // That said, it appears that the game will populate it when it
+  // loads a map file into a game, so it should always be popu-
+  // lated in a real game sav file.
   std::vector<PATH> path = {};
 };
 

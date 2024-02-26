@@ -58,6 +58,8 @@ struct Matrix {
   Matrix( std::vector<T>&& data, int w )
     : w_{ w }, data_{ std::move( data ) } {}
 
+  void reset( rn::Delta size ) { *this = Matrix( size ); }
+
   bool operator==( Matrix<T> const& rhs ) const {
     return w_ == rhs.w_ && data_ == rhs.data_;
   }
