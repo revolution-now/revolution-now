@@ -140,9 +140,7 @@ void LandViewRenderer::render_single_unit(
 
 void LandViewRenderer::render_units_on_square(
     Coord tile, bool flags ) const {
-  if( viz_->visible( tile ) !=
-      e_tile_visibility::visible_and_clear )
-    return;
+  if( viz_->visible( tile ) != e_tile_visibility::clear ) return;
   // This will be sorted in decreasing order of defense, then by
   // decreasing id.
   vector<GenericUnitId> sorted =
@@ -655,8 +653,8 @@ void LandViewRenderer::render_backdrop() const {
       Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
   Rect const tiled_rect =
       Rect::from( Coord{},
-                  tile_size * Delta{ .w = num_squares_needed,
-                                     .h = num_squares_needed } )
+                  tile_size* Delta{ .w = num_squares_needed,
+                                    .h = num_squares_needed } )
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels_.center() -
                       viewport_rect_pixels_.upper_left();
@@ -696,7 +694,7 @@ void LandViewRenderer::render_dwellings() const {
     FogDwelling const& fog_dwelling = *fog_square->dwelling;
 
     // We have a dwelling, either real or fogged.
-    if( fog_square->fog_of_war_removed ) {
+    if( viz_->visible( coord ) == e_tile_visibility::clear ) {
       // Visibile and clear. Since the fog square above indicated
       // the presence of a dwelling, and since we are visible and
       // clear, that means there must currently be a real
@@ -773,7 +771,7 @@ void LandViewRenderer::render_colonies() const {
     if( !fog_square->colony.has_value() ) continue;
     FogColony const& fog_colony = *fog_square->colony;
     // We have a colony, either real or fogged.
-    if( fog_square->fog_of_war_removed ) {
+    if( viz_->visible( coord ) == e_tile_visibility::clear ) {
       // Visibile and clear. Since the fog square above indicated
       // the presence of a colony, and since we are visible and
       // clear, that means there must currently be a real colony

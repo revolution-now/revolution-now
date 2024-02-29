@@ -447,8 +447,7 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
       continue;
     gfx::pixel color =
         color_for_square( viz.square_at( land_coord ) );
-    if( viz.visible( land_coord ) ==
-        e_tile_visibility::visible_and_clear ) {
+    if( viz.visible( land_coord ) == e_tile_visibility::clear ) {
       // We have full visibility, so consider overriding the
       // normal land pixel with the colors of any units or
       // colonies that are on the square.

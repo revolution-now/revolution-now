@@ -28,6 +28,7 @@
 
 // ss
 #include "src/ss/dwelling.rds.hpp"
+#include "src/ss/fog-square.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/tribe.rds.hpp"
@@ -276,16 +277,16 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
       SECTION( "src fog, dst fog" ) { f(); }
 
       SECTION( "src no fog, dst fog" ) {
-        W.player_square( { .x = 0, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
+        W.player_square( { .x = 0, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
         f();
       }
 
       SECTION( "src fog, dst no fog" ) {
-        W.player_square( { .x = 1, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
+        W.player_square( { .x = 1, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
         f();
       }
     }
@@ -296,28 +297,28 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
       SECTION( "src fog, dst fog" ) { f(); }
 
       SECTION( "src fog, dst no fog" ) {
-        W.player_square( { .x = 1, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
+        W.player_square( { .x = 1, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
         mock_land_view.EXPECT__animate( _ );
         f();
       }
 
       SECTION( "src no fog, dst fog" ) {
-        W.player_square( { .x = 0, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
+        W.player_square( { .x = 0, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
         mock_land_view.EXPECT__animate( _ );
         f();
       }
 
       SECTION( "src no fog, dst no fog" ) {
-        W.player_square( { .x = 0, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
-        W.player_square( { .x = 1, .y = 0 } )
-            .emplace()
-            .fog_of_war_removed = true;
+        W.player_square( { .x = 0, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
+        W.player_square( { .x = 1, .y = 0 } ) =
+            PlayerSquare::explored{ .fog_status =
+                                        FogStatus::clear{} };
         mock_land_view.EXPECT__animate( _ );
         f();
       }

@@ -31,6 +31,11 @@ namespace {
 
 using namespace std;
 
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using clear      = FogStatus::clear;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -71,53 +76,56 @@ TEST_CASE(
               nation );
   Coord const tile = { .x = 1, .y = 1 };
 
-  MapSquare&       real_square = W.square( tile );
-  maybe<FogSquare> expected_fog_square;
+  MapSquare&   real_square = W.square( tile );
+  PlayerSquare expected_fog_square;
 
   auto f = [&] {
     return map_updater.make_squares_fogged( nation, { tile } );
   };
 
-  auto fog_square = [&]() -> maybe<FogSquare>& {
+  auto fog_square = [&]() -> PlayerSquare& {
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
-  REQUIRE( !fog_square().has_value() );
+  REQUIRE( fog_square() == unexplored{} );
 
   // On hidden.
   expected_buffers    = { { .tile        = tile,
                             .landscape   = false,
                             .obfuscation = false } };
-  expected_fog_square = nothing;
+  expected_fog_square = unexplored{};
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // Now make it visible.
-  fog_square()        = FogSquare{ .square             = real_square,
-                                   .fog_of_war_removed = true };
-  expected_buffers    = { { .tile        = tile,
-                            .landscape   = false,
-                            .obfuscation = true } };
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = false };
+  fog_square().emplace<explored>().fog_status.emplace<clear>();
+  expected_buffers = { { .tile        = tile,
+                         .landscape   = false,
+                         .obfuscation = true } };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<fogged>()
+      .contents.square = real_square;
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // Now change the real square and verify no update.
   BASE_CHECK( !real_square.road );
-  real_square.road    = true;
-  expected_buffers    = { { .tile        = tile,
-                            .landscape   = false,
-                            .obfuscation = false } };
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = false };
-  expected_fog_square->square.road = false;
+  real_square.road = true;
+  expected_buffers = { { .tile        = tile,
+                         .landscape   = false,
+                         .obfuscation = false } };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<fogged>()
+      .contents.square = real_square;
+  expected_fog_square.get<explored>()
+      .fog_status.get<fogged>()
+      .contents.square.road = false;
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // Remove fog and try again.
-  fog_square()->fog_of_war_removed = true;
+  fog_square().emplace<explored>().fog_status.emplace<clear>();
   // landscape is false here because the make_squares_fogged
   // method assumes that, if the fog was removed, then the tile
   // has already been rendered in its actual state.
@@ -125,8 +133,9 @@ TEST_CASE(
                          .landscape   = false,
                          .obfuscation = true } };
   BASE_CHECK( real_square.road );
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = false };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<fogged>()
+      .contents.square = real_square;
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
@@ -136,15 +145,16 @@ TEST_CASE(
         []( auto& options ) {
           options.render_fog_of_war = false;
         } );
-    fog_square()->fog_of_war_removed = true;
+    fog_square().emplace<explored>().fog_status.emplace<clear>();
 
     expected_buffers = { { .tile      = tile,
                            .landscape = false,
                            // The difference is here.
                            .obfuscation = false } };
 
-    expected_fog_square = FogSquare{
-        .square = real_square, .fog_of_war_removed = false };
+    expected_fog_square.emplace<explored>()
+        .fog_status.emplace<fogged>()
+        .contents.square = real_square;
     BASE_CHECK( real_square.road );
     REQUIRE( f() == expected_buffers );
     REQUIRE( fog_square() == expected_fog_square );
@@ -164,25 +174,26 @@ TEST_CASE(
               nation );
   Coord const tile = { .x = 1, .y = 1 };
 
-  MapSquare&       real_square = W.square( tile );
-  maybe<FogSquare> expected_fog_square;
+  MapSquare&   real_square = W.square( tile );
+  PlayerSquare expected_fog_square;
 
   auto f = [&] {
     return map_updater.make_squares_visible( nation, { tile } );
   };
 
-  auto fog_square = [&]() -> maybe<FogSquare>& {
+  auto fog_square = [&]() -> PlayerSquare& {
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
-  REQUIRE( !fog_square().has_value() );
+  REQUIRE( fog_square() == unexplored{} );
 
   // On hidden.
   nation           = W.default_nation();
   expected_buffers = {
       { .tile = tile, .landscape = true, .obfuscation = true } };
-  expected_fog_square = FogSquare{ .fog_of_war_removed = true };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
@@ -191,48 +202,47 @@ TEST_CASE(
   BASE_CHECK( nation != W.default_nation() );
   expected_buffers = {
       { .tile = tile, .landscape = true, .obfuscation = true } };
-  expected_fog_square = FogSquare{ .fog_of_war_removed = true };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // On visible and clear.
-  nation              = W.default_nation();
-  fog_square()        = FogSquare{ .square             = real_square,
-                                   .fog_of_war_removed = true };
-  expected_buffers    = { { .tile        = tile,
-                            .landscape   = false,
-                            .obfuscation = false } };
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = true };
+  nation = W.default_nation();
+  fog_square().emplace<explored>().fog_status.emplace<clear>();
+  expected_buffers = { { .tile        = tile,
+                         .landscape   = false,
+                         .obfuscation = false } };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // On fogged.
-  nation              = W.default_nation();
-  fog_square()        = FogSquare{ .square             = real_square,
-                                   .fog_of_war_removed = false };
-  expected_buffers    = { { .tile        = tile,
-                            .landscape   = false,
-                            .obfuscation = true } };
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = true };
+  nation = W.default_nation();
+  fog_square()
+      .emplace<explored>()
+      .fog_status.emplace<fogged>()
+      .contents.square = real_square;
+  expected_buffers     = { { .tile        = tile,
+                             .landscape   = false,
+                             .obfuscation = true } };
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
 
   // On fogged with map update.
-  nation           = W.default_nation();
-  fog_square()     = FogSquare{ .square             = real_square,
-                                .fog_of_war_removed = false };
-  real_square.road = true;
-  expected_buffers = {
+  nation = W.default_nation();
+  fog_square()
+      .emplace<explored>()
+      .fog_status.emplace<fogged>()
+      .contents.square = real_square;
+  real_square.road     = true;
+  expected_buffers     = {
       { .tile = tile, .landscape = true, .obfuscation = true } };
-  expected_fog_square = FogSquare{ .square = real_square,
-                                   .fog_of_war_removed = true };
-  // Fog square contents don't get updated; only the rendered
-  // landscape buffer will be updated, which will be taken from
-  // the real square since we've removed fog (thus the contents
-  // of the fog square are actually irrelevent).
-  expected_fog_square->square.road = false;
+  expected_fog_square.emplace<explored>()
+      .fog_status.emplace<clear>();
   BASE_CHECK( real_square.road == true );
   REQUIRE( f() == expected_buffers );
   REQUIRE( fog_square() == expected_fog_square );
@@ -254,7 +264,7 @@ TEST_CASE(
     return map_updater.modify_map_square( tile, mutator );
   };
 
-  auto fog_square = [&]() -> maybe<FogSquare>& {
+  auto fog_square = [&]() -> PlayerSquare& {
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
@@ -263,7 +273,7 @@ TEST_CASE(
   };
 
   // Initially totally not visible.
-  REQUIRE( !fog_square().has_value() );
+  REQUIRE( fog_square() == unexplored{} );
 
   // No-op, with no nation.
   {
@@ -273,7 +283,7 @@ TEST_CASE(
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == nothing );
+    REQUIRE( fog_square() == unexplored{} );
   }
 
   // No-op, with nation.
@@ -288,7 +298,7 @@ TEST_CASE(
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == nothing );
+    REQUIRE( fog_square() == unexplored{} );
   }
 
   // Add road, with no nation. The landscape buffer should always
@@ -303,7 +313,7 @@ TEST_CASE(
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == nothing );
+    REQUIRE( fog_square() == unexplored{} );
   }
 
   // Remove road, with nation. The landscape buffer should not
@@ -322,7 +332,7 @@ TEST_CASE(
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == nothing );
+    REQUIRE( fog_square() == unexplored{} );
   }
 
   // Add road, with nation that has explored but still fog.
@@ -334,14 +344,17 @@ TEST_CASE(
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
         .tile = tile, .landscape = false, .obfuscation = false };
-    fog_square().emplace();
+    fog_square()
+        .emplace<explored>()
+        .fog_status.emplace<fogged>();
     expected_real_square      = real_square;
     expected_real_square.road = !expected_real_square.road;
     mutator =
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == FogSquare{} );
+    REQUIRE(
+        fog_square().inner_if<explored>().get_if<fogged>() );
   }
 
   // Remove road, with nation that has clear visibility.
@@ -353,16 +366,15 @@ TEST_CASE(
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
         .tile = tile, .landscape = true, .obfuscation = false };
-    BASE_CHECK( fog_square().has_value() );
-    fog_square()->fog_of_war_removed = true;
-    expected_real_square             = real_square;
+    BASE_CHECK( !fog_square().holds<unexplored>() );
+    fog_square().emplace<explored>().fog_status.emplace<clear>();
+    expected_real_square      = real_square;
     expected_real_square.road = !expected_real_square.road;
     mutator =
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() ==
-             FogSquare{ .fog_of_war_removed = true } );
+    REQUIRE( fog_square().inner_if<explored>().get_if<clear>() );
   }
 }
 
@@ -380,7 +392,7 @@ TEST_CASE(
     map_updater.modify_entire_map_no_redraw( mutator );
   };
 
-  auto fog_square = [&]( e_nation nation ) -> maybe<FogSquare>& {
+  auto fog_square = [&]( e_nation nation ) -> PlayerSquare& {
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
@@ -389,15 +401,15 @@ TEST_CASE(
   };
 
   // Initially totally not visible.
-  REQUIRE( !fog_square( e_nation::dutch ).has_value() );
-  REQUIRE( !fog_square( e_nation::french ).has_value() );
+  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
 
   // No-op, with no nation.
   expected_real_square = real_square;
   f( []( auto& ) {} );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( fog_square( e_nation::dutch ) == nothing );
-  REQUIRE( fog_square( e_nation::french ) == nothing );
+  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
 
   // Add road.
   expected_real_square      = real_square;
@@ -406,8 +418,8 @@ TEST_CASE(
     real_terrain.map[tile].road = !real_terrain.map[tile].road;
   } );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( fog_square( e_nation::dutch ) == nothing );
-  REQUIRE( fog_square( e_nation::french ) == nothing );
+  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
 }
 
 // This test case will do some additional (possibly redundant)
@@ -425,8 +437,8 @@ TEST_CASE( "[map-updater] fog of war" ) {
   Coord const coord1 = { .x = 0, .y = 0 };
   Coord const coord2 = { .x = 1, .y = 0 };
 
-  REQUIRE( !player_terrain.map[coord1].has_value() );
-  REQUIRE( !player_terrain.map[coord2].has_value() );
+  REQUIRE( player_terrain.map[coord1] == unexplored{} );
+  REQUIRE( player_terrain.map[coord2] == unexplored{} );
 
   {
     expected = { { .tile        = coord1,
@@ -437,12 +449,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<clear>() );
   }
 
   {
@@ -454,12 +466,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_fogged(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( !fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( !fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<fogged>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<fogged>() );
   }
 
   {
@@ -468,12 +480,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = true } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( !fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<fogged>() );
   }
 
   {
@@ -484,15 +496,15 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .landscape   = false,
                    .obfuscation = true } };
 
-    player_terrain.map[coord1] = nothing;
+    player_terrain.map[coord1] = unexplored{};
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<clear>() );
   }
 
   {
@@ -504,12 +516,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<clear>() );
   }
 
   {
@@ -521,12 +533,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<clear>() );
   }
 
   {
@@ -543,12 +555,12 @@ TEST_CASE( "[map-updater] fog of war" ) {
                    .obfuscation = false } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
-    REQUIRE( player_terrain.map[coord1].has_value() );
-    REQUIRE( player_terrain.map[coord2].has_value() );
-    FogSquare const& fog_square1 = *player_terrain.map[coord1];
-    REQUIRE( fog_square1.fog_of_war_removed );
-    FogSquare const& fog_square2 = *player_terrain.map[coord2];
-    REQUIRE( fog_square2.fog_of_war_removed );
+    REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
+    REQUIRE( !player_terrain.map[coord2].holds<unexplored>() );
+    PlayerSquare const& fog_square1 = player_terrain.map[coord1];
+    PlayerSquare const& fog_square2 = player_terrain.map[coord2];
+    REQUIRE( fog_square1.inner_if<explored>().get_if<clear>() );
+    REQUIRE( fog_square2.inner_if<explored>().get_if<clear>() );
   }
 }
 

@@ -17,7 +17,6 @@
 #include "src/ss/colony-id.hpp"
 #include "src/ss/colony.rds.hpp"
 #include "src/ss/dwelling-id.hpp"
-#include "src/ss/fog-square.rds.hpp"
 #include "src/ss/map-square.rds.hpp"
 #include "src/ss/nation.rds.hpp"
 #include "src/ss/native-enums.rds.hpp"
@@ -68,6 +67,7 @@ struct NativeUnit;
 struct NativesState;
 struct Planes;
 struct Player;
+struct PlayerSquare;
 struct PlayersState;
 struct SS;
 struct SSConst;
@@ -118,7 +118,7 @@ struct World {
   MapSquare& square( gfx::point p );
 
   // This gets the terrain info from the player-specific map.
-  maybe<FogSquare>& player_square(
+  PlayerSquare& player_square(
       gfx::point p, maybe<e_nation> nation = nothing );
 
   void add_forest( gfx::point p );

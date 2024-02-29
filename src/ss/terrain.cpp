@@ -172,20 +172,16 @@ void TerrainState::initialize_player_terrain( e_nation nation,
                                               bool visible ) {
   if( !o_.player_terrain[nation].has_value() )
     o_.player_terrain[nation].emplace();
-  gfx::Matrix<base::maybe<FogSquare>>& map =
-      o_.player_terrain[nation]->map;
-  map = gfx::Matrix<base::maybe<FogSquare>>(
-      o_.real_terrain.map.size() );
-  if( visible ) {
-    gfx::Matrix<MapSquare> const& world_map =
-        o_.real_terrain.map;
-    for( Rect const tile :
-         gfx::subrects( o_.real_terrain.map.rect() ) ) {
-      map[tile.upper_left()].emplace();
-      map[tile.upper_left()]->square =
-          world_map[tile.upper_left()];
-    }
-  }
+  auto& map = o_.player_terrain[nation]->map;
+  map.reset( o_.real_terrain.map.size() );
+  if( !visible ) return;
+  auto const& world_map = o_.real_terrain.map;
+  for( Rect const tile :
+       gfx::subrects( o_.real_terrain.map.rect() ) )
+    map[tile.upper_left()] = PlayerSquare::explored{
+        .fog_status = FogStatus::fogged{
+            .contents = { .square =
+                              world_map[tile.upper_left()] } } };
 }
 
 bool TerrainState::is_pacific_ocean( Coord coord ) const {
@@ -212,7 +208,7 @@ LUA_STARTUP( lua::state& st ) {
       return tile.is_inside( o.rect() );
     };
     u["square_at"] =
-        []( U& o, Coord tile ) -> base::maybe<FogSquare&> {
+        []( U& o, Coord tile ) -> base::maybe<PlayerSquare&> {
       if( !tile.is_inside( o.rect() ) ) return base::nothing;
       return o[tile];
     };

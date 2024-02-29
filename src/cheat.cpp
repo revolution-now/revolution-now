@@ -56,6 +56,9 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -211,17 +214,31 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   // times throughout the process, slowing it down. The below is
   // as effecicient as can be since it will leave the fog buffer
   // completely untouched and will redraw the map only once.
-  gfx::Matrix<maybe<FogSquare>>& m =
-      ss.mutable_terrain_use_with_care
-          .mutable_player_terrain( *nation )
-          .map;
+  auto& m = ss.mutable_terrain_use_with_care
+                .mutable_player_terrain( *nation )
+                .map;
   for( Coord const coord : gfx::rect_iterator( world_rect ) ) {
     // This will reveal the square to the player with fog if the
     // square was not already explored but with existing fog
     // status if it was already explored.
-    FogSquare& fog_square =
-        m[coord].has_value() ? *m[coord] : m[coord].emplace();
-    copy_real_square_to_fog_square( ss, coord, fog_square );
+    auto fog_square = [&]() -> maybe<FogSquare&> {
+      SWITCH( m[coord] ) {
+        CASE( unexplored ) {
+          return m[coord]
+              .emplace<PlayerSquare::explored>()
+              .fog_status.emplace<FogStatus::fogged>()
+              .contents;
+        }
+        CASE( explored ) {
+          SWITCH( explored.fog_status ) {
+            CASE( fogged ) { return fogged.contents; }
+            CASE( clear ) { return nothing; }
+          }
+        }
+      }
+    }();
+    if( fog_square.has_value() )
+      copy_real_square_to_fog_square( ss, coord, *fog_square );
   }
   ts.map_updater.redraw();
 }
@@ -400,8 +417,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       res.reserve( affected_coords.size() );
       VisibilityForNation const viz( ss, nation );
       for( Coord const tile : affected_coords )
-        if( viz.visible( tile ) ==
-            e_tile_visibility::visible_with_fog )
+        if( viz.visible( tile ) == e_tile_visibility::fogged )
           res.push_back( tile );
       return res;
     }();

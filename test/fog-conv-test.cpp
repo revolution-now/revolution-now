@@ -246,27 +246,23 @@ TEST_CASE( "[visibility] copy_real_square_to_fog_square" ) {
   REQUIRE( output == expected );
 
   // Test that it doesn't change fog of war status.
-  output.fog_of_war_removed = true;
-  coord                     = { .x = 1, .y = 0 };
-  expected                  = {
-                       .square   = MapSquare{ .surface = e_surface::land,
-                                              .ground = e_ground_terrain::grassland,
-                                              .road   = true },
-                       .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
-                                                .capital = true },
-                       .fog_of_war_removed = true };
+  coord    = { .x = 1, .y = 0 };
+  expected = {
+      .square   = MapSquare{ .surface = e_surface::land,
+                             .ground = e_ground_terrain::grassland,
+                             .road   = true },
+      .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
+                               .capital = true } };
   f();
   REQUIRE( output == expected );
 
-  coord                     = { .x = 1, .y = 0 };
-  output.fog_of_war_removed = false;
-  expected                  = {
-                       .square   = MapSquare{ .surface = e_surface::land,
-                                              .ground = e_ground_terrain::grassland,
-                                              .road   = true },
-                       .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
-                                                .capital = true },
-                       .fog_of_war_removed = false };
+  coord    = { .x = 1, .y = 0 };
+  expected = {
+      .square   = MapSquare{ .surface = e_surface::land,
+                             .ground = e_ground_terrain::grassland,
+                             .road   = true },
+      .dwelling = FogDwelling{ .tribe   = e_tribe::cherokee,
+                               .capital = true } };
   f();
   REQUIRE( output == expected );
 }

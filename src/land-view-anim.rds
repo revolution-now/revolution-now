@@ -17,13 +17,13 @@ include "config/tile-enum-fwd.hpp"
 
 # ss
 include "ss/dwelling-id.hpp"
-include "ss/fog-square.rds.hpp"
+include "ss/map-square.rds.hpp"
 include "ss/native-enums.rds.hpp"
 include "ss/unit-id.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/coord.hpp"
 
 # C++ standard library
 include "<unordered_map>"
@@ -85,5 +85,5 @@ struct.LandscapeAnimBufferState {
   # controlled via a uniform.
   needs_rendering 'bool',
   stage 'double',
-  targets 'std::unordered_map<Coord, FogSquare>',
+  targets 'std::unordered_map<Coord, MapSquare>',
 }

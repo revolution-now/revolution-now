@@ -862,20 +862,20 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     REQUIRE( viz.visible( { .x = 0, .y = 6 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 6 } ) ==
-             e_tile_visibility::visible_with_fog );
+             e_tile_visibility::fogged );
     REQUIRE( viz.visible( { .x = 2, .y = 6 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 3, .y = 6 } ) ==
-             e_tile_visibility::visible_with_fog );
+             e_tile_visibility::fogged );
     f();
     REQUIRE( viz.visible( { .x = 0, .y = 6 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 6 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 2, .y = 6 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 3, .y = 6 } ) ==
-             e_tile_visibility::visible_with_fog );
+             e_tile_visibility::fogged );
     REQUIRE( player.money == 0 );
     REQUIRE( p_unit->type() == scout_petty.type() );
   }

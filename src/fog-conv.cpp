@@ -100,7 +100,7 @@ void copy_real_square_to_fog_square( SSConst const& ss,
   // date the below.
   static_assert(
       tuple_size_v<
-          decltype( refl::traits<FogSquare>::fields )> == 4 );
+          decltype( refl::traits<FogSquare>::fields )> == 3 );
 
   // MapSquare.
   fog_square.square = ss.terrain.square_at( tile );

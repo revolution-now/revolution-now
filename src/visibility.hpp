@@ -36,27 +36,20 @@ namespace rn {
 
 struct FogSquare;
 struct MapSquare;
+struct PlayerSquare;
 struct PlayerTerrain;
-struct SSConst;
-struct TerrainState;
 struct SS;
 struct SSConst;
+struct SSConst;
 struct TS;
+struct TerrainState;
 
 /****************************************************************
 ** IVisibility
 *****************************************************************/
 // This allows asking for the contents and visibility status of a
 // map square in a generic way that works when rendering either a
-// player-specific map or an all-visible map. Specifically, when
-// asking for a map square, it will always yield a value, but it
-// will prefer the player's version of the square if there is a
-// player view and if the player has seen that square and it is
-// currently fogged. Otherwise it will retrieve the real map
-// square. That said, there is also a method for querying whether
-// a tile is visible. Note that all methods in this class are to-
-// tal, because they will return proto squares for tiles that are
-// off-map.
+// player-specific map or an all-visible map.
 struct IVisibility {
   IVisibility( SSConst const& ss );
 
@@ -99,11 +92,6 @@ struct IVisibility {
   // hidden to the player, this will return either the real map
   // square (if visible and clear) or the player's version of it
   // (if fogged).
-  //
-  // Note that we make this pure virtual because we want to force
-  // derived classes to implement it, but IVisibility actually
-  // does provide a default implementation that you can fall back
-  // on to read the real map.
   virtual MapSquare const& square_at( Coord tile ) const = 0;
 
   // For convenience.
@@ -112,11 +100,8 @@ struct IVisibility {
   // For convenience. Is the tile on the map.
   bool on_map( Coord tile ) const;
 
- private:
-  // This is a pointer instead of a reference so that the class
-  // can be assigned.
-
-  TerrainState const* const terrain_;
+ protected:
+  TerrainState const& terrain_;
 };
 
 /****************************************************************
@@ -133,18 +118,14 @@ struct VisibilityEntire : IVisibility {
   };
 
   // Implement IVisibility.
-  e_tile_visibility visible( Coord ) const override {
-    return e_tile_visibility::visible_and_clear;
-  }
+  e_tile_visibility visible( Coord ) const override;
 
   // Implement IVisibility.
   maybe<FogSquare> create_fog_square_at(
       Coord tile ) const override;
 
   // Implement IVisibility.
-  MapSquare const& square_at( Coord tile ) const override {
-    return IVisibility::square_at( tile );
-  }
+  MapSquare const& square_at( Coord tile ) const override;
 
  private:
   SSConst const& ss_;
@@ -173,7 +154,7 @@ struct VisibilityForNation : IVisibility {
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
-  maybe<FogSquare const&> player_fog_square_at(
+  maybe<PlayerSquare const&> player_square_at(
       Coord tile ) const;
 
   // If so, will return the fog square, otherwise nothing.
@@ -189,15 +170,11 @@ struct VisibilityForNation : IVisibility {
 ** VisibilityWithOverrides
 *****************************************************************/
 // Delegates to a provided IVisibility object except for a cer-
-// tain set of tiles whose values will be overridden. Note that
-// we take in FogSquares to specify the overriding values instead
-// of MapSquares because FogSquares contain MapSquares, and this
-// way we can also return FogSquares when it is requested by the
-// create_fog_square_at method.
+// tain set of tiles whose values will be overridden.
 struct VisibilityWithOverrides : IVisibility {
   VisibilityWithOverrides(
       SSConst const& ss, IVisibility const& underlying,
-      std::unordered_map<Coord, FogSquare> const& overrides
+      std::unordered_map<Coord, MapSquare> const& overrides
           ATTR_LIFETIMEBOUND );
 
   // Are we viewing from the perspective of a nation or not.
@@ -217,7 +194,7 @@ struct VisibilityWithOverrides : IVisibility {
 
  private:
   IVisibility const&                          underlying_;
-  std::unordered_map<Coord, FogSquare> const& overrides_;
+  std::unordered_map<Coord, MapSquare> const& overrides_;
 };
 
 /****************************************************************

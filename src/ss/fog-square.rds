@@ -55,11 +55,14 @@ struct.FogSquare {
   square 'MapSquare',
   colony 'base::maybe<FogColony>',
   dwelling 'base::maybe<FogDwelling>',
+}
 
-  # By default there is fog-of-war on every (visible) square; but
-  # squares immediately adjacent to any square occupied by a unit
-  # this turn will have the fog removed. Then, at the end of the
-  # turn, only the squares that are still immediately adjacent to
-  # units will continue to have their fog removed.
-  fog_of_war_removed 'bool',
+sumtype.FogStatus {
+  fogged { contents 'FogSquare' },
+  clear {},
+}
+
+sumtype.PlayerSquare {
+  unexplored {},
+  explored { fog_status 'FogStatus' },
 }

@@ -33,6 +33,11 @@ namespace rn {
 
 namespace {
 
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using clear      = FogStatus::clear;
+
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
   return TerrainRenderOptions{
@@ -43,7 +48,7 @@ TerrainRenderOptions make_terrain_options(
       .render_fog_of_war = our_options.render_fog_of_war };
 }
 
-}
+} // namespace
 
 /****************************************************************
 ** NonRenderingMapUpdater
@@ -77,7 +82,7 @@ NonRenderingMapUpdater::make_squares_visible(
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
-  gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
+  auto& map = player_terrain.map;
 
   vector<BuffersUpdated>    res;
   VisibilityForNation const viz( ss_, nation );
@@ -91,33 +96,30 @@ NonRenderingMapUpdater::make_squares_visible(
     CHECK( tile.is_inside( map.rect() ) );
     switch( viz.visible( tile ) ) {
       case e_tile_visibility::hidden: {
-        CHECK( !map[tile].has_value() );
+        CHECK( map[tile].holds<unexplored>() );
         buffers_updated.landscape   = true;
         buffers_updated.obfuscation = true;
-        // Signal that the square is now explored. Note that we
-        // only care that the fog square has a value; the con-
-        // tents won't matter since when a square is visible and
-        // clear (which is what we're making it) the fog square
-        // is never consulted. The fog square will be updated
-        // eventually if/when then square transitions to fogged.
-        map[tile].emplace();
-        map[tile]->fog_of_war_removed = true;
+        map[tile]
+            .emplace<explored>()
+            .fog_status.emplace<clear>();
         break;
       }
-      case e_tile_visibility::visible_and_clear:
-        CHECK( map[tile].has_value() );
+      case e_tile_visibility::clear:
+        CHECK( map[tile].inner_if<explored>().get_if<clear>() );
         break;
-      case e_tile_visibility::visible_with_fog: {
-        CHECK( map[tile].has_value() );
-        map[tile]->fog_of_war_removed = true;
-        if( options().render_fog_of_war )
-          buffers_updated.obfuscation = true;
-
-        MapSquare const& player_square = map[tile]->square;
+      case e_tile_visibility::fogged: {
+        UNWRAP_CHECK(
+            fog_square,
+            map[tile].inner_if<explored>().inner_if<fogged>() );
         MapSquare const& real_square =
             ss_.terrain.square_at( tile );
-        if( player_square != real_square )
+        if( fog_square.square != real_square )
           buffers_updated.landscape = true;
+        map[tile]
+            .emplace<explored>()
+            .fog_status.emplace<clear>();
+        if( options().render_fog_of_war )
+          buffers_updated.obfuscation = true;
         break;
       }
     }
@@ -134,43 +136,29 @@ NonRenderingMapUpdater::make_squares_fogged(
   PlayerTerrain& player_terrain =
       ss_.mutable_terrain_use_with_care.mutable_player_terrain(
           nation );
-  gfx::Matrix<maybe<FogSquare>>& map = player_terrain.map;
+  auto& map = player_terrain.map;
 
   vector<BuffersUpdated> res;
   for( Coord const tile : tiles ) {
     BuffersUpdated& buffers_updated = res.emplace_back();
     buffers_updated.tile            = tile;
-    if( !map[tile].has_value() ) continue;
-    FogSquare& fog_square = *map[tile];
-    if( !fog_square.fog_of_war_removed ) continue;
+    if( map[tile].holds<unexplored>() ) continue;
+    if( map[tile].inner_if<explored>().get_if<fogged>() )
+      continue;
+    CHECK( map[tile].inner_if<explored>().get_if<clear>() );
+    // It is clear, so make it fogged.
+    fogged& fog = map[tile]
+                      .emplace<explored>()
+                      .fog_status.emplace<fogged>();
 
-    fog_square.fog_of_war_removed = false;
     if( options().render_fog_of_war )
       buffers_updated.obfuscation = true;
 
     // This won't affect the fog of war, but because the unit is
     // losing full visibility of this tile, we need to make sure
     // that the player's copy of the square reflects everything
-    // that is currently on it. This is needed because e.g. let's
-    // say that the player is sitting next to a dwelling, then a
-    // foreign missionary establishes a mission there (which
-    // won't update the player's FogSquare; it is not necessary
-    // at that point because the tile as a whole will be rendered
-    // from its real contents as it is fully visible to the play-
-    // er), then the player moves away; we want the latest state
-    // of that dwelling to be recorded so that the mission
-    // doesn't then appear to disappear when the fog appears. In
-    // general, the way it works is that the fog square is not
-    // guaranteed to be in sync with the real square while the
-    // square is visible. This may at first seem counterintu-
-    // itive, but it it works because, when the tile is visible,
-    // everything on it is drawn from the real version, and so
-    // that simplifies a lot of things in that when either the
-    // terrain or the fogged contents of a tile change, we don't
-    // have to remember to update the player's fog squares. The
-    // fog squares are only updated here, when a square goes from
-    // visible and clear to fogged.
-    copy_real_square_to_fog_square( ss_, tile, fog_square );
+    // that is currently on it.
+    copy_real_square_to_fog_square( ss_, tile, fog.contents );
   }
 
   CHECK( res.size() == tiles.size() );

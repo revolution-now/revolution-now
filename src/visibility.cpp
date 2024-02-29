@@ -32,6 +32,9 @@
 // gfx
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -44,6 +47,11 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using clear      = FogStatus::clear;
 
 int largest_possible_sighting_radius() {
   static int const largest = [] {
@@ -92,16 +100,10 @@ int unit_sight_radius( SSConst const& ss, e_nation nation,
 ** IVisibility
 *****************************************************************/
 IVisibility::IVisibility( SSConst const& ss )
-  : terrain_( &ss.terrain ) {
-  CHECK( terrain_ != nullptr );
-}
-
-MapSquare const& IVisibility::square_at( Coord tile ) const {
-  return terrain_->total_square_at( tile );
-};
+  : terrain_( ss.terrain ) {}
 
 Rect IVisibility::rect_tiles() const {
-  return terrain_->world_rect_tiles();
+  return terrain_.world_rect_tiles();
 }
 
 bool IVisibility::on_map( Coord tile ) const {
@@ -114,6 +116,10 @@ bool IVisibility::on_map( Coord tile ) const {
 VisibilityEntire::VisibilityEntire( SSConst const& ss )
   : IVisibility( ss ), ss_( ss ) {}
 
+e_tile_visibility VisibilityEntire::visible( Coord ) const {
+  return e_tile_visibility::clear;
+}
+
 maybe<FogSquare> VisibilityEntire::create_fog_square_at(
     Coord tile ) const {
   // If it's a proto square then return nothing by policy. We
@@ -123,9 +129,13 @@ maybe<FogSquare> VisibilityEntire::create_fog_square_at(
   if( !on_map( tile ) ) return nothing;
   FogSquare fog_square;
   copy_real_square_to_fog_square( ss_, tile, fog_square );
-  fog_square.fog_of_war_removed = true;
   return fog_square;
 }
+
+MapSquare const& VisibilityEntire::square_at(
+    Coord tile ) const {
+  return ss_.terrain.total_square_at( tile );
+};
 
 /****************************************************************
 ** VisibilityForNation
@@ -140,53 +150,61 @@ VisibilityForNation::VisibilityForNation( SSConst const& ss,
 
 e_tile_visibility VisibilityForNation::visible(
     Coord tile ) const {
-  if( maybe<FogSquare const&> fog_square =
-          player_fog_square_at( tile );
-      !fog_square.has_value() )
-    // There is a player and they can't see this tile.
+  maybe<PlayerSquare const&> player_square =
+      player_square_at( tile );
+  if( !player_square.has_value() )
+    // Proto square.
     return e_tile_visibility::hidden;
-  else if( !fog_square->fog_of_war_removed )
-    // There is a player, they've seen this tile, but no units
-    // can currently see it, so it is fogged.
-    return e_tile_visibility::visible_with_fog;
-  // There is a player and they can currently see this tile.
-  return e_tile_visibility::visible_and_clear;
+  SWITCH( *player_square ) {
+    CASE( unexplored ) { return e_tile_visibility::hidden; }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return e_tile_visibility::fogged; }
+        CASE( clear ) { return e_tile_visibility::clear; }
+      }
+    }
+  }
 }
 
 maybe<FogSquare const&>
 VisibilityForNation::will_render_from_fog_square(
     Coord tile ) const {
-  if( maybe<FogSquare const&> fog_square =
-          player_fog_square_at( tile );
-      fog_square.has_value() && !fog_square->fog_of_war_removed )
-    return fog_square;
-  return nothing;
+  UNWRAP_RETURN( player_square, player_square_at( tile ) );
+  SWITCH( player_square ) {
+    CASE( unexplored ) { return nothing; }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return fogged.contents; }
+        CASE( clear ) { return nothing; }
+      }
+    }
+  }
 }
 
 maybe<FogSquare> VisibilityForNation::create_fog_square_at(
     Coord tile ) const {
-  maybe<FogSquare const&> player_fog_square =
-      player_fog_square_at( tile );
-  if( !player_fog_square.has_value() ) return nothing;
-  if( !player_fog_square->fog_of_war_removed )
-    return player_fog_square;
-  FogSquare fog_square;
-  copy_real_square_to_fog_square( ss_, tile, fog_square );
-  fog_square.fog_of_war_removed = true;
-  return fog_square;
+  UNWRAP_RETURN( player_square, player_square_at( tile ) );
+  SWITCH( player_square ) {
+    CASE( unexplored ) { return nothing; }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return fogged.contents; }
+        CASE( clear ) {
+          FogSquare fog_square;
+          copy_real_square_to_fog_square( ss_, tile,
+                                          fog_square );
+          return fog_square;
+        }
+      }
+    }
+  }
 }
 
-maybe<FogSquare const&>
-VisibilityForNation::player_fog_square_at( Coord tile ) const {
-  // If it's a proto square then can't obtain a fog square.
+maybe<PlayerSquare const&> VisibilityForNation::player_square_at(
+    Coord tile ) const {
+  // If it's a proto square then can't obtain a player square.
   if( !on_map( tile ) ) return nothing;
-  if( auto const& square = player_terrain_->map[tile];
-      square.has_value() )
-    // The player can see this tile, so return the player's ver-
-    // sion of it.
-    return *square;
-  // Player can't see this tile.
-  return nothing;
+  return player_terrain_->map[tile];
 }
 
 MapSquare const& VisibilityForNation::square_at(
@@ -195,7 +213,7 @@ MapSquare const& VisibilityForNation::square_at(
           will_render_from_fog_square( tile );
       fog_square.has_value() )
     return fog_square->square;
-  return IVisibility::square_at( tile );
+  return ss_.terrain.total_square_at( tile );
 };
 
 /****************************************************************
@@ -203,37 +221,29 @@ MapSquare const& VisibilityForNation::square_at(
 *****************************************************************/
 VisibilityWithOverrides::VisibilityWithOverrides(
     SSConst const& ss, IVisibility const& underlying,
-    unordered_map<Coord, FogSquare> const& overrides )
+    unordered_map<Coord, MapSquare> const& overrides )
   : IVisibility( ss ),
     underlying_( underlying ),
     overrides_( overrides ) {}
 
 e_tile_visibility VisibilityWithOverrides::visible(
     Coord tile ) const {
-  if( auto it = overrides_.find( tile );
-      it != overrides_.end() ) {
-    // We have a fog square override, so we at least know that
-    // the square won't be hidden, even if the underlying object
-    // would return hidden.
-    FogSquare const& fog_square = it->second;
-    return fog_square.fog_of_war_removed
-               ? e_tile_visibility::visible_and_clear
-               : e_tile_visibility::visible_with_fog;
-  }
   return underlying_.visible( tile );
 }
 
 maybe<FogSquare> VisibilityWithOverrides::create_fog_square_at(
     Coord tile ) const {
+  UNWRAP_RETURN( fog_square,
+                 underlying_.create_fog_square_at( tile ) );
   if( auto it = overrides_.find( tile ); it != overrides_.end() )
-    return it->second;
-  return underlying_.create_fog_square_at( tile );
+    fog_square.square = it->second;
+  return fog_square;
 }
 
 MapSquare const& VisibilityWithOverrides::square_at(
     Coord tile ) const {
   if( auto it = overrides_.find( tile ); it != overrides_.end() )
-    return it->second.square;
+    return it->second;
   return underlying_.square_at( tile );
 }
 
@@ -289,9 +299,10 @@ bool does_nation_have_fog_removed_on_square( SSConst const& ss,
   if( !ss.players.players[nation].has_value() ) return false;
   UNWRAP_CHECK( player_terrain,
                 ss.terrain.player_terrain( nation ) );
-  maybe<FogSquare> const& fog_square = player_terrain.map[tile];
-  return fog_square.has_value() &&
-         fog_square->fog_of_war_removed;
+  PlayerSquare const& player_square = player_terrain.map[tile];
+  return player_square.inner_if<explored>()
+      .get_if<clear>()
+      .has_value();
 }
 
 void recompute_fog_for_nation( SS& ss, TS& ts,
@@ -302,19 +313,22 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
 
   UNWRAP_CHECK( player_terrain,
                 ss.terrain.player_terrain( nation ) );
-  gfx::Matrix<maybe<FogSquare>> const& m = player_terrain.map;
+  auto const& m = player_terrain.map;
 
   timer.checkpoint( "generate fogged set" );
   unordered_set<Coord> fogged;
   for( int y = 0; y < m.size().h; ++y ) {
     for( int x = 0; x < m.size().w; ++x ) {
-      Coord const             coord{ .x = x, .y = y };
-      maybe<FogSquare> const& fog_square = m[coord];
-      if( !fog_square.has_value() ) continue;
-      if( !fog_square->fog_of_war_removed )
-        // There is already fog.
-        continue;
-      fogged.insert( coord );
+      Coord const coord{ .x = x, .y = y };
+      SWITCH( m[coord] ) {
+        CASE( unexplored ) { continue; }
+        CASE( explored ) {
+          SWITCH( explored.fog_status ) {
+            CASE( fogged ) { continue; }
+            CASE( clear ) { fogged.insert( coord ); }
+          }
+        }
+      }
     }
   }
 
@@ -386,10 +400,8 @@ void update_map_visibility( TS&                   ts,
 
 bool should_animate_move( IVisibility const& viz, Coord src,
                           Coord dst ) {
-  return ( viz.visible( src ) ==
-           e_tile_visibility::visible_and_clear ) ||
-         ( viz.visible( dst ) ==
-           e_tile_visibility::visible_and_clear );
+  return ( viz.visible( src ) == e_tile_visibility::clear ) ||
+         ( viz.visible( dst ) == e_tile_visibility::clear );
 }
 
 } // namespace rn

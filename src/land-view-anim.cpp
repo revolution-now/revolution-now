@@ -270,26 +270,23 @@ wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
   // First, get a full set of squares that we'll have to animate;
   // this includes the ones that are changing plus surrounding
   // ones that might change indirectly.
-  unordered_map<Coord, FogSquare> fog_squares;
+  unordered_map<Coord, MapSquare> override_squares;
   for( auto const& [tile, _] : targets ) {
     for( e_cdirection const d :
          refl::enum_values<e_cdirection> ) {
       Coord const moved = tile.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
-      maybe<FogSquare> fog_square =
-          viz_->create_fog_square_at( moved );
-      if( !fog_square.has_value() ) continue;
-      fog_squares[moved] = std::move( *fog_square );
+      override_squares[moved] = viz_->square_at( moved );
     }
   }
 
   // Now inject the target ones that are directly changing.
   for( auto const& [tile, target_square] : targets )
-    if( fog_squares.contains( tile ) )
-      fog_squares[tile].square = target_square;
+    if( override_squares.contains( tile ) )
+      override_squares[tile] = target_square;
 
   state.needs_rendering = false;
-  state.targets         = std::move( fog_squares );
+  state.targets         = std::move( override_squares );
   state.stage           = 1.0;
   {
     // This will cause the renderer to rerender the landscape
@@ -479,8 +476,7 @@ wait<> LandViewAnimator::animate_action_primitive(
       // is on a fogged tile, which can happen e.g. if we are de-
       // pixelating a native unit that is under fog when we de-
       // stroy its dwelling.
-      if( viz_->visible( tile ) !=
-          e_tile_visibility::visible_and_clear ) {
+      if( viz_->visible( tile ) != e_tile_visibility::clear ) {
         hold.count_down();
         break;
       }
@@ -497,8 +493,7 @@ wait<> LandViewAnimator::animate_action_primitive(
       // is on a fogged tile, which can happen e.g. if we are de-
       // pixelating a native unit that is under fog when we de-
       // stroy its dwelling.
-      if( viz_->visible( tile ) !=
-          e_tile_visibility::visible_and_clear ) {
+      if( viz_->visible( tile ) != e_tile_visibility::clear ) {
         hold.count_down();
         break;
       }

@@ -688,39 +688,39 @@ zzz_terrain {
     data: [
       {
         key.x: 6
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
       {
         key.x: 7
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
       {
         key {
           x: 6
           y: 1
         }
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
       {
         key {
           x: 7
           y: 1
         }
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
       {
         key {
           x: 6
           y: 2
         }
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
       {
         key {
           x: 7
           y: 2
         }
-        val.fog_of_war_removed: true
+        val.explored.fog_status.clear {}
       },
     ]
     has_coords: true

@@ -12,6 +12,6 @@ namespace "rn"
 
 enum.e_tile_visibility {
   hidden,
-  visible_with_fog,
-  visible_and_clear,
+  fogged,
+  clear,
 }

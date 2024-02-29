@@ -28,7 +28,7 @@ namespace "rn"
 # What each player sees. Some tiles may not be visible, and
 # others might not be up to date with the real map.
 struct.PlayerTerrain {
-  map 'gfx::Matrix<base::maybe<FogSquare>>',
+  map 'gfx::Matrix<PlayerSquare>',
 }
 
 struct.RealTerrain {

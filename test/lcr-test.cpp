@@ -371,9 +371,6 @@ TEST_CASE( "[lcr] unit lost" ) {
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
 
-  maybe<FogSquare>& player_square = W.player_square( Coord{} );
-  player_square.emplace().square.lost_city_rumor = true;
-
   // Create unit on map.
   UnitId unit_id =
       W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
@@ -407,18 +404,6 @@ TEST_CASE( "[lcr] unit lost" ) {
   REQUIRE( player.money == 0 );
   REQUIRE_FALSE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 0 );
-  // Even though the LCR has been removed and the unit destroyed,
-  // the fog square isn't yet updated, because the square that
-  // used to contain the LCR will still be visible and clear to
-  // the player at least until the end of its turn; during that
-  // time, the square will be rendered from its real contents.
-  // Then at some point (possible they end of this turn), if/when
-  // there are no more friendly units that can view the tile then
-  // it will get fogged, at which point the fog square will be
-  // sync'd with the real square. We don't really need to be
-  // testing this here, but it might be useful at some point for
-  // catching an unintentional change in behavior.
-  REQUIRE( player_square->square.lost_city_rumor == true );
 }
 
 TEST_CASE( "[lcr] cibola / treasure" ) {

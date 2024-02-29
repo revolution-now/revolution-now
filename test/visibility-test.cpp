@@ -42,6 +42,11 @@ namespace {
 
 using namespace std;
 
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using clear      = FogStatus::clear;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -109,12 +114,12 @@ struct World : testing::World {
             true;
   }
 
-  void clear_all_fog( gfx::Matrix<maybe<FogSquare>>& m ) {
+  void clear_all_fog( gfx::Matrix<PlayerSquare>& m ) {
     for( int y = 0; y < m.size().h; ++y ) {
       for( int x = 0; x < m.size().w; ++x ) {
         Coord const coord{ .x = x, .y = y };
-        if( !m[coord].has_value() ) continue;
-        m[coord]->fog_of_war_removed = true;
+        if( m[coord].holds<unexplored>() ) continue;
+        m[coord].emplace<explored>().fog_status.emplace<clear>();
       }
     }
   }
@@ -240,22 +245,22 @@ TEST_CASE( "[visibility] Visibility" ) {
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     // proto visible.
     REQUIRE( viz.visible( { .x = -1, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 2, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 0, .y = -1 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     // square_at.
     REQUIRE( viz.square_at( { .x = 0, .y = 0 } ).surface ==
              e_surface::water );
@@ -324,20 +329,22 @@ TEST_CASE( "[visibility] Visibility" ) {
 
     REQUIRE( viz.nation() == e_nation::english );
 
-    gfx::Matrix<maybe<FogSquare>>& player_map =
+    gfx::Matrix<PlayerSquare>& player_map =
         W.terrain()
             .mutable_player_terrain( e_nation::english )
             .map;
-    player_map[{ .x = 1, .y = 0 }].emplace().fog_of_war_removed =
-        true;
-    player_map[{ .x = 0, .y = 0 }].emplace().fog_of_war_removed =
-        true;
+    player_map[{ .x = 1, .y = 0 }]
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
+    player_map[{ .x = 0, .y = 0 }]
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
@@ -376,25 +383,27 @@ TEST_CASE( "[visibility] Visibility" ) {
 
     REQUIRE( viz.nation() == e_nation::english );
 
-    gfx::Matrix<maybe<FogSquare>>& player_map =
+    gfx::Matrix<PlayerSquare>& player_map =
         W.terrain()
             .mutable_player_terrain( e_nation::english )
             .map;
-    player_map[{ .x = 1, .y = 0 }] =
-        FogSquare{ .square = W.square( { .x = 1, .y = 0 } ),
-                   .fog_of_war_removed = true };
-    player_map[{ .x = 0, .y = 0 }].emplace();
-    player_map[{ .x = 0, .y = 1 }] =
-        FogSquare{ .square = W.square( { .x = 0, .y = 1 } ),
-                   .fog_of_war_removed = true };
+    player_map[{ .x = 1, .y = 0 }]
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
+    player_map[{ .x = 0, .y = 0 }]
+        .emplace<explored>()
+        .fog_status.emplace<fogged>();
+    player_map[{ .x = 0, .y = 1 }]
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
 
     // visible.
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
-             e_tile_visibility::visible_with_fog );
+             e_tile_visibility::fogged );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
              e_tile_visibility::hidden );
     // proto visible.
@@ -471,12 +480,12 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
                               e_nation::english );
   };
 
-  gfx::Matrix<maybe<FogSquare>>& eng_map =
+  gfx::Matrix<PlayerSquare>& eng_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_nation::english )
           .map;
-  gfx::Matrix<maybe<FogSquare>>& fr_map =
+  gfx::Matrix<PlayerSquare>& fr_map =
       W.ss()
           .mutable_terrain_use_with_care
           .mutable_player_terrain( e_nation::french )
@@ -486,58 +495,74 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
   for( int y = 0; y < eng_map.size().h; ++y )
     for( int x = 0; x < eng_map.size().w; ++x )
       if( ( x + y ) % 2 == 0 )
-        eng_map[{ .x = x, .y = y }].emplace();
+        eng_map[{ .x = x, .y = y }]
+            .emplace<explored>()
+            .fog_status.emplace<fogged>();
   for( int y = 0; y < fr_map.size().h; ++y )
     for( int x = 0; x < fr_map.size().w; ++x )
       if( ( x + y ) % 2 == 0 )
-        fr_map[{ .x = x, .y = y }].emplace();
+        fr_map[{ .x = x, .y = y }]
+            .emplace<explored>()
+            .fog_status.emplace<fogged>();
 
   // Sanity check our checkerboard.
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( !fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( !fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
 
   W.clear_all_fog( eng_map );
   W.clear_all_fog( fr_map );
 
   // Sanity check checkerboard with fog removed.
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
 
   f();
 
   // Back to all fog.
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( fr_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 1, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( !fr_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( fr_map[{ .x = 1, .y = 1 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( fr_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( fr_map[{ .x = 1, .y = 1 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 1, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( fr_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( fr_map[{ .x = 1, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
 
   W.clear_all_fog( eng_map );
 
@@ -553,74 +578,96 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
   // . . . x . . . . . .
   // . . . . . . . . . .
 
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 2 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 3 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 4 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 5 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 6 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 7 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 8 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 10 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 2 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 4 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 6 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 8 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 10 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
 
-  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 2, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 4, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 5, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 6, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 7, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 9, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 5, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 7, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 9, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 2, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 4, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 6, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
 
-  REQUIRE( !eng_map[{ .x = 3, .y = 0 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 1 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 2 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 3 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 4 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 5 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 6 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 7 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 8 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 10 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 3 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 5 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 7 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 6 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 8 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 10 }] == unexplored{} );
 
-  REQUIRE( eng_map[{ .x = 8, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 2 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 3 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 4 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 5 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 6 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 7 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 8 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 10 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 2 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 4 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 6 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 8 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 10 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
 
   W.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 0, .y = 7 }, e_nation::english );
@@ -645,79 +692,106 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
 
   f();
 
-  REQUIRE( eng_map[{ .x = 0, .y = 0 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 2 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 3 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 4 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 5 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 6 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 7 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 8 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 0, .y = 10 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 0, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 0, .y = 2 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 0, .y = 4 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 6 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 7 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 0, .y = 8 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 0, .y = 10 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 1 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 3 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 0, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
 
-  REQUIRE( !eng_map[{ .x = 0, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 1, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 2, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 4, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 5, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 6, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 7, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 9, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 1, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 5, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 7, .y = 9 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 9, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 0, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 1, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 2, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 4, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 5, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 6, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 7, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 9, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
 
-  REQUIRE( !eng_map[{ .x = 3, .y = 0 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 2 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 3 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 4 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 5 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 6 }].has_value() ); // water.
-  REQUIRE( eng_map[{ .x = 3, .y = 7 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 8 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 9 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 3, .y = 10 }].has_value() );
-  REQUIRE( eng_map[{ .x = 3, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 2 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 3 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 4 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 5 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 3, .y = 7 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 3, .y = 9 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 3, .y = 0 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 5 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 6 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 7 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 8 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 3, .y = 9 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 3, .y = 10 }] == unexplored{} );
 
-  REQUIRE( eng_map[{ .x = 8, .y = 0 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 1 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 2 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 3 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 4 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 5 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 6 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 7 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 8 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 9 }].has_value() );
-  REQUIRE( eng_map[{ .x = 8, .y = 10 }].has_value() );
-  REQUIRE( !eng_map[{ .x = 8, .y = 0 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 1 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 2 }]->fog_of_war_removed );
-  REQUIRE( eng_map[{ .x = 8, .y = 3 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 8, .y = 4 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 8, .y = 6 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 8, .y = 8 }]->fog_of_war_removed );
-  REQUIRE( !eng_map[{ .x = 8, .y = 10 }]->fog_of_war_removed );
+  REQUIRE( eng_map[{ .x = 8, .y = 0 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 1 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 2 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 3 }]
+               .inner_if<explored>()
+               .get_if<clear>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 4 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 5 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 6 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 7 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 8 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
+  REQUIRE( eng_map[{ .x = 8, .y = 9 }] == unexplored{} );
+  REQUIRE( eng_map[{ .x = 8, .y = 10 }]
+               .inner_if<explored>()
+               .get_if<fogged>() );
 }
 
 TEST_CASE( "[visibility] create_fog_square_at" ) {
@@ -731,17 +805,18 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
 
   auto f = [&] { return viz->create_fog_square_at( coord ); };
 
-  gfx::Matrix<maybe<FogSquare>>& player_map =
+  gfx::Matrix<PlayerSquare>& player_map =
       W.terrain()
           .mutable_player_terrain( e_nation::english )
           .map;
 
-  FogSquare& fog_square1 =
-      player_map[{ .x = 0, .y = 0 }].emplace();
-  fog_square1 = FogSquare{ .square = MapSquare{ .road = true },
-                           .fog_of_war_removed = true };
-  FogSquare& fog_square2 =
-      player_map[{ .x = 1, .y = 0 }].emplace();
+  player_map[{ .x = 0, .y = 0 }]
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
+  FogSquare& fog_square2 = player_map[{ .x = 1, .y = 0 }]
+                               .emplace<explored>()
+                               .fog_status.emplace<fogged>()
+                               .contents;
   fog_square2 = FogSquare{
       .colony   = FogColony{},
       .dwelling = FogDwelling{ .capital = true },
@@ -752,19 +827,14 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( nothing );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = kOutsideCoord;
     REQUIRE( f() == nothing );
 
@@ -772,9 +842,7 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( e_nation::english );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() == fog_square2 );
     coord = { .x = 0, .y = 1 };
@@ -792,22 +860,16 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( nothing );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .dwelling =
-                                   FogDwelling{
-                                       .tribe = e_tribe::inca },
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square   = W.square( coord ),
+                               .dwelling = FogDwelling{
+                                   .tribe = e_tribe::inca } } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = kOutsideCoord;
     REQUIRE( f() == nothing );
 
@@ -815,12 +877,9 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( e_nation::english );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .dwelling =
-                                   FogDwelling{
-                                       .tribe = e_tribe::inca },
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square   = W.square( coord ),
+                               .dwelling = FogDwelling{
+                                   .tribe = e_tribe::inca } } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() == fog_square2 );
     coord = { .x = 0, .y = 1 };
@@ -838,25 +897,19 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( nothing );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
     REQUIRE( f() ==
-             FogSquare{
-                 .square = W.square( coord ),
-                 .colony =
-                     FogColony{ .nation   = e_nation::english,
-                                .name     = "1",
-                                .location = { .x = 0, .y = 0 } },
-                 .fog_of_war_removed = true } );
+             FogSquare{ .square = W.square( coord ),
+                        .colony = FogColony{
+                            .nation   = e_nation::english,
+                            .name     = "1",
+                            .location = { .x = 0, .y = 0 } } } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ),
-                               .fog_of_war_removed = true } );
+    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
     coord = kOutsideCoord;
     REQUIRE( f() == nothing );
 
@@ -864,15 +917,12 @@ TEST_CASE( "[visibility] create_fog_square_at" ) {
     viz = W.make_viz( e_nation::english );
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( f() != fog_square1 );
     REQUIRE( f() ==
-             FogSquare{
-                 .square = W.square( coord ),
-                 .colony =
-                     FogColony{ .nation   = e_nation::english,
-                                .name     = "1",
-                                .location = { .x = 0, .y = 0 } },
-                 .fog_of_war_removed = true } );
+             FogSquare{ .square = W.square( coord ),
+                        .colony = FogColony{
+                            .nation   = e_nation::english,
+                            .name     = "1",
+                            .location = { .x = 0, .y = 0 } } } );
     coord = { .x = 1, .y = 0 };
     REQUIRE( f() == fog_square2 );
     coord = { .x = 0, .y = 1 };
@@ -902,36 +952,50 @@ TEST_CASE( "[visibility] should_animate_move" ) {
   viz = W.make_viz( W.default_nation() );
   REQUIRE_FALSE( f() );
 
-  W.player_square( { .x = 1, .y = 0 } ).emplace();
+  W.player_square( { .x = 1, .y = 0 } )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
   W.player_square( { .x = 1, .y = 0 } )
-      .emplace()
-      .fog_of_war_removed = true;
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE_FALSE( f() );
 
-  W.player_square( src ).emplace();
+  W.player_square( src )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
-  W.player_square( dst ).emplace();
+  W.player_square( dst )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
-  W.player_square( src ).emplace().fog_of_war_removed = true;
+  W.player_square( src )
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() );
 
-  W.player_square( dst ).emplace().fog_of_war_removed = true;
+  W.player_square( dst )
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() );
 
-  W.player_square( src ).emplace().fog_of_war_removed = false;
+  W.player_square( src )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE( f() );
 
-  W.player_square( src ).reset();
+  W.player_square( src ).emplace<unexplored>();
   REQUIRE( f() );
 
-  W.player_square( dst ).emplace().fog_of_war_removed = false;
+  W.player_square( dst )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
-  W.player_square( dst ).reset();
+  W.player_square( dst ).emplace<unexplored>();
   REQUIRE_FALSE( f() );
 
   viz = W.make_viz( nothing );
@@ -961,12 +1025,15 @@ TEST_CASE(
   REQUIRE_FALSE( f() );
 
   nation = e_nation::french;
-  W.player_square( coord, nation ).emplace();
+  W.player_square( coord, nation )
+      .emplace<explored>()
+      .fog_status.emplace<fogged>();
   REQUIRE_FALSE( f() );
 
   nation = e_nation::french;
-  W.player_square( coord, nation ).emplace().fog_of_war_removed =
-      true;
+  W.player_square( coord, nation )
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   REQUIRE( f() );
 }
 
@@ -979,14 +1046,14 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
   VisibilityEntire    viz_entire( W.ss() );
   VisibilityForNation viz_nation( W.ss(), e_nation::english );
-  unordered_map<Coord, FogSquare> overrides;
+  unordered_map<Coord, MapSquare> overrides;
   // This will keep a reference to the overrides.
   VisibilityWithOverrides viz_overrides_entire(
       W.ss(), viz_entire, overrides );
   VisibilityWithOverrides viz_overrides_nation(
       W.ss(), viz_nation, overrides );
 
-  gfx::Matrix<maybe<FogSquare>>& player_map =
+  gfx::Matrix<PlayerSquare>& player_map =
       W.terrain()
           .mutable_player_terrain( e_nation::english )
           .map;
@@ -1001,12 +1068,13 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
       MapSquare{ .ground_resource = e_natural_resource::silver };
   real_square3 = MapSquare{ .river = e_river::major };
 
-  FogSquare& fog_square0 =
-      player_map[{ .x = 0, .y = 0 }].emplace();
-  fog_square0 = FogSquare{ .square = MapSquare{ .road = true },
-                           .fog_of_war_removed = true };
-  FogSquare& fog_square1 =
-      player_map[{ .x = 1, .y = 0 }].emplace();
+  player_map[{ .x = 0, .y = 0 }]
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
+  FogSquare& fog_square1 = player_map[{ .x = 1, .y = 0 }]
+                               .emplace<explored>()
+                               .fog_status.emplace<fogged>()
+                               .contents;
   fog_square1 = FogSquare{
       .colony   = FogColony{},
       .dwelling = FogDwelling{ .capital = true },
@@ -1026,33 +1094,28 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     BASE_CHECK( overrides.empty() );
     p_viz = &viz_overrides_entire;
     coord = { .x = 0, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() != fog_square0 );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square0,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square0 } );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() != fog_square1 );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square1,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square1 } );
     REQUIRE( square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square2,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square2 } );
     REQUIRE( square_at() == real_square2 );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square3,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square3 } );
     REQUIRE( square_at() == real_square3 );
     coord = kOutsideCoord;
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
@@ -1061,14 +1124,12 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     BASE_CHECK( overrides.empty() );
     p_viz = &viz_overrides_nation;
     coord = { .x = 0, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() != fog_square0 );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square0,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square0 } );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( visible() == e_tile_visibility::fogged );
     REQUIRE( create_fog_square_at() == fog_square1 );
     REQUIRE( square_at() == fog_square1.square );
     coord = { .x = 0, .y = 1 };
@@ -1087,73 +1148,66 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
 
   SECTION( "with overrides, entire" ) {
     p_viz = &viz_overrides_entire;
-    FogSquare const override_fog_square2{
-        .square =
-            MapSquare{ .overlay = e_land_overlay::forest } };
-    FogSquare const override_fog_square3{
-        .square = MapSquare{ .overlay = e_land_overlay::hills },
-        .fog_of_war_removed = true };
-    overrides[{ .x = 0, .y = 1 }] = override_fog_square2;
-    overrides[{ .x = 1, .y = 1 }] = override_fog_square3;
+    MapSquare const override_square2{
+        .overlay = e_land_overlay::forest };
+    MapSquare const override_square3{
+        .overlay = e_land_overlay::hills };
+    overrides[{ .x = 0, .y = 1 }] = override_square2;
+    overrides[{ .x = 1, .y = 1 }] = override_square3;
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() != fog_square0 );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square0,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square0 } );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() != fog_square1 );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square1,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square1 } );
     REQUIRE( square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
-    REQUIRE( create_fog_square_at() == override_fog_square2 );
-    REQUIRE( square_at() == override_fog_square2.square );
+    REQUIRE( visible() == e_tile_visibility::clear );
+    REQUIRE( create_fog_square_at() ==
+             FogSquare{ .square = override_square2 } );
+    REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() == override_fog_square3 );
-    REQUIRE( square_at() == override_fog_square3.square );
+    REQUIRE( visible() == e_tile_visibility::clear );
+    REQUIRE( create_fog_square_at() ==
+             FogSquare{ .square = override_square3 } );
+    REQUIRE( square_at() == override_square3 );
     coord = kOutsideCoord;
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
 
   SECTION( "with overrides, player" ) {
     p_viz = &viz_overrides_nation;
-    FogSquare const override_fog_square2{
-        .square =
-            MapSquare{ .overlay = e_land_overlay::forest } };
-    FogSquare const override_fog_square3{
-        .square = MapSquare{ .overlay = e_land_overlay::hills },
-        .fog_of_war_removed = true };
-    overrides[{ .x = 0, .y = 1 }] = override_fog_square2;
-    overrides[{ .x = 1, .y = 1 }] = override_fog_square3;
+    MapSquare const override_square2{
+        .overlay = e_land_overlay::forest };
+    MapSquare const override_square3{
+        .overlay = e_land_overlay::hills };
+    overrides[{ .x = 0, .y = 1 }] = override_square2;
+    overrides[{ .x = 1, .y = 1 }] = override_square3;
 
     coord = { .x = 0, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() != fog_square0 );
+    REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square             = real_square0,
-                        .fog_of_war_removed = true } );
+             FogSquare{ .square = real_square0 } );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
-    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
+    REQUIRE( visible() == e_tile_visibility::fogged );
     REQUIRE( create_fog_square_at() == fog_square1 );
     REQUIRE( square_at() == fog_square1.square );
     coord = { .x = 0, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_with_fog );
-    REQUIRE( create_fog_square_at() == override_fog_square2 );
-    REQUIRE( square_at() == override_fog_square2.square );
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
-    REQUIRE( visible() == e_tile_visibility::visible_and_clear );
-    REQUIRE( create_fog_square_at() == override_fog_square3 );
-    REQUIRE( square_at() == override_fog_square3.square );
+    REQUIRE( visible() == e_tile_visibility::hidden );
+    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( square_at() == override_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( create_fog_square_at() == nothing );

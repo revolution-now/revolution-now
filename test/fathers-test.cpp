@@ -49,6 +49,10 @@ using namespace std;
 
 using ::mock::matchers::_;
 
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using clear      = FogStatus::clear;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -629,9 +633,11 @@ TEST_CASE(
        gfx::subrects( W.terrain().world_rect_tiles() ) ) {
     INFO( fmt::format( "r={}", r ) );
     if( r.upper_left().is_inside( expected_visible ) ) {
-      REQUIRE( dutch_map[r.upper_left()].has_value() );
+      REQUIRE( dutch_map[r.upper_left()]
+                   .inner_if<explored>()
+                   .get_if<clear>() );
     } else {
-      REQUIRE_FALSE( dutch_map[r.upper_left()].has_value() );
+      REQUIRE( dutch_map[r.upper_left()] == unexplored{} );
     }
   }
 
@@ -647,9 +653,11 @@ TEST_CASE(
     INFO( fmt::format( "r={}", r ) );
     if( r.upper_left().is_inside( expected_visible_1 ) ||
         r.upper_left().is_inside( expected_visible_2 ) ) {
-      REQUIRE( dutch_map[r.upper_left()].has_value() );
+      REQUIRE( dutch_map[r.upper_left()]
+                   .inner_if<explored>()
+                   .get_if<clear>() );
     } else {
-      REQUIRE_FALSE( dutch_map[r.upper_left()].has_value() );
+      REQUIRE( dutch_map[r.upper_left()] == unexplored{} );
     }
   }
 }
@@ -792,19 +800,19 @@ TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
   };
 
   auto visible = [&]( Coord coord ) {
-    maybe<FogSquare> const& square =
+    auto const& player_square =
         W.ss()
             .terrain.player_terrain( W.default_nation() )
             ->map[coord];
-    return square.has_value() && square->fog_of_war_removed;
+    return player_square.inner_if<explored>().get_if<clear>();
   };
 
   auto hidden = [&]( Coord coord ) {
-    maybe<FogSquare> const& square =
+    auto const& player_square =
         W.ss()
             .terrain.player_terrain( W.default_nation() )
             ->map[coord];
-    return !square.has_value();
+    return player_square == unexplored{};
   };
 
   // . . . . . .

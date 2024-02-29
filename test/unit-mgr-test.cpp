@@ -236,9 +236,9 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
   REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 
   change_unit_type( W.ss(), W.ts(), unit,
                     e_unit_type::expert_farmer );
@@ -249,9 +249,9 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
   REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 
   change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
 
@@ -259,11 +259,11 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
   REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 }
 
 TEST_CASE( "[unit-mgr] change_unit_nation" ) {
@@ -281,9 +281,9 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
@@ -301,17 +301,17 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 
   change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
 
@@ -321,17 +321,17 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 }
 
 TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
@@ -357,11 +357,11 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
   REQUIRE( W.units().coord_for( unit.id() ) == src );
 
   REQUIRE( dutch_viz.visible( src ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( dst ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( viz_check1 ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( viz_check2 ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( src ) ==
@@ -378,20 +378,20 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
   REQUIRE( W.units().coord_for( unit.id() ) == dst );
 
   REQUIRE( dutch_viz.visible( src ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( dst ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( src ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( spanish_viz.visible( dst ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
 
   // These are the real test... if we were not moving and
   // changing nation atomically then one of these would fail.
   REQUIRE( spanish_viz.visible( viz_check1 ) ==
            e_tile_visibility::hidden );
   REQUIRE( spanish_viz.visible( viz_check2 ) ==
-           e_tile_visibility::visible_and_clear );
+           e_tile_visibility::clear );
   REQUIRE( dutch_viz.visible( viz_check2 ) ==
            e_tile_visibility::hidden );
 }

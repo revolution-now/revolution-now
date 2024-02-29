@@ -42,6 +42,16 @@ LUA_STARTUP( lua::state& st ) {
 
     u["square"] = &U::square;
   }();
+
+  // PlayerSquare.
+  [&] {
+    using U = ::rn::PlayerSquare;
+
+    auto u = st.usertype.create<U>();
+
+    // TODO
+    (void)u;
+  }();
 };
 
 } // namespace

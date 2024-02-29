@@ -2394,7 +2394,7 @@ void render_obfuscation_overlay(
   if( options.render_fog_of_war ) {
     OverlayInfo const fogged = surrounding_overlays(
         viz, world_square,
-        { { e_tile_visibility::visible_with_fog, true },
+        { { e_tile_visibility::fogged, true },
           { e_tile_visibility::hidden, true } } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
                              config_gfx.fog_of_war_alpha );

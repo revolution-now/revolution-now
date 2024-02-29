@@ -21,6 +21,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/fog-square.rds.hpp"
 #include "ss/ref.hpp"
 
 // refl
@@ -410,7 +411,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/true );
-  W.player_square( { .x = 1, .y = 1 } ).reset();
+  W.player_square( { .x = 1, .y = 1 } ) = {};
   expected = ExploredColony{ .name     = "7",
                              .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );

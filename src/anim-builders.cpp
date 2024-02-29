@@ -825,7 +825,7 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
   for( Coord const tile : ri ) {
     switch( viz.visible( tile ) ) {
-      case e_tile_visibility::visible_and_clear: {
+      case e_tile_visibility::clear: {
         maybe<DwellingId> const dwelling_id =
             ss.natives.maybe_dwelling_from_coord( tile );
         if( !dwelling_id.has_value() ) break;
@@ -836,7 +836,7 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
         builder.depixelate_dwelling( *dwelling_id );
         break;
       }
-      case e_tile_visibility::visible_with_fog: {
+      case e_tile_visibility::fogged: {
         maybe<FogSquare> const fog_square =
             viz.create_fog_square_at( tile );
         if( !fog_square.has_value() ) continue;

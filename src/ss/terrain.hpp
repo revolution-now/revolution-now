@@ -136,7 +136,7 @@ using ProtoSquaresMap =
     refl::enum_map<e_cardinal_direction, MapSquare>;
 using PlayerTerrainMap =
     refl::enum_map<e_nation, base::maybe<PlayerTerrain>>;
-using PlayerTerrainMatrix = gfx::Matrix<base::maybe<FogSquare>>;
+using PlayerTerrainMatrix = gfx::Matrix<PlayerSquare>;
 
 } // namespace rn
 

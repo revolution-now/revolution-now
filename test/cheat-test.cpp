@@ -46,6 +46,11 @@ using namespace std;
 
 using ::mock::matchers::_;
 
+using unexplored = PlayerSquare::unexplored;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using clear      = FogStatus::clear;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -617,24 +622,30 @@ TEST_CASE( "[cheat] kill_natives" ) {
     mock_land_view.EXPECT__animate( _ );
     W.gui().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
-    REQUIRE( W.player_square( { .x = 1, .y = 0 } ).has_value() );
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 2 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 2, .y = 1 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 1 } ).has_value() );
+    REQUIRE( W.player_square( { .x = 1, .y = 0 } )
+                 .inner_if<explored>()
+                 .get_if<clear>() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+                 .inner_if<explored>()
+                 .get_if<fogged>() );
+    REQUIRE( W.player_square( { .x = 1, .y = 2 } ) ==
+             unexplored{} );
+    REQUIRE( W.player_square( { .x = 2, .y = 1 } ) ==
+             unexplored{} );
+    REQUIRE( W.player_square( { .x = 1, .y = 1 } ) ==
+             unexplored{} );
     // Only the fogged one got its fog square updated, because it
     // was flipped from visible to fogged.
-    REQUIRE( !W.player_square( { .x = 1, .y = 0 } )
-                  ->dwelling.has_value() );
     REQUIRE( W.player_square( { .x = 0, .y = 1 } )
-                 ->dwelling.has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 0 } )->square.road );
-    REQUIRE(
-        W.player_square( { .x = 0, .y = 1 } )->square.road );
+                 .inner_if<explored>()
+                 .inner_if<fogged>()
+                 .value()
+                 .dwelling.has_value() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+                 .inner_if<explored>()
+                 .inner_if<fogged>()
+                 .value()
+                 .square.road );
     f();
     REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
     REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
@@ -647,32 +658,38 @@ TEST_CASE( "[cheat] kill_natives" ) {
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
-             e_tile_visibility::visible_and_clear );
+             e_tile_visibility::clear );
     REQUIRE( viz.visible( { .x = 0, .y = 1 } ) ==
-             e_tile_visibility::visible_with_fog );
+             e_tile_visibility::fogged );
     REQUIRE( viz.visible( { .x = 1, .y = 2 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 2, .y = 1 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
              e_tile_visibility::hidden );
-    REQUIRE( W.player_square( { .x = 1, .y = 0 } ).has_value() );
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 2 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 2, .y = 1 } ).has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 1 } ).has_value() );
+    REQUIRE( W.player_square( { .x = 1, .y = 0 } )
+                 .inner_if<explored>()
+                 .get_if<clear>() );
+    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+                 .inner_if<explored>()
+                 .get_if<fogged>() );
+    REQUIRE( W.player_square( { .x = 1, .y = 2 } ) ==
+             unexplored{} );
+    REQUIRE( W.player_square( { .x = 2, .y = 1 } ) ==
+             unexplored{} );
+    REQUIRE( W.player_square( { .x = 1, .y = 1 } ) ==
+             unexplored{} );
     // Only the fogged one got its fog square updated.
-    REQUIRE( !W.player_square( { .x = 1, .y = 0 } )
-                  ->dwelling.has_value() );
     REQUIRE( !W.player_square( { .x = 0, .y = 1 } )
-                  ->dwelling.has_value() );
-    REQUIRE(
-        !W.player_square( { .x = 1, .y = 0 } )->square.road );
-    REQUIRE(
-        !W.player_square( { .x = 0, .y = 1 } )->square.road );
+                  .inner_if<explored>()
+                  .inner_if<fogged>()
+                  .value()
+                  .dwelling.has_value() );
+    REQUIRE( !W.player_square( { .x = 0, .y = 1 } )
+                  .inner_if<explored>()
+                  .inner_if<fogged>()
+                  .value()
+                  .square.road );
   }
 }
 
