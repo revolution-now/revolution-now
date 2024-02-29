@@ -2735,6 +2735,7 @@ TEST_CASE( "[maybe] inner_if" ) {
 
     REQUIRE( m0.inner_if<HasOneField>() == nothing );
     REQUIRE( m1.inner_if<HasOneField>() == 5 );
+    *m1.inner_if<HasOneField>() = 8;
     REQUIRE( m2.inner_if<HasOneField>() == 8 );
   }
 }
