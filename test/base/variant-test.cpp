@@ -25,6 +25,21 @@ using namespace std;
 template<typename... Args>
 using V = ::base::variant<Args...>;
 
+/****************************************************************
+** Helper data types.
+*****************************************************************/
+struct HasNoFields {};
+struct HasOneField {
+  int x = 5;
+};
+struct HasTwoFields {
+  int x = 7;
+  int y = 8;
+};
+
+/****************************************************************
+** Test Cases.
+*****************************************************************/
 TEST_CASE( "[variant] visitation" ) {
   V<int, double> v = 4.4;
   auto f = []( auto&& _ ) { return fmt::format( "{}", _ ); };
@@ -131,6 +146,25 @@ TEST_CASE( "[variant] get" ) {
   REQUIRE( v.get<float>() == 3.3f );
   v = "hello"s;
   REQUIRE( v.get<string>() == "hello" );
+}
+
+TEST_CASE( "[variant] inner fields" ) {
+  V<HasTwoFields, HasOneField, HasNoFields> v = {};
+  static_assert( is_same_v<decltype( v.inner_if<HasOneField>() ),
+                           maybe<int&>> );
+  static_assert(
+      is_same_v<
+          decltype( as_const( v ).inner_if<HasOneField>() ),
+          maybe<int const&>> );
+
+  v = HasTwoFields{};
+  REQUIRE( v.inner_if<HasOneField>() == nothing );
+
+  v = HasOneField{ .x = 9 };
+  REQUIRE( v.inner_if<HasOneField>() == 9 );
+
+  *v.inner_if<HasOneField>() = 7;
+  REQUIRE( v.inner_if<HasOneField>() == 7 );
 }
 
 } // namespace

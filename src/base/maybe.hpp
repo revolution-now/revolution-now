@@ -15,6 +15,7 @@
 
 // base
 #include "attributes.hpp"
+#include "auto-field.hpp"
 #include "error.hpp"
 #include "fmt.hpp"
 #include "meta.hpp"
@@ -828,6 +829,28 @@ class [[nodiscard]] maybe { /* clang-format on */
   }
 
   /**************************************************************
+  ** Monadic Interface: inner_if
+  ***************************************************************/
+  // This is when the value type is a std::variant.
+  template<typename Alt>
+  auto inner_if() noexcept ATTR_LIFETIMEBOUND
+  requires requires { std::get_if<Alt>( std::declval<T*>() ); }
+  {
+    return bind( []( auto& val ) {
+      return val.template inner_if<Alt>();
+    } );
+  }
+
+  template<typename Alt>
+  auto inner_if() const noexcept ATTR_LIFETIMEBOUND
+  requires requires { std::get_if<Alt>( std::declval<T*>() ); }
+  {
+    return bind( []( auto& val ) {
+      return val.template inner_if<Alt>();
+    } );
+  }
+
+  /**************************************************************
   ** Monadic Interface: member
   ***************************************************************/
   template<typename Func>
@@ -977,6 +1000,22 @@ class [[nodiscard]] maybe { /* clang-format on */
     /* clang-format on */
     using res_t = std::remove_cvref_t<
         std::invoke_result_t<Func, T const&>>;
+    res_t res;
+    if( has_value() )
+      res.assign(
+          std::invoke( std::forward<Func>( func ), **this ) );
+    return res;
+  }
+
+  template<typename Func>
+  auto bind( Func&& func ) & /* clang-format off */
+    -> std::remove_cvref_t<std::invoke_result_t<Func, T&>>
+    requires( !std::is_member_object_pointer_v<Func> &&
+               is_maybe_v<std::remove_cvref_t<
+                 std::invoke_result_t<Func,T&>>> ) {
+    /* clang-format on */
+    using res_t =
+        std::remove_cvref_t<std::invoke_result_t<Func, T&>>;
     res_t res;
     if( has_value() )
       res.assign(
@@ -1211,6 +1250,28 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
     auto* p = std::get_if<Alt>( &( **this ) );
     if( p == nullptr ) return nothing;
     return *p;
+  }
+
+  /**************************************************************
+  ** Monadic Interface: inner_if
+  ***************************************************************/
+  // This is when the value type is a std::variant.
+  template<typename Alt>
+  auto inner_if() noexcept
+  requires requires { std::get_if<Alt>( std::declval<T*>() ); }
+  {
+    return bind( []( auto& val ) {
+      return val.template inner_if<Alt>();
+    } );
+  }
+
+  template<typename Alt>
+  auto inner_if() const noexcept
+  requires requires { std::get_if<Alt>( std::declval<T*>() ); }
+  {
+    return bind( []( auto& val ) {
+      return val.template inner_if<Alt>();
+    } );
   }
 
   /**************************************************************

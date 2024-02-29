@@ -2677,5 +2677,67 @@ TEST_CASE( "[maybe-ref] value_or" ) {
   ASSERT_VAR_TYPE( i2.value_or( n ), int& );
 }
 
+struct HasNoFields {};
+struct HasOneField {
+  int x = 5;
+};
+struct HasTwoFields {
+  int x = 7;
+  int y = 8;
+};
+
+TEST_CASE( "[maybe] inner_if" ) {
+  using V =
+      base::variant<HasTwoFields, HasOneField, HasNoFields>;
+  V v = {};
+  static_assert(
+      std::is_same_v<decltype( v.inner_if<HasOneField>() ),
+                     maybe<int&>> );
+  static_assert(
+      std::is_same_v<
+          decltype( as_const( v ).inner_if<HasOneField>() ),
+          maybe<int const&>> );
+  SECTION( "value, base::variant" ) {
+    M<V>       m;
+    M<V> const m_const;
+    static_assert(
+        is_same_v<decltype( m.inner_if<HasOneField>() ),
+                  maybe<int&>> );
+    static_assert(
+        is_same_v<decltype( m_const.inner_if<HasOneField>() ),
+                  maybe<int const&>> );
+
+    REQUIRE( m.inner_if<HasOneField>() == nothing );
+    REQUIRE( m_const.inner_if<HasOneField>() == nothing );
+    m = HasNoFields{};
+    REQUIRE( m.inner_if<HasOneField>() == nothing );
+    m = HasTwoFields{};
+    REQUIRE( m.inner_if<HasOneField>() == nothing );
+    m = HasOneField{};
+    REQUIRE( m.inner_if<HasOneField>() == 5 );
+    *m.inner_if<HasOneField>() = 8;
+    REQUIRE( m.inner_if<HasOneField>() == 8 );
+  }
+  SECTION( "ref, base::variant" ) {
+    v              = HasOneField{};
+    M<V&>       m0 = nothing;
+    M<V&>       m1 = v;
+    M<V const&> m2 = v;
+    static_assert(
+        is_same_v<decltype( m0.inner_if<HasOneField>() ),
+                  maybe<int&>> );
+    static_assert(
+        is_same_v<decltype( m1.inner_if<HasOneField>() ),
+                  maybe<int&>> );
+    static_assert(
+        is_same_v<decltype( m2.inner_if<HasOneField>() ),
+                  maybe<int const&>> );
+
+    REQUIRE( m0.inner_if<HasOneField>() == nothing );
+    REQUIRE( m1.inner_if<HasOneField>() == 5 );
+    REQUIRE( m2.inner_if<HasOneField>() == 8 );
+  }
+}
+
 } // namespace
 } // namespace base

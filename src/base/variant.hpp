@@ -15,6 +15,7 @@
 
 // base
 #include "attributes.hpp"
+#include "auto-field.hpp"
 #include "error.hpp"
 #include "maybe.hpp"
 #include "to-str.hpp"
@@ -129,6 +130,27 @@ class variant : public std::variant<Args...> {
   maybe<T&> get_if() noexcept ATTR_LIFETIMEBOUND {
     auto* p = std::get_if<T>( this );
     return p ? maybe<T&>( *p ) : nothing;
+  }
+
+  /**************************************************************
+  ** inner_if
+  ***************************************************************/
+  template<typename T>
+  auto inner_if() const noexcept ATTR_LIFETIMEBOUND {
+    using Ret = maybe<inner_field_type_t<T> const&>;
+    auto* p   = std::get_if<T>( this );
+    if( p == nullptr ) return Ret();
+    auto& [inner] = *p;
+    return Ret( inner );
+  }
+
+  template<typename T>
+  auto inner_if() noexcept ATTR_LIFETIMEBOUND {
+    using Ret = maybe<inner_field_type_t<T>&>;
+    auto* p   = std::get_if<T>( this );
+    if( p == nullptr ) return Ret();
+    auto& [inner] = *p;
+    return Ret( inner );
   }
 
   /**************************************************************
