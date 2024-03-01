@@ -24,6 +24,9 @@
 // render
 #include "render/renderer.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // C++ standard library
 #include <unordered_set>
 
@@ -33,10 +36,10 @@ namespace rn {
 
 namespace {
 
+using clear    = FogStatus::clear;
+using explored = PlayerSquare::explored;
+using fogged   = FogStatus::fogged;
 using unexplored = PlayerSquare::unexplored;
-using explored   = PlayerSquare::explored;
-using fogged     = FogStatus::fogged;
-using clear      = FogStatus::clear;
 
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
@@ -79,53 +82,58 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
 vector<BuffersUpdated>
 NonRenderingMapUpdater::make_squares_visible(
     e_nation nation, vector<Coord> const& tiles ) {
-  PlayerTerrain& player_terrain =
-      ss_.mutable_terrain_use_with_care.mutable_player_terrain(
-          nation );
-  auto& map = player_terrain.map;
+  auto& map = ss_.mutable_terrain_use_with_care
+                  .mutable_player_terrain( nation )
+                  .map;
 
-  vector<BuffersUpdated>    res;
-  VisibilityForNation const viz( ss_, nation );
+  unordered_set<Coord> hit;
+
+  // First make the specified tiles clear.
+  vector<BuffersUpdated> res;
   for( Coord const tile : tiles ) {
-    BuffersUpdated& buffers_updated = res.emplace_back();
-    buffers_updated.tile            = tile;
-
     // The Visibility::visible function also works with off-map
     // ("proto") tiles, but we don't anticipate having those
     // here, so just check that for sanity.
     CHECK( tile.is_inside( map.rect() ) );
-    switch( viz.visible( tile ) ) {
-      case e_tile_visibility::hidden: {
-        CHECK( map[tile].holds<unexplored>() );
+    if( hit.contains( tile ) ) continue;
+    hit.insert( tile );
+    BuffersUpdated& buffers_updated = res.emplace_back();
+    buffers_updated.tile            = tile;
+
+    SWITCH( map[tile] ) {
+      CASE( unexplored ) {
         buffers_updated.landscape   = true;
         buffers_updated.obfuscation = true;
         map[tile]
             .emplace<explored>()
             .fog_status.emplace<clear>();
+        // !! Current alternative invalidated here.
         break;
       }
-      case e_tile_visibility::clear:
-        CHECK( map[tile].inner_if<explored>().get_if<clear>() );
-        break;
-      case e_tile_visibility::fogged: {
-        UNWRAP_CHECK(
-            fog_square,
-            map[tile].inner_if<explored>().inner_if<fogged>() );
-        MapSquare const& real_square =
-            ss_.terrain.square_at( tile );
-        if( fog_square.square != real_square )
-          buffers_updated.landscape = true;
-        map[tile]
-            .emplace<explored>()
-            .fog_status.emplace<clear>();
-        if( options().render_fog_of_war )
-          buffers_updated.obfuscation = true;
+      CASE( explored ) {
+        SWITCH( explored.fog_status ) {
+          CASE( fogged ) {
+            auto&            fog_square = fogged.contents;
+            MapSquare const& real_square =
+                ss_.terrain.square_at( tile );
+            if( fog_square.square != real_square )
+              buffers_updated.landscape = true;
+            map[tile]
+                .emplace<PlayerSquare::explored>()
+                .fog_status.emplace<clear>();
+            // !! Current alternative invalidated here.
+            if( options().render_fog_of_war )
+              buffers_updated.obfuscation = true;
+            break;
+          }
+          CASE( clear ) { break; }
+        }
         break;
       }
     }
   }
 
-  CHECK( res.size() == tiles.size() );
+  CHECK( res.size() <= tiles.size() );
   return res;
 }
 
@@ -133,32 +141,38 @@ NonRenderingMapUpdater::make_squares_visible(
 vector<BuffersUpdated>
 NonRenderingMapUpdater::make_squares_fogged(
     e_nation nation, vector<Coord> const& tiles ) {
-  PlayerTerrain& player_terrain =
-      ss_.mutable_terrain_use_with_care.mutable_player_terrain(
-          nation );
-  auto& map = player_terrain.map;
+  auto& map = ss_.mutable_terrain_use_with_care
+                  .mutable_player_terrain( nation )
+                  .map;
 
   vector<BuffersUpdated> res;
   for( Coord const tile : tiles ) {
     BuffersUpdated& buffers_updated = res.emplace_back();
     buffers_updated.tile            = tile;
-    if( map[tile].holds<unexplored>() ) continue;
-    if( map[tile].inner_if<explored>().get_if<fogged>() )
-      continue;
-    CHECK( map[tile].inner_if<explored>().get_if<clear>() );
-    // It is clear, so make it fogged.
-    fogged& fog = map[tile]
-                      .emplace<explored>()
-                      .fog_status.emplace<fogged>();
-
-    if( options().render_fog_of_war )
-      buffers_updated.obfuscation = true;
-
-    // This won't affect the fog of war, but because the unit is
-    // losing full visibility of this tile, we need to make sure
-    // that the player's copy of the square reflects everything
-    // that is currently on it.
-    copy_real_square_to_fog_square( ss_, tile, fog.contents );
+    SWITCH( map[tile] ) {
+      CASE( unexplored ) {
+        break;
+      }
+      CASE( explored ) {
+        SWITCH( explored.fog_status ) {
+          CASE( fogged ) { break; }
+          CASE( clear ) {
+            FogSquare& fog_square =
+                map[tile]
+                    .emplace<PlayerSquare::explored>()
+                    .fog_status.emplace<fogged>()
+                    .contents;
+            // !! Current alternative invalidated here.
+            copy_real_square_to_fog_square( ss_, tile,
+                                            fog_square );
+            if( options().render_fog_of_war )
+              buffers_updated.obfuscation = true;
+            break;
+          }
+        }
+        break;
+      }
+    }
   }
 
   CHECK( res.size() == tiles.size() );
