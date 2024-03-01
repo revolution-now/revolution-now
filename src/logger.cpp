@@ -22,6 +22,7 @@
 #include "base/fmt.hpp"
 
 // C++ standard library
+#include <atomic>
 #include <mutex>
 #include <sstream>
 #include <unordered_map>
@@ -37,12 +38,7 @@ namespace {
 
 // The log level must only be accessed while holding the
 // level_mutex.
-e_log_level g_level = e_log_level::off;
-
-mutex& level_mutex() {
-  static mutex m;
-  return m;
-}
+atomic<e_log_level> g_level = e_log_level::off;
 
 string const& to_colored_level_name( e_log_level level ) {
   using namespace base::ansi;
@@ -69,13 +65,9 @@ string const& to_colored_level_name( e_log_level level ) {
 
 } // namespace
 
-e_log_level global_log_level() {
-  lock_guard<mutex> lock( level_mutex() );
-  return g_level;
-}
+e_log_level global_log_level() { return g_level; }
 
 void set_global_log_level( e_log_level level ) {
-  lock_guard<mutex> lock( level_mutex() );
   g_level = level;
 }
 
@@ -159,6 +151,9 @@ ILogger& terminal_logger() {
 struct HybridLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
             source_location const& loc ) override {
+    // Each logger should check this, but maybe this will save a
+    // bit of time.
+    if( target < global_log_level() ) return;
     terminal_logger().log( target, what, loc );
     console_logger().log( target, what, loc );
   }
