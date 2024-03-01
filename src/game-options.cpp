@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "ts.hpp"
 #include "views.hpp"
@@ -37,7 +38,9 @@ namespace rn {
 
 namespace {
 
+// Should only be called when the option value changes.
 void on_option_enabled( TS& ts, e_game_flag_option option ) {
+  lg.info( "enabling game option {}.", option );
   switch( option ) {
     case e_game_flag_option::show_indian_moves:
       break;
@@ -64,7 +67,9 @@ void on_option_enabled( TS& ts, e_game_flag_option option ) {
   }
 }
 
+// Should only be called when the option value changes.
 void on_option_disabled( TS& ts, e_game_flag_option option ) {
+  lg.info( "disabling game option {}.", option );
   switch( option ) {
     case e_game_flag_option::show_indian_moves:
       break;
@@ -143,6 +148,16 @@ wait<> open_game_options_box( SS& ss, TS& ts ) {
     else if( !has_now && had_previously )
       on_option_disabled( ts, option );
   }
+}
+
+bool disable_game_option( SS& ss, TS& ts,
+                          e_game_flag_option option ) {
+  auto&      flags     = ss.settings.game_options.flags;
+  bool const old_value = flags[option];
+  flags[option]        = false;
+  if( flags[option] != old_value )
+    on_option_disabled( ts, option );
+  return old_value;
 }
 
 /****************************************************************

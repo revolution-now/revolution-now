@@ -20,6 +20,7 @@
 #include "colony-evolve.hpp"
 #include "fathers.hpp"
 #include "fog-conv.hpp"
+#include "game-options.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
@@ -30,6 +31,7 @@
 #include "plane-stack.hpp"
 #include "promotion.hpp"
 #include "roles.hpp"
+#include "settings.rds.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -136,6 +138,13 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
           MapRevealed::nation{ .nation = e_nation::dutch };
       break;
     case e_cheat_reveal_map::entire_map:
+      // These technically don't need to be disabled, but it is
+      // just a QoL thing for the player (actually the OG does
+      // this as well).
+      disable_game_option(
+          ss, ts, e_game_flag_option::show_indian_moves );
+      disable_game_option(
+          ss, ts, e_game_flag_option::show_foreign_moves );
       revealed = MapRevealed::entire{};
       break;
     case e_cheat_reveal_map::no_special_view:
