@@ -66,6 +66,7 @@
 
 // C++ standard library
 #include <chrono>
+#include <queue>
 
 using namespace std;
 
@@ -97,9 +98,9 @@ struct LandViewPlane::Impl : public Plane {
 
   vector<MenuPlane::Deregistrar> dereg;
 
-  co::stream<RawInput>    raw_input_stream_;
-  co::stream<PlayerInput> translated_input_stream_;
-  LandViewMode            landview_mode_ = LandViewMode::none{};
+  co::stream<RawInput> raw_input_stream_;
+  queue<PlayerInput>   translated_input_stream_;
+  LandViewMode         landview_mode_ = LandViewMode::none{};
 
   // Holds info about the previous unit that was asking for or-
   // ders, since it can affect the UI behavior when asking for
@@ -166,7 +167,7 @@ struct LandViewPlane::Impl : public Plane {
     landview_mode_   = LandViewMode::none{};
     last_unit_input_ = nothing;
     raw_input_stream_.reset();
-    translated_input_stream_.reset();
+    translated_input_stream_        = {};
     g_needs_scroll_to_unit_on_input = true;
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
@@ -284,7 +285,7 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::escape: {
-        translated_input_stream_.send( PlayerInput(
+        translated_input_stream_.push( PlayerInput(
             LandViewPlayerInput::exit{}, raw_input.when ) );
         break;
       }
@@ -297,12 +298,12 @@ struct LandViewPlane::Impl : public Plane {
           // stream while we were in EOT mode but we now no
           // longer are.
           break;
-        translated_input_stream_.send( PlayerInput(
+        translated_input_stream_.push( PlayerInput(
             LandViewPlayerInput::next_turn{}, raw_input.when ) );
         break;
       }
       case e::cmd: {
-        translated_input_stream_.send( PlayerInput(
+        translated_input_stream_.push( PlayerInput(
             LandViewPlayerInput::give_command{
                 .cmd =
                     raw_input.input.get<LandViewRawInput::cmd>()
@@ -314,7 +315,7 @@ struct LandViewPlane::Impl : public Plane {
         SHOULD_NOT_BE_HERE;
       }
       case e::european_status: {
-        translated_input_stream_.send(
+        translated_input_stream_.push(
             PlayerInput( LandViewPlayerInput::european_status{},
                          raw_input.when ) );
         break;
@@ -375,7 +376,7 @@ struct LandViewPlane::Impl : public Plane {
         // clicks are not likely to get buffered for too long
         // anyway.
         for( auto const& input : inputs )
-          translated_input_stream_.send(
+          translated_input_stream_.push(
               PlayerInput( input, Clock_t::now() ) );
         break;
       }
@@ -400,9 +401,11 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<LandViewPlayerInput> next_player_input_object() {
     while( true ) {
-      while( !translated_input_stream_.ready() )
+      while( translated_input_stream_.empty() )
         co_await single_raw_input_translator();
-      PlayerInput res = co_await translated_input_stream_.next();
+      CHECK( !translated_input_stream_.empty() );
+      PlayerInput res = translated_input_stream_.front();
+      translated_input_stream_.pop();
       // Ignore any input events that are too old.
       if( Clock_t::now() - res.when < chrono::seconds{ 2 } )
         co_return std::move( res.input );
@@ -916,7 +919,7 @@ struct LandViewPlane::Impl : public Plane {
   void reset_input_buffers() {
     lg.debug( "clearing land-view input buffers." );
     raw_input_stream_.reset();
-    translated_input_stream_.reset();
+    translated_input_stream_ = {};
   }
 
   void start_new_turn() {
