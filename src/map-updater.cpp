@@ -259,7 +259,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
 
   // Note: in the below, we need to draw the surrounding squares
   // because a visibility change in one square can reveal part of
-  // the adjacent files even if they are not visible. In some
+  // the adjacent tiles even if they are not visible. In some
   // edge cases with map rendering we need to go two squares away
   // to properly rerender the map in response to a change in one
   // tile. However, those currently only happen when changing the

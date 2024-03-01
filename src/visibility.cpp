@@ -325,7 +325,10 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
         CASE( explored ) {
           SWITCH( explored.fog_status ) {
             CASE( fogged ) { continue; }
-            CASE( clear ) { fogged.insert( coord ); }
+            CASE( clear ) {
+              fogged.insert( coord );
+              continue;
+            }
           }
         }
       }
