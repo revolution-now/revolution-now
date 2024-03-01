@@ -36,9 +36,9 @@ namespace rn {
 
 namespace {
 
-using clear    = FogStatus::clear;
-using explored = PlayerSquare::explored;
-using fogged   = FogStatus::fogged;
+using clear      = FogStatus::clear;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
 using unexplored = PlayerSquare::unexplored;
 
 TerrainRenderOptions make_terrain_options(
@@ -150,9 +150,7 @@ NonRenderingMapUpdater::make_squares_fogged(
     BuffersUpdated& buffers_updated = res.emplace_back();
     buffers_updated.tile            = tile;
     SWITCH( map[tile] ) {
-      CASE( unexplored ) {
-        break;
-      }
+      CASE( unexplored ) { break; }
       CASE( explored ) {
         SWITCH( explored.fog_status ) {
           CASE( fogged ) { break; }

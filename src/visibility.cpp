@@ -354,9 +354,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     // This should not yield and squares that don't exist.
     vector<Coord> const visible = unit_visible_squares(
         ss, nation, unit.type(), world->coord );
-    for( Coord const coord : visible ) {
-      fogged.erase( coord );
-    }
+    for( Coord const coord : visible ) { fogged.erase( coord ); }
   }
 
   // Unfog the surroundings of colonies.
@@ -387,10 +385,8 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
 
   // Now affect the changes in batch.
   timer.checkpoint( "make_squares_fogged" );
-  vector<Coord> res;
-  res.reserve( fogged.size() );
-  res.insert( res.end(), fogged.begin(), fogged.end() );
-  ts.map_updater.make_squares_fogged( nation, res );
+  ts.map_updater.make_squares_fogged(
+      nation, vector<Coord>( fogged.begin(), fogged.end() ) );
 }
 
 void update_map_visibility( TS&                   ts,
