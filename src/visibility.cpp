@@ -213,6 +213,22 @@ MapSquare const& VisibilityForNation::square_at(
           will_render_from_fog_square( tile );
       fog_square.has_value() )
     return fog_square->square;
+  // NOTE: There is an interesting issue here. When a square is
+  // unexplored for the player then they will always get the real
+  // tile. That may seem unimportant, but it does because the
+  // tile returned will affect how surrounding tiles are rendered
+  // (which the player may have some visibility into). Thus the
+  // player can see changes to the unexplored tile even if its
+  // surrounding tiles are fogged, which looks wrong, especially
+  // since they player does not receive updates on fogged tiles.
+  // So e.g. if an AI player clears a forest on a tile that is
+  // unexplored but has fogged surroundings, the effects will
+  // still be seen to the player via those fogged surroundings.
+  // One can also reproduce this using the map editor. A solution
+  // was attempted for this (saved on a branch); it basically
+  // worked, though it introduced some complexity and new incon-
+  // sistencies, so it was abandoned. Current thinking is that
+  // this is not necessary (or worth it) to fix.
   return ss_.terrain.total_square_at( tile );
 };
 
