@@ -36,10 +36,12 @@ namespace rn {
 
 namespace {
 
-using clear    = FogStatus::clear;
-using explored = PlayerSquare::explored;
-using fogged   = FogStatus::fogged;
+using clear      = FogStatus::clear;
+using explored   = PlayerSquare::explored;
+using fogged     = FogStatus::fogged;
+using touched    = SquareEdges::touched;
 using unexplored = PlayerSquare::unexplored;
+using untouched  = SquareEdges::untouched;
 
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
@@ -133,7 +135,68 @@ NonRenderingMapUpdater::make_squares_visible(
     }
   }
 
-  CHECK( res.size() <= tiles.size() );
+  // Now make the tiles around the specified ones clear-touched
+  // if they have any lesser visibility than that.
+  for( Coord const unmoved : tiles ) {
+    for( e_direction const d : refl::enum_values<e_direction> ) {
+      Coord const tile = unmoved.moved( d );
+      if( !tile.is_inside( map.rect() ) ) continue;
+      if( hit.contains( tile ) ) continue;
+      hit.insert( tile );
+      BuffersUpdated& buffers_updated = res.emplace_back();
+      buffers_updated.tile            = tile;
+      SWITCH( map[tile] ) {
+        CASE( unexplored ) {
+          SWITCH( unexplored.edges ) {
+            CASE( untouched ) {
+              buffers_updated.landscape   = true;
+              buffers_updated.obfuscation = true;
+              break;
+            }
+            CASE( touched ) {
+              SWITCH( touched.fog_status ) {
+                CASE( fogged ) {
+                  FogSquare const& fog_square = fogged.contents;
+                  MapSquare const& real_square =
+                      ss_.terrain.square_at( tile );
+                  if( fog_square.square != real_square )
+                    buffers_updated.landscape = true;
+                  break;
+                }
+                CASE( clear ) { break; }
+              }
+              break;
+            }
+          }
+          map[tile]
+              .emplace<PlayerSquare::unexplored>()
+              .edges.emplace<touched>()
+              .fog_status.emplace<clear>();
+          // !! Current alternative invalidated here.
+          break;
+        }
+        CASE( explored ) {
+          SWITCH( explored.fog_status ) {
+            CASE( fogged ) {
+              FogSquare&       fog_square = fogged.contents;
+              MapSquare const& real_square =
+                  ss_.terrain.square_at( tile );
+              if( fog_square.square != real_square ) {
+                buffers_updated.landscape = true;
+                fog_square.square         = real_square;
+              }
+              // !! Current alternative invalidated here.
+              break;
+            }
+            CASE( clear ) { break; }
+          }
+          break;
+        }
+      }
+    }
+  }
+
+  // CHECK( res.size() <= tiles.size() );
   return res;
 }
 
@@ -151,6 +214,27 @@ NonRenderingMapUpdater::make_squares_fogged(
     buffers_updated.tile            = tile;
     SWITCH( map[tile] ) {
       CASE( unexplored ) {
+        SWITCH( unexplored.edges ) {
+          CASE( untouched ) { break; }
+          CASE( touched ) {
+            SWITCH( touched.fog_status ) {
+              CASE( fogged ) { break; }
+              CASE( clear ) {
+                FogSquare& fog_square =
+                    map[tile]
+                        .emplace<PlayerSquare::unexplored>()
+                        .edges.emplace<SquareEdges::touched>()
+                        .fog_status.emplace<FogStatus::fogged>()
+                        .contents;
+                // !! Current alternative invalidated here.
+                copy_real_square_to_fog_square( ss_, tile,
+                                                fog_square );
+                break;
+              }
+            }
+            break;
+          }
+        }
         break;
       }
       CASE( explored ) {

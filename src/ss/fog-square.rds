@@ -62,7 +62,12 @@ sumtype.FogStatus {
   clear {},
 }
 
+sumtype.SquareEdges {
+  untouched {},
+  touched { fog_status 'FogStatus' },
+}
+
 sumtype.PlayerSquare {
-  unexplored {},
+  unexplored { edges 'SquareEdges' },
   explored { fog_status 'FogStatus' },
 }

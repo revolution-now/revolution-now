@@ -171,7 +171,17 @@ VisibilityForNation::will_render_from_fog_square(
     Coord tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
-    CASE( unexplored ) { return nothing; }
+    CASE( unexplored ) {
+      SWITCH( unexplored.edges ) {
+        CASE( untouched ) { return nothing; }
+        CASE( touched ) {
+          SWITCH( touched.fog_status ) {
+            CASE( fogged ) { return fogged.contents; }
+            CASE( clear ) { return nothing; }
+          }
+        }
+      }
+    }
     CASE( explored ) {
       SWITCH( explored.fog_status ) {
         CASE( fogged ) { return fogged.contents; }
@@ -185,7 +195,22 @@ maybe<FogSquare> VisibilityForNation::create_fog_square_at(
     Coord tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
-    CASE( unexplored ) { return nothing; }
+    CASE( unexplored ) {
+      SWITCH( unexplored.edges ) {
+        CASE( untouched ) { return nothing; }
+        CASE( touched ) {
+          SWITCH( touched.fog_status ) {
+            CASE( fogged ) { return fogged.contents; }
+            CASE( clear ) {
+              FogSquare fog_square;
+              copy_real_square_to_fog_square( ss_, tile,
+                                              fog_square );
+              return fog_square;
+            }
+          }
+        }
+      }
+    }
     CASE( explored ) {
       SWITCH( explored.fog_status ) {
         CASE( fogged ) { return fogged.contents; }
@@ -317,11 +342,25 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
 
   timer.checkpoint( "generate fogged set" );
   unordered_set<Coord> fogged;
+  unordered_set<Coord> fogged_touched;
   for( int y = 0; y < m.size().h; ++y ) {
     for( int x = 0; x < m.size().w; ++x ) {
       Coord const coord{ .x = x, .y = y };
       SWITCH( m[coord] ) {
-        CASE( unexplored ) { continue; }
+        CASE( unexplored ) {
+          SWITCH( unexplored.edges ) {
+            CASE( untouched ) { continue; }
+            CASE( touched ) {
+              SWITCH( touched.fog_status ) {
+                CASE( fogged ) { continue; }
+                CASE( clear ) {
+                  fogged_touched.insert( coord );
+                  continue;
+                }
+              }
+            }
+          }
+        }
         CASE( explored ) {
           SWITCH( explored.fog_status ) {
             CASE( fogged ) { continue; }
@@ -356,6 +395,8 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
         ss, nation, unit.type(), world->coord );
     for( Coord const coord : visible ) {
       fogged.erase( coord );
+      for( e_direction const d : refl::enum_values<e_direction> )
+        fogged_touched.erase( coord.moved( d ) );
     }
   }
 
@@ -382,14 +423,19 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     for( e_direction const d1 :
          refl::enum_values<e_direction> ) {
       fogged.erase( coord.moved( d1 ) );
+      for( e_direction const d2 :
+           refl::enum_values<e_direction> )
+        fogged_touched.erase( coord.moved( d1 ).moved( d2 ) );
     }
   }
 
   // Now affect the changes in batch.
   timer.checkpoint( "make_squares_fogged" );
   vector<Coord> res;
-  res.reserve( fogged.size() );
+  res.reserve( fogged.size() + fogged_touched.size() );
   res.insert( res.end(), fogged.begin(), fogged.end() );
+  res.insert( res.end(), fogged_touched.begin(),
+              fogged_touched.end() );
   ts.map_updater.make_squares_fogged( nation, res );
 }
 
