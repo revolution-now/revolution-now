@@ -125,3 +125,31 @@
      It is not known whether such versions exist, but they might,
      since the concept of depleted silver is not mentioned in the
      SG at all.
+
+                        Custom House
+                        ------------
+  In the NG we do not allow the Custom House to sell boycotted
+  goods by default, since people seem to agree that it was a bug
+  that the OG allowed it.
+
+  One strategy that was possible in the OG that is no longer pos-
+  sible as a result of this change is that in the OG one could
+  focus on getting Stuyvesant as soon as possible and, in the
+  meantime, boycotting every attempt at a tax hike. That way,
+  when Stuyvesant is eventually acquired and colonies build
+  Custom Houses, one could then sell goods at zero tax rate in-
+  definitely, since there would then never be a reason to accept
+  a tax hike, at least until all goods were already boycotted.
+  However, to deal with the latter, one could time it so that
+  Fugger is obtained just when that happens, thereby doubling the
+  amount of time before mandatory tax hikes start to arrive. But
+  by then it is almost at the end of the game anyway, and at that
+  point it is easy (and cheaper likely) to buy off boycotts than
+  to accept tax hikes.
+
+  With this change (fix) in the NG the above strategy is no
+  longer possible, and thus gameplay is impacted in a nontrivial
+  way. Thus, there is a compatability flag in the config files
+  that one can set to restore the OG's behavior and allow Custom
+  Houses to sell boycotted goods if one wants to play in that
+  way.
