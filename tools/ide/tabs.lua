@@ -113,13 +113,28 @@ end
 
 colors.hl_setter( 'IdeTabColors', function( hi )
   local P = palette.colors
+
   hi.TabLineError = { fg=P.bright_red, bg=P.dark1,
                       underline=true }
+
+  hi.TabLineSelError = {
+    fg=P.dark1,
+    bg=P.bright_red,
+    underline=false,
+  }
+
   hi.TabLineWarning = {
     fg=P.bright_yellow,
     bg=P.dark1,
     underline=true,
   }
+
+  hi.TabLineSelWarning = {
+    fg=P.dark1,
+    bg=P.bright_yellow,
+    underline=false,
+  }
+
   hi.TabLineCompiling = {
     fg=P.bright_orange,
     bg=P.dark1,
@@ -140,7 +155,13 @@ local function construct_tabline( namer )
     -- include the space otherwise the space will be underlined
     -- which does not look good.
     if idx == M.current_tab() then
-      tab_fmt = '%#TabLineSel# '
+      if tab.diagnostics.errors > 0 then
+        tab_fmt = '%#TabLineSelError# '
+      elseif tab.diagnostics.warnings > 0 then
+        tab_fmt = '%#TabLineSelWarning# '
+      else
+        tab_fmt = '%#TabLineSel# '
+      end
     elseif tab.compiling then
       tab_fmt = ' %#TabLineCompiling#'
     elseif tab.diagnostics.errors > 0 then
