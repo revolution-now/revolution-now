@@ -373,6 +373,10 @@ wait<EndOfTurnResult> process_player_input(
                                  /*selected_unit=*/nothing );
       break;
     }
+    case e::hidden_terrain: {
+      co_await ts.planes.land_view().show_hidden_terrain();
+      break;
+    }
     case e::next_turn:
       co_return EndOfTurnResult::proceed{};
     case e::exit:
@@ -485,6 +489,10 @@ wait<> process_player_input(
     case e::european_status: {
       co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
+      break;
+    }
+    case e::hidden_terrain: {
+      co_await ts.planes.land_view().show_hidden_terrain();
       break;
     }
     // We have some orders for the current unit.

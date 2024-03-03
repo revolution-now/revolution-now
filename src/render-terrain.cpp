@@ -1083,14 +1083,10 @@ void render_land_overlay( IVisibility const& viz,
                           rr::Renderer&      renderer,
                           rr::Painter& painter, Coord where,
                           Coord            world_square,
-                          MapSquare const& square,
-                          TerrainRenderOptions const& options ) {
+                          MapSquare const& square ) {
   if( !square.overlay.has_value() ) return;
   switch( *square.overlay ) {
     case e_land_overlay::forest: {
-      // Need to do this inside the if since we don't want to go
-      // to the outter else branch.
-      if( !options.render_forests ) return;
       render_forest( viz, painter, where, world_square );
       if( square.river.has_value() ) {
         if( square.ground != e_ground_terrain::desert )
@@ -2003,6 +1999,7 @@ void render_resources( rr::Renderer&      renderer,
                        IVisibility const& viz, Coord where,
                        MapSquare const& square,
                        Coord            world_square ) {
+  if( square.lost_city_rumor ) return;
   maybe<e_natural_resource> resource =
       effective_resource( square );
   if( !resource.has_value() ) return;
@@ -2293,10 +2290,10 @@ void render_pixelated_overlay_transitions(
   }
 }
 
-void render_visible_terrain_square(
-    rr::Renderer& renderer, Coord where,
-    Coord const world_square, IVisibility const& viz,
-    TerrainRenderOptions const& options ) {
+void render_visible_terrain_square( rr::Renderer& renderer,
+                                    Coord         where,
+                                    Coord const   world_square,
+                                    IVisibility const& viz ) {
   rr::Painter      painter = renderer.painter();
   MapSquare const& square  = viz.square_at( world_square );
   if( square.surface == e_surface::water ) {
@@ -2314,15 +2311,13 @@ void render_visible_terrain_square(
                             /*no_bank=*/false );
   }
   render_land_overlay( viz, renderer, painter, where,
-                       world_square, square, options );
+                       world_square, square );
   render_plow_if_present( painter, where,
                           viz.square_at( world_square ) );
-  if( !square.lost_city_rumor && options.render_resources )
-    render_resources( renderer, painter, viz, where, square,
-                      world_square );
+  render_resources( renderer, painter, viz, where, square,
+                    world_square );
   render_road_if_present( painter, where, viz, world_square );
-  if( options.render_lcrs )
-    render_lost_city_rumor( painter, where, square );
+  render_lost_city_rumor( painter, where, square );
 }
 
 // An "overlay" can represent some kind of sprite that is over-
@@ -2362,7 +2357,7 @@ void render_landscape_square_if_not_fully_hidden(
           .fully_surrounded;
   if( fully_hidden ) return;
   render_visible_terrain_square( renderer, where, world_square,
-                                 viz, options );
+                                 viz );
 
   // Always last.
   rr::Painter painter = renderer.painter();

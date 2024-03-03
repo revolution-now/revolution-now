@@ -161,9 +161,17 @@ struct LandViewAnimator {
   wait<> fog_dwelling_depixelation_throttler( co::latch& hold,
                                               Coord      tile );
 
+  std::unordered_map<Coord, MapSquare>
+  redrawn_squares_for_overrides(
+      std::map<Coord, MapSquare> const& overrides );
+
   wait<> landscape_anim_depixelation_throttler(
       co::latch&                        hold,
       std::map<Coord, MapSquare> const& targets );
+
+  wait<> landscape_anim_modder(
+      co::latch&                        hold,
+      std::map<Coord, MapSquare> const& modded );
 
   wait<> slide_throttler( co::latch& hold, GenericUnitId id,
                           e_direction d );

@@ -44,9 +44,6 @@ using unexplored = PlayerSquare::unexplored;
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
   return TerrainRenderOptions{
-      .render_forests    = our_options.render_forests,
-      .render_resources  = our_options.render_resources,
-      .render_lcrs       = our_options.render_lcrs,
       .grid              = our_options.grid,
       .render_fog_of_war = our_options.render_fog_of_war };
 }

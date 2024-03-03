@@ -311,9 +311,6 @@ struct LandViewPlane::Impl : public Plane {
             raw_input.when ) );
         break;
       }
-      case e::leave_hidden_terrain: {
-        SHOULD_NOT_BE_HERE;
-      }
       case e::european_status: {
         translated_input_stream_.push(
             PlayerInput( LandViewPlayerInput::european_status{},
@@ -321,39 +318,9 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::hidden_terrain: {
-        auto new_state = LandViewMode::hidden_terrain{};
-        SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
-        auto popper = ts_.map_updater.push_options_and_redraw(
-            []( MapUpdaterOptions& options ) {
-              options.render_forests = false;
-              // The original game does not render LCRs or re-
-              // sources in the hidden terrain mode, likely be-
-              // cause this would allow the player to cheat and
-              // see if there is a resource under the forest or
-              // LCR tile instead of taking them time and risk
-              // to explore those tiles. What is rendered here
-              // (the underlying ground terrain) is already
-              // given to the player on the side panel (and we
-              // don't want to give away anything else).
-              options.render_resources  = false;
-              options.render_lcrs       = false;
-              options.render_fog_of_war = false;
-            } );
-        // Consume further inputs but eat all of them except
-        // for the ones we want.
-        while( true ) {
-          RawInput raw_input = co_await raw_input_stream_.next();
-          if( raw_input.input.holds<
-                  LandViewRawInput::leave_hidden_terrain>() )
-            break;
-          if( auto tile_click =
-                  raw_input.input
-                      .get_if<LandViewRawInput::tile_click>();
-              tile_click.has_value() )
-            viewport().set_point_seek(
-                viewport().world_tile_to_world_pixel_center(
-                    tile_click->coord ) );
-        }
+        translated_input_stream_.push(
+            PlayerInput( LandViewPlayerInput::hidden_terrain{},
+                         raw_input.when ) );
         break;
       }
       case e::tile_click: {
@@ -516,8 +483,6 @@ struct LandViewPlane::Impl : public Plane {
         viewport() );
 
     lv_renderer.render_non_entities();
-    if( landview_mode_.holds<LandViewMode::hidden_terrain>() )
-      return;
     lv_renderer.render_entities();
   }
 
@@ -683,8 +648,9 @@ struct LandViewPlane::Impl : public Plane {
         if( !input::is_mod_key( key_event ) &&
             landview_mode_
                 .holds<LandViewMode::hidden_terrain>() ) {
-          raw_input_stream_.send( RawInput(
-              LandViewRawInput::leave_hidden_terrain{} ) );
+          // This will tell hidden-terrain mode to exit.
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::hidden_terrain{} ) );
           break;
         }
         // First allow the Lua hook to handle the key press if it
@@ -772,9 +738,8 @@ struct LandViewPlane::Impl : public Plane {
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
-            if( landview_mode_
-                    .holds<LandViewMode::hidden_terrain>() )
-              break;
+            CHECK( !landview_mode_
+                        .holds<LandViewMode::hidden_terrain>() );
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::hidden_terrain{} ) );
             break;
@@ -1013,6 +978,54 @@ struct LandViewPlane::Impl : public Plane {
     return ( sorted[0] == id );
   }
 
+  wait<> show_hidden_terrain() {
+    auto const new_state = LandViewMode::hidden_terrain{};
+    // Clear input buffers after changing state to the new state
+    // and after switching back to the old state.
+    SCOPE_EXIT { reset_input_buffers(); };
+    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+    reset_input_buffers();
+    // TODO: maybe we could find some way of animating the re-
+    // moval of the fog instead of just having it disappear.
+    auto popper = ts_.map_updater.push_options_and_redraw(
+        []( MapUpdaterOptions& options ) {
+          options.render_fog_of_war = false;
+        } );
+    CHECK( viz_ != nullptr );
+    AnimationSequence const seq =
+        anim_seq_for_hidden_terrain( ss_, *viz_ );
+    // This will cause the hidden-terrain animation (similar to
+    // that of the OG) to run in the background while we take
+    // input below, and can interrupt it at any time. Note that
+    // we should not co_await this animation because it is a
+    // "hold" animation, meaning that it never co_returns, in-
+    // stead it just holds its final state so that the user can
+    // remain in hidden-terrain mode as long as they wish.
+    wait<> const hidden_terrain_animation =
+        lv_animator_.animate_sequence_and_hold( seq );
+    // Consume further inputs but eat all of them except for the
+    // ones we want.
+    while( true ) {
+      RawInput const raw_input =
+          co_await raw_input_stream_.next();
+      switch( raw_input.input.to_enum() ) {
+        using e = LandViewRawInput::e;
+        case e::hidden_terrain:
+          co_return;
+        case e::tile_click: {
+          viewport().set_point_seek(
+              viewport().world_tile_to_world_pixel_center(
+                  raw_input.input
+                      .get<LandViewRawInput::tile_click>()
+                      .coord ) );
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  }
+
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {
     // There are some things that use last_unit_input_ below that
     // will crash if the last unit that asked for orders no
@@ -1189,6 +1202,10 @@ void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
 
 wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
   return impl_->lv_animator_.ensure_visible_unit( id );
+}
+
+wait<> LandViewPlane::show_hidden_terrain() {
+  return impl_->show_hidden_terrain();
 }
 
 wait<LandViewPlayerInput> LandViewPlane::get_next_input(

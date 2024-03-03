@@ -48,9 +48,6 @@ struct MapUpdaterOptions {
   // nation perspective) on the GPU, so that if that desired
   // value changes, we know when we need to redraw.
   maybe<e_nation> nation            = nothing;
-  bool            render_forests    = true;
-  bool            render_resources  = true;
-  bool            render_lcrs       = true;
   bool            grid              = false;
   bool            render_fog_of_war = true;
 

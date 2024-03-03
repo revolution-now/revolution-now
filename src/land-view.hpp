@@ -53,6 +53,14 @@ struct ILandViewPlane {
 
   virtual wait<> ensure_visible_unit( GenericUnitId id ) = 0;
 
+  // Does a brief animation to reveal the underlying ground tiles
+  // in a way similar to the OG, without revealing any informa-
+  // tion to the player that they wouldn't otherwise know (i.e.
+  // will not reveal prime resources under forests or LCRs). This
+  // should not be called while there are other animations run-
+  // ning, otherwise it might conflict.
+  virtual wait<> show_hidden_terrain() = 0;
+
   virtual wait<LandViewPlayerInput> get_next_input(
       UnitId id ) = 0;
 
@@ -96,6 +104,8 @@ struct LandViewPlane : ILandViewPlane {
   wait<> ensure_visible( Coord const& coord ) override;
   wait<> center_on_tile( Coord coord ) override;
   wait<> ensure_visible_unit( GenericUnitId id ) override;
+
+  wait<> show_hidden_terrain() override;
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) override;
 

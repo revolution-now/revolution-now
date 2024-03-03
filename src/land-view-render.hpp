@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "land-view-anim.rds.hpp"
 #include "render.hpp"
 #include "time.hpp"
 
@@ -74,6 +75,17 @@ struct LandViewRenderer {
   void render_dwellings() const;
 
   void render_landscape_anim_buffer() const;
+
+  void render_landscape_anim_buffer(
+      LandscapeAnimBufferState::pixelation const& pixelation )
+      const;
+
+  void render_landscape_anim_buffer(
+      LandscapeAnimBufferState::mod const& mod ) const;
+
+  void render_landscape_anim_buffer_impl(
+      std::unordered_map<Coord, MapSquare> const& overrides )
+      const;
 
   void render_units_underneath() const;
 

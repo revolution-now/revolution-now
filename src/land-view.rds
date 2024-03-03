@@ -39,6 +39,11 @@ sumtype.LandViewPlayerInput {
   # mand above) that we just let the turn module handle it.
   european_status {},
 
+  # Does a brief animation and reveals the ground terrain under
+  # the entities and forests, but does so carefully in order to
+  # not give the player any information that they shouldn't have.
+  hidden_terrain {},
+
   # Player has given a command to a unit.
   give_command {
     cmd 'command',

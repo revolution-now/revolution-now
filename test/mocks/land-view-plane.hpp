@@ -38,6 +38,7 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( wait<>, center_on_tile, ( Coord ), () );
   MOCK_METHOD( wait<>, ensure_visible_unit, ( GenericUnitId ),
                () );
+  MOCK_METHOD( wait<>, show_hidden_terrain, (), () );
   MOCK_METHOD( wait<LandViewPlayerInput>, get_next_input,
                ( UnitId ), () );
   MOCK_METHOD( wait<LandViewPlayerInput>, eot_get_next_input, (),

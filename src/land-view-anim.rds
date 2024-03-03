@@ -77,13 +77,29 @@ sumtype.DwellingAnimationState {
   },
 }
 
-struct.LandscapeAnimBufferState {
-  # This flag is enabled for one frame to get the renderer to
-  # render the buffer once, then it is turned off for the rest
-  # of the animation since the animation being done is the
-  # pixelation of the entire landscape_anim buffer, which is
-  # controlled via a uniform.
-  needs_rendering 'bool',
-  stage 'double',
-  targets 'std::unordered_map<Coord, MapSquare>',
+sumtype.LandscapeAnimBufferState {
+  # This will cause the landscape_anim buffer to be rendered
+  # (once) with the replaced tiles, then the uniform depixelation
+  # stage for rendering the landscape_anim buffer will be ramped
+  # down from 1.0 to 0, gradually replacing the contents of the
+  # landscape buffer with the landscape_anim buffer.
+  pixelation {
+    # This flag is enabled for one frame to get the renderer to
+    # render the buffer once, then it is turned off for the rest
+    # of the animation since the animation being done is the pix-
+    # elation of the entire landscape_anim buffer, which is con-
+    # trolled via a uniform.
+    needs_rendering 'bool',
+    stage 'double',
+    targets 'std::unordered_map<Coord, MapSquare>',
+  },
+
+  # This will cause the landscape_anim buffer to be rendered
+  # (once) with the replaced tiles and overlayed on top of the
+  # landscape buffer, replacing it for the tiles in question (and
+  # their immediate surroundings).
+  mod {
+    needs_rendering 'bool', # See comment above.
+    modded 'std::unordered_map<Coord, MapSquare>',
+  },
 }

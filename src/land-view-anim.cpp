@@ -260,34 +260,40 @@ wait<> LandViewAnimator::fog_dwelling_depixelation_throttler(
   co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
-wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
-    co::latch& hold, map<Coord, MapSquare> const& targets ) {
-  CHECK( !landview_anim_buffer_state_.has_value() );
-  LandscapeAnimBufferState& state =
-      landview_anim_buffer_state_.emplace();
-  SCOPE_EXIT { landview_anim_buffer_state_.reset(); };
-
+unordered_map<Coord, MapSquare>
+LandViewAnimator::redrawn_squares_for_overrides(
+    map<Coord, MapSquare> const& overrides ) {
   // First, get a full set of squares that we'll have to animate;
   // this includes the ones that are changing plus surrounding
   // ones that might change indirectly.
-  unordered_map<Coord, MapSquare> override_squares;
-  for( auto const& [tile, _] : targets ) {
+  unordered_map<Coord, MapSquare> redrawn;
+  for( auto const& [tile, _] : overrides ) {
     for( e_cdirection const d :
          refl::enum_values<e_cdirection> ) {
       Coord const moved = tile.moved( d );
       if( !ss_.terrain.square_exists( moved ) ) continue;
-      override_squares[moved] = viz_->square_at( moved );
+      redrawn[moved] = viz_->square_at( moved );
     }
   }
 
   // Now inject the target ones that are directly changing.
-  for( auto const& [tile, target_square] : targets )
-    if( override_squares.contains( tile ) )
-      override_squares[tile] = target_square;
+  for( auto const& [tile, target_square] : overrides )
+    if( redrawn.contains( tile ) ) redrawn[tile] = target_square;
+
+  return redrawn;
+}
+
+wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
+    co::latch& hold, map<Coord, MapSquare> const& targets ) {
+  CHECK( !landview_anim_buffer_state_.has_value() );
+  auto& state =
+      landview_anim_buffer_state_.emplace()
+          .emplace<LandscapeAnimBufferState::pixelation>();
+  SCOPE_EXIT { landview_anim_buffer_state_.reset(); };
 
   state.needs_rendering = false;
-  state.targets         = std::move( override_squares );
-  state.stage           = 1.0;
+  state.targets = redrawn_squares_for_overrides( targets );
+  state.stage   = 1.0;
   {
     // This will cause the renderer to rerender the landscape
     // anim buffer, but only once. This is slightly hacky, but
@@ -297,6 +303,25 @@ wait<> LandViewAnimator::landscape_anim_depixelation_throttler(
   }
   co_await pixelation_stage_throttler( hold, state.stage,
                                        /*negative=*/true );
+}
+
+wait<> LandViewAnimator::landscape_anim_modder(
+    co::latch& hold, map<Coord, MapSquare> const& modded ) {
+  CHECK( !landview_anim_buffer_state_.has_value() );
+  auto& state = landview_anim_buffer_state_.emplace()
+                    .emplace<LandscapeAnimBufferState::mod>();
+  SCOPE_EXIT { landview_anim_buffer_state_.reset(); };
+
+  state.needs_rendering = false;
+  state.modded = redrawn_squares_for_overrides( modded );
+  {
+    // This will cause the renderer to rerender the landscape
+    // anim buffer, but only once. This is slightly hacky, but
+    // allows ultimately to keep our draw() method const.
+    SCOPED_SET_AND_RESTORE( state.needs_rendering, true );
+    co_await 1_frames;
+  }
+  co_await hold.arrive_and_wait();
 }
 
 // TODO: this animation needs to be sync'd with the one in the
@@ -525,6 +550,11 @@ wait<> LandViewAnimator::animate_action_primitive(
     CASE( landscape_anim_enpixelate ) {
       co_await landscape_anim_depixelation_throttler(
           hold, landscape_anim_enpixelate.targets );
+      break;
+    }
+    CASE( landscape_anim_mod ) {
+      co_await landscape_anim_modder(
+          hold, landscape_anim_mod.modded );
       break;
     }
   }

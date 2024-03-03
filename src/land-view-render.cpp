@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "land-view-anim.hpp"
-#include "logger.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "renderer.rds.hpp"
@@ -44,6 +43,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/timer.hpp"
 
 // C++ standard library
 #include <unordered_map>
@@ -845,31 +847,55 @@ void LandViewRenderer::render_entities() const {
   render_units();
 }
 
+void LandViewRenderer::render_landscape_anim_buffer_impl(
+    unordered_map<Coord, MapSquare> const& overrides ) const {
+  static constexpr auto kBuffer =
+      rr::e_render_buffer::landscape_anim;
+  base::ScopedTimer const timer(
+      fmt::format( "rendering buffer {}: ", kBuffer ) );
+  renderer_.clear_buffer( kBuffer );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kBuffer );
+  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
+  SCOPED_RENDERER_MOD_SET( painter_mods.uniform_depixelation,
+                           true );
+  VisibilityWithOverrides const viz( ss_, *viz_, overrides );
+  for( auto const& [tile, square] : overrides )
+    render_landscape_square_if_not_fully_hidden(
+        renderer_, tile * g_tile_delta, tile, viz,
+        TerrainRenderOptions{} );
+}
+
+void LandViewRenderer::render_landscape_anim_buffer(
+    LandscapeAnimBufferState::pixelation const& pixelation )
+    const {
+  renderer_.set_uniform_depixelation_stage( pixelation.stage );
+  // This flag will be enabled for precisely one frame to trigger
+  // a one-time rendering of the buffer.
+  if( !pixelation.needs_rendering ) return;
+  render_landscape_anim_buffer_impl( pixelation.targets );
+}
+
+void LandViewRenderer::render_landscape_anim_buffer(
+    LandscapeAnimBufferState::mod const& mod ) const {
+  renderer_.set_uniform_depixelation_stage( 0.0 );
+  // This flag will be enabled for precisely one frame to trigger
+  // a one-time rendering of the buffer.
+  if( !mod.needs_rendering ) return;
+  render_landscape_anim_buffer_impl( mod.modded );
+}
+
 void LandViewRenderer::render_landscape_anim_buffer() const {
   static constexpr auto kBuffer =
       rr::e_render_buffer::landscape_anim;
   maybe<LandscapeAnimBufferState> const& state =
       lv_animator_.landview_anim_buffer_state();
   if( !state.has_value() ) {
-    renderer.clear_buffer( kBuffer );
+    renderer_.clear_buffer( kBuffer );
     return;
   }
-  renderer_.set_uniform_depixelation_stage( state->stage );
-  // This flag will be enabled for precisely one frame to trigger
-  // a one-time rendering of the buffer.
-  if( !state->needs_rendering ) return;
-  lg.debug( "rendering the {} buffer.", kBuffer );
-  renderer.clear_buffer( kBuffer );
-  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kBuffer );
-  SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
-  SCOPED_RENDERER_MOD_SET( painter_mods.uniform_depixelation,
-                           true );
-  VisibilityWithOverrides const viz( ss_, *viz_,
-                                     state->targets );
-  for( auto const& [tile, fog_square] : state->targets )
-    render_landscape_square_if_not_fully_hidden(
-        renderer_, tile * g_tile_delta, tile, viz,
-        TerrainRenderOptions{} );
+  return state->visit( [this]( auto& o ) {
+    return render_landscape_anim_buffer( o );
+  } );
 }
 
 void LandViewRenderer::render_non_entities() const {
