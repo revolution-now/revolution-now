@@ -604,8 +604,8 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::hidden_terrain: {
-        if( landview_mode_
-                .holds<LandViewMode::hidden_terrain>() )
+        if( !landview_mode_.holds<LandViewMode::unit_input>() &&
+            !landview_mode_.holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -624,8 +624,9 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   void handle_menu_click( e_menu_item item ) override {
-    DCHECK( menu_click_handler( item ).has_value() );
-    ( *menu_click_handler( item ) )();
+    auto const func = menu_click_handler( item );
+    CHECK( func.has_value() );
+    ( *func )();
   }
 
   e_input_handled input( input::event_t const& event ) override {
