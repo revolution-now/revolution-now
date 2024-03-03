@@ -118,4 +118,10 @@ AnimationAction& AnimationBuilder::enpixelate_landview_tiles(
       .targets = std::move( targets ) } );
 }
 
+AnimationAction& AnimationBuilder::landview_mod_tiles(
+    std::map<Coord, MapSquare> modded ) {
+  return push(
+      P::landscape_anim_mod{ .modded = std::move( modded ) } );
+}
+
 } // namespace rn

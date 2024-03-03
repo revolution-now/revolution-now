@@ -140,6 +140,14 @@ sumtype.AnimationPrimitive {
   landscape_anim_enpixelate {
     targets 'std::map<Coord, MapSquare>',
   },
+
+  # This will cause the given tiles (and their surrounding tiles)
+  # to be drawn onto the landscape_anim buffer, effectively re-
+  # placing whatever is in the landscape buffer. There should be
+  # at most one of these per phase.
+  landscape_anim_mod {
+    modded 'std::map<Coord, MapSquare>',
+  },
 }
 
 struct.AnimationAction {

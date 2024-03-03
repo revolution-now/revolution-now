@@ -56,6 +56,11 @@ TEST_CASE( "[anim-builder] builders" ) {
       { Coord{ .x = 3, .y = 5 }, MapSquare{} },
       { Coord{ .x = 4, .y = 6 }, MapSquare{ .road = true } },
   } );
+  builder.landview_mod_tiles( {
+      { Coord{ .x = 7, .y = 9 }, MapSquare{} },
+      { Coord{ .x = 8, .y = 10 },
+        MapSquare{ .irrigation = true } },
+  } );
 
   AnimationSequence const& res = builder.result();
 
@@ -121,7 +126,16 @@ TEST_CASE( "[anim-builder] builders" ) {
                                 { Coord{ .x = 4, .y = 6 },
                                   MapSquare{ .road = true } },
                             } } },
-
+              { .primitive =
+                    P::landscape_anim_mod{
+                        .modded =
+                            {
+                                { Coord{ .x = 7, .y = 9 },
+                                  MapSquare{} },
+                                { Coord{ .x = 8, .y = 10 },
+                                  MapSquare{ .irrigation =
+                                                 true } },
+                            } } },
           } } };
 
   REQUIRE( res == expected );

@@ -66,6 +66,9 @@ struct AnimationBuilder {
   AnimationAction& enpixelate_landview_tiles(
       std::map<Coord, MapSquare> targets );
 
+  AnimationAction& landview_mod_tiles(
+      std::map<Coord, MapSquare> modded );
+
  private:
   // Add another animation into the current phase.
   AnimationAction& push( auto&& o ) {
