@@ -31,6 +31,10 @@ AnimationSequence const& AnimationBuilder::result() {
 }
 
 void AnimationBuilder::new_phase() {
+  if( seq_.sequence.size() == 1 && seq_.sequence[0].empty() )
+    // This allows us to either include or emit the
+    // builder.new_phase call for the first phase.
+    return;
   seq_.sequence.emplace_back();
 }
 

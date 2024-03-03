@@ -127,5 +127,28 @@ TEST_CASE( "[anim-builder] builders" ) {
   REQUIRE( res == expected );
 }
 
+TEST_CASE( "[anim-builder] first new_phase optional" ) {
+  SECTION( "don't call new_phase" ) {
+    AnimationBuilder builder;
+    REQUIRE( builder.result() ==
+             AnimationSequence{ .sequence = { {} } } );
+  }
+
+  SECTION( "call new_phase once" ) {
+    AnimationBuilder builder;
+    builder.new_phase();
+    REQUIRE( builder.result() ==
+             AnimationSequence{ .sequence = { {} } } );
+  }
+
+  SECTION( "call new_phase twice" ) {
+    AnimationBuilder builder;
+    builder.new_phase();
+    builder.new_phase();
+    REQUIRE( builder.result() ==
+             AnimationSequence{ .sequence = { {} } } );
+  }
+}
+
 } // namespace
 } // namespace rn
