@@ -132,6 +132,10 @@ struct LandViewAnimator {
   wait<> ensure_visible_unit( GenericUnitId id );
 
  private:
+  // Animation Sequences.
+  wait<> animate_sequence_impl( AnimationSequence const& seq,
+                                bool hold_last );
+
   // Animation primitives.
 
   wait<> animate_action_primitive( AnimationAction const& action,

@@ -544,10 +544,11 @@ wait<> LandViewAnimator::animate_action_primitive(
   }
 }
 
-wait<> LandViewAnimator::animate_sequence(
-    AnimationSequence const& seq ) {
-  for( vector<AnimationAction> const& sub_seq : seq.sequence ) {
-    vector<wait<>> ws;
+wait<> LandViewAnimator::animate_sequence_impl(
+    AnimationSequence const& seq, bool hold_last ) {
+  for( size_t i = 0; i < seq.sequence.size(); ++i ) {
+    vector<AnimationAction> const& sub_seq = seq.sequence[i];
+    vector<wait<>>                 ws;
     ws.reserve( sub_seq.size() );
     // The latch is to synchronize the animations so that they
     // all end at the same time. If one is shorter than the other
@@ -558,33 +559,32 @@ wait<> LandViewAnimator::animate_sequence(
     // state until all of the other animations in the phase have
     // completed (meaning that they've either called count_down
     // or arrive_and_wait on the latch).
-    co::latch hold( sub_seq.size() );
+    //
+    // In the case that we want to hold this (last) sub sequence,
+    // we just ensure that the counter never hits zero. This way,
+    // the animation will run to completion and then just hold
+    // its final state, never to return. Such animations are in-
+    // tended to be cancelled at some point by the caller.
+    bool const is_last     = ( i == seq.sequence.size() - 1 );
+    bool const should_hold = ( is_last && hold_last );
+    int const  latch_count = should_hold
+                                 ? numeric_limits<int>::max()
+                                 : sub_seq.size();
+    co::latch  hold( latch_count );
     for( AnimationAction const& action : sub_seq )
       ws.push_back( animate_action_primitive( action, hold ) );
     co_await co::all( std::move( ws ) );
   }
 }
 
+wait<> LandViewAnimator::animate_sequence(
+    AnimationSequence const& seq ) {
+  co_await animate_sequence_impl( seq, /*hold_last=*/false );
+}
+
 wait<> LandViewAnimator::animate_sequence_and_hold(
     AnimationSequence const& seq ) {
-  if( seq.sequence.empty() ) co_return;
-  // Since the phase we animate will be told to hold and not ever
-  // return, it only makes sense to animate a single phase.
-  CHECK( seq.sequence.size() == 1 );
-  vector<AnimationAction> const& sub_seq = seq.sequence[0];
-
-  vector<wait<>> ws;
-  ws.reserve( sub_seq.size() );
-  // See the corresponding comment in `animate_sequence` for an
-  // explanation of the latch; the thing we do differently here
-  // is ensure that the counter never hits zero, so i.e. the ani-
-  // mation will run to completion, then just hold its final
-  // state, never to return. Such animations are intended to be
-  // cancelled at some point by the caller.
-  co::latch hold( numeric_limits<int>::max() );
-  for( AnimationAction const& action : sub_seq )
-    ws.push_back( animate_action_primitive( action, hold ) );
-  co_await co::all( std::move( ws ) );
+  co_await animate_sequence_impl( seq, /*hold_last=*/true );
 }
 
 } // namespace rn
