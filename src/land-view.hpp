@@ -90,6 +90,7 @@ struct LandViewPlane : ILandViewPlane {
 
   ~LandViewPlane() override;
 
+ public: // Implement ILandViewPlane.
   void set_visibility( maybe<e_nation> nation ) override;
 
   wait<> ensure_visible( Coord const& coord ) override;

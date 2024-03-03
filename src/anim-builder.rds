@@ -125,14 +125,18 @@ sumtype.AnimationPrimitive {
   },
 
   # -------------------------------------------------------------
-  # Landscape pixelation.
+  # Landscape animation.
   # -------------------------------------------------------------
-  # This will set the uniform depixelation stage in motion from 1
-  # to 0, i.e. so that if the landscape_anim buffer holds the
-  # target squares, the existing squares will slowly become the
-  # target squares as the landscape_anim buffer enpixelates over
-  # the regular landcape. You should have at most one of these
-  # per phase.
+  # This will cause cause the landscape_anim buffer to enpixelate
+  # over the normal landscape buffer. Before doing that, the
+  # landscape_anim buffer is rendered with the "changed" tiles in
+  # the map below (along with their surrounding tiles, which are
+  # added in automatically). The uniform depixelation stage will
+  # move from 1 to 0 so that if the landscape_anim buffer holds
+  # the target squares, the existing squares will slowly become
+  # the target squares as the landscape_anim buffer enpixelates
+  # over the regular landcape. You should have at most one of
+  # these per phase.
   landscape_anim_enpixelate {
     targets 'std::map<Coord, MapSquare>',
   },

@@ -111,9 +111,9 @@ enum.e_outdoor_job {
 # that can get depleted and eventually disappears (at which point
 # the secondary job would revert to ore), which might be con-
 # fusing for the player since the resource icon would not be vis-
-# ible under the colony (or in "hidden terrain" mode). Second,
-# the algorithm for choosing the secondary job would likely not
-# choose silver anyway because there'd be more ore produced.
+# ible under the colony. Second, the algorithm for choosing the
+# secondary job would likely not choose silver anyway because
+# there'd be more ore produced.
 #
 # Also, just as in the original game, we don't have lumber. The
 # reason for this might have just been for game balancing.
