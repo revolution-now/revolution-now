@@ -884,4 +884,26 @@ AnimationSequence anim_seq_for_sfx( e_sfx sound ) {
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_hidden_terrain(
+    SSConst const&, IVisibility const& viz ) {
+  AnimationBuilder      builder;
+  map<Coord, MapSquare> pristine;
+  map<Coord, MapSquare> no_forest;
+  for( Coord const tile :
+       gfx::rect_iterator( viz.rect_tiles() ) ) {
+    if( viz.visible( tile ) == e_tile_visibility::hidden )
+      continue;
+    MapSquare const& square = viz.square_at( tile );
+    pristine[tile]          = square;
+    no_forest[tile]         = square;
+    if( no_forest[tile].overlay == e_land_overlay::forest )
+      no_forest[tile].overlay = nothing;
+  }
+
+  // Phase 0: remove all forest.
+  builder.new_phase();
+  builder.landview_mod_tiles( no_forest );
+  return builder.result();
+}
+
 } // namespace rn
