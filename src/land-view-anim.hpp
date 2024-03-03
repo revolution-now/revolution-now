@@ -30,6 +30,9 @@
 // gfx
 #include "gfx/coord.hpp"
 
+// base
+#include "base/attributes.hpp"
+
 // C++ standard library
 #include <queue>
 #include <stack>
@@ -106,10 +109,19 @@ struct LandViewAnimator {
 
   // Animation sequences.
 
-  wait<> animate_sequence( AnimationSequence const& seq );
+  // Will animate the sequence then co_return. It is not uncommon
+  // to being run in the background, thus for safety we include
+  // the lifetime attribute.
+  wait<> animate_sequence(
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND );
 
+  // Will animate the sequence but will hold the end state of the
+  // final subsequence. This will never co_return, thus it must
+  // eventually be cancelled by the caller. It is not uncommon to
+  // being run in the background, thus for safety we include the
+  // lifetime attribute.
   wait<> animate_sequence_and_hold(
-      AnimationSequence const& seq );
+      AnimationSequence const& seq ATTR_LIFETIMEBOUND );
 
   wait<> animate_blink( UnitId id, bool visible_initially );
 
