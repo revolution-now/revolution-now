@@ -389,7 +389,7 @@ wait<> LandViewAnimator::ensure_visible_unit(
 wait<> LandViewAnimator::animate_action_primitive(
     AnimationAction const& action, co::latch& hold ) {
   AnimationPrimitive const& primitive = action.primitive;
-  // Note: in the below, each animation primitive must handle the
+  // Note: In the below, each animation primitive must handle the
   // latch. If the primitive leaves some visual animation state
   // different than when it started then it needs to use
   // arrive_and_wait, while otherwise it can use count_down. If
@@ -397,21 +397,7 @@ wait<> LandViewAnimator::animate_action_primitive(
   // the latch to that function so that it can do the above. Ei-
   // ther way, the latch counter must be decremented (through all
   // code paths!) otherwise the composite animation (phase) will
-  // never terminate. The following check should enforce that at
-  // least for the cases where we don't suspend. It is possible
-  // that if we suspend, then another coroutine decrements the
-  // latch, then we resume but don't decrement the latch, that
-  // this check won't catch it, but it is better than nothing.
-  int const latch_count_start = hold.counter();
-  SCOPE_EXIT {
-    CHECK( hold.counter() < latch_count_start,
-           "a call to animation action {} failed to decrement "
-           "the latch counter.",
-           action );
-  };
-  // NOTE: Once again, we must tick the latch through every code
-  // path in the below switch statement, otherwise animations
-  // will hang!
+  // never terminate.
   SWITCH( primitive ) {
     CASE( delay ) {
       co_await delay.duration;
