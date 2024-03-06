@@ -395,20 +395,6 @@ TEST_CASE( "[colony-buildings] max_workers_for_building" ) {
   REQUIRE( f() == 3 );
 }
 
-TEST_CASE(
-    "[colony-buildings] barricade_type_to_colony_building" ) {
-  auto f = [&]( e_colony_barricade_type type ) {
-    return barricade_type_to_colony_building( type );
-  };
-
-  REQUIRE( f( e_colony_barricade_type::stockade ) ==
-           e_colony_building::stockade );
-  REQUIRE( f( e_colony_barricade_type::fort ) ==
-           e_colony_building::fort );
-  REQUIRE( f( e_colony_barricade_type::fortress ) ==
-           e_colony_building::fortress );
-}
-
 TEST_CASE( "[colony-buildings] barricade_for_colony" ) {
   Colony colony;
 

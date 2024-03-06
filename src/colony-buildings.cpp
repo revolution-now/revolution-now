@@ -419,18 +419,6 @@ void add_colony_building( Colony&           colony,
   }
 }
 
-e_colony_building barricade_type_to_colony_building(
-    e_colony_barricade_type barricade ) {
-  switch( barricade ) {
-    case e_colony_barricade_type::stockade:
-      return e_colony_building::stockade;
-    case e_colony_barricade_type::fort:
-      return e_colony_building::fort;
-    case e_colony_barricade_type::fortress:
-      return e_colony_building::fortress;
-  }
-}
-
 maybe<e_colony_barricade_type> barricade_for_colony(
     Colony const& colony ) {
   maybe<e_colony_building> const building =
