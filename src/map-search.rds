@@ -1,0 +1,22 @@
+# ===============================================================
+# map-search.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2023-09-23.
+#
+# Description: Rds definitions for the map-search module.
+#
+# ===============================================================
+# gfx
+include "gfx/coord.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+struct.ExploredColony {
+  name 'std::string',
+  location 'Coord',
+}
