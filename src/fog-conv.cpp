@@ -114,6 +114,7 @@ void copy_real_square_to_frozen_square(
       colony_id.has_value() ) {
     Colony const& colony = ss.colonies.colony_for( *colony_id );
     frozen_square.colony = colony;
+    frozen_square.colony->id = 0;
     frozen_square.colony->frozen =
         colony_to_frozen_colony( ss, colony );
   }
@@ -125,7 +126,8 @@ void copy_real_square_to_frozen_square(
       dwelling_id.has_value() ) {
     Dwelling const& dwelling =
         ss.natives.dwelling_for( *dwelling_id );
-    frozen_square.dwelling = dwelling;
+    frozen_square.dwelling     = dwelling;
+    frozen_square.dwelling->id = 0;
     frozen_square.dwelling->frozen =
         dwelling_to_frozen_dwelling( ss, dwelling );
   }

@@ -53,10 +53,11 @@ valid_or<string> Dwelling::validate() const {
   // a real dwelling on the map) or it must have a `frozen` rep-
   // resentation (meaning that it is a snapshot of the dwelling
   // when last visited) but cannot have both.
-  REFL_VALIDATE(
-      ( id != 0 ) != ( frozen.has_value() ),
-      "Dwelling has both a non-zero ID and a frozen state, "
-      "which is not allowed; it must one or the other." );
+  bool const real_dwelling = ( id != 0 );
+  bool const has_frozen    = frozen.has_value();
+  REFL_VALIDATE( real_dwelling != has_frozen,
+                 "Dwelling must have either a non-zero ID or a "
+                 "frozen state, and not both." );
 
   return valid;
 }

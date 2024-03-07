@@ -175,7 +175,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
                            .ground = e_ground_terrain::grassland,
                            .road   = true },
       .dwelling =
-          Dwelling{ .id         = 1,
+          Dwelling{ .id         = 0,
                     .population = 5,
                     .frozen     = FrozenDwelling{
                             .tribe    = e_tribe::cherokee,
@@ -191,7 +191,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
                            .ground = e_ground_terrain::grassland,
                            .road   = true },
       .dwelling =
-          Dwelling{ .id         = 1,
+          Dwelling{ .id         = 0,
                     .is_capital = true,
                     .population = 5,
                     .frozen     = FrozenDwelling{
@@ -214,7 +214,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
       .square = MapSquare{ .surface = e_surface::land,
                            .ground = e_ground_terrain::grassland,
                            .road   = true },
-      .colony = Colony{ .id        = 1,
+      .colony = Colony{ .id        = 0,
                         .nation    = e_nation::spanish,
                         .name      = "1",
                         .location  = { .x = 0, .y = 1 },
@@ -229,7 +229,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
          .square = MapSquare{ .surface = e_surface::land,
                               .ground = e_ground_terrain::grassland,
                               .road   = true },
-         .colony = Colony{ .id        = 1,
+         .colony = Colony{ .id        = 0,
                            .nation    = e_nation::spanish,
                            .name      = "hello",
                            .location  = { .x = 0, .y = 1 },
@@ -244,7 +244,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
                            .ground = e_ground_terrain::grassland,
                            .road   = true },
       .dwelling =
-          Dwelling{ .id         = 1,
+          Dwelling{ .id         = 0,
                     .is_capital = true,
                     .population = 5,
                     .frozen     = FrozenDwelling{
@@ -259,7 +259,7 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
                            .ground = e_ground_terrain::grassland,
                            .road   = true },
       .dwelling =
-          Dwelling{ .id         = 1,
+          Dwelling{ .id         = 0,
                     .is_capital = true,
                     .population = 5,
                     .frozen     = FrozenDwelling{

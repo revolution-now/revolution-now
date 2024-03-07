@@ -385,7 +385,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 3, .y = 0 }, /*remove=*/false );
-  expected = Colony{ .id       = 2,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
@@ -393,7 +393,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_clear( { .x = 2, .y = 0 } );
-  expected = Colony{ .id       = 2,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
@@ -401,7 +401,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 0, .y = 0 }, /*remove=*/true );
-  expected = Colony{ .id       = 2,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
@@ -409,7 +409,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_clear( { .x = 0, .y = 3 } );
-  expected = Colony{ .id       = 2,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
@@ -417,7 +417,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 0, .y = 4 }, /*remove=*/false );
-  expected = Colony{ .id       = 2,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "2",
                      .location = { .x = 3, .y = 0 },
@@ -447,9 +447,9 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
                      .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
-  add( { .x = 1, .y = 1 } ); // english
+  add( { .x = 1, .y = 1 } );        // english
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
-  expected = Colony{ .id       = 14,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "14",
                      .location = { .x = 1, .y = 1 },
@@ -457,7 +457,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_clear( { .x = 1, .y = 3 } );
-  expected = Colony{ .id       = 14,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "14",
                      .location = { .x = 1, .y = 1 },
@@ -465,7 +465,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 4, .y = 4 }, /*remove=*/false );
-  expected = Colony{ .id       = 10,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "10",
                      .location = { .x = 4, .y = 4 },
@@ -480,7 +480,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 2, .y = 2 }, /*remove=*/true );
-  expected = Colony{ .id       = 12,
+  expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
                      .name     = "12",
                      .location = { .x = 2, .y = 2 },
