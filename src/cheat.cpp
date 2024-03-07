@@ -221,7 +221,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   // each square once, it will do so on the annex buffers, which
   // will then cause the entire map to be re-rendered multiple
   // times throughout the process, slowing it down. The below is
-  // as effecicient as can be since it will leave the fog buffer
+  // as effecient as can be since it will leave the fog buffer
   // completely untouched and will redraw the map only once.
   auto& m = ss.mutable_terrain_use_with_care
                 .mutable_player_terrain( *nation )
@@ -230,7 +230,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
     // This will reveal the square to the player with fog if the
     // square was not already explored but with existing fog
     // status if it was already explored.
-    auto fog_square = [&]() -> maybe<FogSquare&> {
+    auto frozen_square = [&]() -> maybe<FrozenSquare&> {
       SWITCH( m[coord] ) {
         CASE( unexplored ) {
           return m[coord]
@@ -246,8 +246,9 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
         }
       }
     }();
-    if( fog_square.has_value() )
-      copy_real_square_to_fog_square( ss, coord, *fog_square );
+    if( frozen_square.has_value() )
+      copy_real_square_to_frozen_square( ss, coord,
+                                         *frozen_square );
   }
   ts.map_updater.redraw();
 }

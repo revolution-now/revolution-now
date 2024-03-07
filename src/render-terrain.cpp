@@ -2000,6 +2000,12 @@ void render_resources( rr::Renderer&      renderer,
                        MapSquare const& square,
                        Coord            world_square ) {
   if( square.lost_city_rumor ) return;
+  // The OG suppresses the rendering of prime resources under na-
+  // tive dwellings, probably in order to create a tradeoff for
+  // the player where they have to burn the dwelling to see what
+  // is under it. However, it does seem to render them under
+  // colonies (both friendly and foreign).
+  if( viz.dwelling_at( world_square ).has_value() ) return;
   maybe<e_natural_resource> resource =
       effective_resource( square );
   if( !resource.has_value() ) return;

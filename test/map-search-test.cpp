@@ -20,15 +20,16 @@
 #include "src/imap-updater.hpp"
 
 // ss
-#include "ss/colonies.hpp"
-#include "ss/fog-square.rds.hpp"
-#include "ss/ref.hpp"
+#include "src/ss/colonies.hpp"
+#include "src/ss/fog-square.rds.hpp"
+#include "src/ss/ref.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
 
 // base
-#include "base/range-lite.hpp"
+#include "src/base/range-lite.hpp"
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -311,8 +312,8 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
 }
 
 TEST_CASE( "[map-search] find_close_explored_colony" ) {
-  World                 W;
-  maybe<ExploredColony> expected;
+  World         W;
+  maybe<Colony> expected;
 
   auto f = [&] {
     return find_close_explored_colony(
@@ -332,6 +333,9 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 
   auto add = [&]( Coord coord ) {
     Colony& colony = W.add_colony( coord, nation1 );
+    BASE_CHECK( !colony.frozen.has_value() );
+    // This makes matching easier in this test.
+    colony.buildings = {};
     swap( nation1, nation2 );
     colony.name = std::to_string( colony.id );
   };
@@ -359,19 +363,19 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   W.map_updater().make_squares_visible( e_nation::dutch,
                                         { { .x = 2, .y = 3 } } );
 
-  add( { .x = 4, .y = 0 } ); // "1"
-  add( { .x = 3, .y = 0 } ); // "2"
-  add( { .x = 2, .y = 0 } ); // "3"
-  add( { .x = 0, .y = 0 } ); // "4"
-  add( { .x = 0, .y = 3 } ); // "5"
-  add( { .x = 0, .y = 4 } ); // "6"
-  add( { .x = 3, .y = 1 } ); // "7"
-  add( { .x = 1, .y = 1 } ); // "8"
-  add( { .x = 1, .y = 3 } ); // "9"
-  add( { .x = 4, .y = 4 } ); // "10"
-  add( { .x = 4, .y = 2 } ); // "11"
-  add( { .x = 2, .y = 2 } ); // "12"
-  add( { .x = 3, .y = 3 } ); // "13"
+  add( { .x = 4, .y = 0 } ); // "1", dutch
+  add( { .x = 3, .y = 0 } ); // "2", english
+  add( { .x = 2, .y = 0 } ); // "3", dutch
+  add( { .x = 0, .y = 0 } ); // "4", english
+  add( { .x = 0, .y = 3 } ); // "5", dutch
+  add( { .x = 0, .y = 4 } ); // "6", english
+  add( { .x = 3, .y = 1 } ); // "7", dutch
+  add( { .x = 1, .y = 1 } ); // "8", english
+  add( { .x = 1, .y = 3 } ); // "9", dutch
+  add( { .x = 4, .y = 4 } ); // "10", english
+  add( { .x = 4, .y = 2 } ); // "11", dutch
+  add( { .x = 2, .y = 2 } ); // "12", english
+  add( { .x = 3, .y = 3 } ); // "13", dutch
 
   expected = nothing;
   REQUIRE( f() == expected );
@@ -381,75 +385,113 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 3, .y = 0 }, /*remove=*/false );
-  expected = ExploredColony{ .name     = "2",
-                             .location = { .x = 3, .y = 0 } };
+  expected = Colony{ .id       = 2,
+                     .nation   = e_nation::english,
+                     .name     = "2",
+                     .location = { .x = 3, .y = 0 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 2, .y = 0 } );
-  expected = ExploredColony{ .name     = "2",
-                             .location = { .x = 3, .y = 0 } };
+  expected = Colony{ .id       = 2,
+                     .nation   = e_nation::english,
+                     .name     = "2",
+                     .location = { .x = 3, .y = 0 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 0, .y = 0 }, /*remove=*/true );
-  expected = ExploredColony{ .name     = "2",
-                             .location = { .x = 3, .y = 0 } };
+  expected = Colony{ .id       = 2,
+                     .nation   = e_nation::english,
+                     .name     = "2",
+                     .location = { .x = 3, .y = 0 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 0, .y = 3 } );
-  expected = ExploredColony{ .name     = "2",
-                             .location = { .x = 3, .y = 0 } };
+  expected = Colony{ .id       = 2,
+                     .nation   = e_nation::english,
+                     .name     = "2",
+                     .location = { .x = 3, .y = 0 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 0, .y = 4 }, /*remove=*/false );
-  expected = ExploredColony{ .name     = "2",
-                             .location = { .x = 3, .y = 0 } };
+  expected = Colony{ .id       = 2,
+                     .nation   = e_nation::english,
+                     .name     = "2",
+                     .location = { .x = 3, .y = 0 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 3, .y = 1 } );
-  expected = ExploredColony{ .name     = "7",
-                             .location = { .x = 3, .y = 1 } };
+  expected = Colony{ .id       = 7,
+                     .nation   = e_nation::dutch,
+                     .name     = "7",
+                     .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/true );
   W.player_square( { .x = 1, .y = 1 } ) = {};
-  expected = ExploredColony{ .name     = "7",
-                             .location = { .x = 3, .y = 1 } };
+
+  expected = Colony{ .id       = 7,
+                     .nation   = e_nation::dutch,
+                     .name     = "7",
+                     .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
-  expected = ExploredColony{ .name     = "7",
-                             .location = { .x = 3, .y = 1 } };
+  expected = Colony{ .id       = 7,
+                     .nation   = e_nation::dutch,
+                     .name     = "7",
+                     .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
-  add( { .x = 1, .y = 1 } );
+  add( { .x = 1, .y = 1 } ); // english
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
-  expected = ExploredColony{ .name     = "14",
-                             .location = { .x = 1, .y = 1 } };
+  expected = Colony{ .id       = 14,
+                     .nation   = e_nation::english,
+                     .name     = "14",
+                     .location = { .x = 1, .y = 1 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 1, .y = 3 } );
-  expected = ExploredColony{ .name     = "14",
-                             .location = { .x = 1, .y = 1 } };
+  expected = Colony{ .id       = 14,
+                     .nation   = e_nation::english,
+                     .name     = "14",
+                     .location = { .x = 1, .y = 1 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 4, .y = 4 }, /*remove=*/false );
-  expected = ExploredColony{ .name     = "10",
-                             .location = { .x = 4, .y = 4 } };
+  expected = Colony{ .id       = 10,
+                     .nation   = e_nation::english,
+                     .name     = "10",
+                     .location = { .x = 4, .y = 4 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 4, .y = 2 } );
-  expected = ExploredColony{ .name     = "11",
-                             .location = { .x = 4, .y = 2 } };
+  expected = Colony{ .id       = 11,
+                     .nation   = e_nation::dutch,
+                     .name     = "11",
+                     .location = { .x = 4, .y = 2 } };
   REQUIRE( f() == expected );
 
   make_fogged( { .x = 2, .y = 2 }, /*remove=*/true );
-  expected = ExploredColony{ .name     = "12",
-                             .location = { .x = 2, .y = 2 } };
+  expected = Colony{ .id       = 12,
+                     .nation   = e_nation::english,
+                     .name     = "12",
+                     .location = { .x = 2, .y = 2 },
+                     .frozen   = FrozenColony{} };
   REQUIRE( f() == expected );
 
   make_clear( { .x = 3, .y = 3 } );
-  expected = ExploredColony{ .name     = "13",
-                             .location = { .x = 3, .y = 3 } };
+  expected = Colony{ .id       = 13,
+                     .nation   = e_nation::dutch,
+                     .name     = "13",
+                     .location = { .x = 3, .y = 3 } };
   REQUIRE( f() == expected );
 }
 

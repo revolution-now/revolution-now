@@ -5,60 +5,31 @@
 #
 # Created by dsicilia on 2022-10-05.
 #
-# Description: Rds definitions for the fog-square module.
+# Description: Rds definitions for the frozen-square module.
 #
 # ===============================================================
 # ss
-include "ss/colony-enums.rds.hpp"
+include "ss/colony.rds.hpp"
+include "ss/dwelling.rds.hpp"
 include "ss/map-square.rds.hpp"
-include "ss/nation.rds.hpp"
-include "ss/native-enums.rds.hpp"
-include "ss/unit-classes.rds.hpp"
-
-# gfx
-include "gfx/coord.hpp"
 
 # base
 include "base/maybe.hpp"
 
-# C++ standard library
-include "<string>"
-
 namespace "rn"
-
-# All of the visual characteristics of a colony that need to be
-# recorded to implement the fog of war.
-struct.FogColony {
-  nation 'e_nation',
-  name 'std::string',
-  location 'Coord',
-  population 'int',
-  barricade_type 'base::maybe<e_colony_barricade_type>',
-  sons_of_liberty_integral_percent 'int',
-}
-
-struct.FogMission {
-  nation 'e_nation',
-  level 'e_missionary_type',
-}
-
-struct.FogDwelling {
-  tribe 'e_tribe',
-  capital 'bool',
-  mission 'base::maybe<FogMission>',
-  # TODO: maybe add alarm indicator here.
-}
 
 # All of the visual characteristics of a square that need to be
 # recorded to implement the fog of war.
-struct.FogSquare {
+struct.FrozenSquare {
   square 'MapSquare',
-  colony 'base::maybe<FogColony>',
-  dwelling 'base::maybe<FogDwelling>',
+  colony 'base::maybe<Colony>',
+  dwelling 'base::maybe<Dwelling>',
+
+  _features { equality, validation },
 }
 
 sumtype.FogStatus {
-  fogged { contents 'FogSquare' },
+  fogged { contents 'FrozenSquare' },
   clear {},
 }
 

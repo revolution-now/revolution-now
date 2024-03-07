@@ -11,7 +11,6 @@
 #include "visibility.hpp"
 
 // Revolution Now
-#include "fog-conv.hpp"
 #include "imap-updater.hpp"
 #include "land-view.hpp"
 #include "map-square.hpp"
@@ -24,6 +23,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -120,22 +120,26 @@ e_tile_visibility VisibilityEntire::visible( Coord ) const {
   return e_tile_visibility::clear;
 }
 
-maybe<FogSquare> VisibilityEntire::create_fog_square_at(
-    Coord tile ) const {
-  // If it's a proto square then return nothing by policy. We
-  // could theoretically construct a fog square here from the
-  // proto square, but that's probably a sign of a bug if someone
-  // is asking for that.
-  if( !on_map( tile ) ) return nothing;
-  FogSquare fog_square;
-  copy_real_square_to_fog_square( ss_, tile, fog_square );
-  return fog_square;
-}
-
 MapSquare const& VisibilityEntire::square_at(
     Coord tile ) const {
   return ss_.terrain.total_square_at( tile );
 };
+
+maybe<Colony const&> VisibilityEntire::colony_at(
+    Coord tile ) const {
+  return ss_.colonies.maybe_from_coord( tile ).fmap(
+      [&]( ColonyId const colony_id ) -> Colony const& {
+        return ss_.colonies.colony_for( colony_id );
+      } );
+}
+
+maybe<Dwelling const&> VisibilityEntire::dwelling_at(
+    Coord tile ) const {
+  return ss_.natives.maybe_dwelling_from_coord( tile ).fmap(
+      [&]( DwellingId const dwelling_id ) -> Dwelling const& {
+        return ss_.natives.dwelling_for( dwelling_id );
+      } );
+}
 
 /****************************************************************
 ** VisibilityForNation
@@ -144,6 +148,7 @@ VisibilityForNation::VisibilityForNation( SSConst const& ss,
                                           e_nation       nation )
   : IVisibility( ss ),
     ss_( ss ),
+    entire_( ss ),
     nation_( nation ),
     player_terrain_( addressof(
         ss.terrain.player_terrain( nation ).value() ) ) {}
@@ -166,40 +171,6 @@ e_tile_visibility VisibilityForNation::visible(
   }
 }
 
-maybe<FogSquare const&>
-VisibilityForNation::will_render_from_fog_square(
-    Coord tile ) const {
-  UNWRAP_RETURN( player_square, player_square_at( tile ) );
-  SWITCH( player_square ) {
-    CASE( unexplored ) { return nothing; }
-    CASE( explored ) {
-      SWITCH( explored.fog_status ) {
-        CASE( fogged ) { return fogged.contents; }
-        CASE( clear ) { return nothing; }
-      }
-    }
-  }
-}
-
-maybe<FogSquare> VisibilityForNation::create_fog_square_at(
-    Coord tile ) const {
-  UNWRAP_RETURN( player_square, player_square_at( tile ) );
-  SWITCH( player_square ) {
-    CASE( unexplored ) { return nothing; }
-    CASE( explored ) {
-      SWITCH( explored.fog_status ) {
-        CASE( fogged ) { return fogged.contents; }
-        CASE( clear ) {
-          FogSquare fog_square;
-          copy_real_square_to_fog_square( ss_, tile,
-                                          fog_square );
-          return fog_square;
-        }
-      }
-    }
-  }
-}
-
 maybe<PlayerSquare const&> VisibilityForNation::player_square_at(
     Coord tile ) const {
   // If it's a proto square then can't obtain a player square.
@@ -207,29 +178,69 @@ maybe<PlayerSquare const&> VisibilityForNation::player_square_at(
   return player_terrain_->map[tile];
 }
 
+maybe<Colony const&> VisibilityForNation::colony_at(
+    Coord tile ) const {
+  UNWRAP_RETURN( player_square, player_square_at( tile ) );
+  SWITCH( player_square ) {
+    CASE( unexplored ) { return nothing; }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return fogged.contents.colony; }
+        CASE( clear ) { return entire_.colony_at( tile ); }
+      }
+    }
+  }
+}
+
+maybe<Dwelling const&> VisibilityForNation::dwelling_at(
+    Coord tile ) const {
+  UNWRAP_RETURN( player_square, player_square_at( tile ) );
+  SWITCH( player_square ) {
+    CASE( unexplored ) { return nothing; }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return fogged.contents.dwelling; }
+        CASE( clear ) { return entire_.dwelling_at( tile ); }
+      }
+    }
+  }
+}
+
 MapSquare const& VisibilityForNation::square_at(
     Coord tile ) const {
-  if( maybe<FogSquare const&> fog_square =
-          will_render_from_fog_square( tile );
-      fog_square.has_value() )
-    return fog_square->square;
-  // NOTE: There is an interesting issue here. When a square is
-  // unexplored for the player then they will always get the real
-  // tile. That may seem unimportant, but it does because the
-  // tile returned will affect how surrounding tiles are rendered
-  // (which the player may have some visibility into). Thus the
-  // player can see changes to the unexplored tile even if its
-  // surrounding tiles are fogged, which looks wrong, especially
-  // since they player does not receive updates on fogged tiles.
-  // So e.g. if an AI player clears a forest on a tile that is
-  // unexplored but has fogged surroundings, the effects will
-  // still be seen to the player via those fogged surroundings.
-  // One can also reproduce this using the map editor. A solution
-  // was attempted for this (saved on a branch); it basically
-  // worked, though it introduced some complexity and new incon-
-  // sistencies, so it was abandoned. Current thinking is that
-  // this is not necessary (or worth it) to fix.
-  return ss_.terrain.total_square_at( tile );
+  maybe<PlayerSquare const&> const player_square =
+      player_square_at( tile );
+  if( !player_square.has_value() )
+    // Proto square.
+    return entire_.square_at( tile );
+  SWITCH( *player_square ) {
+    CASE( unexplored ) {
+      // NOTE: There is an interesting issue here. When a square
+      // is unexplored for the player then they will always get
+      // the real tile. That may seem unimportant, but it does
+      // because the tile returned will affect how surrounding
+      // tiles are rendered (which the player may have some visi-
+      // bility into). Thus the player can see changes to the un-
+      // explored tile even if its surrounding tiles are fogged,
+      // which looks wrong, especially since they player does not
+      // receive updates on fogged tiles. So e.g. if an AI player
+      // clears a forest on a tile that is unexplored but has
+      // fogged surroundings, the effects will still be seen to
+      // the player via those fogged surroundings. One can also
+      // reproduce this using the map editor. A solution was at-
+      // tempted for this (saved on a branch); it basically
+      // worked, though it introduced some complexity and new in-
+      // consistencies, so it was abandoned. Current thinking is
+      // that this is not necessary (or worth it) to fix.
+      return entire_.square_at( tile );
+    }
+    CASE( explored ) {
+      SWITCH( explored.fog_status ) {
+        CASE( fogged ) { return fogged.contents.square; }
+        CASE( clear ) { return entire_.square_at( tile ); }
+      }
+    }
+  }
 };
 
 /****************************************************************
@@ -247,13 +258,14 @@ e_tile_visibility VisibilityWithOverrides::visible(
   return underlying_.visible( tile );
 }
 
-maybe<FogSquare> VisibilityWithOverrides::create_fog_square_at(
+maybe<Colony const&> VisibilityWithOverrides::colony_at(
     Coord tile ) const {
-  UNWRAP_RETURN( fog_square,
-                 underlying_.create_fog_square_at( tile ) );
-  if( auto it = overrides_.find( tile ); it != overrides_.end() )
-    fog_square.square = it->second;
-  return fog_square;
+  return underlying_.colony_at( tile );
+}
+
+maybe<Dwelling const&> VisibilityWithOverrides::dwelling_at(
+    Coord tile ) const {
+  return underlying_.dwelling_at( tile );
 }
 
 MapSquare const& VisibilityWithOverrides::square_at(

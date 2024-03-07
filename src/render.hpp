@@ -30,8 +30,6 @@ namespace rn {
 
 struct Colony;
 struct Dwelling;
-struct FogColony;
-struct FogDwelling;
 struct NativeUnit;
 struct SSConst;
 struct Unit;
@@ -110,27 +108,16 @@ struct ColonyRenderOptions {
   bool render_flag       = true;
 };
 
-// Use this for tiles that are explored but fogged.
-void render_fog_colony( rr::Renderer& renderer, Coord where,
-                        FogColony const&           fog_colony,
-                        ColonyRenderOptions const& options );
-
-// Use this when a tile is directly visible.
-void render_real_colony( rr::Renderer& renderer, Coord where,
-                         SSConst const& ss, Colony const& colony,
-                         ColonyRenderOptions const& options );
+void render_colony( rr::Renderer& renderer, Coord where,
+                    SSConst const& ss, Colony const& colony,
+                    ColonyRenderOptions const& options );
 
 /****************************************************************
 ** Dwelling Rendering.
 *****************************************************************/
-// Use this for tiles that are explored but fogged.
-void render_fog_dwelling( rr::Renderer& renderer, Coord where,
-                          FogDwelling const& fog_dwelling );
-
-// Use this when a tile is directly visible.
-void render_real_dwelling( rr::Renderer& renderer, Coord where,
-                           SSConst const&  ss,
-                           Dwelling const& dwelling );
+void render_dwelling( rr::Renderer& renderer, Coord where,
+                      SSConst const&  ss,
+                      Dwelling const& dwelling );
 
 /****************************************************************
 ** Misc. Rendering.

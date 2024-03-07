@@ -25,7 +25,12 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::base::valid;
+using ::base::valid_or;
+
+} // namespace
 
 void linker_dont_discard_module_ss_dwelling();
 void linker_dont_discard_module_ss_dwelling() {}
@@ -33,11 +38,27 @@ void linker_dont_discard_module_ss_dwelling() {}
 /****************************************************************
 ** DwellingRelationship
 *****************************************************************/
-base::valid_or<string> DwellingRelationship::validate() const {
+valid_or<string> DwellingRelationship::validate() const {
   REFL_VALIDATE(
       dwelling_only_alarm >= 0 && dwelling_only_alarm <= 99,
       "dwelling_only_alarm must be in [0, 99]." );
-  return base::valid;
+  return valid;
+}
+
+/****************************************************************
+** Dwelling
+*****************************************************************/
+valid_or<string> Dwelling::validate() const {
+  // A dwelling object must either have an id (meaning that it is
+  // a real dwelling on the map) or it must have a `frozen` rep-
+  // resentation (meaning that it is a snapshot of the dwelling
+  // when last visited) but cannot have both.
+  REFL_VALIDATE(
+      ( id != 0 ) != ( frozen.has_value() ),
+      "Dwelling has both a non-zero ID and a frozen state, "
+      "which is not allowed; it must one or the other." );
+
+  return valid;
 }
 
 /****************************************************************

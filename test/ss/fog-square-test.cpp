@@ -16,6 +16,9 @@
 // refl
 #include "src/refl/to-str.hpp"
 
+// base
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 

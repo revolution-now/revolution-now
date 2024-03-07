@@ -47,9 +47,8 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.new_phase();
   builder.pixelate_native_unit_to_target(
       NativeUnitId{ 7 }, e_native_unit_type::mounted_brave );
-  builder.depixelate_colony( ColonyId{ 8 } );
-  builder.depixelate_dwelling( DwellingId{ 9 } );
-  builder.depixelate_fog_dwelling( Coord{ .x = 1, .y = 2 } );
+  builder.depixelate_colony( Coord{ .x = 7, .y = 8 } );
+  builder.depixelate_dwelling( Coord{ .x = 9, .y = 10 } );
   builder.ensure_tile_visible( Coord{ .x = 1, .y = 3 } );
   builder.depixelate_native_unit( NativeUnitId{ 10 } );
   builder.enpixelate_landview_tiles( {
@@ -103,14 +102,11 @@ TEST_CASE( "[anim-builder] builders" ) {
                         .target  = e_native_unit_type::
                             mounted_brave } },
               { .primitive =
-                    P::depixelate_colony{ .colony_id =
-                                              ColonyId{ 8 } } },
+                    P::depixelate_colony{
+                        .tile = Coord{ .x = 7, .y = 8 } } },
               { .primitive =
                     P::depixelate_dwelling{
-                        .dwelling_id = DwellingId{ 9 } } },
-              { .primitive =
-                    P::depixelate_fog_dwelling{
-                        .tile = { .x = 1, .y = 2 } } },
+                        .tile = Coord{ .x = 9, .y = 10 } } },
               { .primitive =
                     P::ensure_tile_visible{
                         .tile = { .x = 1, .y = 3 } } },

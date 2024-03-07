@@ -110,10 +110,10 @@ NonRenderingMapUpdater::make_squares_visible(
       CASE( explored ) {
         SWITCH( explored.fog_status ) {
           CASE( fogged ) {
-            auto&            fog_square = fogged.contents;
+            auto&            frozen_square = fogged.contents;
             MapSquare const& real_square =
                 ss_.terrain.square_at( tile );
-            if( fog_square.square != real_square )
+            if( frozen_square.square != real_square )
               buffers_updated.landscape = true;
             map[tile]
                 .emplace<PlayerSquare::explored>()
@@ -152,14 +152,14 @@ NonRenderingMapUpdater::make_squares_fogged(
         SWITCH( explored.fog_status ) {
           CASE( fogged ) { break; }
           CASE( clear ) {
-            FogSquare& fog_square =
+            FrozenSquare& frozen_square =
                 map[tile]
                     .emplace<PlayerSquare::explored>()
                     .fog_status.emplace<fogged>()
                     .contents;
             // !! Current alternative invalidated here.
-            copy_real_square_to_fog_square( ss_, tile,
-                                            fog_square );
+            copy_real_square_to_frozen_square( ss_, tile,
+                                               frozen_square );
             if( options().render_fog_of_war )
               buffers_updated.obfuscation = true;
             break;

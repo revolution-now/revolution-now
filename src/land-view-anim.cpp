@@ -164,8 +164,8 @@ LandViewAnimator::unit_animation( UnitId id ) const {
 }
 
 maybe<ColonyAnimationState const&>
-LandViewAnimator::colony_animation( ColonyId id ) const {
-  auto it = colony_animations_.find( id );
+LandViewAnimator::colony_animation( Coord tile ) const {
+  auto it = colony_animations_.find( tile );
   if( it == colony_animations_.end() ) return nothing;
   stack<ColonyAnimationState> const& st = it->second;
   CHECK( !st.empty() );
@@ -173,18 +173,9 @@ LandViewAnimator::colony_animation( ColonyId id ) const {
 }
 
 maybe<DwellingAnimationState const&>
-LandViewAnimator::dwelling_animation( DwellingId id ) const {
-  auto it = dwelling_animations_.find( id );
+LandViewAnimator::dwelling_animation( Coord tile ) const {
+  auto it = dwelling_animations_.find( tile );
   if( it == dwelling_animations_.end() ) return nothing;
-  stack<DwellingAnimationState> const& st = it->second;
-  CHECK( !st.empty() );
-  return st.top();
-}
-
-maybe<DwellingAnimationState const&>
-LandViewAnimator::fog_dwelling_animation( Coord tile ) const {
-  auto it = fog_dwelling_animations_.find( tile );
-  if( it == fog_dwelling_animations_.end() ) return nothing;
   stack<DwellingAnimationState> const& st = it->second;
   CHECK( !st.empty() );
   return st.top();
@@ -232,7 +223,7 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
     co::latch& hold, Colony const& colony ) {
   auto popper =
       add_colony_animation<ColonyAnimationState::depixelate>(
-          colony.id );
+          colony.location );
   ColonyAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
@@ -240,20 +231,10 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
 }
 
 wait<> LandViewAnimator::dwelling_depixelation_throttler(
-    co::latch& hold, Dwelling const& dwelling ) {
+    co::latch& hold, Dwelling const& dwelling, Coord tile ) {
   auto popper =
       add_dwelling_animation<DwellingAnimationState::depixelate>(
-          dwelling.id );
-  DwellingAnimationState::depixelate& depixelate = popper.get();
-
-  depixelate.stage = 0.0;
-  co_await pixelation_stage_throttler( hold, depixelate.stage );
-}
-
-wait<> LandViewAnimator::fog_dwelling_depixelation_throttler(
-    co::latch& hold, Coord tile ) {
-  auto popper = add_fog_dwelling_animation<
-      DwellingAnimationState::depixelate>( tile );
+          tile );
   DwellingAnimationState::depixelate& depixelate = popper.get();
 
   depixelate.stage = 0.0;
@@ -531,20 +512,16 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( depixelate_colony ) {
-      Colony const& colony =
-          ss_.colonies.colony_for( depixelate_colony.colony_id );
+      UNWRAP_CHECK( colony,
+                    viz_->colony_at( depixelate_colony.tile ) );
       co_await colony_depixelation_throttler( hold, colony );
       break;
     }
     CASE( depixelate_dwelling ) {
-      Dwelling const& dwelling = ss_.natives.dwelling_for(
-          depixelate_dwelling.dwelling_id );
-      co_await dwelling_depixelation_throttler( hold, dwelling );
-      break;
-    }
-    CASE( depixelate_fog_dwelling ) {
-      co_await fog_dwelling_depixelation_throttler(
-          hold, depixelate_fog_dwelling.tile );
+      UNWRAP_CHECK( dwelling, viz_->dwelling_at(
+                                  depixelate_dwelling.tile ) );
+      co_await dwelling_depixelation_throttler(
+          hold, dwelling, depixelate_dwelling.tile );
       break;
     }
     CASE( landscape_anim_enpixelate ) {

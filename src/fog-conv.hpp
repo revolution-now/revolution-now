@@ -13,7 +13,6 @@
 #include "core-config.hpp"
 
 // ss
-#include "ss/dwelling-id.hpp"
 #include "ss/fog-square.rds.hpp"
 
 // gfx
@@ -26,21 +25,20 @@ struct SSConst;
 
 // When a player views a square and their copy of it must be up-
 // dated, this will properly update all of the information in the
-// FogSquare such as and colonies or dwellings on the square and
-// their properties, as well as the terrain itself. But note that
-// this will not alter the fog-of-war state.
-void copy_real_square_to_fog_square( SSConst const& ss,
-                                     Coord          tile,
-                                     FogSquare&     fog_square );
+// FrozenSquare such as and colonies or dwellings on the square
+// and their properties, as well as the terrain itself. But note
+// that this will not alter the fog-of-war state.
+void copy_real_square_to_frozen_square(
+    SSConst const& ss, Coord tile, FrozenSquare& frozen_square );
 
 // For when you want to just convert a single dwelling to the fog
-// version.
-FogDwelling dwelling_to_fog_dwelling( SSConst const& ss,
-                                      DwellingId dwelling_id );
+// version. Will use the builtin one if available.
+FrozenDwelling dwelling_to_frozen_dwelling(
+    SSConst const& ss, Dwelling const& dwelling );
 
-// For when you want to just convert a single colony to the fog
-// version.
-FogColony colony_to_fog_colony( SSConst const& ss,
-                                Colony const&  colony );
+// For when you want to just convert a single colony to the
+// frozen version. Will use the builtin one if available.
+FrozenColony colony_to_frozen_colony( SSConst const& ss,
+                                      Colony const&  colony );
 
 } // namespace rn

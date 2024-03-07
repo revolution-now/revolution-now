@@ -56,13 +56,12 @@ wait<> surprise_raid_msg( SSConst const& ss,
                           IEuroMind&     euro_mind,
                           Coord          defender_loc,
                           e_tribe        tribe_type ) {
-  e_nation const friendly_nation = euro_mind.nation();
-  string         where;
-  maybe<ExploredColony> const closest =
-      find_close_explored_colony(
-          ss, friendly_nation, defender_loc,
-          /*max_distance=*/
-          config_colony.search_dist_for_nearby_colony );
+  e_nation const       friendly_nation = euro_mind.nation();
+  string               where;
+  maybe<Colony const&> closest = find_close_explored_colony(
+      ss, friendly_nation, defender_loc,
+      /*max_distance=*/
+      config_colony.search_dist_for_nearby_colony );
   if( closest.has_value() ) {
     std::string const conjunction =
         ( closest->location == defender_loc ) ? "of" : "near";

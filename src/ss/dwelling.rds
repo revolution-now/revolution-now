@@ -13,7 +13,11 @@ include "ss/commodity.rds.hpp"
 include "ss/dwelling-id.hpp"
 include "ss/nation.rds.hpp"
 include "ss/native-enums.rds.hpp"
+include "ss/unit-classes.rds.hpp"
 include "ss/unit-type.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -84,6 +88,18 @@ struct.DwellingRelationship {
   _features { equality, validation }
 }
 
+struct.FrozenMission {
+  nation 'e_nation',
+  level 'e_missionary_type',
+}
+
+struct.FrozenDwelling {
+  tribe 'e_tribe',
+  location 'Coord',
+  mission 'base::maybe<FrozenMission>',
+  # TODO: not sure yet if we're going to put alarm info in here.
+}
+
 # The fields in the dwelling object are those that aren't involve
 # in any form of ownership over the dwelling (e.g., no map loca-
 # tion and no tribe ownership). With the exception of `id`, they
@@ -91,6 +107,8 @@ struct.DwellingRelationship {
 # dwelling has been created (though not all of them will be in
 # practice due to game rules).
 struct.Dwelling {
+  # This will be zero (invalid) for dwelling objects that don't
+  # necessarily represent real dwellings.
   id 'DwellingId',
 
   is_capital 'bool',
@@ -124,4 +142,13 @@ struct.Dwelling {
   # For non-capital dwellings this is relevant since they can
   # only teach once (for all nations, as in OG).
   has_taught 'bool',
+
+  # This goes last. It is only populated on player squares to
+  # record the visual state of the dwelling when its tile was
+  # last visited. I.e., it contains a "frozen" representation of
+  # those aspects of a dwelling that cannot be derived only from
+  # the other values in this struct.
+  frozen 'base::maybe<FrozenDwelling>',
+
+  _features { equality, validation },
 }

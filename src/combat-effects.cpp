@@ -297,7 +297,7 @@ string summarize_for_entity(
       config_nation.nations[opponent_nation].possessive;
   string_view const opponent_nation_name =
       config_nation.nations[opponent_nation].display_name;
-  maybe<ExploredColony> const closest_colony =
+  maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
           ss, unit_nation, unit_coord,
           /*max_distance=*/
@@ -361,7 +361,7 @@ CombatEffectsSummaries summarize_combat_outcome(
       unit_attr( attacker.type ).name;
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender.id() );
-  maybe<ExploredColony> const closest_colony =
+  maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
           ss, defender.nation(), defender_coord,
           /*max_distance=*/
@@ -408,7 +408,7 @@ CombatEffectsSummaries summarize_combat_outcome(
       unit_attr( defender.type ).name;
   Coord const attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
-  maybe<ExploredColony> const closest_colony =
+  maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
           ss, attacker.nation(), attacker_coord,
           /*max_distance=*/
@@ -560,7 +560,7 @@ CombatEffectsSummaries summarize_combat_outcome(
   string_view const euro_unit_name = attacker.desc().name;
   Coord const       attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
-  maybe<ExploredColony> const closest_colony =
+  maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
           ss, attacker.nation(), attacker_coord,
           /*max_distance=*/

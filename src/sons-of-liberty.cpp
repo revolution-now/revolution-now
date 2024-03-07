@@ -244,6 +244,7 @@ ColonySonsOfLiberty compute_colony_sons_of_liberty(
           sons_of_liberty_integral_percent, population );
   int const tory_number =
       compute_tory_number( sons_of_liberty_number, population );
+  CHECK( tory_number + sons_of_liberty_number == population );
   return ColonySonsOfLiberty{
       .sol_integral_percent = sons_of_liberty_integral_percent,
       .rebels               = sons_of_liberty_number,

@@ -59,13 +59,10 @@ struct LandViewAnimator {
       std::unordered_map<GenericUnitId,
                          std::stack<UnitAnimationState>>;
   using DwellingAnimStatesMap =
-      std::unordered_map<DwellingId,
-                         std::stack<DwellingAnimationState>>;
-  using FogDwellingAnimStatesMap =
       std::unordered_map<Coord,
                          std::stack<DwellingAnimationState>>;
   using ColonyAnimStatesMap =
-      std::unordered_map<ColonyId,
+      std::unordered_map<Coord,
                          std::stack<ColonyAnimationState>>;
 
   LandViewAnimator(
@@ -78,12 +75,9 @@ struct LandViewAnimator {
       UnitId id ) const;
 
   maybe<ColonyAnimationState const&> colony_animation(
-      ColonyId id ) const;
+      Coord tile ) const;
 
   maybe<DwellingAnimationState const&> dwelling_animation(
-      DwellingId id ) const;
-
-  maybe<DwellingAnimationState const&> fog_dwelling_animation(
       Coord tile ) const;
 
   auto const& unit_animations() const {
@@ -96,10 +90,6 @@ struct LandViewAnimator {
 
   auto const& dwelling_animations() const {
     return dwelling_animations_;
-  }
-
-  auto const& fog_dwelling_animations() const {
-    return fog_dwelling_animations_;
   }
 
   maybe<LandscapeAnimBufferState> const&
@@ -156,10 +146,7 @@ struct LandViewAnimator {
                                         Colony const& colony );
 
   wait<> dwelling_depixelation_throttler(
-      co::latch& hold, Dwelling const& dwelling );
-
-  wait<> fog_dwelling_depixelation_throttler( co::latch& hold,
-                                              Coord      tile );
+      co::latch& hold, Dwelling const& dwelling, Coord tile );
 
   std::unordered_map<Coord, MapSquare>
   redrawn_squares_for_overrides(
@@ -220,18 +207,13 @@ struct LandViewAnimator {
   }
 
   template<typename Anim>
-  auto add_colony_animation( ColonyId id ) {
-    return make_popper<Anim>( colony_animations_, id );
+  auto add_colony_animation( Coord tile ) {
+    return make_popper<Anim>( colony_animations_, tile );
   }
 
   template<typename Anim>
-  auto add_dwelling_animation( DwellingId id ) {
-    return make_popper<Anim>( dwelling_animations_, id );
-  }
-
-  template<typename Anim>
-  auto add_fog_dwelling_animation( Coord tile ) {
-    return make_popper<Anim>( fog_dwelling_animations_, tile );
+  auto add_dwelling_animation( Coord tile ) {
+    return make_popper<Anim>( dwelling_animations_, tile );
   }
 
  private:
@@ -240,7 +222,6 @@ struct LandViewAnimator {
   UnitAnimStatesMap               unit_animations_;
   ColonyAnimStatesMap             colony_animations_;
   DwellingAnimStatesMap           dwelling_animations_;
-  FogDwellingAnimStatesMap        fog_dwelling_animations_;
   maybe<LandscapeAnimBufferState> landview_anim_buffer_state_;
   // We hold the unique_ptr reference because we need to know
   // when the source version was changed.

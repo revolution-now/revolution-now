@@ -516,7 +516,7 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     for( GenericUnitId const id : units_to_hide )
       builder.hide_unit( id );
     animate_remove_roads( builder, viz, { colony_location } );
-    builder.depixelate_colony( combat.colony_id );
+    builder.depixelate_colony( colony_location );
   }
   play_combat_outcome_sound( builder, combat );
 
@@ -623,7 +623,7 @@ AnimationSequence anim_seq_for_dwelling_burn(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
   animate_remove_roads( builder, viz, { defender_coord } );
-  builder.depixelate_dwelling( dwelling_id );
+  builder.depixelate_dwelling( defender_coord );
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
     CHECK( brave_id != defender_id );
@@ -802,7 +802,7 @@ AnimationSequence anim_seq_for_colony_depixelation(
   // Phase 1: depixelate colony.
   builder.new_phase();
   animate_remove_roads( builder, viz, { tile } );
-  builder.depixelate_colony( colony_id );
+  builder.depixelate_colony( tile );
   builder.play_sound( e_sfx::city_destroyed );
   return builder.result();
 }
@@ -824,33 +824,15 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
   // Dwellings.
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
   for( Coord const tile : ri ) {
-    switch( viz.visible( tile ) ) {
-      case e_tile_visibility::clear: {
-        maybe<DwellingId> const dwelling_id =
-            ss.natives.maybe_dwelling_from_coord( tile );
-        if( !dwelling_id.has_value() ) break;
-        e_tribe const tribe_type =
-            ss.natives.tribe_for( *dwelling_id ).type;
-        if( !tribes.contains( tribe_type ) ) continue;
-        dwelling_coords.push_back( tile );
-        builder.depixelate_dwelling( *dwelling_id );
-        break;
-      }
-      case e_tile_visibility::fogged: {
-        maybe<FogSquare> const fog_square =
-            viz.create_fog_square_at( tile );
-        if( !fog_square.has_value() ) continue;
-        maybe<FogDwelling> const& fog_dwelling =
-            fog_square->dwelling;
-        if( !fog_dwelling.has_value() ) continue;
-        if( !tribes.contains( fog_dwelling->tribe ) ) continue;
-        dwelling_coords.push_back( tile );
-        builder.depixelate_fog_dwelling( tile );
-        break;
-      }
-      case e_tile_visibility::hidden:
-        break;
-    }
+    maybe<Dwelling const&> dwelling = viz.dwelling_at( tile );
+    if( !dwelling.has_value() ) continue;
+    e_tribe const tribe_type =
+        dwelling->frozen.has_value()
+            ? dwelling->frozen->tribe
+            : ss.natives.tribe_for( dwelling->id ).type;
+    if( !tribes.contains( tribe_type ) ) continue;
+    dwelling_coords.push_back( tile );
+    builder.depixelate_dwelling( tile );
   }
 
   // For pixelating roads under/around the dwelling.

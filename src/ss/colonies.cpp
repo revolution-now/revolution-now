@@ -93,8 +93,19 @@ base::valid_or<string> wrapped::ColoniesState::validate() const {
 base::valid_or<std::string> ColoniesState::validate() const {
   HAS_VALUE_OR_RET( o_.validate() );
 
-  // Colony location matches coord.
   for( auto const& [colony_id, colony] : o_.colonies ) {
+    // Consistency of IDs.
+    REFL_VALIDATE( colony.id == colony_id,
+                   "Inconsistent colony IDs: {} != {}",
+                   colony.id, colony_id );
+
+    // Validity of IDs.
+    REFL_VALIDATE( colony.id > 0,
+                   "Real colony IDs must be positive numbers, "
+                   "but found one with value {}.",
+                   colony.id );
+
+    // Colony location matches coord.
     Coord const&          coord = colony.location;
     base::maybe<ColonyId> actual_colony_id =
         base::lookup( colony_from_coord_, coord );
@@ -102,6 +113,12 @@ base::valid_or<std::string> ColoniesState::validate() const {
         actual_colony_id == colony_id,
         "Inconsistent colony map coordinate ({}) for colony {}.",
         coord, colony_id );
+
+    // Colonies are real.
+    REFL_VALIDATE( !colony.frozen.has_value(),
+                   "Real colonies must not have frozen info but "
+                   "the colony with id={} does.",
+                   colony_id );
   }
 
   return base::valid;
@@ -132,12 +149,14 @@ unordered_map<ColonyId, Colony> const& ColoniesState::all()
 Colony const& ColoniesState::colony_for( ColonyId id ) const {
   UNWRAP_CHECK_MSG( col, base::lookup( o_.colonies, id ),
                     "colony {} does not exist.", id );
+  CHECK( !col.frozen.has_value() );
   return col;
 }
 
 Colony& ColoniesState::colony_for( ColonyId id ) {
   UNWRAP_CHECK_MSG( col, base::lookup( o_.colonies, id ),
                     "colony {} does not exist.", id );
+  CHECK( !col.frozen.has_value() );
   return col;
 }
 

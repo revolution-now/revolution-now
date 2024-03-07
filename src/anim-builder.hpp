@@ -55,11 +55,9 @@ struct AnimationBuilder {
   AnimationAction& pixelate_native_unit_to_target(
       NativeUnitId unit_id, e_native_unit_type target );
 
-  AnimationAction& depixelate_colony( ColonyId colony_id );
+  AnimationAction& depixelate_colony( Coord tile );
 
-  AnimationAction& depixelate_dwelling( DwellingId dwelling_id );
-
-  AnimationAction& depixelate_fog_dwelling( Coord tile );
+  AnimationAction& depixelate_dwelling( Coord tile );
 
   AnimationAction& ensure_tile_visible( Coord tile );
 

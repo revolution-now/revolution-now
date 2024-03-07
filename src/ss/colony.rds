@@ -47,11 +47,23 @@ sumtype.Construction {
   }
 }
 
+struct.FrozenColony {
+  # This is here because it requires knowing whether the player
+  # has a particular founding father which affects the Sons of
+  # Liberty percent.
+  sons_of_liberty_integral_percent 'int',
+}
+
 struct.Colony {
-  # Basic info.
+  # This will be zero (invalid) for colony objects that don't
+  # necessarily represent real colonies.
+  # TODO: get rid of this from here.
   id 'ColonyId',
+
   nation 'e_nation',
+
   name 'std::string',
+
   location 'Coord',
 
   # Commodities.
@@ -82,5 +94,12 @@ struct.Colony {
   # if there is a custom house.
   custom_house 'refl::enum_map<e_commodity, bool>',
 
-  _features { equality, validation }
+  # This goes last. It is only populated on player squares to
+  # record the visual state of the colony when its tile was last
+  # visited. I.e., it contains a "frozen" representation of those
+  # aspects of a colony that cannot be derived only from the
+  # other values in this struct.
+  frozen 'base::maybe<FrozenColony>',
+
+  _features { equality, validation },
 }

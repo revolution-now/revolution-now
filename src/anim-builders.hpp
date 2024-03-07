@@ -17,6 +17,7 @@
 
 // ss
 #include "ss/colony-id.hpp"
+#include "ss/dwelling-id.hpp"
 #include "ss/unit-id.hpp"
 #include "ss/unit-type.rds.hpp"
 

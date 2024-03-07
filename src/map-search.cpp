@@ -16,13 +16,9 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/fog-square.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
-
-// rds
-#include "rds/switch-macro.hpp"
 
 // base
 #include "base/generator.hpp"
@@ -152,49 +148,17 @@ maybe<Colony const&> find_any_close_colony(
       } );
 }
 
-// Note that when a tile is visible we use the real square in-
-// stead of the fog square because the contents of fog squares
-// are not guaranteed to be current with the real square when the
-// square is visible and clear. Fog squares only get updated when
-// a square goes from visible to fogged.
-maybe<ExploredColony> find_close_explored_colony(
+maybe<Colony const&> find_close_explored_colony(
     SSConst const& ss, e_nation nation, point location,
     double max_distance ) {
-  UNWRAP_CHECK( player_terrain,
-                ss.terrain.player_terrain( nation ) );
+  VisibilityForNation const    viz( ss, nation );
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );
   for( point const point : search ) {
-    PlayerSquare const& player_square =
-        player_terrain.map[Coord::from_gfx( point )];
-    SWITCH( player_square ) {
-      CASE( unexplored ) { continue; }
-      CASE( explored ) {
-        SWITCH( explored.fog_status ) {
-          CASE( fogged ) {
-            if( !fogged.contents.colony.has_value() )
-              // No colony here the last time we explored.
-              continue;
-            FogColony const& fog_colony =
-                *fogged.contents.colony;
-            return ExploredColony{
-                .name     = fog_colony.name,
-                .location = fog_colony.location };
-          }
-          CASE( clear ) {
-            maybe<ColonyId> const colony_id =
-                ss.colonies.maybe_from_coord(
-                    Coord::from_gfx( point ) );
-            if( !colony_id.has_value() ) continue;
-            Colony const& colony =
-                ss.colonies.colony_for( *colony_id );
-            return ExploredColony{ .name     = colony.name,
-                                   .location = colony.location };
-          }
-        }
-      }
-    }
+    maybe<Colony const&> colony =
+        viz.colony_at( Coord::from_gfx( point ) );
+    if( colony.has_value() ) return colony;
   }
   return nothing;
 }

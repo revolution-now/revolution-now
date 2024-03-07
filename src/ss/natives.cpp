@@ -61,6 +61,23 @@ base::valid_or<string> wrapped::NativesState::validate() const {
     Dwelling const& dwelling = state.dwelling;
     max_id                   = std::max( max_id, id );
 
+    // Consistency of IDs.
+    REFL_VALIDATE( dwelling.id == id,
+                   "Inconsistent dwelling IDs: {} != {}",
+                   dwelling.id, id );
+
+    // Validity of IDs.
+    REFL_VALIDATE( dwelling.id > 0,
+                   "Real dwelling IDs must be positive numbers, "
+                   "but found one with value {}.",
+                   dwelling.id );
+
+    // Dwellings are real.
+    REFL_VALIDATE( !dwelling.frozen.has_value(),
+                   "Real dwellings must not have frozen info "
+                   "but the dwelling with id={} does.",
+                   id );
+
     // Each dwelling has a unique location.
     Coord where = state.ownership.location;
     REFL_VALIDATE( !used_coords.contains( where ),
@@ -178,11 +195,15 @@ NativesState::dwellings_all() const {
 
 Dwelling const& NativesState::dwelling_for(
     DwellingId id ) const {
-  return state_for( id ).dwelling;
+  auto& dwelling = state_for( id ).dwelling;
+  CHECK( !dwelling.frozen.has_value() );
+  return dwelling;
 }
 
 Dwelling& NativesState::dwelling_for( DwellingId id ) {
-  return state_for( id ).dwelling;
+  auto& dwelling = state_for( id ).dwelling;
+  CHECK( !dwelling.frozen.has_value() );
+  return dwelling;
 }
 
 DwellingState const& NativesState::state_for(

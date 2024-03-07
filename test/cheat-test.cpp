@@ -22,6 +22,7 @@
 
 // Revolution Now
 #include "src/plane-stack.hpp"
+#include "src/ss/fog-square.rds.hpp"
 #include "src/unit-transformation.hpp"
 #include "src/visibility.hpp"
 

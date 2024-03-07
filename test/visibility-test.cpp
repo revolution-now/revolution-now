@@ -794,146 +794,6 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
                .get_if<fogged>() );
 }
 
-TEST_CASE( "[visibility] create_fog_square_at" ) {
-  World W;
-  W.create_small_map();
-  maybe<FogSquare> expected;
-  Coord            coord;
-  Coord const      kOutsideCoord = { .x = 2, .y = 2 };
-  BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  unique_ptr<IVisibility const> viz;
-
-  auto f = [&] { return viz->create_fog_square_at( coord ); };
-
-  gfx::Matrix<PlayerSquare>& player_map =
-      W.terrain()
-          .mutable_player_terrain( e_nation::english )
-          .map;
-
-  player_map[{ .x = 0, .y = 0 }]
-      .emplace<explored>()
-      .fog_status.emplace<clear>();
-  FogSquare& fog_square2 = player_map[{ .x = 1, .y = 0 }]
-                               .emplace<explored>()
-                               .fog_status.emplace<fogged>()
-                               .contents;
-  fog_square2 = FogSquare{
-      .colony   = FogColony{},
-      .dwelling = FogDwelling{ .capital = true },
-  };
-
-  SECTION( "no dwellings or colonies" ) {
-    // No nation.
-    viz = W.make_viz( nothing );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-
-    // English.
-    viz = W.make_viz( e_nation::english );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() == fog_square2 );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-  }
-
-  SECTION( "with dwelling" ) {
-    W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::inca );
-
-    // No nation.
-    viz = W.make_viz( nothing );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() == FogSquare{ .square   = W.square( coord ),
-                               .dwelling = FogDwelling{
-                                   .tribe = e_tribe::inca } } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-
-    // English.
-    viz = W.make_viz( e_nation::english );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() == FogSquare{ .square   = W.square( coord ),
-                               .dwelling = FogDwelling{
-                                   .tribe = e_tribe::inca } } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() == fog_square2 );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-  }
-
-  SECTION( "with colony" ) {
-    W.add_colony( { .x = 0, .y = 0 }, e_nation::english );
-
-    // No nation.
-    viz = W.make_viz( nothing );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() ==
-             FogSquare{ .square = W.square( coord ),
-                        .colony = FogColony{
-                            .nation   = e_nation::english,
-                            .name     = "1",
-                            .location = { .x = 0, .y = 0 } } } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() != fog_square2 );
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == FogSquare{ .square = W.square( coord ) } );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-
-    // English.
-    viz = W.make_viz( e_nation::english );
-
-    coord = { .x = 0, .y = 0 };
-    REQUIRE( f() ==
-             FogSquare{ .square = W.square( coord ),
-                        .colony = FogColony{
-                            .nation   = e_nation::english,
-                            .name     = "1",
-                            .location = { .x = 0, .y = 0 } } } );
-    coord = { .x = 1, .y = 0 };
-    REQUIRE( f() == fog_square2 );
-    coord = { .x = 0, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = { .x = 1, .y = 1 };
-    REQUIRE( f() == nothing );
-    coord = kOutsideCoord;
-    REQUIRE( f() == nothing );
-  }
-}
-
 TEST_CASE( "[visibility] should_animate_move" ) {
   World W;
   W.create_small_map();
@@ -1040,7 +900,6 @@ TEST_CASE(
 TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   World W;
   W.create_small_map();
-  FogSquare   expected_fogged;
   Coord       coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
@@ -1071,52 +930,51 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   player_map[{ .x = 0, .y = 0 }]
       .emplace<explored>()
       .fog_status.emplace<clear>();
-  FogSquare& fog_square1 = player_map[{ .x = 1, .y = 0 }]
-                               .emplace<explored>()
-                               .fog_status.emplace<fogged>()
-                               .contents;
-  fog_square1 = FogSquare{
-      .colony   = FogColony{},
-      .dwelling = FogDwelling{ .capital = true },
+  FrozenSquare& frozen_square1 =
+      player_map[{ .x = 1, .y = 0 }]
+          .emplace<explored>()
+          .fog_status.emplace<fogged>()
+          .contents;
+  frozen_square1 = FrozenSquare{
+      .colony   = Colony{},
+      .dwelling = Dwelling{ .is_capital = true },
   };
 
   IVisibility* p_viz = nullptr;
 
   auto visible = [&] { return p_viz->visible( coord ); };
 
-  auto create_fog_square_at = [&] {
-    return p_viz->create_fog_square_at( coord );
-  };
-
-  auto square_at = [&] { return p_viz->square_at( coord ); };
+  auto colony_at   = [&] { return p_viz->colony_at( coord ); };
+  auto dwelling_at = [&] { return p_viz->dwelling_at( coord ); };
+  auto square_at   = [&] { return p_viz->square_at( coord ); };
 
   SECTION( "no overrides, entire" ) {
     BASE_CHECK( overrides.empty() );
     p_viz = &viz_overrides_entire;
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square0 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() != fog_square1 );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square1 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square2 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square3 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
 
@@ -1125,24 +983,28 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     p_viz = &viz_overrides_nation;
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square0 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::fogged );
-    REQUIRE( create_fog_square_at() == fog_square1 );
-    REQUIRE( square_at() == fog_square1.square );
+    REQUIRE( colony_at() == Colony{} );
+    REQUIRE( dwelling_at() == Dwelling{ .is_capital = true } );
+    REQUIRE( square_at() == MapSquare{} );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
 
@@ -1157,28 +1019,28 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
 
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square0 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() != fog_square1 );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square1 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square1 );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = override_square2 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = override_square3 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
 
@@ -1193,24 +1055,28 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
 
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
-    REQUIRE( create_fog_square_at() ==
-             FogSquare{ .square = real_square0 } );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == real_square0 );
     coord = { .x = 1, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::fogged );
-    REQUIRE( create_fog_square_at() == fog_square1 );
-    REQUIRE( square_at() == fog_square1.square );
+    REQUIRE( colony_at() == Colony{} );
+    REQUIRE( dwelling_at() == Dwelling{ .is_capital = true } );
+    REQUIRE( square_at() == MapSquare{} );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == override_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::hidden );
-    REQUIRE( create_fog_square_at() == nothing );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
   }
 }

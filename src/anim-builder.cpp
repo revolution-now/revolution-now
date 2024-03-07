@@ -92,19 +92,13 @@ AnimationBuilder::pixelate_native_unit_to_target(
 }
 
 AnimationAction& AnimationBuilder::depixelate_colony(
-    ColonyId colony_id ) {
-  return push( P::depixelate_colony{ .colony_id = colony_id } );
+    Coord tile ) {
+  return push( P::depixelate_colony{ .tile = tile } );
 }
 
 AnimationAction& AnimationBuilder::depixelate_dwelling(
-    DwellingId dwelling_id ) {
-  return push(
-      P::depixelate_dwelling{ .dwelling_id = dwelling_id } );
-}
-
-AnimationAction& AnimationBuilder::depixelate_fog_dwelling(
     Coord tile ) {
-  return push( P::depixelate_fog_dwelling{ .tile = tile } );
+  return push( P::depixelate_dwelling{ .tile = tile } );
 }
 
 AnimationAction& AnimationBuilder::ensure_tile_visible(

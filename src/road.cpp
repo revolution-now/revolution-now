@@ -169,18 +169,10 @@ void render_road_if_present( rr::Painter& painter, Coord where,
   }
   if( !road_in_surroundings ) {
     // Native dwellings have roads under them, but they don't re-
-    // ally look good with a large "road island" under them,
-    // which happens when there are no adjacent roads. So we will
-    // render the smaller road island so that it will be com-
-    // pletely hidden behind the dwelling, but still be visible
-    // e.g. in "hidden terrain" view or while in the map editor.
-    bool const has_dwelling =
-        viz.create_fog_square_at( world_tile )
-            ->dwelling.has_value();
-    if( !has_dwelling )
+    // ally look good with a "road island" under them, which hap-
+    // pens when there are no adjacent roads.
+    if( !viz.dwelling_at( world_tile ).has_value() )
       render_sprite( painter, where, e_tile::road_island );
-    else
-      render_sprite( painter, where, e_tile::road_island_small );
   }
 }
 

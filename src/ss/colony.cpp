@@ -106,10 +106,21 @@ void validate_job_maps( Colony const& colony ) {
 valid_or<string> Colony::validate() const {
   validate_job_maps( *this );
 
+  // A colony object must either have an id (meaning that it is a
+  // real colony on the map) or it must have a `frozen` represen-
+  // tation (meaning that it is a snapshot of the colony when
+  // last visited) but cannot have both.
+  REFL_VALIDATE(
+      ( id != 0 ) != ( frozen.has_value() ),
+      "Colony at {} has both a non-zero ID and a frozen state, "
+      "which is not allowed; it must one or the other.",
+      location );
+
   // Colony has non-empty stripped name.
-  REFL_VALIDATE( !base::trim( name ).empty(),
-                 "Colony {}'s name is empty (when stripped).",
-                 id );
+  REFL_VALIDATE(
+      !base::trim( name ).empty(),
+      "Colony at {} has a name that is empty (when stripped).",
+      location );
 
   // Colony has at least one colonist.
   // NOTE: we don't validate this because a colony can be in this

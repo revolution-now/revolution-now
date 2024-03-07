@@ -21,7 +21,10 @@
 #include "src/ss/terrain.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -83,12 +86,12 @@ TEST_CASE(
     return map_updater.make_squares_fogged( nation, { tile } );
   };
 
-  auto fog_square = [&]() -> PlayerSquare& {
+  auto frozen_square = [&]() -> PlayerSquare& {
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
-  REQUIRE( fog_square() == unexplored{} );
+  REQUIRE( frozen_square() == unexplored{} );
 
   // On hidden.
   expected_buffers    = { { .tile        = tile,
@@ -96,10 +99,12 @@ TEST_CASE(
                             .obfuscation = false } };
   expected_fog_square = unexplored{};
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // Now make it visible.
-  fog_square().emplace<explored>().fog_status.emplace<clear>();
+  frozen_square()
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   expected_buffers = { { .tile        = tile,
                          .landscape   = false,
                          .obfuscation = true } };
@@ -107,7 +112,7 @@ TEST_CASE(
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // Now change the real square and verify no update.
   BASE_CHECK( !real_square.road );
@@ -122,10 +127,12 @@ TEST_CASE(
       .fog_status.get<fogged>()
       .contents.square.road = false;
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // Remove fog and try again.
-  fog_square().emplace<explored>().fog_status.emplace<clear>();
+  frozen_square()
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   // landscape is false here because the make_squares_fogged
   // method assumes that, if the fog was removed, then the tile
   // has already been rendered in its actual state.
@@ -137,7 +144,7 @@ TEST_CASE(
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // Try again but with fog rendering disabled.
   {
@@ -145,7 +152,9 @@ TEST_CASE(
         []( auto& options ) {
           options.render_fog_of_war = false;
         } );
-    fog_square().emplace<explored>().fog_status.emplace<clear>();
+    frozen_square()
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
 
     expected_buffers = { { .tile      = tile,
                            .landscape = false,
@@ -157,7 +166,7 @@ TEST_CASE(
         .contents.square = real_square;
     BASE_CHECK( real_square.road );
     REQUIRE( f() == expected_buffers );
-    REQUIRE( fog_square() == expected_fog_square );
+    REQUIRE( frozen_square() == expected_fog_square );
   }
 }
 
@@ -181,12 +190,12 @@ TEST_CASE(
     return map_updater.make_squares_visible( nation, { tile } );
   };
 
-  auto fog_square = [&]() -> PlayerSquare& {
+  auto frozen_square = [&]() -> PlayerSquare& {
     return player_terrain.map[tile];
   };
 
   // Initially totally not visible.
-  REQUIRE( fog_square() == unexplored{} );
+  REQUIRE( frozen_square() == unexplored{} );
 
   // On hidden.
   nation           = W.default_nation();
@@ -195,7 +204,7 @@ TEST_CASE(
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // On hidden for non-existent nation.
   nation = e_nation::french;
@@ -205,22 +214,24 @@ TEST_CASE(
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // On visible and clear.
   nation = W.default_nation();
-  fog_square().emplace<explored>().fog_status.emplace<clear>();
+  frozen_square()
+      .emplace<explored>()
+      .fog_status.emplace<clear>();
   expected_buffers = { { .tile        = tile,
                          .landscape   = false,
                          .obfuscation = false } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // On fogged.
   nation = W.default_nation();
-  fog_square()
+  frozen_square()
       .emplace<explored>()
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
@@ -230,11 +241,11 @@ TEST_CASE(
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 
   // On fogged with map update.
   nation = W.default_nation();
-  fog_square()
+  frozen_square()
       .emplace<explored>()
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
@@ -245,7 +256,7 @@ TEST_CASE(
       .fog_status.emplace<clear>();
   BASE_CHECK( real_square.road == true );
   REQUIRE( f() == expected_buffers );
-  REQUIRE( fog_square() == expected_fog_square );
+  REQUIRE( frozen_square() == expected_fog_square );
 }
 
 TEST_CASE(
@@ -264,7 +275,7 @@ TEST_CASE(
     return map_updater.modify_map_square( tile, mutator );
   };
 
-  auto fog_square = [&]() -> PlayerSquare& {
+  auto frozen_square = [&]() -> PlayerSquare& {
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
@@ -273,7 +284,7 @@ TEST_CASE(
   };
 
   // Initially totally not visible.
-  REQUIRE( fog_square() == unexplored{} );
+  REQUIRE( frozen_square() == unexplored{} );
 
   // No-op, with no nation.
   {
@@ -283,7 +294,7 @@ TEST_CASE(
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == unexplored{} );
+    REQUIRE( frozen_square() == unexplored{} );
   }
 
   // No-op, with nation.
@@ -298,7 +309,7 @@ TEST_CASE(
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == unexplored{} );
+    REQUIRE( frozen_square() == unexplored{} );
   }
 
   // Add road, with no nation. The landscape buffer should always
@@ -313,7 +324,7 @@ TEST_CASE(
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == unexplored{} );
+    REQUIRE( frozen_square() == unexplored{} );
   }
 
   // Remove road, with nation. The landscape buffer should not
@@ -332,7 +343,7 @@ TEST_CASE(
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square() == unexplored{} );
+    REQUIRE( frozen_square() == unexplored{} );
   }
 
   // Add road, with nation that has explored but still fog.
@@ -344,7 +355,7 @@ TEST_CASE(
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
         .tile = tile, .landscape = false, .obfuscation = false };
-    fog_square()
+    frozen_square()
         .emplace<explored>()
         .fog_status.emplace<fogged>();
     expected_real_square      = real_square;
@@ -354,7 +365,7 @@ TEST_CASE(
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
     REQUIRE(
-        fog_square().inner_if<explored>().get_if<fogged>() );
+        frozen_square().inner_if<explored>().get_if<fogged>() );
   }
 
   // Remove road, with nation that has clear visibility.
@@ -366,15 +377,18 @@ TEST_CASE(
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
         .tile = tile, .landscape = true, .obfuscation = false };
-    BASE_CHECK( !fog_square().holds<unexplored>() );
-    fog_square().emplace<explored>().fog_status.emplace<clear>();
+    BASE_CHECK( !frozen_square().holds<unexplored>() );
+    frozen_square()
+        .emplace<explored>()
+        .fog_status.emplace<clear>();
     expected_real_square      = real_square;
     expected_real_square.road = !expected_real_square.road;
     mutator =
         +[]( MapSquare& square ) { square.road = !square.road; };
     REQUIRE( f() == expected_buffers );
     REQUIRE( real_square == expected_real_square );
-    REQUIRE( fog_square().inner_if<explored>().get_if<clear>() );
+    REQUIRE(
+        frozen_square().inner_if<explored>().get_if<clear>() );
   }
 }
 
@@ -392,7 +406,7 @@ TEST_CASE(
     map_updater.modify_entire_map_no_redraw( mutator );
   };
 
-  auto fog_square = [&]( e_nation nation ) -> PlayerSquare& {
+  auto frozen_square = [&]( e_nation nation ) -> PlayerSquare& {
     PlayerTerrain& player_terrain =
         W.ss()
             .mutable_terrain_use_with_care
@@ -401,15 +415,15 @@ TEST_CASE(
   };
 
   // Initially totally not visible.
-  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
 
   // No-op, with no nation.
   expected_real_square = real_square;
   f( []( auto& ) {} );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
 
   // Add road.
   expected_real_square      = real_square;
@@ -418,8 +432,8 @@ TEST_CASE(
     real_terrain.map[tile].road = !real_terrain.map[tile].road;
   } );
   REQUIRE( real_square == expected_real_square );
-  REQUIRE( fog_square( e_nation::dutch ) == unexplored{} );
-  REQUIRE( fog_square( e_nation::french ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::dutch ) == unexplored{} );
+  REQUIRE( frozen_square( e_nation::french ) == unexplored{} );
 }
 
 // This test case will do some additional (possibly redundant)

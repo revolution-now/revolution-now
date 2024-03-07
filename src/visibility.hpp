@@ -19,7 +19,6 @@
 #include "maybe.hpp"
 
 // ss
-#include "ss/fog-square.rds.hpp"
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.rds.hpp"
 
@@ -34,7 +33,9 @@
 
 namespace rn {
 
-struct FogSquare;
+struct Colony;
+struct Dwelling;
+struct FrozenSquare;
 struct MapSquare;
 struct PlayerSquare;
 struct PlayerTerrain;
@@ -62,21 +63,9 @@ struct IVisibility {
   // tile if off-map then they are always hidden (proto square).
   virtual e_tile_visibility visible( Coord tile ) const = 0;
 
-  // Returns a fog square that represents what is currently visi-
-  // ble. In some cases that requires creating a new FogSquare,
-  // i.e. in the case where the player has a fog square but it
-  // might be stale (the tile is visible and clear) or if the en-
-  // tire map is visible. It will only return nothing if we are
-  // rendering from the point of a view of a player and that tile
-  // is hidden. Note that we return the FogSquare by value and
-  // not by reference, and that is because, as mentioned above,
-  // we aren't necessarily returning a player's FogSquare, even
-  // when we are viewing from the point of view of a player.
-  //
-  // This is not a cheap function, since it may need to construct
-  // an entire FogSquare, so probably should only be called when
-  // absolutely necessary.
-  virtual maybe<FogSquare> create_fog_square_at(
+  virtual maybe<Colony const&> colony_at( Coord tile ) const = 0;
+
+  virtual maybe<Dwelling const&> dwelling_at(
       Coord tile ) const = 0;
 
   // In general we're rendering the terrain from the point of
@@ -112,19 +101,19 @@ struct IVisibility {
 struct VisibilityEntire : IVisibility {
   VisibilityEntire( SSConst const& ss );
 
-  // Implement IVisibility.
+ public: // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
     return base::nothing;
   };
 
-  // Implement IVisibility.
   e_tile_visibility visible( Coord ) const override;
 
-  // Implement IVisibility.
-  maybe<FogSquare> create_fog_square_at(
+  virtual maybe<Colony const&> colony_at(
       Coord tile ) const override;
 
-  // Implement IVisibility.
+  virtual maybe<Dwelling const&> dwelling_at(
+      Coord tile ) const override;
+
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
@@ -138,30 +127,27 @@ struct VisibilityEntire : IVisibility {
 struct VisibilityForNation : IVisibility {
   VisibilityForNation( SSConst const& ss, e_nation nation );
 
-  // Implement IVisibility.
+ public: // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
     return nation_;
   };
 
-  // Implement IVisibility.
   e_tile_visibility visible( Coord tile ) const override;
 
-  // Implement IVisibility.
-  maybe<FogSquare> create_fog_square_at(
+  virtual maybe<Colony const&> colony_at(
       Coord tile ) const override;
 
-  // Implement IVisibility.
+  virtual maybe<Dwelling const&> dwelling_at(
+      Coord tile ) const override;
+
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
   maybe<PlayerSquare const&> player_square_at(
       Coord tile ) const;
 
-  // If so, will return the fog square, otherwise nothing.
-  maybe<FogSquare const&> will_render_from_fog_square(
-      Coord tile ) const;
-
   SSConst const&             ss_;
+  VisibilityEntire           entire_;
   e_nation const             nation_         = {};
   PlayerTerrain const* const player_terrain_ = nullptr;
 };
@@ -177,16 +163,17 @@ struct VisibilityWithOverrides : IVisibility {
       std::unordered_map<Coord, MapSquare> const& overrides
           ATTR_LIFETIMEBOUND );
 
-  // Are we viewing from the perspective of a nation or not.
+ public: // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
     return underlying_.nation();
   };
 
-  // Implement IVisibility.
   e_tile_visibility visible( Coord tile ) const override;
 
-  // Implement IVisibility.
-  maybe<FogSquare> create_fog_square_at(
+  virtual maybe<Colony const&> colony_at(
+      Coord tile ) const override;
+
+  virtual maybe<Dwelling const&> dwelling_at(
       Coord tile ) const override;
 
   // Implement IVisibility.
