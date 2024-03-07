@@ -231,7 +231,7 @@ wait<> LandViewAnimator::colony_depixelation_throttler(
 }
 
 wait<> LandViewAnimator::dwelling_depixelation_throttler(
-    co::latch& hold, Dwelling const& dwelling, Coord tile ) {
+    co::latch& hold, Coord tile ) {
   auto popper =
       add_dwelling_animation<DwellingAnimationState::depixelate>(
           tile );
@@ -518,10 +518,8 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( depixelate_dwelling ) {
-      UNWRAP_CHECK( dwelling, viz_->dwelling_at(
-                                  depixelate_dwelling.tile ) );
       co_await dwelling_depixelation_throttler(
-          hold, dwelling, depixelate_dwelling.tile );
+          hold, depixelate_dwelling.tile );
       break;
     }
     CASE( landscape_anim_enpixelate ) {

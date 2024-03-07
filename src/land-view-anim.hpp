@@ -145,8 +145,8 @@ struct LandViewAnimator {
   wait<> colony_depixelation_throttler( co::latch&    hold,
                                         Colony const& colony );
 
-  wait<> dwelling_depixelation_throttler(
-      co::latch& hold, Dwelling const& dwelling, Coord tile );
+  wait<> dwelling_depixelation_throttler( co::latch& hold,
+                                          Coord      tile );
 
   std::unordered_map<Coord, MapSquare>
   redrawn_squares_for_overrides(
