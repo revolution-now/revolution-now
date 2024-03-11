@@ -158,10 +158,10 @@ struct VisibilityForNation : IVisibility {
 // Delegates to a provided IVisibility object except for a cer-
 // tain set of tiles whose values will be overridden.
 struct VisibilityWithOverrides : IVisibility {
-  VisibilityWithOverrides(
-      SSConst const& ss, IVisibility const& underlying,
-      std::unordered_map<Coord, MapSquare> const& overrides
-          ATTR_LIFETIMEBOUND );
+  VisibilityWithOverrides( SSConst const&     ss,
+                           IVisibility const& underlying,
+                           std::map<Coord, MapSquare> const&
+                               overrides ATTR_LIFETIMEBOUND );
 
  public: // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
@@ -180,8 +180,8 @@ struct VisibilityWithOverrides : IVisibility {
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
-  IVisibility const&                          underlying_;
-  std::unordered_map<Coord, MapSquare> const& overrides_;
+  IVisibility const&                underlying_;
+  std::map<Coord, MapSquare> const& overrides_;
 };
 
 /****************************************************************

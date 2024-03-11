@@ -903,9 +903,9 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   Coord       coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  VisibilityEntire    viz_entire( W.ss() );
-  VisibilityForNation viz_nation( W.ss(), e_nation::english );
-  unordered_map<Coord, MapSquare> overrides;
+  VisibilityEntire      viz_entire( W.ss() );
+  VisibilityForNation   viz_nation( W.ss(), e_nation::english );
+  map<Coord, MapSquare> overrides;
   // This will keep a reference to the overrides.
   VisibilityWithOverrides viz_overrides_entire(
       W.ss(), viz_entire, overrides );

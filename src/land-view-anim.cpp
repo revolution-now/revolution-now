@@ -241,13 +241,13 @@ wait<> LandViewAnimator::dwelling_depixelation_throttler(
   co_await pixelation_stage_throttler( hold, depixelate.stage );
 }
 
-unordered_map<Coord, MapSquare>
+map<Coord, MapSquare>
 LandViewAnimator::redrawn_squares_for_overrides(
     map<Coord, MapSquare> const& overrides ) {
   // First, get a full set of squares that we'll have to animate;
   // this includes the ones that are changing plus surrounding
   // ones that might change indirectly.
-  unordered_map<Coord, MapSquare> redrawn;
+  map<Coord, MapSquare> redrawn;
   for( auto const& [tile, _] : overrides ) {
     for( e_cdirection const d :
          refl::enum_values<e_cdirection> ) {

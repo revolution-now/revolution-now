@@ -797,7 +797,7 @@ void LandViewRenderer::render_entities() const {
 }
 
 void LandViewRenderer::render_landscape_anim_buffer_impl(
-    unordered_map<Coord, MapSquare> const& overrides ) const {
+    map<Coord, MapSquare> const& overrides ) const {
   static constexpr auto kBuffer =
       rr::e_render_buffer::landscape_anim;
   base::ScopedTimer const timer(

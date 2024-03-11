@@ -26,7 +26,7 @@ include "ss/unit-type.rds.hpp"
 include "gfx/coord.hpp"
 
 # C++ standard library
-include "<unordered_map>"
+include "<map>"
 
 namespace "rn"
 
@@ -91,7 +91,7 @@ sumtype.LandscapeAnimBufferState {
     # trolled via a uniform.
     needs_rendering 'bool',
     stage 'double',
-    targets 'std::unordered_map<Coord, MapSquare>',
+    targets 'std::map<Coord, MapSquare>',
   },
 
   # This will cause the landscape_anim buffer to be rendered
@@ -100,6 +100,6 @@ sumtype.LandscapeAnimBufferState {
   # their immediate surroundings).
   mod {
     needs_rendering 'bool', # See comment above.
-    modded 'std::unordered_map<Coord, MapSquare>',
+    modded 'std::map<Coord, MapSquare>',
   },
 }

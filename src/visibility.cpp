@@ -248,7 +248,7 @@ MapSquare const& VisibilityForNation::square_at(
 *****************************************************************/
 VisibilityWithOverrides::VisibilityWithOverrides(
     SSConst const& ss, IVisibility const& underlying,
-    unordered_map<Coord, MapSquare> const& overrides )
+    map<Coord, MapSquare> const& overrides )
   : IVisibility( ss ),
     underlying_( underlying ),
     overrides_( overrides ) {}
