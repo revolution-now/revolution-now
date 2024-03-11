@@ -1,0 +1,20 @@
+# ===============================================================
+# hidden-terrain.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-03-11.
+#
+# Description: Rds definitions for the hidden-terrain module.
+#
+# ===============================================================
+# Revolution Now
+include "anim-builder.hpp"
+
+namespace "rn"
+
+struct.HiddenTerrainAnimationSequence {
+  spin_up 'AnimationSequence',
+  wait 'AnimationSequence',
+  spin_down 'AnimationSequence',
+}
