@@ -118,4 +118,12 @@ AnimationAction& AnimationBuilder::landview_mod_tiles(
       P::landscape_anim_mod{ .modded = std::move( modded ) } );
 }
 
+AnimationAction& AnimationBuilder::hide_colony( Coord tile ) {
+  return push( P::hide_colony{ tile } );
+}
+
+AnimationAction& AnimationBuilder::hide_dwelling( Coord tile ) {
+  return push( P::hide_dwelling{ tile } );
+}
+
 } // namespace rn

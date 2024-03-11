@@ -69,12 +69,14 @@ sumtype.ColonyAnimationState {
   depixelate {
     stage 'double',
   },
+  hide {},
 }
 
 sumtype.DwellingAnimationState {
   depixelate {
     stage 'double',
   },
+  hide {},
 }
 
 sumtype.LandscapeAnimBufferState {

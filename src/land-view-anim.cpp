@@ -429,6 +429,20 @@ wait<> LandViewAnimator::animate_action_primitive(
       co_await hold.arrive_and_wait();
       break;
     }
+    CASE( hide_dwelling ) {
+      auto popper =
+          add_dwelling_animation<DwellingAnimationState::hide>(
+              hide_dwelling.tile );
+      co_await hold.arrive_and_wait();
+      break;
+    }
+    CASE( hide_colony ) {
+      auto popper =
+          add_colony_animation<ColonyAnimationState::hide>(
+              hide_colony.tile );
+      co_await hold.arrive_and_wait();
+      break;
+    }
     CASE( front_unit ) {
       auto popper =
           add_unit_animation<UnitAnimationState::front>(

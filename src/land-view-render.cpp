@@ -40,6 +40,9 @@
 #include "gfx/coord.hpp"
 #include "gfx/iter.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -686,10 +689,17 @@ void LandViewRenderer::render_dwellings() const {
     maybe<Dwelling const&> dwelling = viz_->dwelling_at( tile );
     if( !dwelling.has_value() ) continue;
     if( auto anim = lv_animator_.dwelling_animation( tile );
-        anim.has_value() )
-      render_dwelling_depixelate( *anim, *dwelling, tile );
-    else
+        anim.has_value() ) {
+      SWITCH( *anim ) {
+        CASE( depixelate ) {
+          render_dwelling_depixelate( *anim, *dwelling, tile );
+          break;
+        }
+        CASE( hide ) { break; }
+      }
+    } else {
       render_dwelling( *dwelling, tile );
+    }
   }
 }
 
@@ -708,6 +718,9 @@ void LandViewRenderer::render_units_underneath() const {
         render_units_on_square( tile, /*flags=*/false );
         break;
       }
+      case ColonyAnimationState::e::hide: {
+        break;
+      }
     }
   }
 
@@ -722,6 +735,9 @@ void LandViewRenderer::render_units_underneath() const {
         render_units_on_square( tile, /*flags=*/false );
         break;
       }
+      case DwellingAnimationState::e::hide: {
+        break;
+      }
     }
   }
 }
@@ -730,14 +746,21 @@ void LandViewRenderer::render_colonies() const {
   // FIXME: since colony icons spill over the usual 32x32 tile
   // we need to render colonies that are beyond the `covered`
   // rect.
-  for( Coord const coord : gfx::rect_iterator( covered_ ) ) {
-    maybe<Colony const&> colony = viz_->colony_at( coord );
+  for( Coord const tile : gfx::rect_iterator( covered_ ) ) {
+    maybe<Colony const&> colony = viz_->colony_at( tile );
     if( !colony.has_value() ) continue;
-    if( auto anim = lv_animator_.colony_animation( coord );
-        anim.has_value() )
-      render_colony_depixelate( *colony );
-    else
+    if( auto anim = lv_animator_.colony_animation( tile );
+        anim.has_value() ) {
+      SWITCH( *anim ) {
+        CASE( depixelate ) {
+          render_colony_depixelate( *colony );
+          break;
+        }
+        CASE( hide ) { break; }
+      }
+    } else {
       render_colony( *colony );
+    }
   }
 }
 

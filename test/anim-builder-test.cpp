@@ -55,11 +55,8 @@ TEST_CASE( "[anim-builder] builders" ) {
       { Coord{ .x = 3, .y = 5 }, MapSquare{} },
       { Coord{ .x = 4, .y = 6 }, MapSquare{ .road = true } },
   } );
-  builder.landview_mod_tiles( {
-      { Coord{ .x = 7, .y = 9 }, MapSquare{} },
-      { Coord{ .x = 8, .y = 10 },
-        MapSquare{ .irrigation = true } },
-  } );
+  builder.hide_colony( { .x = 111, .y = 222 } );
+  builder.hide_dwelling( { .x = 222, .y = 333 } );
 
   AnimationSequence const& res = builder.result();
 
@@ -123,15 +120,11 @@ TEST_CASE( "[anim-builder] builders" ) {
                                   MapSquare{ .road = true } },
                             } } },
               { .primitive =
-                    P::landscape_anim_mod{
-                        .modded =
-                            {
-                                { Coord{ .x = 7, .y = 9 },
-                                  MapSquare{} },
-                                { Coord{ .x = 8, .y = 10 },
-                                  MapSquare{ .irrigation =
-                                                 true } },
-                            } } },
+                    P::hide_colony{
+                        .tile = { .x = 111, .y = 222 } } },
+              { .primitive =
+                    P::hide_dwelling{
+                        .tile = { .x = 222, .y = 333 } } },
           } } };
 
   REQUIRE( res == expected );

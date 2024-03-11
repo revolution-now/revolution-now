@@ -57,7 +57,11 @@ struct AnimationBuilder {
 
   AnimationAction& depixelate_colony( Coord tile );
 
+  AnimationAction& hide_colony( Coord tile );
+
   AnimationAction& depixelate_dwelling( Coord tile );
+
+  AnimationAction& hide_dwelling( Coord tile );
 
   AnimationAction& ensure_tile_visible( Coord tile );
 

@@ -111,10 +111,18 @@ sumtype.AnimationPrimitive {
     tile 'Coord',
   },
 
+  hide_colony {
+    tile 'Coord',
+  },
+
   # -------------------------------------------------------------
   # Dwellings.
   # -------------------------------------------------------------
   depixelate_dwelling {
+    tile 'Coord',
+  },
+
+  hide_dwelling {
     tile 'Coord',
   },
 
