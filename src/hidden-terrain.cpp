@@ -438,18 +438,19 @@ HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
   auto forest       = h.hider<ForestHider>( resources );
 
   HiddenTerrainAnimationSequence res;
+
+  // 1. Spin up.
   res.spin_up = std::move( builder ).result();
 
+  // 2. Wait.
   builder.clear();
   h.hide_previous();
   res.wait = std::move( builder ).result();
 
-  // Now reverse the above.
-  AnimationSequence reversed;
-  for( auto it = res.spin_up.sequence.rbegin();
-       it != res.spin_up.sequence.rend(); ++it )
-    reversed.sequence.push_back( *it );
-  res.spin_down = std::move( reversed );
+  // 3. Spin down.
+  res.spin_down = res.spin_up;
+  reverse( res.spin_down.sequence.begin(),
+           res.spin_down.sequence.end() );
 
   return res;
 }
