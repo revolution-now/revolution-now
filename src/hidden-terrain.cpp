@@ -62,7 +62,8 @@ struct ContentHiderImpl : public ContentHider {
     : ss_( ss ),
       viz_( viz ),
       shuffled_tiles_( shuffled_tiles ),
-      target_chunks_( target_chunks ),
+      target_chunks_( std::min( target_chunks,
+                                int( shuffled_tiles.size() ) ) ),
       accum_( accum ) {}
 
   using accum_t = T;
@@ -110,6 +111,7 @@ struct ContentHiderImpl : public ContentHider {
     auto const [num_chunks, chunk_size] = [&] {
       int num_chunks = target_chunks_;
       int chunk_size = shuffled_tiles_.size() / target_chunks_;
+      CHECK_GT( chunk_size, 0 );
       if( shuffled_tiles_.size() % chunk_size != 0 )
         ++num_chunks;
       return pair{ num_chunks, chunk_size };
