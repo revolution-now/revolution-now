@@ -739,8 +739,12 @@ struct LandViewPlane::Impl : public Plane {
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
-            CHECK( !landview_mode_
-                        .holds<LandViewMode::hidden_terrain>() );
+            if( landview_mode_
+                    .holds<LandViewMode::hidden_terrain>() )
+              // This can happen when pressing shift-h multiple
+              // times before the animator gets to the point
+              // where it starts taking keys.
+              break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::hidden_terrain{} ) );
             break;
