@@ -27,7 +27,11 @@ namespace rn {
 struct AnimationBuilder {
   AnimationBuilder();
 
-  AnimationSequence const& result() ATTR_LIFETIMEBOUND;
+  void clear();
+
+  AnimationSequence const& result() const& ATTR_LIFETIMEBOUND;
+
+  AnimationSequence result() &&;
 
   void new_phase();
 

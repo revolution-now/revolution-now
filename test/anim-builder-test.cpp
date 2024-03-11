@@ -153,5 +153,31 @@ TEST_CASE( "[anim-builder] first new_phase optional" ) {
   }
 }
 
+TEST_CASE( "[anim-builder] emptiness and clearing" ) {
+  AnimationBuilder builder;
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE( builder.result().sequence.back().empty() );
+
+  builder.delay( chrono::seconds{ 1 } );
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE_FALSE( builder.result().sequence.back().empty() );
+
+  auto copied = builder.result();
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE_FALSE( builder.result().sequence.back().empty() );
+
+  builder.clear();
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE( builder.result().sequence.back().empty() );
+
+  builder.delay( chrono::seconds{ 1 } );
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE_FALSE( builder.result().sequence.back().empty() );
+
+  auto moved = std::move( builder ).result();
+  REQUIRE_FALSE( builder.result().sequence.empty() );
+  REQUIRE( builder.result().sequence.back().empty() );
+}
+
 } // namespace
 } // namespace rn

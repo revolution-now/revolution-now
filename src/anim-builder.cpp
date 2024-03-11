@@ -26,8 +26,23 @@ using P = ::rn::AnimationPrimitive;
 *****************************************************************/
 AnimationBuilder::AnimationBuilder() { new_phase(); }
 
-AnimationSequence const& AnimationBuilder::result() {
-  return std::move( seq_ );
+void AnimationBuilder::clear() {
+  // We should do it this way so that we get initialized with a
+  // new value using the constructor to preserve invariants.
+  *this = {};
+}
+
+AnimationSequence const& AnimationBuilder::result() const& {
+  return seq_;
+}
+
+AnimationSequence AnimationBuilder::result() && {
+  // This should be NRVO'd.
+  AnimationSequence res = std::move( seq_ );
+  // If we don't call clear here then we won't preserve invari-
+  // ants, namely that we always have at least one phase.
+  clear();
+  return res;
 }
 
 void AnimationBuilder::new_phase() {
