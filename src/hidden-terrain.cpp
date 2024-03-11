@@ -112,8 +112,10 @@ struct ContentHiderImpl : public ContentHider {
       int num_chunks = target_chunks_;
       int chunk_size = shuffled_tiles_.size() / target_chunks_;
       CHECK_GT( chunk_size, 0 );
-      if( shuffled_tiles_.size() % chunk_size != 0 )
-        ++num_chunks;
+      int const residual =
+          shuffled_tiles_.size() - ( chunk_size * num_chunks );
+      if( residual > 0 )
+        num_chunks += std::max( residual / chunk_size, 1 );
       return pair{ num_chunks, chunk_size };
     }();
 
