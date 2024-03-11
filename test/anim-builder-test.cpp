@@ -179,5 +179,9 @@ TEST_CASE( "[anim-builder] emptiness and clearing" ) {
   REQUIRE( builder.result().sequence.back().empty() );
 }
 
+TEST_CASE( "[anim-builder] landview_mod_tile" ) {
+  AnimationBuilder builder;
+}
+
 } // namespace
 } // namespace rn

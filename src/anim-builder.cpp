@@ -127,10 +127,34 @@ AnimationAction& AnimationBuilder::enpixelate_landview_tiles(
       .targets = std::move( targets ) } );
 }
 
-AnimationAction& AnimationBuilder::landview_mod_tiles(
-    std::map<Coord, MapSquare> modded ) {
-  return push(
-      P::landscape_anim_mod{ .modded = std::move( modded ) } );
+AnimationAction& AnimationBuilder::landview_mod_tile(
+    Coord tile, MapSquare const& square ) {
+  using landscape_anim_mod =
+      AnimationPrimitive::landscape_anim_mod;
+  // We can have at most one landscape anim mod per phase, so
+  // reuse one if we already have it, otherwise create one.
+  AnimationAction& action = [&]() -> auto& {
+    CHECK( !seq_.sequence.empty() );
+    auto& latest_seq = seq_.sequence.back();
+    // As an optimization, try from the back first since that is
+    // where it is likely to be, since presumably we will be
+    // adding these in bulk.
+    for( auto it = latest_seq.rbegin(); it != latest_seq.rend();
+         ++it ) {
+      auto& action = *it;
+      if( auto mod =
+              action.primitive.get_if<landscape_anim_mod>();
+          mod.has_value() )
+        return action;
+    }
+    return push( P::landscape_anim_mod{} );
+  }();
+
+  UNWRAP_CHECK( mod,
+                action.primitive.get_if<landscape_anim_mod>() );
+  auto& map = mod.modded;
+  map[tile] = square;
+  return action;
 }
 
 AnimationAction& AnimationBuilder::hide_colony( Coord tile ) {
