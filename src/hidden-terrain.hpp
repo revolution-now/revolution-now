@@ -23,6 +23,8 @@ struct IRand;
 struct IVisibility;
 struct SSConst;
 
+// This computes separate animation sequences for the three
+// phases of the hidden terrain mode.
 HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
     SSConst const& ss, IVisibility const& viz, IRand& rand );
 

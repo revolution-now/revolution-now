@@ -22,6 +22,7 @@
 //      closing macros needed, though braces are required.
 //   4. Automatically provide the reference to the alternative
 //      object in each case block.
+//   5. Supports a default statement.
 //
 // For example, the following:
 //
