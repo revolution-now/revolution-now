@@ -37,8 +37,9 @@ struct CombatEuroAttackUndefendedColony;
 struct CombatShipAttackShip;
 struct DwellingCombatOutcome;
 struct EuroUnitCombatOutcome;
-struct SSConst;
+struct IRand;
 struct IVisibility;
+struct SSConst;
 
 enum class e_tribe;
 enum class e_sfx;
@@ -143,8 +144,5 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
 
 // Just plays a sound.
 AnimationSequence anim_seq_for_sfx( e_sfx sound );
-
-AnimationSequence anim_seq_for_hidden_terrain(
-    SSConst const& ss, IVisibility const& viz );
 
 } // namespace rn

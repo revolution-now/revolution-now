@@ -22,6 +22,7 @@
 #include "colony-id.hpp"
 #include "command.hpp"
 #include "compositor.hpp"
+#include "hidden-terrain.hpp"
 #include "imap-updater.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
@@ -53,6 +54,9 @@
 
 // gfx
 #include "gfx/coord.hpp"
+
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -997,38 +1001,44 @@ struct LandViewPlane::Impl : public Plane {
           options.render_fog_of_war = false;
         } );
     CHECK( viz_ != nullptr );
-    AnimationSequence const seq =
-        anim_seq_for_hidden_terrain( ss_, *viz_ );
-    // This will cause the hidden-terrain animation (similar to
-    // that of the OG) to run in the background while we take
-    // input below, and can interrupt it at any time. Note that
-    // we should not co_await this animation because it is a
-    // "hold" animation, meaning that it never co_returns, in-
-    // stead it just holds its final state so that the user can
-    // remain in hidden-terrain mode as long as they wish.
-    wait<> const hidden_terrain_animation =
-        lv_animator_.animate_sequence_and_hold( seq );
+
     // Consume further inputs but eat all of them except for the
     // ones we want.
-    while( true ) {
-      RawInput const raw_input =
-          co_await raw_input_stream_.next();
-      switch( raw_input.input.to_enum() ) {
-        using e = LandViewRawInput::e;
-        case e::hidden_terrain:
-          co_return;
-        case e::tile_click: {
-          viewport().set_point_seek(
-              viewport().world_tile_to_world_pixel_center(
-                  raw_input.input
-                      .get<LandViewRawInput::tile_click>()
-                      .coord ) );
-          break;
+    auto wait_for_key = [&]() -> wait<> {
+      while( true ) {
+        RawInput const raw_input =
+            co_await raw_input_stream_.next();
+        SWITCH( raw_input.input ) {
+          CASE( hidden_terrain ) { co_return; }
+          CASE( tile_click ) {
+            // TODO: maybe we could somehow deduplicate this
+            // tile_click logic.
+            lg.info( "tile_click: {}", tile_click.coord );
+            viewport().set_point_seek(
+                viewport().world_tile_to_world_pixel_center(
+                    tile_click.coord ) );
+            break;
+          }
+          default:
+            break;
         }
-        default:
-          break;
       }
-    }
+    };
+
+    HiddenTerrainAnimationSequence const seq =
+        anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
+
+    co_await co::first(
+        lv_animator_.animate_sequence( seq.spin_up ),
+        wait_for_key() );
+
+    co_await co::first(
+        lv_animator_.animate_sequence_and_hold( seq.wait ),
+        wait_for_key() );
+
+    co_await co::first(
+        lv_animator_.animate_sequence( seq.spin_down ),
+        wait_for_key() );
   }
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {

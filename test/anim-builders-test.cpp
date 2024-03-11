@@ -1473,10 +1473,5 @@ TEST_CASE( "[anim-builders] anim_seq_for_sfx" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[anim-builders] anim_seq_for_hidden_terrain" ) {
-  World W;
-  // TODO
-}
-
 } // namespace
 } // namespace rn
