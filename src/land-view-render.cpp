@@ -823,8 +823,10 @@ void LandViewRenderer::render_landscape_anim_buffer_impl(
     map<Coord, MapSquare> const& overrides ) const {
   static constexpr auto kBuffer =
       rr::e_render_buffer::landscape_anim;
+#if 0
   base::ScopedTimer const timer(
       fmt::format( "rendering buffer {}", kBuffer ) );
+#endif
   renderer_.clear_buffer( kBuffer );
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kBuffer );
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
