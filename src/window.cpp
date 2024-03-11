@@ -532,9 +532,11 @@ wait<> WindowManager::process_transient_messages() {
         .rendered_size =
             rendered_text_size( reflow_info, msg ) };
     SCOPE_EXIT { active_transient_message_.reset(); };
+    double delta = .003;
     while( active_transient_message_->alpha > 0 ) {
       co_await 100ms;
-      active_transient_message_->alpha -= .05;
+      active_transient_message_->alpha -= delta;
+      delta += .003;
     }
   }
 }
