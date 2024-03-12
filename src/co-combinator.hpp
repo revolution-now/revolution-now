@@ -155,7 +155,10 @@ struct WithBackground {
   wait<T> operator()( wait<T> w, wait<> /*background*/ ) const {
     // !! Need to co_await instead of just returning the wait
     // because we need to keep the waits alive.
-    co_return co_await std::move( w );
+    if constexpr( std::is_same_v<T, std::monostate> )
+      co_await std::move( w );
+    else
+      co_return co_await std::move( w );
   }
 };
 
