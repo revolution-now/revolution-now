@@ -398,7 +398,8 @@ struct HiderBuilder {
 *****************************************************************/
 HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
     SSConst const& ss, IVisibility const& viz, IRand& rand ) {
-  AnimationBuilder builder;
+  HiddenTerrainAnimationSequence res;
+  AnimationBuilder               builder;
 
   // When our chunk size is 10 that means that with each chunk we
   // add roughly 1/10th of the squares. However, because when re-
@@ -430,17 +431,14 @@ HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
   HiderBuilder h( ss, viz, builder, shuffled_coords,
                   kTargetChunks );
 
+  // 1. Spin up.
   auto units        = h.hider<UnitsHider>();
   auto dwellings    = h.hider<DwellingsHider>();
   auto colonies     = h.hider<ColoniesHider>();
   auto improvements = h.hider<ImprovementsHider>();
   auto resources    = h.hider<ResourcesHider>( improvements );
   auto forest       = h.hider<ForestHider>( resources );
-
-  HiddenTerrainAnimationSequence res;
-
-  // 1. Spin up.
-  res.spin_up = std::move( builder ).result();
+  res.spin_up       = std::move( builder ).result();
 
   // 2. Wait.
   builder.clear();

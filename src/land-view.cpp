@@ -98,13 +98,13 @@ struct LandViewPlane::Impl : public Plane {
   SS&                           ss_;
   TS&                           ts_;
   unique_ptr<IVisibility const> viz_;
-  LandViewAnimator              lv_animator_;
+  LandViewAnimator              animator_;
 
   vector<MenuPlane::Deregistrar> dereg;
 
   co::stream<RawInput> raw_input_stream_;
   queue<PlayerInput>   translated_input_stream_;
-  LandViewMode         landview_mode_ = LandViewMode::none{};
+  LandViewMode         mode_ = LandViewMode::none{};
 
   // Holds info about the previous unit that was asking for or-
   // ders, since it can affect the UI behavior when asking for
@@ -163,12 +163,12 @@ struct LandViewPlane::Impl : public Plane {
     : ss_( ss ),
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
-      lv_animator_( ss, ss.land_view.viewport, viz_ ) {
+      animator_( ss, ss.land_view.viewport, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.menu() );
     // Initialize general global data.
-    landview_mode_   = LandViewMode::none{};
+    mode_            = LandViewMode::none{};
     last_unit_input_ = nothing;
     raw_input_stream_.reset();
     translated_input_stream_        = {};
@@ -197,6 +197,19 @@ struct LandViewPlane::Impl : public Plane {
   wait<vector<LandViewPlayerInput>> click_on_world_tile(
       Coord coord ) {
     vector<LandViewPlayerInput> res;
+
+    auto scroll_map = [&] {
+      // Nothing to click on, so just scroll the map to center on
+      // the clicked tile.
+      viewport().set_point_seek(
+          viewport().world_tile_to_world_pixel_center( coord ) );
+    };
+
+    if( mode_.holds<LandViewMode::hidden_terrain>() ) {
+      scroll_map();
+      co_return res;
+    }
+
     auto add = [&res]<typename T>( T t ) -> T& {
       res.push_back( std::move( t ) );
       return res.back().get<T>();
@@ -212,8 +225,8 @@ struct LandViewPlane::Impl : public Plane {
 
     // Now check for units.
     bool const allow_unit_click =
-        landview_mode_.holds<LandViewMode::unit_input>() ||
-        landview_mode_.holds<LandViewMode::end_of_turn>();
+        mode_.holds<LandViewMode::unit_input>() ||
+        mode_.holds<LandViewMode::end_of_turn>();
     auto const& units =
         euro_units_from_coord_recursive( ss_.units, coord );
     if( allow_unit_click && units.size() != 0 ) {
@@ -260,11 +273,7 @@ struct LandViewPlane::Impl : public Plane {
       co_return res;
     }
 
-    // Nothing to click on, so just scroll the map to center on
-    // the clicked tile.
-    viewport().set_point_seek(
-        viewport().world_tile_to_world_pixel_center( coord ) );
-
+    scroll_map();
     co_return res;
   }
 
@@ -294,7 +303,7 @@ struct LandViewPlane::Impl : public Plane {
         break;
       }
       case e::next_turn: {
-        if( !landview_mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.holds<LandViewMode::end_of_turn>() )
           // We're not supposed to send these events when we're
           // not in EOT mode. However, because of the fact that
           // input events can be buffered, we will be defensive
@@ -355,7 +364,7 @@ struct LandViewPlane::Impl : public Plane {
         // For this one, we just perform the action right here.
         using u_i = LandViewMode::unit_input;
         auto blinking_unit =
-            landview_mode_.get_if<u_i>().member( &u_i::unit_id );
+            mode_.get_if<u_i>().member( &u_i::unit_id );
         if( !blinking_unit ) {
           lg.warn(
               "There are no units currently asking for "
@@ -481,7 +490,7 @@ struct LandViewPlane::Impl : public Plane {
         viewport_rect_pixels,
         compositor::section( compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
-        ss_, renderer, lv_animator_, viz_,
+        ss_, renderer, animator_, viz_,
         last_unit_input_.member( &LastUnitInput::unit_id ),
         viewport_rect_pixels, input_overrun_indicator_,
         viewport() );
@@ -501,8 +510,8 @@ struct LandViewPlane::Impl : public Plane {
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
       case e_menu_item::cheat_reveal_map: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() &&
-            !landview_mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -540,8 +549,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::find_blinking_unit: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::center{} ) );
@@ -549,8 +557,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::sentry: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -559,8 +566,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::fortify: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -569,13 +575,11 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::dump: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         // Only for things that can carry cargo (ships and wagon
         // trains).
         if( ss_.units
-                .unit_for( landview_mode_
-                               .get<LandViewMode::unit_input>()
+                .unit_for( mode_.get<LandViewMode::unit_input>()
                                .unit_id )
                 .desc()
                 .cargo_slots == 0 )
@@ -588,8 +592,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::plow: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -598,8 +601,7 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::road: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() )
-          break;
+        if( !mode_.holds<LandViewMode::unit_input>() ) break;
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
@@ -608,8 +610,8 @@ struct LandViewPlane::Impl : public Plane {
         return handler;
       }
       case e_menu_item::hidden_terrain: {
-        if( !landview_mode_.holds<LandViewMode::unit_input>() &&
-            !landview_mode_.holds<LandViewMode::end_of_turn>() )
+        if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
           raw_input_stream_.send(
@@ -651,8 +653,7 @@ struct LandViewPlane::Impl : public Plane {
         // land view state is "none" so that e.g. the user can
         // buffer motion commands for a unit while it is sliding.
         if( !input::is_mod_key( key_event ) &&
-            landview_mode_
-                .holds<LandViewMode::hidden_terrain>() ) {
+            mode_.holds<LandViewMode::hidden_terrain>() ) {
           // This will tell hidden-terrain mode to exit.
           raw_input_stream_.send(
               RawInput( LandViewRawInput::hidden_terrain{} ) );
@@ -685,8 +686,7 @@ struct LandViewPlane::Impl : public Plane {
               viewport().smooth_zoom_target( 1.0 );
               if( center_on_unit ) {
                 auto blinking_unit =
-                    landview_mode_
-                        .get_if<LandViewMode::unit_input>();
+                    mode_.get_if<LandViewMode::unit_input>();
                 if( blinking_unit.has_value() )
                   viewport().set_point_seek(
                       viewport()
@@ -743,8 +743,7 @@ struct LandViewPlane::Impl : public Plane {
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
-            if( landview_mode_
-                    .holds<LandViewMode::hidden_terrain>() )
+            if( mode_.holds<LandViewMode::hidden_terrain>() )
               // This can happen when pressing shift-h multiple
               // times before the animator gets to the point
               // where it starts taking keys.
@@ -768,13 +767,12 @@ struct LandViewPlane::Impl : public Plane {
             break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
-            if( landview_mode_
-                    .holds<LandViewMode::unit_input>() ) {
+            if( mode_.holds<LandViewMode::unit_input>() ) {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
                       .what = command::forfeight{} } ) );
-            } else if( landview_mode_.holds<
+            } else if( mode_.holds<
                            LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
@@ -919,8 +917,8 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   maybe<UnitId> unit_blinking() {
-    return landview_mode_.get_if<LandViewMode::unit_input>()
-        .member( &LandViewMode::unit_input::unit_id );
+    return mode_.get_if<LandViewMode::unit_input>().member(
+        &LandViewMode::unit_input::unit_id );
   }
 
   wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
@@ -962,8 +960,7 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   bool is_unit_visible_on_map( GenericUnitId id ) const {
-    if( lv_animator_.unit_animations().contains( id ) )
-      return true;
+    if( animator_.unit_animations().contains( id ) ) return true;
     maybe<Coord> const tile =
         coord_for_unit_multi_ownership( ss_, id );
     if( !tile.has_value() ) return false;
@@ -987,58 +984,52 @@ struct LandViewPlane::Impl : public Plane {
     return ( sorted[0] == id );
   }
 
+  // Consume further inputs but eat all of them except for the
+  // ones we want, returning only when we should interrupt.
+  wait<> hidden_terrain_interact() {
+    CHECK( mode_.holds<LandViewMode::hidden_terrain>() );
+    for( auto const raw = co_await raw_input_stream_.next();; ) {
+      SWITCH( raw.input ) {
+        CASE( hidden_terrain ) { co_return; }
+        CASE( tile_click ) {
+          co_await click_on_world_tile( tile_click.coord );
+          break;
+        }
+        default:
+          break;
+      }
+    }
+  };
+
   wait<> show_hidden_terrain() {
     auto const new_state = LandViewMode::hidden_terrain{};
     // Clear input buffers after changing state to the new state
     // and after switching back to the old state.
     SCOPE_EXIT { reset_input_buffers(); };
-    SCOPED_SET_AND_RESTORE( landview_mode_, new_state );
+    SCOPED_SET_AND_RESTORE( mode_, new_state );
     reset_input_buffers();
     // TODO: maybe we could find some way of animating the re-
     // moval of the fog instead of just having it disappear.
-    auto popper = ts_.map_updater.push_options_and_redraw(
-        []( MapUpdaterOptions& options ) {
-          options.render_fog_of_war = false;
-        } );
-    CHECK( viz_ != nullptr );
-
-    // Consume further inputs but eat all of them except for the
-    // ones we want.
-    auto wait_for_key = [&]() -> wait<> {
-      while( true ) {
-        RawInput const raw_input =
-            co_await raw_input_stream_.next();
-        SWITCH( raw_input.input ) {
-          CASE( hidden_terrain ) { co_return; }
-          CASE( tile_click ) {
-            // TODO: maybe we could somehow deduplicate this
-            // tile_click logic.
-            lg.info( "tile_click: {}", tile_click.coord );
-            viewport().set_point_seek(
-                viewport().world_tile_to_world_pixel_center(
-                    tile_click.coord ) );
-            break;
-          }
-          default:
-            break;
-        }
-      }
-    };
+    auto const defogger =
+        ts_.map_updater.push_options_and_redraw(
+            []( MapUpdaterOptions& options ) {
+              options.render_fog_of_war = false;
+            } );
 
     HiddenTerrainAnimationSequence const seq =
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
     co_await co::first(
-        lv_animator_.animate_sequence( seq.spin_up ),
-        wait_for_key() );
+        animator_.animate_sequence( seq.spin_up ),
+        hidden_terrain_interact() );
+
+    co_await co::background(
+        hidden_terrain_interact(),
+        animator_.animate_sequence_and_hold( seq.wait ) );
 
     co_await co::first(
-        lv_animator_.animate_sequence_and_hold( seq.wait ),
-        wait_for_key() );
-
-    co_await co::first(
-        lv_animator_.animate_sequence( seq.spin_down ),
-        wait_for_key() );
+        animator_.animate_sequence( seq.spin_down ),
+        hidden_terrain_interact() );
   }
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {
@@ -1088,7 +1079,7 @@ struct LandViewPlane::Impl : public Plane {
     // This might be true either because we started a new turn,
     // or because of the above assignment.
     if( g_needs_scroll_to_unit_on_input )
-      co_await lv_animator_.ensure_visible_unit( id );
+      co_await animator_.ensure_visible_unit( id );
     g_needs_scroll_to_unit_on_input = false;
 
     // Need to set this before taking any user input, otherwise
@@ -1098,8 +1089,7 @@ struct LandViewPlane::Impl : public Plane {
     // can happen because sometimes we take input while eating
     // buffered input events below).
     SCOPED_SET_AND_RESTORE(
-        landview_mode_,
-        LandViewMode::unit_input{ .unit_id = id } );
+        mode_, LandViewMode::unit_input{ .unit_id = id } );
 
     // When we start on a new unit clear the input queue so that
     // commands that were accidentally buffered while controlling
@@ -1124,8 +1114,7 @@ struct LandViewPlane::Impl : public Plane {
       // We need the "hold" version because we need this to keep
       // going until the buffer eating is complete, at which
       // point it will be cancelled.
-      wait<> anim =
-          lv_animator_.animate_sequence_and_hold( seq );
+      wait<> anim = animator_.animate_sequence_and_hold( seq );
       co_await eat_cross_unit_buffered_input_events( id );
     }
 
@@ -1165,7 +1154,7 @@ struct LandViewPlane::Impl : public Plane {
     // sual state that the unit currently is in.
     LandViewPlayerInput input = co_await co::background(
         next_player_input_object(),
-        lv_animator_.animate_blink( id, visible_initially ) );
+        animator_.animate_blink( id, visible_initially ) );
 
     // Disable input buffer shielding when the unit issues a
     // non-move command, because in that case it is unlikely that
@@ -1186,8 +1175,7 @@ struct LandViewPlane::Impl : public Plane {
 
   wait<LandViewPlayerInput> eot_get_next_input() {
     last_unit_input_ = nothing;
-    SCOPED_SET_AND_RESTORE( landview_mode_,
-                            LandViewMode::end_of_turn{} );
+    SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
     co_return co_await next_player_input_object();
   }
 };
@@ -1204,7 +1192,7 @@ LandViewPlane::LandViewPlane( SS& ss, TS& ts,
   : impl_( new Impl( ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
-  return impl_->lv_animator_.ensure_visible( coord );
+  return impl_->animator_.ensure_visible( coord );
 }
 
 wait<> LandViewPlane::center_on_tile( Coord coord ) {
@@ -1216,7 +1204,7 @@ void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
 }
 
 wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
-  return impl_->lv_animator_.ensure_visible_unit( id );
+  return impl_->animator_.ensure_visible_unit( id );
 }
 
 wait<> LandViewPlane::show_hidden_terrain() {
@@ -1245,7 +1233,7 @@ maybe<UnitId> LandViewPlane::unit_blinking() {
 }
 
 wait<> LandViewPlane::animate( AnimationSequence const& seq ) {
-  return impl_->lv_animator_.animate_sequence( seq );
+  return impl_->animator_.animate_sequence( seq );
 }
 
 } // namespace rn
