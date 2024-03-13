@@ -1557,6 +1557,88 @@ class ChainView {
   }
 
   /**************************************************************
+  ** Chunk.
+  ***************************************************************/
+  auto chunk( int n ) && {
+    struct ChunkCursor : public CursorStorage,
+                         public CursorBase<ChunkCursor> {
+      struct Data {
+        Data( int n ) : n( n ) {}
+        int n = 0;
+      };
+      using Base = CursorBase<ChunkCursor>;
+      using CursorStorage::it_;
+      using typename Base::iterator;
+      using IncomingValueType = typename ChainView::value_type;
+      using ChainGroupView =
+          ChainView<IdentityCursor<ChildView<IncomingValueType,
+                                             ChunkCursor>>,
+                    IncomingValueType>;
+      using ChainGroupViewCursor = IdentityCursor<
+          ChildView<IncomingValueType, ChunkCursor>>;
+      ChunkCursor() = default;
+      ChunkCursor( Data const data ) : max_( data.n ) {
+        assert_bt( max_ > 0 );
+      }
+
+      void init( ChainView const& input ) {
+        input_ = &input;
+        n_     = max_;
+        it_    = input.begin();
+        if( it_ == input.end() ) return;
+      }
+
+      decltype( auto ) get( ChainView const& input ) const {
+        assert_bt( !end( input ) );
+        return ChainGroupView(
+            ChildView<IncomingValueType, ChunkCursor>( this ),
+            typename ChainGroupViewCursor::Data{} );
+      }
+
+      void next( ChainView const& input ) {
+        assert_bt( !end( input ) );
+        assert_bt( n_ > 0 );
+        do {
+          ++it_;
+          if( it_ == input.end() ) return;
+        } while( n_-- > 1 );
+        n_ = max_;
+      }
+
+      bool end( ChainView const& input ) const {
+        return ( it_ == input.end() );
+      }
+
+      iterator pos() const { return it_; }
+
+      // ======== ChildView hooks ========
+
+      bool child_view_done() const { return finished_group_; }
+
+      auto& child_view_get() const {
+        assert_bt( !finished_group_ );
+        return *it_;
+      }
+
+      void child_view_advance() {
+        assert_bt( !finished_group_ );
+        assert_bt( n_ > 0 );
+        ++it_;
+        if( it_ == input_->end() || n_-- == 1 ) {
+          finished_group_ = true;
+          n_              = max_;
+        }
+      }
+
+      ChainView const* input_          = {};
+      bool             finished_group_ = false;
+      int              max_            = 0;
+      int              n_              = max_;
+    };
+    return make_chain<ChunkCursor>( n );
+  }
+
+  /**************************************************************
   ** Enumerate
   ***************************************************************/
   // FIXME: make this more efficient with a specialized Cursor.

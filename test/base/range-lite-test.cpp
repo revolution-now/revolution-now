@@ -1424,5 +1424,214 @@ TEST_CASE( "[range-lite] sushi for two (zip_adjacent)" ) {
   REQUIRE( res == 4 );
 }
 
+TEST_CASE( "[range-lite] chunk" ) {
+  SECTION( "chunk: s=0" ) {
+    vector<int> input{};
+
+    auto view = rl::all( input ).chunk( 5 );
+
+    auto it = view.begin();
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{};
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=1, n=1" ) {
+    vector<int> input{ 1 };
+
+    auto view = rl::all( input ).chunk( 1 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 1 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{ { 1 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=1, n=3" ) {
+    vector<int> input{ 1 };
+
+    auto view = rl::all( input ).chunk( 3 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 1 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{ { 1 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=3, n=1" ) {
+    vector<int> input{ 9, 8, 7 };
+
+    auto view = rl::all( input ).chunk( 1 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 9 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 8 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 7 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{ { 9 }, { 8 }, { 7 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=12, n=3" ) {
+    vector<int> input{ 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 };
+
+    auto view = rl::all( input ).chunk( 3 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 1, 2, 2 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 2, 3, 3 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 4, 5, 5 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 5, 5, 6 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{
+        { 1, 2, 2 }, { 2, 3, 3 }, { 4, 5, 5 }, { 5, 5, 6 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=12, n=5" ) {
+    vector<int> input{ 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 };
+
+    auto view = rl::all( input ).chunk( 5 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 1, 2, 2, 2, 3 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 3, 4, 5, 5, 5 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 5, 6 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{
+        { 1, 2, 2, 2, 3 }, { 3, 4, 5, 5, 5 }, { 5, 6 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=12, n=12" ) {
+    vector<int> input{ 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 };
+
+    auto view = rl::all( input ).chunk( 12 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 1, 2, 2, 2, 3, 3, 4, 5, 5,
+                                       5, 5, 6 } ) );
+
+    vector<vector<int>> expected{
+        { 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=3, n=2, ref mod" ) {
+    vector<int> input{ 9, 8, 7 };
+
+    auto view = rl::all( input ).chunk( 2 );
+
+    auto it = view.begin();
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 9, 8 } ) );
+
+    auto sub_it = ( *it ).begin();
+    ++sub_it;
+    REQUIRE( *sub_it == 8 );
+    REQUIRE( input[1] == 8 );
+    *sub_it = 10;
+    REQUIRE( *sub_it == 10 );
+    REQUIRE( input[1] == 10 );
+
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 9, 10 } ) );
+
+    ++it;
+    REQUIRE( it != view.end() );
+    REQUIRE_THAT( ( *it ).to_vector(),
+                  Equals( vector<int>{ 7 } ) );
+
+    ++it;
+    REQUIRE( it == view.end() );
+
+    vector<vector<int>> expected{ { 9, 10 }, { 7 } };
+    REQUIRE_THAT(
+        std::move( view ).map_L( _.to_vector() ).to_vector(),
+        Equals( expected ) );
+  }
+  SECTION( "chunk: s=3, n=2, ref mod" ) {
+    vector<int> input{ 9, 8, 7 };
+
+    auto view = rl::all( input ).chunk( 2 );
+
+    vector<vector<int>> out;
+    for( auto grp : view ) {
+      out.push_back( {} );
+      for( auto n : grp ) out.back().push_back( n );
+    }
+
+    vector<vector<int>> expected{ { 9, 8 }, { 7 } };
+    REQUIRE_THAT( out, Equals( expected ) );
+  }
+}
+
 } // namespace
 } // namespace base
