@@ -181,6 +181,114 @@ TEST_CASE( "[anim-builder] emptiness and clearing" ) {
 
 TEST_CASE( "[anim-builder] landview_mod_tile" ) {
   AnimationBuilder builder;
+
+  AnimationSequence expected{ .sequence = { {} } };
+  REQUIRE( builder.result() == expected );
+
+  builder.delay( chrono::milliseconds{ 5 } );
+  expected = {
+      .sequence = { { { .primitive = AnimationPrimitive::delay{
+                            .duration = chrono::milliseconds{
+                                5 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_mod_tile( { .x = 1, .y = 2 },
+                             { .road = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = {
+                          { { .x = 1, .y = 2 },
+                            { .road = true } } } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_mod_tile( { .x = 2, .y = 3 },
+                             { .irrigation = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = {
+                          { { .x = 1, .y = 2 },
+                            { .road = true } },
+                          { { .x = 2, .y = 3 },
+                            { .irrigation = true } } } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.ensure_tile_visible( { .x = 7, .y = 8 } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = { { { .x = 1, .y = 2 },
+                                    { .road = true } },
+                                  { { .x = 2, .y = 3 },
+                                    { .irrigation =
+                                          true } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_mod_tile( { .x = 3, .y = 4 },
+                             { .lost_city_rumor = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = { { { .x = 1, .y = 2 },
+                                    { .road = true } },
+                                  { { .x = 2, .y = 3 },
+                                    { .irrigation = true } },
+                                  { { .x = 3, .y = 4 },
+                                    { .lost_city_rumor =
+                                          true } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.clear();
+  expected = { .sequence = { {} } };
+  REQUIRE( builder.result() == expected );
+
+  // Now try with the landview_mod_tile as the first one.
+  builder.landview_mod_tile( { .x = 1, .y = 2 },
+                             { .road = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = {
+                          { { .x = 1, .y = 2 },
+                            { .road = true } } } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_mod_tile( { .x = 2, .y = 3 },
+                             { .irrigation = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::landscape_anim_mod{
+                      .modded = {
+                          { { .x = 1, .y = 2 },
+                            { .road = true } },
+                          { { .x = 2, .y = 3 },
+                            { .irrigation = true } } } } } } } };
+  REQUIRE( builder.result() == expected );
 }
 
 } // namespace

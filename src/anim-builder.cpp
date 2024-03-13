@@ -141,7 +141,7 @@ AnimationAction& AnimationBuilder::landview_mod_tile(
     // adding these in bulk.
     for( auto it = latest_seq.rbegin(); it != latest_seq.rend();
          ++it ) {
-      auto& action = *it;
+      AnimationAction& action = *it;
       if( auto mod =
               action.primitive.get_if<landscape_anim_mod>();
           mod.has_value() )
@@ -150,9 +150,8 @@ AnimationAction& AnimationBuilder::landview_mod_tile(
     return push( P::landscape_anim_mod{} );
   }();
 
-  UNWRAP_CHECK( mod,
-                action.primitive.get_if<landscape_anim_mod>() );
-  auto& map = mod.modded;
+  UNWRAP_CHECK(
+      map, action.primitive.inner_if<landscape_anim_mod>() );
   map[tile] = square;
   return action;
 }
