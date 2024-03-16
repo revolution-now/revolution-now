@@ -13,8 +13,7 @@
 // Revolution Now
 #include "anim-builder.rds.hpp"
 #include "co-combinator.hpp"
-#include "co-time.hpp"
-#include "co-wait.hpp"
+#include "co-time.hpp" // IWYU pragma: keep
 #include "frame-count.hpp"
 #include "latch.hpp"
 #include "sound.hpp"
@@ -25,13 +24,9 @@
 
 // config
 #include "config/gfx.rds.hpp"
-#include "config/natives.hpp"
-#include "config/unit-type.hpp"
 
 // ss
-#include "ss/colonies.hpp"
 #include "ss/colony.rds.hpp"
-#include "ss/dwelling.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
@@ -41,11 +36,11 @@
 #include "rds/switch-macro.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "refl/to-str.hpp" // IWYU pragma: keep
 
 // base
-#include "base/to-str-ext-chrono.hpp"
-#include "base/to-str-ext-std.hpp"
+#include "base/to-str-ext-chrono.hpp" // IWYU pragma: keep
+#include "base/to-str-ext-std.hpp"    // IWYU pragma: keep
 
 using namespace std;
 
@@ -345,7 +340,7 @@ wait<> LandViewAnimator::slide_throttler( co::latch&    hold,
           /*initial_velocity=*/.1,       //
           /*mag_acceleration=*/1,        //
           /*mag_drag_acceleration=*/.002 //
-      }                                  //
+      } //
   };
   AnimThrottler throttle( kAlmostStandardFrame );
   while( slide.percent < 1.0 ) {

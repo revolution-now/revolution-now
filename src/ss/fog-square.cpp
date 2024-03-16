@@ -8,22 +8,22 @@
 * Description: Represents a player's view of a map square.
 *
 *****************************************************************/
-#include "fog-square.hpp"
+#include "fog-square.hpp" // IWYU pragma: keep
 
 // ss
-#include "ss/map-square.hpp"
+#include "ss/map-square.hpp" // IWYU pragma: keep
 
 // luapp
-#include "luapp/enum.hpp"
-#include "luapp/ext-base.hpp"
+#include "luapp/enum.hpp"     // IWYU pragma: keep
+#include "luapp/ext-base.hpp" // IWYU pragma: keep
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "refl/to-str.hpp" // IWYU pragma: keep
 
 // base
-#include "base/to-str-ext-std.hpp"
+#include "base/to-str-ext-std.hpp" // IWYU pragma: keep
 
 using namespace std;
 

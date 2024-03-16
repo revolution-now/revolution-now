@@ -18,8 +18,6 @@
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-time.hpp"
-#include "co-wait.hpp"
-#include "colony-id.hpp"
 #include "command.hpp"
 #include "compositor.hpp"
 #include "hidden-terrain.hpp"
@@ -47,9 +45,8 @@
 
 // ss
 #include "ss/colonies.hpp"
-#include "ss/land-view.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/ref.hpp"
-#include "ss/turn.hpp"
 #include "ss/units.hpp"
 
 // gfx
@@ -59,13 +56,13 @@
 #include "rds/switch-macro.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "refl/to-str.hpp" // IWYU pragma: keep
 
 // base
 #include "base/scope-exit.hpp"
 
 // luapp
-#include "luapp/enum.hpp"
+#include "luapp/enum.hpp" // IWYU pragma: keep
 #include "luapp/state.hpp"
 
 // C++ standard library

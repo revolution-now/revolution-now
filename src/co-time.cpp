@@ -11,13 +11,12 @@
 #include "co-time.hpp"
 
 // Revolution Now
-#include "co-wait.hpp"
+#include "co-wait.hpp" // IWYU pragma: keep
 #include "frame.hpp"
-#include "lua-wait.hpp"
+#include "lua-wait.hpp" // IWYU pragma: keep
 
 // luapp
 #include "luapp/register.hpp"
-#include "luapp/state.hpp"
 
 // base
 #include "base/scope-exit.hpp"

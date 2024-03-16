@@ -8,8 +8,6 @@
 * Description: Unit tests for the src/map-updater.* module.
 *
 *****************************************************************/
-#include "test/testing.hpp"
-
 // Under test.
 #include "src/map-updater.hpp"
 
@@ -21,13 +19,13 @@
 #include "src/ss/terrain.hpp"
 
 // refl
-#include "src/refl/to-str.hpp"
+#include "src/refl/to-str.hpp" // IWYU pragma: keep
 
 // base
-#include "src/base/to-str-ext-std.hpp"
+#include "src/base/to-str-ext-std.hpp" // IWYU pragma: keep
 
 // Must be last.
-#include "test/catch-common.hpp"
+#include "test/catch-common.hpp" // IWYU pragma: keep
 
 namespace rn {
 namespace {

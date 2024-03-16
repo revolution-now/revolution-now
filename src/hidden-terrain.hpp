@@ -14,9 +14,6 @@
 // rds
 #include "hidden-terrain.rds.hpp"
 
-// Revolution Now
-#include "anim-builder.rds.hpp"
-
 namespace rn {
 
 struct IRand;

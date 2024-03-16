@@ -10,20 +10,15 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "land-view.rds.hpp"
 
 // Revolution Now
-#include "colony-id.hpp"
-#include "land-view-anim.rds.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
 
 // ss
 #include "ss/nation.rds.hpp"
-#include "ss/unit-type.rds.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

@@ -10,20 +10,13 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Rds
 #include "land-view-anim.rds.hpp"
 
 // Revolution Now
 #include "wait.hpp"
 
-// config
-#include "config/tile-enum-fwd.hpp"
-
 // ss
-#include "ss/colony-id.hpp"
-#include "ss/dwelling-id.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-id.hpp"
 
@@ -34,7 +27,6 @@
 #include "base/attributes.hpp"
 
 // C++ standard library
-#include <queue>
 #include <stack>
 
 namespace rn {

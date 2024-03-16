@@ -8,16 +8,14 @@
 * Description: Unit tests for the ss/fog-square module.
 *
 *****************************************************************/
-#include "test/testing.hpp"
-
 // Under test.
-#include "src/ss/fog-square.hpp"
+#include "src/ss/fog-square.rds.hpp"
 
 // refl
-#include "src/refl/to-str.hpp"
+#include "src/refl/to-str.hpp" // IWYU pragma: keep
 
 // base
-#include "src/base/to-str-ext-std.hpp"
+#include "src/base/to-str-ext-std.hpp" // IWYU pragma: keep
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
