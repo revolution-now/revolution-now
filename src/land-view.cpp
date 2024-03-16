@@ -988,7 +988,8 @@ struct LandViewPlane::Impl : public Plane {
   // ones we want, returning only when we should interrupt.
   wait<> hidden_terrain_interact() {
     CHECK( mode_.holds<LandViewMode::hidden_terrain>() );
-    for( auto const raw = co_await raw_input_stream_.next();; ) {
+    for( ;; ) {
+      RawInput const raw = co_await raw_input_stream_.next();
       SWITCH( raw.input ) {
         CASE( hidden_terrain ) { co_return; }
         CASE( tile_click ) {
