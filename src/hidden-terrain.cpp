@@ -14,10 +14,12 @@
 // Revolution Now
 #include "anim-builder.hpp"
 #include "irand.hpp"
+#include "map-square.hpp"
 #include "visibility.hpp"
 
 // ss
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
 // gfx
@@ -110,8 +112,9 @@ struct ContentHiderImpl : public ContentHider {
   void compute_stages() {
     auto const [num_chunks, chunk_size] = [&] {
       int num_chunks = target_chunks_;
+      if( num_chunks == 0 ) return pair{ 0, 0 };
+      CHECK_GT( target_chunks_, 0 );
       int chunk_size = shuffled_tiles_.size() / target_chunks_;
-      CHECK_GT( chunk_size, 0 );
       int const residual =
           shuffled_tiles_.size() - ( chunk_size * num_chunks );
       if( residual > 0 )
@@ -125,22 +128,14 @@ struct ContentHiderImpl : public ContentHider {
       int const chunk_end =
           std::min( ( chunk + 1 ) * chunk_size,
                     int( shuffled_tiles_.size() ) );
+      bool changed = false;
       for( int i = chunk_start; i < chunk_end; ++i ) {
         Coord const tile = shuffled_tiles_[i];
         if( viz_.visible( tile ) == e_tile_visibility::hidden )
           continue;
-        as_derived().on_tile( tile );
+        changed = as_derived().on_tile( tile ) || changed;
       }
-      // This helps to avoid lingering in animation stages where
-      // nothing actually changes. This shouldn't hurt perfor-
-      // mance because we only compare the T objects (which them-
-      // selves can be vectors or maps) when their sizes are the
-      // same, which should rarely happen since this is an excep-
-      // tion scenario to begin with.
-      if( !stages_.empty() &&
-          stages_.back().size() == accum_.size() &&
-          stages_.back() == accum_ )
-        continue;
+      if( !changed ) continue;
       stages_.push_back( accum_ );
     }
     erase_if( stages_,
@@ -148,12 +143,12 @@ struct ContentHiderImpl : public ContentHider {
   }
 
  protected:
-  SSConst const&     ss_;
-  IVisibility const& viz_;
-  vector<Coord>      shuffled_tiles_;
-  int const          target_chunks_;
-  T                  accum_;
-  vector<T>          stages_;
+  SSConst const&      ss_;
+  IVisibility const&  viz_;
+  vector<Coord> const shuffled_tiles_;
+  int const           target_chunks_;
+  T                   accum_;
+  vector<T>           stages_;
 };
 
 /****************************************************************
@@ -202,15 +197,17 @@ struct UnitsHider final
 
   inline static milliseconds const kDelay{ 30 };
 
-  void on_tile( Coord tile ) {
+  [[nodiscard]] bool on_tile( Coord tile ) {
+    if( is_water( ss_.terrain.square_at( tile ) ) ) return false;
     unordered_set<GenericUnitId> const& units =
         ss_.units.from_coord( tile );
-    if( units.empty() ) return;
+    if( units.empty() ) return false;
     vector<GenericUnitId> units_ordered( units.begin(),
                                          units.end() );
     sort( units_ordered.begin(), units_ordered.end() );
     accum_.insert( accum_.end(), units_ordered.begin(),
                    units_ordered.end() );
+    return true;
   }
 
   void hide_one( AnimationBuilder&    builder,
@@ -229,9 +226,10 @@ struct DwellingsHider final
 
   inline static milliseconds const kDelay{ 20 };
 
-  void on_tile( Coord tile ) {
-    if( !viz_.dwelling_at( tile ).has_value() ) return;
+  [[nodiscard]] bool on_tile( Coord tile ) {
+    if( !viz_.dwelling_at( tile ).has_value() ) return false;
     accum_.push_back( tile );
+    return true;
   }
 
   void hide_one( AnimationBuilder& builder,
@@ -250,9 +248,10 @@ struct ColoniesHider final
 
   inline static milliseconds const kDelay{ 20 };
 
-  void on_tile( Coord tile ) {
-    if( !viz_.colony_at( tile ).has_value() ) return;
+  [[nodiscard]] bool on_tile( Coord tile ) {
+    if( !viz_.colony_at( tile ).has_value() ) return false;
     accum_.push_back( tile );
+    return true;
   }
 
   void hide_one( AnimationBuilder& builder,
@@ -274,13 +273,13 @@ struct ImprovementsHider final
 
   inline static milliseconds const kDelay{ 80 };
 
-  void on_tile( Coord tile ) {
+  [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
-    if( square.road || square.irrigation ) {
-      auto& new_square      = moddable_square( tile );
-      new_square.road       = false;
-      new_square.irrigation = false;
-    }
+    if( !square.road && !square.irrigation ) return false;
+    auto& new_square      = moddable_square( tile );
+    new_square.road       = false;
+    new_square.irrigation = false;
+    return true;
   }
 };
 
@@ -297,7 +296,7 @@ struct ResourcesHider final
 
   inline static milliseconds const kDelay{ 40 };
 
-  void on_tile( Coord tile ) {
+  [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
     // Note in the below we try to avoid adding an element to
     // the map unless we actually need to make a change.
@@ -310,7 +309,9 @@ struct ResourcesHider final
         new_square.ground_resource = nothing;
       new_square.forest_resource = nothing;
       new_square.lost_city_rumor = false;
+      return true;
     }
+    return false;
   }
 };
 
@@ -326,12 +327,14 @@ struct ForestHider final
 
   inline static milliseconds const kDelay{ 80 };
 
-  void on_tile( Coord tile ) {
+  [[nodiscard]] bool on_tile( Coord tile ) {
     MapSquare const& square = current_square( tile );
     if( square.overlay == e_land_overlay::forest ) {
       auto& new_square   = moddable_square( tile );
       new_square.overlay = nothing;
+      return true;
     }
+    return false;
   }
 };
 
@@ -431,24 +434,23 @@ HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
   HiderBuilder h( ss, viz, builder, shuffled_coords,
                   kTargetChunks );
 
-  // 1. Spin up.
+  // 1. Hide.
   auto units        = h.hider<UnitsHider>();
   auto dwellings    = h.hider<DwellingsHider>();
   auto colonies     = h.hider<ColoniesHider>();
   auto improvements = h.hider<ImprovementsHider>();
   auto resources    = h.hider<ResourcesHider>( improvements );
   auto forest       = h.hider<ForestHider>( resources );
-  res.spin_up       = std::move( builder ).result();
+  res.hide          = std::move( builder ).result();
 
-  // 2. Wait.
+  // 2. Hold.
   builder.clear();
   h.hide_previous();
-  res.wait = std::move( builder ).result();
+  res.hold = std::move( builder ).result();
 
-  // 3. Spin down.
-  res.spin_down = res.spin_up;
-  reverse( res.spin_down.sequence.begin(),
-           res.spin_down.sequence.end() );
+  // 3. Spin up.
+  res.show = res.hide;
+  reverse( res.show.sequence.begin(), res.show.sequence.end() );
 
   return res;
 }

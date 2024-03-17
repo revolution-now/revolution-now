@@ -1017,17 +1017,15 @@ struct LandViewPlane::Impl : public Plane {
     HiddenTerrainAnimationSequence const seq =
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
-    co_await co::first(
-        animator_.animate_sequence( seq.spin_up ),
-        hidden_terrain_interact() );
+    co_await co::first( animator_.animate_sequence( seq.hide ),
+                        hidden_terrain_interact() );
 
     co_await co::background(
         hidden_terrain_interact(),
-        animator_.animate_sequence_and_hold( seq.wait ) );
+        animator_.animate_sequence_and_hold( seq.hold ) );
 
-    co_await co::first(
-        animator_.animate_sequence( seq.spin_down ),
-        hidden_terrain_interact() );
+    co_await co::first( animator_.animate_sequence( seq.show ),
+                        hidden_terrain_interact() );
   }
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {

@@ -9,12 +9,20 @@
 #
 # ===============================================================
 # Revolution Now
-include "anim-builder.hpp"
+include "anim-builder.rds.hpp"
 
 namespace "rn"
 
+# When the user enters Hidden Terrain mode, the `hide` animation
+# phase will gradually remove things until only the ground ter-
+# rain (plus rivers/hills/mountains) remain. The `hold` animation
+# is just rendered and held until the user hits a key, at which
+# point the `show` animation gradually restores the view back to
+# normal. This is meant to emulate the OG's behavior when enter-
+# ing/leaving Hidden Terrain mode. Note that the user can hit a
+# key during the animation phases to skip ahead to the next.
 struct.HiddenTerrainAnimationSequence {
-  spin_up 'AnimationSequence',
-  wait 'AnimationSequence',
-  spin_down 'AnimationSequence',
+  hide 'AnimationSequence',
+  hold 'AnimationSequence',
+  show 'AnimationSequence',
 }
