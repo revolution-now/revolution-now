@@ -62,11 +62,11 @@ struct Golden {
 
  private:
   T    load_from_golden() const;
-  void save_to_golden() const;
+  void save_to_golden( fs::path const& p ) const;
 
  private:
-  T const&    ref_;
-  std::string file_;
+  T const& ref_;
+  fs::path file_;
 };
 
 /****************************************************************
@@ -89,14 +89,14 @@ Golden<T>::Golden( T const& ref, std::string const& tag,
 template<cdr::Canonical T>
 base::valid_or<std::string> Golden<T>::is_golden() const {
   if( !fs::exists( file_ ) ) {
-    save_to_golden();
+    save_to_golden( file_ );
     return base::valid;
   }
   T const golden = load_from_golden();
   if( golden == ref_ ) return base::valid;
   fs::path new_output_file = file_;
   new_output_file += ".new";
-  save_to_golden();
+  save_to_golden( new_output_file );
   return fmt::format(
       "{}\n\n!=\n\n{}\n\nNew output written to file {}.", ref_,
       golden, new_output_file );
@@ -104,9 +104,9 @@ base::valid_or<std::string> Golden<T>::is_golden() const {
 
 template<cdr::Canonical T>
 T Golden<T>::load_from_golden() const {
-  UNWRAP_CHECK( rcl_str,
-                base::read_text_file_as_string( file_ ) );
-  UNWRAP_CHECK( rcl_doc, rcl::parse( file_, rcl_str ) );
+  UNWRAP_CHECK( rcl_str, base::read_text_file_as_string(
+                             file_.string() ) );
+  UNWRAP_CHECK( rcl_doc, rcl::parse( file_.string(), rcl_str ) );
   cdr::converter::options const options{
       .allow_unrecognized_fields        = true,
       .default_construct_missing_fields = true,
@@ -117,7 +117,7 @@ T Golden<T>::load_from_golden() const {
 }
 
 template<cdr::Canonical T>
-void Golden<T>::save_to_golden() const {
+void Golden<T>::save_to_golden( fs::path const& p ) const {
   cdr::converter::options const options{
       .write_fields_with_default_value = false };
   cdr::value cdr_val =
@@ -127,9 +127,8 @@ void Golden<T>::save_to_golden() const {
   UNWRAP_CHECK( rcl_doc, rcl::doc::create( std::move( tbl ) ) );
   std::string const body = rcl::emit( rcl_doc );
   // Open file last.
-  std::ofstream out( file_ );
-  BASE_CHECK( out.good(), "failed to open {} for writing.",
-              file_ );
+  std::ofstream out( p );
+  BASE_CHECK( out.good(), "failed to open {} for writing.", p );
   out << rcl::emit( rcl_doc );
 }
 
