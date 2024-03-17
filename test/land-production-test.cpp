@@ -2001,6 +2001,7 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 }
 
 TEST_CASE( "[production] food_production_on_center_square" ) {
+  World            W;
   MapSquare const* square     = nullptr;
   e_difficulty     difficulty = {};
   int              expected   = 0;
@@ -2011,15 +2012,11 @@ TEST_CASE( "[production] food_production_on_center_square" ) {
   };
 
   MapSquare const grassland =
-      World::make_terrain( e_terrain::grassland );
-  MapSquare const conifer =
-      World::make_terrain( e_terrain::conifer );
-  MapSquare const hills =
-      World::make_terrain( e_terrain::hills );
-  MapSquare const arctic =
-      World::make_terrain( e_terrain::arctic );
-  MapSquare const plains =
-      World::make_terrain( e_terrain::plains );
+      W.make_terrain( e_terrain::grassland );
+  MapSquare const conifer = W.make_terrain( e_terrain::conifer );
+  MapSquare const hills   = W.make_terrain( e_terrain::hills );
+  MapSquare const arctic  = W.make_terrain( e_terrain::arctic );
+  MapSquare const plains  = W.make_terrain( e_terrain::plains );
 
   MapSquare plains_plowed  = plains;
   plains_plowed.irrigation = true;
@@ -2248,8 +2245,7 @@ TEST_CASE(
         job, *square, W.default_player(), difficulty );
   };
 
-  MapSquare const plains =
-      World::make_terrain( e_terrain::plains );
+  MapSquare const plains = W.make_terrain( e_terrain::plains );
 
   MapSquare plains_plowed  = plains;
   plains_plowed.irrigation = true;
@@ -2421,7 +2417,9 @@ TEST_CASE( "[production] choose_secondary_job" ) {
   using J = e_outdoor_commons_secondary_job;
   using T = e_terrain;
 
-  auto m = World::make_terrain;
+  auto m = [&]( e_terrain type ) {
+    return W.make_terrain( type );
+  };
 
   e_difficulty const difficulty = GENERATE(
       e_difficulty::discoverer, e_difficulty::viceroy );
@@ -2471,7 +2469,7 @@ TEST_CASE(
         Coord::from_gfx( P ) );
   };
 
-  S() = World::make_terrain( e_terrain::rain );
+  S() = W.make_terrain( e_terrain::rain );
 
   unit_type = e_unit_type::free_colonist;
   REQUIRE( f() == 0 );
@@ -2479,7 +2477,7 @@ TEST_CASE(
   unit_type = e_unit_type::expert_silver_miner;
   REQUIRE( f() == 0 );
 
-  S()                 = World::make_terrain( e_terrain::rain );
+  S()                 = W.make_terrain( e_terrain::rain );
   S().forest_resource = e_natural_resource::minerals;
 
   unit_type = e_unit_type::free_colonist;
@@ -2512,7 +2510,7 @@ TEST_CASE( "[production] fur trappers with hudson" ) {
         W.default_player(), e_difficulty::conquistador );
   };
 
-  S() = World::make_terrain( e_terrain::grassland );
+  S() = W.make_terrain( e_terrain::grassland );
 
   REQUIRE( g() == 0 );
 
@@ -2522,7 +2520,7 @@ TEST_CASE( "[production] fur trappers with hudson" ) {
   unit_type = e_unit_type::expert_fur_trapper;
   REQUIRE( f() == 0 );
 
-  S() = World::make_terrain( e_terrain::conifer );
+  S() = W.make_terrain( e_terrain::conifer );
 
   REQUIRE( g() == 2 );
 
