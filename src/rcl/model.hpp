@@ -176,7 +176,7 @@ struct doc {
   // This will not only create the doc, it will also run a recur-
   // sive post-processing over the table.
   static base::expect<doc> create(
-      cdr::table&& tbl, ProcessingOptions const& opts );
+      cdr::table&& tbl, ProcessingOptions const& opts = {} );
 
   cdr::table const& top_tbl() const {
     return val_.get<cdr::table>();
