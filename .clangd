@@ -6,6 +6,6 @@ CompileFlags:
     -static-libasan
     ]
 
-# Diagnostics:
-#   UnusedIncludes: Strict
-#   MissingIncludes: Strict
+Diagnostics:
+  UnusedIncludes: None   # Use "Strict" to enable.
+  MissingIncludes: None  # Use "Strict" to enable.
