@@ -317,11 +317,6 @@ unordered_map_from_canonical_table( converter&   conv,
   // The keys are string types already.
   for( auto const& [k, v] : tbl ) {
     UNWRAP_RETURN( key, conv.from<K>( k ) );
-    std::string key_str;
-    if constexpr( base::Show<K> )
-      key_str = base::to_str( key );
-    else
-      key_str = "<unformattable>";
     // There should never be a duplicate key even upon invalid
     // user input because `tbl` is backed by a real map.
     CHECK( !res.contains( key ) );
@@ -388,6 +383,120 @@ result<std::unordered_set<T>> from_canonical(
     res.insert( val );
   }
   return res;
+}
+
+/****************************************************************
+** map
+*****************************************************************/
+// This type is implemented a bit differently than the others,
+// because a map where the keys are string-like is treated spe-
+// cially in that it can be converted directly to/from a Cdr
+// table (whose keys must always be strings), whereas maps with
+// any other key type must be converted to a list of pairs.
+template<ToCanonical K, ToCanonical V>
+value to_canonical( converter& conv, std::map<K, V> const& o,
+                    tag_t<std::map<K, V>> ) {
+  // This will test once up front if the key type
+  static bool const converts_to_string = [] {
+    // The ToCanonical concept will guarantee that K is default
+    // constructible. We then assume that if the default con-
+    // structed value gets converted to a string then all values
+    // of that type will too, which is always going to apply in
+    // practice to types that make sense to use as keys. An ex-
+    // ception to this would be e.g. a maybe<string> in that it
+    // will convert to a string when it holds a value but not
+    // otherwise, but that type is not suitable as a key anyway.
+    return converter{}.to( K{} ).template holds<std::string>();
+  }();
+  // Note: here we don't use conv.to_field because map keys are
+  // not really "fields" of a struct; e.g., we don't necessarily
+  // want them to be omitted when they have default values, even
+  // when that serialization mode is enabled.
+  if( converts_to_string ) {
+    table res;
+    for( auto const& [k, v] : o ) {
+      value key = conv.to( k );
+      CHECK( key.holds<std::string>(),
+             "key type {} converts to string, but not "
+             "consistently, therefore it is not suitable to use "
+             "as a type in a map.",
+             type_name( key ) );
+      res[std::move( key.as<std::string>() )] = conv.to( v );
+    }
+    return res;
+  } else {
+    list res; // this is a cdr list.
+    res.reserve( o.size() );
+    for( auto const& p : o ) res.push_back( conv.to( p ) );
+    return res;
+  }
+}
+
+namespace detail {
+
+template<typename K, typename V>
+result<std::map<K, V>> map_from_canonical_list(
+    converter& conv, list const& lst ) {
+  std::map<K, V> res;
+  using value_type = typename std::map<K, V>::value_type;
+  for( int idx = 0; idx < lst.ssize(); ++idx ) {
+    UNWRAP_RETURN( val,
+                   conv.from_index<value_type>( lst, idx ) );
+    auto&       key = val.first;
+    std::string key_str;
+    if constexpr( base::Show<K> )
+      key_str = base::to_str( key );
+    else
+      key_str = "<unformattable>";
+    if( res.contains( key ) )
+      return conv.err( "map contains duplicate key {}.",
+                       key_str );
+    res.insert( std::move( val ) );
+  }
+  return res;
+}
+
+// `K` must be a type convertible from a Cdr string, since the
+// keys in a Cdr table are always strings.
+template<typename K, typename V>
+result<std::map<K, V>> map_from_canonical_table(
+    converter& conv, table const& tbl ) {
+  std::map<K, V> res;
+  // The keys are string types already.
+  for( auto const& [k, v] : tbl ) {
+    UNWRAP_RETURN( key, conv.from<K>( k ) );
+    // There should never be a duplicate key even upon invalid
+    // user input because `tbl` is backed by a real map.
+    CHECK( !res.contains( key ) );
+    UNWRAP_RETURN( val,
+                   conv.from_field_no_tracking<V>( tbl, k ) );
+    res[std::move( key )] = std::move( val );
+  }
+  return res;
+}
+
+} // namespace detail
+
+// clang-format off
+template<typename K, typename V>
+requires FromCanonical<
+    typename std::map<K, V>::value_type>
+result<std::map<K, V>> from_canonical(
+    converter& conv, value const& v, tag_t<std::map<K, V>> ) {
+  // clang-format on
+  auto maybe_lst = v.get_if<list>();
+  if( maybe_lst.has_value() )
+    return detail::map_from_canonical_list<K, V>( conv,
+                                                  *maybe_lst );
+  auto maybe_tbl = v.get_if<table>();
+  if( maybe_tbl.has_value() )
+    return detail::map_from_canonical_table<K, V>( conv,
+                                                   *maybe_tbl );
+  return conv.err(
+      "producing a std::map requires either a list of pair "
+      "objects or a table with string keys; instead found type "
+      "{}.",
+      type_name( v ) );
 }
 
 /****************************************************************
