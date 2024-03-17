@@ -85,6 +85,17 @@ result<std::chrono::milliseconds> from_canonical(
     tag_t<std::chrono::milliseconds> );
 
 /****************************************************************
+** std::chrono::microseconds
+*****************************************************************/
+value to_canonical( converter&                       conv,
+                    std::chrono::microseconds const& o,
+                    tag_t<std::chrono::microseconds> );
+
+result<std::chrono::microseconds> from_canonical(
+    converter& conv, value const& v,
+    tag_t<std::chrono::microseconds> );
+
+/****************************************************************
 ** std::pair
 *****************************************************************/
 template<ToCanonical Fst, ToCanonical Snd>

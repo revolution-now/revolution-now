@@ -83,6 +83,19 @@ TEST_CASE( "[cdr/ext-std] chrono::milliseconds" ) {
   }
 }
 
+TEST_CASE( "[cdr/ext-std] chrono::microseconds" ) {
+  SECTION( "to_canonical" ) {
+    REQUIRE( conv.to( chrono::microseconds{ 5 } ) == 5 );
+  }
+  SECTION( "from_canonical" ) {
+    REQUIRE( conv_from_bt<chrono::microseconds>( conv, 5 ) ==
+             chrono::microseconds{ 5 } );
+    REQUIRE( conv.from<chrono::microseconds>( "5" ) ==
+             conv.err( "expected type integer, instead found "
+                       "type string." ) );
+  }
+}
+
 TEST_CASE( "[cdr/ext-std] pair" ) {
   SECTION( "to_canonical" ) {
     pair<int, bool> p{ 5, true };
