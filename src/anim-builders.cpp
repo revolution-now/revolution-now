@@ -287,8 +287,21 @@ void animate_remove_roads( AnimationBuilder&    builder,
 void depixelate_dwelling( AnimationBuilder& builder, Coord tile,
                           IVisibility const& viz ) {
   builder.depixelate_dwelling( tile );
-  (void)viz;
-  // TODO
+  // This will do the below tile rendering assuming that the
+  // dwelling is not present, thereby effectively pixelating it
+  // to the state it will be in after the dwelling goes away
+  // (e.g. prime resource will become visible).
+  builder.landview_enpixelate_dwelling_context( tile, nothing );
+  // No edits made, this just has the effect of making the tile
+  // get drawn on the landscape enpixelation buffer, which will
+  // happen in the context of the above dwelling change in order
+  // to make the tile enpixelate into what it will eventually
+  // look like without the dwelling present, which is to say in
+  // practice that it will lack the road and possibly have a
+  // prime resource on it.
+  builder.landview_enpixelate_edit_tile(
+      tile, /*initial=*/viz.square_at( tile ),
+      AnimationBuilder::kMapSquareEditFnNoop );
 }
 
 } // namespace
