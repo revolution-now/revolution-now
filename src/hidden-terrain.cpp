@@ -167,7 +167,7 @@ struct LandviewModMixin {
   void hide_one( AnimationBuilder& builder,
                  auto const&       elem ) const {
     auto const& [tile, square] = elem;
-    builder.landview_mod_tile( tile, square );
+    builder.landview_replace_set_tile( tile, square );
   }
 
   MapSquare const& current_square( Coord tile ) const {

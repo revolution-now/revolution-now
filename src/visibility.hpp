@@ -45,6 +45,8 @@ struct SSConst;
 struct TS;
 struct TerrainState;
 
+enum class e_natural_resource;
+
 /****************************************************************
 ** IVisibility
 *****************************************************************/
@@ -68,6 +70,13 @@ struct IVisibility {
   virtual maybe<Dwelling const&> dwelling_at(
       Coord tile ) const = 0;
 
+  // For rendering purposes, this should be called to determine
+  // whether there is a prime resource actually visible on the
+  // square, since there is some logic involved in doing that be-
+  // yond just looking at the MapSquare object.
+  virtual maybe<e_natural_resource> resource_at(
+      Coord tile ) const final;
+
   // In general we're rendering the terrain from the point of
   // view of a player and so it may have only partial visibility.
   // Our square_at function thus will try the player's first,
@@ -89,6 +98,17 @@ struct IVisibility {
   // For convenience. Is the tile on the map.
   bool on_map( Coord tile ) const;
 
+ private:
+  // There are a couple of situations where we don't want to
+  // render a prime resource on the map, either due to the other
+  // properties of the map square or entities on top of the
+  // square. This allows us to keep that logic in this module in-
+  // stead of the rendering module; better that the latter is
+  // kept as dumb as possible for unit testing purposes. The ren-
+  // derer will call the resource_at() method, which in turn will
+  // call this one.
+  bool is_resource_suppressed( Coord tile ) const;
+
  protected:
   TerrainState const& terrain_;
 };
@@ -108,10 +128,9 @@ struct VisibilityEntire : IVisibility {
 
   e_tile_visibility visible( Coord ) const override;
 
-  virtual maybe<Colony const&> colony_at(
-      Coord tile ) const override;
+  maybe<Colony const&> colony_at( Coord tile ) const override;
 
-  virtual maybe<Dwelling const&> dwelling_at(
+  maybe<Dwelling const&> dwelling_at(
       Coord tile ) const override;
 
   MapSquare const& square_at( Coord tile ) const override;
@@ -134,10 +153,9 @@ struct VisibilityForNation : IVisibility {
 
   e_tile_visibility visible( Coord tile ) const override;
 
-  virtual maybe<Colony const&> colony_at(
-      Coord tile ) const override;
+  maybe<Colony const&> colony_at( Coord tile ) const override;
 
-  virtual maybe<Dwelling const&> dwelling_at(
+  maybe<Dwelling const&> dwelling_at(
       Coord tile ) const override;
 
   MapSquare const& square_at( Coord tile ) const override;
@@ -158,10 +176,9 @@ struct VisibilityForNation : IVisibility {
 // Delegates to a provided IVisibility object except for a cer-
 // tain set of tiles whose values will be overridden.
 struct VisibilityWithOverrides : IVisibility {
-  VisibilityWithOverrides( SSConst const&     ss,
-                           IVisibility const& underlying,
-                           std::map<Coord, MapSquare> const&
-                               overrides ATTR_LIFETIMEBOUND );
+  VisibilityWithOverrides(
+      SSConst const& ss, IVisibility const& underlying,
+      VisibilityOverrides const& overrides ATTR_LIFETIMEBOUND );
 
  public: // Implement IVisibility.
   base::maybe<e_nation> nation() const override {
@@ -170,18 +187,16 @@ struct VisibilityWithOverrides : IVisibility {
 
   e_tile_visibility visible( Coord tile ) const override;
 
-  virtual maybe<Colony const&> colony_at(
+  maybe<Colony const&> colony_at( Coord tile ) const override;
+
+  maybe<Dwelling const&> dwelling_at(
       Coord tile ) const override;
 
-  virtual maybe<Dwelling const&> dwelling_at(
-      Coord tile ) const override;
-
-  // Implement IVisibility.
   MapSquare const& square_at( Coord tile ) const override;
 
  private:
-  IVisibility const&                underlying_;
-  std::map<Coord, MapSquare> const& overrides_;
+  IVisibility const&         underlying_;
+  VisibilityOverrides const& overrides_;
 };
 
 /****************************************************************

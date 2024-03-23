@@ -16,8 +16,12 @@
 // rds
 #include "anim-builder.rds.hpp"
 
+// Revolution Now
+#include "maybe.hpp"
+
 // base
 #include "base/attributes.hpp"
+#include "base/function-ref.hpp"
 
 namespace rn {
 
@@ -69,13 +73,38 @@ struct AnimationBuilder {
 
   AnimationAction& ensure_tile_visible( Coord tile );
 
-  AnimationAction& enpixelate_landview_tiles(
-      std::map<Coord, MapSquare> targets );
+  using MapSquareEditFn =
+      base::function_ref<void( MapSquare& ) const>;
+  inline static auto constexpr kMapSquareEditFnNoop =
+      []( MapSquare& ) {};
 
-  AnimationAction& landview_mod_tile( Coord            tile,
-                                      MapSquare const& square );
+  // Land View Replacement Buffer.
+  // ------------------------------------------------------------
+  AnimationAction& landview_replace_set_tile(
+      Coord tile, MapSquare const& square );
+
+  // Land View Enpixelation Buffer.
+  // ------------------------------------------------------------
+  // This function requires an initial value to use in the event
+  // that this is the first edit on the tile.
+  AnimationAction& landview_enpixelate_edit_tile(
+      Coord tile, MapSquare const& initial, MapSquareEditFn op );
+
+  AnimationAction& landview_enpixelate_dwelling_context(
+      Coord tile, maybe<Dwelling const&> target );
 
  private:
+  template<typename Primitive>
+  AnimationAction& find_or_add_action();
+
+  template<typename Primitive>
+  AnimationAction& landview_anim_set_override(
+      Coord tile, MapSquare const& def, MapSquareEditFn op );
+
+  template<typename Primitive>
+  AnimationAction& landview_anim_override_context(
+      Coord tile, maybe<Dwelling const&> override );
+
   // Add another animation into the current phase.
   AnimationAction& push( auto&& o ) {
     CHECK( !seq_.sequence.empty() );

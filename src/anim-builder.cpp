@@ -121,39 +121,71 @@ AnimationAction& AnimationBuilder::ensure_tile_visible(
   return push( P::ensure_tile_visible{ .tile = tile } );
 }
 
-AnimationAction& AnimationBuilder::enpixelate_landview_tiles(
-    std::map<Coord, MapSquare> targets ) {
-  return push( P::landscape_anim_enpixelate{
-      .targets = std::move( targets ) } );
+// We can have at most one of each type of landscape anim per
+// phase, so reuse one if we already have it, otherwise create
+// one. As an optimization, try from the back first since that is
+// where it is likely to be, since presumably we will be adding
+// these in bulk.
+template<typename Primitive>
+AnimationAction& AnimationBuilder::find_or_add_action() {
+  CHECK( !seq_.sequence.empty() );
+  auto& latest_seq = seq_.sequence.back();
+  for( auto it = latest_seq.rbegin(); it != latest_seq.rend();
+       ++it ) {
+    AnimationAction& action = *it;
+    if( auto mod = action.primitive.get_if<Primitive>();
+        mod.has_value() )
+      return action;
+  }
+  return push( Primitive{} );
 }
 
-AnimationAction& AnimationBuilder::landview_mod_tile(
-    Coord tile, MapSquare const& square ) {
-  using landscape_anim_mod =
-      AnimationPrimitive::landscape_anim_mod;
-  // We can have at most one landscape anim mod per phase, so
-  // reuse one if we already have it, otherwise create one.
-  AnimationAction& action = [&]() -> auto& {
-    CHECK( !seq_.sequence.empty() );
-    auto& latest_seq = seq_.sequence.back();
-    // As an optimization, try from the back first since that is
-    // where it is likely to be, since presumably we will be
-    // adding these in bulk.
-    for( auto it = latest_seq.rbegin(); it != latest_seq.rend();
-         ++it ) {
-      AnimationAction& action = *it;
-      if( auto mod =
-              action.primitive.get_if<landscape_anim_mod>();
-          mod.has_value() )
-        return action;
-    }
-    return push( P::landscape_anim_mod{} );
-  }();
-
-  UNWRAP_CHECK(
-      map, action.primitive.inner_if<landscape_anim_mod>() );
-  map[tile] = square;
+template<typename Primitive>
+AnimationAction& AnimationBuilder::landview_anim_set_override(
+    Coord tile, MapSquare const& initial, MapSquareEditFn op ) {
+  AnimationAction& action = find_or_add_action<Primitive>();
+  UNWRAP_CHECK( overrides,
+                action.primitive.inner_if<Primitive>() );
+  if( !overrides.squares.contains( tile ) )
+    overrides.squares[tile] = initial;
+  op( overrides.squares[tile] );
   return action;
+}
+
+template<typename Primitive>
+AnimationAction&
+AnimationBuilder::landview_anim_override_context(
+    Coord tile, maybe<Dwelling const&> override ) {
+  AnimationAction& action = find_or_add_action<Primitive>();
+  UNWRAP_CHECK( overrides,
+                action.primitive.inner_if<Primitive>() );
+  overrides.dwellings[tile] = override;
+  return action;
+}
+
+AnimationAction& AnimationBuilder::landview_replace_set_tile(
+    Coord tile, MapSquare const& square ) {
+  using Primitive = AnimationPrimitive::landscape_anim_replace;
+  return landview_anim_set_override<Primitive>(
+      tile, MapSquare{},
+      [&]( MapSquare& target ) { target = square; } );
+}
+
+AnimationAction& AnimationBuilder::landview_enpixelate_edit_tile(
+    Coord tile, MapSquare const& initial, MapSquareEditFn op ) {
+  using Primitive =
+      AnimationPrimitive::landscape_anim_enpixelate;
+  return landview_anim_set_override<Primitive>( tile, initial,
+                                                op );
+}
+
+AnimationAction&
+AnimationBuilder::landview_enpixelate_dwelling_context(
+    Coord tile, maybe<Dwelling const&> target ) {
+  using Primitive =
+      AnimationPrimitive::landscape_anim_enpixelate;
+  return landview_anim_override_context<Primitive>( tile,
+                                                    target );
 }
 
 AnimationAction& AnimationBuilder::hide_colony( Coord tile ) {

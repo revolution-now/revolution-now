@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "igui.hpp"
+#include "imap-updater.hpp"
 #include "road.hpp"
 #include "tribe-arms.hpp"
 #include "ts.hpp"
@@ -38,10 +39,12 @@ namespace {
 // to iterate over the entire map multiple times to find each
 // dwelling's land.
 void delete_dwelling_ignoring_owned_land(
-    SS& ss, TS& ts, DwellingId dwelling_id ) {
+    SS& ss, IMapUpdater& map_updater, DwellingId dwelling_id ) {
+  Coord const dwelling_coord =
+      ss.natives.coord_for( dwelling_id );
   Tribe& tribe = ss.natives.tribe_for(
       ss.natives.tribe_type_for( dwelling_id ) );
-  // 1. Destroy free braves owned by this dwelling.
+  // Destroy free braves owned by this dwelling.
   //
   // We make a copy of this because it is probably not safe to
   // assume that we can iterate over the map reference (that this
@@ -52,22 +55,26 @@ void delete_dwelling_ignoring_owned_land(
   for( NativeUnitId unit_id : braves )
     ss.units.destroy_unit( unit_id );
 
-  // 2. Destroy any missionaries owned by this dwelling.
+  // Destroy any missionaries owned by this dwelling.
   if( maybe<UnitId> const missionary =
           ss.units.missionary_from_dwelling( dwelling_id );
       missionary.has_value() )
     UnitOwnershipChanger( ss, *missionary ).destroy();
 
-  // 3. Remove road under dwelling. There may not be any good
-  // reason that we need to do this, but that's what the OG does.
-  clear_road( ts.map_updater,
-              ss.natives.coord_for( dwelling_id ) );
-
-  // 4. Adjust the tribe's stockpile of muskets/horses.
+  // Adjust the tribe's stockpile of muskets/horses.
   adjust_arms_on_dwelling_destruction( as_const( ss ), tribe );
 
-  // 5. Remove the dwelling objects.
+  // Remove the dwelling objects.
   ss.natives.destroy_dwelling( dwelling_id );
+
+  // Remove road under dwelling. There may not be any good reason
+  // that we need to do this, but that's what the OG does.
+  //
+  // NOTE: we need to do this after the dwelling is destroyed be-
+  // cause another purpose of this call is to redraw the tile so
+  // that any prime resources under the dwelling now become visi-
+  // ble.
+  clear_road( map_updater, dwelling_coord );
 }
 
 } // namespace
@@ -75,12 +82,15 @@ void delete_dwelling_ignoring_owned_land(
 /****************************************************************
 ** Public API
 *****************************************************************/
-void destroy_dwelling( SS& ss, TS& ts, DwellingId dwelling_id ) {
+void destroy_dwelling( SS& ss, IMapUpdater& map_updater,
+                       DwellingId dwelling_id ) {
   ss.natives.mark_land_unowned_for_dwellings( { dwelling_id } );
-  delete_dwelling_ignoring_owned_land( ss, ts, dwelling_id );
+  delete_dwelling_ignoring_owned_land( ss, map_updater,
+                                       dwelling_id );
 }
 
-void destroy_tribe( SS& ss, TS& ts, e_tribe tribe ) {
+void destroy_tribe( SS& ss, IMapUpdater& map_updater,
+                    e_tribe tribe ) {
   if( !ss.natives.tribe_exists( tribe ) ) return;
   unordered_set<DwellingId> const& dwellings =
       ss.natives.dwellings_for_tribe( tribe );
@@ -93,7 +103,8 @@ void destroy_tribe( SS& ss, TS& ts, e_tribe tribe ) {
   // iterate over this while destroying dwellings.
   auto dwellings_copy = dwellings;
   for( DwellingId const dwelling_id : dwellings_copy )
-    delete_dwelling_ignoring_owned_land( ss, ts, dwelling_id );
+    delete_dwelling_ignoring_owned_land( ss, map_updater,
+                                         dwelling_id );
 
   // 3. Destroy the tribe object.
   ss.natives.destroy_tribe_last_step( tribe );
@@ -107,7 +118,7 @@ wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe ) {
 
 wait<> destroy_tribe_interactive( SS& ss, TS& ts,
                                   e_tribe tribe ) {
-  destroy_tribe( ss, ts, tribe );
+  destroy_tribe( ss, ts.map_updater, tribe );
   co_await tribe_wiped_out_message( ts, tribe );
 }
 

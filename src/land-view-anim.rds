@@ -11,6 +11,7 @@
 # Revolution Now
 include "maybe.hpp"
 include "physics.hpp"
+include "visibility.rds.hpp"
 
 # config
 include "config/tile-enum-fwd.hpp"
@@ -26,7 +27,7 @@ include "ss/unit-type.rds.hpp"
 include "gfx/coord.hpp"
 
 # C++ standard library
-include "<map>"
+include "<vector>"
 
 namespace "rn"
 
@@ -79,29 +80,40 @@ sumtype.DwellingAnimationState {
   hide {},
 }
 
-sumtype.LandscapeAnimBufferState {
-  # This will cause the landscape_anim buffer to be rendered
-  # (once) with the replaced tiles, then the uniform depixelation
-  # stage for rendering the landscape_anim buffer will be ramped
-  # down from 1.0 to 0, gradually replacing the contents of the
-  # landscape buffer with the landscape_anim buffer.
-  pixelation {
-    # This flag is enabled for one frame to get the renderer to
-    # render the buffer once, then it is turned off for the rest
-    # of the animation since the animation being done is the pix-
-    # elation of the entire landscape_anim buffer, which is con-
-    # trolled via a uniform.
-    needs_rendering 'bool',
-    stage 'double',
-    targets 'std::map<Coord, MapSquare>',
-  },
+struct.LandscapeAnimReplacementState {
+  # This will cause the landscape_anim_replace buffer to be ren-
+  # dered (once) with the replaced tiles and overlayed on top of
+  # the landscape buffer, replacing it for the tiles in question
+  # (and their immediate surroundings).
+  needs_rendering 'bool', # See comment above.
+  # These are the tiles to redraw, which include not only the
+  # overridden ones but also their surroundings.
+  redrawn 'std::vector<Coord>',
+  # This is the visibility context in which the redrawn tiles are
+  # redrawn. This allows e.g. controlling whether we render a
+  # tile as if there is a dwelling present or not.
+  overrides 'VisibilityOverrides',
+}
 
-  # This will cause the landscape_anim buffer to be rendered
-  # (once) with the replaced tiles and overlayed on top of the
-  # landscape buffer, replacing it for the tiles in question (and
-  # their immediate surroundings).
-  mod {
-    needs_rendering 'bool', # See comment above.
-    modded 'std::map<Coord, MapSquare>',
-  },
+struct.LandscapeAnimEnpixelationState {
+  # This will cause the landscape_anim_enpixelate buffer to be
+  # rendered (once) with the replaced tiles, then the uniform de-
+  # pixelation stage for rendering the landscape_anim buffer will
+  # be ramped down from 1.0 to 0, gradually replacing the con-
+  # tents of the landscape buffer with the landscape_anim buffer.
+  #
+  # This flag is enabled for one frame to get the renderer to
+  # render the buffer once, then it is turned off for the rest of
+  # the animation since the animation being done is the pixela-
+  # tion of the entire landscape_anim buffer, which is controlled
+  # via a uniform.
+  needs_rendering 'bool',
+  stage 'double',
+  # These are the tiles to redraw, which include not only the
+  # overridden ones but also their surroundings.
+  redrawn 'std::vector<Coord>',
+  # This is the visibility context in which the redrawn tiles are
+  # redrawn. This allows e.g. controlling whether we render a
+  # tile as if there is a dwelling present or not.
+  overrides 'VisibilityOverrides',
 }

@@ -546,7 +546,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -612,83 +612,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
-      {
-        key.x: 1
-        val {
-          ground: grassland
-          ground_resource: tobacco
-          overlay: hills
-          river: minor
-          surface: land
-        }
-      },
-      {
-        key.x: 2
-        val {
-          forest_resource: deer
-          ground: grassland
-          ground_resource: tobacco
-          overlay: forest
-          surface: land
-        }
-      },
-    ],
-    .primitive.delay.duration: 80000,
-  ],
-  [
-    .primitive.hide_unit.unit_id: 10,
-    .primitive.hide_unit.unit_id: 6,
-    .primitive.hide_unit.unit_id: 8,
-    .primitive.hide_unit.unit_id: 12,
-    .primitive.hide_unit.unit_id: 13,
-    .primitive.hide_unit.unit_id: 2,
-    .primitive.hide_unit.unit_id: 3,
-    .primitive.hide_unit.unit_id: 5,
-    .primitive.hide_unit.unit_id: 11,
-    .primitive.hide_unit.unit_id: 4,
-    .primitive.hide_unit.unit_id: 7,
-    .primitive.hide_unit.unit_id: 9,
-    .primitive.hide_dwelling.tile.x: 2,
-    .primitive.hide_dwelling.tile {
-      x: 2
-      y: 1
-    },
-    .primitive.hide_dwelling.tile {
-      x: 1
-      y: 2
-    },
-    .primitive.hide_dwelling.tile {
-      x: 2
-      y: 2
-    },
-    .primitive.hide_dwelling.tile {
-      x: 3
-      y: 2
-    },
-    .primitive.hide_dwelling.tile {
-      x: 1
-      y: 3
-    },
-    .primitive.hide_colony.tile.x: 1,
-    .primitive.hide_colony.tile {
-      x: 2
-      y: 1
-    },
-    .primitive.hide_colony.tile {
-      x: 3
-      y: 1
-    },
-    .primitive.hide_colony.tile {
-      x: 2
-      y: 2
-    },
-    .primitive.hide_colony.tile.y: 3,
-    .primitive.hide_colony.tile {
-      x: 3
-      y: 3
-    },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -709,15 +633,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key.x: 3
-        val {
-          ground: grassland
-          ground_resource: tobacco
-          overlay: hills
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -773,7 +688,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -803,15 +718,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key.y: 1
-        val {
-          forest_resource: deer
-          ground: grassland
-          overlay: mountains
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -867,7 +773,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -906,18 +812,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 1
-          y: 1
-        }
-        val {
-          ground: grassland
-          overlay: forest
-          river: minor
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -973,7 +867,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1024,20 +918,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 2
-          y: 1
-        }
-        val {
-          forest_resource: deer
-          ground: grassland
-          ground_resource: tobacco
-          overlay: forest
-          river: minor
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1093,7 +973,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1158,17 +1038,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 3
-          y: 1
-        }
-        val {
-          ground: grassland
-          overlay: hills
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1224,7 +1093,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1300,18 +1169,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 1
-          y: 2
-        }
-        val {
-          forest_resource: deer
-          ground: grassland
-          overlay: forest
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1367,7 +1224,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1455,17 +1312,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 2
-          y: 2
-        }
-        val {
-          ground: grassland
-          overlay: forest
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1521,7 +1367,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1620,17 +1466,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 3
-          y: 2
-        }
-        val {
-          ground: grassland
-          lost_city_rumor: true
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1686,7 +1521,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1796,14 +1631,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key.y: 3
-        val {
-          ground: grassland
-          lost_city_rumor: true
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -1859,7 +1686,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -1977,18 +1804,6 @@ hide.sequence: [
           surface: land
         }
       },
-      {
-        key {
-          x: 1
-          y: 3
-        }
-        val {
-          ground: grassland
-          overlay: mountains
-          river: minor
-          surface: land
-        }
-      },
     ],
     .primitive.delay.duration: 80000,
   ],
@@ -2044,7 +1859,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -2174,6 +1989,191 @@ hide.sequence: [
           surface: land
         }
       },
+    ],
+    .primitive.delay.duration: 80000,
+  ],
+  [
+    .primitive.hide_unit.unit_id: 10,
+    .primitive.hide_unit.unit_id: 6,
+    .primitive.hide_unit.unit_id: 8,
+    .primitive.hide_unit.unit_id: 12,
+    .primitive.hide_unit.unit_id: 13,
+    .primitive.hide_unit.unit_id: 2,
+    .primitive.hide_unit.unit_id: 3,
+    .primitive.hide_unit.unit_id: 5,
+    .primitive.hide_unit.unit_id: 11,
+    .primitive.hide_unit.unit_id: 4,
+    .primitive.hide_unit.unit_id: 7,
+    .primitive.hide_unit.unit_id: 9,
+    .primitive.hide_dwelling.tile.x: 2,
+    .primitive.hide_dwelling.tile {
+      x: 2
+      y: 1
+    },
+    .primitive.hide_dwelling.tile {
+      x: 1
+      y: 2
+    },
+    .primitive.hide_dwelling.tile {
+      x: 2
+      y: 2
+    },
+    .primitive.hide_dwelling.tile {
+      x: 3
+      y: 2
+    },
+    .primitive.hide_dwelling.tile {
+      x: 1
+      y: 3
+    },
+    .primitive.hide_colony.tile.x: 1,
+    .primitive.hide_colony.tile {
+      x: 2
+      y: 1
+    },
+    .primitive.hide_colony.tile {
+      x: 3
+      y: 1
+    },
+    .primitive.hide_colony.tile {
+      x: 2
+      y: 2
+    },
+    .primitive.hide_colony.tile.y: 3,
+    .primitive.hide_colony.tile {
+      x: 3
+      y: 3
+    },
+    .primitive.landscape_anim_replace.overrides.squares: [
+      {
+        key.x: 1
+        val {
+          ground: grassland
+          ground_resource: tobacco
+          overlay: hills
+          river: minor
+          surface: land
+        }
+      },
+      {
+        key.x: 2
+        val {
+          forest_resource: deer
+          ground: grassland
+          ground_resource: tobacco
+          overlay: forest
+          surface: land
+        }
+      },
+      {
+        key.x: 3
+        val {
+          ground: grassland
+          ground_resource: tobacco
+          overlay: hills
+          surface: land
+        }
+      },
+      {
+        key.y: 1
+        val {
+          forest_resource: deer
+          ground: grassland
+          overlay: mountains
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 1
+          y: 1
+        }
+        val {
+          ground: grassland
+          overlay: forest
+          river: minor
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 2
+          y: 1
+        }
+        val {
+          forest_resource: deer
+          ground: grassland
+          ground_resource: tobacco
+          overlay: forest
+          river: minor
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 3
+          y: 1
+        }
+        val {
+          ground: grassland
+          overlay: hills
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 1
+          y: 2
+        }
+        val {
+          forest_resource: deer
+          ground: grassland
+          overlay: forest
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 2
+          y: 2
+        }
+        val {
+          ground: grassland
+          overlay: forest
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 3
+          y: 2
+        }
+        val {
+          ground: grassland
+          lost_city_rumor: true
+          surface: land
+        }
+      },
+      {
+        key.y: 3
+        val {
+          ground: grassland
+          lost_city_rumor: true
+          surface: land
+        }
+      },
+      {
+        key {
+          x: 1
+          y: 3
+        }
+        val {
+          ground: grassland
+          overlay: mountains
+          river: minor
+          surface: land
+        }
+      },
       {
         key {
           x: 3
@@ -2240,7 +2240,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -2440,7 +2440,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -2639,7 +2639,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -2836,7 +2836,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -3032,7 +3032,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -3227,7 +3227,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -3420,7 +3420,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -3622,7 +3622,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -3823,7 +3823,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -4023,7 +4023,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -4222,7 +4222,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -4431,7 +4431,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -4639,7 +4639,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -4846,7 +4846,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -5052,7 +5052,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -5257,7 +5257,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -5461,7 +5461,7 @@ hide.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -5667,7 +5667,7 @@ hold.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -5872,7 +5872,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -6075,7 +6075,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -6279,7 +6279,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -6484,7 +6484,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -6690,7 +6690,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -6897,7 +6897,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -7105,7 +7105,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -7314,7 +7314,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -7513,7 +7513,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -7713,7 +7713,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -7914,7 +7914,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -8116,7 +8116,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -8309,7 +8309,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -8504,7 +8504,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -8700,7 +8700,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -8897,7 +8897,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -9096,7 +9096,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       .val {
         ground: grassland
         ground_resource: fish
@@ -9296,7 +9296,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -9492,7 +9492,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -9677,7 +9677,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -9850,7 +9850,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10015,7 +10015,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10169,7 +10169,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10312,7 +10312,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10443,7 +10443,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10563,7 +10563,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10669,7 +10669,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10763,7 +10763,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10848,7 +10848,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {
@@ -10924,7 +10924,7 @@ show.sequence: [
       x: 3
       y: 3
     },
-    .primitive.landscape_anim_mod.modded: [
+    .primitive.landscape_anim_replace.overrides.squares: [
       {
         key.x: 1
         val {

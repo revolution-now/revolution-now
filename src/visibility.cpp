@@ -40,7 +40,6 @@
 
 // base
 #include "base/timer.hpp"
-#include "visibility.rds.hpp"
 
 using namespace std;
 
@@ -108,6 +107,29 @@ Rect IVisibility::rect_tiles() const {
 
 bool IVisibility::on_map( Coord tile ) const {
   return tile.is_inside( rect_tiles() );
+}
+
+maybe<e_natural_resource> IVisibility::resource_at(
+    Coord tile ) const {
+  maybe<e_natural_resource> const res =
+      effective_resource( square_at( tile ) );
+  // Check this first for optimization purposes.
+  if( !res.has_value() ) return nothing;
+  if( is_resource_suppressed( tile ) ) return nothing;
+  CHECK( res.has_value() );
+  return *res;
+}
+
+bool IVisibility::is_resource_suppressed( Coord tile ) const {
+  MapSquare const& square = square_at( tile );
+  if( square.lost_city_rumor ) return true;
+  // The OG suppresses the rendering of prime resources under na-
+  // tive dwellings, probably in order to create a tradeoff for
+  // the player where they have to burn the dwelling to see what
+  // is under it. However, it does seem to render them under
+  // colonies (both friendly and foreign).
+  if( dwelling_at( tile ).has_value() ) return true;
+  return false;
 }
 
 /****************************************************************
@@ -241,14 +263,14 @@ MapSquare const& VisibilityForNation::square_at(
       }
     }
   }
-};
+}
 
 /****************************************************************
 ** VisibilityWithOverrides
 *****************************************************************/
 VisibilityWithOverrides::VisibilityWithOverrides(
     SSConst const& ss, IVisibility const& underlying,
-    map<Coord, MapSquare> const& overrides )
+    VisibilityOverrides const& overrides )
   : IVisibility( ss ),
     underlying_( underlying ),
     overrides_( overrides ) {}
@@ -265,12 +287,16 @@ maybe<Colony const&> VisibilityWithOverrides::colony_at(
 
 maybe<Dwelling const&> VisibilityWithOverrides::dwelling_at(
     Coord tile ) const {
+  if( auto it = overrides_.dwellings.find( tile );
+      it != overrides_.dwellings.end() )
+    return it->second;
   return underlying_.dwelling_at( tile );
 }
 
 MapSquare const& VisibilityWithOverrides::square_at(
     Coord tile ) const {
-  if( auto it = overrides_.find( tile ); it != overrides_.end() )
+  if( auto it = overrides_.squares.find( tile );
+      it != overrides_.squares.end() )
     return it->second;
   return underlying_.square_at( tile );
 }

@@ -15,7 +15,9 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/imap-updater.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -41,6 +43,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::_;
 
 /****************************************************************
 ** Fake World Setup
@@ -121,7 +125,7 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   };
 
   auto destroy = [&]( DwellingId dwelling_id ) {
-    destroy_dwelling( W.ss(), W.ts(), dwelling_id );
+    destroy_dwelling( W.ss(), W.map_updater(), dwelling_id );
   };
 
   // Sanity check.
@@ -195,6 +199,44 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   REQUIRE( dwellings_for_tribe.empty() );
 }
 
+TEST_CASE(
+    "[tribe-mgr] clears road after destroying dwelling" ) {
+  World           W;
+  MockIMapUpdater mock_map_updater;
+
+  W.add_tribe( e_tribe::iroquois );
+  Coord const kTile{ .x = 1, .y = 1 };
+
+  DwellingId const dwelling_id =
+      W.add_dwelling( kTile, e_tribe::iroquois ).id;
+  W.square( kTile ).road = true;
+
+  auto destroy = [&]( DwellingId dwelling_id ) {
+    destroy_dwelling( W.ss(), mock_map_updater, dwelling_id );
+  };
+
+  // Sanity check.
+  REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
+  REQUIRE( W.square( kTile ).road );
+
+  mock_map_updater.EXPECT__modify_map_square( kTile, _ )
+      .invokes( [&] {
+        // This ensures that the dwelling has already been de-
+        // stroyed before we remove the road. This is needed be-
+        // cause the road update has as a side effect redrawing
+        // the square, which we also need to do in case a prime
+        // resource becomes visible as a result.
+        REQUIRE_FALSE(
+            W.natives().dwelling_exists( dwelling_id ) );
+        W.square( kTile ).road = false;
+      } );
+
+  destroy( dwelling_id );
+
+  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+  REQUIRE_FALSE( W.square( kTile ).road );
+}
+
 TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   World W;
 
@@ -264,7 +306,7 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
   };
 
   auto destroy = [&]( e_tribe tribe ) {
-    destroy_tribe( W.ss(), W.ts(), tribe );
+    destroy_tribe( W.ss(), W.map_updater(), tribe );
   };
 
   // Sanity check.

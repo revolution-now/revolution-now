@@ -28,6 +28,7 @@
 
 namespace rr {
 struct Renderer;
+enum class e_render_buffer;
 }
 
 namespace rn {
@@ -39,6 +40,7 @@ struct LandViewAnimator;
 struct SSConst;
 struct IVisibility;
 struct UnitFlagOptions;
+struct VisibilityOverrides;
 
 // A fading hourglass icon will be drawn over a unit to signal to
 // the player that the movement command just entered will be
@@ -72,17 +74,18 @@ struct LandViewRenderer {
 
   void render_dwellings() const;
 
-  void render_landscape_anim_buffer() const;
+  void render_landscape_anim_buffers() const;
 
   void render_landscape_anim_buffer(
-      LandscapeAnimBufferState::pixelation const& pixelation )
-      const;
+      maybe<LandscapeAnimReplacementState const&> state ) const;
 
   void render_landscape_anim_buffer(
-      LandscapeAnimBufferState::mod const& mod ) const;
+      maybe<LandscapeAnimEnpixelationState const&> state ) const;
 
   void render_landscape_anim_buffer_impl(
-      std::map<Coord, MapSquare> const& overrides ) const;
+      rr::e_render_buffer        buffer,
+      std::vector<Coord> const&  redrawn,
+      VisibilityOverrides const& overrides ) const;
 
   void render_units_underneath() const;
 

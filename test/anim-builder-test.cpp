@@ -51,10 +51,18 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.depixelate_dwelling( Coord{ .x = 9, .y = 10 } );
   builder.ensure_tile_visible( Coord{ .x = 1, .y = 3 } );
   builder.depixelate_native_unit( NativeUnitId{ 10 } );
-  builder.enpixelate_landview_tiles( {
-      { Coord{ .x = 3, .y = 5 }, MapSquare{} },
-      { Coord{ .x = 4, .y = 6 }, MapSquare{ .road = true } },
-  } );
+  // First use the default square and no-op function to test
+  // adding the square in on the first edit.
+  builder.landview_enpixelate_edit_tile(
+      Coord{ .x = 3, .y = 5 }, MapSquare{},
+      AnimationBuilder::kMapSquareEditFnNoop );
+  builder.landview_enpixelate_edit_tile(
+      Coord{ .x = 4, .y = 6 }, MapSquare{},
+      AnimationBuilder::kMapSquareEditFnNoop );
+  // Now test an edit.
+  builder.landview_enpixelate_edit_tile(
+      Coord{ .x = 4, .y = 6 }, MapSquare{},
+      []( auto& square ) { square.road = true; } );
   builder.hide_colony( { .x = 111, .y = 222 } );
   builder.hide_dwelling( { .x = 222, .y = 333 } );
 
@@ -112,13 +120,15 @@ TEST_CASE( "[anim-builder] builders" ) {
                         .unit_id = NativeUnitId{ 10 } } },
               { .primitive =
                     P::landscape_anim_enpixelate{
-                        .targets =
-                            {
-                                { Coord{ .x = 3, .y = 5 },
-                                  MapSquare{} },
-                                { Coord{ .x = 4, .y = 6 },
-                                  MapSquare{ .road = true } },
-                            } } },
+                        .overrides =
+                            { .squares =
+                                  {
+                                      { Coord{ .x = 3, .y = 5 },
+                                        MapSquare{} },
+                                      { Coord{ .x = 4, .y = 6 },
+                                        MapSquare{
+                                            .road = true } },
+                                  } } } },
               { .primitive =
                     P::hide_colony{
                         .tile = { .x = 111, .y = 222 } } },
@@ -179,7 +189,7 @@ TEST_CASE( "[anim-builder] emptiness and clearing" ) {
   REQUIRE( builder.result().sequence.back().empty() );
 }
 
-TEST_CASE( "[anim-builder] landview_mod_tile" ) {
+TEST_CASE( "[anim-builder] landview_replace_set_tile" ) {
   AnimationBuilder builder;
 
   AnimationSequence expected{ .sequence = { {} } };
@@ -192,34 +202,37 @@ TEST_CASE( "[anim-builder] landview_mod_tile" ) {
                                 5 } } } } } };
   REQUIRE( builder.result() == expected );
 
-  builder.landview_mod_tile( { .x = 1, .y = 2 },
-                             { .road = true } );
+  builder.landview_replace_set_tile( { .x = 1, .y = 2 },
+                                     { .road = true } );
   expected = {
       .sequence = {
           { { .primitive =
                   AnimationPrimitive::delay{
                       .duration = chrono::milliseconds{ 5 } } },
             { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = {
-                          { { .x = 1, .y = 2 },
-                            { .road = true } } } } } } } };
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides = {
+                          .squares = {
+                              { { .x = 1, .y = 2 },
+                                { .road = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
-  builder.landview_mod_tile( { .x = 2, .y = 3 },
-                             { .irrigation = true } );
+  builder.landview_replace_set_tile( { .x = 2, .y = 3 },
+                                     { .irrigation = true } );
   expected = {
       .sequence = {
           { { .primitive =
                   AnimationPrimitive::delay{
                       .duration = chrono::milliseconds{ 5 } } },
             { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = {
-                          { { .x = 1, .y = 2 },
-                            { .road = true } },
-                          { { .x = 2, .y = 3 },
-                            { .irrigation = true } } } } } } } };
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides = {
+                          .squares = {
+                              { { .x = 1, .y = 2 },
+                                { .road = true } },
+                              { { .x = 2, .y = 3 },
+                                { .irrigation =
+                                      true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.ensure_tile_visible( { .x = 7, .y = 8 } );
@@ -229,33 +242,37 @@ TEST_CASE( "[anim-builder] landview_mod_tile" ) {
                   AnimationPrimitive::delay{
                       .duration = chrono::milliseconds{ 5 } } },
             { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = { { { .x = 1, .y = 2 },
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides =
+                          { .squares =
+                                { { { .x = 1, .y = 2 },
                                     { .road = true } },
                                   { { .x = 2, .y = 3 },
                                     { .irrigation =
-                                          true } } } } },
+                                          true } } } } } },
             { .primitive =
                   AnimationPrimitive::ensure_tile_visible{
                       .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
-  builder.landview_mod_tile( { .x = 3, .y = 4 },
-                             { .lost_city_rumor = true } );
+  builder.landview_replace_set_tile(
+      { .x = 3, .y = 4 }, { .lost_city_rumor = true } );
   expected = {
       .sequence = {
           { { .primitive =
                   AnimationPrimitive::delay{
                       .duration = chrono::milliseconds{ 5 } } },
             { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = { { { .x = 1, .y = 2 },
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides =
+                          { .squares =
+                                { { { .x = 1, .y = 2 },
                                     { .road = true } },
                                   { { .x = 2, .y = 3 },
                                     { .irrigation = true } },
                                   { { .x = 3, .y = 4 },
                                     { .lost_city_rumor =
-                                          true } } } } },
+                                          true } } } } } },
             { .primitive =
                   AnimationPrimitive::ensure_tile_visible{
                       .tile = { .x = 7, .y = 8 } } } } } };
@@ -265,29 +282,198 @@ TEST_CASE( "[anim-builder] landview_mod_tile" ) {
   expected = { .sequence = { {} } };
   REQUIRE( builder.result() == expected );
 
-  // Now try with the landview_mod_tile as the first one.
-  builder.landview_mod_tile( { .x = 1, .y = 2 },
-                             { .road = true } );
+  // Now try with the landview_replace_set_tile as the first one.
+  builder.landview_replace_set_tile( { .x = 1, .y = 2 },
+                                     { .road = true } );
   expected = {
       .sequence = {
           { { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = {
-                          { { .x = 1, .y = 2 },
-                            { .road = true } } } } } } } };
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides = {
+                          .squares = {
+                              { { .x = 1, .y = 2 },
+                                { .road = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
-  builder.landview_mod_tile( { .x = 2, .y = 3 },
-                             { .irrigation = true } );
+  builder.landview_replace_set_tile( { .x = 2, .y = 3 },
+                                     { .irrigation = true } );
   expected = {
       .sequence = {
           { { .primitive =
-                  AnimationPrimitive::landscape_anim_mod{
-                      .modded = {
-                          { { .x = 1, .y = 2 },
-                            { .road = true } },
-                          { { .x = 2, .y = 3 },
-                            { .irrigation = true } } } } } } } };
+                  AnimationPrimitive::landscape_anim_replace{
+                      .overrides = {
+                          .squares = {
+                              { { .x = 1, .y = 2 },
+                                { .road = true } },
+                              { { .x = 2, .y = 3 },
+                                { .irrigation =
+                                      true } } } } } } } } };
+  REQUIRE( builder.result() == expected );
+}
+
+TEST_CASE( "[anim-builder] landview_enpixelate_edit_tile" ) {
+  AnimationBuilder builder;
+
+  AnimationSequence expected{ .sequence = { {} } };
+  REQUIRE( builder.result() == expected );
+
+  builder.delay( chrono::milliseconds{ 5 } );
+  expected = {
+      .sequence = { { { .primitive = AnimationPrimitive::delay{
+                            .duration = chrono::milliseconds{
+                                5 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_enpixelate_edit_tile(
+      { .x = 1, .y = 2 }, MapSquare{ .irrigation = true },
+      []( MapSquare& square ) { square.road = true; } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides = {
+                          .squares = {
+                              { { .x = 1, .y = 2 },
+                                { .irrigation = true,
+                                  .road = true } } } } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.ensure_tile_visible( { .x = 7, .y = 8 } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides =
+                          { .squares =
+                                { { { .x = 1, .y = 2 },
+                                    { .irrigation = true,
+                                      .road = true } } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_enpixelate_edit_tile(
+      { .x = 1, .y = 2 }, MapSquare{}, []( MapSquare& square ) {
+        square.overlay = e_land_overlay::hills;
+      } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides =
+                          { .squares =
+                                { { { .x = 1, .y = 2 },
+                                    { .overlay =
+                                          e_land_overlay::hills,
+                                      .irrigation = true,
+                                      .road = true } } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_enpixelate_edit_tile(
+      { .x = 2, .y = 2 }, MapSquare{}, []( MapSquare& square ) {
+        square.overlay = e_land_overlay::hills;
+      } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides =
+                          { .squares =
+                                { { { .x = 1, .y = 2 },
+                                    { .overlay =
+                                          e_land_overlay::hills,
+                                      .irrigation = true,
+                                      .road       = true } },
+                                  { { .x = 2, .y = 2 },
+                                    { .overlay = e_land_overlay::
+                                          hills } } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+}
+
+TEST_CASE(
+    "[anim-builder] landview_enpixelate_dwelling_context" ) {
+  AnimationBuilder builder;
+
+  AnimationSequence expected{ .sequence = { {} } };
+  REQUIRE( builder.result() == expected );
+
+  builder.delay( chrono::milliseconds{ 5 } );
+  expected = {
+      .sequence = { { { .primitive = AnimationPrimitive::delay{
+                            .duration = chrono::milliseconds{
+                                5 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_enpixelate_dwelling_context(
+      { .x = 1, .y = 2 }, nothing );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides = {
+                          .dwellings = {
+                              { { .x = 1, .y = 2 }, nothing },
+                          } } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.ensure_tile_visible( { .x = 7, .y = 8 } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides =
+                          { .dwellings = { { { .x = 1, .y = 2 },
+                                             nothing } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
+  REQUIRE( builder.result() == expected );
+
+  builder.landview_enpixelate_dwelling_context(
+      { .x = 2, .y = 2 }, Dwelling{ .is_capital = true } );
+  expected = {
+      .sequence = {
+          { { .primitive =
+                  AnimationPrimitive::delay{
+                      .duration = chrono::milliseconds{ 5 } } },
+            { .primitive =
+                  AnimationPrimitive::landscape_anim_enpixelate{
+                      .overrides =
+                          { .dwellings =
+                                { { { .x = 1, .y = 2 },
+                                    nothing },
+                                  { { .x = 2, .y = 2 },
+                                    Dwelling{
+                                        .is_capital =
+                                            true } } } } } },
+            { .primitive =
+                  AnimationPrimitive::ensure_tile_visible{
+                      .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 }
 

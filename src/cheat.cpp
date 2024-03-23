@@ -403,23 +403,24 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       anim_seq_for_cheat_kill_natives( ss, *viz, destroyed ) );
 
   for( e_tribe const tribe : destroyed )
-    destroy_tribe( ss, ts, tribe );
+    destroy_tribe( ss, ts.map_updater, tribe );
 
   // At this point we need to update the fogged squares that con-
   // tained destroyed dwellings on the player maps to 1) remove
   // the fog dwellings and 2) to redraw the terrain since the
-  // roads under the dwellings will have been removed. The sim-
-  // plest way to do that using the usual map updater API is to
-  // just go through all of the squares that had fogged dwellings
-  // on them that were destroyed and flip the fog on and then off
-  // again. This is not very elegant, but it will ensure that all
-  // of the things get done that need to: player fog squares up-
-  // dated and redrawing of rendered map where necessary. Note
-  // that we don't have to do this for dwellings that were to-
-  // tally hidden and we don't have to do this for dwellings that
-  // were fully visible and clear, since in the latter case those
-  // fog squares will eventually get updated if/when the square
-  // flips from clear to fogged.
+  // roads under the dwellings will have been removed and/or
+  // prime resources may have been exposed. The simplest way to
+  // do that using the usual map updater API is to just go
+  // through all of the squares that had fogged dwellings on them
+  // that were destroyed and flip the fog on and then off again.
+  // This is not very elegant, but it will ensure that all of the
+  // things get done that need to: player fog squares updated and
+  // redrawing of rendered map where necessary. Note that we
+  // don't have to do this for dwellings that were totally hidden
+  // and we don't have to do this for dwellings that were fully
+  // visible and clear, since in the latter case those fog
+  // squares will eventually get updated if/when the square flips
+  // from clear to fogged.
   for( e_nation const nation : refl::enum_values<e_nation> ) {
     if( !ss.players.players[nation].has_value() ) continue;
     vector<Coord> const affected_fogged = [&] {

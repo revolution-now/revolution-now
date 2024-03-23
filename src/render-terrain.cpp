@@ -1965,31 +1965,31 @@ void render_fish( IVisibility const& viz, rr::Renderer& renderer,
 
 e_tile resource_tile( e_natural_resource resource ) {
   switch( resource ) {
-    case e_natural_resource::beaver:          //
+    case e_natural_resource::beaver: //
       return e_tile::resource_beaver;
-    case e_natural_resource::deer:            //
+    case e_natural_resource::deer: //
       return e_tile::resource_deer;
-    case e_natural_resource::tree:            //
+    case e_natural_resource::tree: //
       return e_tile::resource_tree;
-    case e_natural_resource::minerals:        //
+    case e_natural_resource::minerals: //
       return e_tile::resource_minerals;
-    case e_natural_resource::oasis:           //
+    case e_natural_resource::oasis: //
       return e_tile::resource_oasis;
-    case e_natural_resource::cotton:          //
+    case e_natural_resource::cotton: //
       return e_tile::resource_cotton;
-    case e_natural_resource::fish:            //
+    case e_natural_resource::fish: //
       SHOULD_NOT_BE_HERE;
-    case e_natural_resource::ore:             //
+    case e_natural_resource::ore: //
       return e_tile::resource_ore;
-    case e_natural_resource::silver:          //
+    case e_natural_resource::silver: //
       return e_tile::resource_silver;
     case e_natural_resource::silver_depleted: //
       return e_tile::resource_silver_depleted;
-    case e_natural_resource::sugar:           //
+    case e_natural_resource::sugar: //
       return e_tile::resource_sugar;
-    case e_natural_resource::tobacco:         //
+    case e_natural_resource::tobacco: //
       return e_tile::resource_tobacco;
-    case e_natural_resource::wheat:           //
+    case e_natural_resource::wheat: //
       return e_tile::resource_wheat;
   }
 }
@@ -1997,17 +1997,9 @@ e_tile resource_tile( e_natural_resource resource ) {
 void render_resources( rr::Renderer&      renderer,
                        rr::Painter&       painter,
                        IVisibility const& viz, Coord where,
-                       MapSquare const& square,
-                       Coord            world_square ) {
-  if( square.lost_city_rumor ) return;
-  // The OG suppresses the rendering of prime resources under na-
-  // tive dwellings, probably in order to create a tradeoff for
-  // the player where they have to burn the dwelling to see what
-  // is under it. However, it does seem to render them under
-  // colonies (both friendly and foreign).
-  if( viz.dwelling_at( world_square ).has_value() ) return;
-  maybe<e_natural_resource> resource =
-      effective_resource( square );
+                       Coord world_square ) {
+  maybe<e_natural_resource> const resource =
+      viz.resource_at( world_square );
   if( !resource.has_value() ) return;
   if( *resource == e_natural_resource::fish )
     return render_fish( viz, renderer, where, world_square );
@@ -2320,7 +2312,7 @@ void render_visible_terrain_square( rr::Renderer& renderer,
                        world_square, square );
   render_plow_if_present( painter, where,
                           viz.square_at( world_square ) );
-  render_resources( renderer, painter, viz, where, square,
+  render_resources( renderer, painter, viz, where,
                     world_square );
   render_road_if_present( painter, where, viz, world_square );
   render_lost_city_rumor( painter, where, square );

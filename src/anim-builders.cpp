@@ -272,15 +272,23 @@ void ensure_tiles_visible( AnimationBuilder&    builder,
 void animate_remove_roads( AnimationBuilder&    builder,
                            IVisibility const&   viz,
                            vector<Coord> const& road_tiles ) {
-  map<Coord, MapSquare> remove_roads;
   for( Coord const tile : road_tiles ) {
     MapSquare const& map_square = viz.square_at( tile );
     if( !map_square.road ) continue;
-    remove_roads[tile]      = map_square;
-    remove_roads[tile].road = false;
+    builder.landview_enpixelate_edit_tile(
+        tile, viz.square_at( tile ),
+        []( MapSquare& square ) { square.road = false; } );
   }
-  if( remove_roads.empty() ) return;
-  builder.enpixelate_landview_tiles( std::move( remove_roads ) );
+}
+
+// This is the (high-level) method that should be used whenever a
+// dwelling is depixelated, as it will take care of the other an-
+// imations that must be done.
+void depixelate_dwelling( AnimationBuilder& builder, Coord tile,
+                          IVisibility const& viz ) {
+  builder.depixelate_dwelling( tile );
+  (void)viz;
+  // TODO
 }
 
 } // namespace
@@ -623,7 +631,7 @@ AnimationSequence anim_seq_for_dwelling_burn(
       builder, defender_id,
       NativeUnitCombatOutcome::destroyed{} );
   animate_remove_roads( builder, viz, { defender_coord } );
-  builder.depixelate_dwelling( defender_coord );
+  depixelate_dwelling( builder, defender_coord, viz );
   for( NativeUnitId const brave_id :
        dwelling_destruction.braves_to_kill ) {
     CHECK( brave_id != defender_id );
@@ -832,7 +840,7 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
             : ss.natives.tribe_for( dwelling->id ).type;
     if( !tribes.contains( tribe_type ) ) continue;
     dwelling_coords.push_back( tile );
-    builder.depixelate_dwelling( tile );
+    depixelate_dwelling( builder, tile, viz );
   }
 
   // For pixelating roads under/around the dwelling.

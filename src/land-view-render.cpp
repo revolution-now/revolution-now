@@ -656,8 +656,8 @@ void LandViewRenderer::render_backdrop() const {
       Delta{ .w = W{ shortest_side }, .h = H{ shortest_side } };
   Rect const tiled_rect =
       Rect::from( Coord{},
-                  tile_size* Delta{ .w = num_squares_needed,
-                                    .h = num_squares_needed } )
+                  tile_size * Delta{ .w = num_squares_needed,
+                                     .h = num_squares_needed } )
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels_.center() -
                       viewport_rect_pixels_.upper_left();
@@ -820,56 +820,64 @@ void LandViewRenderer::render_entities() const {
 }
 
 void LandViewRenderer::render_landscape_anim_buffer_impl(
-    map<Coord, MapSquare> const& overrides ) const {
-  static constexpr auto kBuffer =
-      rr::e_render_buffer::landscape_anim;
+    rr::e_render_buffer buffer, vector<Coord> const& redrawn,
+    VisibilityOverrides const& overrides ) const {
 #if 0
   base::ScopedTimer const timer(
       fmt::format( "rendering buffer {}", kBuffer ) );
 #endif
-  renderer_.clear_buffer( kBuffer );
-  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, kBuffer );
+  renderer_.clear_buffer( buffer );
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, buffer );
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
   SCOPED_RENDERER_MOD_SET( painter_mods.uniform_depixelation,
                            true );
   VisibilityWithOverrides const viz( ss_, *viz_, overrides );
-  for( auto const& [tile, square] : overrides )
+  for( Coord const tile : redrawn )
     render_landscape_square_if_not_fully_hidden(
         renderer_, tile * g_tile_delta, tile, viz,
         TerrainRenderOptions{} );
 }
 
 void LandViewRenderer::render_landscape_anim_buffer(
-    LandscapeAnimBufferState::pixelation const& pixelation )
-    const {
-  renderer_.set_uniform_depixelation_stage( pixelation.stage );
-  // This flag will be enabled for precisely one frame to trigger
-  // a one-time rendering of the buffer.
-  if( !pixelation.needs_rendering ) return;
-  render_landscape_anim_buffer_impl( pixelation.targets );
-}
-
-void LandViewRenderer::render_landscape_anim_buffer(
-    LandscapeAnimBufferState::mod const& mod ) const {
-  renderer_.set_uniform_depixelation_stage( 0.0 );
-  // This flag will be enabled for precisely one frame to trigger
-  // a one-time rendering of the buffer.
-  if( !mod.needs_rendering ) return;
-  render_landscape_anim_buffer_impl( mod.modded );
-}
-
-void LandViewRenderer::render_landscape_anim_buffer() const {
+    maybe<LandscapeAnimReplacementState const&> state ) const {
   static constexpr auto kBuffer =
-      rr::e_render_buffer::landscape_anim;
-  maybe<LandscapeAnimBufferState> const& state =
-      lv_animator_.landview_anim_buffer_state();
+      rr::e_render_buffer::landscape_anim_replace;
   if( !state.has_value() ) {
     renderer_.clear_buffer( kBuffer );
     return;
   }
-  return state->visit( [this]( auto& o ) {
-    return render_landscape_anim_buffer( o );
-  } );
+  renderer_.set_uniform_depixelation_stage( 0.0 );
+  // This flag will be enabled for precisely one frame to trigger
+  // a one-time rendering of the buffer.
+  if( !state->needs_rendering ) return;
+  render_landscape_anim_buffer_impl( kBuffer, state->redrawn,
+                                     state->overrides );
+}
+
+void LandViewRenderer::render_landscape_anim_buffer(
+    maybe<LandscapeAnimEnpixelationState const&> state ) const {
+  static constexpr auto kBuffer =
+      rr::e_render_buffer::landscape_anim_enpixelate;
+  if( !state.has_value() ) {
+    renderer_.clear_buffer( kBuffer );
+    return;
+  }
+  renderer_.set_uniform_depixelation_stage( state->stage );
+  // This flag will be enabled for precisely one frame to trigger
+  // a one-time rendering of the buffer.
+  if( !state->needs_rendering ) return;
+  render_landscape_anim_buffer_impl( kBuffer, state->redrawn,
+                                     state->overrides );
+}
+
+void LandViewRenderer::render_landscape_anim_buffers() const {
+  // landscape_anim_replace goes first.
+  render_landscape_anim_buffer(
+      lv_animator_.landview_anim_replacement_state() );
+
+  // landscape_anim_enpixelate goes first.
+  render_landscape_anim_buffer(
+      lv_animator_.landview_anim_enpixelation_state() );
 }
 
 void LandViewRenderer::render_non_entities() const {
@@ -909,7 +917,7 @@ void LandViewRenderer::render_non_entities() const {
   renderer.set_camera( translation.distance_from_origin(),
                        zoom );
 
-  render_landscape_anim_buffer();
+  render_landscape_anim_buffers();
 }
 
 } // namespace rn

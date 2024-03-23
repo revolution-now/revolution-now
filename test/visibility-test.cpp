@@ -903,9 +903,9 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   Coord       coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  VisibilityEntire      viz_entire( W.ss() );
-  VisibilityForNation   viz_nation( W.ss(), e_nation::english );
-  map<Coord, MapSquare> overrides;
+  VisibilityEntire    viz_entire( W.ss() );
+  VisibilityForNation viz_nation( W.ss(), e_nation::english );
+  VisibilityOverrides overrides;
   // This will keep a reference to the overrides.
   VisibilityWithOverrides viz_overrides_entire(
       W.ss(), viz_entire, overrides );
@@ -940,6 +940,10 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
       .dwelling = Dwelling{ .is_capital = true },
   };
 
+  W.add_tribe( e_tribe::sioux );
+  Dwelling const& real_dwelling =
+      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+
   IVisibility* p_viz = nullptr;
 
   auto visible = [&] { return p_viz->visible( coord ); };
@@ -949,7 +953,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   auto square_at   = [&] { return p_viz->square_at( coord ); };
 
   SECTION( "no overrides, entire" ) {
-    BASE_CHECK( overrides.empty() );
+    BASE_CHECK( overrides.squares.empty() );
     p_viz = &viz_overrides_entire;
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
@@ -969,7 +973,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
-    REQUIRE( dwelling_at() == nothing );
+    REQUIRE( dwelling_at() == real_dwelling );
     REQUIRE( square_at() == real_square3 );
     coord = kOutsideCoord;
     REQUIRE( visible() == e_tile_visibility::clear );
@@ -979,7 +983,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   }
 
   SECTION( "no overrides, player" ) {
-    BASE_CHECK( overrides.empty() );
+    BASE_CHECK( overrides.squares.empty() );
     p_viz = &viz_overrides_nation;
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
@@ -1014,8 +1018,12 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
         .overlay = e_land_overlay::forest };
     MapSquare const override_square3{
         .overlay = e_land_overlay::hills };
-    overrides[{ .x = 0, .y = 1 }] = override_square2;
-    overrides[{ .x = 1, .y = 1 }] = override_square3;
+    overrides.squares[{ .x = 0, .y = 1 }] = override_square2;
+    overrides.squares[{ .x = 1, .y = 1 }] = override_square3;
+
+    overrides.dwellings[{ .x = 1, .y = 0 }] = nothing;
+    overrides.dwellings[{ .x = 0, .y = 1 }] =
+        Dwelling{ .id = 555 };
 
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
@@ -1030,9 +1038,14 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
-    REQUIRE( dwelling_at() == nothing );
+    REQUIRE( dwelling_at() == Dwelling{ .id = 555 } );
     REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
+    REQUIRE( visible() == e_tile_visibility::clear );
+    REQUIRE( colony_at() == nothing );
+    REQUIRE( dwelling_at() == real_dwelling );
+    REQUIRE( square_at() == override_square3 );
+    overrides.dwellings[{ .x = 1, .y = 1 }] = nothing;
     REQUIRE( visible() == e_tile_visibility::clear );
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
@@ -1050,8 +1063,11 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
         .overlay = e_land_overlay::forest };
     MapSquare const override_square3{
         .overlay = e_land_overlay::hills };
-    overrides[{ .x = 0, .y = 1 }] = override_square2;
-    overrides[{ .x = 1, .y = 1 }] = override_square3;
+    overrides.squares[{ .x = 0, .y = 1 }] = override_square2;
+    overrides.squares[{ .x = 1, .y = 1 }] = override_square3;
+
+    overrides.dwellings[{ .x = 0, .y = 1 }] =
+        Dwelling{ .id = 555 };
 
     coord = { .x = 0, .y = 0 };
     REQUIRE( visible() == e_tile_visibility::clear );
@@ -1063,10 +1079,15 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == Colony{} );
     REQUIRE( dwelling_at() == Dwelling{ .is_capital = true } );
     REQUIRE( square_at() == MapSquare{} );
+    overrides.dwellings[{ .x = 1, .y = 0 }] = nothing;
+    REQUIRE( visible() == e_tile_visibility::fogged );
+    REQUIRE( colony_at() == Colony{} );
+    REQUIRE( dwelling_at() == nothing );
+    REQUIRE( square_at() == MapSquare{} );
     coord = { .x = 0, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
     REQUIRE( colony_at() == nothing );
-    REQUIRE( dwelling_at() == nothing );
+    REQUIRE( dwelling_at() == Dwelling{ .id = 555 } );
     REQUIRE( square_at() == override_square2 );
     coord = { .x = 1, .y = 1 };
     REQUIRE( visible() == e_tile_visibility::hidden );
@@ -1078,6 +1099,203 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
     REQUIRE( colony_at() == nothing );
     REQUIRE( dwelling_at() == nothing );
     REQUIRE( square_at() == MapSquare{} ); // proto.
+  }
+}
+
+TEST_CASE( "[visibility] resource_at" ) {
+  World W;
+  W.create_small_map();
+  Coord const tile{ .x = 0, .y = 1 };
+  Coord const kOutsideCoord = { .x = 2, .y = 2 };
+  BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
+
+  VisibilityEntire    viz_entire( W.ss() );
+  VisibilityForNation viz_nation( W.ss(), e_nation::english );
+  VisibilityOverrides overrides;
+  // These will keep references to `overrides`.
+  VisibilityWithOverrides viz_overrides_entire(
+      W.ss(), viz_entire, overrides );
+  VisibilityWithOverrides viz_overrides_nation(
+      W.ss(), viz_nation, overrides );
+
+  gfx::Matrix<PlayerSquare>& player_map =
+      W.terrain()
+          .mutable_player_terrain( e_nation::english )
+          .map;
+
+  MapSquare& real_square = W.square( { .x = 0, .y = 1 } );
+
+  FrozenSquare& frozen_square = player_map[tile]
+                                    .emplace<explored>()
+                                    .fog_status.emplace<fogged>()
+                                    .contents;
+
+  W.add_tribe( e_tribe::cherokee );
+
+  auto const sugar = e_natural_resource::sugar;
+  auto const deer  = e_natural_resource::deer;
+
+  SECTION( "no resources" ) {
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource" ) {
+    real_square.ground_resource = sugar;
+    REQUIRE( viz_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource, with player vis" ) {
+    real_square.ground_resource = sugar;
+    frozen_square.square.ground_resource =
+        real_square.ground_resource;
+    REQUIRE( viz_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_nation.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) == sugar );
+  }
+
+  SECTION( "real forest resource" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    REQUIRE( viz_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real forest resource, with player vis" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    frozen_square.square.forest_resource =
+        real_square.forest_resource;
+    frozen_square.square.overlay = real_square.overlay;
+    REQUIRE( viz_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_nation.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) == deer );
+  }
+
+  SECTION( "real ground and forest resource, with ground" ) {
+    real_square.ground_resource = sugar;
+    real_square.forest_resource = deer;
+    REQUIRE( viz_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground and forest resource, with forest" ) {
+    real_square.ground_resource = sugar;
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    REQUIRE( viz_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource under LCR" ) {
+    real_square.ground_resource = sugar;
+    real_square.lost_city_rumor = true;
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real forest resource under LCR" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    real_square.lost_city_rumor = true;
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource under dwelling" ) {
+    real_square.ground_resource = sugar;
+    W.add_dwelling( tile, e_tribe::cherokee );
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real forest resource under dwelling" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    W.add_dwelling( tile, e_tribe::cherokee );
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource under override dwelling" ) {
+    real_square.ground_resource = sugar;
+    overrides.dwellings[tile]   = Dwelling{ .id = 555 };
+    REQUIRE( viz_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real forest resource under override dwelling" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    overrides.dwellings[tile]   = Dwelling{ .id = 555 };
+    REQUIRE( viz_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) ==
+             nothing );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) ==
+             nothing );
+  }
+
+  SECTION( "real ground resource under LCR, override LCR" ) {
+    real_square.ground_resource             = sugar;
+    real_square.lost_city_rumor             = true;
+    overrides.squares[tile]                 = real_square;
+    overrides.squares[tile].lost_city_rumor = false;
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == sugar );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) == sugar );
+  }
+
+  SECTION( "real forest resource under LCR, override LCR" ) {
+    real_square.forest_resource = deer;
+    real_square.overlay         = e_land_overlay::forest;
+    real_square.lost_city_rumor = true;
+    overrides.squares[tile]     = real_square;
+    overrides.squares[tile].lost_city_rumor = false;
+    REQUIRE( viz_entire.resource_at( tile ) == nothing );
+    REQUIRE( viz_nation.resource_at( tile ) == nothing );
+    REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
+    REQUIRE( viz_overrides_nation.resource_at( tile ) == deer );
   }
 }
 

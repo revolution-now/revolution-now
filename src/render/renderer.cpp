@@ -164,14 +164,16 @@ struct Renderer::Impl {
     RenderBufferMap buffers;
     for( e_render_buffer const buffer :
          refl::enum_values<e_render_buffer> ) {
-      auto       vertices = make_unique<vector<GenericVertex>>();
-      auto*      p_vertices = vertices.get();
+      auto  vertices   = make_unique<vector<GenericVertex>>();
+      auto* p_vertices = vertices.get();
+      using ERB        = e_render_buffer;
       bool const track_dirty =
-          ( buffer == e_render_buffer::landscape ) ||
-          ( buffer == e_render_buffer::landscape_annex ) ||
-          ( buffer == e_render_buffer::landscape_anim ) ||
-          ( buffer == e_render_buffer::obfuscation ) ||
-          ( buffer == e_render_buffer::obfuscation_annex );
+          ( buffer == ERB::landscape ) ||
+          ( buffer == ERB::landscape_annex ) ||
+          ( buffer == ERB::landscape_anim_replace ) ||
+          ( buffer == ERB::landscape_anim_enpixelate ) ||
+          ( buffer == ERB::obfuscation ) ||
+          ( buffer == ERB::obfuscation_annex );
       buffers[buffer] =
           RenderBuffer{ .vertex_array = {},
                         .vertices     = std::move( vertices ),

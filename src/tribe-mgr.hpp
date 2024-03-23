@@ -18,6 +18,7 @@
 
 namespace rn {
 
+struct IMapUpdater;
 struct SS;
 struct TS;
 
@@ -33,7 +34,8 @@ enum class e_tribe;
 // land). Any missionary that is in the dwelling will be elimi-
 // nated. NOTE: this is an expensive call because it must iterate
 // over all map squares to remove any land owned by the dwelling.
-void destroy_dwelling( SS& ss, TS& ts, DwellingId dwelling_id );
+void destroy_dwelling( SS& ss, IMapUpdater& map_updater,
+                       DwellingId dwelling_id );
 
 // This is the method that normal game code should call in order
 // destroy a tribe. It is always safe to call in that it will
@@ -43,7 +45,8 @@ void destroy_dwelling( SS& ss, TS& ts, DwellingId dwelling_id );
 // over all map squares to remove any land owned by the tribe. It
 // is safe to call this if the tribe does not exist, and in that
 // case it will be very fast.
-void destroy_tribe( SS& ss, TS& ts, e_tribe tribe );
+void destroy_tribe( SS& ss, IMapUpdater& map_updater,
+                    e_tribe tribe );
 
 // This will destroy the tribe and pop up a message box.
 wait<> destroy_tribe_interactive( SS& ss, TS& ts,

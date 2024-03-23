@@ -84,9 +84,14 @@ struct LandViewAnimator {
     return dwelling_animations_;
   }
 
-  maybe<LandscapeAnimBufferState> const&
-  landview_anim_buffer_state() const {
-    return landview_anim_buffer_state_;
+  maybe<LandscapeAnimReplacementState> const&
+  landview_anim_replacement_state() const {
+    return landview_anim_replacement_state_;
+  }
+
+  maybe<LandscapeAnimEnpixelationState> const&
+  landview_anim_enpixelation_state() const {
+    return landview_anim_enpixelation_state_;
   }
 
   // Animation sequences.
@@ -140,16 +145,14 @@ struct LandViewAnimator {
   wait<> dwelling_depixelation_throttler( co::latch& hold,
                                           Coord      tile );
 
-  std::map<Coord, MapSquare> redrawn_squares_for_overrides(
-      std::map<Coord, MapSquare> const& overrides );
+  std::vector<Coord> redrawn_squares_for_overrides(
+      VisibilityOverrides const& overrides );
 
-  wait<> landscape_anim_depixelation_throttler(
-      co::latch&                        hold,
-      std::map<Coord, MapSquare> const& targets );
+  wait<> landscape_anim_enpixelation_throttler(
+      co::latch& hold, VisibilityOverrides const& overrides );
 
-  wait<> landscape_anim_modder(
-      co::latch&                        hold,
-      std::map<Coord, MapSquare> const& modded );
+  wait<> landscape_anim_replacer(
+      co::latch& hold, VisibilityOverrides const& modded );
 
   wait<> slide_throttler( co::latch& hold, GenericUnitId id,
                           e_direction d );
@@ -208,12 +211,15 @@ struct LandViewAnimator {
   }
 
  private:
-  SSConst const&                  ss_;
-  SmoothViewport&                 viewport_;
-  UnitAnimStatesMap               unit_animations_;
-  ColonyAnimStatesMap             colony_animations_;
-  DwellingAnimStatesMap           dwelling_animations_;
-  maybe<LandscapeAnimBufferState> landview_anim_buffer_state_;
+  SSConst const&        ss_;
+  SmoothViewport&       viewport_;
+  UnitAnimStatesMap     unit_animations_;
+  ColonyAnimStatesMap   colony_animations_;
+  DwellingAnimStatesMap dwelling_animations_;
+  maybe<LandscapeAnimReplacementState>
+      landview_anim_replacement_state_;
+  maybe<LandscapeAnimEnpixelationState>
+      landview_anim_enpixelation_state_;
   // We hold the unique_ptr reference because we need to know
   // when the source version was changed.
   std::unique_ptr<IVisibility const> const& viz_;

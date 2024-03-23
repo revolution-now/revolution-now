@@ -374,13 +374,13 @@ TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
               /*phase1=*/{
                   { .primitive =
                         P::landscape_anim_enpixelate{
-                            .targets =
-                                { { Coord{ .x = 1, .y = 0 },
-                                    MapSquare{
-                                        .surface =
-                                            e_surface::land,
-                                        .ground = e_ground_terrain::
-                                            grassland } } } } },
+                            .overrides = { .squares =
+                                               { { { .x = 1,
+                                                     .y = 0 },
+                                                   { .surface =
+                                                         e_surface::land,
+                                                     .ground = e_ground_terrain::
+                                                         grassland } } } } } },
                   { .primitive =
                         P::depixelate_colony{
                             .tile = { .x = 1, .y = 0 } } },
@@ -808,24 +808,24 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
     combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
 
     expected.sequence.push_back(
-        /*phase 2=*/{
-            { .primitive =
-                  P::front_unit{ .unit_id = attacker.id } },
-            { .primitive =
-                  P::front_unit{ .unit_id = defender.id() } },
-            { .primitive =
-                  P::landscape_anim_enpixelate{
-                      .targets =
-                          { { Coord{ .x = 1, .y = 0 },
-                              MapSquare{
-                                  .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
-                                      grassland } } } } },
-            { .primitive =
-                  P::depixelate_colony{
-                      .tile = { .x = 1, .y = 0 } } },
-            { .primitive = P::play_sound{
-                  .what = e_sfx::city_destroyed } } } );
+        /*phase 2=*/
+        { { .primitive =
+                P::front_unit{ .unit_id = attacker.id } },
+          { .primitive =
+                P::front_unit{ .unit_id = defender.id() } },
+          { .primitive =
+                P::landscape_anim_enpixelate{
+                    .overrides =
+                        { .squares =
+                              { { { .x = 1, .y = 0 },
+                                  { .surface = e_surface::land,
+                                    .ground  = e_ground_terrain::
+                                        grassland } } } } } },
+          { .primitive =
+                P::depixelate_colony{
+                    .tile = { .x = 1, .y = 0 } } },
+          { .primitive = P::play_sound{
+                .what = e_sfx::city_destroyed } } } );
     REQUIRE( f() == expected );
   }
 
@@ -848,28 +848,28 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
     combat.defender.outcome = EuroUnitCombatOutcome::no_change{};
 
     expected.sequence.push_back(
-        /*phase 2=*/{
-            { .primitive =
-                  P::front_unit{ .unit_id = attacker.id } },
-            { .primitive =
-                  P::front_unit{ .unit_id = defender.id() } },
-            { .primitive =
-                  P::hide_unit{ .unit_id = wagon_train_id } },
-            { .primitive =
-                  P::hide_unit{ .unit_id = treasure_id } },
-            { .primitive =
-                  P::landscape_anim_enpixelate{
-                      .targets =
-                          { { Coord{ .x = 1, .y = 0 },
-                              MapSquare{
-                                  .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
-                                      grassland } } } } },
-            { .primitive =
-                  P::depixelate_colony{
-                      .tile = { .x = 1, .y = 0 } } },
-            { .primitive = P::play_sound{
-                  .what = e_sfx::city_destroyed } } } );
+        /*phase 2=*/
+        { { .primitive =
+                P::front_unit{ .unit_id = attacker.id } },
+          { .primitive =
+                P::front_unit{ .unit_id = defender.id() } },
+          { .primitive =
+                P::hide_unit{ .unit_id = wagon_train_id } },
+          { .primitive =
+                P::hide_unit{ .unit_id = treasure_id } },
+          { .primitive =
+                P::landscape_anim_enpixelate{
+                    .overrides =
+                        { .squares =
+                              { { { .x = 1, .y = 0 },
+                                  { .surface = e_surface::land,
+                                    .ground  = e_ground_terrain::
+                                        grassland } } } } } },
+          { .primitive =
+                P::depixelate_colony{
+                    .tile = { .x = 1, .y = 0 } } },
+          { .primitive = P::play_sound{
+                .what = e_sfx::city_destroyed } } } );
     REQUIRE( f() == expected );
   }
 
@@ -1164,13 +1164,14 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
                                                  defender_id } },
             { .primitive =
                   P::landscape_anim_enpixelate{
-                      .targets =
-                          { { Coord{ .x = 1, .y = 1 },
-                              MapSquare{
-                                  .surface =
-                                      e_surface::land,
-                                  .ground = e_ground_terrain::
-                                      grassland } } } } },
+                      .overrides =
+                          {
+                              .squares =
+                                  { { { .x = 1, .y = 1 },
+                                      { .surface =
+                                            e_surface::land,
+                                        .ground = e_ground_terrain::
+                                            grassland } } } } } },
             { .primitive =
                   P::depixelate_dwelling{
                       .tile = { .x = 1, .y = 1 } } },
@@ -1234,68 +1235,80 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                     .what = e_sfx::city_destroyed } } } } };
     REQUIRE( f( viz ) == expected );
 
-    tribes   = { e_tribe::aztec };
-    expected = {
-        .sequence = {
-            /*phase 1=*/{
-                { .primitive =
-                      P::depixelate_dwelling{
-                          .tile = { .x = 1, .y = 3 } } },
-                { .primitive =
-                      P::depixelate_dwelling{
-                          .tile = { .x = 1, .y = 4 } } },
-                { .primitive =
-                      P::landscape_anim_enpixelate{
-                          .targets = { { Coord{ .x = 1, .y = 3 },
-                                         MapSquare{
-                                             .surface =
-                                                 e_surface::land,
-                                             .ground = e_ground_terrain::grassland } },
-                                       { Coord{ .x = 1, .y = 4 },
-                                         MapSquare{ .surface = e_surface::land,
-                                                    .ground = e_ground_terrain::grassland } } } } },
-                { .primitive =
-                      P::depixelate_native_unit{
-                          .unit_id = brave_3.id } },
-                { .primitive =
-                      P::depixelate_native_unit{
-                          .unit_id = brave_4.id } },
-                { .primitive =
-                      P::play_sound{
-                          .what = e_sfx::city_destroyed } },
-            } } };
+    tribes = { e_tribe::aztec };
+    expected =
+        {
+            .sequence = {
+                /*phase 1=*/{
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 3 } } },
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 4 } } },
+                    { .primitive =
+                          P::landscape_anim_enpixelate{
+                              .overrides = { .squares =
+                                                 { { { .x = 1,
+                                                       .y = 3 },
+                                                     { .surface =
+                                                           e_surface::land,
+                                                       .ground = e_ground_terrain::
+                                                           grassland } },
+                                                   { { .x = 1,
+                                                       .y = 4 },
+                                                     { .surface =
+                                                           e_surface::
+                                                               land,
+                                                       .ground = e_ground_terrain::grassland } } } } } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_3.id } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_4.id } },
+                    { .primitive =
+                          P::play_sound{
+                              .what = e_sfx::city_destroyed } },
+                } } };
     REQUIRE( f( viz ) == expected );
 
-    tribes   = { e_tribe::apache };
-    expected = {
-        .sequence = {
-            /*phase 1=*/{
-                { .primitive =
-                      P::depixelate_dwelling{
-                          .tile = { .x = 1, .y = 1 } } },
-                { .primitive =
-                      P::depixelate_dwelling{
-                          .tile = { .x = 1, .y = 2 } } },
-                { .primitive =
-                      P::landscape_anim_enpixelate{
-                          .targets = { { Coord{ .x = 1, .y = 1 },
-                                         MapSquare{
-                                             .surface =
-                                                 e_surface::land,
-                                             .ground = e_ground_terrain::grassland } },
-                                       { Coord{ .x = 1, .y = 2 },
-                                         MapSquare{ .surface = e_surface::land,
-                                                    .ground = e_ground_terrain::grassland } } } } },
-                { .primitive =
-                      P::depixelate_native_unit{
-                          .unit_id = brave_1.id } },
-                { .primitive =
-                      P::depixelate_native_unit{
-                          .unit_id = brave_2.id } },
-                { .primitive =
-                      P::play_sound{
-                          .what = e_sfx::city_destroyed } },
-            } } };
+    tribes = { e_tribe::apache };
+    expected =
+        {
+            .sequence = {
+                /*phase 1=*/{
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 1 } } },
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 2 } } },
+                    { .primitive =
+                          P::landscape_anim_enpixelate{
+                              .overrides = { .squares =
+                                                 { { { .x = 1,
+                                                       .y = 1 },
+                                                     { .surface =
+                                                           e_surface::land,
+                                                       .ground = e_ground_terrain::
+                                                           grassland } },
+                                                   { { .x = 1,
+                                                       .y = 2 },
+                                                     { .surface =
+                                                           e_surface::
+                                                               land,
+                                                       .ground = e_ground_terrain::grassland } } } } } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_1.id } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_2.id } },
+                    { .primitive =
+                          P::play_sound{
+                              .what = e_sfx::city_destroyed } },
+                } } };
     REQUIRE( f( viz ) == expected );
   }
 
@@ -1357,56 +1370,62 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
                  } } };
     REQUIRE( f( viz ) == expected );
 
-    tribes   = { e_tribe::aztec };
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_dwelling{
-                      .tile = { .x = 1, .y = 3 } } },
-            { .primitive =
-                  P::landscape_anim_enpixelate{
-                      .targets =
-                          { { Coord{ .x = 1, .y = 3 },
-                              MapSquare{
-                                  .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
-                                      grassland } } } } },
-            { .primitive =
-                  P::depixelate_native_unit{ .unit_id =
-                                                 brave_3.id } },
-            { .primitive =
-                  P::depixelate_native_unit{ .unit_id =
-                                                 brave_4.id } },
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
-        } } };
+    tribes = { e_tribe::aztec };
+    expected =
+        {
+            .sequence = {
+                /*phase 1=*/{
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 3 } } },
+                    { .primitive =
+                          P::landscape_anim_enpixelate{
+                              .overrides = { .squares =
+                                                 { { { .x = 1,
+                                                       .y = 3 },
+                                                     { .surface =
+                                                           e_surface::land,
+                                                       .ground = e_ground_terrain::
+                                                           grassland } } } } } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_3.id } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_4.id } },
+                    { .primitive =
+                          P::play_sound{
+                              .what = e_sfx::city_destroyed } },
+                } } };
     REQUIRE( f( viz ) == expected );
 
-    tribes   = { e_tribe::apache };
-    expected = {
-        .sequence = { /*phase 1=*/{
-            { .primitive =
-                  P::depixelate_dwelling{
-                      .tile = { .x = 1, .y = 1 } } },
-            { .primitive =
-                  P::landscape_anim_enpixelate{
-                      .targets =
-                          { { Coord{ .x = 1, .y = 1 },
-                              MapSquare{
-                                  .surface = e_surface::land,
-                                  .ground  = e_ground_terrain::
-                                      grassland } } } } },
-            { .primitive =
-                  P::depixelate_native_unit{ .unit_id =
-                                                 brave_1.id } },
-            { .primitive =
-                  P::depixelate_native_unit{ .unit_id =
-                                                 brave_2.id } },
-            { .primitive =
-                  P::play_sound{ .what =
-                                     e_sfx::city_destroyed } },
-        } } };
+    tribes = { e_tribe::apache };
+    expected =
+        {
+            .sequence = {
+                /*phase 1=*/{
+                    { .primitive =
+                          P::depixelate_dwelling{
+                              .tile = { .x = 1, .y = 1 } } },
+                    { .primitive =
+                          P::landscape_anim_enpixelate{
+                              .overrides = { .squares =
+                                                 { { { .x = 1,
+                                                       .y = 1 },
+                                                     { .surface =
+                                                           e_surface::land,
+                                                       .ground = e_ground_terrain::
+                                                           grassland } } } } } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_1.id } },
+                    { .primitive =
+                          P::depixelate_native_unit{
+                              .unit_id = brave_2.id } },
+                    { .primitive =
+                          P::play_sound{
+                              .what = e_sfx::city_destroyed } },
+                } } };
     REQUIRE( f( viz ) == expected );
   }
 
@@ -1420,42 +1439,50 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
     W.map_updater().make_squares_visible(
         e_nation::french, { { .x = 1, .y = 3 } } );
 
-    tribes   = { e_tribe::aztec, e_tribe::apache };
-    expected = { .sequence = { /*phase 1=*/{
-                     { .primitive =
-                           P::depixelate_dwelling{
-                               .tile = { .x = 1, .y = 1 } } },
-                     { .primitive =
-                           P::depixelate_dwelling{
-                               .tile = { .x = 1, .y = 3 } } },
-                     { .primitive =
-                           P::landscape_anim_enpixelate{
-                               .targets =
-                                   {
-                                       { Coord{ .x = 1, .y = 1 },
-                                         MapSquare{ .surface = e_surface::land,
+    tribes = { e_tribe::aztec, e_tribe::apache };
+    expected =
+        {
+            .sequence =
+                {
+                    /*phase 1=*/{
+                        { .primitive =
+                              P::depixelate_dwelling{
+                                  .tile = { .x = 1, .y = 1 } } },
+                        { .primitive =
+                              P::depixelate_dwelling{
+                                  .tile = { .x = 1, .y = 3 } } },
+                        { .primitive =
+                              P::landscape_anim_enpixelate{
+                                  .overrides =
+                                      { .squares =
+                                            {
+                                                { { .x = 1,
+                                                    .y = 1 },
+                                                  { .surface =
+                                                        e_surface::land,
                                                     .ground = e_ground_terrain::grassland } },
-                                       { Coord{ .x = 1, .y = 3 },
-                                         MapSquare{ .surface = e_surface::land,
-                                                    .ground =
-                                                        e_ground_terrain::grassland } },
-                                   } } },
-                     { .primitive =
-                           P::depixelate_native_unit{
-                               .unit_id = brave_1.id } },
-                     { .primitive =
-                           P::depixelate_native_unit{
-                               .unit_id = brave_2.id } },
-                     { .primitive =
-                           P::depixelate_native_unit{
-                               .unit_id = brave_3.id } },
-                     { .primitive =
-                           P::depixelate_native_unit{
-                               .unit_id = brave_4.id } },
-                     { .primitive =
-                           P::play_sound{
-                               .what = e_sfx::city_destroyed } },
-                 } } };
+                                                { { .x = 1, .y = 3 },
+                                                  { .surface =
+                                                        e_surface::land,
+                                                    .ground = e_ground_terrain::grassland } },
+                                            } } } },
+                        { .primitive =
+                              P::depixelate_native_unit{
+                                  .unit_id = brave_1.id } },
+                        { .primitive =
+                              P::depixelate_native_unit{
+                                  .unit_id = brave_2.id } },
+                        { .primitive =
+                              P::depixelate_native_unit{
+                                  .unit_id = brave_3.id } },
+                        { .primitive =
+                              P::depixelate_native_unit{
+                                  .unit_id = brave_4.id } },
+                        { .primitive =
+                              P::play_sound{
+                                  .what = e_sfx::
+                                      city_destroyed } },
+                    } } };
     REQUIRE( f( viz ) == expected );
   }
 }

@@ -8,10 +8,28 @@
 # Description: Rds definitions for the visibility module.
 #
 # ===============================================================
+# ss
+include "ss/dwelling.rds.hpp"
+include "ss/map-square.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<map>"
+
 namespace "rn"
 
 enum.e_tile_visibility {
   hidden,
   fogged,
   clear,
+}
+
+struct.VisibilityOverrides {
+  squares 'std::map<Coord, MapSquare>',
+  dwellings 'std::map<Coord, base::maybe<Dwelling>>',
 }

@@ -10,6 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "sound.rds.hpp" # FIXME: forward declare e_sfx.
+include "visibility.rds.hpp"
 
 # ss
 include "ss/map-square.rds.hpp"
@@ -22,7 +23,6 @@ include "gfx/coord.hpp"
 
 # C++ standard library
 include "<chrono>"
-include "<map>"
 include "<vector>"
 
 namespace "rn"
@@ -140,15 +140,15 @@ sumtype.AnimationPrimitive {
   # over the regular landcape. You should have at most one of
   # these per phase.
   landscape_anim_enpixelate {
-    targets 'std::map<Coord, MapSquare>',
+    overrides 'VisibilityOverrides',
   },
 
   # This will cause the given tiles (and their surrounding tiles)
   # to be drawn onto the landscape_anim buffer, effectively re-
   # placing whatever is in the landscape buffer. There should be
   # at most one of these per phase.
-  landscape_anim_mod {
-    modded 'std::map<Coord, MapSquare>',
+  landscape_anim_replace {
+    overrides 'VisibilityOverrides',
   },
 }
 

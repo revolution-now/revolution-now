@@ -952,7 +952,7 @@ wait<> AttackDwellingHandler::perform() {
   // Kill dwelling, free braves owned by the dwelling, and any
   // owned land of the dwelling. This will also remove the road
   // under the dwelling.
-  destroy_dwelling( ss_, ts_, dwelling_id_ );
+  destroy_dwelling( ss_, ts_.map_updater, dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat.attacker.outcome );
 
