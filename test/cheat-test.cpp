@@ -27,8 +27,11 @@
 #include "src/visibility.hpp"
 
 // ss
+#include "src/ss/land-view.rds.hpp"
 #include "src/ss/natives.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
+#include "src/ss/turn.rds.hpp"
 #include "src/ss/units.hpp"
 
 // refl
@@ -692,6 +695,63 @@ TEST_CASE( "[cheat] kill_natives" ) {
                   .value()
                   .square.road );
   }
+}
+
+TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
+  World W;
+  W.create_default_map();
+  MockLandViewPlane mock_land_view;
+  W.planes().back().land_view = &mock_land_view;
+
+  auto f = [&] {
+    cheat_toggle_reveal_full_map( W.ss(), W.ts() );
+  };
+
+  auto& show_indian_moves =
+      W.settings()
+          .game_options
+          .flags[e_game_flag_option::show_indian_moves];
+  auto& show_foreign_moves =
+      W.settings()
+          .game_options
+          .flags[e_game_flag_option::show_foreign_moves];
+  auto const& map_revealed = W.land_view().map_revealed;
+
+  W.turn().cycle =
+      TurnCycle::nation{ .nation = W.default_nation() };
+
+  // Starting state sanity check.
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
+
+  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  f();
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::entire>() );
+
+  show_indian_moves  = true;
+  show_foreign_moves = true;
+  mock_land_view.EXPECT__set_visibility( e_nation::dutch );
+  f();
+  REQUIRE( show_indian_moves );
+  REQUIRE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
+
+  show_indian_moves  = true;
+  show_foreign_moves = true;
+  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  f();
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::entire>() );
+
+  mock_land_view.EXPECT__set_visibility( e_nation::dutch );
+  f();
+  REQUIRE_FALSE( show_indian_moves );
+  REQUIRE_FALSE( show_foreign_moves );
+  REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
 }
 
 } // namespace

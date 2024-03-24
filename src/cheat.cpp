@@ -95,6 +95,16 @@ bool can_remove_building( Colony const&     colony,
   return colony.indoor_jobs[*job].empty();
 }
 
+void reveal_map_qol( SS& ss, TS& ts ) {
+  // These technically don't need to be disabled, but it is just
+  // a QoL thing for the player (actually the OG does this as
+  // well).
+  disable_game_option( ss, ts,
+                       e_game_flag_option::show_indian_moves );
+  disable_game_option( ss, ts,
+                       e_game_flag_option::show_foreign_moves );
+}
+
 } // namespace
 
 /****************************************************************
@@ -138,13 +148,7 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
           MapRevealed::nation{ .nation = e_nation::dutch };
       break;
     case e_cheat_reveal_map::entire_map:
-      // These technically don't need to be disabled, but it is
-      // just a QoL thing for the player (actually the OG does
-      // this as well).
-      disable_game_option(
-          ss, ts, e_game_flag_option::show_indian_moves );
-      disable_game_option(
-          ss, ts, e_game_flag_option::show_foreign_moves );
+      reveal_map_qol( ss, ts );
       revealed = MapRevealed::entire{};
       break;
     case e_cheat_reveal_map::no_special_view:
@@ -257,10 +261,12 @@ void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
   RETURN_IF_NO_CHEAT;
   MapRevealed& revealed = ss.land_view.map_revealed;
   if( revealed.holds<MapRevealed::no_special_view>() ||
-      revealed.holds<MapRevealed::nation>() )
+      revealed.holds<MapRevealed::nation>() ) {
+    reveal_map_qol( ss, ts );
     revealed = MapRevealed::entire{};
-  else
+  } else {
     revealed = MapRevealed::no_special_view{};
+  }
   update_map_visibility(
       ts, player_for_role( ss, e_player_role::viewer ) );
 }
