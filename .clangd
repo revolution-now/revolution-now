@@ -1,5 +1,6 @@
+---
+# Fragment common to all source files.
 CompileFlags:
-  # Search .builds/current for compile_commands.json.
   CompilationDatabase: .builds/current
   Remove: [
     # gcc-specific flags.
@@ -9,3 +10,19 @@ CompileFlags:
 Diagnostics:
   UnusedIncludes: None   # Use "Strict" to enable.
   MissingIncludes: None  # Use "Strict" to enable.
+
+---
+# Fragment specific to headers.
+If:
+  PathMatch: [.*\.hpp]
+
+CompileFlags:
+  # Not really sure why we need to do this; ideally clangd would
+  # be smart enough to know that we shouldn't issue an "unused
+  # macro" warning if the macro is defined in a header, since it
+  # is likely included by another translation unit and used. But
+  # as of this writing it does emit that warning, so here we will
+  # suppress it. This won't cause any real bugs to go unnoticed
+  # because it is anyway not possible to know if a macro really
+  # is unused if it is defined in a header.
+  Add: [-Wno-unused-macros]
