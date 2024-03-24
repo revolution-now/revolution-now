@@ -174,6 +174,12 @@ NonRenderingMapUpdater::make_squares_fogged(
   return res;
 }
 
+vector<BuffersUpdated>
+NonRenderingMapUpdater::force_redraw_tiles(
+    vector<Coord> const& ) {
+  return {};
+}
+
 void NonRenderingMapUpdater::modify_entire_map_no_redraw(
     base::function_ref<void( RealTerrain& )> mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
@@ -356,6 +362,17 @@ vector<BuffersUpdated> RenderingMapUpdater::make_squares_fogged(
   if( !options().nation.has_value() ) return buffers_updated;
   // If it's another nation then not relevant for rendering.
   if( nation != *options().nation ) return buffers_updated;
+  redraw_buffers_for_tiles_where_needed( buffers_updated );
+  return buffers_updated;
+}
+
+vector<BuffersUpdated> RenderingMapUpdater::force_redraw_tiles(
+    vector<Coord> const& tiles ) {
+  vector<BuffersUpdated> buffers_updated;
+  buffers_updated.reserve( tiles.size() );
+  for( Coord const tile : tiles )
+    buffers_updated.push_back(
+        BuffersUpdated{ .tile = tile, .landscape = true } );
   redraw_buffers_for_tiles_where_needed( buffers_updated );
   return buffers_updated;
 }

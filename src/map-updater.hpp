@@ -39,28 +39,26 @@ struct NonRenderingMapUpdater : IMapUpdater {
   NonRenderingMapUpdater(
       SS& ss, MapUpdaterOptions const& initial_options );
 
-  // Implement IMapUpdater.
+ public: // Implement IMapUpdater.
   BuffersUpdated modify_map_square( Coord,
                                     SquareUpdateFunc ) override;
 
-  // Implement IMapUpdater.
   std::vector<BuffersUpdated> make_squares_visible(
       e_nation                  nation,
       std::vector<Coord> const& tiles ) override;
 
-  // Implement IMapUpdater.
   std::vector<BuffersUpdated> make_squares_fogged(
       e_nation                  nation,
       std::vector<Coord> const& tiles ) override;
 
-  // Implement IMapUpdater.
+  std::vector<BuffersUpdated> force_redraw_tiles(
+      std::vector<Coord> const& tiles ) override;
+
   void modify_entire_map_no_redraw(
       MapUpdateFunc mutator ) override;
 
-  // Implement IMapUpdater.
   void redraw() override;
 
-  // Implement IMapUpdater.
   void unrender() override;
 
  protected:
@@ -80,28 +78,26 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       SS& ss, rr::Renderer& renderer,
       MapUpdaterOptions const& initial_options );
 
-  // Implement IMapUpdater.
+ public: // Implement IMapUpdater.
   BuffersUpdated modify_map_square(
       Coord tile, SquareUpdateFunc mutator ) override;
 
-  // Implement IMapUpdater.
   std::vector<BuffersUpdated> make_squares_visible(
       e_nation                  nation,
       std::vector<Coord> const& tiles ) override;
 
-  // Implement IMapUpdater.
   std::vector<BuffersUpdated> make_squares_fogged(
       e_nation                  nation,
       std::vector<Coord> const& tiles ) override;
 
-  // Implement IMapUpdater.
+  std::vector<BuffersUpdated> force_redraw_tiles(
+      std::vector<Coord> const& tiles ) override;
+
   void modify_entire_map_no_redraw(
       MapUpdateFunc mutator ) override;
 
-  // Implement IMapUpdater.
   void redraw() override;
 
-  // Implement IMapUpdater.
   void unrender() override;
 
  private:

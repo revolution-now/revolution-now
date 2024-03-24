@@ -125,6 +125,25 @@ struct IMapUpdater {
   virtual std::vector<BuffersUpdated> make_squares_fogged(
       e_nation nation, std::vector<Coord> const& tiles ) = 0;
 
+  // This should not be used by most game code. This is for those
+  // rare cases where the rendered tile changes in response to a
+  // change other than in the MapSquare. For example, prime re-
+  // sources are supressed from rendering when there is a
+  // dwelling on the tile; so when the dwelling goes away we need
+  // to force a redraw of the tile to reveal the prime resource
+  // there, which otherwise would not cause a redraw on its own
+  // since its value has not changed in MapSquare (in this exam-
+  // ple, it happens that a redraw would have happened anyway be-
+  // cause we are in fact changing the MapSquare in order to re-
+  // move the road under the dwelling, but we don't want to rely
+  // on that just to reveal the prime resource).
+  //
+  // Note that this doesn't in any way reveal or change anything
+  // about the MapSquare or the fog status; it just redraws based
+  // on what is already theoretically supposed to be rendered.
+  virtual std::vector<BuffersUpdated> force_redraw_tiles(
+      std::vector<Coord> const& tiles ) = 0;
+
   // Will redraw the entire map.
   virtual void redraw() = 0;
 

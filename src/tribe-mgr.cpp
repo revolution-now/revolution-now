@@ -69,12 +69,18 @@ void delete_dwelling_ignoring_owned_land(
 
   // Remove road under dwelling. There may not be any good reason
   // that we need to do this, but that's what the OG does.
-  //
-  // NOTE: we need to do this after the dwelling is destroyed be-
-  // cause another purpose of this call is to redraw the tile so
-  // that any prime resources under the dwelling now become visi-
-  // ble.
   clear_road( map_updater, dwelling_coord );
+
+  // This is actually not necessary since the tile will get re-
+  // drawn anyway because the tile loses the road above, so the
+  // map updater understands that the tile has to be redrawn.
+  // However, even if there were not a road being lost, we would
+  // still in general need to redraw the tile anyway since a
+  // prime resource might get revealed. So, just out of principle
+  // so that we're not relying on the presence of a road under
+  // the dwelling to render a prime resource, we will force a re-
+  // draw of the tile.
+  map_updater.force_redraw_tiles( { dwelling_coord } );
 }
 
 } // namespace

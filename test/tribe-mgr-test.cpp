@@ -219,22 +219,28 @@ TEST_CASE(
   REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
   REQUIRE( W.square( kTile ).road );
 
+  bool cleared_road = false;
   mock_map_updater.EXPECT__modify_map_square( kTile, _ )
+      .invokes( [&] { cleared_road = true; } );
+
+  mock_map_updater
+      .EXPECT__force_redraw_tiles( vector<Coord>{ kTile } )
+      .returns( vector<BuffersUpdated>{
+          BuffersUpdated{ .tile = kTile, .landscape = true } } )
       .invokes( [&] {
         // This ensures that the dwelling has already been de-
-        // stroyed before we remove the road. This is needed be-
-        // cause the road update has as a side effect redrawing
-        // the square, which we also need to do in case a prime
-        // resource becomes visible as a result.
+        // stroyed and the road removed before we force the re-
+        // draw. This way we ensure that we render properly both
+        // with respect to the road and any prime resources that
+        // might appear after the dwelling is gone.
         REQUIRE_FALSE(
             W.natives().dwelling_exists( dwelling_id ) );
-        W.square( kTile ).road = false;
+        REQUIRE( cleared_road );
       } );
 
   destroy( dwelling_id );
 
   REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
-  REQUIRE_FALSE( W.square( kTile ).road );
 }
 
 TEST_CASE( "[tribe-mgr] destroy_tribe" ) {

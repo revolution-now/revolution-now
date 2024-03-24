@@ -406,21 +406,16 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     destroy_tribe( ss, ts.map_updater, tribe );
 
   // At this point we need to update the fogged squares that con-
-  // tained destroyed dwellings on the player maps to 1) remove
-  // the fog dwellings and 2) to redraw the terrain since the
-  // roads under the dwellings will have been removed and/or
-  // prime resources may have been exposed. The simplest way to
-  // do that using the usual map updater API is to just go
-  // through all of the squares that had fogged dwellings on them
-  // that were destroyed and flip the fog on and then off again.
-  // This is not very elegant, but it will ensure that all of the
-  // things get done that need to: player fog squares updated and
-  // redrawing of rendered map where necessary. Note that we
-  // don't have to do this for dwellings that were totally hidden
-  // and we don't have to do this for dwellings that were fully
-  // visible and clear, since in the latter case those fog
-  // squares will eventually get updated if/when the square flips
-  // from clear to fogged.
+  // tained destroyed dwellings on the player maps to remove the
+  // fog dwellings. The simplest way to do that using the usual
+  // map updater API is to just go through all of the squares
+  // that had fogged dwellings on them that were destroyed and
+  // flip the fog on and then off again. This is not very ele-
+  // gant, but it will suffice. Note that we don't have to do
+  // this for dwellings that were totally hidden and we don't
+  // have to do this for dwellings that were fully visible and
+  // clear, since in the latter case those fog squares will even-
+  // tually get updated if/when the square flips to fogged.
   for( e_nation const nation : refl::enum_values<e_nation> ) {
     if( !ss.players.players[nation].has_value() ) continue;
     vector<Coord> const affected_fogged = [&] {
@@ -436,6 +431,19 @@ wait<> kill_natives( SS& ss, TS& ts ) {
                                          affected_fogged );
     ts.map_updater.make_squares_fogged( nation,
                                         affected_fogged );
+    // This is actually not necessary since the tile will get re-
+    // drawn anyway (either when we destroy the dwelling or when
+    // we flip the fog squares above, depending on visibility
+    // state) because the tile loses the road when the dwelling
+    // gets destroyed, so the map updater understands that the
+    // tile has to be redrawn. However, even if there were not a
+    // road being lost, we would still in general need to redraw
+    // the tile anyway since a prime resource might get revealed.
+    // So, just out of principle so that we're not relying on the
+    // presence of a road under the dwelling to render a prime
+    // resource, we will anyway force a redraw of the tile.
+    if( ts.map_updater.options().nation == nation )
+      ts.map_updater.force_redraw_tiles( affected_fogged );
   }
 
   for( e_tribe const tribe : destroyed )

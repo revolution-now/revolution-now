@@ -576,5 +576,19 @@ TEST_CASE( "[map-updater] fog of war" ) {
   }
 }
 
+TEST_CASE(
+    "[map-updater] "
+    "NonRenderingMapUpdater::force_redraw_tiles" ) {
+  World                  W;
+  NonRenderingMapUpdater map_updater( W.ss() );
+  vector<BuffersUpdated> expected;
+  Coord const            coord1 = { .x = 0, .y = 0 };
+  Coord const            coord2 = { .x = 1, .y = 0 };
+
+  expected = {};
+  REQUIRE( map_updater.force_redraw_tiles(
+               { coord1, coord2 } ) == expected );
+}
+
 } // namespace
 } // namespace rn
