@@ -154,8 +154,15 @@ struct LandViewAnimator {
   wait<> landscape_anim_replacer(
       co::latch& hold, VisibilityOverrides const& modded );
 
-  wait<> slide_throttler( co::latch& hold, GenericUnitId id,
-                          e_direction d );
+  wait<> slide_throttler_impl( co::latch& hold, e_direction d,
+                               UnitSlide& slide );
+
+  wait<> slide_throttler_slide( co::latch&    hold,
+                                GenericUnitId id,
+                                e_direction   d );
+
+  wait<> slide_throttler_talk( co::latch& hold, GenericUnitId id,
+                               e_direction d );
 
  private:
   template<typename Anim, typename Map>

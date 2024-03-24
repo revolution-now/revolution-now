@@ -40,4 +40,9 @@ sumtype.NativeUnitCommand {
   equip {
     how 'EquippedBrave',
   },
+
+  # TODO: temporary placeholder.
+  talk {
+    direction 'e_direction',
+  },
 }

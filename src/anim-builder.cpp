@@ -78,6 +78,12 @@ AnimationAction& AnimationBuilder::slide_unit(
                               .direction = direction } );
 }
 
+AnimationAction& AnimationBuilder::talk_unit(
+    GenericUnitId unit_id, e_direction direction ) {
+  return push( P::talk_unit{ .unit_id   = unit_id,
+                             .direction = direction } );
+}
+
 AnimationAction& AnimationBuilder::depixelate_euro_unit(
     UnitId unit_id ) {
   return push( P::depixelate_euro_unit{ .unit_id = unit_id } );

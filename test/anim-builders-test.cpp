@@ -131,6 +131,39 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_move off map" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[anim-builders] anim_seq_for_unit_talk" ) {
+  World             W;
+  AnimationSequence expected;
+  UnitId            unit_id   = {};
+  e_direction       direction = {};
+  Coord             coord     = {};
+
+  auto f = [&] {
+    return anim_seq_for_unit_talk( W.ss(), unit_id, direction );
+  };
+
+  coord = { .x = 1, .y = 1 };
+  unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, coord )
+          .id();
+  direction = e_direction::s;
+  expected  = {
+       .sequence = {
+          /*phase 0*/ {
+              { .primitive =
+                     P::ensure_tile_visible{ .tile = coord } },
+              { .primitive =
+                     P::ensure_tile_visible{
+                         .tile = coord.moved( direction ) } } },
+          /*phase 1*/ {
+              { .primitive =
+                     P::talk_unit{ .unit_id   = unit_id,
+                                   .direction = direction } },
+              { .primitive =
+                     P::play_sound{ .what = e_sfx::move } } } } };
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[anim-builders] anim_seq_for_boarding_ship" ) {
   World             W;
   AnimationSequence expected;

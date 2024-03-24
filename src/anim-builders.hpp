@@ -87,6 +87,14 @@ AnimationSequence anim_seq_for_unit_move(
     SSConst const& ss, GenericUnitId unit_id,
     e_direction direction );
 
+// Slides the unit in the given direction but also keeps a sprite
+// of the unit stationary on the starting square, as the OG does
+// when a brave wants to interact with a european unit or colony
+// for some reason other than attacking.
+AnimationSequence anim_seq_for_unit_talk(
+    SSConst const& ss, GenericUnitId unit_id,
+    e_direction direction );
+
 // In the case that a unit is boarding a ship we need a special
 // animation which does the slide but also makes sure that the
 // ship being boarded gets rendered on top of its stack so that

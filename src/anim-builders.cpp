@@ -674,6 +674,22 @@ AnimationSequence anim_seq_for_unit_move(
   return builder.result();
 }
 
+AnimationSequence anim_seq_for_unit_talk(
+    SSConst const& ss, GenericUnitId unit_id,
+    e_direction direction ) {
+  Coord const tile =
+      coord_for_unit_multi_ownership_or_die( ss, unit_id );
+  Coord const      target = tile.moved( direction );
+  AnimationBuilder builder;
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { tile, target } );
+  // Phase 1: slide.
+  builder.new_phase();
+  builder.talk_unit( unit_id, direction );
+  builder.play_sound( e_sfx::move );
+  return builder.result();
+}
+
 AnimationSequence anim_seq_for_boarding_ship(
     SSConst const& ss, UnitId unit_id, UnitId ship_id,
     e_direction direction ) {

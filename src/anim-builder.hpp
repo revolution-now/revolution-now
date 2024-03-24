@@ -50,6 +50,9 @@ struct AnimationBuilder {
   AnimationAction& slide_unit( GenericUnitId unit_id,
                                e_direction   direction );
 
+  AnimationAction& talk_unit( GenericUnitId unit_id,
+                              e_direction   direction );
+
   AnimationAction& depixelate_euro_unit( UnitId unit_id );
 
   AnimationAction& depixelate_native_unit(

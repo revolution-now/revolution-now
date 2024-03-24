@@ -15,6 +15,7 @@
 // Revolution Now
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
+#include "ieuro-mind.hpp" // FIXME
 #include "igui.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
@@ -35,6 +36,7 @@
 
 // config
 #include "config/natives.hpp"
+#include "config/text.rds.hpp" // FIXME
 
 // ss
 #include "ss/colonies.hpp"
@@ -113,6 +115,33 @@ wait<> handle_native_unit_attack( INativesTurnDeps const& deps,
 
   // !! Native unit may no longer exist here.
   if( !ss.units.exists( attacker_id ) ) co_return;
+
+  native_unit.movement_points = 0;
+}
+
+// TODO: temporary.
+wait<> handle_native_unit_talk( SS& ss, TS& ts,
+                                NativeUnit& native_unit,
+                                e_direction direction,
+                                e_nation    nation ) {
+  Player& player =
+      player_for_nation_or_die( ss.players, nation );
+  IEuroMind& euro_mind = ts.euro_minds[nation];
+
+  co_await ts.planes.land_view().animate(
+      anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
+
+  player.money += 5;
+
+  // TODO: create a new module native-talk here to handle all the
+  // ways that natives can interact other than attacking.
+  string const& tribe_name =
+      config_natives
+          .tribes[tribe_type_for_unit( ss, native_unit )]
+          .name_singular;
+  co_await euro_mind.message_box(
+      "You've received [5{}] from the [{}].",
+      config_text.special_chars.currency, tribe_name );
 
   native_unit.movement_points = 0;
 }
@@ -202,7 +231,23 @@ wait<> handle_native_unit_command(
             break;
           }
         }
-      };
+      }
+      break;
+    }
+    CASE( talk ) {
+      //  TODO: this is just temporary.
+      Coord const src = ss.units.coord_for( native_unit.id );
+      Coord const dst = src.moved( talk.direction );
+      UNWRAP_CHECK( society, society_on_square( ss, dst ) );
+      SWITCH( society ) {
+        CASE( native ) { SHOULD_NOT_BE_HERE; }
+        CASE( european ) {
+          co_await handle_native_unit_talk( ss, ts, native_unit,
+                                            talk.direction,
+                                            european.nation );
+          break;
+        }
+      }
     }
     break;
   }

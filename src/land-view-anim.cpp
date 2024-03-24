@@ -308,20 +308,15 @@ wait<> LandViewAnimator::animate_blink(
   }
 }
 
-wait<> LandViewAnimator::slide_throttler( co::latch&    hold,
-                                          GenericUnitId id,
-                                          e_direction   d ) {
+wait<> LandViewAnimator::slide_throttler_impl(
+    co::latch& hold, e_direction d, UnitSlide& slide ) {
   double const kMaxVelocity =
       ss_.settings.game_options
               .flags[e_game_flag_option::fast_piece_slide]
           ? .1
           : .07;
 
-  auto popper =
-      add_unit_animation<UnitAnimationState::slide>( id );
-  UnitAnimationState::slide& slide = popper.get();
-
-  slide = UnitAnimationState::slide{
+  slide = {
       .direction   = d,
       .percent     = 0.0,
       .percent_vel = DissipativeVelocity{
@@ -345,6 +340,24 @@ wait<> LandViewAnimator::slide_throttler( co::latch&    hold,
   co_await throttle();
   // Must be last.
   co_await hold.arrive_and_wait();
+}
+
+wait<> LandViewAnimator::slide_throttler_slide( co::latch& hold,
+                                                GenericUnitId id,
+                                                e_direction d ) {
+  using Anim   = UnitAnimationState::slide;
+  auto  popper = add_unit_animation<Anim>( id );
+  Anim& slide  = popper.get();
+  co_await slide_throttler_impl( hold, d, slide.slide );
+}
+
+wait<> LandViewAnimator::slide_throttler_talk( co::latch& hold,
+                                               GenericUnitId id,
+                                               e_direction d ) {
+  using Anim   = UnitAnimationState::talk;
+  auto  popper = add_unit_animation<Anim>( id );
+  Anim& slide  = popper.get();
+  co_await slide_throttler_impl( hold, d, slide.slide );
 }
 
 wait<> LandViewAnimator::ensure_visible( Coord const& coord ) {
@@ -452,7 +465,23 @@ wait<> LandViewAnimator::animate_action_primitive(
         hold.count_down();
         break;
       }
-      co_await slide_throttler( hold, unit_id, direction );
+      co_await slide_throttler_slide( hold, unit_id, direction );
+      break;
+    }
+    CASE( talk_unit ) {
+      auto& [unit_id, direction] = talk_unit;
+      Coord const src =
+          coord_for_unit_indirect_or_die( ss_.units, unit_id );
+      Coord const dst = src.moved( direction );
+      CHECK( ss_.terrain.square_exists( dst ) );
+      // Check visibility.
+      bool const should_animate =
+          should_animate_move( *viz_, src, dst );
+      if( !should_animate ) {
+        hold.count_down();
+        break;
+      }
+      co_await slide_throttler_talk( hold, unit_id, direction );
       break;
     }
     CASE( depixelate_euro_unit ) {

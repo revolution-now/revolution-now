@@ -76,6 +76,15 @@ sumtype.AnimationPrimitive {
     direction 'e_direction',
   },
 
+  # This will slide the unit but also keep a sprite of it sta-
+  # tionary as it slides. This is used when a brave wants to talk
+  # to a nation, e.g. making an offering to a colony, perhaps to
+  # visually differentiate the sliding from attacking.
+  talk_unit {
+    unit_id 'GenericUnitId',
+    direction 'e_direction',
+  },
+
   depixelate_euro_unit {
     unit_id 'UnitId',
   },

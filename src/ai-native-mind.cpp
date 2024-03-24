@@ -172,7 +172,12 @@ NativeUnitCommand AiNativeMind::command_for(
           return NativeUnitCommand::forfeight{};
         break;
       }
-      CASE( european ) { break; }
+      CASE( european ) {
+        if( rand_.bernoulli( .2 ) )
+          // TODO: temporary.
+          return NativeUnitCommand::talk{ .direction = rand_d };
+        break;
+      }
     }
   }
   return NativeUnitCommand::move{ .direction = rand_d };

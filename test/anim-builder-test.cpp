@@ -39,6 +39,7 @@ TEST_CASE( "[anim-builder] builders" ) {
   builder.hide_unit( GenericUnitId{ 1 } );
   builder.front_unit( GenericUnitId{ 2 } );
   builder.slide_unit( GenericUnitId{ 3 }, e_direction::sw );
+  builder.talk_unit( GenericUnitId{ 6 }, e_direction::sw );
   builder.new_phase();
   builder.depixelate_euro_unit( UnitId{ 4 } );
   builder.enpixelate_unit( GenericUnitId{ 5 } );
@@ -70,72 +71,77 @@ TEST_CASE( "[anim-builder] builders" ) {
 
   using P = AnimationPrimitive;
   AnimationSequence const expected{
-      .sequence = {
-          /*phase 0*/ {
+      .sequence =
+          { /*phase 0*/ {
+                { .primitive =
+                      P::delay{ .duration =
+                                    chrono::seconds{ 1 } } },
+                { .primitive =
+                      P::play_sound{ .what =
+                                         e_sfx::attacker_won } },
+                { .primitive =
+                      P::hide_unit{ .unit_id =
+                                        GenericUnitId{ 1 } } },
+                { .primitive =
+                      P::front_unit{ .unit_id =
+                                         GenericUnitId{ 2 } } },
+                { .primitive =
+                      P::slide_unit{
+                          .unit_id   = GenericUnitId{ 3 },
+                          .direction = e_direction::sw } },
+                { .primitive =
+                      P::talk_unit{
+                          .unit_id   = GenericUnitId{ 6 },
+                          .direction = e_direction::sw } },
+            },
+            /*phase 1*/
+            { { .primitive =
+                    P::depixelate_euro_unit{ .unit_id =
+                                                 UnitId{ 4 } } },
               { .primitive =
-                    P::delay{ .duration =
-                                  chrono::seconds{ 1 } } },
+                    P::enpixelate_unit{
+                        .unit_id = GenericUnitId{ 5 } } },
               { .primitive =
-                    P::play_sound{ .what =
-                                       e_sfx::attacker_won } },
-              { .primitive =
-                    P::hide_unit{ .unit_id =
-                                      GenericUnitId{ 1 } } },
-              { .primitive =
-                    P::front_unit{ .unit_id =
-                                       GenericUnitId{ 2 } } },
-              { .primitive =
-                    P::slide_unit{
-                        .unit_id   = GenericUnitId{ 3 },
-                        .direction = e_direction::sw } } },
-          /*phase 1*/
-          { { .primitive =
-                  P::depixelate_euro_unit{ .unit_id =
-                                               UnitId{ 4 } } },
-            { .primitive =
-                  P::enpixelate_unit{ .unit_id =
-                                          GenericUnitId{ 5 } } },
-            { .primitive =
-                  P::pixelate_euro_unit_to_target{
-                      .unit_id = UnitId{ 6 },
-                      .target  = e_unit_type::cavalry } } },
-          /*phase 2*/
-          {
-              { .primitive =
-                    P::pixelate_native_unit_to_target{
-                        .unit_id = NativeUnitId{ 7 },
-                        .target  = e_native_unit_type::
-                            mounted_brave } },
-              { .primitive =
-                    P::depixelate_colony{
-                        .tile = Coord{ .x = 7, .y = 8 } } },
-              { .primitive =
-                    P::depixelate_dwelling{
-                        .tile = Coord{ .x = 9, .y = 10 } } },
-              { .primitive =
-                    P::ensure_tile_visible{
-                        .tile = { .x = 1, .y = 3 } } },
-              { .primitive =
-                    P::depixelate_native_unit{
-                        .unit_id = NativeUnitId{ 10 } } },
-              { .primitive =
-                    P::landscape_anim_enpixelate{
-                        .overrides =
-                            { .squares =
-                                  {
-                                      { Coord{ .x = 3, .y = 5 },
-                                        MapSquare{} },
-                                      { Coord{ .x = 4, .y = 6 },
-                                        MapSquare{
-                                            .road = true } },
-                                  } } } },
-              { .primitive =
-                    P::hide_colony{
-                        .tile = { .x = 111, .y = 222 } } },
-              { .primitive =
-                    P::hide_dwelling{
-                        .tile = { .x = 222, .y = 333 } } },
-          } } };
+                    P::pixelate_euro_unit_to_target{
+                        .unit_id = UnitId{ 6 },
+                        .target  = e_unit_type::cavalry } } },
+            /*phase 2*/
+            {
+                { .primitive =
+                      P::pixelate_native_unit_to_target{
+                          .unit_id = NativeUnitId{ 7 },
+                          .target  = e_native_unit_type::
+                              mounted_brave } },
+                { .primitive =
+                      P::depixelate_colony{
+                          .tile = Coord{ .x = 7, .y = 8 } } },
+                { .primitive =
+                      P::depixelate_dwelling{
+                          .tile = Coord{ .x = 9, .y = 10 } } },
+                { .primitive =
+                      P::ensure_tile_visible{
+                          .tile = { .x = 1, .y = 3 } } },
+                { .primitive =
+                      P::depixelate_native_unit{
+                          .unit_id = NativeUnitId{ 10 } } },
+                { .primitive =
+                      P::landscape_anim_enpixelate{
+                          .overrides =
+                              { .squares =
+                                    {
+                                        { Coord{ .x = 3, .y = 5 },
+                                          MapSquare{} },
+                                        { Coord{ .x = 4, .y = 6 },
+                                          MapSquare{
+                                              .road = true } },
+                                    } } } },
+                { .primitive =
+                      P::hide_colony{
+                          .tile = { .x = 111, .y = 222 } } },
+                { .primitive =
+                      P::hide_dwelling{
+                          .tile = { .x = 222, .y = 333 } } },
+            } } };
 
   REQUIRE( res == expected );
 }

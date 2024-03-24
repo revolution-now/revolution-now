@@ -286,6 +286,8 @@ void LandViewRenderer::render_units_impl() const {
       blink;
   unordered_map<GenericUnitId, UnitAnimationState::slide const*>
       slide;
+  unordered_map<GenericUnitId, UnitAnimationState::talk const*>
+      talk;
   unordered_map<UnitId,
                 UnitAnimationState::depixelate_euro_unit const*>
       depixelate_euro_unit;
@@ -329,6 +331,10 @@ void LandViewRenderer::render_units_impl() const {
         break;
       case UnitAnimationState::e::slide:
         slide[id] = &anim.get<UnitAnimationState::slide>();
+        tiles_to_fade.insert( tile );
+        break;
+      case UnitAnimationState::e::talk:
+        talk[id] = &anim.get<UnitAnimationState::talk>();
         tiles_to_fade.insert( tile );
         break;
       case UnitAnimationState::e::depixelate_euro_unit: {
@@ -389,15 +395,36 @@ void LandViewRenderer::render_units_impl() const {
     f( where, flag_options );
   };
 
-  // 1. Render units that are supposed to hover above a colony.
-  for( auto const& [id, anim] : front ) {
+  auto render_slide = [&]( GenericUnitId    id,
+                           UnitSlide const& slide ) {
+    Coord const mover_coord =
+        coord_for_unit_indirect_or_die( ss_.units, id );
+    // Now render the sliding unit.
+    Delta const pixel_delta =
+        ( ( mover_coord.moved( slide.direction ) -
+            mover_coord ) *
+          g_tile_delta )
+            .multiply_and_round( slide.percent );
+    render_impl( id, [&]( Coord                 where,
+                          UnitFlagOptions const flag_options ) {
+      render_single_unit(
+          where + pixel_delta, id,
+          UnitFlagOptions( flag_options )
+              .with_flag_count( e_flag_count::single ) );
+    } );
+  };
+
+  auto render_front = [&]( GenericUnitId id ) {
     render_impl( id, [&]( Coord                  where,
                           UnitFlagOptions const& flag_options ) {
       render_single_unit( where, id, flag_options );
     } );
-  }
+  };
 
-  // 2. Render units that are blinking.
+  // #. Render units that are supposed to hover above a colony.
+  for( auto const& [id, anim] : front ) render_front( id );
+
+  // #. Render units that are blinking.
   for( auto const& [id, anim] : blink ) {
     if( !anim->visible ) continue;
     render_impl( id, [&]( Coord                 where,
@@ -409,26 +436,17 @@ void LandViewRenderer::render_units_impl() const {
     } );
   }
 
-  // 3. Render units that are sliding.
-  for( auto const& [id, anim] : slide ) {
-    Coord const mover_coord =
-        coord_for_unit_indirect_or_die( ss_.units, id );
-    // Now render the sliding unit.
-    Delta const pixel_delta =
-        ( ( mover_coord.moved( anim->direction ) -
-            mover_coord ) *
-          g_tile_delta )
-            .multiply_and_round( anim->percent );
-    render_impl( id, [&]( Coord                 where,
-                          UnitFlagOptions const flag_options ) {
-      render_single_unit(
-          where + pixel_delta, id,
-          UnitFlagOptions( flag_options )
-              .with_flag_count( e_flag_count::single ) );
-    } );
+  // #. Render units that are talking (front+slide).
+  for( auto const& [id, anim] : talk ) {
+    render_front( id );
+    render_slide( id, anim->slide );
   }
 
-  // 4a. Render euro units that are depixelating.
+  // #. Render units that are sliding.
+  for( auto const& [id, anim] : slide )
+    render_slide( id, anim->slide );
+
+  // #. Render euro units that are depixelating.
   for( auto const& [id, anim] : depixelate_euro_unit ) {
     // Check if we are depixelating to another unit.
     if( !anim->target.has_value() ) {
@@ -463,7 +481,7 @@ void LandViewRenderer::render_units_impl() const {
     }
   }
 
-  // 4b. Render native units that are depixelating.
+  // #. Render native units that are depixelating.
   for( auto const& [id, anim] : depixelate_native_unit ) {
     // Check if we are depixelating to another unit.
     if( !anim->target.has_value() ) {
@@ -498,7 +516,7 @@ void LandViewRenderer::render_units_impl() const {
     }
   }
 
-  // 5. Render units that are enpixelating.
+  // #. Render units that are enpixelating.
   for( auto const& [id, anim] : enpixelate_unit ) {
     render_impl( id, [&]( Coord where, UnitFlagOptions const& ) {
       SCOPED_RENDERER_MOD_SET(
