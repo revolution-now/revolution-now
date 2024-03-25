@@ -18,6 +18,7 @@
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/util/coro.hpp"
 
 // mock
 #include "src/mock/matchers.hpp"
@@ -63,7 +64,6 @@ struct World : testing::World {
     add_player( e_nation::dutch );
     add_player( e_nation::spanish );
     set_default_player( e_nation::dutch );
-    create_default_map();
   }
 
   Coord const kColonySquare = Coord{ .x = 1, .y = 1 };
@@ -83,6 +83,19 @@ struct World : testing::World {
     // clang-format on
     build_map( std::move( tiles ), 6 );
   }
+
+  void create_island_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    // clang-format off
+    vector<MapSquare> tiles{
+      _, _, _, //
+      _, L, _, //
+      _, _, _, //
+    };
+    // clang-format on
+    build_map( std::move( tiles ), 3 );
+  }
 };
 
 /****************************************************************
@@ -90,6 +103,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
   World W;
+  W.create_default_map();
 
   SECTION( "euro unit" ) {
     UnitId const unit_id =
@@ -119,7 +133,8 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
-  World        W;
+  World W;
+  W.create_default_map();
   Player&      player = W.default_player();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
@@ -160,7 +175,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
 }
 
 TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
-  World   W;
+  World W;
+  W.create_default_map();
   Player& player                           = W.default_player();
   player.new_world_name                    = "";
   W.terrain().pacific_ocean_endpoints()[0] = 1;
@@ -204,7 +220,8 @@ TEST_CASE( "[on-map] interactive: discovers pacific ocean" ) {
 }
 
 TEST_CASE( "[on-map] interactive: treasure in colony" ) {
-  World   W;
+  World W;
+  W.create_default_map();
   Player& player = W.default_player();
   W.found_colony_with_new_unit( W.kColonySquare );
   UnitId const unit_id =
@@ -262,7 +279,8 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
 TEST_CASE(
     "[on-map] interactive: [LCR] shows fountain of youth "
     "woodcut" ) {
-  World       W;
+  World W;
+  W.create_default_map();
   Coord       to   = { .x = 1, .y = 1 };
   Unit const& unit = W.add_unit_on_map(
       e_unit_type::free_colonist, { .x = 1, .y = 0 } );
@@ -306,6 +324,7 @@ TEST_CASE(
 
 TEST_CASE( "[on-map] non-interactive: updates visibility" ) {
   World W;
+  W.create_default_map();
   UNWRAP_CHECK( player_terrain, W.terrain().player_terrain(
                                     W.default_nation() ) );
   auto const& map = player_terrain.map;
@@ -341,6 +360,7 @@ TEST_CASE(
     "[on-map] non-interactive: to_map_non_interactive "
     "unsentries surrounding units" ) {
   World W;
+  W.create_default_map();
   Unit& unit1 =
       W.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 1, .y = 1 }, e_nation::dutch );
@@ -358,6 +378,7 @@ TEST_CASE(
     "native_unit_to_map_non_interactive unsentries surrounding "
     "units" ) {
   World W;
+  W.create_default_map();
   Unit& unit1 =
       W.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 1, .y = 1 }, e_nation::dutch );
@@ -374,6 +395,7 @@ TEST_CASE(
     "[on-map] interactive: native_unit_to_map_interactive meets "
     "europeans" ) {
   World W;
+  W.create_default_map();
   W.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 1, .y = 1 }, e_nation::dutch );
   Dwelling const& dwelling =
@@ -401,6 +423,7 @@ TEST_CASE(
     "native_unit_to_map_non_interactive performs inter-tribe "
     "trade" ) {
   World W;
+  W.create_default_map();
 
   auto mv_unit = [&]( NativeUnit const& native_unit,
                       e_direction       d ) {
@@ -486,6 +509,39 @@ TEST_CASE(
     REQUIRE( aztec.horse_herds == 3 );
     REQUIRE( iroquois.horse_herds == 3 );
   }
+}
+
+TEST_CASE(
+    "[on-map] interactive: discovers new world on island" ) {
+  World W;
+  W.create_island_map();
+  Player&      player = W.default_player();
+  UnitId const unit_id =
+      W.add_unit_on_map( e_unit_type::treasure,
+                         { .x = 1, .y = 1 } )
+          .id();
+
+  auto f = [&] {
+    return co_await_test(
+        TestingOnlyUnitOnMapMover::to_map_interactive(
+            W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } ) );
+  };
+
+  REQUIRE( player.new_world_name == nothing );
+  REQUIRE_FALSE(
+      player.woodcuts[e_woodcut::discovered_new_world] );
+
+  W.euro_mind().EXPECT__show_woodcut(
+      e_woodcut::discovered_new_world );
+  W.gui()
+      .EXPECT__string_input( _, e_input_required::yes )
+      .returns<maybe<string>>( "abc" );
+  maybe<UnitDeleted> const unit_deleted = f();
+  REQUIRE( unit_deleted == nothing );
+  REQUIRE( W.units().coord_for( unit_id ) ==
+           Coord{ .x = 1, .y = 1 } );
+  REQUIRE( player.new_world_name == "abc" );
+  REQUIRE( player.woodcuts[e_woodcut::discovered_new_world] );
 }
 
 } // namespace

@@ -71,7 +71,13 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
   // discovered).
   maybe<string> const& new_world_name = player.new_world_name;
   if( new_world_name.has_value() ) co_return;
-  for( e_direction d : refl::enum_values<e_direction> ) {
+  // Need to use cdirection since if you put a colonist on an is-
+  // land they otherwise wouldn't discover the new world. Actu-
+  // ally islands are removed from the map since they allow a
+  // form of cheating, but there is one on the America map and
+  // they can be created in the map editor, so we need to do the
+  // right thing.
+  for( e_cdirection d : refl::enum_values<e_cdirection> ) {
     maybe<MapSquare const&> square =
         ss.terrain.maybe_square_at( world_square.moved( d ) );
     if( !square.has_value() ) continue;
