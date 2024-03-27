@@ -385,7 +385,9 @@
       "hammers": 0,
       "building_in_production": "06",
       "warehouse_level": 0,
-      "unknown12": "00 00 00 00",
+      "unknown12a": "00",
+      "depletion_counter": 0,
+      "unknown12b": "00 00",
       "stock": {
         "food": 0,
         "sugar": 0,
@@ -616,7 +618,9 @@
       "hammers": 0,
       "building_in_production": "ff",
       "warehouse_level": 0,
-      "unknown12": "00 02 00 00",
+      "unknown12a": "00",
+      "depletion_counter": 2,
+      "unknown12b": "00 00",
       "stock": {
         "food": 8,
         "sugar": 0,
@@ -847,7 +851,9 @@
       "hammers": 0,
       "building_in_production": "ff",
       "warehouse_level": 0,
-      "unknown12": "00 00 00 00",
+      "unknown12a": "00",
+      "depletion_counter": 0,
+      "unknown12b": "00 00",
       "stock": {
         "food": 2,
         "sugar": 0,
@@ -1078,7 +1084,9 @@
       "hammers": 0,
       "building_in_production": "06",
       "warehouse_level": 0,
-      "unknown12": "00 00 00 00",
+      "unknown12a": "00",
+      "depletion_counter": 0,
+      "unknown12b": "00 00",
       "stock": {
         "food": 0,
         "sugar": 0,

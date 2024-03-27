@@ -5882,7 +5882,9 @@ void to_str( COLONY const& o, std::string& out, base::ADL_t t ) {
   out += "hammers="; to_str( o.hammers, out, t ); out += ',';
   out += "building_in_production="; to_str( o.building_in_production, out, t ); out += ',';
   out += "warehouse_level="; to_str( o.warehouse_level, out, t ); out += ',';
-  out += "unknown12="; to_str( o.unknown12, out, t ); out += ',';
+  out += "unknown12a="; to_str( o.unknown12a, out, t ); out += ',';
+  out += "depletion_counter="; to_str( o.depletion_counter, out, t ); out += ',';
+  out += "unknown12b="; to_str( o.unknown12b, out, t ); out += ',';
   out += "stock="; to_str( o.stock, out, t ); out += ',';
   out += "population_on_map="; to_str( o.population_on_map, out, t ); out += ',';
   out += "fortification_on_map="; to_str( o.fortification_on_map, out, t ); out += ',';
@@ -5910,7 +5912,9 @@ bool read_binary( base::IBinaryIO& b, COLONY& o ) {
     && read_binary( b, o.hammers )
     && read_binary( b, o.building_in_production )
     && read_binary( b, o.warehouse_level )
-    && read_binary( b, o.unknown12 )
+    && read_binary( b, o.unknown12a )
+    && read_binary( b, o.depletion_counter )
+    && read_binary( b, o.unknown12b )
     && read_binary( b, o.stock )
     && read_binary( b, o.population_on_map )
     && read_binary( b, o.fortification_on_map )
@@ -5937,7 +5941,9 @@ bool write_binary( base::IBinaryIO& b, COLONY const& o ) {
     && write_binary( b, o.hammers )
     && write_binary( b, o.building_in_production )
     && write_binary( b, o.warehouse_level )
-    && write_binary( b, o.unknown12 )
+    && write_binary( b, o.unknown12a )
+    && write_binary( b, o.depletion_counter )
+    && write_binary( b, o.unknown12b )
     && write_binary( b, o.stock )
     && write_binary( b, o.population_on_map )
     && write_binary( b, o.fortification_on_map )
@@ -5966,7 +5972,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "hammers", o.hammers );
   conv.to_field( tbl, "building_in_production", o.building_in_production );
   conv.to_field( tbl, "warehouse_level", o.warehouse_level );
-  conv.to_field( tbl, "unknown12", o.unknown12 );
+  conv.to_field( tbl, "unknown12a", o.unknown12a );
+  conv.to_field( tbl, "depletion_counter", o.depletion_counter );
+  conv.to_field( tbl, "unknown12b", o.unknown12b );
   conv.to_field( tbl, "stock", o.stock );
   conv.to_field( tbl, "population_on_map", o.population_on_map );
   conv.to_field( tbl, "fortification_on_map", o.fortification_on_map );
@@ -5989,7 +5997,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "hammers",
     "building_in_production",
     "warehouse_level",
-    "unknown12",
+    "unknown12a",
+    "depletion_counter",
+    "unknown12b",
     "stock",
     "population_on_map",
     "fortification_on_map",
@@ -6022,7 +6032,9 @@ cdr::result<COLONY> from_canonical(
   CONV_FROM_FIELD( "hammers", hammers );
   CONV_FROM_FIELD( "building_in_production", building_in_production );
   CONV_FROM_FIELD( "warehouse_level", warehouse_level );
-  CONV_FROM_FIELD( "unknown12", unknown12 );
+  CONV_FROM_FIELD( "unknown12a", unknown12a );
+  CONV_FROM_FIELD( "depletion_counter", depletion_counter );
+  CONV_FROM_FIELD( "unknown12b", unknown12b );
   CONV_FROM_FIELD( "stock", stock );
   CONV_FROM_FIELD( "population_on_map", population_on_map );
   CONV_FROM_FIELD( "fortification_on_map", fortification_on_map );

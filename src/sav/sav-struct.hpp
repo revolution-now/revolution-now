@@ -2539,7 +2539,9 @@ struct COLONY {
   uint16_t hammers = {};
   bytes<1> building_in_production = {};
   uint8_t warehouse_level = {};
-  bytes<4> unknown12 = {};
+  bytes<1> unknown12a = {};
+  uint8_t depletion_counter = {};
+  bytes<2> unknown12b = {};
   Stock stock = {};
   PopulationOnMap population_on_map = {};
   FortificationOnMap fortification_on_map = {};
