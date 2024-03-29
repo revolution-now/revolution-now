@@ -1157,6 +1157,40 @@ cdr::result<PlayerFlags> from_canonical(
                          cdr::tag_t<PlayerFlags> );
 
 /****************************************************************
+** ColonyFlags
+*****************************************************************/
+struct ColonyFlags {
+  bool unknown00 : 1 = {};
+  bool level2_sol_bonus : 1 = {};
+  bool level1_sol_bonus : 1 = {};
+  bool unknown03 : 1 = {};
+  bool unknown04 : 1 = {};
+  bool unknown05 : 1 = {};
+  bool unknown06 : 1 = {};
+  bool construction_complete_blinking : 1 = {};
+
+  bool operator==( ColonyFlags const& ) const = default;
+};
+
+// String conversion.
+void to_str( ColonyFlags const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, ColonyFlags& o );
+
+bool write_binary( base::IBinaryIO& b, ColonyFlags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         ColonyFlags const& o,
+                         cdr::tag_t<ColonyFlags> );
+
+cdr::result<ColonyFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ColonyFlags> );
+
+/****************************************************************
 ** Duration
 *****************************************************************/
 struct Duration {
@@ -2526,7 +2560,9 @@ struct COLONY {
   std::array<uint8_t, 2> x_y = {};
   array_string<24> name = {};
   nation_type nation_id = {};
-  bytes<4> unknown08 = {};
+  bytes<1> unknown08a = {};
+  ColonyFlags colony_flags = {};
+  bytes<2> unknown08b = {};
   uint8_t population = {};
   std::array<occupation_type, 32> occupation = {};
   std::array<profession_type, 32> profession = {};
@@ -2541,7 +2577,7 @@ struct COLONY {
   uint8_t warehouse_level = {};
   bytes<1> unknown12a = {};
   uint8_t depletion_counter = {};
-  bytes<2> unknown12b = {};
+  uint16_t hammers_purchased = {};
   Stock stock = {};
   PopulationOnMap population_on_map = {};
   FortificationOnMap fortification_on_map = {};

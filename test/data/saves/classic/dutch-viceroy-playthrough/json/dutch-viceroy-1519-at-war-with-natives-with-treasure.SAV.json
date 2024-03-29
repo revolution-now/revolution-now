@@ -195,7 +195,18 @@
       ],
       "name": "New Amsterdam",
       "nation_id": "Netherlands",
-      "unknown08": "00 46 00 00",
+      "unknown08a": "00",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": true,
+        "level1_sol_bonus": true,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "00 00",
       "population": 7,
       "occupation": [
         "Farmer",
@@ -387,7 +398,7 @@
       "warehouse_level": 1,
       "unknown12a": "01",
       "depletion_counter": 0,
-      "unknown12b": "28 00",
+      "hammers_purchased": 40,
       "stock": {
         "food": 91,
         "sugar": 15,
@@ -428,7 +439,18 @@
       ],
       "name": "Quebec",
       "nation_id": "England",
-      "unknown08": "b8 40 80 00",
+      "unknown08a": "b8",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": false,
+        "level1_sol_bonus": false,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "80 00",
       "population": 1,
       "occupation": [
         "Silver miner",
@@ -620,7 +642,7 @@
       "warehouse_level": 0,
       "unknown12a": "00",
       "depletion_counter": 20,
-      "unknown12b": "0a 00",
+      "hammers_purchased": 10,
       "stock": {
         "food": 47,
         "sugar": 0,
@@ -661,7 +683,18 @@
       ],
       "name": "Jamestown",
       "nation_id": "England",
-      "unknown08": "f8 40 00 00",
+      "unknown08a": "f8",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": false,
+        "level1_sol_bonus": false,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "00 00",
       "population": 3,
       "occupation": [
         "Farmer",
@@ -853,7 +886,7 @@
       "warehouse_level": 0,
       "unknown12a": "00",
       "depletion_counter": 0,
-      "unknown12b": "00 00",
+      "hammers_purchased": 0,
       "stock": {
         "food": 183,
         "sugar": 0,
@@ -894,7 +927,18 @@
       ],
       "name": "Isabella",
       "nation_id": "Spain",
-      "unknown08": "b8 40 00 00",
+      "unknown08a": "b8",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": false,
+        "level1_sol_bonus": false,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "00 00",
       "population": 3,
       "occupation": [
         "Carpenter",
@@ -1086,7 +1130,7 @@
       "warehouse_level": 0,
       "unknown12a": "00",
       "depletion_counter": 9,
-      "unknown12b": "0a 00",
+      "hammers_purchased": 10,
       "stock": {
         "food": 46,
         "sugar": 0,
@@ -1127,7 +1171,18 @@
       ],
       "name": "Plymouth",
       "nation_id": "England",
-      "unknown08": "94 40 80 00",
+      "unknown08a": "94",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": false,
+        "level1_sol_bonus": false,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "80 00",
       "population": 1,
       "occupation": [
         "Farmer",
@@ -1319,7 +1374,7 @@
       "warehouse_level": 0,
       "unknown12a": "00",
       "depletion_counter": 0,
-      "unknown12b": "00 00",
+      "hammers_purchased": 0,
       "stock": {
         "food": 43,
         "sugar": 0,
@@ -1360,7 +1415,18 @@
       ],
       "name": "Fort Orange",
       "nation_id": "Netherlands",
-      "unknown08": "00 46 00 00",
+      "unknown08a": "00",
+      "colony_flags": {
+        "unknown00": false,
+        "level2_sol_bonus": true,
+        "level1_sol_bonus": true,
+        "unknown03": false,
+        "unknown04": false,
+        "unknown05": false,
+        "unknown06": true,
+        "construction_complete_blinking": false
+      },
+      "unknown08b": "00 00",
       "population": 4,
       "occupation": [
         "Farmer",
@@ -1552,7 +1618,7 @@
       "warehouse_level": 1,
       "unknown12a": "01",
       "depletion_counter": 0,
-      "unknown12b": "1e 00",
+      "hammers_purchased": 30,
       "stock": {
         "food": 118,
         "sugar": 0,

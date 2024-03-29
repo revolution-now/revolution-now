@@ -2450,6 +2450,94 @@ cdr::result<PlayerFlags> from_canonical(
 }
 
 /****************************************************************
+** ColonyFlags
+*****************************************************************/
+void to_str( ColonyFlags const& o, std::string& out, base::ADL_t t ) {
+  out += "ColonyFlags{";
+  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
+  out += "level2_sol_bonus="; to_str( o.level2_sol_bonus, out, t ); out += ',';
+  out += "level1_sol_bonus="; to_str( o.level1_sol_bonus, out, t ); out += ',';
+  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
+  out += "unknown04="; to_str( o.unknown04, out, t ); out += ',';
+  out += "unknown05="; to_str( o.unknown05, out, t ); out += ',';
+  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
+  out += "construction_complete_blinking="; to_str( o.construction_complete_blinking, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, ColonyFlags& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.unknown00 = (bits & 0b1); bits >>= 1;
+  o.level2_sol_bonus = (bits & 0b1); bits >>= 1;
+  o.level1_sol_bonus = (bits & 0b1); bits >>= 1;
+  o.unknown03 = (bits & 0b1); bits >>= 1;
+  o.unknown04 = (bits & 0b1); bits >>= 1;
+  o.unknown05 = (bits & 0b1); bits >>= 1;
+  o.unknown06 = (bits & 0b1); bits >>= 1;
+  o.construction_complete_blinking = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, ColonyFlags const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.construction_complete_blinking & 0b1); bits <<= 1;
+  bits |= (o.unknown06 & 0b1); bits <<= 1;
+  bits |= (o.unknown05 & 0b1); bits <<= 1;
+  bits |= (o.unknown04 & 0b1); bits <<= 1;
+  bits |= (o.unknown03 & 0b1); bits <<= 1;
+  bits |= (o.level1_sol_bonus & 0b1); bits <<= 1;
+  bits |= (o.level2_sol_bonus & 0b1); bits <<= 1;
+  bits |= (o.unknown00 & 0b1); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         ColonyFlags const& o,
+                         cdr::tag_t<ColonyFlags> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "unknown00", o.unknown00 );
+  conv.to_field( tbl, "level2_sol_bonus", o.level2_sol_bonus );
+  conv.to_field( tbl, "level1_sol_bonus", o.level1_sol_bonus );
+  conv.to_field( tbl, "unknown03", o.unknown03 );
+  conv.to_field( tbl, "unknown04", o.unknown04 );
+  conv.to_field( tbl, "unknown05", o.unknown05 );
+  conv.to_field( tbl, "unknown06", o.unknown06 );
+  conv.to_field( tbl, "construction_complete_blinking", o.construction_complete_blinking );
+  tbl["__key_order"] = cdr::list{
+    "unknown00",
+    "level2_sol_bonus",
+    "level1_sol_bonus",
+    "unknown03",
+    "unknown04",
+    "unknown05",
+    "unknown06",
+    "construction_complete_blinking",
+  };
+  return tbl;
+}
+
+cdr::result<ColonyFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<ColonyFlags> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  ColonyFlags res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "unknown00", unknown00 );
+  CONV_FROM_FIELD( "level2_sol_bonus", level2_sol_bonus );
+  CONV_FROM_FIELD( "level1_sol_bonus", level1_sol_bonus );
+  CONV_FROM_FIELD( "unknown03", unknown03 );
+  CONV_FROM_FIELD( "unknown04", unknown04 );
+  CONV_FROM_FIELD( "unknown05", unknown05 );
+  CONV_FROM_FIELD( "unknown06", unknown06 );
+  CONV_FROM_FIELD( "construction_complete_blinking", construction_complete_blinking );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** Duration
 *****************************************************************/
 void to_str( Duration const& o, std::string& out, base::ADL_t t ) {
@@ -5869,7 +5957,9 @@ void to_str( COLONY const& o, std::string& out, base::ADL_t t ) {
   out += "x_y="; to_str( o.x_y, out, t ); out += ',';
   out += "name="; to_str( o.name, out, t ); out += ',';
   out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
-  out += "unknown08="; to_str( o.unknown08, out, t ); out += ',';
+  out += "unknown08a="; to_str( o.unknown08a, out, t ); out += ',';
+  out += "colony_flags="; to_str( o.colony_flags, out, t ); out += ',';
+  out += "unknown08b="; to_str( o.unknown08b, out, t ); out += ',';
   out += "population="; to_str( o.population, out, t ); out += ',';
   out += "occupation="; to_str( o.occupation, out, t ); out += ',';
   out += "profession="; to_str( o.profession, out, t ); out += ',';
@@ -5884,7 +5974,7 @@ void to_str( COLONY const& o, std::string& out, base::ADL_t t ) {
   out += "warehouse_level="; to_str( o.warehouse_level, out, t ); out += ',';
   out += "unknown12a="; to_str( o.unknown12a, out, t ); out += ',';
   out += "depletion_counter="; to_str( o.depletion_counter, out, t ); out += ',';
-  out += "unknown12b="; to_str( o.unknown12b, out, t ); out += ',';
+  out += "hammers_purchased="; to_str( o.hammers_purchased, out, t ); out += ',';
   out += "stock="; to_str( o.stock, out, t ); out += ',';
   out += "population_on_map="; to_str( o.population_on_map, out, t ); out += ',';
   out += "fortification_on_map="; to_str( o.fortification_on_map, out, t ); out += ',';
@@ -5899,7 +5989,9 @@ bool read_binary( base::IBinaryIO& b, COLONY& o ) {
     && read_binary( b, o.x_y )
     && read_binary( b, o.name )
     && read_binary( b, o.nation_id )
-    && read_binary( b, o.unknown08 )
+    && read_binary( b, o.unknown08a )
+    && read_binary( b, o.colony_flags )
+    && read_binary( b, o.unknown08b )
     && read_binary( b, o.population )
     && read_binary( b, o.occupation )
     && read_binary( b, o.profession )
@@ -5914,7 +6006,7 @@ bool read_binary( base::IBinaryIO& b, COLONY& o ) {
     && read_binary( b, o.warehouse_level )
     && read_binary( b, o.unknown12a )
     && read_binary( b, o.depletion_counter )
-    && read_binary( b, o.unknown12b )
+    && read_binary( b, o.hammers_purchased )
     && read_binary( b, o.stock )
     && read_binary( b, o.population_on_map )
     && read_binary( b, o.fortification_on_map )
@@ -5928,7 +6020,9 @@ bool write_binary( base::IBinaryIO& b, COLONY const& o ) {
     && write_binary( b, o.x_y )
     && write_binary( b, o.name )
     && write_binary( b, o.nation_id )
-    && write_binary( b, o.unknown08 )
+    && write_binary( b, o.unknown08a )
+    && write_binary( b, o.colony_flags )
+    && write_binary( b, o.unknown08b )
     && write_binary( b, o.population )
     && write_binary( b, o.occupation )
     && write_binary( b, o.profession )
@@ -5943,7 +6037,7 @@ bool write_binary( base::IBinaryIO& b, COLONY const& o ) {
     && write_binary( b, o.warehouse_level )
     && write_binary( b, o.unknown12a )
     && write_binary( b, o.depletion_counter )
-    && write_binary( b, o.unknown12b )
+    && write_binary( b, o.hammers_purchased )
     && write_binary( b, o.stock )
     && write_binary( b, o.population_on_map )
     && write_binary( b, o.fortification_on_map )
@@ -5959,7 +6053,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "x, y", o.x_y );
   conv.to_field( tbl, "name", o.name );
   conv.to_field( tbl, "nation_id", o.nation_id );
-  conv.to_field( tbl, "unknown08", o.unknown08 );
+  conv.to_field( tbl, "unknown08a", o.unknown08a );
+  conv.to_field( tbl, "colony_flags", o.colony_flags );
+  conv.to_field( tbl, "unknown08b", o.unknown08b );
   conv.to_field( tbl, "population", o.population );
   conv.to_field( tbl, "occupation", o.occupation );
   conv.to_field( tbl, "profession", o.profession );
@@ -5974,7 +6070,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "warehouse_level", o.warehouse_level );
   conv.to_field( tbl, "unknown12a", o.unknown12a );
   conv.to_field( tbl, "depletion_counter", o.depletion_counter );
-  conv.to_field( tbl, "unknown12b", o.unknown12b );
+  conv.to_field( tbl, "hammers_purchased", o.hammers_purchased );
   conv.to_field( tbl, "stock", o.stock );
   conv.to_field( tbl, "population_on_map", o.population_on_map );
   conv.to_field( tbl, "fortification_on_map", o.fortification_on_map );
@@ -5984,7 +6080,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "x, y",
     "name",
     "nation_id",
-    "unknown08",
+    "unknown08a",
+    "colony_flags",
+    "unknown08b",
     "population",
     "occupation",
     "profession",
@@ -5999,7 +6097,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "warehouse_level",
     "unknown12a",
     "depletion_counter",
-    "unknown12b",
+    "hammers_purchased",
     "stock",
     "population_on_map",
     "fortification_on_map",
@@ -6019,7 +6117,9 @@ cdr::result<COLONY> from_canonical(
   CONV_FROM_FIELD( "x, y", x_y );
   CONV_FROM_FIELD( "name", name );
   CONV_FROM_FIELD( "nation_id", nation_id );
-  CONV_FROM_FIELD( "unknown08", unknown08 );
+  CONV_FROM_FIELD( "unknown08a", unknown08a );
+  CONV_FROM_FIELD( "colony_flags", colony_flags );
+  CONV_FROM_FIELD( "unknown08b", unknown08b );
   CONV_FROM_FIELD( "population", population );
   CONV_FROM_FIELD( "occupation", occupation );
   CONV_FROM_FIELD( "profession", profession );
@@ -6034,7 +6134,7 @@ cdr::result<COLONY> from_canonical(
   CONV_FROM_FIELD( "warehouse_level", warehouse_level );
   CONV_FROM_FIELD( "unknown12a", unknown12a );
   CONV_FROM_FIELD( "depletion_counter", depletion_counter );
-  CONV_FROM_FIELD( "unknown12b", unknown12b );
+  CONV_FROM_FIELD( "hammers_purchased", hammers_purchased );
   CONV_FROM_FIELD( "stock", stock );
   CONV_FROM_FIELD( "population_on_map", population_on_map );
   CONV_FROM_FIELD( "fortification_on_map", fortification_on_map );
