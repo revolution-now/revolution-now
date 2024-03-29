@@ -15,7 +15,18 @@ function( set_warning_options target )
         ${target} PRIVATE
         # clang
         $<$<CXX_COMPILER_ID:Clang>:
+           # Turn on all warnings.
+           # ======================================================
            -Weverything
+
+           # Turn some warnings to errors.
+           # ======================================================
+           # This will trigger when a function that is supposed
+           # to return a value does not, which we never want.
+           -Werror=return-type
+
+           # Disable some warnings.
+           # ======================================================
            -Wno-pre-c++20-compat
            -Wno-c++20-compat
            -Wno-pre-c++17-compat
