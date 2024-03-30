@@ -1,0 +1,115 @@
+Silver/Minerals Depletion
+-------------------------
+
+In the OG:
+
+  * Each colony has a counter called the "depletion counter".
+  * The counter starts at zero and increases when there is a
+    colonist mining ore on a minerals resource or silver on ei-
+    ther a minerals resource or an undepleted silver resource.
+  * The counter keeps increasing until it hits a limit, and can
+    never go down until it hits that limit.
+  * When the counter hits the limit it gets reset to zero and all
+    prime resources currently being worked in the colony get de-
+    pleted, no matter how long they've been worked.
+  * The counter limit is 50 on all difficulty levels.
+  * Temporarily removing colonists from mining will stop the
+    counter from incrementing, but it does not cause the counter
+    to decrease or reset; it cannot go down until it hits the
+    limit.
+  * The counter increase each turn according to the following
+    formula, which is applied to each relevant worker and summed:
+
+        counter_delta =  A1*X1 + A2*X2 + A3*X3 + ...
+                        (unit1) (unit2) (unit3)
+    where:
+
+        Xn is a random bernoulli variable with probability:
+
+          p = 1-1/(2+D)
+
+        where D is the difficulty level (D=1 on discoverer). Thus:
+
+          p = .50 on discoverer
+          p = .66 on explorer
+          p = .75 on conquistador
+          p = .80 on governor
+          p = .83 on viceroy
+
+        An is a multipler that depends on what is being mined and on
+        what kind of tile.
+
+          2 for silver on minerals
+          1 for silver on silver
+          0 for silver on depleted silver
+          1 for ore    on minerals
+          0 for ore    on silver
+          0 for ore    on depleted silver
+
+In the NG:
+
+  * The mechanism used by the OG is fine when there is only one
+    such tile being worked in a colony. But as soon as you intro-
+    duce a second then you get a couple of non-sensical issues:
+
+      1. Two tiles being worked means that depletion time for
+         both is only half. This means that if a colony has two
+         prime silver tiles and works both, it will end up with
+         no more silver than if it had just one tile.
+      2. The depletion of one tile automatically causes the de-
+         pletion of the other prime tiles that are being worked,
+         even if those other tiles have only been worked for one
+         turn.
+
+    These really makes no sense, so we're going to keep the be-
+    havior for when there is one tile, but change it for when
+    there are multiple.
+  * This new mechanic should be equivalent to the OG's when there
+    is only one such prime tile being worked in a colony at a
+    time, which is probably the vast majority of cases. So there-
+    fore this change should not have too much of an effect on
+    gameplay except in some less common cases, where the new be-
+    havior will make more sense to the player.
+  * There will be a dictionary (tile -> int) in the terrain data
+    that will be populated with a tile once that tile starts to
+    get worked by any nation.
+  * Each turn it is worked, the counter will be increased by
+    a formula similar to the OG's:
+
+      counter_delta = A*X
+
+    where A and X are exactly as given in the case of the OG.
+  * The counter can never decrease, and is agnostic to which na-
+    tion is working the tile (even if the nation changes half way
+    through).
+  * When the counter hits 50 the resource on that particular tile
+    is depleted and the counter is removed from the map.
+
+SAV interoperability:
+
+  * Since the new mechanism will require a different data repre-
+    sentation than that of the OG, a question arises as to how to
+    convert between them. The conversion will not be perfect, but
+    again it should be loss-less in the common case where there
+    is only one silver/minerals resource being worked at a time
+    in a colony.
+
+  * NG -> OG: Find all the prime resources that are being worked
+    in the vicinty of the colony, take the **AVERAGE** of their
+    counters, and set that as the OG's colony counter.
+  * OG -> NG: Take the OG's counter and find all of the colony's
+    tiles that are currently being worked and set the counter for
+    each one of them.
+
+  * The above has the following properties:
+
+      1. Consistent roundtrip starting from either OG or NG in
+         the common case of only one tile worked.
+      2. Consistent roundtrip starting from the OG in all cases.
+      3. Consistent roundtrip starting from the NG when there are
+         multiple tiles being worked all with the same counter.
+      4. Lossy roundtrip when starting from the NG when there are
+         multiple tiles being worked with different counters.
+
+    So only #4 has some loss, but the average function used should
+    help to make the transition as equivalent as possible.
