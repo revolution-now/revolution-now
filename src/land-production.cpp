@@ -34,7 +34,8 @@ namespace {
 
 [[nodiscard]] int apply_outdoor_bonus(
     int const in, bool const is_expert,
-    OutdoorJobBonus const& bonus ) {
+    config::production::OutdoorJobBonus const& bonus ) {
+  using config::production::OutdoorJobBonus;
   switch( bonus.to_enum() ) {
     case OutdoorJobBonus::e::none:
       return in;
@@ -317,6 +318,7 @@ int commodity_production_on_center_square(
   // 3. Plow/River/Road/Coast Bonus.
   if( center_conf.apply_river_bonus_on_secondary &&
       square.river.has_value() ) {
+    using config::production::OutdoorJobBonus;
     switch( *square.river ) {
       case e_river::minor: {
         OutdoorJobBonus const bonus =

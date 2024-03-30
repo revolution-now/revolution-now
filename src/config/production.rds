@@ -24,7 +24,7 @@ include "base/maybe.hpp"
 # C++ standard library
 include "<unordered_set>"
 
-namespace "rn"
+namespace "rn.config.production"
 
 struct.IndoorProduction {
   # Amount produced per turn by a petty criminal working in an
@@ -232,16 +232,18 @@ struct.CenterSquareProduction {
   _features { validation, equality }
 }
 
+namespace "rn"
+
 struct.config_production_t {
   # How many crosses are produced by a colony just by virtue of
   # it existing (i.e., with no churches or cathedrals)?
   base_crosses 'int',
 
   # FIXME: rename this to indoor.
-  indoor_production 'IndoorProduction',
+  indoor_production 'config::production::IndoorProduction',
 
   # FIXME: rename this to outdoor.
-  outdoor_production 'OutdoorProduction',
+  outdoor_production 'config::production::OutdoorProduction',
 
   # The number of items that are automatically produced by vir-
   # tual of a building existing. Most buildings have "zero" for
@@ -275,7 +277,7 @@ struct.config_production_t {
   # the good that yields most; it is not hard-coded in the config
   # for each terrain type.
   # FIXME: move this to outdoor production.
-  center_square_production 'CenterSquareProduction',
+  center_square_production 'config::production::CenterSquareProduction',
 
   _features { validation, equality }
 }

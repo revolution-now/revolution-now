@@ -17,9 +17,7 @@ using namespace std;
 
 namespace rn {
 
-base::valid_or<string> config_production_t::validate() const {
-  return base::valid;
-}
+namespace config::production {
 
 base::valid_or<string> OutdoorJobBonus::none::validate() const {
   return base::valid;
@@ -44,6 +42,12 @@ base::valid_or<string> CenterSquareProduction::validate() const {
       secondary_bonus_by_difficulty[e_difficulty::viceroy] == 0,
       "The secondary_bonus_by_difficulty must be zero for "
       "viceroy." );
+  return base::valid;
+}
+
+} // namespace config::production
+
+base::valid_or<string> config_production_t::validate() const {
   return base::valid;
 }
 
