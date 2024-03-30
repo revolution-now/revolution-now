@@ -1,5 +1,10 @@
                      Differences from the OG
 =================================================================
+This doc must hold all differences from the OG that are not con-
+trollable via options. So for example, if we have an option that
+is off by default that, when enabled, makes a change to game me-
+chanics, that does not have to be listed here; it can be listed
+in the corrections.txt doc or rebalancing.txt.
 
                  Sinking Ships and Units Onboard
                  -------------------------------
@@ -98,33 +103,38 @@
   spect to units on ships, where there would be an ambiguity due
   to the fact that the NG does support units on ships properly.
 
-                       Silver Mining
-                       -------------
-  Silver mining differs from the OG in a couple of ways:
+                      Silver Mining Rate
+                      ------------------
+  In some versions of the OG, silver mining productivity is re-
+  duced on non-prime-silver tiles and then is not subject to
+  standard bonuses (road, river), almost as if the designers
+  wanted to reduce overall silver production (for balancing pur-
+  poses) at the last minute and hard-coded some values for
+  nonprime-silver tiles. This game mirrors that behavior. How-
+  ever, it has been reported that in other versions of the OG,
+  this is not the case. So if you are comparing with the latter
+  versions, then there will be a difference with this game. How-
+  ever, even if you compare with the former version that this new
+  game mirrors, there is still a slight difference: this game
+  does allow Sol/tory bonuses/penalties on those non-prime-silver
+  tiles.
 
-  1. In some versions of the OG, silver mining productivity is
-     reduced on non-prime-silver tiles and then is not subject to
-     standard bonuses (road, river), almost as if the designers
-     wanted to reduce overall silver production (for balancing
-     purposes) at the last minute and hard-coded some values for
-     nonprime-silver tiles. This game mirrors that behavior. How-
-     ever, it has been reported that in other versions of the OG,
-     this is not the case. So if you are comparing with the
-     latter versions, then there will be a difference with this
-     game. However, even if you compare with the former version
-     that this new game mirrors, there is still a slight differ-
-     ence: this game does allow Sol/tory bonuses/penalties on
-     those non-prime-silver tiles.
-  2. At least some versions of the game have the concept of "de-
-     pleted prime silver." When a normal prime silver tile is
-     worked, it will eventually (at some random point) turn into
-     a "depleted prime silver tile" that yields less. Eventually,
-     it will fully deplete and go away. This game adopts that
-     same mechanism. So if you are comparing with versions of the
-     game that don't have that, then there will be differences.
-     It is not known whether such versions exist, but they might,
-     since the concept of depleted silver is not mentioned in the
-     SG at all.
+                    Silver Mining Depletion
+                    -----------------------
+  At least some versions of the game have the concept of "de-
+  pleted prime silver." When a normal prime silver tile is
+  worked, it will eventually turn into a "depleted prime silver
+  tile" that yields less. This game adopts that same mechanism.
+  So if you are comparing with versions of the game that don't
+  have that, then there will be differences. It is not known
+  whether such versions exist, but they might, since the concept
+  of depleted silver is not mentioned in the SG at all.
+
+               Silver and Minerals Depletion Time
+               ----------------------------------
+  The mechanism that determines how long it takes for a silver or
+  minerals deposit to deplete is slightly changed in the NG; see
+  doc/depletion.txt for details.
 
                         Custom House
                         ------------
