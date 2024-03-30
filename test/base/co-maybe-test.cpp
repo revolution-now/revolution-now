@@ -21,13 +21,6 @@ namespace {
 
 using namespace std;
 
-// This is now fixed on clang trunk, see:
-//
-//   https://github.com/llvm/llvm-project/issues/56532
-//
-// but we will wait to enable it until the change rolls out to
-// all of our machines.
-#if 0
 maybe<int> get_num() { return 110; }
 maybe<int> get_den() { return 10; }
 maybe<int> get_den0() { return 0; }
@@ -42,6 +35,11 @@ maybe<int> my_coroutine() {
   int den = co_await get_den();
   int res = co_await divide( num, den );
   co_return res;
+}
+
+maybe<int> my_nothing( bool with_value ) {
+  if( !with_value ) co_await nothing;
+  co_return 5;
 }
 
 maybe<int> my_coroutine0() {
@@ -59,7 +57,18 @@ TEST_CASE( "[co-maybe] simple test" ) {
   auto res0 = my_coroutine0();
   REQUIRE( !res0.has_value() );
 }
-#endif
+
+TEST_CASE( "[co-maybe] test co_await nothing" ) {
+  SECTION( "with value" ) {
+    auto res = my_nothing( true );
+    REQUIRE( res.has_value() );
+    REQUIRE( *res == 5 );
+  }
+  SECTION( "without value" ) {
+    auto res = my_nothing( false );
+    REQUIRE_FALSE( res.has_value() );
+  }
+}
 
 } // namespace
 } // namespace base

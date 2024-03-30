@@ -19,11 +19,6 @@
 // C++ standard library
 #include <coroutine>
 
-// NOTE: Currently broken with latest clang; see:
-//
-//   https://github.com/llvm/llvm-project/issues/56532
-//
-
 // FIXME: maybes, expecteds, etc. should probably not be used
 // with coroutines until it is verified in godbolt that both
 // clang and gcc can optimize away all of the coroutine state
@@ -33,7 +28,7 @@
 namespace base {
 
 template<typename T>
-auto operator co_await( maybe<T> const& o ) {
+auto constexpr operator co_await( maybe<T> const& o ) {
   struct maybe_await {
     maybe<T> const* o_;
     bool await_ready() noexcept { return o_->has_value(); }
@@ -47,6 +42,18 @@ auto operator co_await( maybe<T> const& o ) {
     T await_resume() noexcept { return o_->value(); }
   };
   return maybe_await{ &o };
+}
+
+inline constexpr auto operator co_await( nothing_t ) {
+  struct maybe_await {
+    constexpr bool await_ready() noexcept { return false; }
+    void await_suspend( std::coroutine_handle<> h ) noexcept {
+      // See corresponding comments above.
+      h.destroy();
+    }
+    constexpr void await_resume() noexcept {}
+  };
+  return maybe_await{};
 }
 
 namespace detail {
