@@ -47,7 +47,7 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    u["depletion"] = &U::depletion;
+    (void)u;
   }();
 };
 
