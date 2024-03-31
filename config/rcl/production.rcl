@@ -804,6 +804,43 @@ outdoor_production {
       }
     }
   }
+
+  # Things related to the depletion of silver/minerals prime re-
+  # sources when they are worked to produce either ore or silver.
+  #
+  # There is a counter for each tile that can be subject to a de-
+  # pletion event. When a tile's counter reaches a limit then a
+  # depletion even occurs. The counter is increased by a random
+  # amount each turn that depends on difficulty level:
+  #
+  #   probability_of_increase = 1-1/(2+D)
+  #
+  # where D is the difficulty level (D=1 on discoverer). Thus:
+  #
+  #   p = .50 on discoverer     p = .66 on explorer
+  #   p = .75 on conquistador   p = .80 on governor
+  #   p = .83 on viceroy
+  #
+  depletion {
+    # When a tile's counter hits this limit value a depletion
+    # even occurs.
+    counter_limit: 50
+
+    # The amount by which a tile's counter is incremented each
+    # turn (which is already somewhat random) is scaled by a
+    # factor that depends on what is being mined and on what kind
+    # of prime resource tile.
+    counter_bump {
+      ore {                  # The colonist is producing ore.
+        minerals:        1   #   resource type = minerals
+      }
+      silver {               # The colonist is producing silver.
+        minerals:        2   #   resource type = minerals
+        silver:          1   #   resource type = silver
+        silver_depleted: 0   #   resource type = depl. silver
+      }
+    }
+  }
 }
 
 # Config for what and how much gets produced in the center

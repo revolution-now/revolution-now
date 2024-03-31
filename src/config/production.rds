@@ -163,6 +163,20 @@ struct.OutdoorJobProduction {
   non_resource_override 'base::maybe<NonResourceOverride>',
 }
 
+struct.ResourceDepletion {
+  counter_limit 'int',
+
+  counter_bump [[
+    std::map<
+      e_outdoor_job,
+      std::map<
+        e_natural_resource,
+        int
+      >
+    >
+  ]],
+}
+
 struct.OutdoorProduction {
   jobs 'refl::enum_map<e_outdoor_job, OutdoorJobProduction>',
 
@@ -174,6 +188,8 @@ struct.OutdoorProduction {
   # For a given outdoor job this will give the corresponding ex-
   # pert colonist type.
   expert_for 'refl::enum_map<e_outdoor_job, e_unit_type>',
+
+  depletion 'ResourceDepletion',
 }
 
 struct.CenterSquareProduction {
