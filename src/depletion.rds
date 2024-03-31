@@ -1,0 +1,26 @@
+# ===============================================================
+# depletion.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-03-29.
+#
+# Description: Rds definitions for the depletion module.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
+# ss
+include "ss/terrain-enums.rds.hpp"
+
+# gfx
+include "gfx/coord.hpp"
+
+namespace "rn"
+
+struct.DepletionEvent {
+  tile 'Coord',
+  resource_from 'e_natural_resource',
+  resource_to 'base::maybe<e_natural_resource>',
+}
