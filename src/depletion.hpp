@@ -43,7 +43,9 @@ void update_depleted_tiles(
     std::vector<DepletionEvent> const& events );
 
 // Remove the depletion counter for the tile if the tile has con-
-// tents that make it no longer relevant.
+// tents that make it no longer relevant. This should be called
+// whenever a single terrian square is mutated. If the entire map
+// is mutated then call the variant below.
 void remove_depletion_counter_if_needed( SS& ss, Coord tile );
 
 // Same as above but over the entire map. This is an expensive

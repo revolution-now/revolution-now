@@ -11,6 +11,7 @@
 #include "map-updater.hpp"
 
 // Revolution Now
+#include "depletion.hpp"
 #include "fog-conv.hpp"
 #include "logger.hpp"
 #include "render-terrain.hpp"
@@ -66,6 +67,7 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
   mutator( ss_.mutable_terrain_use_with_care.mutable_square_at(
       tile ) );
   MapSquare const& new_square = ss_.terrain.square_at( tile );
+  remove_depletion_counter_if_needed( ss_, tile );
   // Check if the rendered map needs its buffer updated.
   return BuffersUpdated{
       .tile      = tile,
@@ -182,6 +184,9 @@ NonRenderingMapUpdater::force_redraw_tiles(
 void NonRenderingMapUpdater::modify_entire_map_no_redraw(
     MapUpdateFunc mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
+  // Go over the entire map and remove any depletion counter that
+  // is set for a tile for which it is no longer relevant.
+  remove_depletion_counters_where_needed( ss_ );
 }
 
 void NonRenderingMapUpdater::redraw() {}
