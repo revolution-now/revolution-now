@@ -205,6 +205,10 @@ cdr::value cdr_game_state_default = cdr::table{
         },
     "map"_key =
         cdr::table{
+            "depletion"_key =
+                cdr::table{
+                    "counters"_key = cdr::list{},
+                },
         },
     "zzz_terrain"_key =
         cdr::table{

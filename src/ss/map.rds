@@ -8,8 +8,21 @@
 # Description: Rds definitions for the ss/map module.
 #
 # ===============================================================
+# gfx
+include "gfx/coord.hpp"
+
+# C++ standard library
+include "<map>"
+
 namespace "rn"
 
+struct.ResourceDepletion {
+  counters 'std::map<Coord, int>',
+}
+
 struct.MapState {
+  # Tracks depletion of prime minerals and silver resources.
+  depletion 'ResourceDepletion',
+
   _features { equality, validation }
 }

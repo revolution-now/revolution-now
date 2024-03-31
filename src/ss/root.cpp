@@ -108,6 +108,39 @@ valid_or<string> validate_interaction(
   return base::valid;
 }
 
+// MapState & TerrainState
+valid_or<string> validate_interaction(
+    MapState const& map, TerrainState const& terrain_class ) {
+  auto& terrain = terrain_class.refl();
+  // Check that resource depletion counters are present iff the
+  // tile has a (non-depleted) prime silver or minerals resource
+  // on it.
+  for( auto& [tile, counter] : map.depletion.counters ) {
+    MapSquare const& square = terrain.real_terrain.map[tile];
+    auto const       resource =
+        ( square.overlay == e_land_overlay::forest )
+                  ? square.forest_resource
+                  : square.ground_resource;
+    REFL_VALIDATE(
+        resource.has_value(),
+        "tile {} has an entry in the depletion counters map but "
+        "has no prime resource on it.",
+        tile );
+    REFL_VALIDATE(
+        resource == e_natural_resource::minerals ||
+            resource == e_natural_resource::silver,
+        "tile {} has an entry in the depletion counters map but "
+        "has no prime minerals resource and no (undepleted) "
+        "prime silver resource.",
+        tile );
+    REFL_VALIDATE( counter >= 0,
+                   "tile {} has a negative depletion counter.",
+                   tile );
+  }
+
+  return base::valid;
+}
+
 } // namespace
 
 valid_or<string> FormatVersion::validate() const {
@@ -126,6 +159,7 @@ valid_or<string> RootState::validate() const {
       validate_interaction( colonies, zzz_terrain ) );
   HAS_VALUE_OR_RET(
       validate_interaction( natives, zzz_terrain ) );
+  HAS_VALUE_OR_RET( validate_interaction( map, zzz_terrain ) );
   return valid;
 }
 

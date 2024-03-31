@@ -47,7 +47,18 @@ LUA_STARTUP( lua::state& st ) {
 
     auto u = st.usertype.create<U>();
 
-    (void)u;
+    u["depletion"] = &U::depletion;
+  }();
+
+  // ResourceDepletion.
+  [&] {
+    using U = ::rn::ResourceDepletion;
+
+    auto u = st.usertype.create<U>();
+
+    u["reset_depletion_counters"] = []( U& o ) {
+      o.counters.clear();
+    };
   }();
 };
 

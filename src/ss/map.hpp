@@ -24,4 +24,5 @@ namespace rn {} // namespace rn
 *****************************************************************/
 namespace lua {
 LUA_USERDATA_TRAITS( rn::MapState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( rn::ResourceDepletion, owned_by_cpp ){};
 } // namespace lua
