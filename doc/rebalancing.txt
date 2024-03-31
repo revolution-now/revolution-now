@@ -160,15 +160,23 @@ General changes to the game:
        3. LCR fountain of youth.
        4. Immigration via crosses.
 
-    At times it even feels like we have more colonists that we
-    know what to do with as the mid-game is nearing. This is true
-    especially since, towards the end of the game when we do want
-    to create a large number of colonists to act as dragoons (if
-    using that strategy) then we can easily produce them via food
-    production at that time.
+    Sometimes it even feels like we have more colonists that we
+    know what to do with as the mid-game is nearing (TODO: check
+    if this is still the case on higher difficulty levels). One
+    reason this is true is that the game (especially on harder
+    difficulty levels) prevents colonies from growing too rapidly
+    anyway by way of the SoL mechanism. Also, towards the end of
+    the game when we do want to create a large number of
+    colonists to act as dragoons (if using that strategy) then we
+    can easily produce them via food production at that time.
 
     Hence, maybe we should consider nurfing some of the above in
     order to make the English more valuable.
+
+  * Fountain of Youth discoveries might need to be turned down a
+    bit, though we may do that as part of (see above) making it
+    generally more difficult to acquire colonists in order to
+    boost the english.  Maybe they should be limited as well.
 
   * Enhance Francisco de Coronado. It might be nice to be able to
     get info about a native dwelling (i.e., has it been visited,
