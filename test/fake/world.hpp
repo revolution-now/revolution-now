@@ -56,6 +56,7 @@ struct EventsState;
 struct FormatVersion;
 struct IMapUpdater;
 struct LandViewState;
+struct MapState;
 struct MockIColonyViewer;
 struct MockICombat;
 struct MockIEuroMind;
@@ -344,6 +345,7 @@ struct World {
   ColoniesState& colonies();
   NativesState&  natives();
   LandViewState& land_view();
+  MapState&      map();
   TerrainState&  terrain();
 
   FormatVersion const& version() const;
@@ -355,6 +357,7 @@ struct World {
   ColoniesState const& colonies() const;
   NativesState const&  natives() const;
   LandViewState const& land_view() const;
+  MapState const&      map() const;
   TerrainState const&  terrain() const;
 
   RootState&       root();

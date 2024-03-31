@@ -18,6 +18,7 @@
 // ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.hpp"
+#include "ss/map.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.hpp"
 #include "ss/settings.hpp"
@@ -147,6 +148,7 @@ LUA_STARTUP( lua::state& st ) {
   u["colonies"]  = &U::colonies;
   u["natives"]   = &U::natives;
   u["land_view"] = &U::land_view;
+  u["map"]       = &U::map;
   u["terrain"]   = &U::zzz_terrain;
 };
 

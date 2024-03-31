@@ -21,6 +21,7 @@ include "ss/events.rds.hpp"
 include "ss/players.rds.hpp"
 include "ss/turn.rds.hpp"
 include "ss/land-view.rds.hpp"
+include "ss/map.rds.hpp"
 
 namespace "rn"
 
@@ -44,6 +45,7 @@ struct.RootState {
   colonies 'rn::ColoniesState',
   natives 'rn::NativesState',
   land_view 'rn::LandViewState',
+  map 'rn::MapState',
   # Use a zzz prefix to make sure that the terrain field will be
   # last in the save file (keys are alphabetized) for convenience
   # because it is so large.

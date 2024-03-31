@@ -72,6 +72,7 @@ TurnState&     World::turn() { return root().turn; }
 ColoniesState& World::colonies() { return root().colonies; }
 NativesState&  World::natives() { return root().natives; }
 LandViewState& World::land_view() { return root().land_view; }
+MapState&      World::map() { return root().map; }
 TerrainState&  World::terrain() { return root().zzz_terrain; }
 RootState&     World::root() { return ss_->root; }
 

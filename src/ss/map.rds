@@ -1,0 +1,15 @@
+# ===============================================================
+# map.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-03-30.
+#
+# Description: Rds definitions for the ss/map module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.MapState {
+  _features { equality, validation }
+}

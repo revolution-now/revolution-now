@@ -203,6 +203,9 @@ cdr::value cdr_game_state_default = cdr::table{
                     "no_special_view"_key = cdr::table{},
                 },
         },
+    "map"_key =
+        cdr::table{
+        },
     "zzz_terrain"_key =
         cdr::table{
             "placement_seed"_key = 0,
@@ -294,6 +297,7 @@ cdr::value cdr_game_state_default = cdr::table{
 // static_assert( equality_comparable<ColoniesState> );
 // static_assert( equality_comparable<NativesState> );
 // static_assert( equality_comparable<LandViewState> );
+// static_assert( equality_comparable<MapState> );
 // static_assert( equality_comparable<TerrainState> );
 // static_assert( equality_comparable<RootState> );
 

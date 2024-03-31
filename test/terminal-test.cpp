@@ -370,9 +370,9 @@ TEST_CASE(
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ROOT.";
-  out = { "ROOT.colonies", "ROOT.land_view", "ROOT.natives",
-          "ROOT.players",  "ROOT.settings",  "ROOT.terrain",
-          "ROOT.turn",     "ROOT.units" };
+  out = { "ROOT.colonies", "ROOT.land_view", "ROOT.map",
+          "ROOT.natives",  "ROOT.players",   "ROOT.settings",
+          "ROOT.terrain",  "ROOT.turn",      "ROOT.units" };
   REQUIRE_THAT( autocomplete( in ), Equals( out ) );
 
   in  = "ROOT.col";

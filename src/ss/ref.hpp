@@ -38,6 +38,7 @@ struct TurnState;
 struct ColoniesState;
 struct NativesState;
 struct LandViewState;
+struct MapState;
 struct TerrainState;
 
 struct RootState;
@@ -66,6 +67,7 @@ struct SSConst {
   ColoniesState const& colonies;
   NativesState const&  natives;
   LandViewState const& land_view;
+  MapState const&      map;
   TerrainState const&  terrain;
 
   RootState const& root;
@@ -97,6 +99,7 @@ struct SS {
   ColoniesState&      colonies;
   NativesState&       natives;
   LandViewState&      land_view;
+  MapState&           map;
   TerrainState const& terrain;
 
   // This should really only be used to initialize the IMapUp-

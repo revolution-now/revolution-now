@@ -46,6 +46,7 @@ SS::SS()
     colonies( impl_->top.colonies ),
     natives( impl_->top.natives ),
     land_view( impl_->top.land_view ),
+    map( impl_->top.map ),
     terrain( impl_->top.zzz_terrain ),
     mutable_terrain_use_with_care( impl_->top.zzz_terrain ),
     root( impl_->top ),
@@ -70,6 +71,7 @@ SSConst::SSConst( SS& ss )
     colonies( ss_.colonies ),
     natives( ss_.natives ),
     land_view( ss_.land_view ),
+    map( ss_.map ),
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 
@@ -84,6 +86,7 @@ SSConst::SSConst( SS const& ss )
     colonies( ss_.colonies ),
     natives( ss_.natives ),
     land_view( ss_.land_view ),
+    map( ss_.map ),
     terrain( ss_.terrain ),
     root( ss_.root ) {}
 
