@@ -61,8 +61,7 @@ NonRenderingMapUpdater::NonRenderingMapUpdater( SS& ss )
   : NonRenderingMapUpdater( ss, MapUpdaterOptions{} ) {}
 
 BuffersUpdated NonRenderingMapUpdater::modify_map_square(
-    Coord                                  tile,
-    base::function_ref<void( MapSquare& )> mutator ) {
+    Coord tile, SquareUpdateFunc mutator ) {
   MapSquare const old_square = ss_.terrain.square_at( tile );
   mutator( ss_.mutable_terrain_use_with_care.mutable_square_at(
       tile ) );
@@ -181,7 +180,7 @@ NonRenderingMapUpdater::force_redraw_tiles(
 }
 
 void NonRenderingMapUpdater::modify_entire_map_no_redraw(
-    base::function_ref<void( RealTerrain& )> mutator ) {
+    MapUpdateFunc mutator ) {
   ss_.mutable_terrain_use_with_care.modify_entire_map( mutator );
 }
 
@@ -332,8 +331,7 @@ void RenderingMapUpdater::redraw_buffers_for_tiles_where_needed(
 }
 
 BuffersUpdated RenderingMapUpdater::modify_map_square(
-    Coord                                  tile,
-    base::function_ref<void( MapSquare& )> mutator ) {
+    Coord tile, SquareUpdateFunc mutator ) {
   BuffersUpdated const buffers_updated =
       this->Base::modify_map_square( tile, mutator );
   redraw_buffers_for_tiles_where_needed( { buffers_updated } );
@@ -378,7 +376,7 @@ vector<BuffersUpdated> RenderingMapUpdater::force_redraw_tiles(
 }
 
 void RenderingMapUpdater::modify_entire_map_no_redraw(
-    base::function_ref<void( RealTerrain& )> mutator ) {
+    MapUpdateFunc mutator ) {
   this->Base::modify_entire_map_no_redraw( mutator );
 }
 
