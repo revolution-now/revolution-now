@@ -351,6 +351,9 @@ valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
       terrain_o.real_terrain ) );
   out.zzz_terrain = rn::TerrainState( std::move( terrain_o ) );
 
+  // TODO: for the algo to convert the prime resource depletion
+  // counters, see doc/depletion.txt.
+
   // TODO: add more here.
 
   return valid;
@@ -378,6 +381,9 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
       as_const( out ).tile, as_const( out ).path,
       { .w = out.header.map_size_x, .h = out.header.map_size_y },
       out.connectivity );
+
+  // TODO: for the algo to convert the prime resource depletion
+  // counters, see doc/depletion.txt.
 
   // TODO: add more here.
 
