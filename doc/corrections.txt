@@ -1,0 +1,60 @@
+                  Corrections to Bad Mechanics
+=================================================================
+This doc lists some outright changes that will be made to the NG
+to correct problems in the OG related to aspects of the design
+that either likely arose from hacky design decisions or design
+oversights that cause problems.
+
+           Units Surrounding Island On Coast Tiles
+           ---------------------------------------
+  Some have said that one of the biggest unresolved isues in the
+  OG is the fact that (pre-REF) an island can be made inacces-
+  sible to european rivals by simply putting colonists on all of
+  its coast tiles. This can happen intentially by the player as a
+  way to "cheat" and not have to deal with european rivals, or it
+  can happen inadvertantly by the AI when e.g. a two-tile island
+  gets occupied by two units of different nations (this latter
+  scenario is unresolvable by either the player, AI, or REF).
+
+  Here are some ideas for fixes:
+
+    1. Create some mechanism (ideally as non-intrusive as possi-
+       ble) to allow a bombardment of a land unit from either a
+       ship or a unit on a ship.
+    2. ???
+
+               Limit on Number of Wagon Trains
+               -------------------------------
+  Apparently they put a limit on the number of wagon trains that
+  can be built in order to prevent the player from using them as
+  extra storage in a colony. This seems kind of like a hacky de-
+  sign decision. Maybe we can allow an arbitrary number of wagon
+  trains, but tackle the storage issue differently, here are some
+  ideas:
+
+    1. Any cargo that has been left on a wagon train for more
+       than N turns will spoil and be lost.
+    2. If you have a number of wagon trains beyond your number of
+       colonies then they require paying an upkeep cost each
+       turn, which should rise sharply as the number goes above
+       the number of colonies.
+
+              Abandoning Colonies with Stockades
+              ----------------------------------
+  Everybody seems to agree that this is annoying and makes no sense.
+  It was likely a hacky design decision to prevent the player from
+  doing the following:
+
+    1. Founding a large number of colonies, using them to earn
+       gold, then abandoning them before the revolution in order
+       to minimize cross section to the ref.
+    2. Conquering other nations' colonies and then just aban-
+       doning them, effectively destroying them.
+
+  We should decided whether these principles are good to begin.
+  If we change them then it could have a significant impact on
+  gameplay, especially allowing #2. So let's assume that we want
+  to keep at least #2 intact. Here are some other ideas for how
+  to do that:
+
+    1. ???
