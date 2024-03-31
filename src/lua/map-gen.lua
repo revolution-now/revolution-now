@@ -1112,6 +1112,10 @@ local function distribute_prime_forest_resources( y_offset )
                  tostring( #coords / (size.w * size.h) ) )
 end
 
+local function reset_depletion_counters()
+  ROOT.map.depletion:reset_depletion_counters()
+end
+
 -----------------------------------------------------------------
 -- Bonus (LCR + prime resource) generation.
 -----------------------------------------------------------------
@@ -1136,6 +1140,7 @@ local function distribute_bonuses( seed )
   distribute_prime_ground_resources( seed )
   distribute_prime_forest_resources( seed )
   distribute_lost_city_rumors( seed )
+  reset_depletion_counters()
 end
 
 -----------------------------------------------------------------
@@ -1701,6 +1706,7 @@ end
 -- standard distribution algorithm applied after the map is fin-
 -- ished.
 function M.redistribute_resources( seed )
+  reset_depletion_counters()
   on_all( function( _, square )
     square.lost_city_rumor = false
     square.ground_resource = nil
