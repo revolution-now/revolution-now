@@ -733,6 +733,10 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
   REQUIRE( colony.buildings[e_colony_building::stockade] );
 }
 
+TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
+  World W;
+}
+
 TEST_CASE( "[colony-evolve] applies production" ) {
   World W;
   // TODO

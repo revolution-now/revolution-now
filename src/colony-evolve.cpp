@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "custom-house.hpp"
+#include "depletion.hpp"
 #include "fathers.hpp"
 #include "irand.hpp"
 #include "on-map.hpp"
@@ -510,6 +511,20 @@ void process_custom_house( SS& ss, Player& player,
   }
 }
 
+void check_prime_resource_depletion(
+    SS& ss, TS& ts, Colony const& colony,
+    vector<ColonyNotification>& notifications ) {
+  vector<DepletionEvent> const events =
+      advance_depletion_state( ss, ts.rand, colony );
+  update_depleted_tiles( ts.map_updater, events );
+  for( DepletionEvent const& event : events )
+    notifications.push_back(
+        ColonyNotification::prime_resource_depleted{
+            .what = event.resource_from,
+            .partial_depletion =
+                event.resource_to.has_value() } );
+}
+
 } // namespace
 
 ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
@@ -597,6 +612,9 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   check_colonists_teaching( ss, ts, colony, ev.notifications );
 
   give_stockade_if_needed( player, colony );
+
+  check_prime_resource_depletion( ss, ts, colony,
+                                  ev.notifications );
 
   return ev;
 }

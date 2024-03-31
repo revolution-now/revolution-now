@@ -195,7 +195,7 @@ NotificationMessage generate_colony_notification_message(
               .what = o.required_building } ) );
       break;
     }
-    // clang-format off
+      // clang-format off
     case ColonyNotification::e::construction_lacking_population: {
       // clang-format on
       auto& o = notification.get<
@@ -343,6 +343,17 @@ NotificationMessage generate_colony_notification_message(
           "Custom House from attempting to sell them until the "
           "boycott is lifted.",
           colony.name, goods );
+      break;
+    }
+    case ColonyNotification::e::prime_resource_depleted: {
+      auto& o = notification.get<
+          ColonyNotification::prime_resource_depleted>();
+      string_view const extent =
+          o.partial_depletion ? "partially" : "fully";
+      res.msg = fmt::format(
+          "A prime [{}] resource near [{}] has been {} "
+          "depleted.",
+          o.what, colony.name, extent );
       break;
     }
   }
