@@ -49,6 +49,12 @@ maybe<int> my_coroutine0() {
   co_return res;
 }
 
+maybe<int> my_coro_with_bools( bool b ) {
+  int num = co_await get_num();
+  co_await b;
+  co_return num;
+}
+
 TEST_CASE( "[co-maybe] simple test" ) {
   auto res = my_coroutine();
   REQUIRE( res.has_value() );
@@ -68,6 +74,11 @@ TEST_CASE( "[co-maybe] test co_await nothing" ) {
     auto res = my_nothing( false );
     REQUIRE_FALSE( res.has_value() );
   }
+}
+
+TEST_CASE( "[co-maybe] co_awaiting on bools" ) {
+  REQUIRE( my_coro_with_bools( true ) == 110 );
+  REQUIRE( my_coro_with_bools( false ) == nothing );
 }
 
 } // namespace

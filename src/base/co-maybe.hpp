@@ -25,38 +25,31 @@
 // heap allocations. At the time of writing, clang seems to be
 // able to do it but not gcc. See https://godbolt.org/z/MKsPPG
 
-namespace base {
+namespace base::detail {
+
+struct maybe_await_bool {
+  bool           b_ = {};
+  constexpr bool await_ready() noexcept { return b_; }
+  void await_suspend( std::coroutine_handle<> h ) noexcept {
+    // See corresponding comments in maybe_await.
+    h.destroy();
+  }
+  constexpr void await_resume() noexcept {}
+};
 
 template<typename T>
-auto constexpr operator co_await( maybe<T> const& o ) {
-  struct maybe_await {
-    maybe<T> const* o_;
-    bool await_ready() noexcept { return o_->has_value(); }
-    void await_suspend( std::coroutine_handle<> h ) noexcept {
-      // If we are suspending then that means that one of the
-      // maybe's is `nothing`, in which case we will return to
-      // the caller and never resume the coroutine, so there is
-      // never a need to resume.
-      h.destroy();
-    }
-    T await_resume() noexcept { return o_->value(); }
-  };
-  return maybe_await{ &o };
-}
-
-inline constexpr auto operator co_await( nothing_t ) {
-  struct maybe_await {
-    constexpr bool await_ready() noexcept { return false; }
-    void await_suspend( std::coroutine_handle<> h ) noexcept {
-      // See corresponding comments above.
-      h.destroy();
-    }
-    constexpr void await_resume() noexcept {}
-  };
-  return maybe_await{};
-}
-
-namespace detail {
+struct maybe_await {
+  maybe<T> const* o_;
+  bool await_ready() noexcept { return o_->has_value(); }
+  void await_suspend( std::coroutine_handle<> h ) noexcept {
+    // If we are suspending then that means that one of the
+    // maybe's is `nothing`, in which case we will return to
+    // the caller and never resume the coroutine, so there is
+    // never a need to resume.
+    h.destroy();
+  }
+  T await_resume() noexcept { return o_->value(); }
+};
 
 // Take advantage of the fact that the get_return_object function
 // on the promise is allowed to return a type that is implicitly
@@ -85,41 +78,62 @@ struct maybe_holder {
   operator maybe<T>() const noexcept { return std::move( o_ ); }
 };
 
-} // namespace detail
+// TODO: Add support for maybe-ref here. Currently it doesn't
+// work because maybe-refs are not assignable, and we expect the
+// pre-created return value to be assignable. However, this could
+// probably be implemented by creating a separate maybe_holder
+// for maybe_refs that holds a pointer to T instead of a maybe.
+template<typename T>
+struct promise_type {
+  maybe<T>* o_ = nullptr;
 
-} // namespace base
+  // Need to use base::suspend_never because it fixes some
+  // methods that need to be noexcept (used with the clang+libst-
+  // dc++ combo).
+  auto initial_suspend() noexcept {
+    return std::suspend_never{};
+  }
 
-namespace std {
+  using holder = detail::maybe_holder<T, promise_type>;
 
-template<typename T, typename... Args>
-struct coroutine_traits<::base::maybe<T>, Args...> {
-  struct promise_type {
-    ::base::maybe<T>* o_ = nullptr;
+  holder get_return_object() noexcept { return holder{ this }; }
 
-    // Need to use base::suspend_never because it fixes some
-    // methods that need to be noexcept (used with the clang+lib-
-    // stdc++ combo).
-    auto initial_suspend() noexcept {
-      return std::suspend_never{};
-    }
+  void return_value( T const& val ) noexcept {
+    assert_bt( o_ != nullptr );
+    *o_ = val;
+  }
 
-    using holder = ::base::detail::maybe_holder<T, promise_type>;
+  auto final_suspend() noexcept { return std::suspend_never{}; }
 
-    holder get_return_object() noexcept {
-      return holder{ this };
-    }
+  void unhandled_exception() noexcept {}
 
-    void return_value( T const& val ) noexcept {
-      assert_bt( o_ != nullptr );
-      *o_ = val;
-    }
+  template<typename U>
+  static auto await_transform( maybe<U> const& o ) noexcept {
+    return maybe_await{ &o };
+  }
 
-    auto final_suspend() noexcept {
-      return std::suspend_never{};
-    }
+  template<typename U>
+  static auto await_transform( maybe<U&> const& o ) noexcept {
+    return maybe_await{ &o };
+  }
 
-    void unhandled_exception() noexcept {}
-  };
+  static auto await_transform( nothing_t ) noexcept {
+    return maybe_await_bool{ false };
+  }
+
+  static auto await_transform( bool b ) noexcept {
+    return maybe_await_bool{ b };
+  }
 };
 
+} // namespace base::detail
+
+/****************************************************************
+** std extension point.
+*****************************************************************/
+namespace std {
+template<typename T, typename... Args>
+struct coroutine_traits<::base::maybe<T>, Args...> {
+  using promise_type = ::base::detail::promise_type<T>;
+};
 } // namespace std
