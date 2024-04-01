@@ -78,11 +78,14 @@ struct maybe_holder {
   operator maybe<T>() const noexcept { return std::move( o_ ); }
 };
 
-// TODO: Add support for maybe-ref here. Currently it doesn't
-// work because maybe-refs are not assignable, and we expect the
-// pre-created return value to be assignable. However, this could
-// probably be implemented by creating a separate maybe_holder
-// for maybe_refs that holds a pointer to T instead of a maybe.
+// TODO: Add support for maybe-ref promise types here. Although
+// we can co_await a maybe-ref in a maybe coroutine, we can't de-
+// clare coroutines with maybe-ref return types (promise types).
+// Currently it doesn't work because maybe-refs are not assigna-
+// ble, and we expect the pre-created return value to be assigna-
+// ble. However, this could probably be implemented by creating a
+// separate maybe_holder for maybe_refs that holds a pointer to T
+// instead of a maybe.
 template<typename T>
 struct promise_type {
   maybe<T>* o_ = nullptr;

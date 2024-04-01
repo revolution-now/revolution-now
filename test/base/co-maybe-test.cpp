@@ -55,6 +55,19 @@ maybe<int> my_coro_with_bools( bool b ) {
   co_return num;
 }
 
+maybe<int const&> ref_coro_0() {
+  static int const n = 5;
+  // FIXME: we don't currently support coroutines with maybe-ref
+  // promise types, though we can co_await maybe-refs in general.
+  return n;
+}
+
+maybe<int> ref_coro_1() {
+  decltype( auto ) n = co_await ref_coro_0();
+  static_assert( is_same_v<decltype( n ), int const&> );
+  co_return n;
+}
+
 TEST_CASE( "[co-maybe] simple test" ) {
   auto res = my_coroutine();
   REQUIRE( res.has_value() );
@@ -79,6 +92,11 @@ TEST_CASE( "[co-maybe] test co_await nothing" ) {
 TEST_CASE( "[co-maybe] co_awaiting on bools" ) {
   REQUIRE( my_coro_with_bools( true ) == 110 );
   REQUIRE( my_coro_with_bools( false ) == nothing );
+}
+
+TEST_CASE( "[co-maybe] co_awaiting on maybe refs" ) {
+  maybe<int> const res = ref_coro_1();
+  REQUIRE( res == 5 );
 }
 
 } // namespace
