@@ -11,6 +11,7 @@
 #include "depletion.hpp"
 
 // Revolution Now
+#include "co-maybe.hpp"
 #include "imap-updater.hpp"
 #include "irand.hpp"
 #include "map-square.hpp"
@@ -68,23 +69,25 @@ maybe<DepletionEvent> advance_depletion_state(
   auto const& conf =
       config_production.outdoor_production.depletion;
   Coord const tile = colony.location.moved( d );
-  UNWRAP_RETURN( square, ss.terrain.maybe_square_at( tile ) );
-  UNWRAP_RETURN( resource, effective_resource( square ) );
-  UNWRAP_RETURN( outdoor_unit, colony.outdoor_jobs[d] );
-  e_outdoor_job const job          = outdoor_unit.job;
+  auto const& square =
+      co_await ss.terrain.maybe_square_at( tile );
+  auto const  resource = co_await effective_resource( square );
+  auto const& outdoor_unit = co_await colony.outdoor_jobs[d];
+  e_outdoor_job const job  = outdoor_unit.job;
   auto const&         counter_bump = conf.counter_bump;
-  UNWRAP_RETURN( by_resource, lookup( counter_bump, job ) );
-  UNWRAP_RETURN( bump, lookup( by_resource, resource ) );
-  if( bump == 0 ) return nothing;
+  auto& by_resource = co_await lookup( counter_bump, job );
+  auto& bump        = co_await lookup( by_resource, resource );
+  if( bump == 0 ) co_await nothing;
   e_difficulty const difficulty = ss.settings.difficulty;
-  if( !rand.bernoulli( p_bump( difficulty ) ) ) return nothing;
+  co_await rand.bernoulli( p_bump( difficulty ) );
   auto& counter = depletion.counters[tile];
   counter += bump;
-  if( counter < conf.counter_limit ) return nothing;
+  if( counter < conf.counter_limit ) co_await nothing;
   depletion.counters.erase( tile );
-  return DepletionEvent{ .tile          = tile,
-                         .resource_from = resource,
-                         .resource_to   = depleted( resource ) };
+  co_return DepletionEvent{
+      .tile          = tile,
+      .resource_from = resource,
+      .resource_to   = depleted( resource ) };
 }
 
 bool square_allows_depletion_counter( MapSquare const& square ) {
