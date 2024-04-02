@@ -2718,8 +2718,8 @@ struct NATION {
   uint8_t recruit_count = {};
   FoundingFathers founding_fathers = {};
   bytes<1> unknown21 = {};
-  uint16_t liberty_bells_total = {};
-  uint16_t liberty_bells_last_turn = {};
+  int16_t liberty_bells_total = {};
+  int16_t liberty_bells_last_turn = {};
   bytes<2> unknown22 = {};
   int16_t next_founding_father = {};
   uint16_t founding_father_count = {};

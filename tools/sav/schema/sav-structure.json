@@ -1205,8 +1205,8 @@
                 }
             },
             "unknown21": {"size": 1},
-            "liberty_bells_total": {"size": 2, "type": "uint"},
-            "liberty_bells_last_turn": {"size": 2, "type": "uint"},
+            "liberty_bells_total": {"size": 2, "type": "int"},
+            "liberty_bells_last_turn": {"size": 2, "type": "int"},
             "unknown22": {"size": 2},
             "next_founding_father": {"size": 2, "type": "int", "__hint": "index of founding father currently in progress, or -1 if none."},
             "founding_father_count": {"size": 2, "type": "uint"},
