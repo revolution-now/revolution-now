@@ -741,7 +741,7 @@ on_the_job_training {
   # dentured servant, then to a free colonist, then to an ex-
   # pert).
   #
-  # The strategy guide's verbiage seems to indicate that these
+  # The strategy guide's wording seems to indicate that these
   # probabilities are applied to each colonist (in each colony)
   # independently on each turn (which is how this game does it),
   # but that is difficult to verify due to the low probabilities.
