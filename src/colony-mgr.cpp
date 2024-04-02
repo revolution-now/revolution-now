@@ -387,9 +387,12 @@ wait<bool> present_blocking_colony_update(
 wait<bool> present_blocking_colony_updates(
     IGui& gui, vector<NotificationMessage> const& messages ) {
   bool should_zoom = false;
-  for( NotificationMessage const& message : messages )
-    should_zoom |= co_await present_blocking_colony_update(
-        gui, message, !should_zoom );
+  for( NotificationMessage const& message : messages ) {
+    bool const wants_zoom =
+        co_await present_blocking_colony_update( gui, message,
+                                                 !should_zoom );
+    should_zoom = should_zoom || wants_zoom;
+  }
   co_return should_zoom;
 }
 
