@@ -31,18 +31,16 @@ local function files( stem )
 end
 
 -- For the non-wide monitors.
+-- LuaFormatter off
 local function layout_wide( stem )
   local F = files( stem )
-  -- LuaFormatter off
   local plan = vsplit {
     {}, -- will be filled out.
     F.cpp,
     F.test,
   }
   local new_module = not exists( F.hpp ) and not exists( F.cpp )
-  -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
-    -- LuaFormatter off
     plan[1] = vsplit {
       hsplit {
         F.rds,
@@ -50,65 +48,55 @@ local function layout_wide( stem )
       },
       F.hpp
     }
-    -- LuaFormatter on
   elseif not exists( F.rds ) and exists( F.rds_impl ) then
-    -- LuaFormatter off
     plan[1] = vsplit {
       F.rds_impl,
       F.hpp
     }
-    -- LuaFormatter on
   elseif exists( F.rds ) or new_module then
-    -- LuaFormatter off
     plan[1] = vsplit {
       F.rds,
       F.hpp
     }
-    -- LuaFormatter on
   else
     plan[1] = F.hpp
   end
   return plan
 end
+-- LuaFormatter on
 
 -- For the non-wide monitors.
+-- LuaFormatter off
 local function layout_narrow( stem )
   local F = files( stem )
-  -- LuaFormatter off
   local plan = vsplit {
     {}, -- will be filled out.
     F.cpp,
     F.test,
   }
   local new_module = not exists( F.hpp ) and not exists( F.cpp )
-  -- LuaFormatter on
   if exists( F.rds ) and exists( F.rds_impl ) then
-    -- LuaFormatter off
     plan[1] = hsplit {
       F.rds,
       F.hpp,
       F.rds_impl
     }
-    -- LuaFormatter on
   elseif not exists( F.rds ) and exists( F.rds_impl ) then
-    -- LuaFormatter off
     plan[1] = hsplit {
       F.hpp,
       F.rds_impl
     }
-    -- LuaFormatter on
   elseif exists( F.rds ) or new_module then
-    -- LuaFormatter off
     plan[1] = hsplit {
       F.rds,
       F.hpp
     }
-    -- LuaFormatter on
   else
     plan[1] = F.hpp
   end
   return plan
 end
+-- LuaFormatter on
 
 -----------------------------------------------------------------
 -- Public API.
