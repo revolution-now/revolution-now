@@ -20,6 +20,7 @@
 
 // ss
 #include "src/ss/colony.hpp"
+#include "src/ss/map.rds.hpp"
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
@@ -734,7 +735,57 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
 }
 
 TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
-  World W;
+  World                      W;
+  vector<ColonyNotification> expected;
+  map<Coord, int>            expected_counters;
+
+  Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+
+  W.add_unit_outdoors( colony.id, e_direction::s,
+                       e_outdoor_job::silver );
+  W.square( { .x = 1, .y = 1 } ).ground_resource =
+      e_natural_resource::silver;
+
+  auto f = [&] {
+    return evolve_colony_one_turn( W.ss(), W.ts(),
+                                   W.default_player(), colony );
+  };
+
+  // Sanity check.
+  expected          = {};
+  expected_counters = {};
+  REQUIRE( W.map().depletion.counters == expected_counters );
+  REQUIRE( W.square( { .x = 1, .y = 1 } ).ground_resource ==
+           e_natural_resource::silver );
+
+  // Probability to increment depletion counter.
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
+  expected          = {};
+  expected_counters = { { { .x = 1, .y = 1 }, 1 } };
+  REQUIRE( f().notifications == expected );
+  REQUIRE( W.map().depletion.counters == expected_counters );
+  REQUIRE( W.square( { .x = 1, .y = 1 } ).ground_resource ==
+           e_natural_resource::silver );
+
+  W.map().depletion.counters[{ .x = 1, .y = 1 }] = 48;
+
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
+  expected          = {};
+  expected_counters = { { { .x = 1, .y = 1 }, 49 } };
+  REQUIRE( f().notifications == expected );
+  REQUIRE( W.map().depletion.counters == expected_counters );
+  REQUIRE( W.square( { .x = 1, .y = 1 } ).ground_resource ==
+           e_natural_resource::silver );
+
+  W.rand().EXPECT__bernoulli( .5 ).returns( true );
+  expected = { ColonyNotification::prime_resource_depleted{
+      .what              = e_natural_resource::silver,
+      .partial_depletion = true } };
+  expected_counters = {};
+  REQUIRE( f().notifications == expected );
+  REQUIRE( W.map().depletion.counters == expected_counters );
+  REQUIRE( W.square( { .x = 1, .y = 1 } ).ground_resource ==
+           e_natural_resource::silver_depleted );
 }
 
 TEST_CASE( "[colony-evolve] applies production" ) {
