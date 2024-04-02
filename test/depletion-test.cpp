@@ -374,16 +374,149 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
 }
 
 TEST_CASE( "[depletion] update_depleted_tiles" ) {
-  World W;
+  World                  W;
+  vector<DepletionEvent> events;
+
+  auto f = [&] {
+    update_depleted_tiles( W.map_updater(), events );
+  };
+
+  auto ground = [&]( Coord tile ) -> auto& {
+    return W.square( tile ).ground_resource;
+  };
+
+  auto forest = [&]( Coord tile ) -> auto& {
+    return W.square( tile ).forest_resource;
+  };
+
+  //                         L, L, L, L, L,
+  // S = undepleted silver   L, L, L, M, S,
+  // s = depleted silver     L, T, L, S, L,
+  // D = deer/game           L, M, L, s, L,
+  // M = minerals            L, D, M, S, L,
+  // T = tobacco             L, L, L, L, L,
+
+  using R                                = e_natural_resource;
+  using O                                = e_land_overlay;
+  W.square( { .x = 1, .y = 4 } ).overlay = O::forest;
+  W.square( { .x = 2, .y = 4 } ).overlay = O::forest;
+  W.square( { .x = 3, .y = 1 } ).overlay = O::forest;
+
+  ground( { .x = 1, .y = 2 } ) = R::tobacco;
+  ground( { .x = 3, .y = 2 } ) = R::silver;
+  ground( { .x = 1, .y = 3 } ) = R::minerals;
+  forest( { .x = 1, .y = 4 } ) = R::deer;
+  ground( { .x = 2, .y = 4 } ) = R::cotton;
+  forest( { .x = 2, .y = 4 } ) = R::minerals;
+  ground( { .x = 3, .y = 4 } ) = R::silver;
+  ground( { .x = 3, .y = 3 } ) = R::silver_depleted;
+  ground( { .x = 3, .y = 1 } ) = R::silver;
+  forest( { .x = 3, .y = 1 } ) = R::minerals;
+  ground( { .x = 4, .y = 1 } ) = R::silver;
+
+  events = {};
+  f();
+
+  REQUIRE( W.square( { .x = 3, .y = 2 } ).ground_resource ==
+           R::silver );
+  REQUIRE( W.square( { .x = 3, .y = 2 } ).forest_resource ==
+           nothing );
+  REQUIRE( W.square( { .x = 2, .y = 4 } ).ground_resource ==
+           R::cotton );
+  REQUIRE( W.square( { .x = 2, .y = 4 } ).forest_resource ==
+           R::minerals );
+
+  events = {
+      DepletionEvent{ .tile          = { .x = 3, .y = 2 },
+                      .resource_from = R::silver,
+                      .resource_to   = R::silver_depleted },
+      DepletionEvent{ .tile          = { .x = 2, .y = 4 },
+                      .resource_from = R::minerals,
+                      .resource_to   = nothing },
+  };
+  f();
+  REQUIRE( W.square( { .x = 3, .y = 2 } ).ground_resource ==
+           R::silver_depleted );
+  REQUIRE( W.square( { .x = 3, .y = 2 } ).forest_resource ==
+           nothing );
+  REQUIRE( W.square( { .x = 2, .y = 4 } ).ground_resource ==
+           R::cotton );
+  REQUIRE( W.square( { .x = 2, .y = 4 } ).forest_resource ==
+           nothing );
 }
 
 TEST_CASE( "[depletion] remove_depletion_counter_if_needed" ) {
   World W;
+
+  auto& counters = W.map().depletion.counters;
+  auto  expected = counters;
+
+  using R = e_natural_resource;
+  using O = e_land_overlay;
+
+  auto f = [&]( Coord tile ) {
+    remove_depletion_counter_if_needed( W.ss(), tile );
+  };
+
+  REQUIRE( W.map().depletion.counters.empty() );
+  W.map().depletion.counters[{ .x = 1, .y = 2 }] = 5;
+  W.map().depletion.counters[{ .x = 1, .y = 1 }] = 2;
+  W.square( { .x = 1, .y = 2 } ).ground_resource = R::silver;
+  W.square( { .x = 1, .y = 1 } ).ground_resource = R::cotton;
+  W.square( { .x = 1, .y = 1 } ).forest_resource = R::minerals;
+  W.square( { .x = 1, .y = 1 } ).overlay         = O::forest;
+  REQUIRE( W.map().depletion.counters.size() == 2 );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 1 }, 2 } };
+  REQUIRE( counters == expected );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 1 }, 2 } };
+  f( { .x = 0, .y = 0 } );
+  REQUIRE( counters == expected );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 1 }, 2 } };
+  f( { .x = 1, .y = 2 } );
+  REQUIRE( counters == expected );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 1 }, 2 } };
+  f( { .x = 1, .y = 1 } );
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 1 } ).ground_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 1 }, 2 } };
+  f( { .x = 1, .y = 1 } );
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 1 } ).forest_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 } };
+  f( { .x = 1, .y = 1 } );
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 2 } ).forest_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 } };
+  f( { .x = 1, .y = 2 } );
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 2 } ).ground_resource = nothing;
+  expected                                       = {};
+  f( { .x = 1, .y = 2 } );
+  REQUIRE( counters == expected );
 }
 
 TEST_CASE(
     "[depletion] remove_depletion_counters_where_needed" ) {
   World W;
+
+  auto& counters = W.map().depletion.counters;
+  auto  expected = counters;
+
+  using R = e_natural_resource;
+  using O = e_land_overlay;
 
   auto f = [&] {
     remove_depletion_counters_where_needed( W.ss() );
@@ -391,10 +524,50 @@ TEST_CASE(
 
   REQUIRE( W.map().depletion.counters.empty() );
   W.map().depletion.counters[{ .x = 1, .y = 2 }] = 5;
+  W.map().depletion.counters[{ .x = 1, .y = 3 }] = 6;
   W.map().depletion.counters[{ .x = 1, .y = 1 }] = 2;
-  REQUIRE( W.map().depletion.counters.size() == 2 );
+  W.square( { .x = 1, .y = 2 } ).ground_resource = R::silver;
+  W.square( { .x = 1, .y = 3 } ).ground_resource = R::minerals;
+  W.square( { .x = 1, .y = 1 } ).ground_resource = R::cotton;
+  W.square( { .x = 1, .y = 1 } ).forest_resource = R::minerals;
+  W.square( { .x = 1, .y = 1 } ).overlay         = O::forest;
+  REQUIRE( W.map().depletion.counters.size() == 3 );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 3 }, 6 },
+               { { .x = 1, .y = 1 }, 2 } };
+  REQUIRE( counters == expected );
+
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 3 }, 6 },
+               { { .x = 1, .y = 1 }, 2 } };
   f();
-  REQUIRE( W.map().depletion.counters.empty() );
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 1 } ).ground_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 3 }, 6 },
+               { { .x = 1, .y = 1 }, 2 } };
+  f();
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 1 } ).forest_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 3 }, 6 } };
+  f();
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 2 } ).forest_resource = nothing;
+  expected = { { { .x = 1, .y = 2 }, 5 },
+               { { .x = 1, .y = 3 }, 6 } };
+  f();
+  REQUIRE( counters == expected );
+
+  W.square( { .x = 1, .y = 2 } ).ground_resource = nothing;
+  W.square( { .x = 1, .y = 3 } ).ground_resource = nothing;
+  expected                                       = {};
+  f();
+  REQUIRE( counters == expected );
 }
 
 } // namespace

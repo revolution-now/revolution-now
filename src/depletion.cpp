@@ -63,7 +63,8 @@ maybe<e_natural_resource> depleted(
   }
 }
 
-maybe<DepletionEvent> advance_depletion_state(
+// This is a maybe coroutine.
+maybe<DepletionEvent> advance_tile_depletion_state(
     SSConst const& ss, IRand& rand, ResourceDepletion& depletion,
     Colony const& colony, e_direction d ) {
   auto const& conf =
@@ -105,7 +106,7 @@ vector<DepletionEvent> advance_depletion_state(
     SS& ss, IRand& rand, Colony const& colony ) {
   vector<DepletionEvent> res;
   for( e_direction const d : refl::enum_values<e_direction> )
-    if( auto event = advance_depletion_state(
+    if( auto event = advance_tile_depletion_state(
             ss, rand, ss.map.depletion, colony, d );
         event.has_value() )
       res.push_back( *event );

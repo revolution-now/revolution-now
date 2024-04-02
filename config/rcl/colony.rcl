@@ -674,11 +674,11 @@ colors {
 # colony size since it is not based on percentages; it only per-
 # tains to the absolute size of the tory population.
 tory_penalty_population {
-  discoverer:   10 # TODO: Check this.
-  explorer:      9 # TODO: Check this.
+  discoverer:   10
+  explorer:      9
   conquistador:  8
-  governor:      7 # TODO: Check this.
-  viceroy:       6 # TODO: Check this.
+  governor:      7
+  viceroy:       6
 }
 
 # This is a percent bonus in [0.0, 1.0] that will be added to
