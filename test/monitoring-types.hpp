@@ -194,8 +194,19 @@ struct Trivial {
   Trivial& operator=( Trivial const& ) = default;
   Trivial& operator=( Trivial&& )      = default;
 
-  double d;
-  int    n;
+  auto operator<=>( Trivial const& ) const = default;
+
+  friend void to_str( Trivial const& o, std::string& out,
+                      base::ADL_t adl ) {
+    out += "Trivial{d=";
+    to_str( o.d, out, adl );
+    out += ",n=";
+    to_str( o.n, out, adl );
+    out += '}';
+  }
+
+  double d = 0;
+  int    n = 0;
 };
 
 /****************************************************************

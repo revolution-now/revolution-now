@@ -13,6 +13,9 @@
 // Under test.
 #include "src/mock/matchers.hpp"
 
+// testing
+#include "test/monitoring-types.hpp"
+
 // mock
 #include "src/mock/mock.hpp"
 
@@ -35,6 +38,9 @@ using namespace std;
 
 using namespace ::mock::matchers;
 using namespace ::Catch::literals;
+
+using ::testing::monitoring_types::NoCopy;
+using ::testing::monitoring_types::Trivial;
 
 struct Foo {
   bool operator==( Foo const& ) const = default;
@@ -111,6 +117,9 @@ struct IPoint {
 
   virtual void takes_non_eq_comparable(
       NonEqualityComparable const& nc ) const = 0;
+
+  virtual void no_copy_arg_1( NoCopy const& nc ) const  = 0;
+  virtual void no_copy_arg_2( Trivial const& nc ) const = 0;
 };
 
 /****************************************************************
@@ -172,6 +181,10 @@ struct MockPoint : IPoint {
 
   MOCK_METHOD( void, takes_non_eq_comparable,
                (NonEqualityComparable const&), ( const ) );
+
+  MOCK_METHOD( void, no_copy_arg_1, (NoCopy const&), ( const ) );
+  MOCK_METHOD( void, no_copy_arg_2, (Trivial const&),
+               ( const ) );
 };
 
 /****************************************************************
@@ -258,6 +271,16 @@ struct PointUser {
 
   double add_two( double d ) const {
     return d + p_->double_add( d + .1 );
+  }
+
+  int calls_no_copy_arg_1( NoCopy const& nc ) const {
+    p_->no_copy_arg_1( nc );
+    return nc.c;
+  }
+
+  int calls_no_copy_arg_2( Trivial const& tr ) const {
+    p_->no_copy_arg_2( tr );
+    return tr.n;
   }
 
   IPoint* p_;
@@ -602,13 +625,13 @@ TEST_CASE( "[mock] HasSize" ) {
   mp.EXPECT__sum_ints( HasSize( Ge( 2 ) ) )
       .times( 3 )
       .returns( 42 );
-  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 4, 5
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4, 5
   v.pop_back();
-  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 4
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 4
   v.pop_back();
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3
   v.push_back( 1 );
-  REQUIRE( user.sum_ints( v ) == 42 );           // 3, 1
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3, 1
 
   v = { 3, 4, 5 };
   mp.EXPECT__sum_ints( Not( HasSize( Ge( 2 ) ) ) ).returns( 42 );
@@ -616,7 +639,7 @@ TEST_CASE( "[mock] HasSize" ) {
   v.pop_back();
   REQUIRE_UNEXPECTED_ARGS( user.sum_ints( v ) ); // 3, 4
   v.pop_back();
-  REQUIRE( user.sum_ints( v ) == 42 );           // 3
+  REQUIRE( user.sum_ints( v ) == 42 ); // 3
 }
 
 TEST_CASE( "[mock] Each" ) {
@@ -768,6 +791,61 @@ TEST_CASE( "[mock] matcher stringification" ) {
       "), TupleElement( (1,Ge( 3 )) )) )." );
 
   user.set_xy_pair( { 5, 3 } );
+}
+
+// This test is to verify that we can use Eq(std::ref(x)) to do
+// simple equality matching in a way that prevents the expecta-
+// tion holder from taking a copy of the argument which it would
+// do if we used just x or even std::ref(x). Note that we cannot
+// use Eq(x) since matchers such as Eq require rvalues.
+TEST_CASE( "[mock] Eq-ref trick" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  SECTION( "Can't copy" ) {
+    NoCopy nc( 8 );
+    REQUIRE( nc == nc );
+
+    mp.EXPECT__no_copy_arg_1( Eq( ref( nc ) ) );
+    // If nc had been copied then this would cause a failure when
+    // matching the arg.
+    ++nc.c;
+    REQUIRE( user.calls_no_copy_arg_1( nc ) == 9 );
+  }
+
+  SECTION( "Can copy and does scenario" ) {
+    Trivial tr;
+    tr.n = 8;
+
+    // This will still copy t even though we are using a ref, be-
+    // cause the framework will treat this as a value (not a
+    // matcher) and so the MatcherWrapper that holds the expecta-
+    // tion will hold a Value matcher which itself holds a copy
+    // of the object, and a copy of a ref into T still copies the
+    // object.
+    mp.EXPECT__no_copy_arg_2( ref( tr ) );
+    ++tr.n;
+    REQUIRE_THROWS_WITH(
+        user.calls_no_copy_arg_2( tr ),
+        "mock function call with unexpected arguments: "
+        "no_copy_arg_2( Trivial{d=0,n=9} ); Argument #1 "
+        "(one-based) does not match expected value "
+        "Trivial{d=0,n=8}." );
+    // Satisfy the expecation so the test doesn't fail.
+    --tr.n;
+    user.calls_no_copy_arg_2( tr );
+  }
+
+  SECTION( "Can copy but doesn't" ) {
+    Trivial tr;
+    tr.n = 8;
+
+    mp.EXPECT__no_copy_arg_2( Eq( ref( tr ) ) );
+    // If nc had been copied then this would cause a failure when
+    // matching the arg.
+    ++tr.n;
+    REQUIRE( user.calls_no_copy_arg_2( tr ) == 9 );
+  }
 }
 
 } // namespace
