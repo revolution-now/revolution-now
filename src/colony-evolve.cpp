@@ -14,6 +14,8 @@
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
+#include "commodity.hpp"
+#include "construction.hpp"
 #include "custom-house.hpp"
 #include "depletion.hpp"
 #include "fathers.hpp"
@@ -27,7 +29,10 @@
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 
-// gs
+// config
+#include "config/unit-type.hpp"
+
+// ss
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit-type.hpp"
@@ -38,6 +43,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 
@@ -525,13 +533,300 @@ void check_prime_resource_depletion(
                 event.resource_to.has_value() } );
 }
 
-} // namespace
+/****************************************************************
+** RealColonyEvolver
+*****************************************************************/
+struct RealColonyEvolver : public IColonyEvolver {
+  RealColonyEvolver( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {}
 
-ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
-                                        Player& player,
-                                        Colony& colony ) {
+ public: // IColonyEvolver
+  ColonyEvolution evolve_one_turn(
+      Colony& colony ) const override;
+
+  ColonyNotificationMessage generate_notification_message(
+      Colony const&             colony,
+      ColonyNotification const& notification ) const override;
+
+ private:
+  SS& ss_;
+  TS& ts_;
+};
+
+ColonyNotificationMessage
+RealColonyEvolver::generate_notification_message(
+    Colony const&             colony,
+    ColonyNotification const& notification ) const {
+  ColonyNotificationMessage res{
+      // We shouldn't ever use this, but give a fallback to help
+      // debugging if we miss something.
+      .msg       = base::to_str( notification ),
+      .transient = false };
+
+  switch( notification.to_enum() ) {
+    case ColonyNotification::e::new_colonist: {
+      res.msg = fmt::format(
+          "The [{}] colony has produced a new colonist.",
+          colony.name );
+      break;
+    }
+    case ColonyNotification::e::colony_starving: {
+      res.msg = fmt::format(
+          "The [{}] colony is rapidly running out of food.  If "
+          "we don't address this soon, some colonists will "
+          "starve.",
+          colony.name );
+      break;
+    }
+    case ColonyNotification::e::colonist_starved: {
+      auto& o = notification
+                    .get<ColonyNotification::colonist_starved>();
+      res.msg = fmt::format(
+          "The [{}] colony has run out of food.  As a result, a "
+          "colonist ([{}]) has starved.",
+          colony.name, unit_attr( o.type ).name );
+      break;
+    }
+    case ColonyNotification::e::spoilage: {
+      auto& o = notification.get<ColonyNotification::spoilage>();
+      CHECK( !o.spoiled.empty() );
+      if( o.spoiled.size() == 1 ) {
+        Commodity const& spoiled = o.spoiled[0];
+
+        res.msg = fmt::format(
+            "The store of [{}] in [{}] has exceeded its "
+            "warehouse capacity.  [{}] tons have been thrown "
+            "out.",
+            spoiled.type, colony.name, spoiled.quantity );
+      } else { // multiple
+        res.msg = fmt::format(
+            "Some goods in [{}] have exceeded their warehouse "
+            "capacities and have been thrown out.",
+            colony.name );
+      }
+      break;
+    }
+    case ColonyNotification::e::full_cargo: {
+      auto& o =
+          notification.get<ColonyNotification::full_cargo>();
+      res.msg = fmt::format(
+          "A new cargo of [{}] is available in [{}]!",
+          lowercase_commodity_display_name( o.what ),
+          colony.name );
+      break;
+    }
+    case ColonyNotification::e::construction_missing_tools: {
+      auto& o = notification.get<
+          ColonyNotification::construction_missing_tools>();
+      res.msg = fmt::format(
+          "[{}] is in need of [{}] more [tools] to complete its "
+          "construction work on the [{}].",
+          colony.name, o.need_tools - o.have_tools,
+          construction_name( o.what ) );
+      break;
+    }
+    case ColonyNotification::e::construction_complete: {
+      auto& o =
+          notification
+              .get<ColonyNotification::construction_complete>();
+      res.msg = fmt::format(
+          "[{}] has completed its construction of the [{}]!",
+          colony.name, construction_name( o.what ) );
+      break;
+    }
+    case ColonyNotification::e::construction_already_finished: {
+      auto& o = notification.get<
+          ColonyNotification::construction_already_finished>();
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] has already "
+          "completed, we should change its production to "
+          "something else.",
+          colony.name, construction_name( o.what ) );
+      break;
+    }
+    case ColonyNotification::e::construction_lacking_building: {
+      auto& o = notification.get<
+          ColonyNotification::construction_lacking_building>();
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] requires the "
+          "presence of the [{}] as a prerequisite, and thus "
+          "cannot be completed.",
+          colony.name, construction_name( o.what ),
+          construction_name( Construction::building{
+              .what = o.required_building } ) );
+      break;
+    }
+      // clang-format off
+    case ColonyNotification::e::construction_lacking_population: {
+      // clang-format on
+      auto& o = notification.get<
+          ColonyNotification::construction_lacking_population>();
+      res.msg = fmt::format(
+          "[{}]'s construction of the [{}] requires a minimum "
+          "population of {}, but only has a population of {}.",
+          colony.name, construction_name( o.what ),
+          o.required_population, colony_population( colony ) );
+      break;
+    }
+    case ColonyNotification::e::run_out_of_raw_material: {
+      auto& o = notification.get<
+          ColonyNotification::run_out_of_raw_material>();
+      res.msg = fmt::format(
+          "[{}] has run out of [{}], Your Excellency.  Our {} "
+          "cannot continue production until the supply is "
+          "increased.",
+          colony.name, o.what,
+          config_colony.worker_names_plural[o.job] );
+      break;
+    }
+    case ColonyNotification::e::sons_of_liberty_increased: {
+      auto& o = notification.get<
+          ColonyNotification::sons_of_liberty_increased>();
+      res.msg = fmt::format(
+          "Sons of Liberty membership has increased to [{}%] in "
+          "[{}]!",
+          o.to, colony.name );
+      if( o.from < 50 && o.to >= 50 )
+        res.msg += fmt::format(
+            "  All colonists will now receive a production "
+            "bonus: [+{}] for non-expert workers and [+{}] for "
+            "expert workers.",
+            config_colony.sons_of_liberty_50_bonus_non_expert,
+            config_colony.sons_of_liberty_50_bonus_expert );
+      if( o.from < 100 && o.to == 100 )
+        res.msg += fmt::format(
+            "  All colonists will now receive a production "
+            "bonus: [+{}] for non-expert workers and [+{}] for "
+            "expert workers.",
+            config_colony.sons_of_liberty_100_bonus_non_expert,
+            config_colony.sons_of_liberty_100_bonus_expert );
+      break;
+    }
+    case ColonyNotification::e::sons_of_liberty_decreased: {
+      auto& o = notification.get<
+          ColonyNotification::sons_of_liberty_decreased>();
+      res.msg = fmt::format(
+          "Sons of Liberty membership has decreased to [{}%] in "
+          "[{}]!",
+          o.to, colony.name );
+      if( o.from == 100 && o.to < 100 )
+        res.msg += fmt::format(
+            "  The production bonus afforded to each colonist "
+            "is now reduced." );
+      if( o.from >= 50 && o.to < 50 )
+        res.msg +=
+            "  Colonists will no longer receive any production "
+            "bonuses.";
+      break;
+    }
+    case ColonyNotification::e::unit_promoted: {
+      auto& o =
+          notification.get<ColonyNotification::unit_promoted>();
+      res.msg = fmt::format(
+          "A colonist in [{}] has learned the specialty "
+          "profession [{}]!",
+          colony.name, unit_attr( o.promoted_to ).name );
+      break;
+    }
+    case ColonyNotification::e::unit_taught: {
+      auto& o =
+          notification.get<ColonyNotification::unit_taught>();
+      switch( o.from ) {
+        case e_unit_type::petty_criminal:
+          CHECK( o.to == e_unit_type::indentured_servant );
+          res.msg = fmt::format(
+              "A [Petty Criminal] in [{}] has been promoted to "
+              "[Indentured Servant] through education.",
+              colony.name );
+          break;
+        case e_unit_type::indentured_servant:
+          CHECK( o.to == e_unit_type::free_colonist );
+          res.msg = fmt::format(
+              "An [Indentured Servant] in [{}] has been "
+              "promoted to [Free Colonist] through education.",
+              colony.name );
+          break;
+        default:
+          res.msg = fmt::format(
+              "A [Free Colonist] in [{}] has learned the "
+              "specialty profession [{}] through education.",
+              colony.name, unit_attr( o.to ).name );
+          break;
+      }
+      break;
+    }
+    case ColonyNotification::e::teacher_but_no_students: {
+      auto& o = notification.get<
+          ColonyNotification::teacher_but_no_students>();
+      res.msg = fmt::format(
+          "We have a teacher in [{}] that is teaching the "
+          "specialty profession [{}], but there are no "
+          "colonists available to teach.",
+          colony.name, unit_attr( o.teacher_type ).name );
+      break;
+    }
+    case ColonyNotification::e::custom_house_sales: {
+      auto& o =
+          notification
+              .get<ColonyNotification::custom_house_sales>();
+      string goods;
+      for( Invoice const& invoice : o.what )
+        goods += fmt::format(
+            "{} {} for {} at a {}% charge yielding [{}], ",
+            invoice.what.quantity, invoice.what.type,
+            invoice.money_delta_before_taxes, invoice.tax_rate,
+            invoice.money_delta_final );
+      // Remove trailing comma.
+      goods.resize( goods.size() - 2 );
+      goods += '.';
+      res.msg = fmt::format(
+          "The [Custom House] in [{}] has sold the following "
+          "goods: {}",
+          colony.name, goods );
+      res.transient = true;
+      break;
+    }
+    case ColonyNotification::e::
+        custom_house_selling_boycotted_good: {
+      auto& o =
+          notification
+              .get<ColonyNotification::
+                       custom_house_selling_boycotted_good>();
+      string goods;
+      for( e_commodity const comm : o.what )
+        goods += fmt::format(
+            "[{}], ", lowercase_commodity_display_name( comm ) );
+      // Remove trailing comma.
+      goods.resize( goods.size() - 2 );
+      res.msg = fmt::format(
+          "The [Custom House] in [{}] is unable to sell the "
+          "following boycotted goods: {}.  We should stop the "
+          "Custom House from attempting to sell them until the "
+          "boycott is lifted.",
+          colony.name, goods );
+      break;
+    }
+    case ColonyNotification::e::prime_resource_depleted: {
+      auto& o = notification.get<
+          ColonyNotification::prime_resource_depleted>();
+      string_view const extent =
+          o.partial_depletion ? "partially" : "fully";
+      res.msg = fmt::format(
+          "A prime [{}] resource near [{}] has been {} "
+          "depleted.",
+          o.what, colony.name, extent );
+      break;
+    }
+  }
+  return res;
+}
+
+ColonyEvolution RealColonyEvolver::evolve_one_turn(
+    Colony& colony ) const {
   ColonyEvolution ev;
-  ev.production = production_for_colony( ss, colony );
+  ev.production = production_for_colony( ss_, colony );
+
+  Player& player =
+      player_for_nation_or_die( ss_.players, colony.nation );
 
   // This must be done after computing the production for the
   // colony since we want the production to use last turn's SoL %
@@ -547,7 +842,7 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   check_ran_out_of_raw_materials( ev );
 
-  check_construction( ss, ts, as_const( player ), colony, ev );
+  check_construction( ss_, ts_, as_const( player ), colony, ev );
 
   // This determines which (and how much) of each commodity
   // should be sold this turn by the custom house. It will then
@@ -583,11 +878,11 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   //     is selling something in a colony, no amount will ever
   //     cause spoilage, which is how the OG works.
   //
-  process_custom_house( ss, player, colony, ev );
+  process_custom_house( ss_, player, colony, ev );
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
-      ss, ts, as_const( player ), colony, ev.production,
+      ss_, ts_, as_const( player ), colony, ev.production,
       ev.colony_disappeared, ev.notifications );
   if( ev.colony_disappeared )
     // If the colony is to disappear then there isn't much point
@@ -608,15 +903,25 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
   check_colonist_on_the_job_training(
-      ss, ts, colony, ev.production, ev.notifications );
-  check_colonists_teaching( ss, ts, colony, ev.notifications );
+      ss_, ts_, colony, ev.production, ev.notifications );
+  check_colonists_teaching( ss_, ts_, colony, ev.notifications );
 
   give_stockade_if_needed( player, colony );
 
-  check_prime_resource_depletion( ss, ts, colony,
+  check_prime_resource_depletion( ss_, ts_, colony,
                                   ev.notifications );
 
   return ev;
+}
+
+} // namespace
+
+/****************************************************************
+** IColonyEvolver
+*****************************************************************/
+unique_ptr<IColonyEvolver> IColonyEvolver::create( SS& ss,
+                                                   TS& ts ) {
+  return make_unique<RealColonyEvolver>( ss, ts );
 }
 
 } // namespace rn

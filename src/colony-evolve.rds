@@ -142,3 +142,8 @@ struct.ColonyEvolution {
   # starves, removing the entire colony in the process.
   colony_disappeared 'bool',
 }
+
+struct.ColonyNotificationMessage {
+  msg 'std::string',
+  transient 'bool',
+}

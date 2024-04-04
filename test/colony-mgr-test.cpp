@@ -13,7 +13,6 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/ieuro-mind.hpp"
-#include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
@@ -48,8 +47,6 @@ using namespace rn;
 using ::Catch::UnorderedEquals;
 
 using ::mock::matchers::_;
-using ::mock::matchers::Field;
-using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -77,13 +74,6 @@ struct World : testing::World {
     };
     // clang-format on
     build_map( std::move( tiles ), 6 );
-  }
-
-  void evolve_colonies() {
-    wait<> w = evolve_colonies_for_player( ss(), ts(),
-                                           default_player() );
-    REQUIRE( !w.exception() );
-    REQUIRE( w.ready() );
   }
 };
 
@@ -825,89 +815,11 @@ TEST_CASE( "[colony-mgr] colony_workers" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[colony-mgr] presents transient updates." ) {
-#ifndef COMPILER_GCC
-  World             W;
-  MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-
-  SECTION( "without updates" ) {
-    // This one should not try to center the viewport on the
-    // colony.
-    for( Coord const coord :
-         vector{ Coord{ .x = 1, .y = 1 },
-                 Coord{ .x = 3, .y = 3 } } ) {
-      Colony& colony = W.add_colony( coord );
-      colony.buildings[e_colony_building::custom_house] = true;
-      colony.custom_house[e_commodity::ore]             = true;
-      W.init_price_to_average( e_commodity::ore );
-      W.add_unit_outdoors( colony.id, e_direction::n,
-                           e_outdoor_job::food,
-                           e_unit_type::expert_farmer );
-      colony.commodities[e_commodity::ore] = 100;
-    }
-
-    W.gui().EXPECT__transient_message_box(
-        "The [Custom House] in [1] has sold the following "
-        "goods: 50 ore for 150 at a 0% charge yielding [150]." );
-    W.gui().EXPECT__transient_message_box(
-        "The [Custom House] in [2] has sold the following "
-        "goods: 50 ore for 150 at a 0% charge yielding [150]." );
-    W.evolve_colonies();
-  }
-
-  SECTION( "with blocking updates" ) {
-    for( Coord const coord :
-         vector{ Coord{ .x = 1, .y = 1 },
-                 Coord{ .x = 3, .y = 3 } } ) {
-      Colony& colony = W.add_colony( coord );
-      colony.buildings[e_colony_building::custom_house] = true;
-      colony.custom_house[e_commodity::ore]             = true;
-      W.init_price_to_average( e_commodity::ore );
-      W.add_unit_outdoors( colony.id, e_direction::n,
-                           e_outdoor_job::food,
-                           e_unit_type::expert_farmer );
-      W.add_unit_indoors( colony.id, e_indoor_job::hammers );
-      colony.commodities[e_commodity::ore] = 100;
-      land_view_plane.EXPECT__ensure_visible( coord );
-      W.gui()
-          .EXPECT__choice(
-              Field( &ChoiceConfig::msg,
-                     StrContains( "run out of [lumber]" ) ),
-              _ )
-          .returns<maybe<string>>( nothing );
-    }
-
-    // The transient messages should be grouped at the end for
-    // both colonies. FIXME: this only verifies that they are
-    // called (which is probably good enough) but doesn't actu-
-    // ally verify that they are grouped together at the end. Not
-    // sure how to easily do that with the current mocking frame-
-    // work.
-    W.gui().EXPECT__transient_message_box(
-        "The [Custom House] in [1] has sold the following "
-        "goods: 50 ore for 150 at a 0% charge yielding [150]." );
-    W.gui().EXPECT__transient_message_box(
-        "The [Custom House] in [2] has sold the following "
-        "goods: 50 ore for 150 at a 0% charge yielding [150]." );
-    W.evolve_colonies();
-  }
-#endif
-}
-
 TEST_CASE( "[colony-mgr] found_colony finds job for unit." ) {
   // TODO
   //
   // 1. Avoids indian villages.
   // 2. Avoids indian-owned land.
-}
-
-TEST_CASE( "[colony-mgr] evolve colonies." ) {
-  // TODO
-}
-
-TEST_CASE( "[colony-mgr] SoL membership changed." ) {
-  // TODO
 }
 
 } // namespace

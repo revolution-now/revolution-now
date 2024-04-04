@@ -13,6 +13,7 @@
 // Revolution Now
 #include "cheat.hpp"
 #include "co-combinator.hpp"
+#include "colony-evolve.hpp"
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "colview-entities.hpp"
@@ -233,8 +234,8 @@ struct ColonyPlane : public Plane {
           update_colony_view( ss_, colony_ );
           break;
         case ::SDLK_SPACE:
-          cheat_advance_colony_one_turn( ss_, ts_, player_,
-                                         colony_ );
+          cheat_advance_colony_one_turn(
+              *IColonyEvolver::create( ss_, ts_ ), colony_ );
           update_colony_view( ss_, colony_ );
           break;
         default: //
@@ -244,7 +245,7 @@ struct ColonyPlane : public Plane {
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
         co_return true;
-      default:            //
+      default: //
         break;
     }
     co_return false;

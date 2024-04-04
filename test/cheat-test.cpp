@@ -15,12 +15,14 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/imap-updater.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/colony-evolve.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ss/fog-square.rds.hpp"
 #include "src/unit-transformation.hpp"
@@ -49,6 +51,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::Eq;
 
 using unexplored = PlayerSquare::unexplored;
 using explored   = PlayerSquare::explored;
@@ -80,6 +83,11 @@ struct World : testing::World {
 
   inline static Coord const kLand = Coord{ .x = 1, .y = 1 };
 };
+
+/****************************************************************
+** Mocks.
+*****************************************************************/
+DEFINE_MOCK_IColonyEvolver();
 
 /****************************************************************
 ** Test Cases
@@ -752,6 +760,24 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
   REQUIRE_FALSE( show_indian_moves );
   REQUIRE_FALSE( show_foreign_moves );
   REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
+}
+
+TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
+  World              W;
+  MockIColonyEvolver mock_colony_evolver;
+
+  Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
+
+  auto f = [&] {
+    cheat_advance_colony_one_turn( mock_colony_evolver, colony );
+  };
+
+  // The Eq-ref trick is to prevent the matcher from storing a
+  // copy of the object, which it would still do with only ref.
+  mock_colony_evolver.EXPECT__evolve_one_turn(
+      Eq( ref( colony ) ) );
+  ++colony.id; // make sure the mock is not holding a copy.
+  f();
 }
 
 } // namespace

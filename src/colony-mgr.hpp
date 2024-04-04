@@ -59,10 +59,6 @@ void change_colony_nation( SS& ss, TS& ts, Colony& colony,
 ColonyId found_colony( SS& ss, TS& ts, Player const& player,
                        UnitId founder, std::string_view name );
 
-// Evolve the colony by one turn.
-wait<> evolve_colonies_for_player( SS& ss, TS& ts,
-                                   Player& player );
-
 // This basically creates a default-constructed colony and gives
 // it a nation, name, and location, but nothing more. So it is
 // not a valid colony yet. Normal game code shouldn't really call

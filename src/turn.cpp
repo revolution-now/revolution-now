@@ -17,6 +17,8 @@
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
+#include "colonies-turn.hpp"
+#include "colony-evolve.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "command.hpp"
@@ -836,7 +838,9 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
 ** Per-Colony Turn Processor
 *****************************************************************/
 wait<> colonies_turn( SS& ss, TS& ts, Player& player ) {
-  co_await evolve_colonies_for_player( ss, ts, player );
+  auto const colony_evolver = IColonyEvolver::create( ss, ts );
+  co_await evolve_colonies_for_player( ss, ts, player,
+                                       *colony_evolver );
 }
 
 // Here we do things that must be done once per turn but where we

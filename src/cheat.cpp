@@ -715,13 +715,11 @@ void cheat_decrease_commodity( Colony&     colony,
   quantity = std::max( quantity, 0 );
 }
 
-void cheat_advance_colony_one_turn( SS& ss, TS& ts,
-                                    Player& player,
-                                    Colony& colony ) {
+void cheat_advance_colony_one_turn(
+    IColonyEvolver& colony_evolver, Colony& colony ) {
   RETURN_IF_NO_CHEAT;
   lg.debug( "advancing colony {}. notifications:", colony.name );
-  ColonyEvolution ev =
-      evolve_colony_one_turn( ss, ts, player, colony );
+  ColonyEvolution ev = colony_evolver.evolve_one_turn( colony );
   for( ColonyNotification const& notification :
        ev.notifications )
     lg.debug( "{}", notification );
