@@ -17,10 +17,10 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
-#include "colony-evolve.hpp"
 #include "fathers.hpp"
 #include "fog-conv.hpp"
 #include "game-options.hpp"
+#include "icolony-evolve.rds.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
@@ -716,7 +716,7 @@ void cheat_decrease_commodity( Colony&     colony,
 }
 
 void cheat_advance_colony_one_turn(
-    IColonyEvolver& colony_evolver, Colony& colony ) {
+    IColonyEvolver const& colony_evolver, Colony& colony ) {
   RETURN_IF_NO_CHEAT;
   lg.debug( "advancing colony {}. notifications:", colony.name );
   ColonyEvolution ev = colony_evolver.evolve_one_turn( colony );

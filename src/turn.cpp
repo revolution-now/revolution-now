@@ -18,7 +18,6 @@
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colonies-turn.hpp"
-#include "colony-evolve.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "command.hpp"
@@ -27,6 +26,7 @@
 #include "gui.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
+#include "icolony-evolve.rds.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "land-view.hpp"
@@ -838,9 +838,12 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
 ** Per-Colony Turn Processor
 *****************************************************************/
 wait<> colonies_turn( SS& ss, TS& ts, Player& player ) {
-  auto const colony_evolver = IColonyEvolver::create( ss, ts );
-  co_await evolve_colonies_for_player( ss, ts, player,
-                                       *colony_evolver );
+  RealColonyEvolver const colony_evolver( ss, ts );
+  RealColonyNotificationGenerator const
+      colony_notification_generator;
+  co_await evolve_colonies_for_player(
+      ss, ts, player, colony_evolver,
+      colony_notification_generator );
 }
 
 // Here we do things that must be done once per turn but where we

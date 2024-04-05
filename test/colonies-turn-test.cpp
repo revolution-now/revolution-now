@@ -21,11 +21,14 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
-#include "src/colony-evolve.hpp"
+#include "src/icolony-evolve.rds.hpp"
 #include "src/plane-stack.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
+
+RDS_DEFINE_MOCK( IColonyEvolver );
+RDS_DEFINE_MOCK( IColonyNotificationGenerator );
 
 namespace rn {
 namespace {
@@ -63,11 +66,6 @@ struct World : testing::World {
 };
 
 /****************************************************************
-** Mocks.
-*****************************************************************/
-DEFINE_MOCK_IColonyEvolver();
-
-/****************************************************************
 ** Test Cases
 *****************************************************************/
 // FIXME: this test was imported from before we mocked the depen-
@@ -76,14 +74,16 @@ DEFINE_MOCK_IColonyEvolver();
 TEST_CASE( "[colonies-turn] presents transient updates." ) {
   World              W;
   MockIColonyEvolver mock_colony_evolver;
+  MockIColonyNotificationGenerator
+      mock_colony_notification_generator;
 
   MockLandViewPlane land_view_plane;
   W.planes().back().land_view = &land_view_plane;
 
   auto evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
-        W.ss(), W.ts(), W.default_player(),
-        mock_colony_evolver ) );
+        W.ss(), W.ts(), W.default_player(), mock_colony_evolver,
+        mock_colony_notification_generator ) );
   };
 
   SECTION( "without updates" ) {
@@ -98,7 +98,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       mock_colony_evolver
           .EXPECT__evolve_one_turn( Eq( ref( colony ) ) )
           .returns( evolution );
-      mock_colony_evolver
+      mock_colony_notification_generator
           .EXPECT__generate_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
@@ -122,13 +122,13 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       mock_colony_evolver
           .EXPECT__evolve_one_turn( Eq( ref( colony ) ) )
           .returns( evolution );
-      mock_colony_evolver
+      mock_colony_notification_generator
           .EXPECT__generate_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
               .msg       = "xxx"s + to_string( colony.id ),
               .transient = false } );
-      mock_colony_evolver
+      mock_colony_notification_generator
           .EXPECT__generate_notification_message(
               colony, evolution.notifications[1] )
           .returns( ColonyNotificationMessage{

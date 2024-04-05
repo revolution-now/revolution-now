@@ -100,7 +100,7 @@ void cheat_decrease_commodity( Colony&     colony,
 // done when it is evolved at the start of a turn, though it
 // won't display any notifications, it will just log them.
 void cheat_advance_colony_one_turn(
-    IColonyEvolver& colony_evolver, Colony& colony );
+    IColonyEvolver const& colony_evolver, Colony& colony );
 
 // This is called when the player asks to just create a unit on
 // the map. It will allow the player to select the unit type.

@@ -12,11 +12,11 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "colony-evolve.hpp"
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "colony-view.rds.hpp"
 #include "damaged.rds.hpp"
+#include "icolony-evolve.rds.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
@@ -129,7 +129,9 @@ wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
 *****************************************************************/
 wait<> evolve_colonies_for_player(
     SS& ss, TS& ts, Player& player,
-    IColonyEvolver const& colony_evolver ) {
+    IColonyEvolver const& colony_evolver,
+    IColonyNotificationGenerator const&
+        colony_notification_generator ) {
   e_nation nation = player.nation;
   lg.info( "processing colonies for the {}.", nation );
   unordered_map<ColonyId, Colony> const& colonies_all =
@@ -166,8 +168,9 @@ wait<> evolve_colonies_for_player(
     for( ColonyNotification const& notification :
          ev.notifications ) {
       ColonyNotificationMessage msg =
-          colony_evolver.generate_notification_message(
-              colony, notification );
+          colony_notification_generator
+              .generate_notification_message( colony,
+                                              notification );
       if( msg.transient )
         transient_messages.push_back( std::move( msg ) );
       else

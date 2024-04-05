@@ -533,29 +533,14 @@ void check_prime_resource_depletion(
                 event.resource_to.has_value() } );
 }
 
+} // namespace
+
 /****************************************************************
-** RealColonyEvolver
+** Public API.
 *****************************************************************/
-struct RealColonyEvolver : public IColonyEvolver {
-  RealColonyEvolver( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {}
-
- public: // IColonyEvolver
-  ColonyEvolution evolve_one_turn(
-      Colony& colony ) const override;
-
-  ColonyNotificationMessage generate_notification_message(
-      Colony const&             colony,
-      ColonyNotification const& notification ) const override;
-
- private:
-  SS& ss_;
-  TS& ts_;
-};
-
-ColonyNotificationMessage
-RealColonyEvolver::generate_notification_message(
+ColonyNotificationMessage generate_notification_message(
     Colony const&             colony,
-    ColonyNotification const& notification ) const {
+    ColonyNotification const& notification ) {
   ColonyNotificationMessage res{
       // We shouldn't ever use this, but give a fallback to help
       // debugging if we miss something.
@@ -820,13 +805,13 @@ RealColonyEvolver::generate_notification_message(
   return res;
 }
 
-ColonyEvolution RealColonyEvolver::evolve_one_turn(
-    Colony& colony ) const {
+ColonyEvolution evolve_one_turn( SS& ss, TS& ts,
+                                 Colony& colony ) {
   ColonyEvolution ev;
-  ev.production = production_for_colony( ss_, colony );
+  ev.production = production_for_colony( ss, colony );
 
   Player& player =
-      player_for_nation_or_die( ss_.players, colony.nation );
+      player_for_nation_or_die( ss.players, colony.nation );
 
   // This must be done after computing the production for the
   // colony since we want the production to use last turn's SoL %
@@ -842,7 +827,7 @@ ColonyEvolution RealColonyEvolver::evolve_one_turn(
 
   check_ran_out_of_raw_materials( ev );
 
-  check_construction( ss_, ts_, as_const( player ), colony, ev );
+  check_construction( ss, ts, as_const( player ), colony, ev );
 
   // This determines which (and how much) of each commodity
   // should be sold this turn by the custom house. It will then
@@ -878,11 +863,11 @@ ColonyEvolution RealColonyEvolver::evolve_one_turn(
   //     is selling something in a colony, no amount will ever
   //     cause spoilage, which is how the OG works.
   //
-  process_custom_house( ss_, player, colony, ev );
+  process_custom_house( ss, player, colony, ev );
 
   // Needs to be done after food deltas have been applied.
   check_create_or_starve_colonist(
-      ss_, ts_, as_const( player ), colony, ev.production,
+      ss, ts, as_const( player ), colony, ev.production,
       ev.colony_disappeared, ev.notifications );
   if( ev.colony_disappeared )
     // If the colony is to disappear then there isn't much point
@@ -903,25 +888,15 @@ ColonyEvolution RealColonyEvolver::evolve_one_turn(
   // any other changes to colonists (such as starvation) have al-
   // ready been done.
   check_colonist_on_the_job_training(
-      ss_, ts_, colony, ev.production, ev.notifications );
-  check_colonists_teaching( ss_, ts_, colony, ev.notifications );
+      ss, ts, colony, ev.production, ev.notifications );
+  check_colonists_teaching( ss, ts, colony, ev.notifications );
 
   give_stockade_if_needed( player, colony );
 
-  check_prime_resource_depletion( ss_, ts_, colony,
+  check_prime_resource_depletion( ss, ts, colony,
                                   ev.notifications );
 
   return ev;
-}
-
-} // namespace
-
-/****************************************************************
-** IColonyEvolver
-*****************************************************************/
-unique_ptr<IColonyEvolver> IColonyEvolver::create( SS& ss,
-                                                   TS& ts ) {
-  return make_unique<RealColonyEvolver>( ss, ts );
 }
 
 } // namespace rn

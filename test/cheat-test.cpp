@@ -22,7 +22,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
-#include "src/colony-evolve.hpp"
+#include "src/icolony-evolve.rds.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ss/fog-square.rds.hpp"
 #include "src/unit-transformation.hpp"
@@ -44,6 +44,8 @@
 
 // Must be last.
 #include "test/catch-common.hpp"
+
+RDS_DEFINE_MOCK( IColonyEvolver );
 
 namespace rn {
 namespace {
@@ -83,11 +85,6 @@ struct World : testing::World {
 
   inline static Coord const kLand = Coord{ .x = 1, .y = 1 };
 };
-
-/****************************************************************
-** Mocks.
-*****************************************************************/
-DEFINE_MOCK_IColonyEvolver();
 
 /****************************************************************
 ** Test Cases
