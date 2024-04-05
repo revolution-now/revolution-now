@@ -43,9 +43,8 @@ namespace {
 
 using namespace std;
 
-struct HarborUnitsWorld : testing::World {
-  using Base = testing::World;
-  HarborUnitsWorld() : Base() {
+struct World : testing::World {
+  World() {
     MapSquare const O = make_ocean();
     MapSquare const S = make_sea_lane();
     MapSquare const L = make_grassland();
@@ -71,7 +70,7 @@ struct HarborUnitsWorld : testing::World {
 };
 
 TEST_CASE( "[harbor-units] is_unit_?" ) {
-  HarborUnitsWorld w;
+  World w;
   w.update_terrain_connectivity();
   Player& player = w.default_player();
   Coord   coord{ .x = 8, .y = 5 };
@@ -142,8 +141,8 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
 }
 
 TEST_CASE( "[harbor-units] harbor_units_?" ) {
-  HarborUnitsWorld w;
-  Player&          player = w.default_player();
+  World   w;
+  Player& player = w.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
   UnitId caravel1 =
@@ -191,9 +190,9 @@ TEST_CASE( "[harbor-units] harbor_units_?" ) {
 }
 
 TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
-  HarborUnitsWorld w;
-  Player&          player = w.default_player();
-  UnitId           id1 =
+  World   w;
+  Player& player = w.default_player();
+  UnitId  id1 =
       create_unit_in_harbor( w.ss(), w.player( e_nation::dutch ),
                              e_unit_type::soldier );
   UnitId id2 =
@@ -221,8 +220,8 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
-  HarborUnitsWorld w;
-  Player&          player = w.default_player();
+  World   w;
+  Player& player = w.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
   UnitId caravel1 =
@@ -240,10 +239,10 @@ TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
-  HarborUnitsWorld w;
-  Player&          player = w.default_player();
-  Coord const      coord{ .x = 8, .y = 5 };
-  UnitId           caravel1 =
+  World       w;
+  Player&     player = w.default_player();
+  Coord const coord{ .x = 8, .y = 5 };
+  UnitId      caravel1 =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( caravel1 ) ==
            nothing );
@@ -257,8 +256,8 @@ TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_move_to_port" ) {
-  HarborUnitsWorld w;
-  Player&          player = w.default_player();
+  World   w;
+  Player& player = w.default_player();
 
   // Add units.
   REQUIRE( player.old_world.harbor_state.selected_unit ==
@@ -393,7 +392,7 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
 }
 
 TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
-  HarborUnitsWorld w;
+  World w;
   w.update_terrain_connectivity();
   Player& player = w.default_player();
   Coord   coord{ .x = 8, .y = 5 };
@@ -515,7 +514,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
 }
 
 TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
-  HarborUnitsWorld w;
+  World w;
   w.update_terrain_connectivity();
   Coord const starting{ .x = 8, .y = 3 };
   Coord const ship_loc{ .x = 8, .y = 5 };
@@ -583,7 +582,7 @@ TEST_CASE( "[harbor-units] find_new_world_arrival_square" ) {
 TEST_CASE(
     "[harbor-units] find_new_world_arrival_square with foreign "
     "unit" ) {
-  HarborUnitsWorld w;
+  World w;
   w.update_terrain_connectivity();
 
   SECTION( "friendly unit" ) {
@@ -776,9 +775,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "[harbor-units] sail west edge" ) {
-  HarborUnitsWorld w;
-  Coord const      coord{ .x = 0, .y = 0 };
-  UnitId           id =
+  World       w;
+  Coord const coord{ .x = 0, .y = 0 };
+  UnitId      id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            nothing );
@@ -822,9 +821,9 @@ TEST_CASE( "[harbor-units] sail west edge" ) {
 }
 
 TEST_CASE( "[harbor-units] sail east edge" ) {
-  HarborUnitsWorld w;
-  Coord const      coord{ .x = 9, .y = 0 };
-  UnitId           id =
+  World       w;
+  Coord const coord{ .x = 9, .y = 0 };
+  UnitId      id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            nothing );
@@ -851,9 +850,70 @@ TEST_CASE( "[harbor-units] sail east edge" ) {
                .sailed_from = coord } );
 }
 
-TEST_CASE( "[harbor-units] update_harbor_selected_unit" ) {
-  HarborUnitsWorld W;
-  Player&          player = W.default_player();
+TEST_CASE(
+    "[harbor-units] update_harbor_selected_unit idempotency" ) {
+  World w;
+
+  Player& player = w.default_player();
+
+  maybe<UnitId>& selected_unit =
+      player.old_world.harbor_state.selected_unit;
+
+  auto f = [&] {
+    update_harbor_selected_unit( w.units(), player );
+  };
+
+  UnitId const galleon_id =
+      w.add_free_unit( e_unit_type::galleon ).id();
+
+  REQUIRE( selected_unit == nothing );
+
+  UnitId const privateer_id =
+      w.add_unit_in_port( e_unit_type::privateer ).id();
+  REQUIRE( selected_unit == privateer_id );
+
+  f();
+  REQUIRE( selected_unit == privateer_id );
+
+  UnitId const caravel_id =
+      w.add_unit_in_port( e_unit_type::caravel ).id();
+  REQUIRE( selected_unit == privateer_id );
+
+  f();
+  REQUIRE( selected_unit == privateer_id );
+
+  selected_unit = caravel_id;
+  REQUIRE( selected_unit == caravel_id );
+
+  f();
+  REQUIRE( selected_unit == caravel_id );
+
+  f();
+  REQUIRE( selected_unit == caravel_id );
+
+  selected_unit = privateer_id;
+  REQUIRE( selected_unit == privateer_id );
+
+  f();
+  REQUIRE( selected_unit == privateer_id );
+
+  // Now move the galleon which has a smaller id than the other
+  // ships; make sure it doesn't get auto selected because of
+  // that.
+  BASE_CHECK( galleon_id < privateer_id );
+  BASE_CHECK( galleon_id < caravel_id );
+  unit_move_to_port( w.ss(), galleon_id );
+
+  REQUIRE( selected_unit == privateer_id );
+  f();
+  REQUIRE( selected_unit == privateer_id );
+}
+
+TEST_CASE(
+    "[harbor-units] update_harbor_selected_unit unit "
+    "destruction" ) {
+  World   W;
+  Player& player = W.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
   UnitId id1 = create_unit_in_harbor( W.ss(), player,

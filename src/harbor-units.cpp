@@ -171,14 +171,15 @@ void update_harbor_selected_unit( UnitsState const& units,
   maybe<UnitId>& selected_unit =
       player.old_world.harbor_state.selected_unit;
   if( selected_unit.has_value() ) {
-    if( !units.exists( *selected_unit ) ||
-        !units.ownership_of( *selected_unit )
-             .holds<UnitOwnership::harbor>() )
-      // This can happen just after a ship that was selected
-      // moves to the new world and/or gets disbanded.
-      selected_unit.reset();
+    if( units.exists( *selected_unit ) &&
+        units.ownership_of( *selected_unit )
+            .holds<UnitOwnership::harbor>() )
+      return;
+    // This can happen just after a ship that was selected moves
+    // to the new world and/or gets disbanded.
+    selected_unit.reset();
   }
-  vector<UnitId> ships =
+  vector<UnitId> const ships =
       harbor_units_in_port( units, player.nation );
   if( !ships.empty() ) selected_unit = ships[0];
 }

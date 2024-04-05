@@ -231,7 +231,7 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
       .h = max_vertical_units };
 
   view            = make_unique<HarborDockUnits>( ss, ts, player,
-                                       size_blocks );
+                                                  size_blocks );
   harbor_sub_view = view.get();
   HarborDockUnits* p_actual = view.get();
   return PositionedHarborSubView<HarborDockUnits>{
