@@ -703,8 +703,12 @@ struct CodeGenerator {
       line( "virtual ~{}() = default;", interface.name );
       for( expr::Method const& mth : interface.methods ) {
         newline();
-        line( "virtual {} {}(", mth.return_type, mth.name );
-        {
+        frag( "virtual {} {}(", mth.return_type, mth.name );
+        if( mth.args.empty() ) {
+          frag( ") const = 0;" );
+          flush();
+        } else {
+          flush();
           auto _ = indent( 2 );
           emit_arg_list_with_types( mth.args );
           frag( " ) const = 0;" );
@@ -717,8 +721,12 @@ struct CodeGenerator {
 
     // Generate the implementation struct.
     auto real_name = "Real" + no_i_name;
-    line( "struct {} : public {} {{", real_name,
+    frag( "struct {} : public {} {{", real_name,
           interface.name );
+    if( interface.methods.empty() &&
+        interface.context.members.empty() )
+      frag( "};" );
+    flush();
     {
       auto _ = indent();
       // Emit constructor.
@@ -739,10 +747,17 @@ struct CodeGenerator {
       }
 
       // Emit methods.
+      bool emit_newline_before_method =
+          !interface.context.members.empty();
       for( expr::Method const& mth : interface.methods ) {
-        newline();
-        line( "{} {}(", mth.return_type, mth.name );
-        {
+        if( emit_newline_before_method ) newline();
+        emit_newline_before_method = true;
+        frag( "{} {}(", mth.return_type, mth.name );
+        if( mth.args.empty() ) {
+          frag( ") const override {" );
+          flush();
+        } else {
+          flush();
           auto _ = indent( 2 );
           emit_arg_list_with_types( mth.args );
           frag( " ) const override {" );
@@ -750,8 +765,12 @@ struct CodeGenerator {
         }
         {
           auto _ = indent();
-          line( "return ::{}::{}(", ns, mth.name );
-          {
+          frag( "return ::{}::{}(", ns, mth.name );
+          if( mth.args.empty() ) {
+            frag( ");" );
+            flush();
+          } else {
+            flush();
             auto           _ = indent();
             vector<string> vars;
             for( expr::MethodArg const& arg :
@@ -776,7 +795,9 @@ struct CodeGenerator {
       emit_member_list_with_types( interface.context.members );
     }
 
-    line( "};" );
+    if( !interface.methods.empty() ||
+        !interface.context.members.empty() )
+      line( "};" );
 
     newline();
     close_ns( ns );
@@ -794,14 +815,22 @@ struct CodeGenerator {
       {
         auto _ = indent();
         open_ns( ns );
-        line( "struct {} : public {} {{", mock_name,
+        frag( "struct {} : public {} {{", mock_name,
               interface.name );
-        {
+        if( interface.methods.empty() ) {
+          frag( "};" );
+          flush();
+        } else {
+          flush();
           auto _ = indent();
           for( expr::Method const& mth : interface.methods ) {
-            line( "MOCK_METHOD( {}, {}, (", mth.return_type,
+            frag( "MOCK_METHOD( {}, {}, (", mth.return_type,
                   mth.name );
-            {
+            if( mth.args.empty() ) {
+              frag( "), ( const ) );" );
+              flush();
+            } else {
+              flush();
               auto           _ = indent();
               vector<string> arg_names;
               for( expr::MethodArg const& arg : mth.args )
@@ -811,7 +840,7 @@ struct CodeGenerator {
             }
           }
         }
-        line( "};" );
+        if( !interface.methods.empty() ) line( "};" );
         newline();
         close_ns_no_flush( ns );
         {

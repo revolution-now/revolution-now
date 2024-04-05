@@ -1709,16 +1709,14 @@ namespace rn {
     virtual ~IEmpty() = default;
   };
 
-  struct RealEmpty : public IEmpty {
-  };
+  struct RealEmpty : public IEmpty {};
 
 } // namespace rn
 
 // MockIEmpty
 #define RDS_DEFINE_MOCK_IEmpty() \
   namespace rn { \
-    struct MockIEmpty : public IEmpty { \
-    }; \
+    struct MockIEmpty : public IEmpty {}; \
   }
 
 /****************************************************************
@@ -1729,16 +1727,12 @@ namespace rn {
   struct IOneMethod {
     virtual ~IOneMethod() = default;
 
-    virtual void some_method(
-         ) const = 0;
+    virtual void some_method() const = 0;
   };
 
   struct RealOneMethod : public IOneMethod {
-
-    void some_method(
-         ) const override {
-      return ::rn::some_method(
-         );
+    void some_method() const override {
+      return ::rn::some_method();
     }
   };
 
@@ -1748,8 +1742,7 @@ namespace rn {
 #define RDS_DEFINE_MOCK_IOneMethod() \
   namespace rn { \
     struct MockIOneMethod : public IOneMethod { \
-      MOCK_METHOD( void, some_method, ( \
-        ), ( const ) ); \
+      MOCK_METHOD( void, some_method, (), ( const ) ); \
     }; \
   }
 
@@ -1766,7 +1759,6 @@ namespace rn {
   };
 
   struct RealOneMethodWithOneArg : public IOneMethodWithOneArg {
-
     void some_method(
         int a ) const override {
       return ::rn::some_method(
@@ -1800,7 +1792,6 @@ namespace rn {
   };
 
   struct RealOneMethodWithTwoArgs : public IOneMethodWithTwoArgs {
-
     double some_method(
         int a,
         int b ) const override {
@@ -1835,12 +1826,10 @@ namespace rn {
         int a,
         int b ) const = 0;
 
-    virtual float some_other_method(
-         ) const = 0;
+    virtual float some_other_method() const = 0;
   };
 
   struct RealTwoMethodsWithTwoArgs : public ITwoMethodsWithTwoArgs {
-
     double some_method(
         int a,
         int b ) const override {
@@ -1849,10 +1838,8 @@ namespace rn {
         b );
     }
 
-    float some_other_method(
-         ) const override {
-      return ::rn::some_other_method(
-         );
+    float some_other_method() const override {
+      return ::rn::some_other_method();
     }
   };
 
@@ -1866,8 +1853,7 @@ namespace rn {
         int, \
         int \
         ), ( const ) ); \
-      MOCK_METHOD( float, some_other_method, ( \
-        ), ( const ) ); \
+      MOCK_METHOD( float, some_other_method, (), ( const ) ); \
     }; \
   }
 
@@ -1897,8 +1883,7 @@ namespace rn {
 // MockIContextOnly
 #define RDS_DEFINE_MOCK_IContextOnly() \
   namespace rn { \
-    struct MockIContextOnly : public IContextOnly { \
-    }; \
+    struct MockIContextOnly : public IContextOnly {}; \
   }
 
 /****************************************************************
