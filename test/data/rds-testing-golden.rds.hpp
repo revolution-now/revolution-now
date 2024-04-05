@@ -6,6 +6,7 @@
 *****************************************************************/
 // Includes specified in rds file.
 #include "maybe.hpp"
+#include "iface-methods.hpp"
 #include "cdr/ext-builtin.hpp"
 #include <string>
 #include <vector>
@@ -1698,6 +1699,269 @@ namespace refl {
   };
 
 } // namespace refl
+
+/****************************************************************
+*                       Interface: IEmpty
+*****************************************************************/
+namespace rn {
+
+  struct IEmpty {
+    virtual ~IEmpty() = default;
+  };
+
+  struct RealEmpty : public IEmpty {
+  };
+
+} // namespace rn
+
+// MockIEmpty
+#define RDS_DEFINE_MOCK_IEmpty() \
+  namespace rn { \
+    struct MockIEmpty : public IEmpty { \
+    }; \
+  }
+
+/****************************************************************
+*                     Interface: IOneMethod
+*****************************************************************/
+namespace rn {
+
+  struct IOneMethod {
+    virtual ~IOneMethod() = default;
+
+    virtual void some_method(
+         ) const = 0;
+  };
+
+  struct RealOneMethod : public IOneMethod {
+
+    void some_method(
+         ) const override {
+      return ::rn::some_method(
+         );
+    }
+  };
+
+} // namespace rn
+
+// MockIOneMethod
+#define RDS_DEFINE_MOCK_IOneMethod() \
+  namespace rn { \
+    struct MockIOneMethod : public IOneMethod { \
+      MOCK_METHOD( void, some_method, ( \
+        ), ( const ) ); \
+    }; \
+  }
+
+/****************************************************************
+*                Interface: IOneMethodWithOneArg
+*****************************************************************/
+namespace rn {
+
+  struct IOneMethodWithOneArg {
+    virtual ~IOneMethodWithOneArg() = default;
+
+    virtual void some_method(
+        int a ) const = 0;
+  };
+
+  struct RealOneMethodWithOneArg : public IOneMethodWithOneArg {
+
+    void some_method(
+        int a ) const override {
+      return ::rn::some_method(
+        a );
+    }
+  };
+
+} // namespace rn
+
+// MockIOneMethodWithOneArg
+#define RDS_DEFINE_MOCK_IOneMethodWithOneArg() \
+  namespace rn { \
+    struct MockIOneMethodWithOneArg : public IOneMethodWithOneArg { \
+      MOCK_METHOD( void, some_method, ( \
+        int \
+        ), ( const ) ); \
+    }; \
+  }
+
+/****************************************************************
+*               Interface: IOneMethodWithTwoArgs
+*****************************************************************/
+namespace rn {
+
+  struct IOneMethodWithTwoArgs {
+    virtual ~IOneMethodWithTwoArgs() = default;
+
+    virtual double some_method(
+        int a,
+        int b ) const = 0;
+  };
+
+  struct RealOneMethodWithTwoArgs : public IOneMethodWithTwoArgs {
+
+    double some_method(
+        int a,
+        int b ) const override {
+      return ::rn::some_method(
+        a,
+        b );
+    }
+  };
+
+} // namespace rn
+
+// MockIOneMethodWithTwoArgs
+#define RDS_DEFINE_MOCK_IOneMethodWithTwoArgs() \
+  namespace rn { \
+    struct MockIOneMethodWithTwoArgs : public IOneMethodWithTwoArgs { \
+      MOCK_METHOD( double, some_method, ( \
+        int, \
+        int \
+        ), ( const ) ); \
+    }; \
+  }
+
+/****************************************************************
+*               Interface: ITwoMethodsWithTwoArgs
+*****************************************************************/
+namespace rn {
+
+  struct ITwoMethodsWithTwoArgs {
+    virtual ~ITwoMethodsWithTwoArgs() = default;
+
+    virtual double some_method(
+        int a,
+        int b ) const = 0;
+
+    virtual float some_other_method(
+         ) const = 0;
+  };
+
+  struct RealTwoMethodsWithTwoArgs : public ITwoMethodsWithTwoArgs {
+
+    double some_method(
+        int a,
+        int b ) const override {
+      return ::rn::some_method(
+        a,
+        b );
+    }
+
+    float some_other_method(
+         ) const override {
+      return ::rn::some_other_method(
+         );
+    }
+  };
+
+} // namespace rn
+
+// MockITwoMethodsWithTwoArgs
+#define RDS_DEFINE_MOCK_ITwoMethodsWithTwoArgs() \
+  namespace rn { \
+    struct MockITwoMethodsWithTwoArgs : public ITwoMethodsWithTwoArgs { \
+      MOCK_METHOD( double, some_method, ( \
+        int, \
+        int \
+        ), ( const ) ); \
+      MOCK_METHOD( float, some_other_method, ( \
+        ), ( const ) ); \
+    }; \
+  }
+
+/****************************************************************
+*                    Interface: IContextOnly
+*****************************************************************/
+namespace rn {
+
+  struct IContextOnly {
+    virtual ~IContextOnly() = default;
+  };
+
+  struct RealContextOnly : public IContextOnly {
+    RealContextOnly(
+        IEmpty&     aaa,
+        IOneMethod& bbb )
+      : aaa_( aaa ),
+        bbb_( bbb ) {}
+
+   private:
+    IEmpty&     aaa_;
+    IOneMethod& bbb_;
+  };
+
+} // namespace rn
+
+// MockIContextOnly
+#define RDS_DEFINE_MOCK_IContextOnly() \
+  namespace rn { \
+    struct MockIContextOnly : public IContextOnly { \
+    }; \
+  }
+
+/****************************************************************
+*                       Interface: IMulti
+*****************************************************************/
+namespace rn {
+
+  struct IMulti {
+    virtual ~IMulti() = default;
+
+    virtual IEmpty& some_method(
+        IOneMethod& one ) const = 0;
+
+    virtual void some_other_method(
+        IOneMethodWithOneArg const&  colony,
+        IOneMethodWithTwoArgs const& notification ) const = 0;
+  };
+
+  struct RealMulti : public IMulti {
+    RealMulti(
+        int&          i,
+        double const& d )
+      : i_( i ),
+        d_( d ) {}
+
+    IEmpty& some_method(
+        IOneMethod& one ) const override {
+      return ::rn::some_method(
+        i_,
+        d_,
+        one );
+    }
+
+    void some_other_method(
+        IOneMethodWithOneArg const&  colony,
+        IOneMethodWithTwoArgs const& notification ) const override {
+      return ::rn::some_other_method(
+        i_,
+        d_,
+        colony,
+        notification );
+    }
+
+   private:
+    int&          i_;
+    double const& d_;
+  };
+
+} // namespace rn
+
+// MockIMulti
+#define RDS_DEFINE_MOCK_IMulti() \
+  namespace rn { \
+    struct MockIMulti : public IMulti { \
+      MOCK_METHOD( IEmpty&, some_method, ( \
+        IOneMethod& \
+        ), ( const ) ); \
+      MOCK_METHOD( void, some_other_method, ( \
+        IOneMethodWithOneArg const&, \
+        IOneMethodWithTwoArgs const& \
+        ), ( const ) ); \
+    }; \
+  }
 
 /****************************************************************
 *                   Struct: MyTemplateStruct
