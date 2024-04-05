@@ -771,7 +771,7 @@ TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
 
   // The Eq-ref trick is to prevent the matcher from storing a
   // copy of the object, which it would still do with only ref.
-  mock_colony_evolver.EXPECT__evolve_one_turn(
+  mock_colony_evolver.EXPECT__evolve_colony_one_turn(
       Eq( ref( colony ) ) );
   ++colony.id; // make sure the mock is not holding a copy.
   f();

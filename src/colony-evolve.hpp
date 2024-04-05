@@ -30,12 +30,12 @@ struct TS;
 // used for the AI players, 3) we want to be able to have a way
 // to evolve a colony (e.g. for cheat mode) where we can control
 // what is shown to the user.
-ColonyEvolution evolve_one_turn( SS& ss, TS& ts,
-                                 Colony& colony );
+ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        Colony& colony );
 
 // This generates the text messages that are actually shown to
 // the player.
-ColonyNotificationMessage generate_notification_message(
+ColonyNotificationMessage generate_colony_notification_message(
     Colony const&             colony,
     ColonyNotification const& notification );
 

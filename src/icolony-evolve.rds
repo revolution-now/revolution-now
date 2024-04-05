@@ -14,7 +14,7 @@ include "colony-evolve.hpp"
 namespace "rn"
 
 interface.IColonyEvolver {
-  evolve_one_turn {
+  evolve_colony_one_turn {
     returns 'ColonyEvolution',
     colony 'Colony&',
   },
@@ -28,7 +28,7 @@ interface.IColonyEvolver {
 # This is a separate interface from IColonyEvolver because it
 # does not need the context.
 interface.IColonyNotificationGenerator {
-  generate_notification_message {
+  generate_colony_notification_message {
     returns 'ColonyNotificationMessage',
     colony 'Colony const&',
     notification 'ColonyNotification const&',

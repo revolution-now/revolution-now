@@ -96,10 +96,10 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{ .notifications = { {} } };
       mock_colony_evolver
-          .EXPECT__evolve_one_turn( Eq( ref( colony ) ) )
+          .EXPECT__evolve_colony_one_turn( Eq( ref( colony ) ) )
           .returns( evolution );
       mock_colony_notification_generator
-          .EXPECT__generate_notification_message(
+          .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
               .msg       = "xxx"s + to_string( colony.id ),
@@ -120,16 +120,16 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       ColonyEvolution const evolution{
           .notifications = { {}, {} } };
       mock_colony_evolver
-          .EXPECT__evolve_one_turn( Eq( ref( colony ) ) )
+          .EXPECT__evolve_colony_one_turn( Eq( ref( colony ) ) )
           .returns( evolution );
       mock_colony_notification_generator
-          .EXPECT__generate_notification_message(
+          .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
               .msg       = "xxx"s + to_string( colony.id ),
               .transient = false } );
       mock_colony_notification_generator
-          .EXPECT__generate_notification_message(
+          .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[1] )
           .returns( ColonyNotificationMessage{
               .msg       = "xxx"s + to_string( colony.id ),

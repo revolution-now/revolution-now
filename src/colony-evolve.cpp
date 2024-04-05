@@ -538,7 +538,7 @@ void check_prime_resource_depletion(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ColonyNotificationMessage generate_notification_message(
+ColonyNotificationMessage generate_colony_notification_message(
     Colony const&             colony,
     ColonyNotification const& notification ) {
   ColonyNotificationMessage res{
@@ -805,8 +805,8 @@ ColonyNotificationMessage generate_notification_message(
   return res;
 }
 
-ColonyEvolution evolve_one_turn( SS& ss, TS& ts,
-                                 Colony& colony ) {
+ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
+                                        Colony& colony ) {
   ColonyEvolution ev;
   ev.production = production_for_colony( ss, colony );
 

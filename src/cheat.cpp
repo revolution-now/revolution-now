@@ -719,7 +719,8 @@ void cheat_advance_colony_one_turn(
     IColonyEvolver const& colony_evolver, Colony& colony ) {
   RETURN_IF_NO_CHEAT;
   lg.debug( "advancing colony {}. notifications:", colony.name );
-  ColonyEvolution ev = colony_evolver.evolve_one_turn( colony );
+  ColonyEvolution ev =
+      colony_evolver.evolve_colony_one_turn( colony );
   for( ColonyNotification const& notification :
        ev.notifications )
     lg.debug( "{}", notification );

@@ -152,7 +152,7 @@ wait<> evolve_colonies_for_player(
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
     evolutions.push_back(
-        colony_evolver.evolve_one_turn( colony ) );
+        colony_evolver.evolve_colony_one_turn( colony ) );
     ColonyEvolution const& ev = evolutions.back();
     if( ev.colony_disappeared ) {
       co_await run_colony_starvation( ss, ts, colony );
@@ -169,8 +169,8 @@ wait<> evolve_colonies_for_player(
          ev.notifications ) {
       ColonyNotificationMessage msg =
           colony_notification_generator
-              .generate_notification_message( colony,
-                                              notification );
+              .generate_colony_notification_message(
+                  colony, notification );
       if( msg.transient )
         transient_messages.push_back( std::move( msg ) );
       else
