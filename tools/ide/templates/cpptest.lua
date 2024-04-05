@@ -54,7 +54,7 @@ local handlers = {
   WORLD_INST=function( _, ctx )
     local module = default( 'MODULE', ctx )
     if not need_fake_world( module ) then return nil end
-    return 'World W;'
+    return 'World w;'
   end,
 }
 

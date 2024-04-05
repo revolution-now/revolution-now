@@ -2,8 +2,7 @@
 ** Fake World Setup
 *****************************************************************/
 struct World : testing::World {
-  using Base = testing::World;
-  World() : Base() {
+  World() {
     add_default_player();
     create_default_map();
   }
@@ -12,9 +11,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
         _, L, L, //
+        L, L, L, //
+        L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
