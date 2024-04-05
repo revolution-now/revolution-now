@@ -1,0 +1,32 @@
+# ===============================================================
+# {{FILE_NAME}}
+#
+# Project: Revolution Now
+#
+# Created by {{AUTHOR}} on {{YEAR}}-{{MONTH}}-{{DAY}}.
+#
+# Description: Interface for the {{FILE_STEM_NO_I}} module.
+#
+# ===============================================================
+# Module header.
+include "{{FILE_STEM_NO_I}}.hpp"
+
+namespace "{{NAMESPACE}}"
+
+interface.I{{FILE_STEM_CAMEL}} {
+  some_method {
+    returns 'int',
+    some_arg 'double',
+  },
+
+  some_other_method {
+    returns 'int',
+    some_arg 'double',
+    some_other_arg 'char',
+  },
+
+  _context {
+    ss 'SSConst const&',
+    ts 'TS&',
+  },
+}

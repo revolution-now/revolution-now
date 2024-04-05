@@ -82,6 +82,15 @@ local function choose_tmpl_for_file( buf )
     return 'rds-config'
   end
 
+  if file_path:match( '.*/i[^/]*%.rds' ) then
+    -- If the rds file is not an interface file but happens to
+    -- start with 'i' then we will still be here, which we don't
+    -- want to be. So try to catch that with the following
+    -- heuristic.
+    local hpp = file_path:match( '(.*)%.rds' ) .. '.hpp'
+    if not file_exists( hpp ) then return 'rds-iface' end
+  end
+
   -- Extension gets next priority, e.g. so that we can distin-
   -- guish hpp from cpp.
   local ext = fnamemodify( file_path, ':e' )

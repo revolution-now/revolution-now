@@ -16,6 +16,20 @@ local handlers = {
   FILE_STEM=function( _, ctx )
     return fnamemodify( ctx.path, ':t:r' )
   end,
+  FILE_STEM_NO_I=function( _, ctx )
+    local stem = fnamemodify( ctx.path, ':t:r' )
+    return stem:match( '^i(.*)' )
+  end,
+  FILE_STEM_CAMEL=function( _, ctx )
+    local stem = fnamemodify( ctx.path, ':t:r' )
+    local no_i = stem:match( '^i(.*)' )
+    -- Convert aaa-bbb-ccc to AaaBbbCcc.
+    -- LuaFormatter off
+    return
+        no_i:gsub( '-(.)', function( c ) return c:upper() end )
+            :gsub( '^(.)', function( c ) return c:upper() end )
+    -- LuaFormatter on
+  end,
   AUTHOR=function( _, ctx )
     if ctx.author == 'dsicilia' then return 'David P. Sicilia' end
     return ctx.author
