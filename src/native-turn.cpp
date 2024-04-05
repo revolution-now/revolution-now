@@ -18,6 +18,8 @@
 #include "ieuro-mind.hpp" // FIXME
 #include "igui.hpp"
 #include "inative-mind.hpp"
+#include "iraid.rds.hpp"
+#include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-square.hpp"
@@ -25,10 +27,8 @@
 #include "mv-calc.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
-#include "raid.hpp"
 #include "roles.hpp"
 #include "society.hpp"
-#include "tribe-evolve.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "visibility.hpp"
@@ -88,11 +88,11 @@ bool should_animate_native_travel( SSConst const&     ss,
   return should_animate_move( viz, src, dst );
 }
 
-wait<> handle_native_unit_attack( INativesTurnDeps const& deps,
-                                  SS& ss, TS& ts,
-                                  NativeUnit& native_unit,
-                                  e_direction direction,
-                                  e_nation    nation ) {
+wait<> handle_native_unit_attack( SS& ss, TS& ts,
+                                  IRaid const& raid,
+                                  NativeUnit&  native_unit,
+                                  e_direction  direction,
+                                  e_nation     nation ) {
   Coord const        src = ss.units.coord_for( native_unit.id );
   Coord const        dst = src.moved( direction );
   NativeUnit&        attacker    = native_unit;
@@ -107,11 +107,10 @@ wait<> handle_native_unit_attack( INativesTurnDeps const& deps,
   if( maybe<ColonyId> const colony_id =
           ss.colonies.maybe_from_coord( dst );
       colony_id.has_value() )
-    co_await deps.raid_colony(
-        &ss, &ts, attacker,
-        ss.colonies.colony_for( *colony_id ) );
+    co_await raid.raid_colony(
+        attacker, ss.colonies.colony_for( *colony_id ) );
   else
-    co_await deps.raid_unit( &ss, &ts, attacker, dst );
+    co_await raid.raid_unit( attacker, dst );
 
   // !! Native unit may no longer exist here.
   if( !ss.units.exists( attacker_id ) ) co_return;
@@ -180,9 +179,9 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
 }
 
 wait<> handle_native_unit_command(
-    INativesTurnDeps const& deps, SS& ss, TS& ts,
-    IVisibility const& viz, e_tribe tribe_type,
-    NativeUnit& native_unit, NativeUnitCommand const& command ) {
+    SS& ss, TS& ts, IRaid const& raid, IVisibility const& viz,
+    e_tribe tribe_type, NativeUnit& native_unit,
+    NativeUnitCommand const& command ) {
   SWITCH( command ) {
     CASE( forfeight ) {
       native_unit.movement_points = 0;
@@ -226,7 +225,7 @@ wait<> handle_native_unit_command(
           }
           CASE( european ) {
             co_await handle_native_unit_attack(
-                deps, ss, ts, native_unit, move.direction,
+                ss, ts, raid, native_unit, move.direction,
                 european.nation );
             break;
           }
@@ -255,16 +254,17 @@ wait<> handle_native_unit_command(
   // !! Note that the unit may no longer exist here.
 }
 
-wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
-                   IVisibility const& viz, INativeMind& mind ) {
+wait<> tribe_turn( SS& ss, TS& ts, IVisibility const& viz,
+                   INativeMind& mind, IRaid const& raid,
+                   ITribeEvolve const& tribe_evolver ) {
   // Evolve those aspects/properties of the tribe that are common
   // to the entire tribe, i.e. not dwellingor unit-specific.
-  deps.evolve_tribe_common( &ss, mind.tribe_type() );
+  tribe_evolver.evolve_tribe_common( mind.tribe_type() );
 
   // Evolve non-unit aspects of the tribe. This must be done be-
   // fore moving the units because it may result in a brave get-
   // ting created.
-  deps.evolve_dwellings_for_tribe( &ss, &ts, mind.tribe_type() );
+  tribe_evolver.evolve_dwellings_for_tribe( mind.tribe_type() );
 
   // Gather all units. This must be done after evolving the
   // dwellings so that it includes any new units that are cre-
@@ -320,7 +320,7 @@ wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
            kMaxTries, native_unit_id );
 
     co_await handle_native_unit_command(
-        deps, ss, ts, viz, mind.tribe_type(), native_unit,
+        ss, ts, raid, viz, mind.tribe_type(), native_unit,
         mind.command_for( native_unit_id ) );
 
     // !! Unit may no longer exist at this point.
@@ -337,40 +337,10 @@ wait<> tribe_turn( INativesTurnDeps const& deps, SS& ss, TS& ts,
 } // namespace
 
 /****************************************************************
-** RealNativesTurnDeps.
-*****************************************************************/
-struct RealNativesTurnDeps final : INativesTurnDeps {
-  wait<> raid_unit( SS* ss, TS* ts, NativeUnit& attacker,
-                    Coord dst ) const override {
-    return rn::raid_unit( *ss, *ts, attacker, dst );
-  }
-
-  wait<> raid_colony( SS* ss, TS* ts, NativeUnit& attacker,
-                      Colony& colony ) const override {
-    return rn::raid_colony( *ss, *ts, attacker, colony );
-  }
-
-  void evolve_tribe_common( SS*     ss,
-                            e_tribe tribe_type ) const override {
-    return rn::evolve_tribe_common( *ss, tribe_type );
-  }
-
-  void evolve_dwellings_for_tribe(
-      SS* ss, TS* ts, e_tribe tribe_type ) const override {
-    return rn::evolve_dwellings_for_tribe( *ss, *ts,
-                                           tribe_type );
-  }
-};
-
-/****************************************************************
 ** Public API
 *****************************************************************/
-wait<> natives_turn(
-    SS& ss, TS& ts, maybe<INativesTurnDeps const&> maybe_deps ) {
-  auto& deps = [&]() -> INativesTurnDeps const& {
-    static RealNativesTurnDeps real_deps;
-    return maybe_deps.value_or( real_deps );
-  }();
+wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
+                     ITribeEvolve const& tribe_evolver ) {
   base::ScopedTimer timer( "native turns" );
   timer.options().no_checkpoints_logging = true;
 
@@ -382,7 +352,8 @@ wait<> natives_turn(
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     INativeMind& mind = ts.native_minds[tribe];
     timer.checkpoint( "{}", tribe );
-    co_await tribe_turn( deps, ss, ts, *viz, mind );
+    co_await tribe_turn( ss, ts, *viz, mind, raid,
+                         tribe_evolver );
   }
 }
 

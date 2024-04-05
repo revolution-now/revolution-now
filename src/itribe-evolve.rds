@@ -1,0 +1,31 @@
+# ===============================================================
+# itribe-evolve.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-04-05.
+#
+# Description: Interface for the tribe-evolve module.
+#
+# ===============================================================
+# Module header.
+include "tribe-evolve.hpp"
+
+namespace "rn"
+
+interface.ITribeEvolve {
+  evolve_dwellings_for_tribe {
+    returns 'void',
+    tribe_type 'e_tribe',
+  },
+
+  evolve_tribe_common {
+    returns 'void',
+    tribe_type 'e_tribe',
+  },
+
+  _context {
+    ss 'SS&',
+    ts 'TS&',
+  },
+}

@@ -87,7 +87,7 @@ void evolve_dwelling( SS& ss, TS& ts, Dwelling& dwelling ) {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-void evolve_tribe_common( SS& ss, e_tribe tribe_type ) {
+void evolve_tribe_common( SS& ss, TS&, e_tribe tribe_type ) {
   Tribe& tribe = ss.natives.tribe_for( tribe_type );
 
   // Horses.

@@ -29,6 +29,8 @@
 #include "icolony-evolve.rds.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
+#include "iraid.rds.hpp"
+#include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
 #include "map-edit.hpp"
@@ -1037,7 +1039,8 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::natives{};
     }
     CASE( natives ) {
-      co_await natives_turn( ss, ts );
+      co_await natives_turn( ss, ts, RealRaid( ss, ts ),
+                             RealTribeEvolve( ss, ts ) );
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {

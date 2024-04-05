@@ -15,46 +15,17 @@
 // Revolution Now
 #include "wait.hpp"
 
-// gfx
-#include "gfx/coord.hpp"
-
 namespace rn {
 
-struct Colony;
-struct NativeUnit;
+struct IRaid;
+struct ITribeEvolve;
 struct SS;
 struct TS;
-
-enum class e_tribe;
-
-/****************************************************************
-** INativesTurnDeps.
-*****************************************************************/
-// The dependencies representing complex actions are injected in
-// order to make unit testing easier.
-struct INativesTurnDeps {
-  virtual ~INativesTurnDeps() = default;
-
-  // Dependencies. NOTE: Parameters need to be mock friendly.
-
-  virtual wait<> raid_unit( SS* ss, TS* ts, NativeUnit& attacker,
-                            Coord dst ) const = 0;
-
-  virtual wait<> raid_colony( SS* ss, TS* ts,
-                              NativeUnit& attacker,
-                              Colony&     colony ) const = 0;
-
-  virtual void evolve_tribe_common(
-      SS* ss, e_tribe tribe_type ) const = 0;
-
-  virtual void evolve_dwellings_for_tribe(
-      SS* ss, TS* ts, e_tribe tribe_type ) const = 0;
-};
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<> natives_turn( SS& ss, TS& ts,
-                     maybe<INativesTurnDeps const&> = {} );
+wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
+                     ITribeEvolve const& tribe_evolver );
 
 } // namespace rn

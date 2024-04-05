@@ -23,6 +23,8 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/iraid.rds.hpp"
+#include "src/itribe-evolve.rds.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ts.hpp"
 
@@ -43,6 +45,9 @@
 
 // Must be last.
 #include "test/catch-common.hpp"
+
+RDS_DEFINE_MOCK( IRaid );
+RDS_DEFINE_MOCK( ITribeEvolve );
 
 namespace rn {
 namespace {
@@ -84,29 +89,18 @@ struct World : testing::World {
 };
 
 /****************************************************************
-** Mocks.
-*****************************************************************/
-struct MockNativesTurnDeps final : INativesTurnDeps {
-  MOCK_METHOD( wait<>, raid_unit,
-               ( SS*, TS*, NativeUnit&, Coord ), ( const ) );
-  MOCK_METHOD( wait<>, raid_colony,
-               (SS*, TS*, NativeUnit&, Colony&), ( const ) );
-  MOCK_METHOD( void, evolve_tribe_common, ( SS*, e_tribe ),
-               ( const ) );
-  MOCK_METHOD( void, evolve_dwellings_for_tribe,
-               ( SS*, TS*, e_tribe ), ( const ) );
-};
-
-/****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[native-turn] unit iteration, travel" ) {
-  World W;
+  World           W;
+  RealRaid        real_raid( W.ss(), W.ts() );
+  RealTribeEvolve real_tribe_evolver( W.ss(), W.ts() );
 
   auto f = [&] {
     // In this one we don't inject dependencies because it seems
     // simple enough to test thoroughly.
-    co_await_test( natives_turn( W.ss(), W.ts() ) );
+    co_await_test( natives_turn( W.ss(), W.ts(), real_raid,
+                                 real_tribe_evolver ) );
   };
 
   MockINativeMind& native_mind =
@@ -527,12 +521,14 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
 
 TEST_CASE( "[native-turn] attack euro unit" ) {
   World             W;
+  MockIRaid         mock_raid;
+  MockITribeEvolve  mock_tribe_evolver;
   MockLandViewPlane mock_land_view;
   W.planes().back().land_view = &mock_land_view;
-  MockNativesTurnDeps mock_deps;
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+                                 mock_tribe_evolver ) );
   };
 
   MockINativeMind& native_mind =
@@ -543,10 +539,10 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
       { .x = 0, .y = 0 }, e_tribe::arawak );
   Coord const defender_loc = { .x = 1, .y = 0 };
 
-  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
-                                         e_tribe::arawak );
-  mock_deps.EXPECT__evolve_dwellings_for_tribe(
-      &W.ss(), &W.ts(), e_tribe::arawak );
+  mock_tribe_evolver.EXPECT__evolve_tribe_common(
+      e_tribe::arawak );
+  mock_tribe_evolver.EXPECT__evolve_dwellings_for_tribe(
+      e_tribe::arawak );
   native_mind.EXPECT__select_unit( set{ brave.id } )
       .returns( brave.id );
   native_mind.EXPECT__command_for( brave.id )
@@ -556,8 +552,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
   SECTION( "brave, one euro, brave loses, soldier promoted" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
-    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
-                                 defender_loc );
+    mock_raid.EXPECT__raid_unit( brave, defender_loc );
     f();
     REQUIRE( brave.movement_points == 0 );
     REQUIRE( soldier.movement_points() == 1 );
@@ -566,8 +561,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
   SECTION( "brave, one euro, brave wins" ) {
     Unit const& soldier =
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
-    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
-                                 defender_loc );
+    mock_raid.EXPECT__raid_unit( brave, defender_loc );
     f();
     REQUIRE( brave.movement_points == 0 );
     REQUIRE( soldier.movement_points() == 1 );
@@ -583,8 +577,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
         W.add_unit_on_map( e_unit_type::soldier, defender_loc );
     Unit const& free_colonist2 = W.add_unit_on_map(
         e_unit_type::free_colonist, defender_loc );
-    mock_deps.EXPECT__raid_unit( &W.ss(), &W.ts(), brave,
-                                 defender_loc );
+    mock_raid.EXPECT__raid_unit( brave, defender_loc );
     f();
     REQUIRE( brave.movement_points == 0 );
     REQUIRE( soldier.movement_points() == 1 );
@@ -594,11 +587,13 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
 }
 
 TEST_CASE( "[native-turn] brave spawns" ) {
-  World               W;
-  MockNativesTurnDeps mock_deps;
+  World            W;
+  MockIRaid        mock_raid;
+  MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+                                 mock_tribe_evolver ) );
   };
 
   MockINativeMind& native_mind =
@@ -607,11 +602,10 @@ TEST_CASE( "[native-turn] brave spawns" ) {
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
   maybe<NativeUnitId> native_unit_id;
 
-  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
-                                         e_tribe::arawak );
-  mock_deps
-      .EXPECT__evolve_dwellings_for_tribe( &W.ss(), &W.ts(),
-                                           e_tribe::arawak )
+  mock_tribe_evolver.EXPECT__evolve_tribe_common(
+      e_tribe::arawak );
+  mock_tribe_evolver
+      .EXPECT__evolve_dwellings_for_tribe( e_tribe::arawak )
       .invokes( [&] {
         native_unit_id = W.add_native_unit_on_map(
                               e_native_unit_type::mounted_brave,
@@ -634,11 +628,13 @@ TEST_CASE( "[native-turn] brave spawns" ) {
 }
 
 TEST_CASE( "[native-turn] brave equips" ) {
-  World               W;
-  MockNativesTurnDeps mock_deps;
+  World            W;
+  MockIRaid        mock_raid;
+  MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
-    co_await_test( natives_turn( W.ss(), W.ts(), mock_deps ) );
+    co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,
+                                 mock_tribe_evolver ) );
   };
 
   MockINativeMind& native_mind =
@@ -658,10 +654,10 @@ TEST_CASE( "[native-turn] brave equips" ) {
   tribe.horse_herds    = 10;
   tribe.horse_breeding = 30;
 
-  mock_deps.EXPECT__evolve_tribe_common( &W.ss(),
-                                         e_tribe::arawak );
-  mock_deps.EXPECT__evolve_dwellings_for_tribe(
-      &W.ss(), &W.ts(), e_tribe::arawak );
+  mock_tribe_evolver.EXPECT__evolve_tribe_common(
+      e_tribe::arawak );
+  mock_tribe_evolver.EXPECT__evolve_dwellings_for_tribe(
+      e_tribe::arawak );
   // If you have a situation where the below functions are called
   // more than once, then it is probably because the brave has
   // not had its movement points reset to zero properly and so it

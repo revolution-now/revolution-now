@@ -1,0 +1,33 @@
+# ===============================================================
+# iraid.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-04-05.
+#
+# Description: Interface for the raid module.
+#
+# ===============================================================
+# Module header.
+include "raid.hpp"
+
+namespace "rn"
+
+interface.IRaid {
+  raid_unit {
+    returns 'wait<>',
+    attacker 'NativeUnit&',
+    dst 'Coord',
+  },
+
+  raid_colony {
+    returns 'wait<>',
+    attacker 'NativeUnit&',
+    colony 'Colony&',
+  },
+
+  _context {
+    ss 'SS&',
+    ts 'TS&',
+  },
+}

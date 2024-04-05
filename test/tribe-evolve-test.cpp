@@ -480,7 +480,9 @@ TEST_CASE( "[tribe-evolve] evolves horse breeding" ) {
   e_tribe const tribe_type = e_tribe::iroquois;
   Tribe&        tribe      = W.add_tribe( tribe_type );
 
-  auto f = [&] { evolve_tribe_common( W.ss(), tribe_type ); };
+  auto f = [&] {
+    evolve_tribe_common( W.ss(), W.ts(), tribe_type );
+  };
 
   REQUIRE( tribe.muskets == 0 );
   REQUIRE( tribe.horse_herds == 0 );
