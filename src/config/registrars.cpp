@@ -5,10 +5,10 @@
 *
 * Created by dsicilia on 2023-02-10.
 *
-* Description: Not a config module, just provides a single TU
-*              for doing the registration and associated template
-*              instantiations of the rds conversion method for
-*              config data structures, which imroves compile
+* Description: Not a config module, just provides a single TU for
+*              doing the registration and associated template in-
+*              stantiations of the rds conversion method for
+*              config data structures, which improves compile
 *              times in that they don't have to be redundantly
 *              instantiated in any TU that wants to consume
 *              config data.
@@ -46,58 +46,19 @@
 #include "config/unit-type.rds.hpp"
 
 // Other config files.
+#include "config/registrar-helper.hpp"
 #include "config/tile-enum.rds.hpp"
-
-#include "../../test/rds/testing.rds.hpp"
 
 // cdr
 #include "cdr/ext-base.hpp"
 #include "cdr/ext-builtin.hpp"
 #include "cdr/ext-std.hpp"
 
-using namespace std;
-
-#define INSTANTIATE_CONFIG( ns, name )       \
-  detail::empty_registrar register_config(   \
-      ::ns::config_##name##_t* o ) {         \
-    return register_config_impl( #name, o ); \
-  }
-
 #define INSTANTIATE_RN_CONFIG( name ) \
   INSTANTIATE_CONFIG( rn, name )
 
 namespace rds {
 
-static cdr::converter::options const& converter_options() {
-  static cdr::converter::options opts{
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false,
-  };
-  return opts;
-}
-
-template<cdr::FromCanonical S>
-detail::empty_registrar register_config_impl(
-    std::string const& name, S* global ) {
-  detail::register_config_erased(
-      name,
-      [global]( cdr::value const& o ) -> PopulatorErrorType {
-        UNWRAP_RETURN( res,
-                       cdr::run_conversion_from_canonical<S>(
-                           o, converter_options() ) );
-        *global = std::move( res );
-        return base::valid;
-      } );
-  return {};
-}
-
-/****************************************************************
-** For each new config, add an entry here.
-*****************************************************************/
-static_assert(
-    cdr::FromCanonical<::rn::config::menu::MenuConfig> );
-static_assert(
-    cdr::ToCanonical<::rn::config::menu::MenuConfig> );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
 INSTANTIATE_RN_CONFIG( commodity );
@@ -126,7 +87,5 @@ INSTANTIATE_RN_CONFIG( tile_sheet );
 INSTANTIATE_RN_CONFIG( turn );
 INSTANTIATE_RN_CONFIG( ui );
 INSTANTIATE_RN_CONFIG( unit_type );
-
-INSTANTIATE_CONFIG( rn::test, testing );
 
 } // namespace rds

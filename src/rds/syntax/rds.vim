@@ -122,6 +122,56 @@ hi def link  rdsSumtypeTemplateListItemErr Error
 hi def link  rdsSumtypeTemplateListItem    Tag
 
 " ===============================================================
+" Interface
+" ===============================================================
+syn keyword  rdsInterfaceKeyword interface nextgroup=rdsInterfaceDot skipwhite skipempty
+
+syn match    rdsInterfaceDot '\.' nextgroup=rdsInterfaceName
+syn match    rdsInterfaceName '[a-zA-Z_][a-zA-Z0-9_]\+' nextgroup=rdsInterfaceTableBlock skipwhite skipempty
+syn region   rdsInterfaceTableBlock start='{' end='}' contained fold contains=rdsInterfaceMethod,rdsInterfaceContext,rdsInterfaceFeatures,rdsInterfaceTemplate,rdsLineComment
+
+syn match    rdsInterfaceMethod '[a-zA-Z][a-zA-Z0-9_]*' contained nextgroup=rdsInterfaceMethodBlock skipwhite skipempty
+syn region   rdsInterfaceMethodBlock start='{' end='}' contained fold contains=rdsInterfaceMethodVarReturns,rdsInterfaceMethodVar,rdsLineComment nextgroup=rdsInterfaceMethodBlockComma skipwhite skipempty
+syn match    rdsInterfaceMethodBlockComma ',' contained nextgroup=rdsInterfaceMethod,rdsInterfaceContext,rdsInterfaceFeatures,rdsInterfaceContext skipwhite skipempty
+syn match    rdsInterfaceMethodVar '[a-zA-Z_][a-zA-Z0-9_]*' contained nextgroup=rdsInterfaceMethodVarTypeQuoted,rdsInterfaceMethodVarTypeMultiLine  skipwhite skipempty
+syn match    rdsInterfaceMethodVarReturns 'returns' contained nextgroup=rdsInterfaceMethodVarTypeQuoted,rdsInterfaceMethodVarTypeMultiLine skipwhite skipempty
+syn region   rdsInterfaceMethodVarTypeQuoted start="'" end="'" contained contains=rdsInterfaceMethodVarTypeQuotedContents,rdsInterfaceMethodVarTypeError nextgroup=rdsInterfaceMethodVarComma skipwhite skipempty
+syn region   rdsInterfaceMethodVarTypeMultiLine start='\[\[' end='\]\]' contained nextgroup=rdsInterfaceMethodVarComma skipwhite skipempty
+syn match    rdsInterfaceMethodVarTypeError "[^']\+" contained
+syn match    rdsInterfaceMethodVarTypeQuotedContents "[a-zA-Z_][a-zA-Z0-9_&:\*, <>]*" contained skipwhite skipempty
+syn match    rdsInterfaceMethodVarComma ',' nextgroup=rdsInterfaceMethodVar skipwhite skipempty
+
+syn keyword  rdsInterfaceFeatures _features contained nextgroup=rdsInterfaceFeaturesListBlock skipwhite skipempty
+syn region   rdsInterfaceFeaturesListBlock start='{' end='}' contained fold contains=rdsInterfaceFeaturesListItem,rdsInterfaceFeaturesListItemErr nextgroup=rdsInterfaceFeaturesListBlockComma skipwhite skipempty
+syn match    rdsInterfaceFeaturesListBlockComma ',' contained nextgroup=rdsInterfaceMethod skipwhite skipempty
+syn match    rdsInterfaceFeaturesListItemErr '[^{} ,]\+' contained
+syn match    rdsInterfaceFeaturesListItem '\(equality\|validation\|offsets\)' contained
+
+syn keyword  rdsInterfaceContext _context contained nextgroup=rdsInterfaceMethodBlock skipwhite skipempty
+
+hi def link  rdsInterfaceDot                    Comment
+hi def link  rdsInterfaceMethodVarComma         Comment
+hi def link  rdsInterfaceMethodBlockComma       Comment
+hi def link  rdsInterfaceFeaturesListBlockComma Comment
+
+hi def link  rdsInterfaceKeyword Keyword
+hi def link  rdsInterfaceName    None
+
+hi def link  rdsInterfaceMethod                      Identifier
+hi def link  rdsInterfaceMethodVar                   None
+hi def link  rdsInterfaceMethodVarReturns            Tag
+hi def link  rdsInterfaceMethodVarTypeQuoted         Comment
+hi def link  rdsInterfaceMethodVarTypeQuotedContents String
+hi def link  rdsInterfaceMethodVarTypeMultiLine      String
+hi def link  rdsInterfaceMethodVarTypeError          Error
+
+hi def link  rdsInterfaceFeatures            Keyword
+hi def link  rdsInterfaceFeaturesListItemErr Error
+hi def link  rdsInterfaceFeaturesListItem    Tag
+
+hi def link  rdsInterfaceContext Keyword
+
+" ===============================================================
 " Struct
 " ===============================================================
 syn keyword  rdsStructKeyword struct nextgroup=rdsStructDot skipwhite skipempty

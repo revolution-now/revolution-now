@@ -33,12 +33,25 @@ struct StructMember {
   std::string var;
 };
 
+struct MethodArg {
+  std::string type;
+  std::string var;
+};
+
 enum class e_feature {
   equality,
   validation,
   offsets,
   nodiscard
 };
+
+/****************************************************************
+** e_feature
+*****************************************************************/
+std::string to_str( e_feature feature );
+
+base::maybe<e_feature> feature_from_str(
+    std::string_view feature );
 
 /****************************************************************
 ** sumtype
@@ -48,10 +61,6 @@ struct Alternative {
   std::vector<StructMember> members;
 };
 
-std::string            to_str( e_feature feature );
-base::maybe<e_feature> feature_from_str(
-    std::string_view feature );
-
 struct Sumtype {
   std::string                name;
   std::vector<TemplateParam> tmpl_params;
@@ -59,6 +68,28 @@ struct Sumtype {
   // from one that was not specified at all.
   base::maybe<std::unordered_set<e_feature>> features;
   std::vector<Alternative>                   alternatives;
+};
+
+/****************************************************************
+** interface
+*****************************************************************/
+struct Method {
+  std::string            name;
+  std::string            return_type;
+  std::vector<MethodArg> args;
+};
+
+struct InterfaceContext {
+  std::vector<MethodArg> members;
+};
+
+struct Interface {
+  std::string         name;
+  InterfaceContext    context;
+  std::vector<Method> methods;
+  // A specified-but-empty feature list means something different
+  // from one that was not specified at all.
+  base::maybe<std::unordered_set<e_feature>> features;
 };
 
 /****************************************************************
@@ -97,6 +128,7 @@ struct Struct {
 using Construct = base::variant< //
     Enum,                        //
     Sumtype,                     //
+    Interface,                   //
     Struct,                      //
     Config                       //
     >;

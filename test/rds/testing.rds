@@ -10,6 +10,7 @@
 # ===============================================================
 # Revolution Now
 include "maybe.hpp"
+include "iface-methods.hpp"
 
 # Cdr.
 include "cdr/ext-builtin.hpp"
@@ -233,6 +234,46 @@ struct.StructWithValidation {
   _features { equality, validation }
 }
 
+interface.IEmpty {}
+
+interface.IOneMethod {
+  some_method { returns 'void' },
+}
+
+interface.IOneMethodWithOneArg {
+  some_method { returns 'void', a 'int' },
+}
+
+interface.IOneMethodWithTwoArgs {
+  some_method { returns 'double', a 'int', b 'int' },
+}
+
+interface.ITwoMethodsWithTwoArgs {
+  some_method { returns 'double', a 'int', b 'int' },
+  some_other_method { returns 'float' },
+}
+
+interface.IContextOnly {
+  _context { aaa 'IEmpty&', bbb 'IOneMethod&' }
+}
+
+interface.IMulti {
+  some_method {
+    returns 'IEmpty&',
+    one 'IOneMethod&',
+  },
+
+  some_other_method {
+    returns 'void',
+    colony 'IOneMethodWithOneArg const&',
+    notification 'IOneMethodWithTwoArgs const&',
+  },
+
+  _context {
+    i 'int&',
+    d 'double const&',
+  },
+}
 
 namespace "rn.test"
 

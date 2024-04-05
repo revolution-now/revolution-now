@@ -28,6 +28,7 @@ namespace {
 using ::base::maybe;
 
 constexpr string_view features_key = "_features";
+constexpr string_view context_key  = "_context";
 constexpr string_view template_key = "_template";
 
 /****************************************************************
@@ -94,7 +95,8 @@ void add_enum( string_view ns, string_view name, lua::table tbl,
   expr::Enum enum_;
   enum_.name = name;
   for( int i = 1; tbl[i] != lua::nil; ++i ) {
-    if( lua::type_of(tbl[i]) == lua::type::table && tbl[i]["name"] == features_key ) {
+    if( lua::type_of( tbl[i] ) == lua::type::table &&
+        tbl[i]["name"] == features_key ) {
       enum_.features.emplace();
       lua::table features = tbl[i]["obj"].as<lua::table>();
       for( int j = 1; features[j] != lua::nil; ++j ) {
@@ -187,6 +189,75 @@ void add_sumtype( string_view ns, string_view name,
   }
 
   item.constructs.push_back( sumtype );
+  rds.items.push_back( item );
+}
+
+/****************************************************************
+** Interface
+*****************************************************************/
+void add_interface( string_view ns, string_view name,
+                    lua::table obj, expr::Rds& rds ) {
+  expr::Item item;
+  item.ns = ns;
+
+  expr::Interface interface;
+  interface.name = name;
+
+  for( int i = 1; obj[i] != lua::nil; ++i ) {
+    lua::table method_tbl = obj[i].as<lua::table>();
+
+    if( method_tbl["name"] == context_key ) {
+      lua::table context = method_tbl["obj"].as<lua::table>();
+      for( int j = 1; context[j] != lua::nil; ++j ) {
+        expr::MethodArg method_arg;
+        lua::table      var = context[j].as<lua::table>();
+        method_arg.var      = var["name"].as<string>();
+        method_arg.type     = var["obj"].as<string>();
+        interface.context.members.push_back( method_arg );
+      }
+      continue;
+    }
+
+    if( method_tbl["name"] == features_key ) {
+      interface.features.emplace();
+      lua::table features = method_tbl["obj"].as<lua::table>();
+      for( int j = 1; features[j] != lua::nil; ++j ) {
+        string feature_name = features[j]
+                                  .as<lua::rfunction>()()["name"]
+                                  .as<string>();
+        maybe<expr::e_feature> feat =
+            expr::feature_from_str( feature_name );
+        CHECK( feat, "unknown feature name: {}", feature_name );
+        interface.features->insert( *feat );
+      }
+      continue;
+    }
+
+    expr::Method method;
+
+    string     method_name = method_tbl["name"].as<string>();
+    lua::table method_members =
+        method_tbl["obj"].as<lua::table>();
+    method.name = method_name;
+    for( int j = 1; method_members[j] != lua::nil; ++j ) {
+      lua::table var      = method_members[j].as<lua::table>();
+      string     var_name = var["name"].as<string>();
+      string     var_type = var["obj"].as<string>();
+      if( var_name == "returns" ) {
+        method.return_type = var_type;
+        continue;
+      }
+      expr::MethodArg method_arg{ .type = var_type,
+                                  .var  = var_name };
+      method.args.push_back( method_arg );
+    }
+    CHECK( !method.return_type.empty(),
+           "missing return type on method {} in interface {}.",
+           method_name, interface.name );
+    interface.methods.push_back( method );
+  }
+
+  item.constructs.push_back( interface );
   rds.items.push_back( item );
 }
 
@@ -290,6 +361,8 @@ expr::Rds parse( string_view filename,
       add_enum( ns, name, obj, rds );
     else if( type == "sumtype" )
       add_sumtype( ns, name, obj, rds );
+    else if( type == "interface" )
+      add_interface( ns, name, obj, rds );
     else if( type == "struct" )
       add_struct( ns, name, obj, rds );
     else if( type == "config" )

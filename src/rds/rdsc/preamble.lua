@@ -42,6 +42,7 @@ local cmd = {
   sumtype=tbl_keyword( 'sumtype' ),
   enum=tbl_keyword( 'enum' ),
   struct=tbl_keyword( 'struct' ),
+  interface=tbl_keyword( 'interface' ),
 }
 
 local function trim( o )

@@ -80,8 +80,10 @@ string trim_trailing_spaces( string s ) {
 
 struct CodeGenerator {
   struct Options {
-    int  indent_level = 0;
-    bool quotes       = false;
+    int  indent_level     = 0;
+    bool quotes           = false;
+    bool trailing_slash   = false;
+    bool drop_empty_lines = false;
 
     bool operator==( Options const& ) const = default;
   };
@@ -132,6 +134,24 @@ struct CodeGenerator {
     return AutoPopper( *this );
   }
 
+  AutoPopper drop_empty_lines() {
+    push( options() );
+    options().drop_empty_lines = true;
+    return AutoPopper( *this );
+  }
+
+  AutoPopper enable_trailing_slashes() {
+    push( options() );
+    options().trailing_slash = true;
+    return AutoPopper( *this );
+  }
+
+  AutoPopper disable_trailing_slashes() {
+    push( options() );
+    options().trailing_slash = false;
+    return AutoPopper( *this );
+  }
+
   string result() const {
     CHECK( !curr_line_.has_value() );
     CHECK( options_.empty() );
@@ -149,11 +169,13 @@ struct CodeGenerator {
     string to_print = trim_trailing_spaces( fmt::format(
         fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
         std::forward<Args>( args )... ) );
+    if( options().drop_empty_lines && to_print.empty() ) return;
     // Only print empty strings if they are to be quoted.
     if( options().quotes )
       oss_ << indent << std::quoted( to_print );
     else if( !to_print.empty() )
       oss_ << indent << to_print;
+    if( options().trailing_slash ) oss_ << " \\";
     oss_ << "\n";
   }
 
@@ -206,6 +228,18 @@ struct CodeGenerator {
     }
   }
 
+  void emit_vert_list_frag( vector<string> const& lines,
+                            string_view           sep ) {
+    int count = lines.size();
+    for( string const& l : lines ) {
+      --count;
+      bool const last = ( count == 0 );
+      if( last ) sep = "";
+      frag( "{}{}", l, sep );
+      if( !last ) flush();
+    }
+  }
+
   void open_ns( string_view ns, string_view leaf = "" ) {
     frag( "namespace {}", ns );
     if( !leaf.empty() ) frag( "::{}", leaf );
@@ -215,10 +249,17 @@ struct CodeGenerator {
     indent().cancel();
   }
 
-  void close_ns( string_view ns, string_view leaf = "" ) {
+  void close_ns_no_flush( string_view ns,
+                          string_view leaf = "" ) {
     pop();
-    frag( "}} // namespace {}", ns );
+    frag( "}" );
+    if( !options().trailing_slash )
+      frag( " // namespace {}", ns );
     if( !leaf.empty() ) frag( "::{}", leaf );
+  }
+
+  void close_ns( string_view ns, string_view leaf = "" ) {
+    close_ns_no_flush( ns, leaf );
     flush();
   }
 
@@ -598,6 +639,186 @@ struct CodeGenerator {
         newline();
       }
       close_ns( "refl" );
+    }
+  }
+
+  void emit( string_view ns, expr::Interface const& interface ) {
+    section( "Interface: "s + interface.name );
+
+    std::string const no_i_name =
+        ( interface.name.size() > 1 &&
+          interface.name[0] == 'I' && interface.name[1] >= 'A' &&
+          interface.name[1] <= 'Z' )
+            ? interface.name.substr( 1 )
+            : interface.name;
+    open_ns( ns );
+
+    // Emits arguments in a function/method declaration verti-
+    // cally.
+    auto emit_arg_list_with_types =
+        [&]( vector<expr::MethodArg> const& args ) {
+          int const max_type_len =
+              max_of( args, L( _.type.size() ), 0 );
+          vector<string> arg_lines;
+          for( auto& arg : args )
+            arg_lines.push_back(
+                fmt::format( "{: <{}} {}", arg.type,
+                             max_type_len, arg.var ) );
+          emit_vert_list_frag( arg_lines, "," );
+        };
+
+    // Emits the context member variables.
+    auto emit_member_list_with_types =
+        [&]( vector<expr::MethodArg> const& args ) {
+          int const max_type_len =
+              max_of( args, L( _.type.size() ), 0 );
+          vector<string> arg_lines;
+          for( auto& arg : args )
+            arg_lines.push_back(
+                fmt::format( "{: <{}} {}_", arg.type,
+                             max_type_len, arg.var ) );
+          emit_vert_list_frag( arg_lines, ";" );
+          frag( ";" );
+          flush();
+        };
+
+    // Emits initializers in a constructor after the ':' verti-
+    // cally.
+    auto emit_init_list_with_types =
+        [&]( vector<expr::MethodArg> const& args ) {
+          vector<string> arg_lines;
+          string         init = ": ";
+          for( auto& arg : args ) {
+            arg_lines.push_back( fmt::format(
+                "{}{}_( {} )", init, arg.var, arg.var ) );
+            init = "  ";
+          }
+          emit_vert_list_frag( arg_lines, "," );
+        };
+
+    // Generate the main interface struct.
+    line( "struct {} {{", interface.name );
+    {
+      auto _ = indent();
+      line( "virtual ~{}() = default;", interface.name );
+      for( expr::Method const& mth : interface.methods ) {
+        newline();
+        line( "virtual {} {}(", mth.return_type, mth.name );
+        {
+          auto _ = indent( 2 );
+          emit_arg_list_with_types( mth.args );
+          frag( " ) const = 0;" );
+          flush();
+        }
+      }
+    }
+    line( "};" );
+    newline();
+
+    // Generate the implementation struct.
+    auto real_name = "Real" + no_i_name;
+    line( "struct {} : public {} {{", real_name,
+          interface.name );
+    {
+      auto _ = indent();
+      // Emit constructor.
+      if( !interface.context.members.empty() ) {
+        line( "{}(", real_name );
+        {
+          auto _ = indent( 2 );
+          emit_arg_list_with_types( interface.context.members );
+          frag( " )" );
+          flush();
+        }
+        {
+          auto _ = indent();
+          emit_init_list_with_types( interface.context.members );
+          frag( " {}" );
+          flush();
+        }
+      }
+
+      // Emit methods.
+      for( expr::Method const& mth : interface.methods ) {
+        newline();
+        line( "{} {}(", mth.return_type, mth.name );
+        {
+          auto _ = indent( 2 );
+          emit_arg_list_with_types( mth.args );
+          frag( " ) const override {" );
+          flush();
+        }
+        {
+          auto _ = indent();
+          line( "return ::{}::{}(", ns, mth.name );
+          {
+            auto           _ = indent();
+            vector<string> vars;
+            for( expr::MethodArg const& arg :
+                 interface.context.members )
+              vars.push_back( arg.var + "_" );
+            for( expr::MethodArg const& arg : mth.args )
+              vars.push_back( arg.var );
+            emit_vert_list_frag( vars, "," );
+            frag( " );" );
+            flush();
+          }
+        }
+        line( "}" );
+      }
+    }
+
+    // Emit the data members held by the implementation struct.
+    if( !interface.context.members.empty() ) {
+      newline();
+      line( " private:" );
+      auto _ = indent();
+      emit_member_list_with_types( interface.context.members );
+    }
+
+    line( "};" );
+
+    newline();
+    close_ns( ns );
+
+    // Emit the mock struct. We emit it within a macro so that we
+    // don't have to include the mocking headers in the generated
+    // files, otherwise normal code would be pulling them in.
+    newline();
+    string const mock_name = "Mock" + interface.name;
+    comment( mock_name );
+    {
+      auto _  = enable_trailing_slashes();
+      auto __ = drop_empty_lines();
+      line( "#define RDS_DEFINE_MOCK_{}()", interface.name );
+      {
+        auto _ = indent();
+        open_ns( ns );
+        line( "struct {} : public {} {{", mock_name,
+              interface.name );
+        {
+          auto _ = indent();
+          for( expr::Method const& mth : interface.methods ) {
+            line( "MOCK_METHOD( {}, {}, (", mth.return_type,
+                  mth.name );
+            {
+              auto           _ = indent();
+              vector<string> arg_names;
+              for( expr::MethodArg const& arg : mth.args )
+                arg_names.push_back( arg.type );
+              emit_vert_list( arg_names, "," );
+              line( "), ( const ) );" );
+            }
+          }
+        }
+        line( "};" );
+        newline();
+        close_ns_no_flush( ns );
+        {
+          auto _ = disable_trailing_slashes();
+          flush();
+        }
+      }
     }
   }
 

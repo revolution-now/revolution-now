@@ -22,6 +22,7 @@ file( GLOB src_ss_sources     "ss/[a-zA-Z]*.cpp"       )
 file( GLOB src_sav_sources    "sav/[a-zA-Z]*.cpp"      )
 
 file( GLOB test_mocks_sources "mocks/[a-zA-Z]*.cpp"    )
+file( GLOB test_rds_sources   "rds/[a-zA-Z]*.cpp"      )
 
 add_executable(
   unittest
@@ -40,6 +41,7 @@ add_executable(
   ${src_ss_sources}
   ${src_sav_sources}
   ${test_mocks_sources}
+  ${test_rds_sources}
 )
 
 set_warning_options( unittest )
@@ -54,6 +56,7 @@ target_link_libraries(
 
 add_dependencies( unittest rds-test )
 get_target_property( RDS_TEST_INCLUDE_DIR rds-test INCLUDE_DIR )
+get_target_property( RDS_TEST_SOURCE_DIR rds-test SOURCE_DIR )
 
 target_include_directories(
   unittest
@@ -62,4 +65,5 @@ target_include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/src/
   ${RDS_TEST_INCLUDE_DIR}/../
+  ${RDS_TEST_SOURCE_DIR}
 )

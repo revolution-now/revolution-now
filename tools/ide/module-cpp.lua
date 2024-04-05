@@ -16,6 +16,7 @@ local format = string.format
 local exists = util.file_exists
 local vsplit = LU.vsplit
 local hsplit = LU.hsplit
+local insert = table.insert
 
 -----------------------------------------------------------------
 -- Private Functions.
@@ -26,77 +27,47 @@ local function files( stem )
   F.hpp = format( 'src/%s.hpp', stem )
   F.rds = format( 'src/%s.rds', stem )
   F.rds_impl = format( 'src/%s-impl.rds', stem )
+  F.rds_iface = format( 'src/i%s.rds', stem )
   F.test = format( 'test/%s-test.cpp', stem )
   return F
 end
 
--- For the non-wide monitors.
--- LuaFormatter off
+-- For the wide monitors.
 local function layout_wide( stem )
   local F = files( stem )
-  local plan = vsplit {
+  local plan = vsplit{
     {}, -- will be filled out.
-    F.cpp,
-    F.test,
+    F.cpp, F.test,
   }
   local new_module = not exists( F.hpp ) and not exists( F.cpp )
-  if exists( F.rds ) and exists( F.rds_impl ) then
-    plan[1] = vsplit {
-      hsplit {
-        F.rds,
-        F.rds_impl
-      },
-      F.hpp
-    }
-  elseif not exists( F.rds ) and exists( F.rds_impl ) then
-    plan[1] = vsplit {
-      F.rds_impl,
-      F.hpp
-    }
-  elseif exists( F.rds ) or new_module then
-    plan[1] = vsplit {
-      F.rds,
-      F.hpp
-    }
+  local rds = {}
+  if exists( F.rds ) or new_module then insert( rds, F.rds ) end
+  if exists( F.rds_iface ) then insert( rds, F.rds_iface ) end
+  if exists( F.rds_impl ) then insert( rds, F.rds_impl ) end
+  if #rds > 0 then
+    plan[1] = vsplit{ hsplit( rds ), F.hpp }
   else
     plan[1] = F.hpp
   end
   return plan
 end
--- LuaFormatter on
 
 -- For the non-wide monitors.
--- LuaFormatter off
 local function layout_narrow( stem )
   local F = files( stem )
-  local plan = vsplit {
+  local plan = vsplit{
     {}, -- will be filled out.
-    F.cpp,
-    F.test,
+    F.cpp, F.test,
   }
   local new_module = not exists( F.hpp ) and not exists( F.cpp )
-  if exists( F.rds ) and exists( F.rds_impl ) then
-    plan[1] = hsplit {
-      F.rds,
-      F.hpp,
-      F.rds_impl
-    }
-  elseif not exists( F.rds ) and exists( F.rds_impl ) then
-    plan[1] = hsplit {
-      F.hpp,
-      F.rds_impl
-    }
-  elseif exists( F.rds ) or new_module then
-    plan[1] = hsplit {
-      F.rds,
-      F.hpp
-    }
-  else
-    plan[1] = F.hpp
-  end
+  local left = {}
+  if exists( F.rds ) or new_module then insert( left, F.rds ) end
+  if exists( F.hpp ) then insert( left, F.hpp ) end
+  if exists( F.rds_iface ) then insert( left, F.rds_iface ) end
+  if exists( F.rds_impl ) then insert( left, F.rds_impl ) end
+  plan[1] = hsplit( left )
   return plan
 end
--- LuaFormatter on
 
 -----------------------------------------------------------------
 -- Public API.
