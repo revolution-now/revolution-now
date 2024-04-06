@@ -1887,6 +1887,45 @@ namespace rn {
   }
 
 /****************************************************************
+*              Interface: IContextOnlyEmptyMethod
+*****************************************************************/
+namespace rn {
+
+  struct IContextOnlyEmptyMethod {
+    virtual ~IContextOnlyEmptyMethod() = default;
+
+    virtual void some_method() const = 0;
+  };
+
+  struct RealContextOnlyEmptyMethod : public IContextOnlyEmptyMethod {
+    RealContextOnlyEmptyMethod(
+        IEmpty&     aaa,
+        IOneMethod& bbb )
+      : aaa_( aaa ),
+        bbb_( bbb ) {}
+
+    void some_method() const override {
+      return ::rn::some_method(
+        aaa_,
+        bbb_ );
+    }
+
+   private:
+    IEmpty&     aaa_;
+    IOneMethod& bbb_;
+  };
+
+} // namespace rn
+
+// MockIContextOnlyEmptyMethod
+#define RDS_DEFINE_MOCK_IContextOnlyEmptyMethod() \
+  namespace rn { \
+    struct MockIContextOnlyEmptyMethod : public IContextOnlyEmptyMethod { \
+      MOCK_METHOD( void, some_method, (), ( const ) ); \
+    }; \
+  }
+
+/****************************************************************
 *                       Interface: IMulti
 *****************************************************************/
 namespace rn {

@@ -766,7 +766,8 @@ struct CodeGenerator {
         {
           auto _ = indent();
           frag( "return ::{}::{}(", ns, mth.name );
-          if( mth.args.empty() ) {
+          if( mth.args.empty() &&
+              interface.context.members.empty() ) {
             frag( ");" );
             flush();
           } else {

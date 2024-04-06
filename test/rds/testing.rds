@@ -257,6 +257,12 @@ interface.IContextOnly {
   _context { aaa 'IEmpty&', bbb 'IOneMethod&' }
 }
 
+interface.IContextOnlyEmptyMethod {
+  some_method { returns 'void' },
+
+  _context { aaa 'IEmpty&', bbb 'IOneMethod&' }
+}
+
 interface.IMulti {
   some_method {
     returns 'IEmpty&',

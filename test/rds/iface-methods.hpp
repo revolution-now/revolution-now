@@ -18,6 +18,8 @@ struct IOneMethod;
 struct IOneMethodWithOneArg;
 struct IOneMethodWithTwoArgs;
 
+void some_method( IEmpty&, IOneMethod& );
+
 IEmpty& some_method( int&, double const&, IOneMethod& );
 
 void some_other_method( int&, double const&,
