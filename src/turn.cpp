@@ -329,8 +329,7 @@ wait<vector<UnitId>> process_unit_prioritization_request(
 // abled in game settings), the autosave mechanism makes sure
 // never to save twice per turn.
 void autosave_if_needed( SS& ss, TS& ts ) {
-  vector<int> const autosave_slots =
-      should_autosave( ss.as_const );
+  set<int> const autosave_slots = should_autosave( ss.as_const );
   if( autosave_slots.empty() ) return;
   // TODO: we may want to inject these somewhere higher up.
   RclGameStorageSave const storage_save( ss );

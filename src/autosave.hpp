@@ -17,7 +17,7 @@
 #include "base/fs.hpp"
 
 // C++ standard library
-#include <vector>
+#include <set>
 
 namespace rn {
 
@@ -27,12 +27,11 @@ struct SSConst;
 
 // Returns the list of autosave slots that need to be saved to
 // this turn, where slot 0 is the first autosave slot.
-[[nodiscard]] std::vector<int> should_autosave(
-    SSConst const& ss );
+[[nodiscard]] std::set<int> should_autosave( SSConst const& ss );
 
 // This will do the save.
 [[nodiscard]] expect<std::vector<fs::path>> autosave(
     SSConst const& ss, IGameSaver const& game_saver,
-    Autosave& autosave, std::vector<int> const& autosave_slots );
+    Autosave& autosave, std::set<int> autosave_slots );
 
 } // namespace rn
