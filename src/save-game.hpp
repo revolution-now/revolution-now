@@ -60,10 +60,15 @@ expect<fs::path> save_to_slot_no_checkpoint(
     SSConst const& ss, TS& ts, IGameStorageSave const& saver,
     int slot );
 
+struct SlotCopiedPaths {
+  fs::path src;
+  fs::path dst;
+};
+
 // When there is a save file in one slot that you want to save
 // (copy) to another, overwriting the destination save file if
 // present.
-expect<std::pair<fs::path, fs::path>> copy_slot_to_slot(
+expect<SlotCopiedPaths> copy_slot_to_slot(
     SSConst const& ss, TS& ts, IGameStorageSave const& saver,
     int src_slot, int dst_slot );
 

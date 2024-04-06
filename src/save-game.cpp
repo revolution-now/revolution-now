@@ -187,7 +187,7 @@ wait<maybe<int>> select_load_slot(
   }
 }
 
-expect<std::pair<fs::path, fs::path>> copy_slot_to_slot(
+expect<SlotCopiedPaths> copy_slot_to_slot(
     SSConst const&, TS&, IGameStorageSave const& saver,
     int src_slot, int dst_slot ) {
   fs::path const src_path =
@@ -206,7 +206,7 @@ expect<std::pair<fs::path, fs::path>> copy_slot_to_slot(
   HAS_VALUE_OR_RET( base::copy_file_overwriting_destination(
       src_path, dst_path ) );
 
-  return pair{ src_path, dst_path };
+  return SlotCopiedPaths{ .src = src_path, .dst = dst_path };
 }
 
 /****************************************************************

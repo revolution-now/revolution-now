@@ -12,11 +12,8 @@
 
 // Revolution Now
 #include "isave-game.rds.hpp"
-#include "maybe.hpp"
-#include "save-game.hpp"
 
 // config
-#include "config/nation.rds.hpp"
 #include "config/savegame.rds.hpp"
 
 // ss
@@ -38,27 +35,13 @@ namespace {
 
 using ::std::views::iota;
 
-int num_normal_save_slots() {
-  return config_savegame.num_normal_save_slots;
-}
-
-int num_autosave_slots() {
-  return config_savegame.autosave.slots.size();
-}
-
-int autosave_slot_to_absolute_slot( int autosave_slot ) {
-  return num_normal_save_slots() + autosave_slot;
-}
-
-expect<fs::path> autosave_one_slot( IGameSaver const& game_saver,
-                                    int absolute_slot ) {
-  // Note that, unlike player-initiated saving, we don't capture
-  // a checkpoint of the save state here (which is held in ts.s-
-  // tate) because we don't want auto-saves to count as saves in
-  // that regard, since otherwise the player would not be
-  // prompted to save the game on exit if it had just been
-  // auto-saved.
-  return game_saver.save_to_slot_no_checkpoint( absolute_slot );
+// Autosave slot indices by convention start after the normal
+// slots end. I.e autosave slot 0 is the first autosave slot,
+// which, in the OG, would be COLONY08.SAV.
+int autosave_to_absolute( int autosave_slot ) {
+  int const num_normal_save_slots =
+      config_savegame.num_normal_save_slots;
+  return num_normal_save_slots + autosave_slot;
 }
 
 } // namespace
@@ -76,7 +59,9 @@ vector<int> should_autosave( SSConst const& ss ) {
   auto const& last_save = ss.turn.autosave.last_save;
   if( last_save.has_value() && *last_save >= curr_turn )
     return res;
-  for( int const i : iota( 0, num_autosave_slots() ) ) {
+  int const num_autosave_slots =
+      config_savegame.autosave.slots.size();
+  for( int const i : iota( 0, num_autosave_slots ) ) {
     auto const& slot = config_savegame.autosave.slots[i];
     if( !slot.enabled ) continue;
     CHECK_NEQ( slot.frequency, 0 ); // validated by config.
@@ -104,19 +89,25 @@ expect<std::vector<fs::path>> autosave(
   // method as it did when the save was made.
   autosave.last_save = ss.turn.time_point.turns;
 
-  int const first_autosave_slot = autosave_slots[0];
+  CHECK_GT( autosave_slots.size(), 0u );
   int const first_absolute_slot =
-      autosave_slot_to_absolute_slot( first_autosave_slot );
-  UNWRAP_RETURN(
-      first_path,
-      autosave_one_slot( game_saver, first_absolute_slot ) );
+      autosave_to_absolute( autosave_slots[0] );
+  // Note that, unlike player-initiated saving, we don't capture
+  // a checkpoint of the save state here (which is held in ts.s-
+  // tate) because we don't want auto-saves to count as saves in
+  // that regard, since otherwise the player would not be
+  // prompted to save the game on exit if it had just been
+  // auto-saved.
+  UNWRAP_RETURN( first_path,
+                 game_saver.save_to_slot_no_checkpoint(
+                     first_absolute_slot ) );
   res.push_back( first_path );
 
   for( int dst_autosave_slot = 1;
        dst_autosave_slot < int( autosave_slots.size() );
        ++dst_autosave_slot ) {
     int const dst_absolute_slot =
-        autosave_slot_to_absolute_slot( dst_autosave_slot );
+        autosave_to_absolute( dst_autosave_slot );
     UNWRAP_RETURN(
         paths, game_saver.copy_slot_to_slot(
                    first_absolute_slot, dst_absolute_slot ) );

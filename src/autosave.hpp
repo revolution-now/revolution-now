@@ -28,7 +28,7 @@ struct SSConst;
 // Returns the list of autosave slots that need to be saved to
 // this turn, where slot 0 is the first autosave slot.
 [[nodiscard]] std::vector<int> should_autosave(
-    SSConst const& autosave );
+    SSConst const& ss );
 
 // This will do the save.
 [[nodiscard]] expect<std::vector<fs::path>> autosave(

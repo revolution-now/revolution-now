@@ -38,7 +38,7 @@ interface.IGameSaver {
   },
 
   copy_slot_to_slot {
-    returns 'base::expect<std::pair<fs::path, fs::path>>',
+    returns 'base::expect<SlotCopiedPaths>',
     src_slot 'int',
     dst_slot 'int',
   },
