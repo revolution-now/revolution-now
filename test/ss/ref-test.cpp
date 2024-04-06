@@ -317,5 +317,17 @@ TEST_CASE( "[game-state] some test" ) {
                conv, cdr_game_state_default ) == root_def );
 }
 
+TEST_CASE( "[game-state] RootState convenience methods" ) {
+  RootState l;
+  RootState r;
+  REQUIRE( root_states_equal( l, r ) );
+  r.land_view.map_revealed = MapRevealed::entire{};
+  REQUIRE_FALSE( root_states_equal( l, r ) );
+  RootState old_r = r;
+  assign_src_to_dst( as_const( l ), r );
+  REQUIRE( root_states_equal( l, r ) );
+  REQUIRE_FALSE( root_states_equal( r, old_r ) );
+}
+
 } // namespace
 } // namespace rn

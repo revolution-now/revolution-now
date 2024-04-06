@@ -98,6 +98,18 @@ base::valid_or<std::string> SSConst::validate_game_state()
 }
 
 /****************************************************************
+** Root reference helpers.
+*****************************************************************/
+bool root_states_equal( RootState const& l,
+                        RootState const& r ) {
+  return l == r;
+}
+
+void assign_src_to_dst( RootState const& src, RootState& dst ) {
+  dst = src;
+}
+
+/****************************************************************
 ** Lua Bindings
 *****************************************************************/
 namespace {

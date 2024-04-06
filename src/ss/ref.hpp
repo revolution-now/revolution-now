@@ -116,6 +116,19 @@ struct SS {
 
 void to_str( SS const& o, std::string& out, base::ADL_t );
 
+/****************************************************************
+** Root reference helpers.
+*****************************************************************/
+// These are here for convenience; they allow performing the
+// named actions on the RootState with only references, and thus
+// the caller doesn't have to include all of the state. We can
+// easily implement these in this module's cpp file because it
+// already includes the root header as it manages the root state
+// itself.
+[[nodiscard]] bool root_states_equal( RootState const& l,
+                                      RootState const& r );
+void assign_src_to_dst( RootState const& src, RootState& dst );
+
 } // namespace rn
 
 /****************************************************************
