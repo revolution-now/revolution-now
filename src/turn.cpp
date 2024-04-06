@@ -14,7 +14,7 @@
 #include "turn-impl.rds.hpp"
 
 // Revolution Now
-#include "autosave.hpp"
+#include "auto-save.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"

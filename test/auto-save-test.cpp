@@ -1,17 +1,17 @@
 /****************************************************************
-**autosave-test.cpp
+**auto-save-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2024-04-06.
 *
-* Description: Unit tests for the autosave module.
+* Description: Unit tests for the auto-save module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/autosave.hpp"
+#include "src/auto-save.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -66,7 +66,7 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[autosave] should_autosave" ) {
+TEST_CASE( "[auto-save] should_autosave" ) {
   World    w;
   set<int> expected;
 
@@ -155,7 +155,7 @@ TEST_CASE( "[autosave] should_autosave" ) {
   }
 }
 
-TEST_CASE( "[autosave] autosave" ) {
+TEST_CASE( "[auto-save] autosave" ) {
   World                         w;
   set<int>                      slots;
   expect<std::vector<fs::path>> expected = "";

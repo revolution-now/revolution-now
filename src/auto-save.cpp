@@ -1,5 +1,5 @@
 /****************************************************************
-**autosave.cpp
+**auto-save.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Handles logic related to autosaving.
 *
 *****************************************************************/
-#include "autosave.hpp"
+#include "auto-save.hpp"
 
 // Revolution Now
 #include "isave-game.rds.hpp"
