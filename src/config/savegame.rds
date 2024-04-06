@@ -8,23 +8,36 @@
 # Description: Config info for game saving.
 #
 # ===============================================================
+# config
+include "config/savegame-enums.rds.hpp"
+
 # base
 include "base/fs.hpp"
-include "base/maybe.hpp"
+
+namespace "rn"
+
+namespace "rn.config.savegame"
+
+struct.AutosaveSlot {
+  enabled 'bool',
+  frequency 'int',
+  save_on_turn_zero 'bool',
+
+  _features { equality, validation }
+}
+
+struct.Autosave {
+  enabled 'bool',
+  slots 'std::vector<AutosaveSlot>',
+}
 
 namespace "rn"
 
 struct.config_savegame_t {
   folder 'fs::path',
-
-  # Do an autosave every N turns. Set to nothing to disable
-  # auto-save.
-  autosave_frequency 'base::maybe<int>',
-
-  # How many normal savegame slots do we allow. Note that this
-  # does not include the auto save slot, which will be added onto
-  # the end.
-  num_save_slots 'int',
+  num_normal_save_slots 'int',
+  default_savegame_verbosity 'e_savegame_verbosity',
+  autosave 'config::savegame::Autosave',
 }
 
 config.savegame {}

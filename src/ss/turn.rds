@@ -39,6 +39,14 @@ struct.TurnTimePoint {
   _features { validation, equality }
 }
 
+struct.Autosave {
+  # This is the last turn that was autosaved. This is to prevent
+  # auto-saving multiple times per turn, which can happen because
+  # there are a couple of checkpoints where we try to autosave in
+  # a turn if an autosave has not yet been done in that turn.
+  last_save 'base::maybe<int>',
+}
+
 sumtype.NationTurnState {
   not_started {},
   colonies {},
@@ -64,5 +72,6 @@ sumtype.TurnCycle {
 
 struct.TurnState {
   time_point 'TurnTimePoint',
+  autosave 'Autosave',
   cycle 'TurnCycle',
 }

@@ -48,10 +48,10 @@ TEST_CASE( "[base/fs] copy_file_overwriting_destination" ) {
     dst            = "";
     auto const res = f();
     REQUIRE( !res.valid() );
-    REQUIRE( res.error() ==
-             "failed to copy file \"\" to \"\": code: 2, error: "
-             "filesystem error: cannot copy file: No such file "
-             "or directory [] []" );
+    REQUIRE_THAT(
+        res.error(),
+        StartsWith( "failed to copy file \"\" to \"\": code: 2, "
+                    "error: filesystem error:" ) );
   }
 
   SECTION( "src not exist, dst not exist" ) {

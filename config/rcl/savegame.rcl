@@ -1,9 +1,32 @@
 folder: "saves"
 
-# Do an autosave every N turns. Set to null to disable auto-save.
-autosave_frequency: 3
-
 # How many normal savegame slots do we allow. Note that this does
-# not include the auto save slot, which will be added onto the
+# not include the auto save slots which will be added onto the
 # end.
-num_save_slots: 9
+num_normal_save_slots: 8
+
+default_savegame_verbosity: full
+
+autosave {
+  # If this is disabled then it takes precedent and disables all
+  # slots; otherwise, each slot's enabled flag is used below.
+  enabled: true
+
+  # For each slot:
+  #
+  #  enabled:           consulted if the global enable is true.
+  #  frequency:         how often in turns to save to this slot.
+  #  save_on_turn_zero: whether to save on the first turn.
+  #
+  # Note that these are available in the load screen, but not the
+  # save screen.
+  slots [
+    # The OG has two autosave slots. File COLONY09.SAV is saved
+    # at the end of every turn, including on the very first turn,
+    # and file COLONY08.SAV is saved at the end of each decade
+    # (not including the first turn). The below config replicates
+    # that, though it is ok to add to this or change it.
+    { enabled=true, frequency=10, save_on_turn_zero=false },
+    { enabled=true, frequency=1,  save_on_turn_zero=true  },
+  ]
+}

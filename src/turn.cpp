@@ -14,6 +14,7 @@
 #include "turn-impl.rds.hpp"
 
 // Revolution Now
+#include "autosave.hpp"
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
@@ -30,6 +31,7 @@
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
 #include "iraid.rds.hpp"
+#include "isave-game.rds.hpp"
 #include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -43,6 +45,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
+#include "rcl-game-storage.hpp"
 #include "road.hpp"
 #include "roles.hpp"
 #include "save-game.hpp"
@@ -81,6 +84,7 @@
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
 #include "base/scope-exit.hpp"
+#include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // base-util
@@ -159,6 +163,48 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
 /****************************************************************
 ** Helpers
 *****************************************************************/
+// This is called when the user tries to do something that might
+// leave the current game. It will check if the current game has
+// unsaved changes and, if so, will ask the user if they want to
+// save it. If the user does, then it will open the save-game di-
+// alog box. If the user escapes out of that dialog box (i.e.,
+// does not explicitly select "no") then this function will re-
+// turn false, since that can be useful to the caller, since it
+// may indicate that the user is trying to abort whatever process
+// prompted the save-game box to appear in the first place.
+//
+// Will return whether it is safe to proceed.
+wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
+    SSConst const& ss, TS& ts,
+    IGameStorageSave const& storage_save ) {
+  auto is_game_saved = [&] {
+    // Checks if the serializable game state has been modified in
+    // any way since the last time it was saved or loaded.
+    return base::timer( "saved state comparison", [&] {
+      return root_states_equal( ss.root, ts.saved );
+    } );
+  };
+  if( is_game_saved() ) co_return true;
+  YesNoConfig const config{ .msg =
+                                "This game has unsaved changes. "
+                                "Would you like to save?",
+                            .yes_label      = "Yes",
+                            .no_label       = "No",
+                            .no_comes_first = false };
+
+  maybe<ui::e_confirm> const answer =
+      co_await ts.gui.optional_yes_no( config );
+  if( !answer.has_value() ) co_return false;
+  if( answer == ui::e_confirm::no ) co_return true;
+  maybe<int> const slot =
+      co_await select_save_slot( ts, storage_save );
+  if( !slot.has_value() ) co_return false;
+  RealGameSaver const game_saver( ss, ts, storage_save );
+  bool const          saved =
+      co_await game_saver.save_to_slot_interactive( *slot );
+  co_return saved;
+}
+
 wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
   YesNoConfig const          config{ .msg       = "Exit to DOS?",
                                      .yes_label = "Yes",
@@ -167,7 +213,11 @@ wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
   if( answer != ui::e_confirm::yes ) co_return;
-  bool const can_proceed = co_await check_ask_save( ss, ts );
+  // TODO: we may want to inject these somewhere higher up.
+  RclGameStorageSave const storage_save( ss );
+  bool const               can_proceed =
+      co_await check_if_not_dirty_or_can_proceed( ss, ts,
+                                                  storage_save );
   if( can_proceed ) throw game_quit_interrupt{};
 }
 
@@ -263,6 +313,36 @@ wait<vector<UnitId>> process_unit_prioritization_request(
   co_return std::move( prioritize );
 }
 
+// Unlike in the OG, which autosaves when the year changes, we
+// don't do that, because then when the player loads a sav file
+// that was saved by the auto save, the first thing they see
+// happen (immediately, without input) is that the natives start
+// moving, which seems strange. So in the NG we autosave at
+// points where the player is being prompted for some kind of in-
+// put, that way when they load that file they will that same
+// input being asked of them as the first thing, which feels
+// better for the player. Since the player is guaranteed to have
+// at least one of the following each turn: 1) a blinking unit
+// asking for input, or 2) the end-of-turn sign blinking waiting
+// for input, we therefore attempt to autosave at those two
+// points. Since sometimes both can happen (if end-of-turn is en-
+// abled in game settings), the autosave mechanism makes sure
+// never to save twice per turn.
+void autosave_if_needed( SS& ss, TS& ts ) {
+  vector<int> const autosave_slots =
+      should_autosave( ss.as_const );
+  if( autosave_slots.empty() ) return;
+  // TODO: we may want to inject these somewhere higher up.
+  RclGameStorageSave const storage_save( ss );
+  RealGameSaver const      game_saver( ss, ts, storage_save );
+  // This will do the save.
+  expect<std::vector<fs::path>> const paths_saved =
+      autosave( ss.as_const, game_saver, ss.turn.autosave,
+                autosave_slots );
+  if( !paths_saved.has_value() )
+    lg.error( "failed to auto-save: {}", paths_saved.error() );
+}
+
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
@@ -274,14 +354,28 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
       break;
     }
     case e_menu_item::save: {
-      co_await save_game_menu( ss, ts );
+      // TODO: we may want to inject these somewhere higher up.
+      RclGameStorageSave const storage_save( ss );
+      RealGameSaver const game_saver( ss, ts, storage_save );
+      maybe<int> const    slot =
+          co_await select_save_slot( ts, storage_save );
+      if( slot.has_value() ) {
+        bool const saved =
+            co_await game_saver.save_to_slot_interactive(
+                *slot );
+        (void)saved;
+      }
       break;
     }
     case e_menu_item::load: {
-      bool const can_proceed = co_await check_ask_save( ss, ts );
+      // TODO: we may want to inject these somewhere higher up.
+      RclGameStorageSave const storage_save( ss );
+      bool const               can_proceed =
+          co_await check_if_not_dirty_or_can_proceed(
+              ss, ts, storage_save );
       if( !can_proceed ) break;
       game_load_interrupt load;
-      load.slot = co_await choose_load_slot( ts );
+      load.slot = co_await select_load_slot( ts, storage_save );
       if( load.slot.has_value() ) throw load;
       break;
     }
@@ -451,6 +545,9 @@ wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
 // turns.
 wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
                                    Player& player ) {
+  // See comments above the autosave_if_needed function for why
+  // we are putting this here and how it works.
+  autosave_if_needed( ss, ts );
   co_return co_await eot::process_input( ss, ts, player );
 }
 
@@ -562,18 +659,31 @@ wait<> process_player_input(
 }
 
 wait<LandViewPlayerInput> landview_player_input(
-    ILandViewPlane&         land_view_plane,
-    NationTurnState::units& nat_units,
-    UnitsState const& units_state, UnitId id ) {
+    SS& ss, TS& ts, NationTurnState::units& nat_units,
+    UnitId id ) {
   LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
     response = LandViewPlayerInput::give_command{
         .cmd = *maybe_command };
   } else {
     lg.debug( "asking orders for: {}",
-              debug_string( units_state, id ) );
+              debug_string( as_const( ss.units ), id ) );
     nat_units.skip_eot = true;
-    response = co_await land_view_plane.get_next_input( id );
+    // See comments above the autosave_if_needed function for why
+    // we are putting it in this general location and how it
+    // works (note it appears in other locations as well). That
+    // said, as a comment about this specific location, we should
+    // save the game after we set skip_eot to true otherwise if
+    // the player loads an auto-save file that was saved here and
+    // then immediately tries to exit the game, the game state
+    // will be dirty because the skip_eot will have changed. It
+    // won't cause any issues that we're saving with skip_eot set
+    // to true because when the auto-save is reloaded from this
+    // point, the unit that is asking for orders will still be
+    // asking for orders, so skip_eot will again be set to true.
+    autosave_if_needed( ss, ts );
+    response =
+        co_await ts.planes.land_view().get_next_input( id );
   }
   co_return response;
 }
@@ -583,8 +693,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
                          NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.menu() ),
-      landview_player_input( ts.planes.land_view(), nat_units,
-                             ss.units, id ) );
+      landview_player_input( ss, ts, nat_units, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
     return process_player_input( id, action, ss, ts, player,
                                  nat_units );
@@ -1057,7 +1166,6 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       // the start of the native's turn in the next cycle.
       recompute_fog_for_all_nations( ss, ts );
       co_await advance_time( ts.gui, turn.time_point );
-      if( should_autosave( ss ) ) autosave( ss, ts );
       co_return TurnCycle::finished{};
     }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }

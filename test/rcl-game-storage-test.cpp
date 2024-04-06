@@ -1,18 +1,18 @@
 /****************************************************************
-**save-game.cpp
+**rcl-game-storage-test.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-02-15.
+* Created by David P. Sicilia on 2024-04-06.
 *
-* Description: Unit tests for the src/save-game.* module.
+* Description: Unit tests for the rcl-game-storage module.
 *
 *****************************************************************/
 #include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/save-game.hpp"
+#include "src/rcl-game-storage.hpp"
 
 // Testing.
 #include "test/fake/world.hpp"
@@ -20,6 +20,9 @@
 
 // Revolution Now
 #include "src/rand.hpp"
+
+// config
+#include "src/config/savegame-enums.rds.hpp"
 
 // ss
 #include "src/ss/ref.hpp"
@@ -91,19 +94,21 @@ void create_new_game_from_lua( World& world ) {
       new_game["create"].pcall( world.root(), options ) );
 }
 
-void generate_save_file( World& world, fs::path const& dst,
-                         SaveGameOptions const& options ) {
+void generate_save_file(
+    World& world, fs::path const& dst,
+    RclGameStorageSave::options const& options ) {
   reset_seeds( world.lua() );
   create_new_game_from_lua( world );
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
-  REQUIRE( save_game_to_rcl_file( world.ss(), dst, options ) );
+  RclGameStorageSave saver( world.ss(), options );
+  REQUIRE( saver.store( dst ) );
 }
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[save-game] no default values (compact)" ) {
+TEST_CASE( "[rcl-game-storage] no default values (compact)" ) {
   World W;
   W.expensive_run_lua_init();
   // FIXME
@@ -112,9 +117,12 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
   static fs::path const src =
       data_dir() / "saves/compact.sav.rcl";
 
-  static SaveGameOptions const opts{
+  static RclGameStorageSave::options const opts{
       .verbosity = e_savegame_verbosity::compact,
   };
+
+  RclGameStorageSave saver( W.ss(), opts );
+  RclGameStorageLoad loader( W.ss() );
 
 #if REGENERATE_FILES
   expect_rands( W );
@@ -133,9 +141,9 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 
   // Make a round trip.
   print_line( "Load Compact" );
-  REQUIRE( load_game_from_rcl_file( W.root(), src, opts ) );
+  REQUIRE( loader.load( src ) );
   print_line( "Save Compact" );
-  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
+  REQUIRE( saver.store( dst ) );
 
   UNWRAP_CHECK( src_text,
                 base::read_text_file_as_string( src ) );
@@ -151,7 +159,7 @@ TEST_CASE( "[save-game] no default values (compact)" ) {
 // pass; e.g. when we add a new field to the schema it fails, but
 // that situation is normal and allowed as the schema evolves.
 #if 0
-TEST_CASE( "[save-game] default values (full)" ) {
+TEST_CASE( "[rcl-game-storage] default values (full)" ) {
   World W;
   W.expensive_run_lua_init();
   // FIXME
@@ -159,7 +167,7 @@ TEST_CASE( "[save-game] default values (full)" ) {
 
   static fs::path const src = data_dir() / "saves/full.sav.rcl";
 
-  static SaveGameOptions const opts{
+  static RclGameStorageSave::options const opts{
       .verbosity = e_savegame_verbosity::full,
   };
 
@@ -194,7 +202,8 @@ TEST_CASE( "[save-game] default values (full)" ) {
 }
 #endif
 
-TEST_CASE( "[save-game] world gen with default values (full)" ) {
+TEST_CASE(
+    "[rcl-game-storage] world gen with default values (full)" ) {
   World W;
   W.expensive_run_lua_init();
   W.initialize_ts();
@@ -208,16 +217,19 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
 
-  SaveGameOptions opts{
+  RclGameStorageSave::options const opts{
       .verbosity = e_savegame_verbosity::full,
   };
 
+  RclGameStorageSave saver( W.ss(), opts );
+  RclGameStorageLoad loader( W.ss() );
+
   // Make a round trip.
   print_line( "Save Gen" );
-  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
+  REQUIRE( saver.store( dst ) );
   W.root() = {};
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( loader.load( dst ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
@@ -225,7 +237,8 @@ TEST_CASE( "[save-game] world gen with default values (full)" ) {
 }
 
 TEST_CASE(
-    "[save-game] world gen with no default values (compact)" ) {
+    "[rcl-game-storage] world gen with no default values "
+    "(compact)" ) {
   World W;
   W.expensive_run_lua_init();
   W.initialize_ts();
@@ -240,23 +253,26 @@ TEST_CASE(
   if( fs::exists( dst ) ) fs::remove( dst );
   CHECK( !fs::exists( dst ) );
 
-  SaveGameOptions opts{
+  RclGameStorageSave::options const opts{
       .verbosity = e_savegame_verbosity::compact,
   };
 
+  RclGameStorageSave saver( W.ss(), opts );
+  RclGameStorageLoad loader( W.ss() );
+
   // Make a round trip.
   print_line( "Save Gen" );
-  REQUIRE( save_game_to_rcl_file( W.ss(), dst, opts ) );
+  REQUIRE( saver.store( dst ) );
   W.root() = {};
   print_line( "Load Gen" );
-  REQUIRE( load_game_from_rcl_file( W.root(), dst, opts ) );
+  REQUIRE( loader.load( dst ) );
 
   // Use parenthesis here so that it doesn't dump the entire save
   // file to the console if they don't match.
   REQUIRE( ( backup == W.root() ) );
 }
 
-TEST_CASE( "[save-game] determinism" ) {
+TEST_CASE( "[rcl-game-storage] determinism" ) {
   auto generate = []( fs::path const& dst ) {
     World W;
     W.expensive_run_lua_init();
@@ -264,7 +280,7 @@ TEST_CASE( "[save-game] determinism" ) {
     W.initialize_ts();
     if( fs::exists( dst ) ) fs::remove( dst );
     CHECK( !fs::exists( dst ) );
-    static SaveGameOptions const opts{
+    static RclGameStorageSave::options const opts{
         .verbosity = e_savegame_verbosity::compact,
     };
     expect_rands( W );
@@ -289,7 +305,7 @@ TEST_CASE( "[save-game] determinism" ) {
   REQUIRE( ( fst_text == snd_text ) );
 }
 
-TEST_CASE( "[save-game] no regen" ) {
+TEST_CASE( "[rcl-game-storage] no regen" ) {
   // This will flag if we forget to turn off file regeneration.
   // It may cause issues though if we turn on random test order-
   // ing.

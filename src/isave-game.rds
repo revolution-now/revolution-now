@@ -1,0 +1,51 @@
+# ===============================================================
+# isave-game.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-04-06.
+#
+# Description: Interface for the save-game module.
+#
+# ===============================================================
+# Module header.
+include "save-game.hpp"
+
+# base
+include "base/expect.hpp"
+include "base/fs.hpp"
+include "base/vocab.hpp"
+
+namespace "rn"
+
+# ===============================================================
+# IGameSaver
+# ===============================================================
+interface.IGameSaver {
+  save_to_slot_interactive {
+    returns 'wait<base::NoDiscard<bool>>',
+    slot 'int',
+  },
+
+  save_to_slot {
+    returns 'base::expect<fs::path>',
+    slot 'int',
+  },
+
+  save_to_slot_no_checkpoint {
+    returns 'base::expect<fs::path>',
+    slot 'int',
+  },
+
+  copy_slot_to_slot {
+    returns 'base::expect<std::pair<fs::path, fs::path>>',
+    src_slot 'int',
+    dst_slot 'int',
+  },
+
+  _context {
+    ss 'SSConst const&',
+    ts 'TS&',
+    saver 'IGameStorageSave const&',
+  },
+}

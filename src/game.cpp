@@ -32,7 +32,8 @@
 #include "panel.hpp"
 #include "plane-stack.hpp"
 #include "rand.hpp"
-#include "renderer.hpp" // FIXME: remove
+#include "rcl-game-storage.hpp" // FIXME: temporary
+#include "renderer.hpp"         // FIXME: remove
 #include "save-game.hpp"
 #include "ts.hpp"
 #include "turn.hpp"
@@ -217,14 +218,16 @@ wait<> handle_mode( Planes&                planes,
     if( !slot.has_value() ) {
       // Pop open the load-game box to let the player choose what
       // they want to load.
-      slot = co_await choose_load_slot( ts );
+      slot =
+          co_await select_load_slot( ts, RclGameStorageQuery() );
       if( !slot.has_value() )
         // The player has cancelled, or the load did not succeed
         // for some other reason.
         co_return false;
     }
     CHECK( slot.has_value() );
-    co_return co_await load_slot( ss, ts, *slot );
+    co_return co_await load_from_slot_interactive(
+        ss, ts, RclGameStorageLoad( ss ), *slot );
   };
   co_await run_game( planes, factory );
 }

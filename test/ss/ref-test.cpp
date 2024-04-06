@@ -150,6 +150,10 @@ cdr::value cdr_game_state_default = cdr::table{
                     "season"_key = "winter",
                     "turns"_key  = 0,
                 },
+            "autosave"_key =
+                cdr::table{
+                    "last_save"_key = cdr::null,
+                },
             "cycle"_key =
                 cdr::table{
                     "not_started"_key = cdr::table{},
