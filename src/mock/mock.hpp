@@ -240,10 +240,10 @@ struct Responder<RetT, std::tuple<Args...>,
   using args_refs_t = std::tuple<Args const&...>;
   using matchers_t  = std::tuple<MatcherWrapper<Args>...>;
   using setters_t   = std::tuple<
-      std::conditional_t<Settable<Args>,
-                         base::maybe<std::remove_reference_t<
-                             std::remove_pointer_t<Args>>>,
-                         None>...>;
+        std::conditional_t<Settable<Args>,
+                           base::maybe<std::remove_reference_t<
+                               std::remove_pointer_t<Args>>>,
+                           None>...>;
   using array_setters_t = std::tuple<
       std::conditional_t<SettablePointer<Args>,
                          std::vector<std::remove_reference_t<
@@ -269,10 +269,12 @@ struct Responder<RetT, std::tuple<Args...>,
           auto const& matcher = matcher_wrapper.matcher();
           if( !matcher.matches( arg ) )
             throw_unexpected_error( fmt::format(
-                "mock function call with unexpected arguments: "
-                "{}( {} ); Argument #{} (one-based) does not "
-                "match expected value {}.",
-                fn_name_, formatted_args, ArgIdx + 1,
+                "mock function `{}` called with unexpected "
+                "arguments:\n"
+                "argument #{} (one-based) does not match.\n"
+                "expected: {}( {} )\n"
+                "actual:   {}",
+                fn_name_, ArgIdx + 1, fn_name_, formatted_args,
                 matcher.format_expected() ) );
         };
     ( check_argument( std::integral_constant<size_t, Idx>{} ),
