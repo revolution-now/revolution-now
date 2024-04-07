@@ -269,14 +269,18 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   // Need to do this in a loop because we need a separate return
   // object for each one (since they are moved).
   for( int i = 0; i < 8; ++i ) {
+    INFO( fmt::format( "i: {}", i ) );
     W.gui()
         .EXPECT__choice(
             Field( &ChoiceConfig::msg,
-                   StrContains( "Who shall we next choose" ) ),
+                   StrContains( fmt::format(
+                       "Who shall we choose as immigrant number "
+                       "[{}] out of 8",
+                       i + 1 ) ) ),
             e_input_required::no )
         .returns( make_wait<maybe<string>>( "1" ) );
     W.gui()
-        .EXPECT__wait_for( chrono::milliseconds( 300 ) )
+        .EXPECT__wait_for( chrono::milliseconds( 100 ) )
         .returns( chrono::microseconds{} );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 9960.0 was found by summing

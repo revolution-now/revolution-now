@@ -157,7 +157,8 @@ wait<LostCityRumorResult> run_burial_mounds_result(
 }
 
 wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
-                           SettingsState const& settings ) {
+                           SettingsState const& settings,
+                           int total, int idx ) {
   Player const& cplayer = player;
   // NOTE: The original game seems to always allow the player to
   // choose from the three immigrants in the pool for each round
@@ -166,8 +167,9 @@ wait<> take_one_immigrant( SS& ss, TS& ts, Player& player,
   // player to choose when William Brewster has been obtained.
   maybe<int> choice = co_await ask_player_to_choose_immigrant(
       ts.gui, cplayer.old_world.immigration,
-      "Who shall we next choose to join us in the New "
-      "World?" );
+      fmt::format( "Who shall we choose as immigrant number "
+                   "[{}] out of {} to join us in the New World?",
+                   idx + 1, total ) );
   // The original game allows escaping from each prompt and that
   // will skip to the next one without adding an immigrant.
   if( !choice.has_value() ) co_return;
@@ -184,14 +186,11 @@ wait<> run_fountain_of_youth( SS& ss, TS& ts, Player& player,
       "You've discovered a Fountain of Youth!" );
   int const count = config_lcr.fountain_of_youth_num_immigrants;
   for( int i = 0; i < count; ++i ) {
-    co_await take_one_immigrant( ss, ts, player, settings );
-    // If we don't do this then the next window pops up instanta-
-    // neously and its visually confusing since it's not clear
-    // that the first window closed and a new one popped up, it
-    // gives the impression that the first selection did not
-    // work. Do this with IGui so that we don't make life diffi-
-    // cult for unit tests.
-    co_await ts.gui.wait_for( chrono::milliseconds( 300 ) );
+    co_await take_one_immigrant( ss, ts, player, settings, count,
+                                 i );
+    // Give a little visual indicator that there are multiple
+    // windows popping up.
+    co_await ts.gui.wait_for( chrono::milliseconds( 100 ) );
   }
 }
 
