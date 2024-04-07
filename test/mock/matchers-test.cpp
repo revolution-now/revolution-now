@@ -27,9 +27,7 @@
 
 #define REQUIRE_UNEXPECTED_ARGS( ... ) \
   REQUIRE_THROWS_WITH(                 \
-      __VA_ARGS__,                     \
-      Catch::Matches(                  \
-          "mock function call with unexpected arguments.*" ) );
+      __VA_ARGS__, Catch::Contains( "unexpected arguments" ) );
 
 namespace mock {
 namespace {
@@ -785,10 +783,12 @@ TEST_CASE( "[mock] matcher stringification" ) {
                                  TupleElement<1>( Ge( 3 ) ) ) );
   REQUIRE_THROWS_WITH(
       user.set_xy_pair( { 5, 2 } ),
-      "mock function call with unexpected arguments: "
-      "set_xy_pair( (5,2) ); Argument #1 (one-based) does not "
-      "match expected value AllOf( (TupleElement( (0,Ge( 5 )) "
-      "), TupleElement( (1,Ge( 3 )) )) )." );
+      "mock function `set_xy_pair` called with unexpected "
+      "arguments:\n"
+      "argument #1 (one-based) does not match.\n"
+      "expected: set_xy_pair( (5,2) )\n"
+      "actual:   AllOf( (TupleElement( (0,Ge( 5 )) ), "
+      "TupleElement( (1,Ge( 3 )) )) )" );
 
   user.set_xy_pair( { 5, 3 } );
 }
@@ -827,10 +827,11 @@ TEST_CASE( "[mock] Eq-ref trick" ) {
     ++tr.n;
     REQUIRE_THROWS_WITH(
         user.calls_no_copy_arg_2( tr ),
-        "mock function call with unexpected arguments: "
-        "no_copy_arg_2( Trivial{d=0,n=9} ); Argument #1 "
-        "(one-based) does not match expected value "
-        "Trivial{d=0,n=8}." );
+        "mock function `no_copy_arg_2` called with unexpected "
+        "arguments:\n"
+        "argument #1 (one-based) does not match.\n"
+        "expected: no_copy_arg_2( Trivial{d=0,n=9} )\n"
+        "actual:   Trivial{d=0,n=8}" );
     // Satisfy the expecation so the test doesn't fail.
     --tr.n;
     user.calls_no_copy_arg_2( tr );

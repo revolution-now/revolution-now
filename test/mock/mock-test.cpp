@@ -24,6 +24,7 @@ namespace mock {
 namespace {
 
 using namespace std;
+using ::Catch::Contains;
 using ::Catch::Matches;
 using ::mock::matchers::_;
 using ::testing::monitoring_types::MovedFromCounter;
@@ -246,7 +247,7 @@ TEST_CASE(
   SECTION( "set_xy" ) {
     mp.EXPECT__set_xy( _, 5 );
     REQUIRE_THROWS_WITH( user.set_xy( 0, 4 ),
-                         Matches( ".*unexpected arguments.*" ) );
+                         Contains( "unexpected arguments" ) );
     // Make the expected call so an error isn't thrown.
     mp.set_xy( 0, 5 );
   }
@@ -255,9 +256,11 @@ TEST_CASE(
     mp.EXPECT__repeat_str( "hello", 5 ).returns( "none" );
     REQUIRE_THROWS_WITH(
         user.repeat_str( "hellx", 5 ),
-        "mock function call with unexpected arguments: "
-        "repeat_str( \"hellx\", 5 ); Argument #1 (one-based) "
-        "does not match expected value \"hello\"." );
+        "mock function `repeat_str` called with unexpected "
+        "arguments:\n"
+        "argument #1 (one-based) does not match.\n"
+        "expected: repeat_str( \"hellx\", 5 )\n"
+        "actual:   \"hello\"" );
     // Make the expected call so an error isn't thrown.
     mp.repeat_str( "hello", 5 );
   }
