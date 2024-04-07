@@ -5066,65 +5066,35 @@ cdr::result<BackupForce> from_canonical(
 *****************************************************************/
 void to_str( PriceGroupState const& o, std::string& out, base::ADL_t t ) {
   out += "PriceGroupState{";
-  out += "food="; to_str( o.food, out, t ); out += ',';
-  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
-  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
-  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
-  out += "furs="; to_str( o.furs, out, t ); out += ',';
-  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
-  out += "ore="; to_str( o.ore, out, t ); out += ',';
-  out += "silver="; to_str( o.silver, out, t ); out += ',';
-  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "unused1="; to_str( o.unused1, out, t ); out += ',';
   out += "rum="; to_str( o.rum, out, t ); out += ',';
   out += "cigars="; to_str( o.cigars, out, t ); out += ',';
   out += "cloth="; to_str( o.cloth, out, t ); out += ',';
   out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
-  out += "tools="; to_str( o.tools, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t );
+  out += "unused2="; to_str( o.unused2, out, t );
   out += '}';
 }
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PriceGroupState& o ) {
   return true
-    && read_binary( b, o.food )
-    && read_binary( b, o.sugar )
-    && read_binary( b, o.tobacco )
-    && read_binary( b, o.cotton )
-    && read_binary( b, o.furs )
-    && read_binary( b, o.lumber )
-    && read_binary( b, o.ore )
-    && read_binary( b, o.silver )
-    && read_binary( b, o.horses )
+    && read_binary( b, o.unused1 )
     && read_binary( b, o.rum )
     && read_binary( b, o.cigars )
     && read_binary( b, o.cloth )
     && read_binary( b, o.coats )
-    && read_binary( b, o.trade_goods )
-    && read_binary( b, o.tools )
-    && read_binary( b, o.muskets )
+    && read_binary( b, o.unused2 )
     ;
 }
 
 bool write_binary( base::IBinaryIO& b, PriceGroupState const& o ) {
   return true
-    && write_binary( b, o.food )
-    && write_binary( b, o.sugar )
-    && write_binary( b, o.tobacco )
-    && write_binary( b, o.cotton )
-    && write_binary( b, o.furs )
-    && write_binary( b, o.lumber )
-    && write_binary( b, o.ore )
-    && write_binary( b, o.silver )
-    && write_binary( b, o.horses )
+    && write_binary( b, o.unused1 )
     && write_binary( b, o.rum )
     && write_binary( b, o.cigars )
     && write_binary( b, o.cloth )
     && write_binary( b, o.coats )
-    && write_binary( b, o.trade_goods )
-    && write_binary( b, o.tools )
-    && write_binary( b, o.muskets )
+    && write_binary( b, o.unused2 )
     ;
 }
 
@@ -5132,39 +5102,19 @@ cdr::value to_canonical( cdr::converter& conv,
                          PriceGroupState const& o,
                          cdr::tag_t<PriceGroupState> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "food", o.food );
-  conv.to_field( tbl, "sugar", o.sugar );
-  conv.to_field( tbl, "tobacco", o.tobacco );
-  conv.to_field( tbl, "cotton", o.cotton );
-  conv.to_field( tbl, "furs", o.furs );
-  conv.to_field( tbl, "lumber", o.lumber );
-  conv.to_field( tbl, "ore", o.ore );
-  conv.to_field( tbl, "silver", o.silver );
-  conv.to_field( tbl, "horses", o.horses );
+  conv.to_field( tbl, "unused1", o.unused1 );
   conv.to_field( tbl, "rum", o.rum );
   conv.to_field( tbl, "cigars", o.cigars );
   conv.to_field( tbl, "cloth", o.cloth );
   conv.to_field( tbl, "coats", o.coats );
-  conv.to_field( tbl, "trade_goods", o.trade_goods );
-  conv.to_field( tbl, "tools", o.tools );
-  conv.to_field( tbl, "muskets", o.muskets );
+  conv.to_field( tbl, "unused2", o.unused2 );
   tbl["__key_order"] = cdr::list{
-    "food",
-    "sugar",
-    "tobacco",
-    "cotton",
-    "furs",
-    "lumber",
-    "ore",
-    "silver",
-    "horses",
+    "unused1",
     "rum",
     "cigars",
     "cloth",
     "coats",
-    "trade_goods",
-    "tools",
-    "muskets",
+    "unused2",
   };
   return tbl;
 }
@@ -5176,22 +5126,12 @@ cdr::result<PriceGroupState> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   PriceGroupState res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "food", food );
-  CONV_FROM_FIELD( "sugar", sugar );
-  CONV_FROM_FIELD( "tobacco", tobacco );
-  CONV_FROM_FIELD( "cotton", cotton );
-  CONV_FROM_FIELD( "furs", furs );
-  CONV_FROM_FIELD( "lumber", lumber );
-  CONV_FROM_FIELD( "ore", ore );
-  CONV_FROM_FIELD( "silver", silver );
-  CONV_FROM_FIELD( "horses", horses );
+  CONV_FROM_FIELD( "unused1", unused1 );
   CONV_FROM_FIELD( "rum", rum );
   CONV_FROM_FIELD( "cigars", cigars );
   CONV_FROM_FIELD( "cloth", cloth );
   CONV_FROM_FIELD( "coats", coats );
-  CONV_FROM_FIELD( "trade_goods", trade_goods );
-  CONV_FROM_FIELD( "tools", tools );
-  CONV_FROM_FIELD( "muskets", muskets );
+  CONV_FROM_FIELD( "unused2", unused2 );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -6337,12 +6277,147 @@ cdr::result<UNIT> from_canonical(
 }
 
 /****************************************************************
+** IntrinsicVolume
+*****************************************************************/
+void to_str( IntrinsicVolume const& o, std::string& out, base::ADL_t t ) {
+  out += "IntrinsicVolume{";
+  out += "food="; to_str( o.food, out, t ); out += ',';
+  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
+  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
+  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
+  out += "furs="; to_str( o.furs, out, t ); out += ',';
+  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
+  out += "ore="; to_str( o.ore, out, t ); out += ',';
+  out += "silver="; to_str( o.silver, out, t ); out += ',';
+  out += "horses="; to_str( o.horses, out, t ); out += ',';
+  out += "rum="; to_str( o.rum, out, t ); out += ',';
+  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
+  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
+  out += "coats="; to_str( o.coats, out, t ); out += ',';
+  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
+  out += "tools="; to_str( o.tools, out, t ); out += ',';
+  out += "muskets="; to_str( o.muskets, out, t );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, IntrinsicVolume& o ) {
+  return true
+    && read_binary( b, o.food )
+    && read_binary( b, o.sugar )
+    && read_binary( b, o.tobacco )
+    && read_binary( b, o.cotton )
+    && read_binary( b, o.furs )
+    && read_binary( b, o.lumber )
+    && read_binary( b, o.ore )
+    && read_binary( b, o.silver )
+    && read_binary( b, o.horses )
+    && read_binary( b, o.rum )
+    && read_binary( b, o.cigars )
+    && read_binary( b, o.cloth )
+    && read_binary( b, o.coats )
+    && read_binary( b, o.trade_goods )
+    && read_binary( b, o.tools )
+    && read_binary( b, o.muskets )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, IntrinsicVolume const& o ) {
+  return true
+    && write_binary( b, o.food )
+    && write_binary( b, o.sugar )
+    && write_binary( b, o.tobacco )
+    && write_binary( b, o.cotton )
+    && write_binary( b, o.furs )
+    && write_binary( b, o.lumber )
+    && write_binary( b, o.ore )
+    && write_binary( b, o.silver )
+    && write_binary( b, o.horses )
+    && write_binary( b, o.rum )
+    && write_binary( b, o.cigars )
+    && write_binary( b, o.cloth )
+    && write_binary( b, o.coats )
+    && write_binary( b, o.trade_goods )
+    && write_binary( b, o.tools )
+    && write_binary( b, o.muskets )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         IntrinsicVolume const& o,
+                         cdr::tag_t<IntrinsicVolume> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "food", o.food );
+  conv.to_field( tbl, "sugar", o.sugar );
+  conv.to_field( tbl, "tobacco", o.tobacco );
+  conv.to_field( tbl, "cotton", o.cotton );
+  conv.to_field( tbl, "furs", o.furs );
+  conv.to_field( tbl, "lumber", o.lumber );
+  conv.to_field( tbl, "ore", o.ore );
+  conv.to_field( tbl, "silver", o.silver );
+  conv.to_field( tbl, "horses", o.horses );
+  conv.to_field( tbl, "rum", o.rum );
+  conv.to_field( tbl, "cigars", o.cigars );
+  conv.to_field( tbl, "cloth", o.cloth );
+  conv.to_field( tbl, "coats", o.coats );
+  conv.to_field( tbl, "trade_goods", o.trade_goods );
+  conv.to_field( tbl, "tools", o.tools );
+  conv.to_field( tbl, "muskets", o.muskets );
+  tbl["__key_order"] = cdr::list{
+    "food",
+    "sugar",
+    "tobacco",
+    "cotton",
+    "furs",
+    "lumber",
+    "ore",
+    "silver",
+    "horses",
+    "rum",
+    "cigars",
+    "cloth",
+    "coats",
+    "trade_goods",
+    "tools",
+    "muskets",
+  };
+  return tbl;
+}
+
+cdr::result<IntrinsicVolume> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<IntrinsicVolume> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  IntrinsicVolume res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "food", food );
+  CONV_FROM_FIELD( "sugar", sugar );
+  CONV_FROM_FIELD( "tobacco", tobacco );
+  CONV_FROM_FIELD( "cotton", cotton );
+  CONV_FROM_FIELD( "furs", furs );
+  CONV_FROM_FIELD( "lumber", lumber );
+  CONV_FROM_FIELD( "ore", ore );
+  CONV_FROM_FIELD( "silver", silver );
+  CONV_FROM_FIELD( "horses", horses );
+  CONV_FROM_FIELD( "rum", rum );
+  CONV_FROM_FIELD( "cigars", cigars );
+  CONV_FROM_FIELD( "cloth", cloth );
+  CONV_FROM_FIELD( "coats", coats );
+  CONV_FROM_FIELD( "trade_goods", trade_goods );
+  CONV_FROM_FIELD( "tools", tools );
+  CONV_FROM_FIELD( "muskets", muskets );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** Trade
 *****************************************************************/
 void to_str( Trade const& o, std::string& out, base::ADL_t t ) {
   out += "Trade{";
   out += "euro_price="; to_str( o.euro_price, out, t ); out += ',';
-  out += "nr="; to_str( o.nr, out, t ); out += ',';
+  out += "intrinsic_volume="; to_str( o.intrinsic_volume, out, t ); out += ',';
   out += "gold="; to_str( o.gold, out, t ); out += ',';
   out += "tons_traded="; to_str( o.tons_traded, out, t ); out += ',';
   out += "tons_traded2="; to_str( o.tons_traded2, out, t );
@@ -6353,7 +6428,7 @@ void to_str( Trade const& o, std::string& out, base::ADL_t t ) {
 bool read_binary( base::IBinaryIO& b, Trade& o ) {
   return true
     && read_binary( b, o.euro_price )
-    && read_binary( b, o.nr )
+    && read_binary( b, o.intrinsic_volume )
     && read_binary( b, o.gold )
     && read_binary( b, o.tons_traded )
     && read_binary( b, o.tons_traded2 )
@@ -6363,7 +6438,7 @@ bool read_binary( base::IBinaryIO& b, Trade& o ) {
 bool write_binary( base::IBinaryIO& b, Trade const& o ) {
   return true
     && write_binary( b, o.euro_price )
-    && write_binary( b, o.nr )
+    && write_binary( b, o.intrinsic_volume )
     && write_binary( b, o.gold )
     && write_binary( b, o.tons_traded )
     && write_binary( b, o.tons_traded2 )
@@ -6375,13 +6450,13 @@ cdr::value to_canonical( cdr::converter& conv,
                          cdr::tag_t<Trade> ) {
   cdr::table tbl;
   conv.to_field( tbl, "euro_price", o.euro_price );
-  conv.to_field( tbl, "nr", o.nr );
+  conv.to_field( tbl, "intrinsic_volume", o.intrinsic_volume );
   conv.to_field( tbl, "gold", o.gold );
   conv.to_field( tbl, "tons_traded", o.tons_traded );
   conv.to_field( tbl, "tons_traded2", o.tons_traded2 );
   tbl["__key_order"] = cdr::list{
     "euro_price",
-    "nr",
+    "intrinsic_volume",
     "gold",
     "tons_traded",
     "tons_traded2",
@@ -6397,7 +6472,7 @@ cdr::result<Trade> from_canonical(
   Trade res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "euro_price", euro_price );
-  CONV_FROM_FIELD( "nr", nr );
+  CONV_FROM_FIELD( "intrinsic_volume", intrinsic_volume );
   CONV_FROM_FIELD( "gold", gold );
   CONV_FROM_FIELD( "tons_traded", tons_traded );
   CONV_FROM_FIELD( "tons_traded2", tons_traded2 );

@@ -633,40 +633,13 @@
                 "no_indent": true,
                 "struct":
                 {
-                    "__key_order": [
-                        "food",
-                        "sugar",
-                        "tobacco",
-                        "cotton",
-                        "furs",
-                        "lumber",
-                        "ore",
-                        "silver",
-                        "horses",
-                        "rum",
-                        "cigars",
-                        "cloth",
-                        "coats",
-                        "trade_goods",
-                        "tools",
-                        "muskets"
-                    ],
-                    "food": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "sugar": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "tobacco": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "cotton": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "furs": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "lumber": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "ore": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "silver": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "horses": {"size": 2, "type": "uint", "__hint": "unused?"},
+                    "__key_order": ["unused1", "rum", "cigars", "cloth", "coats", "unused2"],
+                    "unused1": {"size": 18, "__hint": "the game updates these, but they appear otherwise unused."},
                     "rum": {"size": 2, "type": "uint", "__hint": "used as part of rum's internal price group state."},
                     "cigars": {"size": 2, "type": "uint", "__hint": "used as part of cigars' internal price group state."},
                     "cloth": {"size": 2, "type": "uint", "__hint": "used as part of cloth's internal price group state."},
                     "coats": {"size": 2, "type": "uint", "__hint": "used as part of coats' internal price group state."},
-                    "trade_goods": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "tools": {"size": 2, "type": "uint", "__hint": "unused?"},
-                    "muskets": {"size": 2, "type": "uint", "__hint": "unused?"}
+                    "unused2": {"size": 6, "__hint": "the game updates these, but they appear otherwise unused."}
                 }
             },
             "event":
@@ -1290,9 +1263,55 @@
             {
                 "struct":
                 {
-                    "__key_order": ["euro_price", "nr", "gold", "__hint00", "tons_traded", "tons_traded2"],
+                    "__key_order": [
+                        "euro_price",
+                        "intrinsic_volume",
+                        "gold",
+                        "__hint00",
+                        "tons_traded",
+                        "tons_traded2"
+                    ],
                     "euro_price": {"size": 1, "cols": 16, "type": "uint", "no_indent": true},
-                    "nr": {"size": 2, "cols": 16, "type": "int", "no_indent": true},
+                    "intrinsic_volume":
+                    {
+                        "struct":
+                        {
+                            "__key_order": [
+                                "food",
+                                "sugar",
+                                "tobacco",
+                                "cotton",
+                                "furs",
+                                "lumber",
+                                "ore",
+                                "silver",
+                                "horses",
+                                "rum",
+                                "cigars",
+                                "cloth",
+                                "coats",
+                                "trade_goods",
+                                "tools",
+                                "muskets"
+                            ],
+                            "food": {"size": 2, "type": "int"},
+                            "sugar": {"size": 2, "type": "int"},
+                            "tobacco": {"size": 2, "type": "int"},
+                            "cotton": {"size": 2, "type": "int"},
+                            "furs": {"size": 2, "type": "int"},
+                            "lumber": {"size": 2, "type": "int"},
+                            "ore": {"size": 2, "type": "int"},
+                            "silver": {"size": 2, "type": "int"},
+                            "horses": {"size": 2, "type": "int"},
+                            "rum": {"size": 2, "type": "int"},
+                            "cigars": {"size": 2, "type": "int"},
+                            "cloth": {"size": 2, "type": "int"},
+                            "coats": {"size": 2, "type": "int"},
+                            "trade_goods": {"size": 2, "type": "int"},
+                            "tools": {"size": 2, "type": "int"},
+                            "muskets": {"size": 2, "type": "int"}
+                        }
+                    },
                     "gold": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
                     "__hint00": "these two appear to mirror each other (need to verify), though one might be for the economics advisor display and another internal.",
                     "tons_traded": {"size": 4, "cols": 16, "type": "int", "no_indent": true},

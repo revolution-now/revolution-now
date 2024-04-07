@@ -2253,22 +2253,12 @@ cdr::result<BackupForce> from_canonical(
 ** PriceGroupState
 *****************************************************************/
 struct PriceGroupState {
-  uint16_t food = {};
-  uint16_t sugar = {};
-  uint16_t tobacco = {};
-  uint16_t cotton = {};
-  uint16_t furs = {};
-  uint16_t lumber = {};
-  uint16_t ore = {};
-  uint16_t silver = {};
-  uint16_t horses = {};
+  bytes<18> unused1 = {};
   uint16_t rum = {};
   uint16_t cigars = {};
   uint16_t cloth = {};
   uint16_t coats = {};
-  uint16_t trade_goods = {};
-  uint16_t tools = {};
-  uint16_t muskets = {};
+  bytes<6> unused2 = {};
 
   bool operator==( PriceGroupState const& ) const = default;
 };
@@ -2677,11 +2667,53 @@ cdr::result<UNIT> from_canonical(
                          cdr::tag_t<UNIT> );
 
 /****************************************************************
+** IntrinsicVolume
+*****************************************************************/
+struct IntrinsicVolume {
+  int16_t food = {};
+  int16_t sugar = {};
+  int16_t tobacco = {};
+  int16_t cotton = {};
+  int16_t furs = {};
+  int16_t lumber = {};
+  int16_t ore = {};
+  int16_t silver = {};
+  int16_t horses = {};
+  int16_t rum = {};
+  int16_t cigars = {};
+  int16_t cloth = {};
+  int16_t coats = {};
+  int16_t trade_goods = {};
+  int16_t tools = {};
+  int16_t muskets = {};
+
+  bool operator==( IntrinsicVolume const& ) const = default;
+};
+
+// String conversion.
+void to_str( IntrinsicVolume const& o, std::string& out, base::ADL_t );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, IntrinsicVolume& o );
+
+bool write_binary( base::IBinaryIO& b, IntrinsicVolume const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         IntrinsicVolume const& o,
+                         cdr::tag_t<IntrinsicVolume> );
+
+cdr::result<IntrinsicVolume> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<IntrinsicVolume> );
+
+/****************************************************************
 ** Trade
 *****************************************************************/
 struct Trade {
   std::array<uint8_t, 16> euro_price = {};
-  std::array<int16_t, 16> nr = {};
+  IntrinsicVolume intrinsic_volume = {};
   std::array<int32_t, 16> gold = {};
   std::array<int32_t, 16> tons_traded = {};
   std::array<int32_t, 16> tons_traded2 = {};
