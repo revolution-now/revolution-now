@@ -522,9 +522,9 @@ bool is_in_processed_goods_price_group( e_commodity type ) {
     case e_commodity::rum:
     case e_commodity::cigars:
     case e_commodity::cloth:
-    case e_commodity::coats: //
+    case e_commodity::coats:
       return true;
-    default: //
+    default:
       return false;
   }
 }
