@@ -23,6 +23,7 @@ and price movement:
     2. Fall
     3. Attrition
     4. Volatility
+    5. Attrition Bonus (not documented in NAMES.TXT)
 
   Dynamic Parameters:
 
@@ -61,7 +62,8 @@ Per-player intrinsic volume:
 
   At the start of each turn, the attrition value for each com-
   modity is added to this volume, and this is done before any po-
-  tential price changes are evaluated.
+  tential price changes are evaluated. If there is an attrition
+  bonus, that is added in as well (see the section on Attrition).
 
 Shared intrinsic volume:
 
@@ -82,7 +84,7 @@ Rise/Fall:
   prices less (more) volatile on easier (harder) difficulty
   levels.
 
-Attrition:
+Attrition (+ Attrition Bonus):
 
   This is the amount added to the intrinsic volume each turn to
   allow the price to drift. If this is negative (positive) then
@@ -90,6 +92,21 @@ Attrition:
   traded. The actual attrition value will be scaled when playing
   as the dutch; but note that the attrition does not receive the
   usual bonus that the dutch get on reduced selling volumes.
+
+  The Attrition Bonus is not represented in NAMES.TXT, but is ap-
+  plied for sugar, cotton, tobacco, and furs. If the attrition
+  bonus is enabled then the existing attrition gets modified ac-
+  cording to this formula:
+
+    attrition_old = attrition_new - (rise*fall/2)
+
+  and this is scaled when playing the dutch as well.
+
+  This is the only known property that distinguishes them from
+  the other (non-price group) commodities. Perhaps this more sim-
+  plified (relative to a real price group) group behavior is what
+  the OSG is referring to when it says that those commodities
+  from a group.
 
 Volatility:
 

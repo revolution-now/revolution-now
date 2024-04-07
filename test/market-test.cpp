@@ -432,19 +432,19 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( traded_vol( e_commodity::food ) == 0 );
 
   REQUIRE( curr_price( e_commodity::sugar ) == 4 );
-  REQUIRE( intrinsic_vol( e_commodity::sugar ) == -8 );
+  REQUIRE( intrinsic_vol( e_commodity::sugar ) == -13 );
   REQUIRE( traded_vol( e_commodity::sugar ) == 0 );
 
   REQUIRE( curr_price( e_commodity::tobacco ) == 2 );
-  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -10 );
+  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -16 );
   REQUIRE( traded_vol( e_commodity::tobacco ) == 0 );
 
   REQUIRE( curr_price( e_commodity::cotton ) == 2 );
-  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -11 );
+  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -16 );
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
 
   REQUIRE( curr_price( e_commodity::furs ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::furs ) == -13 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == -25 );
   REQUIRE( traded_vol( e_commodity::furs ) == 0 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
@@ -766,19 +766,19 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   REQUIRE( traded_vol( e_commodity::food ) == 0 );
 
   REQUIRE( curr_price( e_commodity::sugar ) == 4 );
-  REQUIRE( intrinsic_vol( e_commodity::sugar ) == -12 );
+  REQUIRE( intrinsic_vol( e_commodity::sugar ) == -20 );
   REQUIRE( traded_vol( e_commodity::sugar ) == 0 );
 
   REQUIRE( curr_price( e_commodity::tobacco ) == 2 );
-  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -15 );
+  REQUIRE( intrinsic_vol( e_commodity::tobacco ) == -24 );
   REQUIRE( traded_vol( e_commodity::tobacco ) == 0 );
 
   REQUIRE( curr_price( e_commodity::cotton ) == 2 );
-  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -17 );
+  REQUIRE( intrinsic_vol( e_commodity::cotton ) == -24 );
   REQUIRE( traded_vol( e_commodity::cotton ) == 0 );
 
   REQUIRE( curr_price( e_commodity::furs ) == 3 );
-  REQUIRE( intrinsic_vol( e_commodity::furs ) == -20 );
+  REQUIRE( intrinsic_vol( e_commodity::furs ) == -38 );
   REQUIRE( traded_vol( e_commodity::furs ) == 0 );
 
   REQUIRE( curr_price( e_commodity::lumber ) == 1 );
@@ -2124,6 +2124,40 @@ TEST_CASE( "[market] price_limits_for_commodity" ) {
   expected = { .low  = { .bid = 1, .ask = 4 },
                .high = { .bid = 5, .ask = 8 } };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[market] attrition bonus" ) {
+  World W;
+  W.set_default_player( e_nation::french );
+  Player& player = W.default_player();
+  W.init_prices_to_average();
+  for( e_commodity c : refl::enum_values<e_commodity> ) {
+    if( is_in_processed_goods_price_group( c ) ) continue;
+    player.old_world.market.commodities[c].intrinsic_volume =
+        1000;
+  }
+
+  (void)evolve_player_prices( W.ss(), player );
+
+  auto iv = [&]( e_commodity comm ) {
+    return player.old_world.market.commodities[comm]
+        .intrinsic_volume;
+  };
+
+  // These are the ones that have an attrition bonus.
+  REQUIRE( iv( e_commodity::sugar ) == 387 );
+  REQUIRE( iv( e_commodity::tobacco ) == 184 );
+  REQUIRE( iv( e_commodity::cotton ) == 384 );
+  REQUIRE( iv( e_commodity::furs ) == 975 );
+
+  REQUIRE( iv( e_commodity::food ) == 799 );
+  REQUIRE( iv( e_commodity::lumber ) == 800 );
+  REQUIRE( iv( e_commodity::ore ) == 593 );
+  REQUIRE( iv( e_commodity::silver ) == 892 );
+  REQUIRE( iv( e_commodity::horses ) == 797 );
+  REQUIRE( iv( e_commodity::trade_goods ) == 704 );
+  REQUIRE( iv( e_commodity::tools ) == 805 );
+  REQUIRE( iv( e_commodity::muskets ) == 806 );
 }
 
 } // namespace

@@ -354,11 +354,20 @@ PriceChange evolve_default_model_commodity(
   int intrinsic_volume_delta = 0;
   int price_change           = 0;
 
+  int const effective_attrition = [&] {
+    auto const& model =
+        config_market.price_behavior[commodity].model_parameters;
+    int attrition = model.attrition;
+    // This bonus is undocumented in NAMES.TXT.
+    if( model.attrition_bonus )
+      attrition -= ( model.rise + model.fall ) / 2;
+    return attrition;
+  }();
+
   // 1. Apply attrition. The attrition is applied before any po-
   // tential price changes are evaluated.
   intrinsic_volume_delta +=
-      lround( config_market.price_behavior[commodity]
-                  .model_parameters.attrition *
+      lround( effective_attrition *
               config_market.nation_advantage[player.nation]
                   .attrition_scale );
 
@@ -515,7 +524,7 @@ bool is_in_processed_goods_price_group( e_commodity type ) {
     case e_commodity::cloth:
     case e_commodity::coats: //
       return true;
-    default:                 //
+    default: //
       return false;
   }
 }

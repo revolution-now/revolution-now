@@ -29,6 +29,7 @@ price_behavior {
       fall:                 2
       attrition:           -1
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -46,6 +47,7 @@ price_behavior {
       fall:                 6
       attrition:           -8
       volatility:           1
+      attrition_bonus:      true
     }
   }
 
@@ -63,6 +65,7 @@ price_behavior {
       fall:                 8
       attrition:           -10
       volatility:           1
+      attrition_bonus:      true
     }
   }
 
@@ -80,6 +83,7 @@ price_behavior {
       fall:                 6
       attrition:           -11
       volatility:           1
+      attrition_bonus:      true
     }
   }
 
@@ -97,6 +101,7 @@ price_behavior {
       fall:                 20
       attrition:           -13
       volatility:           1
+      attrition_bonus:      true
     }
   }
 
@@ -114,6 +119,7 @@ price_behavior {
       fall:                 2
       attrition:            0
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -131,6 +137,7 @@ price_behavior {
       fall:                 4
       attrition:           -7
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -148,6 +155,7 @@ price_behavior {
       fall:                 1
       attrition:           -8
       volatility:           2
+      attrition_bonus:      false
     }
   }
 
@@ -165,6 +173,7 @@ price_behavior {
       fall:                 2
       attrition:           -3
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -182,6 +191,7 @@ price_behavior {
       fall:                 4
       attrition:           -12  # Not used
       volatility:           1
+      attrition_bonus:      false
     }
   }
 
@@ -199,6 +209,7 @@ price_behavior {
       fall:                 4
       attrition:           -11  # Not used
       volatility:           1
+      attrition_bonus:      false
     }
   }
 
@@ -216,6 +227,7 @@ price_behavior {
       fall:                 4
       attrition:           -13  # Not used
       volatility:           1
+      attrition_bonus:      false
     }
   }
 
@@ -233,6 +245,7 @@ price_behavior {
       fall:                 4
       attrition:           -11  # Not used
       volatility:           1
+      attrition_bonus:      false
     }
   }
 
@@ -250,6 +263,7 @@ price_behavior {
       fall:                 3
       attrition:            4
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -267,6 +281,7 @@ price_behavior {
       fall:                 2
       attrition:            5
       volatility:           0
+      attrition_bonus:      false
     }
   }
 
@@ -284,6 +299,7 @@ price_behavior {
       fall:                 2
       attrition:            6
       volatility:           0
+      attrition_bonus:      false
     }
   }
 }
