@@ -29,7 +29,6 @@
 namespace rn {
 
 struct Colony;
-struct Player;
 struct SSConst;
 
 // Returns a list of existing map squares spiraling outward from
@@ -61,7 +60,8 @@ maybe<Colony const&> find_close_explored_colony(
 // starting point that are within a radius of `max_distance` to
 // the start.
 std::vector<ColonyId> close_friendly_colonies(
-    SSConst const& ss, Player const& player,
-    gfx::point const start, double max_distance );
+    SSConst const& ss, e_nation nation, gfx::point const start,
+    double max_distance );
+
 
 } // namespace rn
