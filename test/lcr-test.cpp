@@ -135,16 +135,17 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
@@ -181,16 +182,17 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
   W.rand().EXPECT__between_ints( 15, 70 ).returns( 32 );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 32 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
@@ -226,16 +228,17 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
   W.rand().EXPECT__between_ints( 80, 220 ).returns( 95 );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 90 ); // rounded down to nearest 10.
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
@@ -293,16 +296,17 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   }
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 9 );
@@ -349,18 +353,20 @@ TEST_CASE( "[lcr] free colonist" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
-      lcr_res->get<LostCityRumorResult::unit_created>().id ==
+      lcr_res->holds<LostCityRumorUnitChange::unit_created>() );
+  REQUIRE(
+      lcr_res->get<LostCityRumorUnitChange::unit_created>().id ==
       UnitId{ 2 } );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
@@ -395,16 +401,18 @@ TEST_CASE( "[lcr] unit lost" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::unit_lost>() );
+  REQUIRE(
+      lcr_res->holds<LostCityRumorUnitChange::unit_lost>() );
   REQUIRE( player.money == 0 );
   REQUIRE_FALSE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 0 );
@@ -445,18 +453,20 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   land_view_plane.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, /*burial_type=*/{},
-      /*has_burial_grounds=*/false );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, /*burial_type=*/{},
+          /*has_burial_grounds=*/false );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
-      lcr_res->get<LostCityRumorResult::unit_created>().id ==
+      lcr_res->holds<LostCityRumorUnitChange::unit_created>() );
+  REQUIRE(
+      lcr_res->get<LostCityRumorUnitChange::unit_created>().id ==
       UnitId{ 2 } );
   Unit const& unit = W.units().unit_for( UnitId{ 2 } );
   REQUIRE( unit.type() == e_unit_type::treasure );
@@ -513,18 +523,20 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   land_view_plane.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::unit_created>() );
   REQUIRE(
-      lcr_res->get<LostCityRumorResult::unit_created>().id ==
+      lcr_res->holds<LostCityRumorUnitChange::unit_created>() );
+  REQUIRE(
+      lcr_res->get<LostCityRumorUnitChange::unit_created>().id ==
       UnitId{ 2 } );
   Unit const& unit = W.units().unit_for( UnitId{ 2 } );
   REQUIRE( unit.type() == e_unit_type::treasure );
@@ -574,16 +586,17 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
@@ -626,16 +639,17 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
   W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.
@@ -674,16 +688,17 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
       .returns( make_wait<maybe<string>>( "no" ) );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
@@ -732,16 +747,17 @@ TEST_CASE(
   W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
-  wait<LostCityRumorResult> lcr_res = run_lost_city_rumor_result(
-      W.ss(), W.ts(), player, unit_id,
-      /*move_dst=*/Coord{}, rumor_type, burial_type,
-      has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res =
+      run_lost_city_rumor_result(
+          W.ss(), W.ts(), player, unit_id,
+          /*move_dst=*/Coord{}, rumor_type, burial_type,
+          has_burial_grounds );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
-  REQUIRE( lcr_res->holds<LostCityRumorResult::other>() );
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.

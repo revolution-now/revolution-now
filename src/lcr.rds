@@ -58,7 +58,7 @@ enum.e_rumor_type {
 # This communicates the result of a Lost City Rumor to the rest
 # of the game. It only gives partial info, namely what the rest
 # of the game needs to know.
-sumtype.LostCityRumorResult {
+sumtype.LostCityRumorUnitChange {
   # The unit exploring the LCR has been deleted.
   unit_lost {},
 

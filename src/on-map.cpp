@@ -133,12 +133,12 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
     co_await show_woodcut_if_needed(
         player, euro_mind,
         e_woodcut::discovered_fountain_of_youth );
-  LostCityRumorResult const lcr_res =
+  LostCityRumorUnitChange const lcr_res =
       co_await run_lost_city_rumor_result(
           ss, ts, player, id, world_square, rumor_type,
           burial_type, has_burial_grounds );
 
-  co_return lcr_res.holds<LostCityRumorResult::unit_lost>();
+  co_return lcr_res.holds<LostCityRumorUnitChange::unit_lost>();
 }
 
 // Returns true if the treasure was transported by the king and

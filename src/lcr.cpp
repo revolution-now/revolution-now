@@ -98,11 +98,11 @@ UnitId create_treasure_train( SS& ss, TS& ts,
       ss, ts, player, uc_treasure, world_square );
 }
 
-wait<LostCityRumorResult> run_burial_mounds_result(
+wait<LostCityRumorUnitChange> run_burial_mounds_result(
     e_burial_mounds_type type, bool has_burial_grounds, SS& ss,
     TS& ts, Player& player, UnitId unit_id,
     Coord world_square ) {
-  LostCityRumorResult           result = {};
+  LostCityRumorUnitChange       result = {};
   e_lcr_explorer_category const explorer =
       lcr_explorer_category( ss.units, unit_id );
   switch( type ) {
@@ -119,7 +119,7 @@ wait<LostCityRumorResult> run_burial_mounds_result(
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation, total );
-      result = LostCityRumorResult::other{};
+      result = LostCityRumorUnitChange::other{};
       break;
     }
     case e_burial_mounds_type::treasure_train: {
@@ -139,13 +139,13 @@ wait<LostCityRumorResult> run_burial_mounds_result(
       co_await ts.planes.land_view().animate(
           anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
-          LostCityRumorResult::unit_created{ .id = unit_id };
+          LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
     }
     case e_burial_mounds_type::cold_and_empty: {
       co_await ts.gui.message_box(
           "The mounds are cold and empty." );
-      result = LostCityRumorResult::other{};
+      result = LostCityRumorUnitChange::other{};
       break;
     }
   }
@@ -194,7 +194,7 @@ wait<> run_fountain_of_youth( SS& ss, TS& ts, Player& player,
   }
 }
 
-wait<LostCityRumorResult> run_rumor_result(
+wait<LostCityRumorUnitChange> run_rumor_result(
     e_rumor_type type, e_burial_mounds_type burial_type,
     bool has_burial_grounds, SS& ss, TS& ts, Player& player,
     UnitId unit_id, Coord world_square ) {
@@ -204,12 +204,12 @@ wait<LostCityRumorResult> run_rumor_result(
     case e_rumor_type::none: {
       co_await ts.gui.message_box(
           "You find nothing but rumors." );
-      co_return LostCityRumorResult::other{};
+      co_return LostCityRumorUnitChange::other{};
     }
     case e_rumor_type::fountain_of_youth: {
       co_await run_fountain_of_youth( ss, ts, player,
                                       ss.settings );
-      co_return LostCityRumorResult::other{};
+      co_return LostCityRumorUnitChange::other{};
     }
     case e_rumor_type::ruins: {
       int amount = random_gift(
@@ -226,7 +226,7 @@ wait<LostCityRumorResult> run_rumor_result(
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation, total );
-      co_return LostCityRumorResult::other{};
+      co_return LostCityRumorUnitChange::other{};
     }
     case e_rumor_type::burial_mounds: {
       ui::e_confirm res = co_await ts.gui.required_yes_no(
@@ -236,8 +236,8 @@ wait<LostCityRumorResult> run_rumor_result(
             .no_label       = "Leave them alone.",
             .no_comes_first = false } );
       if( res == ui::e_confirm::no )
-        co_return LostCityRumorResult::other{};
-      LostCityRumorResult result =
+        co_return LostCityRumorUnitChange::other{};
+      LostCityRumorUnitChange result =
           co_await run_burial_mounds_result(
               burial_type, has_burial_grounds, ss, ts, player,
               unit_id, world_square );
@@ -258,7 +258,7 @@ wait<LostCityRumorResult> run_rumor_result(
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
           amount, player.nation, total );
-      co_return LostCityRumorResult::other{};
+      co_return LostCityRumorUnitChange::other{};
     }
     case e_rumor_type::free_colonist: {
       co_await ts.gui.message_box(
@@ -273,7 +273,8 @@ wait<LostCityRumorResult> run_rumor_result(
       UnitId id = create_unit_on_map_non_interactive(
           ss, ts, player, e_unit_type::free_colonist,
           world_square );
-      co_return LostCityRumorResult::unit_created{ .id = id };
+      co_return LostCityRumorUnitChange::unit_created{ .id =
+                                                           id };
     }
     case e_rumor_type::unit_lost: {
       // Destroy unit before showing message so that the unit ac-
@@ -281,7 +282,7 @@ wait<LostCityRumorResult> run_rumor_result(
       UnitOwnershipChanger( ss, unit_id ).destroy();
       co_await ts.gui.message_box(
           "Our colonist has vanished without a trace." );
-      co_return LostCityRumorResult::unit_lost{};
+      co_return LostCityRumorUnitChange::unit_lost{};
     }
     case e_rumor_type::cibola: {
       int amount = random_gift(
@@ -297,8 +298,8 @@ wait<LostCityRumorResult> run_rumor_result(
           ss, ts, player, world_square, amount );
       co_await ts.planes.land_view().animate(
           anim_seq_for_treasure_enpixelation( ss, unit_id ) );
-      co_return LostCityRumorResult::unit_created{ .id =
-                                                       unit_id };
+      co_return LostCityRumorUnitChange::unit_created{
+          .id = unit_id };
     }
   }
   SHOULD_NOT_BE_HERE;
@@ -388,11 +389,11 @@ bool pick_burial_grounds_result(
           .probability );
 }
 
-wait<LostCityRumorResult> run_lost_city_rumor_result(
+wait<LostCityRumorUnitChange> run_lost_city_rumor_result(
     SS& ss, TS& ts, Player& player, UnitId unit_id,
     Coord world_square, e_rumor_type type,
     e_burial_mounds_type burial_type, bool has_burial_grounds ) {
-  LostCityRumorResult result = co_await run_rumor_result(
+  LostCityRumorUnitChange result = co_await run_rumor_result(
       type, burial_type, has_burial_grounds, ss, ts, player,
       unit_id, world_square );
   // Remove lost city rumor.
