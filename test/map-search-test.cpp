@@ -447,7 +447,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
                      .location = { .x = 3, .y = 1 } };
   REQUIRE( f() == expected );
 
-  add( { .x = 1, .y = 1 } );        // english
+  add( { .x = 1, .y = 1 } ); // english
   make_fogged( { .x = 1, .y = 1 }, /*remove=*/false );
   expected = Colony{ .id       = 0, // frozen
                      .nation   = e_nation::english,
@@ -500,7 +500,7 @@ TEST_CASE( "[map-search] close_friendly_colonies" ) {
   vector<ColonyId> expected;
 
   auto f = [&] {
-    return close_friendly_colonies( W.ss(), W.default_player(),
+    return close_friendly_colonies( W.ss(), W.default_nation(),
                                     { .x = 3, .y = 3 }, 3.0 );
   };
 

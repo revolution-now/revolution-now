@@ -21,6 +21,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
@@ -86,7 +87,7 @@ vector<LumberYield> lumber_yields( SSConst const& ss,
                                    e_unit_type pioneer_type ) {
   vector<LumberYield> res;
   for( ColonyId colony_id : close_friendly_colonies(
-           ss, player, loc, /*max_distance=*/3.5 ) )
+           ss, player.nation, loc, /*max_distance=*/3.5 ) )
     res.push_back(
         yield_for_colony( ss, colony_id, loc, pioneer_type ) );
   return res;
