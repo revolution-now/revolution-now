@@ -90,10 +90,10 @@ outward_spiral_pythdist_search_existing_gen(
 
   // To avoid an infinite search, we need to call `take` before
   // we call `exists`.
-  auto points = rl::all( spiral_gen )
-                    .take( kMaxSquaresToSearch )
-                    .keep_if( exists )
-                    .keep_if( close_enough );
+  auto const points = rl::all( spiral_gen )
+                          .take( kMaxSquaresToSearch )
+                          .keep_if( exists )
+                          .keep_if( close_enough );
 
   for( point const point : points ) co_yield point;
 }
