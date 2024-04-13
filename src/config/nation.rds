@@ -54,7 +54,7 @@ struct.Nationality {
   enum_val 'e_nation',
 
   # The ____ have captured the colony of...
-  display_name 'std::string',
+  display_name_pre_declaration 'std::string',
 
   # The king of ____ has declared...
   country_name 'std::string',

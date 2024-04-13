@@ -45,7 +45,8 @@ string_view nation_display_name( Player const& player ) {
     static std::string const rebel = "Rebels";
     return rebel;
   }
-  return config_nation.nations[player.nation].display_name;
+  return config_nation.nations[player.nation]
+      .display_name_pre_declaration;
 }
 
 } // namespace rn

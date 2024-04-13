@@ -50,6 +50,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::AllOf;
 using ::mock::matchers::Matches;
 using ::mock::matchers::StrContains;
 
@@ -773,7 +774,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   World             W;
   MockLandViewPlane mock_land_view;
   W.planes().back().land_view = &mock_land_view;
-  Player const&        player = W.default_player();
+  Player&              player = W.default_player();
   SpeakWithChiefResult outcome;
   Unit*                p_unit = nullptr;
   Dwelling&            dwelling =
@@ -812,6 +813,22 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
 
     W.gui().EXPECT__message_box(
         StrContains( "We always welcome" ) );
+    f();
+    REQUIRE( player.money == 0 );
+    REQUIRE( p_unit->type() == scout_petty.type() );
+  }
+
+  SECTION( "none, post-declaration" ) {
+    p_unit                   = &scout_petty;
+    outcome.action           = ChiefAction::none{};
+    player.revolution_status = e_revolution_status::declared;
+
+    W.gui().EXPECT__message_box(
+        StrContains( "Greetings traveler" ) );
+
+    W.gui().EXPECT__message_box(
+        AllOf( StrContains( "We always welcome" ),
+               StrContains( "Rebel" ) ) );
     f();
     REQUIRE( player.money == 0 );
     REQUIRE( p_unit->type() == scout_petty.type() );

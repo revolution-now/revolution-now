@@ -167,10 +167,11 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // All enabled by default.
   refl::enum_map<e_nation, CheckBoxInfo> info_map;
   for( e_nation nation : refl::enum_values<e_nation> ) {
-    info_map[nation] = CheckBoxInfo{
-        .name     = config_nation.nations[nation].display_name,
-        .on       = false,
-        .disabled = true };
+    info_map[nation] =
+        CheckBoxInfo{ .name = config_nation.nations[nation]
+                                  .display_name_pre_declaration,
+                      .on       = false,
+                      .disabled = true };
     if( !ss.players.players[nation].has_value() ) {
       info_map[nation].disabled = true;
       info_map[nation].on       = false;

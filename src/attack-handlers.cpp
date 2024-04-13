@@ -439,10 +439,9 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
   //     conductor::e_request_probability::always );
-  string const capture_msg =
-      fmt::format( "The [{}] have captured the colony of [{}]!",
-                   nation_obj( attacker_.nation() ).display_name,
-                   colony_.name );
+  string const capture_msg = fmt::format(
+      "The [{}] have captured the colony of [{}]!",
+      nation_display_name( attacking_player_ ), colony_.name );
   co_await attacker_mind_.message_box( capture_msg );
   co_await defender_mind_.message_box( capture_msg );
 
@@ -815,7 +814,7 @@ wait<> AttackDwellingHandler::perform() {
                 .name_singular;
   string_view const tribe_name = tribe_conf.name_singular;
   string_view const nation_name =
-      nation_obj( attacking_player_.nation ).display_name;
+      nation_display_name( attacking_player_ );
   string_view const nation_name_possessive =
       nation_possessive( attacking_player_ );
   string_view const nation_harbor_name =

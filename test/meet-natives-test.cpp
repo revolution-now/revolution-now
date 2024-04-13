@@ -432,5 +432,9 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
                               .tribal_alarm = 30 } );
 }
 
+TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
+  World w;
+}
+
 } // namespace
 } // namespace rn

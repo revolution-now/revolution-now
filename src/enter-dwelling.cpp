@@ -642,7 +642,7 @@ wait<> do_speak_with_chief(
     case ChiefAction::e::none: {
       co_await ts.gui.message_box(
           "We always welcome [{}] travelors.",
-          config_nation.nations[unit.nation()].display_name );
+          nation_display_name( player ) );
       co_return;
     }
     case ChiefAction::e::gift_money: {

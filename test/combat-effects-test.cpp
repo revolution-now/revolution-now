@@ -316,6 +316,33 @@ TEST_CASE(
   }
 
   SECTION(
+      "(soldier,artillery) -> (soldier,damaged_artillery), "
+      "post-declaration" ) {
+    defending_player.revolution_status =
+        e_revolution_status::declared;
+    params = {
+        .attacker         = e_unit_type::soldier,
+        .defender         = e_unit_type::artillery,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::demoted{
+                .to = e_unit_type::damaged_artillery },
+        .defender_colony = e_colony::yes_and_visible_to_both };
+    expected = {
+        .summaries = { .attacker =
+                           "[Dutch] Soldier defeats [Rebels] "
+                           "near defender colony!",
+                       .defender =
+                           "[Dutch] Soldier defeats [Rebels] "
+                           "near defender colony!" },
+        .defender  = {
+             .for_both = { "[Rebel] Artillery [damaged]. Further "
+                            "damage will destroy it." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
       "(soldier,artillery) -> "
       "(veteran_soldier,damaged_artillery)" ) {
     params = {
@@ -588,9 +615,9 @@ TEST_CASE(
             .new_coord  = W.kLandAttackerCoord } };
     expected = {
         .summaries = { .attacker = "[Dutch] Regular defeats "
-                                   "[French] in the wilderness!",
+                                   "[Rebels] in the wilderness!",
                        .defender =
-                           "[Dutch] Regular defeats [French] in "
+                           "[Dutch] Regular defeats [Rebels] in "
                            "the wilderness!" },
         .defender  = {
              .for_both = { "[Rebel] [Free Colonist] captured by "
@@ -1751,6 +1778,8 @@ TEST_CASE(
       W.kDefenderColonyCoord, W.kDefenderNation );
   colony.name = "raided-colony";
 
+  Player& defending_player = W.player( W.kDefenderNation );
+
   auto run = [&] {
     Dwelling const& dwelling = W.add_dwelling(
         W.kAttackerDwellingCoord, W.kNativeTribe );
@@ -1880,6 +1909,28 @@ TEST_CASE(
         .defender  = {
              .for_owner = {
                 "[French] [Scout] lost in battle." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "military unit (scout) at gate, defender loses, "
+      "post-declaration" ) {
+    defending_player.revolution_status =
+        e_revolution_status::declared;
+    params = {
+        .attacker         = e_native_unit_type::brave,
+        .defender_at_gate = e_unit_type::scout,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+        .burned           = false };
+    expected = {
+        .summaries = { .defender =
+                           "[Sioux] ambush [Rebel] [Scout] in "
+                           "[raided-colony]!" },
+        .defender  = {
+             .for_owner = {
+                "[Rebel] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 

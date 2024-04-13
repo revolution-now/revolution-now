@@ -70,7 +70,7 @@ void append_effects_msgs(
 ** Combat effects messages for individual attackers/defenders.
 *****************************************************************/
 UnitCombatEffectsMessages euro_unit_combat_effects_msg(
-    Player const& player, Unit const& unit,
+    SSConst const& ss, Player const& player, Unit const& unit,
     EuroUnitCombatOutcome const& outcome ) {
   UnitCombatEffectsMessages res;
 
@@ -92,7 +92,8 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
     res.for_both.push_back( fmt::format(
         "[{}] [{}]{} captured by the [{}]!",
         nation_possessive( player ), unit.desc().name, qualifier,
-        nation_obj( new_nation ).display_name ) );
+        nation_display_name( player_for_nation_or_die(
+            ss.players, new_nation ) ) ) );
   };
 
   SWITCH( outcome ) {
@@ -301,11 +302,11 @@ string summarize_for_entity(
   string_view const nation_adj =
       nation_possessive( unit_player );
   string_view const nation_name =
-      config_nation.nations[unit_nation].display_name;
+      nation_display_name( unit_player );
   string_view const opponent_nation_adj =
       nation_possessive( opponent_player );
   string_view const opponent_nation_name =
-      config_nation.nations[opponent_nation].display_name;
+      nation_display_name( opponent_player );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
           ss, unit_nation, unit_coord,
@@ -639,13 +640,13 @@ CombatEffectsMessages combat_effects_msg(
       player_for_nation_or_die( ss.players, attacker.nation() );
   Player const& defending_player =
       player_for_nation_or_die( ss.players, defender.nation() );
-  return {
-      .summaries = summarize_combat_outcome( ss, combat ),
-      .attacker  = euro_unit_combat_effects_msg(
-          attacking_player, attacker, combat.attacker.outcome ),
-      .defender = euro_unit_combat_effects_msg(
-          defending_player, defender,
-          combat.defender.outcome ) };
+  return { .summaries = summarize_combat_outcome( ss, combat ),
+           .attacker  = euro_unit_combat_effects_msg(
+               ss, attacking_player, attacker,
+               combat.attacker.outcome ),
+           .defender = euro_unit_combat_effects_msg(
+               ss, defending_player, defender,
+               combat.defender.outcome ) };
 }
 
 CombatEffectsMessages combat_effects_msg(
@@ -713,12 +714,12 @@ CombatEffectsMessages combat_effects_msg(
   auto& defender = ss.units.unit_for( combat.defender.id );
   Player const& attacking_player =
       player_for_nation_or_die( ss.players, attacker.nation() );
-  return {
-      .summaries = summarize_combat_outcome( ss, combat ),
-      .attacker  = euro_unit_combat_effects_msg(
-          attacking_player, attacker, combat.attacker.outcome ),
-      .defender = native_unit_combat_effects_msg(
-          ss, defender, combat.defender.outcome ) };
+  return { .summaries = summarize_combat_outcome( ss, combat ),
+           .attacker  = euro_unit_combat_effects_msg(
+               ss, attacking_player, attacker,
+               combat.attacker.outcome ),
+           .defender = native_unit_combat_effects_msg(
+               ss, defender, combat.defender.outcome ) };
 }
 
 CombatEffectsMessages combat_effects_msg(
@@ -731,7 +732,7 @@ CombatEffectsMessages combat_effects_msg(
            .attacker  = native_unit_combat_effects_msg(
                ss, attacker, combat.attacker.outcome ),
            .defender = euro_unit_combat_effects_msg(
-               defending_player, defender,
+               ss, defending_player, defender,
                combat.defender.outcome ) };
 }
 
@@ -749,7 +750,7 @@ CombatEffectsMessages combat_effects_msg(
       player_for_nation_or_die( ss.players, attacker.nation() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
-               attacking_player, attacker,
+               ss, attacking_player, attacker,
                combat.attacker.outcome ) };
 }
 
@@ -769,7 +770,7 @@ CombatEffectsMessages combat_effects_msg(
         // colony (whether it wins or loses), and there is no
         // message displayed for that specifically.
         .defender = euro_unit_combat_effects_msg(
-            defending_player, defender,
+            ss, defending_player, defender,
             combat.defender.outcome ) };
 
   // Colony burned. In this case there is no attacker message for
@@ -789,7 +790,7 @@ CombatEffectsMessages combat_effects_msg(
       player_for_nation_or_die( ss.players, attacker.nation() );
   return { .summaries = summarize_combat_outcome( ss, combat ),
            .attacker  = euro_unit_combat_effects_msg(
-               attacking_player, attacker,
+               ss, attacking_player, attacker,
                combat.attacker.outcome ) };
 }
 

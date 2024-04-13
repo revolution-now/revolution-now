@@ -1162,6 +1162,53 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
   }
 
+  SECTION( "attacker wins, dwelling burned, post-declaration" ) {
+    player.revolution_status = e_revolution_status::declared;
+    dwelling.population      = 1;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = {},
+                .treasure_amount       = {},
+                .tribe_destroyed       = e_tribe::apache,
+                .convert_produced      = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion( W.kAttackingNation );
+    W.expect_msg_equals(
+        W.kAttackingNation,
+        "[Apache] camp burned by the [Rebels]!" );
+    W.expect_tribe_wiped_out( "Apache" );
+
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {} };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE_FALSE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
   SECTION(
       "attacker wins, dwelling burned, tribe not wiped out, "
       "capital burned" ) {
@@ -1194,6 +1241,58 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     W.expect_msg_equals(
         W.kAttackingNation,
         "The [Apache] bow before the might of the [English]!" );
+
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {} };
+    REQUIRE( f() == expected );
+
+    Unit const& attacker =
+        W.units().unit_for( combat.attacker.id );
+    REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+    REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
+    REQUIRE( W.units().coord_for( attacker.id() ) ==
+             W.kLandAttack );
+    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.movement_points() == 0 );
+    REQUIRE( player.score_stats.dwellings_burned == 1 );
+    REQUIRE( W.square( W.kLandDefend ).road == false );
+    REQUIRE( !W.units().exists( brave_id ) );
+    REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
+  }
+
+  SECTION(
+      "attacker wins, dwelling burned, tribe not wiped out, "
+      "capital burned, post-declaration" ) {
+    dwelling.population      = 1;
+    dwelling.is_capital      = true;
+    player.revolution_status = e_revolution_status::declared;
+
+    combat = {
+        .winner           = e_combat_winner::attacker,
+        .new_tribal_alarm = 13,
+        .missions_burned  = false,
+        .attacker =
+            { .outcome =
+                  EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } },
+        .defender = {
+            .id      = dwelling.id,
+            .outcome = DwellingCombatOutcome::destruction{
+                .braves_to_kill        = {},
+                .missionary_to_release = {},
+                .treasure_amount       = {},
+                .tribe_destroyed       = {},
+                .convert_produced      = false } } };
+    combat.attacker.id = W.add_attacker( e_unit_type::soldier );
+    expect_combat();
+    W.expect_some_animation();
+    W.expect_promotion( W.kAttackingNation );
+    W.expect_msg_equals(
+        W.kAttackingNation,
+        "[Apache] capital burned by the [Rebels]!" );
+    W.expect_msg_equals(
+        W.kAttackingNation,
+        "The [Apache] bow before the might of the [Rebels]!" );
 
     expected = { .order_was_run       = true,
                  .units_to_prioritize = {} };

@@ -16,6 +16,7 @@
 #include "igui.hpp"
 #include "logger.hpp"
 #include "native-owned.hpp"
+#include "revolution-status.hpp"
 #include "society.hpp"
 #include "woodcut.hpp"
 
@@ -217,7 +218,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
   co_await gui.message_box(
       "Let us smoke a peace pipe to celebrate our purpetual "
       "friendship with the [{}].",
-      config_nation.nations[player.nation].display_name );
+      nation_display_name( player ) );
 
   co_await gui.message_box(
       "We hope that you will send us your colonists and "
