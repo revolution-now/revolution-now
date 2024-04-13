@@ -26,6 +26,7 @@
 
 namespace rn {
 
+struct Player;
 struct SSConst;
 struct SS;
 struct TS;
@@ -72,7 +73,7 @@ std::string ship_damaged_message( SSConst const& ss,
 // happen after independence is declared, after which the euro-
 // pean harbor is no longer accessible.
 std::string ship_damaged_no_port_message(
-    e_nation nation, e_unit_type ship_type,
+    Player const& player, e_unit_type ship_type,
     e_ship_damaged_reason reason );
 
 // Generates a message describing how many units onboard a ship

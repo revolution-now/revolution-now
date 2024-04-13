@@ -124,6 +124,9 @@ TEST_CASE(
     e_colony              defender_colony = {};
   } params;
 
+  Player& attacking_player = W.player( W.kAttackerNation );
+  Player& defending_player = W.player( W.kDefenderNation );
+
   auto run = [&] {
     if( params.attacker_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kAttackerColonyCoord,
@@ -184,6 +187,30 @@ TEST_CASE(
                                    "[French] in the wilderness!",
                        .defender =
                            "[Dutch] Soldier defeats [French] in "
+                           "the wilderness!" },
+        .defender  = {
+             .for_both = { "[French] [Soldier] routed! Unit "
+                            "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(soldier,soldier) -> (soldier,free_colonist), "
+      "post-declaration" ) {
+    attacking_player.revolution_status =
+        e_revolution_status::declared;
+    params = {
+        .attacker         = e_unit_type::soldier,
+        .defender         = e_unit_type::soldier,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist } };
+    expected = {
+        .summaries = { .attacker = "[Rebel] Soldier defeats "
+                                   "[French] in the wilderness!",
+                       .defender =
+                           "[Rebel] Soldier defeats [French] in "
                            "the wilderness!" },
         .defender  = {
              .for_both = { "[French] [Soldier] routed! Unit "
@@ -547,6 +574,31 @@ TEST_CASE(
   }
 
   SECTION(
+      "(regular,free_colonist) -> (regular,free_colonist), "
+      "post-declaration" ) {
+    defending_player.revolution_status =
+        e_revolution_status::declared;
+    params = {
+        .attacker         = e_unit_type::regular,
+        .defender         = e_unit_type::free_colonist,
+        .winner           = e_combat_winner::attacker,
+        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+        .defender_outcome = EuroUnitCombatOutcome::captured{
+            .new_nation = W.kAttackerNation,
+            .new_coord  = W.kLandAttackerCoord } };
+    expected = {
+        .summaries = { .attacker = "[Dutch] Regular defeats "
+                                   "[French] in the wilderness!",
+                       .defender =
+                           "[Dutch] Regular defeats [French] in "
+                           "the wilderness!" },
+        .defender  = {
+             .for_both = { "[Rebel] [Free Colonist] captured by "
+                            "the [Dutch]!" } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
       "(dragoon,native_convert) -> (dragoon,native_convert)" ) {
     params = {
         .attacker         = e_unit_type::dragoon,
@@ -836,6 +888,8 @@ TEST_CASE(
     e_colony                defender_colony = {};
   } params;
 
+  Player& defending_player = W.player( W.kDefenderNation );
+
   auto run = [&] {
     if( params.defender_colony > e_colony::no ) {
       Colony& colony = W.add_colony( W.kDefenderColonyCoord,
@@ -1117,6 +1171,31 @@ TEST_CASE(
         .defender  = {
              .for_owner = {
                 "[French] Soldier promoted to [Veteran Soldier] "
+                 "for victory in combat!" } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION(
+      "(mounted_warrior,soldier) -> (,veteran_soldier), "
+      "post-declaration" ) {
+    defending_player.revolution_status =
+        e_revolution_status::declared;
+    params = {
+        .attacker         = e_native_unit_type::mounted_brave,
+        .defender         = e_unit_type::soldier,
+        .winner           = e_combat_winner::defender,
+        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+        .defender_outcome =
+            EuroUnitCombatOutcome::promoted{
+                .to = e_unit_type::veteran_soldier },
+    };
+    expected = {
+        .summaries = { .defender =
+                           "[Rebel] Soldier defeats [Sioux] "
+                           "Mounted Brave in the wilderness!" },
+        .defender  = {
+             .for_owner = {
+                "[Rebel] Soldier promoted to [Veteran Soldier] "
                  "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
@@ -1850,7 +1929,7 @@ TEST_CASE(
         .burned           = true };
     expected = { .summaries = {
                      .defender =
-                         "[Sioux] massacre [French] population "
+                         "[Sioux] massacre [Rebel] population "
                          "in [raided-colony]! Colony set ablaze "
                          "and decimated! The King laughs at "
                          "such incompetent governance!" } };

@@ -33,6 +33,7 @@
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plane-stack.hpp"
+#include "revolution-status.hpp"
 #include "roles.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
@@ -754,7 +755,7 @@ wait<> AttackDwellingHandler::produce_convert() {
   string_view const tribe_name_possessive =
       config_natives.tribes[tribe_.type].name_possessive;
   string_view const nation_name_possessive =
-      nation_obj( attacking_player_.nation ).possessive;
+      nation_possessive( attacking_player_ );
   co_await attacker_mind_.message_box(
       "[{}] citizens frightened in combat rush to the [{} "
       "mission] as [converts]!",
@@ -816,7 +817,7 @@ wait<> AttackDwellingHandler::perform() {
   string_view const nation_name =
       nation_obj( attacking_player_.nation ).display_name;
   string_view const nation_name_possessive =
-      nation_obj( attacking_player_.nation ).possessive;
+      nation_possessive( attacking_player_ );
   string_view const nation_harbor_name =
       nation_obj( attacking_player_.nation ).harbor_city_name;
 

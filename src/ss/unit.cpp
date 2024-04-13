@@ -204,9 +204,10 @@ LUA_STARTUP( lua::state& st ) {
   u["clear_orders"]  = &U::clear_orders;
 
   u[lua::metatable_key]["__tostring"] = []( U const& u ) {
-    return fmt::format( "{} {} (id={})",
-                        nation_obj( u.nation() ).possessive,
-                        u.desc().name, u.id() );
+    return fmt::format(
+        "{} {} (id={})",
+        nation_obj( u.nation() ).possessive_pre_declaration,
+        u.desc().name, u.id() );
   };
 };
 

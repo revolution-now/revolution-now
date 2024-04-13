@@ -30,6 +30,7 @@
 #include "minds.hpp"
 #include "native-owned.hpp"
 #include "plane-stack.hpp"
+#include "revolution-status.hpp"
 #include "road.hpp"
 #include "roles.hpp"
 #include "teaching.hpp"
@@ -311,7 +312,7 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   // Done.
   auto& desc = nation_obj( nation );
   lg.info( "created {} {} colony at {}.", desc.article,
-           desc.possessive, where );
+           nation_possessive( player ), where );
 
   return col_id;
 }

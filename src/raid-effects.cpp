@@ -300,7 +300,9 @@ wait<> display_brave_attack_colony_effect_msg(
       string msg;
       if( !ship_in_port_damaged.sent_to.has_value() )
         msg = ship_damaged_no_port_message(
-            ship.nation(), ship.type(), reason );
+            player_for_nation_or_die( ss.players,
+                                      ship.nation() ),
+            ship.type(), reason );
       else
         msg = ship_damaged_message(
             ss, ship.nation(), ship.type(), reason,

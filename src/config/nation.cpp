@@ -22,8 +22,10 @@ namespace {
 bool valid_pioneer( e_unit_type u ) {
   switch( u ) {
     case e_unit_type::pioneer:
-    case e_unit_type::hardy_pioneer: return true;
-    default: return false;
+    case e_unit_type::hardy_pioneer:
+      return true;
+    default:
+      return false;
   }
 }
 
@@ -34,8 +36,10 @@ bool valid_ship( e_unit_type u ) {
     case e_unit_type::galleon:
     case e_unit_type::privateer:
     case e_unit_type::frigate:
-    case e_unit_type::man_o_war: return true;
-    default: return false;
+    case e_unit_type::man_o_war:
+      return true;
+    default:
+      return false;
   }
 }
 

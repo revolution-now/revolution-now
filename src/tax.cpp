@@ -120,8 +120,11 @@ wait<> boycott_msg( SSConst const& ss, TS& ts,
   string const upper_commodity_name =
       uppercase_commodity_display_name(
           party.how.commodity.type_and_quantity.type );
+  // Here we don't need to use nation_possessive since boycotting
+  // won't ever be done after declaration.
   string_view const country_possessive =
-      config_nation.nations[player.nation].possessive;
+      config_nation.nations[player.nation]
+          .possessive_pre_declaration;
   string_view const harbor_city_name =
       config_nation.nations[player.nation].harbor_city_name;
   int const quantity =

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "harbor-units.hpp"
+#include "revolution-status.hpp"
 #include "unit-ownership.hpp"
 
 // config
@@ -208,21 +209,22 @@ string ship_damaged_message( SSConst const& ss, e_nation nation,
                              e_unit_type           ship_type,
                              e_ship_damaged_reason reason,
                              ShipRepairPort const& port ) {
+  Player const& player =
+      player_for_nation_or_die( ss.players, nation );
   return fmt::format(
       "[{}] [{}] damaged {}! Ship sent to [{}] for repairs.",
-      nation_obj( nation ).possessive,
-      unit_attr( ship_type ).name, ship_damaged_reason( reason ),
+      nation_possessive( player ), unit_attr( ship_type ).name,
+      ship_damaged_reason( reason ),
       ship_repair_port_name( ss, nation, port ) );
 }
 
 string ship_damaged_no_port_message(
-    e_nation nation, e_unit_type ship_type,
+    Player const& player, e_unit_type ship_type,
     e_ship_damaged_reason reason ) {
   return fmt::format(
       "[{}] [{}] damaged {}! As there are no available repair "
       "ports, the ship has been lost.",
-      nation_obj( nation ).possessive,
-      unit_attr( ship_type ).name,
+      nation_possessive( player ), unit_attr( ship_type ).name,
       ship_damaged_reason( reason ) );
 }
 

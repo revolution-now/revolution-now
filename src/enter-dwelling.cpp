@@ -25,6 +25,7 @@
 #include "missionary.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
+#include "revolution-status.hpp"
 #include "ts.hpp"
 #include "unit-classes.hpp"
 #include "unit-ownership.hpp"
@@ -738,8 +739,7 @@ wait<> do_establish_mission(
   string msg = fmt::format(
       "[{}] mission established in [{}] {} in the year {}. The "
       "{} {}.",
-      nation_obj( player.nation ).possessive,
-      tribe_conf.name_possessive,
+      nation_possessive( player ), tribe_conf.name_possessive,
       config_natives.dwelling_types[tribe_conf.level]
           .name_singular,
       ss.turn.time_point.year, tribe_conf.name_possessive,

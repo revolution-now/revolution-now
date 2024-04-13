@@ -35,7 +35,8 @@ string_view nation_possessive( Player const& player ) {
     static std::string const rebel = "Rebel";
     return rebel;
   }
-  return config_nation.nations[player.nation].possessive;
+  return config_nation.nations[player.nation]
+      .possessive_pre_declaration;
 }
 
 string_view nation_display_name( Player const& player ) {

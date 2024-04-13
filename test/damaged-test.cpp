@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 
 // ss
+#include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
@@ -260,8 +261,8 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
   e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
-    return ship_damaged_no_port_message( ship.nation(),
-                                         ship.type(), reason );
+    return ship_damaged_no_port_message(
+        W.player( ship.nation() ), ship.type(), reason );
   };
 
   reason = e_ship_damaged_reason::battle;
@@ -315,6 +316,17 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::galleon, { .x = 0, .y = 0 },
                e_nation::spanish ) ) == expected );
+
+  // Post-declaration.
+  W.default_player().revolution_status =
+      e_revolution_status::declared;
+  reason = e_ship_damaged_reason::battle;
+  expected =
+      "[Rebel] [Privateer] damaged in battle! As there are no "
+      "available repair ports, the ship has been lost.";
+  REQUIRE( f( W.add_unit_on_map(
+               e_unit_type::privateer, { .x = 0, .y = 0 },
+               e_nation::french ) ) == expected );
 }
 
 TEST_CASE( "[damaged] ship_damaged_message" ) {
@@ -333,6 +345,30 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
     port   = ShipRepairPort::european_harbor{};
     expected =
         "[French] [Privateer] damaged in battle! Ship sent to "
+        "[La Rochelle] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::privateer, { .x = 0, .y = 0 },
+                 e_nation::french ) ) == expected );
+
+    Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+    colony.name    = "some colony";
+    reason         = e_ship_damaged_reason::battle;
+    port           = ShipRepairPort::colony{ .id = colony.id };
+    expected =
+        "[Spanish] [Man-O-War] damaged in battle! Ship sent to "
+        "[some colony] for repairs.";
+    REQUIRE( f( W.add_unit_on_map(
+                 e_unit_type::man_o_war, { .x = 0, .y = 0 },
+                 e_nation::spanish ) ) == expected );
+  }
+
+  SECTION( "battle, post declaration" ) {
+    W.default_player().revolution_status =
+        e_revolution_status::declared;
+    reason = e_ship_damaged_reason::battle;
+    port   = ShipRepairPort::european_harbor{};
+    expected =
+        "[Rebel] [Privateer] damaged in battle! Ship sent to "
         "[La Rochelle] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::privateer, { .x = 0, .y = 0 },

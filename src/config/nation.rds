@@ -66,7 +66,7 @@ struct.Nationality {
   new_world_name 'std::string',
 
   # ____ forces have captured...
-  possessive 'std::string',
+  possessive_pre_declaration 'std::string',
 
   # __ <possessive> ship has been sunk...
   article 'std::string',

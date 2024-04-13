@@ -69,9 +69,9 @@ string construct_rcl_title( SSConst const& ss ) {
     }
   }
   string const nation_name =
-      human.has_value()
-          ? config_nation.nations[*human].possessive
-          : "(AI only)";
+      human.has_value() ? config_nation.nations[*human]
+                              .possessive_pre_declaration
+                        : "(AI only)";
   TurnState const& turn_state = ss.root.turn;
   string const     time_point = fmt::format(
       "{} {}",

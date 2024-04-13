@@ -979,6 +979,16 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
       as_const( W.units() ).ownership_of( missionary.id() ) ==
       UnitOwnership{
           UnitOwnership::dwelling{ .id = dwelling.id } } );
+
+  // Post-declaration.
+  W.default_player().revolution_status =
+      e_revolution_status::declared;
+  outcome = { .reaction = e_missionary_reaction::curiosity };
+  msg =
+      "[Rebel] mission established in [Inca] city "
+      "in the year 1501. The Inca react with [curiosity].";
+  W.gui().EXPECT__message_box( msg );
+  f();
 }
 
 } // namespace
