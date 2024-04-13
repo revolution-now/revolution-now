@@ -525,5 +525,102 @@ TEST_CASE( "[alarm] tribe_alarm_category" ) {
            e_alarm_category::happy );
 }
 
+TEST_CASE( "[alarm] increase_tribal_alarm" ) {
+  World   w;
+  Player& player       = w.default_player();
+  int     tribal_alarm = 0;
+  double  delta        = 0;
+
+  auto f = [&] {
+    increase_tribal_alarm( player, delta, tribal_alarm );
+  };
+
+  delta = 10;
+  f();
+  REQUIRE( tribal_alarm == 10 );
+
+  player.fathers.has[e_founding_father::pocahontas] = true;
+  delta                                             = 10;
+  f();
+  REQUIRE( tribal_alarm == 15 );
+
+  player.fathers.has[e_founding_father::pocahontas] = false;
+  delta                                             = 10;
+  f();
+  REQUIRE( tribal_alarm == 25 );
+
+  delta = 80;
+  f();
+  REQUIRE( tribal_alarm == 99 );
+
+  delta = 1;
+  f();
+  REQUIRE( tribal_alarm == 99 );
+
+  player.fathers.has[e_founding_father::pocahontas] = true;
+  delta                                             = -10;
+  f();
+  REQUIRE( tribal_alarm == 89 );
+
+  player.fathers.has[e_founding_father::pocahontas] = false;
+  delta                                             = -10;
+  f();
+  REQUIRE( tribal_alarm == 79 );
+
+  delta = -100;
+  f();
+  REQUIRE( tribal_alarm == 0 );
+
+  delta = -1;
+  f();
+  REQUIRE( tribal_alarm == 0 );
+
+  delta = 2.49;
+  f();
+  REQUIRE( tribal_alarm == 2 );
+
+  delta = 2.4;
+  f();
+  REQUIRE( tribal_alarm == 4 );
+
+  delta = 2.5;
+  f();
+  REQUIRE( tribal_alarm == 6 );
+
+  delta = 2.99;
+  f();
+  REQUIRE( tribal_alarm == 8 );
+}
+
+TEST_CASE(
+    "[alarm] "
+    "increase_tribal_alarm_from_burial_ground_trespass" ) {
+  World   w;
+  Player& player = w.default_player();
+
+  TribeRelationship relationship;
+  int&              tribal_alarm = relationship.tribal_alarm;
+
+  auto f = [&] {
+    increase_tribal_alarm_from_burial_ground_trespass(
+        player, relationship );
+  };
+
+  f();
+  REQUIRE( tribal_alarm == 99 );
+
+  tribal_alarm                                      = 0;
+  player.fathers.has[e_founding_father::pocahontas] = true;
+  f();
+  REQUIRE( tribal_alarm == 50 );
+
+  player.fathers.has[e_founding_father::pocahontas] = false;
+  f();
+  REQUIRE( tribal_alarm == 99 );
+
+  f();
+  REQUIRE( tribal_alarm == 99 );
+}
+
 } // namespace
 } // namespace rn

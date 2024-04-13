@@ -39,6 +39,12 @@ int effective_dwelling_alarm( SSConst const&  ss,
                               Dwelling const& dwelling,
                               e_nation        nation );
 
+// This is the method that all other code should call in order to
+// increase tribal alarm, since it ensures that modifiers get ap-
+// plied in a standard way.
+void increase_tribal_alarm( Player const& player, double delta,
+                            int& tribal_alarm );
+
 // Determines how a dwelling is described to react to the player
 // upon entering the native dwelling. It is based on the effec-
 // tive alarm as well as whether the tribe is at war with the
@@ -70,6 +76,9 @@ void increase_tribal_alarm_from_attacking_brave(
 void increase_tribal_alarm_from_attacking_dwelling(
     Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship );
+
+void increase_tribal_alarm_from_burial_ground_trespass(
+    Player const& player, TribeRelationship& relationship );
 
 // The tribal alarm that all tribes' alarm will be lowered to (if
 // they are higher) after having acquired the founding father

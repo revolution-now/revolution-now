@@ -32,6 +32,8 @@ namespace rn {
 
 namespace {
 
+// FIXME: the max should go to 100 as in the OG, not 99.
+
 [[nodiscard]] int clamp_alarm( int alarm ) {
   return clamp( alarm, 0, 99 );
 }
@@ -57,9 +59,7 @@ void increase_tribal_alarm_from_dwelling(
     int& tribal_alarm ) {
   if( dwelling.is_capital )
     delta *= config_natives.alarm.tribal_alarm_scale_for_capital;
-  if( player.fathers.has[e_founding_father::pocahontas] )
-    delta = scale_alarm_delta_for_pocahontas( delta );
-  tribal_alarm = clamp_round_alarm( tribal_alarm + delta );
+  increase_tribal_alarm( player, delta, tribal_alarm );
 }
 
 constexpr int minimum_alarm_for_named_level(
@@ -105,6 +105,13 @@ int effective_dwelling_alarm( SSConst const&  ss,
                   ( 1.0 - dwelling_only_alarm / 100.0 ) ) *
       100.0 );
   return clamp_alarm( effective_alarm );
+}
+
+void increase_tribal_alarm( Player const& player, double delta,
+                            int& tribal_alarm ) {
+  if( player.fathers.has[e_founding_father::pocahontas] )
+    delta = scale_alarm_delta_for_pocahontas( delta );
+  tribal_alarm = clamp_round_alarm( tribal_alarm + delta );
 }
 
 e_enter_dwelling_reaction reaction_for_dwelling(
@@ -160,6 +167,8 @@ void increase_tribal_alarm_from_land_grab(
       player, dwelling, delta, relationship.tribal_alarm );
 }
 
+// TODO: is this really dependent on the dwelling that tbe brave
+// belongs to?
 void increase_tribal_alarm_from_attacking_brave(
     Player const& player, Dwelling const& dwelling,
     TribeRelationship& relationship ) {
@@ -178,6 +187,16 @@ void increase_tribal_alarm_from_attacking_dwelling(
           .tribal_alarm_increase_from_attacking_dwelling;
   increase_tribal_alarm_from_dwelling(
       player, dwelling, delta, relationship.tribal_alarm );
+}
+
+void increase_tribal_alarm_from_burial_ground_trespass(
+    Player const& player, TribeRelationship& relationship ) {
+  // We can't just max out the tribal alarm here; we need to add
+  // a delta, since it will be scaled down if the player as Poca-
+  // hontas, as in the OG.
+  int const delta = 100;
+  increase_tribal_alarm( player, delta,
+                         relationship.tribal_alarm );
 }
 
 int max_tribal_alarm_after_pocahontas() {
