@@ -930,9 +930,20 @@ struct CodeGenerator {
       newline();
     }
 
-    comment( "refl" );
-    line( "#include \"refl/ext.hpp\"" );
-    newline();
+    // Note that expr::Interface is not in this list.
+    bool const needs_refl_ext =
+        rds_has_construct<expr::Sumtype>( rds ) ||
+        rds_has_construct<expr::Enum>( rds ) ||
+        rds_has_construct<expr::Struct>( rds ) ||
+        rds_has_construct<expr::Config>( rds );
+    // This works at the moment.
+    bool const needs_string_view = needs_refl_ext;
+
+    if( needs_refl_ext ) {
+      comment( "refl" );
+      line( "#include \"refl/ext.hpp\"" );
+      newline();
+    }
 
     if( rds_has_construct<expr::Sumtype>( rds ) ) {
       comment( "base" );
@@ -946,13 +957,20 @@ struct CodeGenerator {
       newline();
     }
 
-    comment( "C++ standard library" );
-    if( rds_has_construct<expr::Enum>( rds ) )
-      line( "#include <array>" );
-    line( "#include <string_view>" );
-    if( rds_has_construct<expr::Struct>( rds ) )
-      line( "#include <tuple>" );
-    newline();
+    bool const needs_cpp_std_lib =
+        rds_has_construct<expr::Enum>( rds ) ||
+        rds_has_construct<expr::Struct>( rds ) ||
+        needs_string_view;
+
+    if( needs_cpp_std_lib ) {
+      comment( "C++ standard library" );
+      if( rds_has_construct<expr::Enum>( rds ) )
+        line( "#include <array>" );
+      if( needs_string_view ) line( "#include <string_view>" );
+      if( rds_has_construct<expr::Struct>( rds ) )
+        line( "#include <tuple>" );
+      newline();
+    }
   }
 
   void emit_rds( expr::Rds const& rds ) {
