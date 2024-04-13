@@ -1,0 +1,17 @@
+# ===============================================================
+# revolution.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-04-13.
+#
+# Description: Rds definitions for the ss/revolution module.
+#
+# ===============================================================
+# Note: it is important that these go in chronological order so
+# that we can use inequality operators on them, which we do in
+# some places. E.g. if status <= declared then...
+enum.e_revolution_status {
+  not_declared,
+  declared,
+}

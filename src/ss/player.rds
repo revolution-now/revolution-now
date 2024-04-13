@@ -15,6 +15,7 @@ include "maybe.hpp"
 include "ss/fathers.rds.hpp"
 include "ss/nation.rds.hpp"
 include "ss/old-world-state.rds.hpp"
+include "ss/revolution.rds.hpp"
 include "ss/woodcut.rds.hpp"
 
 # gfx
@@ -28,14 +29,6 @@ namespace "rn"
 # Stats collected for the purpose of calculating a final score.
 struct.PlayerScoreStats {
   dwellings_burned 'int',
-}
-
-# Note: it is important that these go in chronological order so
-# that we can use inequality operators on them, which we do in
-# some places. E.g. if status <= declared then...
-enum.e_revolution_status {
-  not_declared,
-  declared,
 }
 
 struct.Player {
