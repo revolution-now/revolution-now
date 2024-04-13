@@ -8,6 +8,8 @@
 # Description: Rds definitions for the ss/revolution module.
 #
 # ===============================================================
+namespace "rn"
+
 # Note: it is important that these go in chronological order so
 # that we can use inequality operators on them, which we do in
 # some places. E.g. if status <= declared then...
