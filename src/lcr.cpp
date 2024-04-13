@@ -11,9 +11,12 @@
 #include "lcr.hpp"
 
 // Revolution Now
+#include "alarm.hpp"
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
+#include "igui.hpp"
+#include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "irand.hpp"
@@ -24,17 +27,23 @@
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
 
+// config
+#include "config/lcr.rds.hpp"
+#include "config/natives.rds.hpp"
+#include "config/text.rds.hpp"
+
 // ss
+#include "ss/natives.hpp"
 #include "ss/old-world-state.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/lcr.rds.hpp"
-#include "config/text.rds.hpp"
+// rds
+#include "rds/switch-macro.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -68,14 +77,6 @@ bool has_hernando_de_soto( Player const& player ) {
   return player.fathers.has[e_founding_father::hernando_de_soto];
 }
 
-// When exploring burial mounds that are in native owned land we
-// could find indian burial grounds, which will cause that tribe
-// to declare war (permanently?).
-bool is_native_land() {
-  // TODO
-  return false;
-}
-
 // The fountain of youth is only allowed pre-independence.
 bool allow_fountain_of_youth( Player const& player ) {
   return player.revolution_status ==
@@ -99,59 +100,55 @@ UnitId create_treasure_train( SS& ss, TS& ts,
 }
 
 wait<LostCityRumorUnitChange> run_burial_mounds_result(
-    e_burial_mounds_type type, bool has_burial_grounds, SS& ss,
-    TS& ts, Player& player, UnitId unit_id,
-    Coord world_square ) {
-  LostCityRumorUnitChange       result = {};
-  e_lcr_explorer_category const explorer =
-      lcr_explorer_category( ss.units, unit_id );
-  switch( type ) {
-    case e_burial_mounds_type::trinkets: {
-      int amount = random_gift(
-          ts.rand,
-          { .min      = config_lcr.trinkets_gift_min[explorer],
-            .max      = config_lcr.trinkets_gift_max[explorer],
-            .multiple = config_lcr.trinkets_gift_multiple } );
+    SS& ss, TS& ts, Player& player, Coord world_square,
+    BurialMounds const& mounds, maybe<e_tribe> burial_grounds ) {
+  LostCityRumorUnitChange result = {};
+  SWITCH( mounds ) {
+    CASE( cold_and_empty ) {
       co_await ts.gui.message_box(
-          "You've found some trinkets worth [{}{}].", amount,
-          config_text.special_chars.currency );
-      int total = player.money += amount;
-      lg.info(
-          "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation, total );
+          "The mounds are cold and empty." );
       result = LostCityRumorUnitChange::other{};
       break;
     }
-    case e_burial_mounds_type::treasure_train: {
-      int amount = random_gift(
-          ts.rand,
-          { .min =
-                config_lcr.burial_mounds_treasure_min[explorer],
-            .max =
-                config_lcr.burial_mounds_treasure_max[explorer],
-            .multiple =
-                config_lcr.burial_mounds_treasure_multiple } );
+    CASE( treasure ) {
       co_await ts.gui.message_box(
-          "You've recovered a treasure worth [{}{}]!", amount,
-          config_text.special_chars.currency );
+          "You've recovered a treasure worth [{}{}]!",
+          treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
-          ss, ts, player, world_square, amount );
+          ss, ts, player, world_square, treasure.gold );
       co_await ts.planes.land_view().animate(
           anim_seq_for_treasure_enpixelation( ss, unit_id ) );
       result =
           LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
     }
-    case e_burial_mounds_type::cold_and_empty: {
+    CASE( trinkets ) {
       co_await ts.gui.message_box(
-          "The mounds are cold and empty." );
+          "You've found some trinkets worth [{}{}].",
+          trinkets.gold, config_text.special_chars.currency );
+      int total = player.money += trinkets.gold;
+      lg.info(
+          "{} gold added to {} treasury.  current balance: {}.",
+          trinkets.gold, player.nation, total );
       result = LostCityRumorUnitChange::other{};
       break;
     }
   }
-  if( has_burial_grounds ) {
+
+  if( burial_grounds.has_value() ) {
+    // This appears to bump the tribal alarm toward the player to
+    // 100 on every difficulty level.
+    e_tribe const tribe_type = *burial_grounds;
+    Tribe&        tribe = ss.natives.tribe_for( tribe_type );
     co_await ts.gui.message_box(
-        "These are native burial grounds.  WAR!" );
+        "You have walked upon the sacred rested places the "
+        "ancestors of the [{}] tribe. Your irreverence shall be "
+        "put to an end... prepare for WAR!",
+        config_natives.tribes[tribe_type].name_singular );
+    // Do this after so that the exclamation marks on the
+    // dwellings appear after the message box closes.
+    increase_tribal_alarm_from_burial_ground_trespass(
+        as_const( player ), tribe.relationship[player.nation] );
   }
   co_return result;
 }
@@ -195,40 +192,18 @@ wait<> run_fountain_of_youth( SS& ss, TS& ts, Player& player,
 }
 
 wait<LostCityRumorUnitChange> run_rumor_result(
-    e_rumor_type type, e_burial_mounds_type burial_type,
-    bool has_burial_grounds, SS& ss, TS& ts, Player& player,
-    UnitId unit_id, Coord world_square ) {
-  e_lcr_explorer_category const explorer =
-      lcr_explorer_category( ss.units, unit_id );
-  switch( type ) {
-    case e_rumor_type::none: {
+    SS& ss, TS& ts, Player& player, Unit const& unit, Coord tile,
+    LostCityRumor const& rumor ) {
+  SWITCH( rumor ) {
+    CASE( unit_lost ) {
+      // Destroy unit before showing message so that the unit ac-
+      // tually appears to disappear.
+      UnitOwnershipChanger( ss, unit.id() ).destroy();
       co_await ts.gui.message_box(
-          "You find nothing but rumors." );
-      co_return LostCityRumorUnitChange::other{};
+          "Our colonist has vanished without a trace." );
+      co_return LostCityRumorUnitChange::unit_lost{};
     }
-    case e_rumor_type::fountain_of_youth: {
-      co_await run_fountain_of_youth( ss, ts, player,
-                                      ss.settings );
-      co_return LostCityRumorUnitChange::other{};
-    }
-    case e_rumor_type::ruins: {
-      int amount = random_gift(
-          ts.rand,
-          { .min      = config_lcr.ruins_gift_min[explorer],
-            .max      = config_lcr.ruins_gift_max[explorer],
-            .multiple = config_lcr.ruins_gift_multiple } );
-      co_await ts.gui.message_box(
-          "You've discovered the ruins of a lost colony, among "
-          "which there are items worth [{}{}].",
-          amount, config_text.special_chars.currency );
-      player.money += amount;
-      int total = player.money;
-      lg.info(
-          "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation, total );
-      co_return LostCityRumorUnitChange::other{};
-    }
-    case e_rumor_type::burial_mounds: {
+    CASE( burial_mounds ) {
       ui::e_confirm res = co_await ts.gui.required_yes_no(
           { .msg = "You stumble across some mysterious ancient "
                    "burial mounds.  Explore them?",
@@ -237,30 +212,38 @@ wait<LostCityRumorUnitChange> run_rumor_result(
             .no_comes_first = false } );
       if( res == ui::e_confirm::no )
         co_return LostCityRumorUnitChange::other{};
-      LostCityRumorUnitChange result =
+      LostCityRumorUnitChange const result =
           co_await run_burial_mounds_result(
-              burial_type, has_burial_grounds, ss, ts, player,
-              unit_id, world_square );
+              ss, ts, player, tile, burial_mounds.mounds,
+              burial_mounds.burial_grounds );
       co_return result;
     }
-    case e_rumor_type::chief_gift: {
-      int amount = random_gift(
-          ts.rand,
-          { .min      = config_lcr.chief_gift_min[explorer],
-            .max      = config_lcr.chief_gift_max[explorer],
-            .multiple = config_lcr.chief_gift_multiple } );
+    CASE( chief_gift ) {
       co_await ts.gui.message_box(
           "You happen upon a small village.  The chief offers "
           "you a gift worth [{}{}].",
-          amount, config_text.special_chars.currency );
-      player.money += amount;
-      int total = player.money;
-      lg.info(
-          "{} gold added to {} treasury.  current balance: {}.",
-          amount, player.nation, total );
+          chief_gift.gold, config_text.special_chars.currency );
+      player.money += chief_gift.gold;
       co_return LostCityRumorUnitChange::other{};
     }
-    case e_rumor_type::free_colonist: {
+    CASE( cibola ) {
+      co_await ts.gui.message_box(
+          "You've discovered one of the [Seven Cities of "
+          "Cibola] and have recovered a treasure worth [{}{}]!",
+          cibola.gold, config_text.special_chars.currency );
+      UnitId unit_id = create_treasure_train(
+          ss, ts, player, tile, cibola.gold );
+      co_await ts.planes.land_view().animate(
+          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      co_return LostCityRumorUnitChange::unit_created{
+          .id = unit_id };
+    }
+    CASE( fountain_of_youth ) {
+      co_await run_fountain_of_youth( ss, ts, player,
+                                      ss.settings );
+      co_return LostCityRumorUnitChange::other{};
+    }
+    CASE( free_colonist ) {
       co_await ts.gui.message_box(
           "You happen upon the survivors of a lost colony.  In "
           "exchange for badly-needed supplies, they agree to "
@@ -270,52 +253,48 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       // rediscovers the LCR on this tile; also, there are no
       // further UI actions needed in response to creating this
       // unit, apart from what we will do here.
-      UnitId id = create_unit_on_map_non_interactive(
-          ss, ts, player, e_unit_type::free_colonist,
-          world_square );
-      co_return LostCityRumorUnitChange::unit_created{ .id =
-                                                           id };
-    }
-    case e_rumor_type::unit_lost: {
-      // Destroy unit before showing message so that the unit ac-
-      // tually appears to disappear.
-      UnitOwnershipChanger( ss, unit_id ).destroy();
-      co_await ts.gui.message_box(
-          "Our colonist has vanished without a trace." );
-      co_return LostCityRumorUnitChange::unit_lost{};
-    }
-    case e_rumor_type::cibola: {
-      int amount = random_gift(
-          ts.rand,
-          { .min      = config_lcr.cibola_treasure_min[explorer],
-            .max      = config_lcr.cibola_treasure_max[explorer],
-            .multiple = config_lcr.cibola_treasure_multiple } );
-      co_await ts.gui.message_box(
-          "You've discovered one of the [Seven Cities of "
-          "Cibola] and have recovered a treasure worth [{}{}]!",
-          amount, config_text.special_chars.currency );
-      UnitId unit_id = create_treasure_train(
-          ss, ts, player, world_square, amount );
-      co_await ts.planes.land_view().animate(
-          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      UnitId const unit_id = create_unit_on_map_non_interactive(
+          ss, ts, player, e_unit_type::free_colonist, tile );
       co_return LostCityRumorUnitChange::unit_created{
           .id = unit_id };
     }
+    CASE( holy_shrines ) {
+      e_tribe const tribe_type = holy_shrines.tribe;
+      Tribe&        tribe = ss.natives.tribe_for( tribe_type );
+      co_await ts.gui.message_box(
+          "You are wondering dangerously close to the holy "
+          "shrines of the [{}] tribe... the [{}] tribe has been "
+          "angered.",
+          config_natives.tribes[tribe_type].name_singular,
+          config_natives.tribes[tribe_type].name_singular );
+      // Do this after so that the exclamation marks on the
+      // dwellings appear after the message box closes.
+      increase_tribal_alarm(
+          player, holy_shrines.alarm_increase,
+          tribe.relationship[player.nation].tribal_alarm );
+      co_return LostCityRumorUnitChange::other{};
+    }
+    CASE( none ) {
+      co_await ts.gui.message_box(
+          "You find nothing but rumors." );
+      co_return LostCityRumorUnitChange::other{};
+    }
+    CASE( ruins ) {
+      co_await ts.gui.message_box(
+          "You've discovered the ruins of a lost colony, among "
+          "which there are items worth [{}{}].",
+          ruins.gold, config_text.special_chars.currency );
+      player.money += ruins.gold;
+      co_return LostCityRumorUnitChange::other{};
+    }
   }
+
   SHOULD_NOT_BE_HERE;
 }
 
-} // namespace
-
-bool has_lost_city_rumor( TerrainState const& terrain_state,
-                          Coord               square ) {
-  return terrain_state.square_at( square ).lost_city_rumor;
-}
-
 e_lcr_explorer_category lcr_explorer_category(
-    UnitsState const& units_state, UnitId unit_id ) {
-  Unit const& unit = units_state.unit_for( unit_id );
-  switch( unit.type() ) {
+    e_unit_type unit_type ) {
+  switch( unit_type ) {
     case e_unit_type::seasoned_scout:
       return e_lcr_explorer_category::seasoned_scout;
     case e_unit_type::scout:
@@ -325,7 +304,7 @@ e_lcr_explorer_category lcr_explorer_category(
   }
 }
 
-e_burial_mounds_type pick_burial_mounds_result(
+e_burial_mounds_type pick_burial_mounds_type(
     IRand& rand, e_lcr_explorer_category explorer ) {
   refl::enum_map<e_burial_mounds_type, int> const& weights =
       config_lcr.burial_mounds_type_weights[explorer];
@@ -349,7 +328,8 @@ e_rumor_type pick_rumor_type_result(
     //
     // TODO: However, some say that this requires using a scout
     // (need to determine this).
-    weights[e_rumor_type::unit_lost] = 0;
+    weights[e_rumor_type::unit_lost]    = 0;
+    weights[e_rumor_type::holy_shrines] = 0;
   }
 
   // Make sure, after having removed some of the possibilities,
@@ -364,38 +344,160 @@ e_rumor_type pick_rumor_type_result(
   return rand.pick_from_weighted_values( weights );
 }
 
-bool pick_burial_grounds_result(
-    IRand& rand, Player const& player,
-    e_lcr_explorer_category explorer,
-    e_burial_mounds_type    burial_type ) {
-  if( !is_native_land() ) return false;
-  bool positive_burial_mounds_result =
-      ( burial_type != e_burial_mounds_type::cold_and_empty );
+maybe<e_tribe> pick_burial_grounds_result(
+    IRand& rand, e_tribe close_encountered_tribe,
+    Player const& player, e_lcr_explorer_category explorer,
+    e_burial_mounds_type burial_mounds ) {
+  bool const positive_burial_mounds_result =
+      ( burial_mounds != e_burial_mounds_type::cold_and_empty );
   // TODO: Some say that suppressing burial grounds via De Soto
-  // requires using a scout (need to determine this). Also, some
-  // say that even with De Soto you can still stumble on native
-  // burial grounds, though that would always be accompanied by a
-  // positive result otherwise such as a treasure, hence the
-  // logic below. In that way, De Soto only means that "purely
-  // negative" results are prevented. But this needs to be deter-
-  // mined.
-  bool allow_negative = !has_hernando_de_soto( player ) ||
-                        positive_burial_mounds_result;
-  if( !allow_negative ) return false;
+  // requires using a scout (need to determine this).
+  //
+  // Confirmed in the OG that without de soto we can get burial
+  // grounds on any of the mounds results, and with de soto, we
+  // can get burial grounds on the positive results but not the
+  // negative results. In this way, De Soto only means that
+  // "purely negative" results are prevented.
+  bool const allow_negative = !has_hernando_de_soto( player ) ||
+                              positive_burial_mounds_result;
+  if( !allow_negative ) return nothing;
   // We are clear for allowing burial grounds. But whether we
   // trigger it is still a matter of probability.
   return rand.bernoulli(
-      config_lcr.burial_grounds_probability[explorer]
-          .probability );
+             config_lcr.burial_grounds_probability[explorer]
+                 .probability )
+             ? close_encountered_tribe
+             : maybe<e_tribe>();
 }
 
-wait<LostCityRumorUnitChange> run_lost_city_rumor_result(
-    SS& ss, TS& ts, Player& player, UnitId unit_id,
-    Coord world_square, e_rumor_type type,
-    e_burial_mounds_type burial_type, bool has_burial_grounds ) {
+BurialMounds compute_mounds( e_burial_mounds_type    type,
+                             e_lcr_explorer_category explorer,
+                             IRand&                  rand ) {
+  switch( type ) {
+    case e_burial_mounds_type::cold_and_empty:
+      return BurialMounds::cold_and_empty{};
+    case e_burial_mounds_type::treasure_train: {
+      int const gold = random_gift(
+          rand,
+          { .min =
+                config_lcr.burial_mounds_treasure_min[explorer],
+            .max =
+                config_lcr.burial_mounds_treasure_max[explorer],
+            .multiple =
+                config_lcr.burial_mounds_treasure_multiple } );
+      return BurialMounds::treasure{ .gold = gold };
+    }
+    case e_burial_mounds_type::trinkets: {
+      int const gold = random_gift(
+          rand,
+          { .min      = config_lcr.trinkets_gift_min[explorer],
+            .max      = config_lcr.trinkets_gift_max[explorer],
+            .multiple = config_lcr.trinkets_gift_multiple } );
+      return BurialMounds::trinkets{ .gold = gold };
+    }
+  }
+}
+
+LostCityRumor compute_rumor_type(
+    e_difficulty const            difficulty,
+    e_lcr_explorer_category const explorer,
+    e_rumor_type const rumor_type, Player const& player,
+    Coord const tile, IRand& rand,
+    IMapSearch const& map_search ) {
+  switch( rumor_type ) {
+    case e_rumor_type::unit_lost: {
+      return LostCityRumor::unit_lost{};
+    }
+    case e_rumor_type::burial_mounds: {
+      e_burial_mounds_type const mounds_type =
+          pick_burial_mounds_type( rand, explorer );
+      BurialMounds const mounds =
+          compute_mounds( mounds_type, explorer, rand );
+      auto const burial_grounds = [&]() -> maybe<e_tribe> {
+        maybe<e_tribe> const close_encountered_tribe =
+            map_search.find_close_encountered_tribe(
+                player.nation, tile,
+                config_lcr.burial_grounds_radius );
+        if( close_encountered_tribe.has_value() )
+          return pick_burial_grounds_result(
+              rand, *close_encountered_tribe, player, explorer,
+              mounds_type );
+        return nothing;
+      }();
+      return LostCityRumor::burial_mounds{
+          .mounds = mounds, .burial_grounds = burial_grounds };
+    }
+    case e_rumor_type::chief_gift: {
+      int const gold = random_gift(
+          rand, { .min = config_lcr.chief_gift_min[explorer],
+                  .max = config_lcr.chief_gift_max[explorer],
+                  .multiple = config_lcr.chief_gift_multiple } );
+      return LostCityRumor::chief_gift{ .gold = gold };
+    }
+    case e_rumor_type::cibola: {
+      int const gold = random_gift(
+          rand,
+          { .min      = config_lcr.cibola_treasure_min[explorer],
+            .max      = config_lcr.cibola_treasure_max[explorer],
+            .multiple = config_lcr.cibola_treasure_multiple } );
+      return LostCityRumor::cibola{ .gold = gold };
+    }
+    case e_rumor_type::fountain_of_youth: {
+      return LostCityRumor::fountain_of_youth{};
+    }
+    case e_rumor_type::free_colonist: {
+      return LostCityRumor::free_colonist{};
+    }
+    case e_rumor_type::holy_shrines: {
+      maybe<e_tribe> const close_encountered_tribe =
+          map_search.find_close_encountered_tribe(
+              player.nation, tile,
+              config_lcr.burial_grounds_radius );
+      if( close_encountered_tribe.has_value() ) {
+        auto const& range =
+            config_lcr.holy_shrines_alarm_increase[difficulty];
+        int const alarm_increase =
+            rand.between_ints( range.min, range.max );
+        return LostCityRumor::holy_shrines{
+            .tribe          = *close_encountered_tribe,
+            .alarm_increase = alarm_increase };
+      } else {
+        return LostCityRumor::none{};
+      }
+    }
+    case e_rumor_type::none: {
+      return LostCityRumor::none{};
+    }
+    case e_rumor_type::ruins: {
+      int const gold = random_gift(
+          rand, { .min = config_lcr.ruins_gift_min[explorer],
+                  .max = config_lcr.ruins_gift_max[explorer],
+                  .multiple = config_lcr.ruins_gift_multiple } );
+      return LostCityRumor::ruins{ .gold = gold };
+    }
+  }
+}
+
+} // namespace
+
+LostCityRumor compute_lcr( SSConst const& ss,
+                           Player const& player, IRand& rand,
+                           IMapSearch const& map_search,
+                           e_unit_type unit_type, Coord tile ) {
+  e_lcr_explorer_category const explorer =
+      lcr_explorer_category( unit_type );
+  e_rumor_type const rumor_type =
+      pick_rumor_type_result( rand, explorer, player );
+  return compute_rumor_type( ss.settings.difficulty, explorer,
+                             rumor_type, player, tile, rand,
+                             map_search );
+}
+
+wait<LostCityRumorUnitChange> run_lcr(
+    SS& ss, TS& ts, Player& player, Unit const& unit,
+    Coord world_square, LostCityRumor const& rumor ) {
   LostCityRumorUnitChange result = co_await run_rumor_result(
-      type, burial_type, has_burial_grounds, ss, ts, player,
-      unit_id, world_square );
+      ss, ts, player, unit, world_square, rumor );
   // Remove lost city rumor.
   ts.map_updater.modify_map_square(
       world_square, []( MapSquare& square ) {

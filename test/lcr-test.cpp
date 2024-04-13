@@ -8,7 +8,6 @@
 * Description: Unit tests for the src/lcr.* module.
 *
 *****************************************************************/
-#include "test/mocking.hpp"
 #include "test/testing.hpp"
 
 // Under test.
@@ -16,31 +15,37 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 
 // Revolution Now
-#include "imap-updater.hpp"
-#include "plane-stack.hpp"
-#include "unit-mgr.hpp"
+#include "src/imap-search.rds.hpp"
+#include "src/imap-updater.hpp"
+#include "src/plane-stack.hpp"
+#include "src/unit-mgr.hpp"
 
 // ss
-#include "ss/players.hpp"
-#include "ss/settings.hpp"
-#include "ss/terrain.hpp"
-#include "ss/units.hpp"
+#include "src/ss/players.hpp"
+#include "src/ss/ref.hpp"
+#include "src/ss/settings.hpp"
+#include "src/ss/terrain.hpp"
+#include "src/ss/tribe.rds.hpp"
+#include "src/ss/units.hpp"
 
 // refl
-#include "refl/to-str.hpp"
+#include "src/refl/to-str.hpp"
 
 // base
-#include "base/cc-specific.hpp"
-#include "base/keyval.hpp"
-#include "base/to-str-ext-std.hpp"
+#include "src/base/cc-specific.hpp"
+#include "src/base/keyval.hpp"
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
+
+RDS_DEFINE_MOCK( IMapSearch );
 
 namespace rn {
 namespace {
@@ -48,6 +53,7 @@ namespace {
 using namespace ::std;
 
 using ::mock::matchers::_;
+using ::mock::matchers::AllOf;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
 
@@ -71,42 +77,32 @@ struct World : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[lcr] has_lost_city_rumor" ) {
-  TerrainState terrain_state;
-  terrain_state.modify_entire_map(
-      []( RealTerrain& real_terrain ) {
-        real_terrain.map =
-            gfx::Matrix<MapSquare>( Delta{ .w = 1, .h = 1 } );
-      } );
+TEST_CASE( "[lcr] de soto means no negative results" ) {
+  World          W;
+  Player&        player = W.default_player();
+  MockIMapSearch mock_map_search;
+  e_unit_type    unit_type = e_unit_type::scout;
 
-  REQUIRE_FALSE( has_lost_city_rumor( terrain_state, Coord{} ) );
-  MapSquare& square = terrain_state.mutable_square_at( Coord{} );
-  square.surface    = e_surface::land;
-  square.lost_city_rumor = true;
-  REQUIRE( has_lost_city_rumor( terrain_state, Coord{} ) );
-}
+  auto f = [&] {
+    return compute_lcr( W.ss(), player, W.rand(),
+                        mock_map_search, unit_type,
+                        { .x = 0, .y = 0 } );
+  };
 
-TEST_CASE( "[lcr] de soto means no unit lost" ) {
-  World   W;
-  Player& player = W.default_player();
   player.fathers.has[e_founding_father::hernando_de_soto] = true;
-  // The rumor type weights are integral and are required to sum
-  // to 100, but the logic zeroes out the unit-lost weight, which
-  // is currently three, so the total weight will be 97.
-  int const kUpperLimit = 97;
-  for( int i = 0; i < kUpperLimit; i += 1 ) {
-    INFO( fmt::format( "i: {}", i ) );
 
-    W.rand()
-        .EXPECT__between_ints( 0, kUpperLimit - 1 )
-        .returns( i );
-    e_rumor_type type = pick_rumor_type_result(
-        W.rand(), e_lcr_explorer_category::other, player );
-    REQUIRE( type != e_rumor_type::unit_lost );
-  }
+  // The rumor type weights are integral and are required to sum
+  // to 100, but the logic zeroes out the unit_lost weight and
+  // the holy_shrines weight, which currently total to four, so
+  // the total weight will be 96.
+  int const kUpperLimit = 96;
+  W.rand()
+      .EXPECT__between_ints( 0, kUpperLimit - 1 )
+      .returns( 9 );
+  REQUIRE( f() == LostCityRumor::none{} );
 }
 
-TEST_CASE( "[lcr] nothing but rumors" ) {
+TEST_CASE( "[lcr] run_lcr, none" ) {
   World W;
 
   // Set players.
@@ -123,10 +119,7 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::none;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::none{};
 
   // Mock function calls.
 
@@ -135,11 +128,9 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -151,7 +142,7 @@ TEST_CASE( "[lcr] nothing but rumors" ) {
   REQUIRE( W.units().all().size() == 1 );
 }
 
-TEST_CASE( "[lcr] small village, chief gift" ) {
+TEST_CASE( "[lcr] run_lcr, chief gift" ) {
   World W;
 
   // Set players.
@@ -168,25 +159,19 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::chief_gift;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor =
+      LostCityRumor::chief_gift{ .gold = 32 };
 
   // Mock function calls.
   W.gui()
       .EXPECT__message_box(
           StrContains( "You happen upon a small village" ) )
       .returns( make_wait() );
-  // Get quantity of chief gift.
-  W.rand().EXPECT__between_ints( 15, 70 ).returns( 32 );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -198,7 +183,7 @@ TEST_CASE( "[lcr] small village, chief gift" ) {
   REQUIRE( W.units().all().size() == 1 );
 }
 
-TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
+TEST_CASE( "[lcr] run_lcr, ruins" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -213,10 +198,7 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::ruins;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::ruins{ .gold = 90 };
 
   // Mock function calls.
 
@@ -224,27 +206,23 @@ TEST_CASE( "[lcr] small village, ruins of lost colony" ) {
       .EXPECT__message_box(
           StrContains( "ruins of a lost colony" ) )
       .returns( make_wait() );
-  // Get quantity of gift.
-  W.rand().EXPECT__between_ints( 80, 220 ).returns( 95 );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
 
   // Make sure that we have the correct result and side effects.
   REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
-  REQUIRE( player.money == 90 ); // rounded down to nearest 10.
+  REQUIRE( player.money == 90 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
 }
 
-TEST_CASE( "[lcr] fountain of youth" ) {
+TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -259,10 +237,7 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type rumor_type = e_rumor_type::fountain_of_youth;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::fountain_of_youth{};
 
   // Mock function calls.
   W.gui()
@@ -296,11 +271,9 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   }
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -325,7 +298,7 @@ TEST_CASE( "[lcr] fountain of youth" ) {
   }
 }
 
-TEST_CASE( "[lcr] free colonist" ) {
+TEST_CASE( "[lcr] run_lcr, free colonist" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -340,10 +313,7 @@ TEST_CASE( "[lcr] free colonist" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::free_colonist;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::free_colonist{};
 
   // Mock function calls.
 
@@ -353,11 +323,9 @@ TEST_CASE( "[lcr] free colonist" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -373,7 +341,7 @@ TEST_CASE( "[lcr] free colonist" ) {
   REQUIRE( W.units().all().size() == 2 );
 }
 
-TEST_CASE( "[lcr] unit lost" ) {
+TEST_CASE( "[lcr] run_lcr, unit lost" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -388,10 +356,7 @@ TEST_CASE( "[lcr] unit lost" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::unit_lost;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty; // not relevant.
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::unit_lost{};
 
   // Mock function calls.
 
@@ -401,11 +366,9 @@ TEST_CASE( "[lcr] unit lost" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -418,11 +381,7 @@ TEST_CASE( "[lcr] unit lost" ) {
   REQUIRE( W.units().all().size() == 0 );
 }
 
-TEST_CASE( "[lcr] cibola / treasure" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+TEST_CASE( "[lcr] run_lcr, cibola" ) {
   World             W;
   MockLandViewPlane land_view_plane;
   W.planes().back().land_view = &land_view_plane;
@@ -439,7 +398,8 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type rumor_type = e_rumor_type::cibola;
+  LostCityRumor const rumor =
+      LostCityRumor::cibola{ .gold = 5500 };
 
   // Mock function calls.
 
@@ -447,17 +407,13 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
       .EXPECT__message_box(
           StrContains( "Seven Cities of Cibola" ) )
       .returns( make_wait() );
-  // Get quantity of treasure.
-  W.rand().EXPECT__between_ints( 2000, 10500 ).returns( 5555 );
   // Enpixelate the treasure.
   land_view_plane.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, /*burial_type=*/{},
-          /*has_burial_grounds=*/false );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -476,18 +432,14 @@ TEST_CASE( "[lcr] cibola / treasure" ) {
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.
-  REQUIRE( gold == 5500 ); // rounded down to nearest 100.
+  REQUIRE( gold == 5500 );
   // Money is zero because the gold is on the treasure train.
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 2 );
 }
 
-TEST_CASE( "[lcr] burial mounds / treasure" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   World             W;
   MockLandViewPlane land_view_plane;
   W.planes().back().land_view = &land_view_plane;
@@ -504,10 +456,9 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::treasure_train;
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::burial_mounds{
+      .mounds         = BurialMounds::treasure{ .gold = 2200 },
+      .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui()
@@ -517,17 +468,13 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
       .EXPECT__message_box(
           StrContains( "recovered a treasure worth" ) )
       .returns( make_wait() );
-  // Get quantity of treasure.
-  W.rand().EXPECT__between_ints( 2000, 3500 ).returns( 2222 );
   // Enpixelate the treasure.
   land_view_plane.EXPECT__animate( _ );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -546,18 +493,14 @@ TEST_CASE( "[lcr] burial mounds / treasure" ) {
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.
-  REQUIRE( gold == 2200 ); // rounded down to nearest 100.
+  REQUIRE( gold == 2200 );
   // Money is zero because the gold is on the treasure train.
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 2 );
 }
 
-TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -572,10 +515,9 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::cold_and_empty;
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::burial_mounds{
+      .mounds         = BurialMounds::cold_and_empty{},
+      .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui()
@@ -586,11 +528,9 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
       .returns( make_wait() );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -602,11 +542,7 @@ TEST_CASE( "[lcr] burial mounds / cold and empty" ) {
   REQUIRE( W.units().all().size() == 1 );
 }
 
-TEST_CASE( "[lcr] burial mounds / trinkets" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -621,10 +557,9 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::trinkets;
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::burial_mounds{
+      .mounds         = BurialMounds::trinkets{ .gold = 150 },
+      .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui()
@@ -635,15 +570,11 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
       .EXPECT__message_box(
           StrContains( "found some trinkets" ) )
       .returns( make_wait() );
-  // Get quantity of the gift.
-  W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -653,16 +584,12 @@ TEST_CASE( "[lcr] burial mounds / trinkets" ) {
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.
-  REQUIRE( player.money == 150 ); // rounded down to nearest 10.
+  REQUIRE( player.money == 150 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
 }
 
-TEST_CASE( "[lcr] burial mounds / no explore" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
@@ -677,10 +604,9 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::trinkets;
-  bool has_burial_grounds = false;
+  LostCityRumor const rumor = LostCityRumor::burial_mounds{
+      .mounds         = BurialMounds::trinkets{},
+      .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui()
@@ -688,11 +614,9 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
       .returns( make_wait<maybe<string>>( "no" ) );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -705,17 +629,16 @@ TEST_CASE( "[lcr] burial mounds / no explore" ) {
 }
 
 TEST_CASE(
-    "[lcr] burial mounds / trinkets with burial grounds" ) {
-  // FIXME
-#ifdef COMPILER_GCC
-  return;
-#endif
+    "[lcr] run_lcr, burial mounds, trinkets with burial "
+    "grounds" ) {
   World   W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );
   square.lost_city_rumor = true;
+
+  W.add_tribe( e_tribe::aztec );
 
   // Create unit on map.
   UnitId unit_id =
@@ -724,10 +647,9 @@ TEST_CASE(
   REQUIRE( W.units().all().size() == 1 );
 
   // Set outcome types.
-  e_rumor_type         rumor_type = e_rumor_type::burial_mounds;
-  e_burial_mounds_type burial_type =
-      e_burial_mounds_type::trinkets;
-  bool has_burial_grounds = true;
+  LostCityRumor const rumor = LostCityRumor::burial_mounds{
+      .mounds         = BurialMounds::trinkets{ .gold = 150 },
+      .burial_grounds = e_tribe::aztec };
 
   // Mock function calls.
   W.gui()
@@ -741,17 +663,14 @@ TEST_CASE(
 
   W.gui()
       .EXPECT__message_box(
-          StrContains( "native burial grounds" ) )
+          AllOf( StrContains( "[Aztec]" ),
+                 StrContains( "prepare for WAR" ) ) )
       .returns( make_wait() );
-  // Get quantity of the gift.
-  W.rand().EXPECT__between_ints( 70, 200 ).returns( 155 );
 
   // Go
-  wait<LostCityRumorUnitChange> lcr_res =
-      run_lost_city_rumor_result(
-          W.ss(), W.ts(), player, unit_id,
-          /*move_dst=*/Coord{}, rumor_type, burial_type,
-          has_burial_grounds );
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
 
   // Make sure that we finished at all.
   REQUIRE( lcr_res.ready() );
@@ -761,9 +680,249 @@ TEST_CASE(
   // These number come from the config files for the min/max
   // amount of a trinkets gift to a non-scout on the lowest dif-
   // ficulty mode.
-  REQUIRE( player.money == 150 ); // rounded down to nearest 10.
+  REQUIRE( player.money == 150 );
   REQUIRE( W.units().exists( unit_id ) );
   REQUIRE( W.units().all().size() == 1 );
+  REQUIRE(
+      W.aztec().relationship[W.default_nation()].tribal_alarm ==
+      99 );
+}
+
+TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
+  World   W;
+  Player& player = W.default_player();
+  REQUIRE( player.money == 0 );
+
+  MapSquare& square      = W.square( Coord{} );
+  square.lost_city_rumor = true;
+
+  W.add_tribe( e_tribe::aztec );
+  W.aztec().relationship[W.default_nation()].tribal_alarm = 10;
+
+  // Create unit on map.
+  UnitId unit_id =
+      W.add_unit_on_map( e_unit_type::free_colonist, Coord{} )
+          .id();
+  REQUIRE( W.units().all().size() == 1 );
+
+  // Set outcome types.
+  LostCityRumor const rumor = LostCityRumor::holy_shrines{
+      .tribe = e_tribe::aztec, .alarm_increase = 5 };
+
+  // Mock function calls.
+  W.gui()
+      .EXPECT__message_box( AllOf( StrContains( "[Aztec]" ),
+                                   StrContains( "angered" ) ) )
+      .returns( make_wait() );
+
+  // Go
+  wait<LostCityRumorUnitChange> lcr_res = run_lcr(
+      W.ss(), W.ts(), player, W.units().unit_for( unit_id ),
+      /*move_dst=*/Coord{}, rumor );
+
+  // Make sure that we finished at all.
+  REQUIRE( lcr_res.ready() );
+
+  // Make sure that we have the correct result and side effects.
+  REQUIRE( lcr_res->holds<LostCityRumorUnitChange::other>() );
+  // These number come from the config files for the min/max
+  // amount of a trinkets gift to a non-scout on the lowest dif-
+  // ficulty mode.
+  REQUIRE( player.money == 0 );
+  REQUIRE( W.units().exists( unit_id ) );
+  REQUIRE( W.units().all().size() == 1 );
+  // FIXME: improve these changes, make them more precise.
+  REQUIRE(
+      W.aztec().relationship[W.default_nation()].tribal_alarm ==
+      15 );
+}
+
+TEST_CASE( "[lcr] compute_lcr, type=none" ) {
+  World          W;
+  Player&        player = W.default_player();
+  MockIMapSearch mock_map_search;
+  e_unit_type    unit_type = e_unit_type::scout;
+  LostCityRumor  expected;
+
+  W.settings().difficulty = e_difficulty::conquistador;
+
+  W.add_tribe( e_tribe::aztec );
+  W.add_tribe( e_tribe::tupi );
+
+  auto f = [&] {
+    return compute_lcr( W.ss(), player, W.rand(),
+                        mock_map_search, unit_type,
+                        { .x = 0, .y = 0 } );
+  };
+
+  SECTION( "type=none" ) {
+    expected = LostCityRumor::none{};
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=fountain_of_youth" ) {
+    expected = LostCityRumor::fountain_of_youth{};
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 48 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "no fountain_of_youth allowed" ) {
+    player.revolution_status = e_revolution_status::declared;
+    expected                 = LostCityRumor::free_colonist{};
+    W.rand().EXPECT__between_ints( 0, 94 ).returns( 48 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=free_colonist" ) {
+    expected = LostCityRumor::free_colonist{};
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 53 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=ruins" ) {
+    expected = LostCityRumor::ruins{ .gold = 120 };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 65 );
+    // Will be rounded down to the nearest 10.
+    W.rand().EXPECT__between_ints( 120, 300 ).returns( 123 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=burial_mounds, treasure, no grounds" ) {
+    expected = LostCityRumor::burial_mounds{
+        .mounds         = BurialMounds::treasure{ .gold = 3300 },
+        .burial_grounds = nothing };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
+    // Will be rounded down to the nearest 100.
+    W.rand().EXPECT__between_ints( 2500, 4000 ).returns( 3333 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( e_tribe::sioux );
+    // Burial grounds?
+    W.rand().EXPECT__bernoulli( .05 ).returns( false );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=burial_mounds, trinkets, no grounds" ) {
+    expected = LostCityRumor::burial_mounds{
+        .mounds         = BurialMounds::trinkets{ .gold = 110 },
+        .burial_grounds = nothing };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 50 );
+    // Will be rounded down to the nearest 10.
+    W.rand().EXPECT__between_ints( 70, 200 ).returns( 111 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( e_tribe::sioux );
+    // Burial grounds?
+    W.rand().EXPECT__bernoulli( .05 ).returns( false );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=burial_mounds, cold-and-empty, no grounds" ) {
+    expected = LostCityRumor::burial_mounds{
+        .mounds         = BurialMounds::cold_and_empty{},
+        .burial_grounds = nothing };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( e_tribe::sioux );
+    // Burial grounds?
+    W.rand().EXPECT__bernoulli( .05 ).returns( false );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=burial_mounds, cold-and-empty, with grounds" ) {
+    expected = LostCityRumor::burial_mounds{
+        .mounds         = BurialMounds::cold_and_empty{},
+        .burial_grounds = e_tribe::sioux };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( e_tribe::sioux );
+    // Burial grounds?
+    W.rand().EXPECT__bernoulli( .05 ).returns( true );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=chief gift" ) {
+    expected = LostCityRumor::chief_gift{ .gold = 23 };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 82 );
+    W.rand().EXPECT__between_ints( 15, 70 ).returns( 23 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=unit_lost" ) {
+    expected = LostCityRumor::unit_lost{};
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 94 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=no unit_lost with de soto" ) {
+    // This also tests that the holy_shrines was removed (kind
+    // of) given that we need to specify the total probability
+    // weight below.
+    player.fathers.has[e_founding_father::hernando_de_soto] =
+        true;
+    expected = LostCityRumor::cibola{ .gold = 5500 };
+    W.rand().EXPECT__between_ints( 0, 95 ).returns( 94 );
+    // Will be rounded down to nearest 100.
+    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=cibola" ) {
+    expected = LostCityRumor::cibola{ .gold = 5500 };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 97 );
+    // Will be rounded down to nearest 100.
+    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=holy_shrines, no tribes" ) {
+    expected = LostCityRumor::none{};
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( nothing );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
+
+  SECTION( "type=holy_shrines" ) {
+    expected = LostCityRumor::holy_shrines{
+        .tribe = e_tribe::sioux, .alarm_increase = 16 };
+    W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
+    mock_map_search
+        .EXPECT__find_close_encountered_tribe(
+            player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
+        .returns( e_tribe::sioux );
+    // Alarm increase.
+    W.rand().EXPECT__between_ints( 14, 18 ).returns( 16 );
+    REQUIRE( f() == expected );
+    W.rand().queue__between_ints.ensure_expectations();
+  }
 }
 
 } // namespace

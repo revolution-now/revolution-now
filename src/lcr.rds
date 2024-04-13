@@ -8,51 +8,60 @@
 # Description: Rds definitions for the lcr module.
 #
 # ===============================================================
-# Revolution Now
+# ss
 include "ss/unit-id.hpp"
+include "ss/native-enums.rds.hpp"
+
+# base
+include "base/maybe.hpp"
 
 namespace "rn"
 
-enum.e_lcr_explorer_category {
-  # Only the seasoned scout unit can use this.
-  seasoned_scout,
-  # A non-seasoned scout can use this.
-  scout,
-  # Any other unit that is not one of the above.
-  other,
+sumtype.BurialMounds {
+  treasure {
+    gold 'int',
+  },
+  trinkets {
+    gold 'int',
+  },
+  cold_and_empty {},
 }
 
-enum.e_burial_mounds_type {
-  # Trinkets (small amount of gold).
-  trinkets,
-  # Treasure (creates treasure train unit). Note that this is not
-  # not the same as discovering a lost city.
-  treasure_train,
-  # Nothing ("mounds are cold and empty").
-  cold_and_empty,
-}
-
-enum.e_rumor_type {
+sumtype.LostCityRumor {
   # "Nothing but rumors."
-  none,
+  none {},
   # Fountain of Youth (eight immigrants at dock).
-  fountain_of_youth,
+  fountain_of_youth {},
+  # Survivors of lost colony; free_colonist is created.
+  free_colonist {},
   # Ruins of lost civ (small amount of gold).
-  ruins,
+  ruins {
+    gold 'int',
+  },
   # Burial mounds (let us search for treasure/stay clear of
   # those). Expands to e_burial_mounds_type. This is not to be
   # confused with "burial grounds", although the latter can re-
   # sult (regardless of what is found in the mounds), if the land
   # is owned by indians.
-  burial_mounds,
+  burial_mounds {
+    mounds 'BurialMounds',
+    burial_grounds 'base::maybe<e_tribe>',
+  },
   # Small village, chief offers gift (small amount of money).
-  chief_gift,
-  # Survivors of lost colony; free_colonist is created.
-  free_colonist,
+  chief_gift {
+    gold 'int',
+  },
   # Unit vanishes.
-  unit_lost,
+  unit_lost {},
   # Discovery of one of the Seven Cities of Cibola.
-  cibola,
+  cibola {
+    gold 'int',
+  },
+  # "You are tresspassing on one of our holy shrines".
+  holy_shrines {
+    tribe 'e_tribe',
+    alarm_increase 'int',
+  },
 }
 
 # This communicates the result of a Lost City Rumor to the rest

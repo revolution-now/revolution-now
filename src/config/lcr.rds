@@ -8,16 +8,60 @@
 # Description: Config info related to Lost City Rumors.
 #
 # ===============================================================
-# Rds
-include "../lcr.rds.hpp" # FIXME
-
 # config
 include "range-helpers.hpp"
+
+# ss
+include "ss/difficulty.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
 
 namespace "rn"
+
+enum.e_lcr_explorer_category {
+  # Only the seasoned scout unit can use this.
+  seasoned_scout,
+  # A non-seasoned scout can use this.
+  scout,
+  # Any other unit that is not one of the above.
+  other,
+}
+
+enum.e_burial_mounds_type {
+  # Treasure (creates treasure train unit). Note that this is not
+  # not the same as discovering a lost city.
+  treasure_train,
+  # Trinkets (small amount of gold).
+  trinkets,
+  # Nothing ("mounds are cold and empty").
+  cold_and_empty,
+}
+
+enum.e_rumor_type {
+  # "Nothing but rumors."
+  none,
+  # Fountain of Youth (eight immigrants at dock).
+  fountain_of_youth,
+  # Survivors of lost colony; free_colonist is created.
+  free_colonist,
+  # Ruins of lost civ (small amount of gold).
+  ruins,
+  # Burial mounds (let us search for treasure/stay clear of
+  # those). Expands to e_burial_mounds_type. This is not to be
+  # confused with "burial grounds", although the latter can re-
+  # sult (regardless of what is found in the mounds), if the land
+  # is owned by indians.
+  burial_mounds,
+  # Small village, chief offers gift (small amount of money).
+  chief_gift,
+  # Unit vanishes.
+  unit_lost,
+  # Discovery of one of the Seven Cities of Cibola.
+  cibola,
+  # "You are tresspassing on one of our holy shrines".
+  holy_shrines,
+}
 
 # Note that all of the values here could be modified depending on
 # game configuration and state, e.g. difficulty level, founding
@@ -82,6 +126,9 @@ struct.config_lcr_t {
   # them to declare war) then this will be the probability that
   # it will actually happen.
   burial_grounds_probability 'refl::enum_map<e_lcr_explorer_category, config::Probability>',
+  burial_grounds_radius 'int',
+
+  holy_shrines_alarm_increase 'refl::enum_map<e_difficulty, config::IntRange>',
 
   _features { validation, equality },
 }

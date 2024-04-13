@@ -1,8 +1,8 @@
 # Configuration for anything related to Lost City Rumors.
 #
-# Note that all of the values here could be modified depending on
-# game configuration and state, e.g. difficulty level, founding
-# father status, type of unit exploring the LCR, etc.
+# TODO: Note that all of the values here could be modified de-
+# pending on game configuration and state, e.g. difficulty level,
+# founding father status, type of unit exploring the LCR, etc.
 
 # How many immigrants will appear on the docks in response to the
 # discovery of a fountain of youth. The original game uses 8.
@@ -11,9 +11,10 @@ fountain_of_youth_num_immigrants: 8
 # Weights for the various possible (top-level) outcomes of en-
 # tering a lost city rumor tile. Some of these outcomes then have
 # multiple possible sub-outcomes.
+# TODO: need to re-measure these and include difficulty level.
 rumor_type_weights {
   seasoned_scout {
-    none:              47
+    none:              46
     fountain_of_youth:  7
     free_colonist:     14
     ruins:             11
@@ -21,9 +22,10 @@ rumor_type_weights {
     chief_gift:         8
     unit_lost:          3
     cibola:             2
+    holy_shrines:       1  # TODO: need to measure this.
   }
   scout {
-    none:              49
+    none:              48
     fountain_of_youth:  5
     free_colonist:     12
     ruins:             11
@@ -31,9 +33,10 @@ rumor_type_weights {
     chief_gift:        12
     unit_lost:          3
     cibola:             2
+    holy_shrines:       1  # TODO: need to measure this.
   }
   other {
-    none:              58
+    none:              57
     fountain_of_youth:  4
     free_colonist:     13
     ruins:              8
@@ -41,6 +44,7 @@ rumor_type_weights {
     chief_gift:         7
     unit_lost:          3
     cibola:             2
+    holy_shrines:       1  # TODO: need to measure this.
   }
 }
 
@@ -48,6 +52,7 @@ rumor_type_weights {
 # mounds in a lost city rumor (note that "burial mounds" are to
 # be distinguished from "burial grounds"; the former is neutral
 # while the latter is negative).
+# TODO: need to re-measure these and include difficulty level.
 burial_mounds_type_weights {
   seasoned_scout {
     treasure_train: 68
@@ -71,6 +76,7 @@ burial_mounds_type_weights {
 # rounded down to the nearest multiple provided.
 chief_gift_multiple: 1
 
+# TODO: need to re-measure these and include difficulty level.
 chief_gift_min {
   seasoned_scout: 15
   scout:          15
@@ -87,6 +93,7 @@ chief_gift_max {
 # to the nearest multiple provided.
 ruins_gift_multiple: 10
 
+# TODO: need to re-measure these and include difficulty level.
 ruins_gift_min {
   seasoned_scout: 140
   scout:          120
@@ -103,6 +110,7 @@ ruins_gift_max {
 # nearest multiple provided.
 trinkets_gift_multiple: 10
 
+# TODO: need to re-measure these and include difficulty level.
 trinkets_gift_min {
   seasoned_scout: 70
   scout:          70
@@ -119,6 +127,7 @@ trinkets_gift_max {
 # down to the nearest multiple provided.
 burial_mounds_treasure_multiple: 100
 
+# TODO: need to re-measure these and include difficulty level.
 burial_mounds_treasure_min {
   seasoned_scout: 3000
   scout:          2500
@@ -139,6 +148,7 @@ burial_mounds_treasure_max {
 # Will be rounded down to the nearest multiple provided.
 cibola_treasure_multiple: 100
 
+# TODO: need to re-measure these and include difficulty level.
 cibola_treasure_min {
   seasoned_scout: 3000
   scout:          2500
@@ -150,8 +160,34 @@ cibola_treasure_max {
   other:          10500
 }
 
+# TODO: need to re-measure these and include difficulty level.
 burial_grounds_probability {
   seasoned_scout.probability: .01
   scout.probability:          .05
   other.probability:          .25
+}
+
+# Max pythagorean distance in tiles from the LCR square where the
+# game will search for a dwelling of a tribe that has been en-
+# countered in order to select a tribe for burial grounds tres-
+# passing, when that outcome has been selected.
+#
+# The OG appears to have no radius for this since it has been ob-
+# served to select a tribe on a different island halfway across
+# the map when that is the only option. But in the NG we will
+# make this a bit more sensical. The value 15 is chosen because
+# it is roughly one screen length in the OG.
+burial_grounds_radius: 15
+
+# These give the ranges over which tribal alarm can increase when
+# the "holy shrines" LCR outcome is obtained.
+#
+# TODO: need to re-measure these and include explorer category.
+# TODO: even the numbers below are a rough guess.
+holy_shrines_alarm_increase {
+  discoverer:   { min=1,  max=5  }
+  explorer:     { min=7,  max=11 }
+  conquistador: { min=14, max=18 }
+  governor:     { min=21, max=25 }
+  viceroy:      { min=28, max=32 }
 }

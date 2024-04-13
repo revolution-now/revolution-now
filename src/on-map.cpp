@@ -16,6 +16,7 @@
 #include "co-wait.hpp"
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
+#include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "lcr.hpp"
 #include "logger.hpp"
@@ -116,28 +117,22 @@ wait<> try_discover_pacific_ocean( SSConst const& ss,
 // Returns true if the unit was deleted.
 wait<base::NoDiscard<bool>> try_lost_city_rumor(
     SS& ss, TS& ts, Player& player, IEuroMind& euro_mind,
-    UnitId id, Coord world_square ) {
+    UnitId id, Coord tile ) {
   // Check if the unit actually moved and it landed on a Lost
   // City Rumor.
-  if( !has_lost_city_rumor( ss.terrain, world_square ) )
-    co_return false;
-  e_lcr_explorer_category const explorer =
-      lcr_explorer_category( ss.units, id );
-  e_rumor_type const rumor_type =
-      pick_rumor_type_result( ts.rand, explorer, player );
-  e_burial_mounds_type const burial_type =
-      pick_burial_mounds_result( ts.rand, explorer );
-  bool const has_burial_grounds = pick_burial_grounds_result(
-      ts.rand, player, explorer, burial_type );
-  if( rumor_type == e_rumor_type::fountain_of_youth )
+  bool const has_lost_city_rumor =
+      ss.terrain.square_at( tile ).lost_city_rumor;
+  if( !has_lost_city_rumor ) co_return false;
+  Unit const&         unit  = ss.units.unit_for( id );
+  LostCityRumor const rumor = compute_lcr(
+      ss.as_const, player, ts.rand, RealMapSearch( ss.as_const ),
+      unit.type(), tile );
+  if( rumor.holds<LostCityRumor::fountain_of_youth>() )
     co_await show_woodcut_if_needed(
         player, euro_mind,
         e_woodcut::discovered_fountain_of_youth );
   LostCityRumorUnitChange const lcr_res =
-      co_await run_lost_city_rumor_result(
-          ss, ts, player, id, world_square, rumor_type,
-          burial_type, has_burial_grounds );
-
+      co_await run_lcr( ss, ts, player, unit, tile, rumor );
   co_return lcr_res.holds<LostCityRumorUnitChange::unit_lost>();
 }
 
@@ -309,10 +304,9 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
     co_await try_discover_pacific_ocean( ss, player, euro_mind,
                                          dst );
 
-  if( has_lost_city_rumor( ss.terrain, dst ) )
-    if( co_await try_lost_city_rumor( ss, ts, player, euro_mind,
-                                      id, dst ) )
-      co_return UnitDeleted{};
+  if( co_await try_lost_city_rumor( ss, ts, player, euro_mind,
+                                    id, dst ) )
+    co_return UnitDeleted{};
 
   if( co_await try_king_transport_treasure( ss, ts, player, unit,
                                             dst ) )
