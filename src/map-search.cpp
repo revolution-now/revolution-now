@@ -16,6 +16,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
@@ -185,6 +186,25 @@ vector<ColonyId> close_friendly_colonies( SSConst const& ss,
     res.push_back( *colony_id );
   }
   return res;
+}
+
+maybe<e_tribe> find_close_encountered_tribe(
+    SSConst const& ss, e_nation nation, gfx::point location,
+    double max_distance ) {
+  generator<gfx::point> const points =
+      outward_spiral_pythdist_search_existing_gen(
+          ss, location, max_distance );
+  for( gfx::point const p : points ) {
+    Coord const square = Coord::from_gfx( p );
+    // Is there a tribe there that we've met?
+    maybe<DwellingId> const dwelling_id =
+        ss.natives.maybe_dwelling_from_coord( square );
+    if( !dwelling_id.has_value() ) continue;
+    Tribe const& tribe = ss.natives.tribe_for( *dwelling_id );
+    if( !tribe.relationship[nation].encountered ) continue;
+    return tribe.type;
+  }
+  return nothing;
 }
 
 } // namespace rn

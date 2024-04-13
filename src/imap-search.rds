@@ -1,0 +1,27 @@
+# ===============================================================
+# imap-search.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-04-07.
+#
+# Description: Interface for the map-search module.
+#
+# ===============================================================
+# Module header.
+include "map-search.hpp"
+
+namespace "rn"
+
+interface.IMapSearch {
+  find_close_encountered_tribe {
+    returns 'maybe<e_tribe>',
+    nation 'e_nation',
+    location 'gfx::point',
+    max_distance 'double',
+  },
+
+  _context {
+    ss 'SSConst const&',
+  },
+}

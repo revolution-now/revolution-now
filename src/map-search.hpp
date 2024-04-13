@@ -31,6 +31,8 @@ namespace rn {
 struct Colony;
 struct SSConst;
 
+enum class e_tribe;
+
 // Returns a list of existing map squares spiraling outward from
 // the starting point and which are within `max_distance`
 // pythagorean distance from the start.
@@ -63,5 +65,11 @@ std::vector<ColonyId> close_friendly_colonies(
     SSConst const& ss, e_nation nation, gfx::point const start,
     double max_distance );
 
+// Find the closest dwelling within the given pythagorean dis-
+// tance (either explored or not) of a tribe that has been en-
+// countered, and return its tribe.
+maybe<e_tribe> find_close_encountered_tribe(
+    SSConst const& ss, e_nation nation, gfx::point location,
+    double max_distance );
 
 } // namespace rn

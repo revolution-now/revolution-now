@@ -23,6 +23,7 @@
 #include "src/ss/colonies.hpp"
 #include "src/ss/fog-square.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/tribe.rds.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
@@ -530,6 +531,84 @@ TEST_CASE( "[map-search] close_friendly_colonies" ) {
   /*------*/ W.add_colony( { .x = 4, .y = 0 }, D );
 
   expected = { id1, id3, id7, id5, id9 };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
+  World            w;
+  gfx::point const start    = { .x = 3, .y = 3 };
+  double           distance = 0;
+  maybe<e_tribe>   expected;
+  e_nation const   nation = w.default_nation();
+
+  w.add_tribe( e_tribe::inca );
+  w.add_tribe( e_tribe::aztec );
+  w.add_tribe( e_tribe::tupi );
+
+  // These should be irrelevant as they are for another nation.
+  w.inca().relationship[e_nation::english].encountered  = true;
+  w.aztec().relationship[e_nation::english].encountered = true;
+  w.tupi().relationship[e_nation::english].encountered  = true;
+
+  // _ D _ _ _
+  // _ _ _ _ _
+  // _ _ _ _ D
+  // _ D _ * _
+  // _ _ _ _ _
+
+  auto f = [&] {
+    return find_close_encountered_tribe(
+        w.ss(), w.default_nation(), start, distance );
+  };
+
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  w.tupi().relationship[nation].encountered = true;
+  w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::tupi );
+  distance = 4;
+  expected = e_tribe::tupi;
+  REQUIRE( f() == expected );
+
+  distance = 3;
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  w.tupi().relationship[nation].encountered = false;
+  distance                                  = 100;
+  expected                                  = nothing;
+  REQUIRE( f() == expected );
+
+  w.tupi().relationship[nation].encountered = true;
+  distance                                  = 100;
+  expected                                  = e_tribe::tupi;
+  REQUIRE( f() == expected );
+
+  w.tupi().relationship[nation].encountered = true;
+  w.add_dwelling( { .x = 1, .y = 3 }, e_tribe::aztec );
+  distance = 100;
+  expected = e_tribe::tupi;
+  REQUIRE( f() == expected );
+
+  w.inca().relationship[nation].encountered  = true;
+  w.aztec().relationship[nation].encountered = true;
+  distance                                   = 100;
+  expected                                   = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  w.inca().relationship[nation].encountered = false;
+  w.add_dwelling( { .x = 4, .y = 2 }, e_tribe::inca );
+  distance = 1;
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  distance = 2;
+  expected = e_tribe::aztec;
+  REQUIRE( f() == expected );
+
+  w.inca().relationship[nation].encountered = true;
+  distance                                  = 100;
+  expected                                  = e_tribe::inca;
   REQUIRE( f() == expected );
 }
 
