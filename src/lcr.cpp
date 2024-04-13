@@ -141,7 +141,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
     e_tribe const tribe_type = *burial_grounds;
     Tribe&        tribe = ss.natives.tribe_for( tribe_type );
     co_await ts.gui.message_box(
-        "You have walked upon the sacred rested places the "
+        "You have treaded on the sacred resting places of the "
         "ancestors of the [{}] tribe. Your irreverence shall be "
         "put to an end... prepare for WAR!",
         config_natives.tribes[tribe_type].name_singular );
