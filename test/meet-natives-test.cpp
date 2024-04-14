@@ -15,6 +15,9 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/native-owned.hpp"
@@ -25,6 +28,7 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/unit-composition.hpp"
+#include "ss/woodcut.rds.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -433,7 +437,144 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
 }
 
 TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
-  World w;
+  World                    w;
+  e_declare_war_on_natives expected = {};
+
+  MeetTribe meet_tribe;
+
+  auto f = [&] {
+    return co_await_test( perform_meet_tribe_ui_sequence(
+        w.ss(), w.euro_mind(), w.gui(), meet_tribe ) );
+  };
+
+  meet_tribe = {
+      .nation        = w.default_nation(),
+      .tribe         = e_tribe::tupi,
+      .num_dwellings = 3,
+      .land_awarded = { { .x = 1, .y = 1 }, { .x = 2, .y = 1 } },
+  };
+
+  SECTION( "tupi" ) {
+    meet_tribe.tribe = e_tribe::tupi;
+    w.euro_mind().EXPECT__show_woodcut(
+        e_woodcut::meeting_the_natives );
+
+    ChoiceConfig const choice_config{
+        .msg =
+            "The [Tupi] tribe is a celebrated nation of [3 "
+            "camps].  In honor of our glorious future together "
+            "we will generously give you all of the land that "
+            "your colonies now occupy. Will you accept our "
+            "peace treaty and agree to live in harmony with us?",
+        .options = { { .key = "yes", .display_name = "Yes" },
+                     { .key = "no", .display_name = "No" } },
+        .sort    = false,
+        .initial_selection = nothing };
+    w.gui()
+        .EXPECT__choice( choice_config, e_input_required::yes )
+        .returns<maybe<string>>( "yes" );
+    w.gui().EXPECT__message_box(
+        "Let us smoke a peace pipe to celebrate our purpetual "
+        "friendship with the [English]." );
+    w.gui().EXPECT__message_box(
+        "We hope that you will send us your colonists and "
+        "[Wagon Trains] to share knowledge and to trade." );
+    expected = e_declare_war_on_natives::no;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "aztec" ) {
+    meet_tribe.tribe = e_tribe::aztec;
+
+    w.euro_mind().EXPECT__show_woodcut(
+        e_woodcut::meeting_the_natives );
+    w.euro_mind().EXPECT__show_woodcut(
+        e_woodcut::meeting_the_aztec_empire );
+
+    ChoiceConfig const choice_config{
+        .msg =
+            "The [Aztec] tribe is a celebrated nation of [3 "
+            "cities].  In honor of our glorious future together "
+            "we will generously give you all of the land that "
+            "your colonies now occupy. Will you accept our "
+            "peace treaty and agree to live in harmony with us?",
+        .options = { { .key = "yes", .display_name = "Yes" },
+                     { .key = "no", .display_name = "No" } },
+        .sort    = false,
+        .initial_selection = nothing };
+    w.gui()
+        .EXPECT__choice( choice_config, e_input_required::yes )
+        .returns<maybe<string>>( "yes" );
+    w.gui().EXPECT__message_box(
+        "Let us smoke a peace pipe to celebrate our purpetual "
+        "friendship with the [English]." );
+    w.gui().EXPECT__message_box(
+        "We hope that you will send us your colonists and "
+        "[Wagon Trains] to share knowledge and to trade." );
+    expected = e_declare_war_on_natives::no;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "inca, post-declaration" ) {
+    w.default_player().revolution_status =
+        e_revolution_status::declared;
+    meet_tribe.tribe = e_tribe::inca;
+
+    w.euro_mind().EXPECT__show_woodcut(
+        e_woodcut::meeting_the_natives );
+    w.euro_mind().EXPECT__show_woodcut(
+        e_woodcut::meeting_the_inca_nation );
+
+    ChoiceConfig const choice_config{
+        .msg =
+            "The [Inca] tribe is a celebrated nation of [3 "
+            "cities].  In honor of our glorious future together "
+            "we will generously give you all of the land that "
+            "your colonies now occupy. Will you accept our "
+            "peace treaty and agree to live in harmony with us?",
+        .options = { { .key = "yes", .display_name = "Yes" },
+                     { .key = "no", .display_name = "No" } },
+        .sort    = false,
+        .initial_selection = nothing };
+    w.gui()
+        .EXPECT__choice( choice_config, e_input_required::yes )
+        .returns<maybe<string>>( "yes" );
+    w.gui().EXPECT__message_box(
+        "Let us smoke a peace pipe to celebrate our purpetual "
+        "friendship with the [Rebels]." );
+    w.gui().EXPECT__message_box(
+        "We hope that you will send us your colonists and "
+        "[Wagon Trains] to share knowledge and to trade." );
+    expected = e_declare_war_on_natives::no;
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "tupi, already met natives, declare war" ) {
+    meet_tribe.tribe = e_tribe::tupi;
+
+    w.default_player().woodcuts[e_woodcut::meeting_the_natives] =
+        true;
+
+    ChoiceConfig const choice_config{
+        .msg =
+            "The [Tupi] tribe is a celebrated nation of [3 "
+            "camps].  In honor of our glorious future together "
+            "we will generously give you all of the land that "
+            "your colonies now occupy. Will you accept our "
+            "peace treaty and agree to live in harmony with us?",
+        .options = { { .key = "yes", .display_name = "Yes" },
+                     { .key = "no", .display_name = "No" } },
+        .sort    = false,
+        .initial_selection = nothing };
+    w.gui()
+        .EXPECT__choice( choice_config, e_input_required::yes )
+        .returns<maybe<string>>( "no" );
+    w.gui().EXPECT__message_box(
+        "In that case the mighty [Tupi] will drive you into "
+        "oblivion. Prepare for WAR!" );
+    expected = e_declare_war_on_natives::yes;
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace
