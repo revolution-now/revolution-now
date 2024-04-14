@@ -89,6 +89,9 @@ struct SS {
   struct Impl;
   std::unique_ptr<Impl> impl_;
 
+  // This object is self-referential and thus must be immobile.
+  SS( SS& ) = delete;
+
  public:
   FormatVersion&      version;
   SettingsState&      settings;
