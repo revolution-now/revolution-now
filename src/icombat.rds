@@ -290,8 +290,6 @@ struct.CombatBraveAttackColony {
 struct.CombatEuroAttackDwelling {
   winner 'e_combat_winner',
 
-  new_tribal_alarm 'int',
-
   # If this happens then the tribe has decided to burn all of the
   # player's missions. This typically happens while attacking a
   # tribe and having their tribal anger increase. Note that this

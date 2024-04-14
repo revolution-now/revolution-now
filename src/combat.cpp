@@ -11,7 +11,6 @@
 #include "combat.hpp"
 
 // Revolution Now
-#include "alarm.hpp"
 #include "damaged.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
@@ -782,23 +781,14 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
                   ss_.natives.tribe_for( dwelling.id ).type },
           defender_coord, winner == e_combat_winner::attacker );
 
-  // Tribal alarm. If this is a capital then tribal alarm will be
-  // increased more.
-  int new_tribal_alarm = [&] {
-    auto new_relationship = relationship;
-    increase_tribal_alarm_from_attacking_dwelling(
-        player, dwelling, new_relationship );
-    return new_relationship.tribal_alarm;
-  }();
-
   // The tribe can decide to burn the mission whether or not the
   // player wins.
   bool const missions_burned = [&] {
     if( player_missionaries_in_tribe( ss_, player, tribe.type )
             .empty() )
       return false;
-    return should_burn_mission_on_attack( rand_,
-                                          new_tribal_alarm );
+    return should_burn_mission_on_attack(
+        rand_, relationship.tribal_alarm );
   }();
 
   DwellingCombatOutcome const defender_outcome =
@@ -806,26 +796,19 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
           ss_, rand_, player, dwelling,
           winner == e_combat_winner::defender, missions_burned );
 
-  // If we're burning the capital then reduce alarm to content.
-  if( dwelling.is_capital &&
-      defender_outcome
-          .holds<DwellingCombatOutcome::destruction>() )
-    new_tribal_alarm = max_tribal_alarm_after_burning_capital();
-
   return CombatEuroAttackDwelling{
-      .winner           = winner,
-      .new_tribal_alarm = new_tribal_alarm,
-      .missions_burned  = missions_burned,
-      .attacker         = { .id              = attacker.id(),
-                            .modifiers       = {},
-                            .base_weight     = attack_points,
-                            .modified_weight = attack_points,
-                            .outcome         = attacker_outcome },
-      .defender         = { .id              = dwelling.id,
-                            .modifiers       = {},
-                            .base_weight     = defense_points,
-                            .modified_weight = defense_points,
-                            .outcome         = defender_outcome } };
+      .winner          = winner,
+      .missions_burned = missions_burned,
+      .attacker        = { .id              = attacker.id(),
+                           .modifiers       = {},
+                           .base_weight     = attack_points,
+                           .modified_weight = attack_points,
+                           .outcome         = attacker_outcome },
+      .defender        = { .id              = dwelling.id,
+                           .modifiers       = {},
+                           .base_weight     = defense_points,
+                           .modified_weight = defense_points,
+                           .outcome         = defender_outcome } };
 }
 
 } // namespace rn

@@ -809,9 +809,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::defender,
+        .missions_burned = false,
 
         .attacker = { .outcome =
                           EuroUnitCombatOutcome::demoted{
@@ -838,7 +837,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
@@ -860,9 +859,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 13,
-        .missions_burned  = true,
+        .winner          = e_combat_winner::defender,
+        .missions_burned = true,
 
         .attacker = { .outcome =
                           EuroUnitCombatOutcome::demoted{
@@ -893,7 +891,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( !W.units().exists( missionary_id ) );
     REQUIRE( player.score_stats.dwellings_burned == 0 );
@@ -914,9 +912,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 13,
-        .missions_burned  = true,
+        .winner          = e_combat_winner::defender,
+        .missions_burned = true,
 
         .attacker = { .outcome =
                           EuroUnitCombatOutcome::demoted{
@@ -947,7 +944,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( !W.units().exists( missionary_id ) );
     REQUIRE( player.score_stats.dwellings_burned == 0 );
@@ -967,9 +964,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       W.kDefendingNation )
             .id();
     combat = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 13,
-        .missions_burned  = true,
+        .winner          = e_combat_winner::defender,
+        .missions_burned = true,
 
         .attacker = { .outcome =
                           EuroUnitCombatOutcome::demoted{
@@ -1000,7 +996,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( W.units().exists( missionary_id ) );
     REQUIRE(
@@ -1021,16 +1017,15 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
-        .attacker         = { .outcome =
-                                  EuroUnitCombatOutcome::no_change{} },
-        .defender         = {
-                    .id = dwelling.id,
-                    .outcome =
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
+        .attacker        = { .outcome =
+                                 EuroUnitCombatOutcome::no_change{} },
+        .defender        = {
+                   .id = dwelling.id,
+                   .outcome =
                 DwellingCombatOutcome::population_decrease{
-                            .convert_produced = false } } };
+                           .convert_produced = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1046,7 +1041,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
@@ -1066,16 +1061,15 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
-        .attacker         = { .outcome =
-                                  EuroUnitCombatOutcome::no_change{} },
-        .defender         = {
-                    .id = dwelling.id,
-                    .outcome =
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
+        .attacker        = { .outcome =
+                                 EuroUnitCombatOutcome::no_change{} },
+        .defender        = {
+                   .id = dwelling.id,
+                   .outcome =
                 DwellingCombatOutcome::population_decrease{
-                            .convert_produced = true } } };
+                           .convert_produced = true } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1097,7 +1091,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
@@ -1120,9 +1114,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population = 1;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1167,9 +1160,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population      = 1;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1216,9 +1208,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.is_capital = true;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1268,9 +1259,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     player.revolution_status = e_revolution_status::declared;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1322,9 +1312,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population = 1;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1404,9 +1393,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.is_capital = true;
 
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
         .attacker =
             { .outcome =
                   EuroUnitCombatOutcome::promoted{
@@ -1459,16 +1447,15 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 13,
-        .missions_burned  = false,
-        .attacker         = { .outcome =
-                                  EuroUnitCombatOutcome::no_change{} },
-        .defender         = {
-                    .id = dwelling.id,
-                    .outcome =
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
+        .attacker        = { .outcome =
+                                 EuroUnitCombatOutcome::no_change{} },
+        .defender        = {
+                   .id = dwelling.id,
+                   .outcome =
                 DwellingCombatOutcome::population_decrease{
-                            .convert_produced = true } } };
+                           .convert_produced = true } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1490,7 +1477,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( relationship.tribal_alarm == 13 );
+    REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==

@@ -821,12 +821,25 @@ wait<> AttackDwellingHandler::perform() {
       nation_obj( attacking_player_.nation ).harbor_city_name;
 
   // Set new tribal alarm.
-  relationship_.tribal_alarm = combat.new_tribal_alarm;
+  // ------------------------------------------------------------
+  // Tribal alarm. If this is a capital then tribal alarm will be
+  // increased more.
+  increase_tribal_alarm_from_attacking_dwelling(
+      attacking_player_, dwelling_, relationship_ );
+
+  // If we're burning the capital then reduce alarm to content.
+  if( dwelling_.is_capital &&
+      combat.defender.outcome
+          .holds<DwellingCombatOutcome::destruction>() )
+    relationship_.tribal_alarm =
+        max_tribal_alarm_after_burning_capital();
 
   // Consume attacker movement points.
+  // ------------------------------------------------------------
   // Done in base handler.
 
   // Check if the tribe has burned our missions.
+  // ------------------------------------------------------------
   if( combat.missions_burned ) {
     // TODO: depixelation animation/sound?
     vector<UnitId> const missionaries =

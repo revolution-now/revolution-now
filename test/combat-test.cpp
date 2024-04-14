@@ -1628,9 +1628,8 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 2.0,
@@ -1655,21 +1654,20 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 95,
-        .missions_burned  = false,
-        .attacker         = { .id              = attacker->id(),
-                              .base_weight     = 2.0,
-                              .modified_weight = 2.0,
-                              .outcome =
-                                  EuroUnitCombatOutcome::demoted{
-                                      .to =
+        .winner          = e_combat_winner::defender,
+        .missions_burned = false,
+        .attacker        = { .id              = attacker->id(),
+                             .base_weight     = 2.0,
+                             .modified_weight = 2.0,
+                             .outcome =
+                                 EuroUnitCombatOutcome::demoted{
+                                     .to =
                                   e_unit_type::free_colonist } },
-        .defender         = {
-                    .id              = dwelling.id,
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = DwellingCombatOutcome::no_change{} } };
+        .defender        = {
+                   .id              = dwelling.id,
+                   .base_weight     = 1.0,
+                   .modified_weight = 1.0,
+                   .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1680,21 +1678,20 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
-        .attacker         = { .id              = attacker->id(),
-                              .base_weight     = 2.0,
-                              .modified_weight = 2.0,
-                              .outcome =
-                                  EuroUnitCombatOutcome::demoted{
-                                      .to =
+        .winner          = e_combat_winner::defender,
+        .missions_burned = false,
+        .attacker        = { .id              = attacker->id(),
+                             .base_weight     = 2.0,
+                             .modified_weight = 2.0,
+                             .outcome =
+                                 EuroUnitCombatOutcome::demoted{
+                                     .to =
                                   e_unit_type::free_colonist } },
-        .defender         = {
-                    .id              = dwelling.id,
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = DwellingCombatOutcome::no_change{} } };
+        .defender        = {
+                   .id              = dwelling.id,
+                   .base_weight     = 1.0,
+                   .modified_weight = 1.0,
+                   .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1707,21 +1704,20 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
-        .attacker         = { .id              = attacker->id(),
-                              .base_weight     = 2.0,
-                              .modified_weight = 2.0,
-                              .outcome =
-                                  EuroUnitCombatOutcome::demoted{
-                                      .to =
+        .winner          = e_combat_winner::defender,
+        .missions_burned = false,
+        .attacker        = { .id              = attacker->id(),
+                             .base_weight     = 2.0,
+                             .modified_weight = 2.0,
+                             .outcome =
+                                 EuroUnitCombatOutcome::demoted{
+                                     .to =
                                   e_unit_type::free_colonist } },
-        .defender         = {
-                    .id              = dwelling.id,
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = DwellingCombatOutcome::no_change{} } };
+        .defender        = {
+                   .id              = dwelling.id,
+                   .base_weight     = 1.0,
+                   .modified_weight = 1.0,
+                   .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1738,9 +1734,8 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( true );
     W.expect_convert( false, .66 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker =
             { .id              = attacker->id(),
@@ -1772,9 +1767,8 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( false );
     W.expect_convert( true, .66 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 2.0,
@@ -1805,21 +1799,20 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( false );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 95,
-        .missions_burned  = false,
-        .attacker         = { .id              = attacker->id(),
-                              .base_weight     = 2.0,
-                              .modified_weight = 2.0,
-                              .outcome =
-                                  EuroUnitCombatOutcome::demoted{
-                                      .to =
+        .winner          = e_combat_winner::defender,
+        .missions_burned = false,
+        .attacker        = { .id              = attacker->id(),
+                             .base_weight     = 2.0,
+                             .modified_weight = 2.0,
+                             .outcome =
+                                 EuroUnitCombatOutcome::demoted{
+                                     .to =
                                   e_unit_type::free_colonist } },
-        .defender         = {
-                    .id              = dwelling.id,
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = DwellingCombatOutcome::no_change{} } };
+        .defender        = {
+                   .id              = dwelling.id,
+                   .base_weight     = 1.0,
+                   .modified_weight = 1.0,
+                   .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1836,21 +1829,20 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( true );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .new_tribal_alarm = 95,
-        .missions_burned  = true,
-        .attacker         = { .id              = attacker->id(),
-                              .base_weight     = 2.0,
-                              .modified_weight = 2.0,
-                              .outcome =
-                                  EuroUnitCombatOutcome::demoted{
-                                      .to =
+        .winner          = e_combat_winner::defender,
+        .missions_burned = true,
+        .attacker        = { .id              = attacker->id(),
+                             .base_weight     = 2.0,
+                             .modified_weight = 2.0,
+                             .outcome =
+                                 EuroUnitCombatOutcome::demoted{
+                                     .to =
                                   e_unit_type::free_colonist } },
-        .defender         = {
-                    .id              = dwelling.id,
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = DwellingCombatOutcome::no_change{} } };
+        .defender        = {
+                   .id              = dwelling.id,
+                   .base_weight     = 1.0,
+                   .modified_weight = 1.0,
+                   .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1868,9 +1860,8 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( false );
     W.expect_burn_mission( true );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 95,
-        .missions_burned  = true,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = true,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 2.0,
@@ -1928,9 +1919,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -1960,9 +1950,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 99,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -1996,9 +1985,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // capital.
     W.expect_guaranteed_treasure_amount( 300, 800, 345 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 17,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2032,9 +2020,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // cortes, then rounded down to 500.
     W.expect_guaranteed_treasure_amount( 300, 800, 345 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2065,9 +2052,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // then be rounded down to 300.
     W.expect_treasure_amount( .33, 300, 800, 345 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2101,9 +2087,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2142,9 +2127,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_convert( true, .22 );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2181,9 +2165,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 10,
-        .missions_burned  = false,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = false,
 
         .attacker = { .id              = attacker->id(),
                       .base_weight     = 3.0,
@@ -2221,9 +2204,8 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_burn_mission( true );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .new_tribal_alarm = 99,
-        .missions_burned  = true,
+        .winner          = e_combat_winner::attacker,
+        .missions_burned = true,
 
         .attacker =
             { .id              = attacker->id(),
