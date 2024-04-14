@@ -1055,6 +1055,10 @@ struct NativeDwellingHandler : public CommandHandler {
         return EnterDwellingOutcome::establish_mission{
             .outcome = compute_establish_mission( ss_, player_,
                                                   dwelling_ ) };
+      case e_enter_dwelling_option::trade:
+        return EnterDwellingOutcome::trade{
+            .outcome = compute_trade_with_natives( ss_, player_,
+                                                   dwelling_ ) };
       case e_enter_dwelling_option::cancel:
         return EnterDwellingOutcome::cancel{};
     }
@@ -1164,6 +1168,12 @@ struct NativeDwellingHandler : public CommandHandler {
       case EnterDwellingOutcome::e::attack_brave_on_dwelling: {
         // This should have been diverted to another handler.
         SHOULD_NOT_BE_HERE;
+      }
+      case EnterDwellingOutcome::e::trade: {
+        auto& o = outcome_.get<EnterDwellingOutcome::trade>();
+        co_await do_trade_with_natives(
+            ss_, ts_, player_, dwelling_, unit_, o.outcome );
+        break;
       }
       case EnterDwellingOutcome::e::cancel:
         // Do nothing.

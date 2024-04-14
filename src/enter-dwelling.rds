@@ -45,7 +45,7 @@ enum.e_enter_dwelling_option {
   establish_mission,
   # incite_indians,
   # denounce_foreign_mission,
-  # trade,
+  trade,
   cancel,
 
   _features { nodiscard }
@@ -154,6 +154,13 @@ struct.EstablishMissionResult {
 }
 
 # ===============================================================
+# Trade With Natives
+# ===============================================================
+struct.TradeWithNativesResult {
+  # TODO
+}
+
+# ===============================================================
 # EnterDwellingComputeResult
 # ===============================================================
 # There will be one of these for each option.
@@ -173,5 +180,7 @@ sumtype.EnterDwellingOutcome {
   },
   # incite_indians,
   # denounce_foreign_mission,
-  # trade,
+  trade {
+    outcome 'TradeWithNativesResult',
+  },
 }

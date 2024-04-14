@@ -76,4 +76,15 @@ wait<> do_establish_mission(
     SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
     Unit& unit, EstablishMissionResult const& outcome );
 
+/****************************************************************
+** Trade With Natives.
+*****************************************************************/
+TradeWithNativesResult compute_trade_with_natives(
+    SSConst const& ss, Player const& player,
+    Dwelling const& dwelling );
+
+wait<> do_trade_with_natives(
+    SS& ss, TS& ts, Player const& player, Dwelling& dwelling,
+    Unit& unit, TradeWithNativesResult const& outcome );
+
 } // namespace rn

@@ -220,7 +220,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     }
     case e_dwelling_interaction_category::trade: {
       static vector<e_enter_dwelling_option> const options{
-          // e_enter_dwelling_option::trade,
+          e_enter_dwelling_option::trade,
           e_enter_dwelling_option::cancel,
       };
       // In the OG, when attempting to trade with a tribe that is
@@ -749,6 +749,30 @@ wait<> do_establish_mission(
   // seem to have any effect on the process other than to deter-
   // mine the message displayed to the user.
   co_await ts.gui.message_box( msg );
+}
+
+/****************************************************************
+** Trade With Natives.
+*****************************************************************/
+TradeWithNativesResult compute_trade_with_natives(
+    SSConst const&, Player const&, Dwelling const& ) {
+  //
+  // TODO: when a wagon train enters a dwelling that is
+  // hostile, the confirmation will let the player know
+  // that. Then, there is a chance that the wagon train
+  // disappears when entering the dwelling.
+  //
+  // TODO
+  //
+  return {};
+}
+
+wait<> do_trade_with_natives( SS&, TS& ts, Player const&,
+                              Dwelling&, Unit&,
+                              TradeWithNativesResult const& ) {
+  co_await ts.gui.message_box(
+      "Trade with natives not implemented." );
+  // TODO
 }
 
 } // namespace rn

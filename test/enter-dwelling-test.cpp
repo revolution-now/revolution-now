@@ -307,7 +307,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      // e_enter_dwelling_option::trade,
+      e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
@@ -318,7 +318,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      // e_enter_dwelling_option::trade,
+      e_enter_dwelling_option::trade,
       e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
