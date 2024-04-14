@@ -12,10 +12,6 @@
 #include "root.hpp"
 
 // ss
-#include "players.hpp"
-#include "turn.hpp"
-
-// ss
 #include "ss/colonies.hpp"
 #include "ss/land-view.hpp"
 #include "ss/map.hpp"
