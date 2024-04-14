@@ -7563,9 +7563,9 @@ cdr::result<UnknownTribeData6> from_canonical(
 void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
   out += "STUFF{";
   out += "unknown34="; to_str( o.unknown34, out, t ); out += ',';
-  out += "counter_decreasing_on_new_colony="; to_str( o.counter_decreasing_on_new_colony, out, t ); out += ',';
+  out += "unknown34a="; to_str( o.unknown34a, out, t ); out += ',';
   out += "unknown35="; to_str( o.unknown35, out, t ); out += ',';
-  out += "counter_increasing_on_new_colony="; to_str( o.counter_increasing_on_new_colony, out, t ); out += ',';
+  out += "unknown35a="; to_str( o.unknown35a, out, t ); out += ',';
   out += "unknown36aa="; to_str( o.unknown36aa, out, t ); out += ',';
   out += "foreign_affairs_report="; to_str( o.foreign_affairs_report, out, t ); out += ',';
   out += "unknown36ac="; to_str( o.unknown36ac, out, t ); out += ',';
@@ -7591,9 +7591,9 @@ void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
 bool read_binary( base::IBinaryIO& b, STUFF& o ) {
   return true
     && read_binary( b, o.unknown34 )
-    && read_binary( b, o.counter_decreasing_on_new_colony )
+    && read_binary( b, o.unknown34a )
     && read_binary( b, o.unknown35 )
-    && read_binary( b, o.counter_increasing_on_new_colony )
+    && read_binary( b, o.unknown35a )
     && read_binary( b, o.unknown36aa )
     && read_binary( b, o.foreign_affairs_report )
     && read_binary( b, o.unknown36ac )
@@ -7618,9 +7618,9 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
 bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
   return true
     && write_binary( b, o.unknown34 )
-    && write_binary( b, o.counter_decreasing_on_new_colony )
+    && write_binary( b, o.unknown34a )
     && write_binary( b, o.unknown35 )
-    && write_binary( b, o.counter_increasing_on_new_colony )
+    && write_binary( b, o.unknown35a )
     && write_binary( b, o.unknown36aa )
     && write_binary( b, o.foreign_affairs_report )
     && write_binary( b, o.unknown36ac )
@@ -7647,9 +7647,9 @@ cdr::value to_canonical( cdr::converter& conv,
                          cdr::tag_t<STUFF> ) {
   cdr::table tbl;
   conv.to_field( tbl, "unknown34", o.unknown34 );
-  conv.to_field( tbl, "counter_decreasing_on_new_colony", o.counter_decreasing_on_new_colony );
+  conv.to_field( tbl, "unknown34a", o.unknown34a );
   conv.to_field( tbl, "unknown35", o.unknown35 );
-  conv.to_field( tbl, "counter_increasing_on_new_colony", o.counter_increasing_on_new_colony );
+  conv.to_field( tbl, "unknown35a", o.unknown35a );
   conv.to_field( tbl, "unknown36aa", o.unknown36aa );
   conv.to_field( tbl, "foreign_affairs_report", o.foreign_affairs_report );
   conv.to_field( tbl, "unknown36ac", o.unknown36ac );
@@ -7670,9 +7670,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "viewport_y", o.viewport_y );
   tbl["__key_order"] = cdr::list{
     "unknown34",
-    "counter_decreasing_on_new_colony",
+    "unknown34a",
     "unknown35",
-    "counter_increasing_on_new_colony",
+    "unknown35a",
     "unknown36aa",
     "foreign_affairs_report",
     "unknown36ac",
@@ -7703,9 +7703,9 @@ cdr::result<STUFF> from_canonical(
   STUFF res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "unknown34", unknown34 );
-  CONV_FROM_FIELD( "counter_decreasing_on_new_colony", counter_decreasing_on_new_colony );
+  CONV_FROM_FIELD( "unknown34a", unknown34a );
   CONV_FROM_FIELD( "unknown35", unknown35 );
-  CONV_FROM_FIELD( "counter_increasing_on_new_colony", counter_increasing_on_new_colony );
+  CONV_FROM_FIELD( "unknown35a", unknown35a );
   CONV_FROM_FIELD( "unknown36aa", unknown36aa );
   CONV_FROM_FIELD( "foreign_affairs_report", foreign_affairs_report );
   CONV_FROM_FIELD( "unknown36ac", unknown36ac );

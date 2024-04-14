@@ -10269,9 +10269,9 @@
   ],
   "STUFF": {
     "unknown34": "01 ff 00 00 01 00 01 00 ff ff 00 01 03 03 03",
-    "counter_decreasing_on_new_colony": 259,
+    "unknown34a": "03 01",
     "unknown35": "01 01",
-    "counter_increasing_on_new_colony": 257,
+    "unknown35a": "01 01",
     "unknown36aa": "01 00 01 01 01 00 01",
     "foreign_affairs_report": {
       "populations": [

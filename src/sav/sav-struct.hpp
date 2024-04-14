@@ -3138,9 +3138,9 @@ cdr::result<UnknownTribeData6> from_canonical(
 *****************************************************************/
 struct STUFF {
   bytes<15> unknown34 = {};
-  uint16_t counter_decreasing_on_new_colony = {};
+  bytes<2> unknown34a = {};
   bytes<2> unknown35 = {};
-  uint16_t counter_increasing_on_new_colony = {};
+  bytes<2> unknown35a = {};
   bytes<7> unknown36aa = {};
   ForeignAffairsReport foreign_affairs_report = {};
   std::array<bytes<64>, 8> unknown36ac = {};

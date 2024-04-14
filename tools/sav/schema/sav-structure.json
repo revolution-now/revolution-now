@@ -492,7 +492,7 @@
                         "show_foreign_moves",
                         "show_indian_moves"
                     ],
-                    "unused01": {"size": 7},
+                    "unused01": {"size": 7, "__hint": "some of these appear used for tracking revolution status."},
                     "tutorial_hints": {"size": 1, "type": "bit_bool"},
                     "disable_water_color_cycling": {"size": 1, "type": "bit_bool"},
                     "combat_analysis": {"size": 1, "type": "bit_bool"},
@@ -557,11 +557,11 @@
                         "unknown10",
                         "unknown11"
                     ],
-                    "how_to_win": {"size": 1, "type": "bit_bool"},
+                    "how_to_win": {"size": 1, "type": "bit_bool", "__hint": "this it not tutorial hints... what is it?"},
                     "background_music": {"size": 1, "type": "bit_bool"},
                     "event_music": {"size": 1, "type": "bit_bool"},
                     "sound_effects": {"size": 1, "type": "bit_bool"},
-                    "unknown00": {"size": 1, "type": "bit_bool"},
+                    "unknown00": {"size": 1, "type": "bit_bool", "__hint": "these unknowns appear to be tutorial hints; used on discoverer level."},
                     "unknown01": {"size": 1, "type": "bit_bool"},
                     "unknown02": {"size": 1, "type": "bit_bool"},
                     "unknown03": {"size": 1, "type": "bit_bool"},
@@ -592,7 +592,7 @@
             "show_entire_map": {"size": 2, "type": "uint"},
             "fixed_nation_map_view": {"size": 2, "type": "nation_2byte_type"},
             "difficulty": {"size": 1, "type": "difficulty_type"},
-            "unknown43a": {"size": 1},
+            "unknown43a": {"size": 1, "__hint": "looks somehow related to tax rate, despite the dedicated tax_rate field that we already have."},
             "unknown43b": {"size": 1},
             "founding_father": {"size": 25},
             "unknown44a": {"size": 4},
@@ -1009,7 +1009,6 @@
                 "unknown18",
                 "holds_occupied",
                 "cargo_items",
-                "__hint01",
                 "cargo_hold",
                 "turns_worked",
                 "profession_or_treasure_amount",
@@ -1036,7 +1035,7 @@
                 {
                     "__key_order": ["unknown15a", "damaged"],
                     "unknown15a": {"size": 7},
-                    "damaged": {"size": 1, "type": "bit_bool"}
+                    "damaged": {"size": 1, "type": "bit_bool", "__hint": "Applies to artillery.  check if applies to ships."}
                 }
             },
             "moves": {"size": 1, "type": "uint", "__hint": "'moves' count already made. One 'move' is one move by road"},
@@ -1059,12 +1058,16 @@
                     "cargo_2": {"size": 4, "type": "cargo_4bit_type"}
                 }
             },
-            "__hint01": "for pioneers, the following field may contain tools count.",
-            "cargo_hold": {"size": 1, "cols": 6, "type": "uint", "no_indent": true},
-            "turns_worked": {"size": 1, "type": "uint"},
+            "cargo_hold": {"size": 1, "cols": 6, "type": "uint", "no_indent": true, "__hint": "last number contains pioneer tool count."},
+            "turns_worked": {"size": 1, "type": "uint", "__hint": "for ships on the high seas this is a counter that determines when they advance to the next position, which seems to happen when the value is 1 for sailing from either east or west."},
             "profession_or_treasure_amount": {"size": 1, "type": "uint", "__hint": "Can be 'expert farmer' for ships, it's ok. A amount of gold for Treasure units (100's, i.e. 0x32 = 50d = 5000 gold)"},
             "transport_chain":
             {
+                "__hint01": "Defines an ordering of units, seems to be recomputed when one or a stack of units enters a square containing other",
+                "__hint02": "units. E.g. applies for units at the gate of a colony, or units on a ship, or multiple ships with units on a square.",
+                "__hint03": "It is possible that this is supposed to define which units are on a ship so that when two ships are on the same",
+                "__hint04": "square there is no ambiguity.  Though if that is the case, it apparently does not work correctly. This should be",
+                "__hint05": "investigated.",
                 "no_indent": true,
                 "struct":
                 {
@@ -1228,7 +1231,7 @@
                     "muskets": {"size": 1, "type": "bit_bool"}
                 }
             },
-            "royal_money": {"size": 4, "type": "int", "__hint": "King's budget for expeditionary force expansion"},
+            "royal_money": {"size": 4, "type": "int", "__hint": "King's budget for expeditionary force expansion. Increased, then when it reaches a threshold, a new unit is added."},
             "unknown24b": {"size": 4},
             "gold": {"size": 4, "type": "int"},
             "current_crosses": {"size": 2, "type": "uint"},
@@ -1268,6 +1271,7 @@
                         "intrinsic_volume",
                         "gold",
                         "__hint00",
+                        "__hint01",
                         "tons_traded",
                         "tons_traded2"
                     ],
@@ -1313,7 +1317,8 @@
                         }
                     },
                     "gold": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
-                    "__hint00": "these two appear to mirror each other (need to verify), though one might be for the economics advisor display and another internal.",
+                    "__hint00": "these two appear to mirror each other, though they may be different given some modifiers such as the dutch selling or the AI trading.",
+                    "__hint01": "One is probably for the economics display which needs to be unmodified while the other is internal.",
                     "tons_traded": {"size": 4, "cols": 16, "type": "int", "no_indent": true},
                     "tons_traded2": {"size": 4, "cols": 16, "type": "int", "no_indent": true}
                 }
@@ -1354,7 +1359,7 @@
             "population": {"size": 1, "type": "uint"},
             "mission": {"size": 1, "type": "int", "__hint": "-1 if none. Otherwise nation idx (0,1,2,3)."},
             "growth_counter": {"size": 1, "type": "int"},
-            "unknown28a": {"size": 1},
+            "unknown28a": {"size": 1, "__hint": "always seems to be 0xff."},
             "last_bought": {"size": 1},
             "last_sold": {"size": 1},
             "alarm":
@@ -1362,8 +1367,23 @@
                 "count": 4,
                 "struct":
                 {
-                    "__key_order": ["friction", "attacks"],
+                    "__key_order": [
+                        "friction",
+                        "__hint01",
+                        "__hint02",
+                        "__hint03",
+                        "__hint05",
+                        "__hint06",
+                        "__hint07",
+                        "attacks"
+                    ],
                     "friction": {"size": 1},
+                    "__hint01": "Appears that this goes up when an attack is made on the dwelling, and goes down when the dwelling's brave makes an attack.",
+                    "__hint02": "Also looks like it might gradually drift downward on its own (?). When a brave attacks a colony it appears to be reset to zero.",
+                    "__hint03": "Maybe the name of this field should be changed to retaliation, since it seems to store the number of attacks that braves",
+                    "__hint05": "will make from that dwelling, potentially not including attacks motivated by the friction above. Note that this does not",
+                    "__hint06": "seem to apply to attacking the dwelling's free brave. This will go up whether the attack on the dwelling succeeds or not.",
+                    "__hint07": "Not sure, but it may also decrease by 2 occasionally... maybe when the brave attacks a colony?",
                     "attacks": {"size": 1}
                 }
             }
@@ -1470,9 +1490,9 @@
         {
             "__key_order": [
                 "unknown34",
-                "counter_decreasing_on_new_colony",
+                "unknown34a",
                 "unknown35",
-                "counter_increasing_on_new_colony",
+                "unknown35a",
                 "unknown36aa",
                 "foreign_affairs_report",
                 "unknown36ac",
@@ -1493,9 +1513,9 @@
                 "viewport_y"
             ],
             "unknown34": {"size": 15},
-            "counter_decreasing_on_new_colony": {"size": 2, "type": "uint"},
+            "unknown34a": {"size": 2},
             "unknown35": {"size": 2},
-            "counter_increasing_on_new_colony": {"size": 2, "type": "uint"},
+            "unknown35a": {"size": 2},
             "unknown36aa": {"size": 7},
             "foreign_affairs_report":
             {
@@ -1662,7 +1682,7 @@
         {
             "__key_order": ["region_id", "visitor_nation"],
             "region_id": {"size": 4, "type": "region_id_4bit_type"},
-            "visitor_nation": {"size": 4, "type": "nation_4bit_short_type", "__hint": "these may be used to suppress an LCR that was visited."}
+            "visitor_nation": {"size": 4, "type": "nation_4bit_short_type", "__hint": "also used to suppress an LCR that was visited."}
         }
     },
     "SEEN":
@@ -1684,6 +1704,7 @@
     },
     "CONNECTIVITY":
     {
+        "__hint01": "See supplemental-info.md for description of the algorithm that populates these.",
         "struct":
         {
             "__key_order": ["sea_lane_connectivity", "land_connectivity"],
