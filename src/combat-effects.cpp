@@ -154,10 +154,20 @@ UnitCombatEffectsMessages euro_unit_combat_effects_msg(
       break;
     }
     CASE( promoted ) {
-      res.for_owner.push_back( fmt::format(
-          "[{}] {} promoted to [{}] for victory in combat!",
-          nation_possessive( player ), unit.desc().name,
-          unit_attr( promoted.to ).name ) );
+      if( unit.desc().type == promoted.to.type() ) {
+        CHECK_NEQ( unit.base_type(), promoted.to.base_type() );
+        res.for_owner.push_back( fmt::format(
+            "[{}] {}, acting as {}, has been promoted to [{}] "
+            "for victory in combat!",
+            nation_possessive( player ),
+            unit_attr( unit.base_type() ).name, unit.desc().name,
+            unit_attr( promoted.to.base_type() ).name ) );
+      } else {
+        res.for_owner.push_back( fmt::format(
+            "[{}] {} promoted to [{}] for victory in combat!",
+            nation_possessive( player ), unit.desc().name,
+            unit_attr( promoted.to ).name ) );
+      }
       break;
     }
   }

@@ -891,6 +891,72 @@ TEST_CASE(
                 "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
+
+  SECTION( "(soldier[pc],soldier) -> (soldier[is],soldier)" ) {
+    params = {
+        .attacker =
+            UnitType::create( e_unit_type::soldier,
+                              e_unit_type::petty_criminal )
+                .value(),
+        .defender = e_unit_type::soldier,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroUnitCombatOutcome::promoted{
+                .to = UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::indentured_servant )
+                          .value() },
+        .defender_outcome = EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist } };
+    expected = {
+        .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                   "[French] in the wilderness!",
+                       .defender =
+                           "[Dutch] Soldier defeats [French] in "
+                           "the wilderness!" },
+        .attacker =
+            { .for_owner =
+                  { "[Dutch] Petty Criminal, acting as Soldier, "
+                    "has been promoted to [Indentured Servant] "
+                    "for victory in combat!" } },
+        .defender = {
+            .for_both = { "[French] [Soldier] routed! Unit "
+                          "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
+
+  SECTION( "(soldier[is],soldier) -> (soldier[fc],soldier)" ) {
+    params = {
+        .attacker =
+            UnitType::create( e_unit_type::soldier,
+                              e_unit_type::indentured_servant )
+                .value(),
+        .defender = e_unit_type::soldier,
+        .winner   = e_combat_winner::attacker,
+        .attacker_outcome =
+            EuroUnitCombatOutcome::promoted{
+                .to = UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
+                          .value() },
+        .defender_outcome = EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist } };
+    expected = {
+        .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                   "[French] in the wilderness!",
+                       .defender =
+                           "[Dutch] Soldier defeats [French] in "
+                           "the wilderness!" },
+        .attacker =
+            { .for_owner =
+                  { "[Dutch] Indentured Servant, acting as "
+                    "Soldier, has been promoted to [Free "
+                    "Colonist] for victory in combat!" } },
+        .defender = {
+            .for_both = { "[French] [Soldier] routed! Unit "
+                          "demoted to colonist status." } } };
+    REQUIRE( run() == expected );
+  }
 }
 
 TEST_CASE(
