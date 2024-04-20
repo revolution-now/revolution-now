@@ -250,7 +250,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
 
   SECTION( "one unit, animation enabled/disabled" ) {
     MockLandViewPlane mock_land_view;
-    W.planes().back().land_view = &mock_land_view;
+    W.planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view );
     auto [dwelling_id, unit_id] = W.add_dwelling_and_brave_ids(
         { .x = 0, .y = 0 }, e_tribe::arawak );
     REQUIRE( W.units().unit_for( unit_id ).movement_points ==
@@ -524,7 +525,7 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
   MockIRaid         mock_raid;
   MockITribeEvolve  mock_tribe_evolver;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
     co_await_test( natives_turn( W.ss(), W.ts(), mock_raid,

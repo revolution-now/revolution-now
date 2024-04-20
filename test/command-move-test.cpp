@@ -91,7 +91,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 #endif
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   W.update_terrain_connectivity();
   Player& player = W.default_player();
   UnitId  id     = W.add_unit_on_map( e_unit_type::galleon,
@@ -172,8 +172,8 @@ TEST_CASE(
     "into a colony" ) {
   World             W;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player&       player        = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player&       player     = W.default_player();
   Colony const& colony     = W.add_colony( { .x = 1, .y = 1 } );
   Unit const&   missionary = W.add_unit_on_map(
       e_unit_type::missionary, { .x = 0, .y = 1 } );
@@ -256,8 +256,8 @@ TEST_CASE(
     "colony" ) {
   World             W;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player&       player        = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player&       player = W.default_player();
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } );
@@ -310,8 +310,8 @@ TEST_CASE(
   World W;
   W.settings().difficulty = e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player&       player        = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player&       player = W.default_player();
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } );
@@ -364,8 +364,8 @@ TEST_CASE(
 #endif
   World             W;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player& player              = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player = W.default_player();
   W.add_colony( { .x = 1, .y = 1 } );
   // This unit will be deleted.
   UnitId const treasure_id =
@@ -484,7 +484,7 @@ TEST_CASE(
     "defend" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Colony const& colony =
       W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
   Unit const& master_distiller =

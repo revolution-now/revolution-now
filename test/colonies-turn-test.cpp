@@ -78,7 +78,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       mock_colony_notification_generator;
 
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
 
   auto evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(

@@ -5,145 +5,57 @@
 *
 * Created by dsicilia on 2022-06-08.
 *
-* Description: A (quasi) stack for storing the list of active
-*              planes.
+* Description: API for adding and removing plane groups where
+*              plane groups are held on the stack and added and
+*              removed via raii.
 *
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Rds
-#include "plane-stack.rds.hpp"
-
 // Revolution Now
-#include "input.hpp" // FIXME
-
-// refl
-#include "refl/enum-map.hpp"
-#include "refl/ext.hpp"
-
-// base
-#include "base/macros.hpp"
-
-// C++ standard library
-#include <list>
-#include <vector>
-
-#define PLANE_ACCESSOR_DECL( type, name ) \
-  type&       name();                     \
-  type const& name() const;
-
-namespace rr {
-struct Renderer;
-}
+#include "plane-group.hpp"
 
 namespace rn {
-
-/****************************************************************
-** Forward Decls
-*****************************************************************/
-struct input_event;
-struct IMapUpdater;
-struct Plane;
-
-struct OmniPlane;
-struct ConsolePlane;
-struct WindowPlane;
-struct MainMenuPlane;
-struct MenuPlane;
-struct PanelPlane;
-struct ILandViewPlane;
-struct MapEditPlane;
-struct HarborPlane;
-
-/****************************************************************
-** PlaneGroup
-*****************************************************************/
-// These are pointers instead of maybe-ref because we want to be
-// able to copy assign these.
-struct PlaneGroup {
-  OmniPlane*      omni;
-  ConsolePlane*   console;
-  WindowPlane*    window;
-  MainMenuPlane*  main_menu;
-  MenuPlane*      menu;
-  PanelPlane*     panel;
-  ILandViewPlane* land_view;
-  MapEditPlane*   map_edit;
-  // The colony plane is a real plane but we don't interact with
-  // it directly, hence it is just a Plane* here. We show the
-  // colony plane by way of the IColonyViewer interface.
-  Plane*       colony;
-  HarborPlane* harbor;
-};
-
-maybe<Plane&> plane_pointer( PlaneGroup const& group,
-                             e_plane           plane );
 
 /****************************************************************
 ** Planes
 *****************************************************************/
 struct Planes {
-  Planes();
-
-  static constexpr int kNumPlanes = refl::enum_count<e_plane>;
-
  private:
-  struct [[nodiscard]] popper {
-    popper( Planes& planes ) : planes_( planes ) {}
-    NO_COPY_NO_MOVE( popper );
-    ~popper();
-    Planes& planes_;
+  // This both holds a group of planes and also serves as an raii
+  // cleanup object.
+  struct [[nodiscard]] PlaneGroupOwner {
+    PlaneGroupOwner( Planes& planes ) : planes_( planes ) {
+      prev_ = planes_.group_;
+      if( prev_ ) {
+        group.omni    = prev_->omni;
+        group.console = prev_->console;
+        group.window  = prev_->window;
+      }
+      planes_.group_ = &group;
+    }
+    ~PlaneGroupOwner() noexcept { planes_.group_ = prev_; }
+    PlaneGroupOwner( PlaneGroupOwner&& ) = delete;
+
+    Planes&     planes_;
+    PlaneGroup* prev_ = nullptr;
+    PlaneGroup  group;
   };
 
  public:
-  // To add a new plane group, first call this followed by back()
-  // to get the PlaneGroup, then call push on the plane group.
-  popper new_group();
+  Planes();
+  Planes( Planes&& ) = delete;
 
-  // Same as above, but initializes the new group by copying the
-  // current top group if it exists.
-  popper new_copied_group();
+  PlaneGroupOwner push();
 
-  PlaneGroup&       back();
-  PlaneGroup const& back() const;
-
-  void draw( rr::Renderer& renderer ) const;
-
-  PLANE_ACCESSOR_DECL( OmniPlane, omni );
-  PLANE_ACCESSOR_DECL( ConsolePlane, console );
-  PLANE_ACCESSOR_DECL( WindowPlane, window );
-  PLANE_ACCESSOR_DECL( MainMenuPlane, main_menu );
-  PLANE_ACCESSOR_DECL( MenuPlane, menu );
-  PLANE_ACCESSOR_DECL( PanelPlane, panel );
-  PLANE_ACCESSOR_DECL( ILandViewPlane, land_view );
-  PLANE_ACCESSOR_DECL( MapEditPlane, map_edit );
-  PLANE_ACCESSOR_DECL( Plane, colony );
-  PLANE_ACCESSOR_DECL( HarborPlane, harbor );
-
-  // This will call the advance_state method on each plane to up-
-  // date any state that it has. It will only be called on frames
-  // that are enabled and visible.
-  void advance_state();
-
-  e_input_handled send_input( input::event_t const& event );
+  PlaneGroup const& get() const;
+  PlaneGroup&       get();
 
  private:
-  // We want pointer stability here so that we can get a refer-
-  // ence to the top group and then add a new one.
-  std::list<PlaneGroup> groups_;
-
-  std::vector<Plane*> active_planes() const;
-
-  enum class e_drag_send_mode { normal, raw, motion };
-
-  struct DragState {
-    Plane*           plane;
-    e_drag_send_mode mode = e_drag_send_mode::normal;
-  };
-
-  maybe<DragState> drag_state_;
+  PlaneGroup* group_ = nullptr;
+  // This must be declared after group_ because its constructor
+  // will refer to it.
+  PlaneGroupOwner initial_;
 };
 
 } // namespace rn

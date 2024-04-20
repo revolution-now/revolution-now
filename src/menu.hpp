@@ -24,7 +24,7 @@
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 
 enum class e_menu_item;
 
@@ -40,7 +40,7 @@ struct MenuPlane {
 
     Deregistrar() = default;
 
-    Deregistrar( MenuPlane& menu_plane, Plane& plane,
+    Deregistrar( MenuPlane& menu_plane, IPlane& plane,
                  e_menu_item item )
       : Base( item ),
         menu_plane_( &menu_plane ),
@@ -48,7 +48,7 @@ struct MenuPlane {
 
    private:
     MenuPlane* menu_plane_ = nullptr;
-    Plane*     plane_      = nullptr;
+    IPlane*    plane_      = nullptr;
 
     friend Base;
     // Implement base::zero.
@@ -57,16 +57,16 @@ struct MenuPlane {
 
  public:
   [[nodiscard]] Deregistrar register_handler( e_menu_item item,
-                                              Plane& plane );
+                                              IPlane& plane );
 
  private:
-  void unregister_handler( e_menu_item item, Plane& plane );
+  void unregister_handler( e_menu_item item, IPlane& plane );
 
   struct Impl;
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 } // namespace rn

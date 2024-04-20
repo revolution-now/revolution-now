@@ -425,8 +425,9 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
   // See if there is a unit blinking; if so then we want to show
   // the dot blinking on the mini-map as well so that the player
   // can easily find the blinking unit.
-  maybe<UnitId> const blinker =
-      ts_.planes.land_view().unit_blinking();
+  maybe<UnitId> const blinker = ts_.planes.get()
+                                    .get_bottom<ILandViewPlane>()
+                                    .unit_blinking();
   maybe<Coord> const blinker_coord =
       blinker.has_value()
           ? maybe<Coord>{ coord_for_unit_multi_ownership_or_die(

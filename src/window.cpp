@@ -108,11 +108,11 @@ struct WindowManager {
 
   ND e_input_handled input( input::event_t const& event );
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord                 origin );
-  void                 on_drag( input::mod_keys const& mod,
-                                input::e_mouse_button button, Coord origin,
-                                Coord prev, Coord current );
+  IPlane::e_accept_drag can_drag( input::e_mouse_button button,
+                                  Coord                 origin );
+  void                  on_drag( input::mod_keys const& mod,
+                                 input::e_mouse_button button, Coord origin,
+                                 Coord prev, Coord current );
 
   vector<PositionedWindow> const& active_windows() const {
     return windows_;
@@ -212,10 +212,8 @@ struct WindowManager {
 /****************************************************************
 ** WindowPlane::Impl
 *****************************************************************/
-struct WindowPlane::Impl : public Plane {
+struct WindowPlane::Impl : public IPlane {
   Impl() = default;
-
-  bool covers_screen() const override { return false; }
 
   void advance_state() override { wm.advance_state(); }
 
@@ -227,8 +225,8 @@ struct WindowPlane::Impl : public Plane {
     return wm.input( event );
   }
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
+  IPlane::e_accept_drag can_drag( input::e_mouse_button button,
+                                  Coord origin ) override {
     return wm.can_drag( button, origin );
   }
 
@@ -483,16 +481,16 @@ e_input_handled WindowManager::input(
   return e_input_handled::yes;
 }
 
-Plane::e_accept_drag WindowManager::can_drag(
+IPlane::e_accept_drag WindowManager::can_drag(
     input::e_mouse_button /*button*/, Coord origin ) {
-  if( num_windows() == 0 ) return Plane::e_accept_drag::no;
+  if( num_windows() == 0 ) return IPlane::e_accept_drag::no;
   maybe<Window&> win = window_for_cursor_pos( origin );
   // If it's not in a window then swallow it to prevent any other
   // plane from handling it.
-  if( !win ) return Plane::e_accept_drag::swallow;
+  if( !win ) return IPlane::e_accept_drag::swallow;
   dragging_win_ = &*win;
   // Allow dragging from anywhere in the window.
-  return Plane::e_accept_drag::yes;
+  return IPlane::e_accept_drag::yes;
 }
 
 void WindowManager::on_drag( input::mod_keys const& /*unused*/,
@@ -558,7 +556,7 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
   };
 }
 
-}
+} // namespace
 
 /****************************************************************
 ** Windows
@@ -715,7 +713,7 @@ namespace {
           on_result( p_le_view->text() );
           return true; // handled.
         }
-        return false;  // not handled.
+        return false; // not handled.
       }
       default:
         break;
@@ -782,7 +780,7 @@ wait<vector<UnitSelection>> unit_selection_box(
       },
       /*validator=*/L( ( (void)_, true ) ), // always true.
       /*on_result=*/std::move( on_result ),
-      /*get_view_fun=*/get_view_fn          //
+      /*get_view_fun=*/get_view_fn //
   );
 
   co_return co_await s_promise.wait();
@@ -791,7 +789,7 @@ wait<vector<UnitSelection>> unit_selection_box(
 /****************************************************************
 ** WindowPlane
 *****************************************************************/
-Plane& WindowPlane::impl() { return *impl_; }
+IPlane& WindowPlane::impl() { return *impl_; }
 
 WindowPlane::~WindowPlane() = default;
 

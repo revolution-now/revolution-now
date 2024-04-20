@@ -193,14 +193,14 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
     input_received();
     input::event_t const& event = q.front();
     if( is_win_resize( event ) ) on_main_window_resized();
-    planes.send_input( event );
+    planes.get().input( event );
     q.pop();
     run_all_coroutines();
   }
 
   // ----------------------------------------------------------
   // 2. Update State.
-  planes.advance_state();
+  planes.get().advance_state();
   run_all_coroutines();
 
   // ----------------------------------------------------------
@@ -214,7 +214,8 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   renderer.set_physical_screen_size(
       main_window_physical_size() );
   renderer.render_pass( [&]( rr::Renderer& renderer ) {
-    planes.draw( renderer );
+    renderer.clear_screen( gfx::pixel::black() );
+    planes.get().draw( renderer );
   } );
 };
 

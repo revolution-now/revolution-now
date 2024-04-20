@@ -10,17 +10,20 @@
 *****************************************************************/
 #include "main-menu.hpp"
 
+// Rds
+#include "main-menu-impl.rds.hpp"
+
 // Revolution Now
 #include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "enum.hpp"
 #include "game.hpp"
 #include "gui.hpp"
+#include "input.hpp"
 #include "interrupts.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "tiles.hpp"
-#include "window.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -56,12 +59,27 @@ string item_name( e_main_menu_item item ) {
   }
 }
 
-} // namespace
+/****************************************************************
+** MainMenuPlane
+*****************************************************************/
+struct MainMenuPlane {
+  MainMenuPlane( Planes& planes );
+  ~MainMenuPlane();
+
+  wait<> run();
+
+ private:
+  struct Impl;
+  std::unique_ptr<Impl> impl_;
+
+ public:
+  IPlane& impl();
+};
 
 /****************************************************************
 ** MainMenuPlane::Impl
 *****************************************************************/
-struct MainMenuPlane::Impl : public Plane {
+struct MainMenuPlane::Impl : public IPlane {
   // State
   Planes&                      planes_;
   RealGui                      gui_;
@@ -69,10 +87,7 @@ struct MainMenuPlane::Impl : public Plane {
   co::stream<e_main_menu_item> selection_stream_;
 
  public:
-  Impl( Planes& planes )
-    : planes_( planes ), gui_( planes.window() ) {}
-
-  bool covers_screen() const override { return true; }
+  Impl( Planes& planes ) : planes_( planes ), gui_( planes ) {}
 
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_CHECK(
@@ -173,7 +188,7 @@ struct MainMenuPlane::Impl : public Plane {
 /****************************************************************
 ** MainMenuPlane
 *****************************************************************/
-Plane& MainMenuPlane::impl() { return *impl_; }
+IPlane& MainMenuPlane::impl() { return *impl_; }
 
 MainMenuPlane::~MainMenuPlane() = default;
 
@@ -193,18 +208,18 @@ wait<> MainMenuPlane::run() {
   }
 }
 
+} // namespace
+
 /****************************************************************
 ** API
 *****************************************************************/
 wait<> run_main_menu( Planes& planes ) {
-  auto        popper    = planes.new_copied_group();
-  PlaneGroup& new_group = planes.back();
-  WindowPlane window_plane;
-  new_group.window = &window_plane;
+  auto        owner = planes.push();
+  PlaneGroup& group = owner.group;
 
-  // Relies on the window plane being present.
   MainMenuPlane main_menu_plane( planes );
-  new_group.main_menu = &main_menu_plane;
+  group.bottom = &main_menu_plane.impl();
+
   co_await main_menu_plane.run();
 }
 

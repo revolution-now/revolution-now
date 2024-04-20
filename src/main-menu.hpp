@@ -10,40 +10,12 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "wait.hpp"
 
-// Rds
-#include "main-menu.rds.hpp"
-
-// C++ standard library
-#include <memory>
-
 namespace rn {
 
-struct MenuPlane;
-struct Plane;
 struct Planes;
-struct WindowPlane;
-
-/****************************************************************
-** MainMenuPlane
-*****************************************************************/
-struct MainMenuPlane {
-  MainMenuPlane( Planes& planes );
-  ~MainMenuPlane();
-
-  wait<> run();
-
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-
- public:
-  Plane& impl();
-};
 
 /****************************************************************
 ** API

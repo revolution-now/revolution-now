@@ -15,7 +15,7 @@
 #include "colony-view.hpp"
 #include "compositor.hpp"
 #include "connectivity.hpp"
-#include "gui.hpp"          // FIXME
+#include "gui.hpp" // FIXME
 #include "icombat.hpp"
 #include "ieuro-mind.hpp"   // FIXME
 #include "inative-mind.hpp" // FIXME
@@ -126,9 +126,9 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
 } // namespace
 
 /****************************************************************
-** Map Editor Plane
+** Map Editor IPlane
 *****************************************************************/
-struct MapEditPlane::Impl : public Plane {
+struct MapEditPlane::Impl : public IPlane {
   SS& ss_;
   TS& ts_;
 
@@ -151,14 +151,12 @@ struct MapEditPlane::Impl : public Plane {
 
   Impl( SS& ss, TS& ts )
     : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
-    register_menu_items( ts_.planes.menu() );
+    register_menu_items( ts_.planes.get().menu );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
     viewport().advance_state( viewport_rect() );
   }
-
-  bool covers_screen() const override { return true; }
 
   void advance_state() override {
     viewport().advance_state( viewport_rect() );
@@ -293,7 +291,7 @@ struct MapEditPlane::Impl : public Plane {
               [&]( auto const& event ) {
                 return handle_event( event );
               },
-              event ) );
+              event.as_base() ) );
       if( suspended ) clear_non_essential_events();
       if( exit ) co_return;
     }
@@ -335,16 +333,16 @@ struct MapEditPlane::Impl : public Plane {
 
   wait<> click_on_tile( Coord tile, e_action action );
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
-    if( !drag_finished ) return Plane::e_accept_drag::swallow;
+  IPlane::e_accept_drag can_drag( input::e_mouse_button button,
+                                  Coord origin ) override {
+    if( !drag_finished ) return IPlane::e_accept_drag::swallow;
     if( button == input::e_mouse_button::r &&
         viewport().screen_coord_in_viewport( origin ) ) {
       viewport().stop_auto_panning();
       drag_stream.reset();
       drag_finished = false;
       drag_thread   = dragging( button, origin );
-      return Plane::e_accept_drag::yes;
+      return IPlane::e_accept_drag::yes;
     }
     if( button == input::e_mouse_button::l &&
         viewport().screen_pixel_to_world_tile( origin ) ) {
@@ -352,9 +350,9 @@ struct MapEditPlane::Impl : public Plane {
       drag_stream.reset();
       drag_finished = false;
       drag_thread   = dragging( button, origin );
-      return Plane::e_accept_drag::yes;
+      return IPlane::e_accept_drag::yes;
     }
-    return Plane::e_accept_drag::no;
+    return IPlane::e_accept_drag::no;
   }
   void on_drag( input::mod_keys const& /*unused*/,
                 input::e_mouse_button /*unused*/,
@@ -519,7 +517,7 @@ wait<bool> MapEditPlane::Impl::handle_event(
       break;
     case ::SDLK_ESCAPE: //
       co_return true;
-    default:            //
+    default: //
       break;
   }
   co_return false;
@@ -609,7 +607,7 @@ void MapEditPlane::Impl::render_sidebar(
 /****************************************************************
 ** MapEditPlane
 *****************************************************************/
-Plane& MapEditPlane::impl() { return *impl_; }
+IPlane& MapEditPlane::impl() { return *impl_; }
 
 MapEditPlane::~MapEditPlane() = default;
 
@@ -642,7 +640,7 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
   WindowPlane         window_plane;
-  RealGui             gui( window_plane );
+  RealGui             gui( planes );
   Rand                rand;
   TrappingCombat      combat;
   ColonyViewer        colony_viewer( ss );
@@ -661,15 +659,11 @@ wait<> run_map_editor( SS& ss, TS& ts ) {
   WindowPlane  window_plane;
 
   Planes&     planes    = ts.planes;
-  PlaneGroup& old_group = planes.back();
-  auto        popper    = planes.new_group();
-  PlaneGroup& new_group = planes.back();
+  auto        owner     = planes.push();
+  PlaneGroup& new_group = owner.group;
 
-  new_group.map_edit = &map_edit_plane;
-  new_group.menu     = &menu_plane;
-  new_group.window   = &window_plane;
-  new_group.console  = old_group.console;
-  new_group.omni     = old_group.omni;
+  new_group.menu = menu_plane;
+  new_group.set_bottom( map_edit_plane.impl() );
 
   auto map_updater_options_popper =
       ts.map_updater.push_options_and_redraw(

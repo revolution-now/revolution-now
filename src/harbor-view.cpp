@@ -60,9 +60,9 @@ void check_selected_unit_in_harbor( SSConst const& ss,
 } // namespace
 
 /****************************************************************
-** Harbor Plane
+** Harbor IPlane
 *****************************************************************/
-struct HarborPlane::Impl : public Plane {
+struct HarborPlane::Impl : public IPlane {
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -82,8 +82,6 @@ struct HarborPlane::Impl : public Plane {
                                             new_canvas.delta() );
     canvas_      = new_canvas;
   }
-
-  bool covers_screen() const override { return true; }
 
   // FIXME: find a better way to do this. One idea is that when
   // the compositor changes the layout it will inject a window
@@ -215,19 +213,20 @@ struct HarborPlane::Impl : public Plane {
     return e_input_handled::yes;
   }
 
-  Plane::e_accept_drag can_drag(
+  IPlane::e_accept_drag can_drag(
       input::e_mouse_button /*button*/,
       Coord /*origin*/ ) override {
-    if( drag_state_ ) return Plane::e_accept_drag::swallow;
+    if( drag_state_ ) return IPlane::e_accept_drag::swallow;
     return e_accept_drag::yes_but_raw;
   }
 
   wait<> run_harbor_view() {
     CHECK( composition_.top_level != nullptr );
     while( true ) {
-      input::event_t event      = co_await input_.next();
-      auto [ignored, suspended] = co_await co::detect_suspend(
-          base::visit( LC( handle_event( _ ) ), event ) );
+      input::event_t event = co_await input_.next();
+      auto [ignored, suspended] =
+          co_await co::detect_suspend( base::visit(
+              LC( handle_event( _ ) ), event.as_base() ) );
       if( suspended ) clear_non_essential_events();
     }
   }
@@ -267,7 +266,7 @@ struct HarborPlane::Impl : public Plane {
       case ::SDLK_ESCAPE: //
       case ::SDLK_e:      //
         throw harbor_view_exit_interrupt{};
-      default:            //
+      default: //
         break;
     }
 
@@ -353,7 +352,7 @@ struct HarborPlane::Impl : public Plane {
 /****************************************************************
 ** HarborPlane
 *****************************************************************/
-Plane& HarborPlane::impl() { return *impl_; }
+IPlane& HarborPlane::impl() { return *impl_; }
 
 HarborPlane::~HarborPlane() = default;
 
@@ -373,15 +372,15 @@ wait<> HarborPlane::show_harbor_view() {
 *****************************************************************/
 wait<> show_harbor_view( SS& ss, TS& ts, Player& player,
                          maybe<UnitId> selected_unit ) {
-  Planes&     planes    = ts.planes;
-  auto        popper    = planes.new_copied_group();
-  PlaneGroup& new_group = planes.back();
+  Planes&     planes = ts.planes;
+  auto        owner  = planes.push();
+  PlaneGroup& group  = owner.group;
 
   HarborPlane harbor_plane( ss, ts, player );
   check_selected_unit_in_harbor( ss, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );
-  new_group.harbor = &harbor_plane;
+  group.bottom = &harbor_plane.impl();
   try {
     // This coroutine should never return but by throwing the
     // exit exception.

@@ -24,7 +24,7 @@
 namespace rn {
 
 struct MenuPlane;
-struct Plane;
+struct IPlane;
 
 /****************************************************************
 ** TurnPlane
@@ -41,7 +41,7 @@ struct TurnPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 } // namespace rn

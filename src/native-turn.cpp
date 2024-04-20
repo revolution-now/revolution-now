@@ -127,7 +127,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
       player_for_nation_or_die( ss.players, nation );
   IEuroMind& euro_mind = ts.euro_minds[nation];
 
-  co_await ts.planes.land_view().animate(
+  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
 
   player.money += 5;
@@ -171,9 +171,10 @@ wait<> handle_native_unit_travel( SS& ss, TS& ts,
     co_return;
   }
   if( should_animate_native_travel( ss, viz, src, dst ) )
-    co_await ts.planes.land_view().animate(
-        anim_seq_for_unit_move( ss, native_unit.id,
-                                direction ) );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( anim_seq_for_unit_move( ss, native_unit.id,
+                                          direction ) );
   co_await UnitOnMapMover::native_unit_to_map_interactive(
       ss, ts, native_unit.id, dst );
 }

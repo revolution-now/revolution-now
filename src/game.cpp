@@ -37,7 +37,6 @@
 #include "save-game.hpp"
 #include "ts.hpp"
 #include "turn.hpp"
-#include "window.hpp"
 
 // ss
 #include "ss/ref.hpp"
@@ -92,18 +91,14 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // saved (not including auto-save) and/or loaded.
   RootState saved;
 
-  lua::state& st = planes.console().lua_state();
+  lua::state& st = planes.get().console.typed().lua_state();
   st["ROOT"]     = ss.root;
   st["SS"]       = ss;
 
-  auto        popper = planes.new_copied_group();
-  PlaneGroup& group  = planes.back();
+  auto        owner = planes.push();
+  PlaneGroup& group = owner.group;
 
-  WindowPlane window_plane;
-  group.window = &window_plane;
-
-  RealGui gui( window_plane );
-
+  RealGui      gui( planes );
   Rand         rand; // random seed.
   RealCombat   combat( ss, rand );
   ColonyViewer colony_viewer( ss );
@@ -152,14 +147,14 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   ensure_human_player( ss.players );
 
   MenuPlane menu_plane;
-  group.menu = &menu_plane;
+  group.menu = menu_plane;
 
   PanelPlane panel_plane( ss, ts );
-  group.panel = &panel_plane;
+  group.panel = panel_plane;
 
   LandViewPlane land_view_plane( ss, ts,
                                  /*visibility=*/nothing );
-  group.land_view = &land_view_plane;
+  group.set_bottom<ILandViewPlane>( land_view_plane );
 
   // Perform the initial rendering of the map. Even though it
   // will be wasteful in a sense, we will render the entire map
@@ -196,8 +191,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   //   * ...
   //
   // But this should not be done when loading an existing game.
-  co_await co::erase( co::try_<game_quit_interrupt>(
-      [&] { return turn_loop( ss, ts ); } ) );
+  auto const loop = [&] { return turn_loop( ss, ts ); };
+  co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
 }
 
 wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {

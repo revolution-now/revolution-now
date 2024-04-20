@@ -116,8 +116,10 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
           treasure.gold, config_text.special_chars.currency );
       UnitId const unit_id = create_treasure_train(
           ss, ts, player, world_square, treasure.gold );
-      co_await ts.planes.land_view().animate(
-          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .animate( anim_seq_for_treasure_enpixelation(
+              ss, unit_id ) );
       result =
           LostCityRumorUnitChange::unit_created{ .id = unit_id };
       break;
@@ -233,8 +235,10 @@ wait<LostCityRumorUnitChange> run_rumor_result(
           cibola.gold, config_text.special_chars.currency );
       UnitId unit_id = create_treasure_train(
           ss, ts, player, tile, cibola.gold );
-      co_await ts.planes.land_view().animate(
-          anim_seq_for_treasure_enpixelation( ss, unit_id ) );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .animate( anim_seq_for_treasure_enpixelation(
+              ss, unit_id ) );
       co_return LostCityRumorUnitChange::unit_created{
           .id = unit_id };
     }

@@ -39,7 +39,7 @@ unordered_set<e_menu_item> const kSupportedMenuItems{
 /****************************************************************
 ** TurnPlane::Impl
 *****************************************************************/
-struct TurnPlane::Impl : public Plane {
+struct TurnPlane::Impl : public IPlane {
   // State.
   co::stream<e_menu_item> menu_actions;
 
@@ -50,8 +50,6 @@ struct TurnPlane::Impl : public Plane {
       dereg.push_back(
           menu_plane.register_handler( item, *this ) );
   }
-
-  bool covers_screen() const override { return false; }
 
   bool will_handle_menu_click( e_menu_item item ) override {
     return kSupportedMenuItems.contains( item );
@@ -70,7 +68,7 @@ struct TurnPlane::Impl : public Plane {
 /****************************************************************
 ** TurnPlane
 *****************************************************************/
-Plane& TurnPlane::impl() { return *impl_; }
+IPlane& TurnPlane::impl() { return *impl_; }
 
 TurnPlane::~TurnPlane() = default;
 

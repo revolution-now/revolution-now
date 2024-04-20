@@ -471,7 +471,9 @@ wait<EndOfTurnResult> process_player_input(
       break;
     }
     case e::hidden_terrain: {
-      co_await ts.planes.land_view().show_hidden_terrain();
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .show_hidden_terrain();
       break;
     }
     case e::next_turn:
@@ -519,9 +521,10 @@ wait<EndOfTurnResult> process_player_input( next_turn_t, SS&,
 
 wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
                                      Player& player ) {
-  auto wait_for_button =
-      co::fmap( [] λ( next_turn_t{} ),
-                ts.planes.panel().wait_for_eot_button_click() );
+  auto wait_for_button = co::fmap(
+      [] λ( next_turn_t{} ), ts.planes.get()
+                                 .panel.typed()
+                                 .wait_for_eot_button_click() );
   // The reason that we want to use co::first here instead of in-
   // terleaving the three streams is because as soon as one be-
   // comes ready (and we start processing it) we want all the
@@ -529,10 +532,12 @@ wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
   // effect of disabling further input on them (e.g., disabling
   // menu items), which is what we want for a good user experi-
   // ence.
-  UserInput command = co_await co::first(          //
-      wait_for_menu_selection( ts.planes.menu() ), //
-      ts.planes.land_view().eot_get_next_input(),  //
-      std::move( wait_for_button )                 //
+  UserInput command = co_await co::first(              //
+      wait_for_menu_selection( ts.planes.get().menu ), //
+      ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .eot_get_next_input(),   //
+      std::move( wait_for_button ) //
   );
   co_return co_await rn::visit(
       command, LC( process_player_input( _, ss, ts, player ) ) );
@@ -592,7 +597,9 @@ wait<> process_player_input(
       break;
     }
     case e::hidden_terrain: {
-      co_await ts.planes.land_view().show_hidden_terrain();
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .show_hidden_terrain();
       break;
     }
     // We have some orders for the current unit.
@@ -629,7 +636,9 @@ wait<> process_player_input(
         break;
       }
 
-      co_await ts.planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .ensure_visible_unit( id );
       unique_ptr<CommandHandler> handler =
           command_handler( ss, ts, player, id, command );
       CHECK( handler );
@@ -681,8 +690,9 @@ wait<LandViewPlayerInput> landview_player_input(
     // point, the unit that is asking for orders will still be
     // asking for orders, so skip_eot will again be set to true.
     autosave_if_needed( ss, ts );
-    response =
-        co_await ts.planes.land_view().get_next_input( id );
+    response = co_await ts.planes.get()
+                   .get_bottom<ILandViewPlane>()
+                   .get_next_input( id );
   }
   co_return response;
 }
@@ -691,7 +701,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
                          Player&                 player,
                          NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
-      wait_for_menu_selection( ts.planes.menu() ),
+      wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
   co_await overload_visit( command, [&]( auto const& action ) {
     return process_player_input( id, action, ss, ts, player,
@@ -769,7 +779,9 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
     perform_road_work( ss, ts, unit );
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await ts.planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -792,7 +804,9 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
     }
     if( unit.composition()[e_unit_inventory::tools] == 0 ) {
       CHECK( unit.orders().holds<unit_orders::none>() );
-      co_await ts.planes.land_view().ensure_visible_unit( id );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .ensure_visible_unit( id );
       co_await ts.gui.message_box(
           "Our pioneer has exhausted all of its tools." );
     }
@@ -1174,7 +1188,7 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
 // Runs through the various phases of a single turn.
 wait<> next_turn( SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
-  ts.planes.land_view().start_new_turn();
+  ts.planes.get().get_bottom<ILandViewPlane>().start_new_turn();
   print_bar( '=', "[ Starting Turn ]" );
   while( !cycle.holds<TurnCycle::finished>() )
     cycle = co_await next_turn_iter( ss, ts );

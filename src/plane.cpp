@@ -10,41 +10,44 @@
 *****************************************************************/
 #include "plane.hpp"
 
+// Revolution Now
+#include "input.hpp"
+
 using namespace std;
 
 namespace rn {
 
 /****************************************************************
-** Plane
+** IPlane
 *****************************************************************/
-e_input_handled Plane::input(
+e_input_handled IPlane::input(
     input::event_t const& /*unused*/ ) {
   return e_input_handled::no;
 }
 
-void Plane::advance_state() {}
+void IPlane::advance_state() {}
 
-Plane::e_accept_drag Plane::can_drag(
+IPlane::e_accept_drag IPlane::can_drag(
     input::e_mouse_button /*unused*/, Coord /*unused*/ ) {
   return e_accept_drag::no;
 }
 
-void Plane::draw( rr::Renderer& ) const {}
+void IPlane::draw( rr::Renderer& ) const {}
 
-void Plane::on_drag( input::mod_keys const& /*unused*/,
-                     input::e_mouse_button /*unused*/,
-                     Coord /*unused*/, Coord /*unused*/,
-                     Coord /*unused*/ ) {}
+void IPlane::on_drag( input::mod_keys const& /*unused*/,
+                      input::e_mouse_button /*unused*/,
+                      Coord /*unused*/, Coord /*unused*/,
+                      Coord /*unused*/ ) {}
 
-void Plane::on_drag_finished( input::mod_keys const& /*unused*/,
-                              input::e_mouse_button /*unused*/,
-                              Coord /*unused*/,
-                              Coord /*unused*/ ) {}
+void IPlane::on_drag_finished( input::mod_keys const& /*unused*/,
+                               input::e_mouse_button /*unused*/,
+                               Coord /*unused*/,
+                               Coord /*unused*/ ) {}
 
-bool Plane::will_handle_menu_click( e_menu_item ) {
+bool IPlane::will_handle_menu_click( e_menu_item ) {
   return false;
 }
 
-void Plane::handle_menu_click( e_menu_item ) {}
+void IPlane::handle_menu_click( e_menu_item ) {}
 
 } // namespace rn

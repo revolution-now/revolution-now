@@ -440,7 +440,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
   World W;
 
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   maybe<e_nation> revealed;
 

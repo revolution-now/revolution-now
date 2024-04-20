@@ -52,7 +52,7 @@ namespace {} // namespace
 /****************************************************************
 ** PanelPlane::Impl
 *****************************************************************/
-struct PanelPlane::Impl : public Plane {
+struct PanelPlane::Impl : public IPlane {
   SS&                           ss_;
   TS&                           ts_;
   unique_ptr<ui::InvisibleView> view;
@@ -77,8 +77,9 @@ struct PanelPlane::Impl : public Plane {
 
   Impl( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {
     // Register menu handlers.
-    eot_click_dereg_ = ts.planes.menu().register_handler(
-        e_menu_item::next_turn, *this );
+    eot_click_dereg_ =
+        ts.planes.get().menu.typed().register_handler(
+            e_menu_item::next_turn, *this );
 
     vector<ui::OwningPositionedView> view_vec;
 
@@ -114,8 +115,6 @@ struct PanelPlane::Impl : public Plane {
 
     next_turn_button().enable( false );
   }
-
-  bool covers_screen() const override { return false; }
 
   void advance_state() override { view->advance_state(); }
 
@@ -229,7 +228,7 @@ struct PanelPlane::Impl : public Plane {
                                   : e_input_handled::no;
   }
 
-  // Override Plane.
+  // Override IPlane.
   e_accept_drag can_drag( input::e_mouse_button,
                           Coord origin ) override {
     if( !origin.is_inside( rect() ) ) return e_accept_drag::no;
@@ -280,7 +279,7 @@ struct PanelPlane::Impl : public Plane {
 /****************************************************************
 ** PanelPlane
 *****************************************************************/
-Plane& PanelPlane::impl() { return *impl_; }
+IPlane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 

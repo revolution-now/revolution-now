@@ -471,7 +471,9 @@ wait<> do_live_among_the_natives(
           AnimationSequence const seq =
               anim_seq_for_unit_depixelation( ss, unit.id(),
                                               o.to.type() );
-          co_await ts.planes.land_view().animate( seq );
+          co_await ts.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate( seq );
         }
         change_unit_type( ss, ts, unit, o.to );
         dwelling.has_taught = true;
@@ -665,8 +667,9 @@ wait<> do_speak_with_chief(
       co_await ts.gui.message_box(
           "We invite you to sit around the campfire with us as "
           "we tell you the tales of nearby lands." );
-      co_await ts.planes.land_view().center_on_tile(
-          ss.natives.coord_for( dwelling.id ) );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .center_on_tile( ss.natives.coord_for( dwelling.id ) );
       for( Coord tile : tiles ) {
         ts.map_updater.make_squares_visible( unit.nation(),
                                              { tile } );
@@ -682,7 +685,9 @@ wait<> do_speak_with_chief(
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation(
               ss, unit.id(), e_unit_type::seasoned_scout );
-      co_await ts.planes.land_view().animate( seq );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .animate( seq );
       // Need to change type before awaiting on the promotion
       // message otherwise the unit will change back temporarily
       // after depixelating.
@@ -700,7 +705,9 @@ wait<> do_speak_with_chief(
           config_natives.tribes[tribe].name_singular );
       AnimationSequence const seq =
           anim_seq_for_unit_depixelation( ss, unit.id() );
-      co_await ts.planes.land_view().animate( seq );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .animate( seq );
       UnitOwnershipChanger( ss, unit.id() ).destroy();
       co_return;
     }

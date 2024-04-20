@@ -362,7 +362,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
 
   // Animate the attack part of it. If the colony is captured
   // then the remainder will be done further below.
-  co_await ts_.planes.land_view().animate(
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_undefended_colony( ss_, combat ) );
 
   CombatEffectsMessages const effects_msg =
@@ -383,7 +383,7 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // The colony has been captured.
 
   // 1. The attacker moves into the colony square.
-  co_await ts_.planes.land_view().animate(
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_unit_move( ss_, attacker_.id(),
                               direction_ ) );
   maybe<UnitDeleted> const unit_deleted =
@@ -484,7 +484,7 @@ wait<> NavalBattleHandler::perform() {
 
   co_await Base::perform();
 
-  co_await ts_.planes.land_view().animate(
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_naval_battle( ss_, combat ) );
 
   if( combat.winner.has_value() ) {
@@ -584,7 +584,8 @@ wait<> EuroAttackHandler::perform() {
 
   AnimationSequence const seq =
       anim_seq_for_euro_attack_euro( ss_, combat );
-  co_await ts_.planes.land_view().animate( seq );
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
+      seq );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
@@ -648,7 +649,8 @@ wait<> AttackNativeUnitHandler::perform() {
 
   AnimationSequence const seq =
       anim_seq_for_euro_attack_brave( ss_, combat );
-  co_await ts_.planes.land_view().animate( seq );
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
+      seq );
 
   // The tribal alarm goes up regardless of the battle outcome.
   TribeRelationship& relationship =
@@ -772,7 +774,7 @@ wait<> AttackDwellingHandler::produce_convert() {
       ss_, ts_, attacking_player_, e_unit_type::native_convert,
       dwelling_coord );
   native_convert_ = convert_id;
-  co_await ts_.planes.land_view().animate(
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_convert_produced(
           ss_, convert_id, reverse_direction( direction_ ) ) );
   // Non-interactive is OK here because the attacker is already
@@ -876,7 +878,9 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
-          co_await ts_.planes.land_view().animate( seq );
+          co_await ts_.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -897,7 +901,9 @@ wait<> AttackDwellingHandler::perform() {
         [&]( CombatEuroAttackBrave const& combat ) -> wait<> {
           AnimationSequence const seq =
               anim_seq_for_euro_attack_brave( ss_, combat );
-          co_await ts_.planes.land_view().animate( seq );
+          co_await ts_.planes.get()
+              .get_bottom<ILandViewPlane>()
+              .animate( seq );
         } );
     perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                       combat.attacker.outcome );
@@ -958,7 +964,9 @@ wait<> AttackDwellingHandler::perform() {
             ss_, *viz_, attacker_id_, combat.attacker.outcome,
             phantom_combat.defender.id, dwelling_id_,
             combat.defender.outcome );
-        co_await ts_.planes.land_view().animate( seq );
+        co_await ts_.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .animate( seq );
       } );
 
   bool const was_capital = dwelling_.is_capital;
@@ -1016,7 +1024,9 @@ wait<> AttackDwellingHandler::perform() {
     treasure_ = treasure_id;
     AnimationSequence const seq =
         anim_seq_for_treasure_enpixelation( ss_, treasure_id );
-    co_await ts_.planes.land_view().animate( seq );
+    co_await ts_.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( seq );
     // Just in case e.g. the treasure appeared next to a brave
     // from unencountered tribe, or the pacific ocean.
     [[maybe_unused]] auto const unit_deleted =

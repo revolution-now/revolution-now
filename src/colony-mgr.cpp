@@ -534,7 +534,8 @@ wait<> run_animated_colony_destruction(
           ss, player_for_role( ss, e_player_role::viewer ) );
   AnimationSequence const seq =
       anim_seq_for_colony_depixelation( ss, *viz, colony.id );
-  co_await ts.planes.land_view().animate( seq );
+  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
+      seq );
   co_await run_colony_destruction( ss, ts, colony, reason, msg );
 }
 

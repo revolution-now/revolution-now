@@ -17,7 +17,7 @@
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 struct SS;
 struct TS;
 
@@ -35,7 +35,7 @@ struct PanelPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 } // namespace rn

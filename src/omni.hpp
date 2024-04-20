@@ -17,7 +17,7 @@
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 
 /****************************************************************
 ** OmniPlane
@@ -31,7 +31,7 @@ struct OmniPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 } // namespace rn

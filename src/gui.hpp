@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct Planes;
 struct WindowPlane;
 
 /****************************************************************
@@ -25,8 +26,7 @@ struct WindowPlane;
 // Presents real GUI elements to the player. For unit testing in-
 // stead use a mock of IGui, not this one.
 struct RealGui : IGui {
-  RealGui( WindowPlane& window_plane )
-    : window_plane_( window_plane ) {}
+  RealGui( Planes& planes ) : planes_( planes ) {}
 
   // Implement IGui.
   wait<> message_box( std::string const& msg ) override;
@@ -72,7 +72,9 @@ struct RealGui : IGui {
       override;
 
  private:
-  WindowPlane& window_plane_;
+  WindowPlane& window_plane() const;
+
+  Planes& planes_;
 };
 
 } // namespace rn

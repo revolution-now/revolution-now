@@ -302,7 +302,9 @@ struct TravelHandler : public CommandHandler {
         CHECK( target_unit.has_value() );
         AnimationSequence const seq = anim_seq_for_boarding_ship(
             ss_, unit_id, *target_unit, direction );
-        co_await ts_.planes.land_view().animate( seq );
+        co_await ts_.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .animate( seq );
         break;
       }
       case e_travel_verdict::land_fall:
@@ -317,7 +319,9 @@ struct TravelHandler : public CommandHandler {
       case e_travel_verdict::sail_high_seas: {
         AnimationSequence const seq =
             anim_seq_for_unit_move( ss_, unit_id, direction );
-        co_await ts_.planes.land_view().animate( seq );
+        co_await ts_.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .animate( seq );
         break;
       }
     }

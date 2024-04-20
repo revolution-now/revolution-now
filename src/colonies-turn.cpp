@@ -178,8 +178,9 @@ wait<> evolve_colonies_for_player(
     }
     if( !blocking_messages.empty() )
       // We have some blocking notifications to present.
-      co_await ts.planes.land_view().ensure_visible(
-          colony.location );
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .ensure_visible( colony.location );
     bool const zoom_to_colony =
         co_await present_blocking_colony_updates(
             ts.gui, blocking_messages );

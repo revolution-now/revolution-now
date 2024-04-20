@@ -330,7 +330,7 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
   top_array->recompute_child_positions();
 
   // Create window.
-  WindowManager& wm = ts.planes.window().manager();
+  WindowManager& wm = ts.planes.get().window.typed().manager();
   Window         window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();
@@ -406,7 +406,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
 
-  co_await ts.planes.land_view().animate(
+  co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_cheat_kill_natives( ss, *viz, destroyed ) );
 
   for( e_tribe const tribe : destroyed )

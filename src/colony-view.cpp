@@ -18,7 +18,6 @@
 #include "colview-entities.hpp"
 #include "compositor.hpp"
 #include "drag-drop.hpp"
-#include "gui.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "interrupts.hpp"
 #include "logger.hpp"
@@ -27,7 +26,6 @@
 #include "text.hpp"
 #include "throttler.hpp"
 #include "ts.hpp"
-#include "window.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -129,9 +127,9 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 } // namespace
 
 /****************************************************************
-** Colony Plane
+** Colony IPlane
 *****************************************************************/
-struct ColonyPlane : public Plane {
+struct ColonyPlane : public IPlane {
   SS&     ss_;
   TS&     ts_;
   Player& player_;
@@ -148,8 +146,6 @@ struct ColonyPlane : public Plane {
       colony_( colony ) {
     set_colview_colony( ss_, ts_, player_, colony_ );
   }
-
-  bool covers_screen() const override { return true; }
 
   // FIXME: find a better way to do this. One idea is that when
   // the compositor changes the layout it will inject a window
@@ -197,18 +193,19 @@ struct ColonyPlane : public Plane {
     return e_input_handled::yes;
   }
 
-  Plane::e_accept_drag can_drag(
+  IPlane::e_accept_drag can_drag(
       input::e_mouse_button /*button*/,
       Coord /*origin*/ ) override {
-    if( drag_state_ ) return Plane::e_accept_drag::swallow;
+    if( drag_state_ ) return IPlane::e_accept_drag::swallow;
     return e_accept_drag::yes_but_raw;
   }
 
   wait<> run_colview() {
     while( true ) {
-      input::event_t event   = co_await input_.next();
-      auto [exit, suspended] = co_await co::detect_suspend(
-          base::visit( LC( handle_event( _ ) ), event ) );
+      input::event_t event = co_await input_.next();
+      auto [exit, suspended] =
+          co_await co::detect_suspend( base::visit(
+              LC( handle_event( _ ) ), event.as_base() ) );
       if( suspended ) clear_non_essential_events();
       if( exit ) co_return;
     }
@@ -328,23 +325,13 @@ struct ColonyPlane : public Plane {
 *****************************************************************/
 ColonyViewer::ColonyViewer( SS& ss ) : ss_( ss ) {}
 
-wait<> ColonyViewer::show_impl( TS& ts_old, Colony& colony ) {
-  Planes&           planes    = ts_old.planes;
-  PlaneGroup const& old_group = planes.back();
-  auto              popper    = planes.new_group();
-  PlaneGroup&       new_group = planes.back();
-
-  new_group.omni    = old_group.omni;
-  new_group.console = old_group.console;
-
-  WindowPlane window_plane;
-  new_group.window = &window_plane;
-
-  RealGui gui( window_plane );
-  TS      ts = ts_old.with_gui( gui );
+wait<> ColonyViewer::show_impl( TS& ts, Colony& colony ) {
+  Planes&     planes    = ts.planes;
+  auto        owner     = planes.push();
+  PlaneGroup& new_group = owner.group;
 
   ColonyPlane colony_plane( ss_, ts, colony );
-  new_group.colony = &colony_plane;
+  new_group.bottom = &colony_plane;
 
   lg.info( "viewing colony '{}'.", colony.name );
   co_await colony_plane.run_colview();

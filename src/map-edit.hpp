@@ -17,7 +17,7 @@
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 struct Planes;
 struct SS;
 struct TS;
@@ -36,7 +36,7 @@ struct MapEditPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 /****************************************************************

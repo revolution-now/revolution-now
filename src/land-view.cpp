@@ -91,7 +91,7 @@ struct PlayerInput {
 
 } // namespace
 
-struct LandViewPlane::Impl : public Plane {
+struct LandViewPlane::Impl : public IPlane {
   SS&                           ss_;
   TS&                           ts_;
   unique_ptr<IVisibility const> viz_;
@@ -163,7 +163,7 @@ struct LandViewPlane::Impl : public Plane {
       animator_( ss, ss.land_view.viewport, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
-    register_menu_items( ts.planes.menu() );
+    register_menu_items( ts.planes.get().menu );
     // Initialize general global data.
     mode_            = LandViewMode::none{};
     last_unit_input_ = nothing;
@@ -238,7 +238,7 @@ struct LandViewPlane::Impl : public Plane {
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            ss_, ts_.planes.window(), units );
+            ss_, ts_.planes.get().window, units );
       }
 
       vector<UnitId> prioritize;
@@ -390,7 +390,7 @@ struct LandViewPlane::Impl : public Plane {
   }
 
   /****************************************************************
-  ** Land View Plane
+  ** Land View IPlane
   *****************************************************************/
   void advance_viewport_state() {
     UNWRAP_CHECK(
@@ -477,8 +477,6 @@ struct LandViewPlane::Impl : public Plane {
     }
     return command;
   }
-
-  bool covers_screen() const override { return true; }
 
   void advance_state() override { advance_viewport_state(); }
 
@@ -854,18 +852,18 @@ struct LandViewPlane::Impl : public Plane {
       viewport().pan_by_screen_coords( d->prev - d->current );
   }
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
-    if( !drag_finished ) return Plane::e_accept_drag::swallow;
+  IPlane::e_accept_drag can_drag( input::e_mouse_button button,
+                                  Coord origin ) override {
+    if( !drag_finished ) return IPlane::e_accept_drag::swallow;
     if( button == input::e_mouse_button::r &&
         viewport().screen_coord_in_viewport( origin ) ) {
       viewport().stop_auto_panning();
       drag_stream.reset();
       drag_finished = false;
       drag_thread   = dragging( button, origin );
-      return Plane::e_accept_drag::yes;
+      return IPlane::e_accept_drag::yes;
     }
-    return Plane::e_accept_drag::no;
+    return IPlane::e_accept_drag::no;
   }
 
   void on_drag( input::mod_keys const& /*unused*/,
@@ -1179,7 +1177,7 @@ struct LandViewPlane::Impl : public Plane {
 /****************************************************************
 ** LandViewPlane
 *****************************************************************/
-Plane& LandViewPlane::impl() { return *impl_; }
+IPlane& LandViewPlane::impl() { return *impl_; }
 
 LandViewPlane::~LandViewPlane() = default;
 

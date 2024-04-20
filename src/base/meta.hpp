@@ -16,6 +16,7 @@
 #include <experimental/type_traits>
 #include <tuple>
 #include <type_traits>
+#include <variant>
 
 namespace mp {
 
@@ -238,9 +239,9 @@ struct callable_traits<R ( C::*const )( Arg... ) const>
 
 // Pointer to member variable.
 template<typename R, typename C>
-requires( !std::is_const_v<C> ) struct callable_traits<R C::*>
-  : public detail::member_var_callable_traits_impl<R( C* )> {
-};
+requires( !std::is_const_v<C> )
+struct callable_traits<R C::*>
+  : public detail::member_var_callable_traits_impl<R( C* )> {};
 
 // Object.
 template<typename O>
@@ -347,6 +348,17 @@ auto list_to_tuple_impl( list<Args...> const& )
 
 template<typename List>
 using to_tuple_t = decltype( list_to_tuple_impl(
+    std::declval<List const&>() ) );
+
+/****************************************************************
+** list to variant
+*****************************************************************/
+template<typename... Args>
+auto list_to_variant_impl( list<Args...> const& )
+    -> std::variant<Args...>;
+
+template<typename List>
+using to_variant_t = decltype( list_to_variant_impl(
     std::declval<List const&>() ) );
 
 /****************************************************************
@@ -491,8 +503,8 @@ constexpr bool has_key_type_member_v =
     has_key_type_member<T>::value;
 
 template<typename T>
-constexpr bool is_map_like = has_key_type_member_v<T>&& //
-               has_mapped_type_member_v<T>;
+constexpr bool is_map_like = has_key_type_member_v<T> && //
+                             has_mapped_type_member_v<T>;
 
 /****************************************************************
 ** has_reserve_method
@@ -559,11 +571,12 @@ constexpr auto for_index_seq( Func&& func ) {
             std::forward<Func>( func )( i );
           }
         };
-    auto for_index_seq_impl = [&]<size_t... Idxs>(
-        std::index_sequence<Idxs...> ) {
-      ( done_checker( std::integral_constant<size_t, Idxs>{} ),
-        ... );
-    };
+    auto for_index_seq_impl =
+        [&]<size_t... Idxs>( std::index_sequence<Idxs...> ) {
+          ( done_checker(
+                std::integral_constant<size_t, Idxs>{} ),
+            ... );
+        };
     for_index_seq_impl( std::make_index_sequence<Index>() );
   }
 }

@@ -52,7 +52,7 @@ constexpr uint8_t stats_alpha = 255;
 constexpr H kDividerHeight = 1;
 constexpr W kDividerWidth  = 1;
 
-struct ConsolePlane::Impl : public Plane {
+struct ConsolePlane::Impl : public IPlane {
   // State.
   Terminal&                    terminal_;
   bool                         show_{ false };
@@ -77,8 +77,6 @@ struct ConsolePlane::Impl : public Plane {
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
     compositor::set_console_size( console_height() );
   }
-
-  bool covers_screen() const override { return false; }
 
   void draw( rr::Renderer& renderer ) const override {
     if( show_percent_ < .0001 ) return;
@@ -292,7 +290,7 @@ struct ConsolePlane::Impl : public Plane {
 /****************************************************************
 ** ConsolePlane
 *****************************************************************/
-Plane& ConsolePlane::impl() { return *impl_; }
+IPlane& ConsolePlane::impl() { return *impl_; }
 
 ConsolePlane::~ConsolePlane() = default;
 

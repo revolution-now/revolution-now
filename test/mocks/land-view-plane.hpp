@@ -16,6 +16,7 @@
 // Revolution Now
 #include "src/anim-builder.rds.hpp"
 #include "src/land-view.hpp"
+#include "src/plane.hpp"
 
 // mock
 #include "src/mock/mock.hpp"
@@ -47,7 +48,11 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( void, start_new_turn, (), () );
   MOCK_METHOD( void, zoom_out_full, (), () );
   MOCK_METHOD( maybe<UnitId>, unit_blinking, (), () );
-  MOCK_METHOD( Plane&, impl, (), () );
+
+  IPlane& impl() override {
+    static NoOpPlane plane;
+    return plane;
+  }
 };
 
 } // namespace rn

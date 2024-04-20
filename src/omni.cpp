@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "frame.hpp"
+#include "input.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -38,15 +39,13 @@ namespace {} // namespace
 //   3) Always on top.
 //   4) Catching any global events (such as special key presses).
 //
-struct OmniPlane::Impl : public Plane {
+struct OmniPlane::Impl : public IPlane {
   Impl() = default;
-
-  bool covers_screen() const override { return false; }
 
   void render_framerate( rr::Renderer& renderer ) const {
     rr::Painter painter    = renderer.painter();
     Coord       info_start = Coord::from_gfx(
-              gfx::point{} + renderer.logical_screen_size() );
+        gfx::point{} + renderer.logical_screen_size() );
     // Render frame rate.
     string frame_rate =
         fmt::format( "fps: {:.1f}", avg_frame_rate() );
@@ -134,7 +133,7 @@ struct OmniPlane::Impl : public Plane {
 /****************************************************************
 ** OmniPlane
 *****************************************************************/
-Plane& OmniPlane::impl() { return *impl_; }
+IPlane& OmniPlane::impl() { return *impl_; }
 
 OmniPlane::~OmniPlane() = default;
 

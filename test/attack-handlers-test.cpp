@@ -72,8 +72,9 @@ struct World : testing::World {
     common_player_init( player( kDefendingNation ) );
     set_default_player( kAttackingNation );
     create_default_map();
-    planes().back().land_view = &mock_land_view_plane_;
-    Tribe& tribe              = add_tribe( kNativeTribe );
+    planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view_plane_ );
+    Tribe& tribe = add_tribe( kNativeTribe );
     tribe.relationship[kAttackingNation].encountered = true;
   }
 

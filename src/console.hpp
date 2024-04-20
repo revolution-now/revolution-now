@@ -24,7 +24,7 @@ struct state;
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 struct Terminal;
 
 /****************************************************************
@@ -43,7 +43,7 @@ struct ConsolePlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 } // namespace rn

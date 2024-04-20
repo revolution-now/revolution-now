@@ -36,6 +36,17 @@ static_assert( is_same_v<to_tuple_t<tl1>, tuple<int>> );
 static_assert( is_same_v<to_tuple_t<tl2>, tuple<int, char>> );
 
 /****************************************************************
+** list to variant
+*****************************************************************/
+using vl0 = list<>;
+using vl1 = list<int>;
+using vl2 = list<int, char>;
+static_assert( is_same_v<to_variant_t<tl0>, variant<>> );
+static_assert( is_same_v<to_variant_t<tl1>, variant<int>> );
+static_assert(
+    is_same_v<to_variant_t<tl2>, variant<int, char>> );
+
+/****************************************************************
 ** tuple to list
 *****************************************************************/
 using tu0 = std::tuple<>;

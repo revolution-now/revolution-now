@@ -487,7 +487,8 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
 
   SECTION( "interactive" ) {
     MockLandViewPlane mock_land_view;
-    W.planes().back().land_view = &mock_land_view;
+    W.planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view );
 
     mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
     W.euro_mind()
@@ -504,7 +505,8 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     // error messages better if the code incorrectly tries to an-
     // imate something.
     MockLandViewPlane mock_land_view;
-    W.planes().back().land_view = &mock_land_view;
+    W.planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view );
 
     W.euro_mind()
         .EXPECT__message_box( "some msg" )
@@ -524,7 +526,8 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
         W.add_unit_on_map( e_unit_type::caravel, loc );
 
     MockLandViewPlane mock_land_view;
-    W.planes().back().land_view = &mock_land_view;
+    W.planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view );
 
     mock_land_view.EXPECT__animate( _ ).returns( make_wait<>() );
 
@@ -619,7 +622,8 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     UnitId const ship3_id = ship3.id();
 
     MockLandViewPlane mock_land_view;
-    W.planes().back().land_view = &mock_land_view;
+    W.planes().get().set_bottom<ILandViewPlane>(
+        mock_land_view );
 
     mock_land_view.EXPECT__animate( _ );
 

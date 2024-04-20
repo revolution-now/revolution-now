@@ -105,15 +105,20 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
-    co_await ts.planes.land_view().ensure_visible( src );
-    co_await ts.planes.land_view().ensure_visible( dst );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( src );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( dst );
   }
 
   co_await surprise_raid_msg( ss, euro_mind, dst, tribe_type );
 
   if( viewable )
-    co_await ts.planes.land_view().animate(
-        anim_seq_for_brave_attack_euro( ss, combat ) );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( anim_seq_for_brave_attack_euro( ss, combat ) );
 
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
@@ -260,8 +265,12 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
-    co_await ts.planes.land_view().ensure_visible( src );
-    co_await ts.planes.land_view().ensure_visible( dst );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( src );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( dst );
   }
 
   co_await surprise_raid_msg( ss, euro_mind, colony.location,
@@ -273,8 +282,10 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
         colony.name );
 
   if( viewable )
-    co_await ts.planes.land_view().animate(
-        anim_seq_for_brave_attack_colony( ss, *viz, combat ) );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .animate( anim_seq_for_brave_attack_colony( ss, *viz,
+                                                    combat ) );
 
   if( combat.colony_destroyed )
     co_await raid_colony_burn( ss, ts, attacker, colony,

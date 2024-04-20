@@ -73,7 +73,7 @@ struct World : testing::World {
 TEST_CASE( "[raid] raid_unit" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   CombatBraveAttackEuro combat;
   Coord const           defender_coord{ .x = 1, .y = 0 };
@@ -331,7 +331,7 @@ TEST_CASE( "[raid] raid_unit" ) {
 TEST_CASE( "[raid] raid_colony" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view    = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   e_tribe const   tribe_type     = e_tribe::arawak;
   Coord const     attacker_coord = { .x = 0, .y = 0 };
   Coord const     defender_coord = { .x = 1, .y = 0 };
@@ -594,7 +594,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         .EXPECT__between_ints( 0, 100 - 1 )
         .returns( 42 ); // money stolen.
     W.rand().EXPECT__between_ints( 30, 200 ).returns(
-        123 );          // amount stolen.
+        123 ); // amount stolen.
     mock_euro_mind.EXPECT__message_box(
         "[Arawak] raiding party wiped out in [1]! Colonists "
         "celebrate!" );

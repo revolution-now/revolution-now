@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-time.hpp"
 #include "co-wait.hpp"
+#include "plane-stack.hpp"
 #include "views.hpp"
 #include "window.hpp"
 #include "woodcut.hpp"
@@ -29,12 +30,16 @@ namespace rn {
 /****************************************************************
 ** RealGui
 *****************************************************************/
+WindowPlane& RealGui::window_plane() const {
+  return planes_.get().window;
+}
+
 wait<> RealGui::message_box( string const& msg ) {
-  return window_plane_.message_box( msg );
+  return window_plane().message_box( msg );
 }
 
 void RealGui::transient_message_box( string const& msg ) {
-  window_plane_.transient_message_box( msg );
+  window_plane().transient_message_box( msg );
 }
 
 wait<chrono::microseconds> RealGui::wait_for(
@@ -90,7 +95,7 @@ wait<maybe<string>> RealGui::choice(
     CHECK_GE( *config.initial_selection, 0 );
     CHECK_LT( *config.initial_selection, int( options.size() ) );
   }
-  maybe<int> const selected = co_await window_plane_.select_box(
+  maybe<int> const selected = co_await window_plane().select_box(
       config.msg, options, required, config.initial_selection );
   if( !selected.has_value() ) {
     // User cancelled.
@@ -103,8 +108,9 @@ wait<maybe<string>> RealGui::choice(
 wait<maybe<string>> RealGui::string_input(
     StringInputConfig const& config,
     e_input_required         required ) {
-  maybe<string> const res = co_await window_plane_.str_input_box(
-      config.msg, config.initial_text, required );
+  maybe<string> const res =
+      co_await window_plane().str_input_box(
+          config.msg, config.initial_text, required );
   if( !res.has_value() ) {
     // User cancelled.
     CHECK( required == e_input_required::no );
@@ -115,7 +121,7 @@ wait<maybe<string>> RealGui::string_input(
 
 wait<maybe<int>> RealGui::int_input(
     IntInputConfig const& config, e_input_required required ) {
-  maybe<int> const res = co_await window_plane_.int_input_box( {
+  maybe<int> const res = co_await window_plane().int_input_box( {
       .msg      = config.msg,
       .min      = config.min,
       .max      = config.max,
@@ -135,7 +141,7 @@ wait<> RealGui::display_woodcut( e_woodcut cut ) {
 }
 
 int RealGui::total_windows_created() const {
-  return window_plane_.num_windows_created();
+  return window_plane().num_windows_created();
 }
 
 wait<unordered_map<int, bool>> RealGui::check_box_selector(
@@ -183,7 +189,7 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
   top_array->recompute_child_positions();
 
   // Create window.
-  WindowManager& wm = window_plane_.manager();
+  WindowManager& wm = window_plane().manager();
   Window         window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();

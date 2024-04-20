@@ -451,7 +451,8 @@ void update_map_visibility( TS&                   ts,
         // changing the nation.
         options.nation = nation;
       } );
-  ts.planes.land_view().set_visibility( nation );
+  ts.planes.get().get_bottom<ILandViewPlane>().set_visibility(
+      nation );
 }
 
 bool should_animate_move( IVisibility const& viz, Coord src,

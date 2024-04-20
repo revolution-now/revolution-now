@@ -19,6 +19,7 @@
 #include "omni.hpp"
 #include "plane-stack.hpp"
 #include "terminal.hpp"
+#include "window.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -42,12 +43,14 @@ wait<> revolution_now( Planes& planes ) {
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
 
-  auto         popper = planes.new_group();
-  PlaneGroup&  group  = planes.back();
+  auto         owner = planes.push();
+  PlaneGroup&  group = owner.group;
   OmniPlane    omni_plane;
   ConsolePlane console_plane( terminal );
-  group.omni    = &omni_plane;
-  group.console = &console_plane;
+  WindowPlane  window_plane;
+  group.omni    = omni_plane;
+  group.console = console_plane;
+  group.window  = window_plane;
 
   co_await run_main_menu( planes );
 }

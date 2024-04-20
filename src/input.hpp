@@ -135,7 +135,7 @@ struct win_event_t : public event_base_t {
 ** Input Events
 *****************************************************************/
 // clang-format off
-using event_t = base::variant<
+using event_base = base::variant<
   unknown_event_t, // non-relevant events
   quit_event_t,    // signal from OS to quit, e.g. x-out window
   key_event_t,
@@ -145,6 +145,14 @@ using event_t = base::variant<
   mouse_drag_event_t,
   win_event_t
 >;
+
+struct event_t : public event_base {
+  using event_base::event_base;
+
+  event_base const& as_base() const { return *this; }
+  event_base& as_base() { return *this; }
+};
+
 // clang-format on
 NOTHROW_MOVE( event_t );
 
@@ -206,7 +214,7 @@ bool is_q_down();
 namespace base {
 
 template<>
-struct variant_to_enum<::rn::input::event_t> {
+struct variant_to_enum<::rn::input::event_base> {
   using type = ::rn::input::e_input_event;
 };
 

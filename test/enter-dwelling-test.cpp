@@ -518,7 +518,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
 TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
@@ -773,7 +773,7 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Player&              player = W.default_player();
   SpeakWithChiefResult outcome;
   Unit*                p_unit = nullptr;

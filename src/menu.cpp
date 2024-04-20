@@ -19,6 +19,7 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "frame.hpp"
+#include "input.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
 #include "plane.hpp"
@@ -75,7 +76,7 @@ using config::menu::MenuItemConfig;
 /****************************************************************
 ** MenuPlane::Impl
 *****************************************************************/
-struct MenuPlane::Impl : public Plane {
+struct MenuPlane::Impl : public IPlane {
   // State
   refl::enum_map<e_menu, int>      menu_name_width_pixels_;
   refl::enum_map<e_menu_item, int> menu_item_name_width_pixels_;
@@ -85,7 +86,7 @@ struct MenuPlane::Impl : public Plane {
 
   MenuState menu_state_{ MenuState::menus_closed{} };
 
-  refl::enum_map<e_menu_item, stack<Plane*>> handlers_;
+  refl::enum_map<e_menu_item, stack<IPlane*>> handlers_;
 
   Impl() {
     // Populate the e_menu_item maps.
@@ -670,8 +671,6 @@ struct MenuPlane::Impl : public Plane {
         } );
   }
 
-  bool covers_screen() const override { return false; }
-
   void advance_state() override {
     if_get( menu_state_, MenuState::item_click, val ) {
       if( val.animation.ready() ) {
@@ -684,14 +683,14 @@ struct MenuPlane::Impl : public Plane {
     }
   }
 
-  Plane::e_accept_drag can_drag( input::e_mouse_button button,
-                                 Coord origin ) override {
+  IPlane::e_accept_drag can_drag( input::e_mouse_button button,
+                                  Coord origin ) override {
     if( !click_target( origin ).has_value() )
-      return Plane::e_accept_drag::no;
+      return IPlane::e_accept_drag::no;
     // Convert drags to mouse motion events.
     return ( button == input::e_mouse_button::l )
-               ? Plane::e_accept_drag::motion
-               : Plane::e_accept_drag::swallow;
+               ? IPlane::e_accept_drag::motion
+               : IPlane::e_accept_drag::swallow;
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -984,7 +983,7 @@ struct MenuPlane::Impl : public Plane {
         []( input::mouse_drag_event_t ) -> e_input_handled {
           // The framework does not send us mouse drag events
           // directly; instead it uses the api methods on the
-          // Plane class.
+          // IPlane class.
           SHOULD_NOT_BE_HERE;
         } );
   }
@@ -1065,11 +1064,11 @@ struct MenuPlane::Impl : public Plane {
     return handlers_[item].top()->will_handle_menu_click( item );
   }
 
-  void register_handler( e_menu_item item, Plane& plane ) {
+  void register_handler( e_menu_item item, IPlane& plane ) {
     handlers_[item].push( &plane );
   }
 
-  void unregister_handler( e_menu_item item, Plane& plane ) {
+  void unregister_handler( e_menu_item item, IPlane& plane ) {
     CHECK( !handlers_[item].empty() );
     CHECK( handlers_[item].top() == &plane );
     handlers_[item].pop();
@@ -1088,20 +1087,20 @@ void MenuPlane::Deregistrar::free_resource() {
 /****************************************************************
 ** MenuPlane
 *****************************************************************/
-Plane& MenuPlane::impl() { return *impl_; }
+IPlane& MenuPlane::impl() { return *impl_; }
 
 MenuPlane::~MenuPlane() = default;
 
 MenuPlane::MenuPlane() : impl_( new Impl() ) {}
 
 MenuPlane::Deregistrar MenuPlane::register_handler(
-    e_menu_item item, Plane& plane ) {
+    e_menu_item item, IPlane& plane ) {
   impl_->register_handler( item, plane );
   return Deregistrar{ *this, plane, item };
 }
 
 void MenuPlane::unregister_handler( e_menu_item item,
-                                    Plane&      plane ) {
+                                    IPlane&     plane ) {
   impl_->unregister_handler( item, plane );
 }
 

@@ -12,27 +12,35 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "input.hpp"
-
 // config
 #include "config/menu-items.rds.hpp"
 
+// gfx
+#include "gfx/coord.hpp"
+
+/****************************************************************
+** Forward Decls.
+*****************************************************************/
 namespace rr {
 struct Renderer;
 }
 
 namespace rn {
+enum class e_input_handled;
+namespace input {
+struct event_t;
+struct mod_keys;
+enum class e_mouse_button;
+}
+} // namespace rn
+
+namespace rn {
 
 /****************************************************************
-** Plane
+** IPlane
 *****************************************************************/
-struct Plane {
-  virtual ~Plane() = default;
-
-  // Will rendering this plane cover all pixels?  If so, then
-  // planes under it will not be rendered.
-  virtual bool covers_screen() const = 0;
+struct IPlane {
+  virtual ~IPlane() = default;
 
   virtual void draw( rr::Renderer& renderer ) const;
 
@@ -106,5 +114,7 @@ struct Plane {
   // least once this frame.
   virtual void handle_menu_click( e_menu_item item );
 };
+
+struct NoOpPlane : IPlane {};
 
 } // namespace rn

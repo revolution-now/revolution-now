@@ -27,7 +27,7 @@ namespace rn {
 
 struct AnimationSequence;
 struct Colony;
-struct Plane;
+struct IPlane;
 struct SS;
 struct TS;
 
@@ -82,7 +82,7 @@ struct ILandViewPlane {
   // this will return it.
   virtual maybe<UnitId> unit_blinking() = 0;
 
-  virtual Plane& impl() = 0;
+  virtual IPlane& impl() = 0;
 };
 
 /****************************************************************
@@ -119,7 +119,7 @@ struct LandViewPlane : ILandViewPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl() override;
+  IPlane& impl() override;
 };
 
 } // namespace rn

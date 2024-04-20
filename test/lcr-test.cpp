@@ -384,8 +384,8 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
 TEST_CASE( "[lcr] run_lcr, cibola" ) {
   World             W;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player& player              = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );
@@ -442,8 +442,8 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
 TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   World             W;
   MockLandViewPlane land_view_plane;
-  W.planes().back().land_view = &land_view_plane;
-  Player& player              = W.default_player();
+  W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
+  Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
   MapSquare& square      = W.square( Coord{} );

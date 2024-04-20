@@ -552,7 +552,7 @@ TEST_CASE( "[cheat] cheat change commodity quantity" ) {
 TEST_CASE( "[cheat] kill_natives" ) {
   World             W;
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
     co_await_test( kill_natives( W.ss(), W.ts() ) );
@@ -706,7 +706,7 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
   World W;
   W.create_default_map();
   MockLandViewPlane mock_land_view;
-  W.planes().back().land_view = &mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
     cheat_toggle_reveal_full_map( W.ss(), W.ts() );

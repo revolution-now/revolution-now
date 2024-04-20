@@ -18,7 +18,7 @@
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 struct Player;
 struct SS;
 struct TS;
@@ -40,7 +40,7 @@ struct HarborPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 /****************************************************************

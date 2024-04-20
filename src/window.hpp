@@ -37,7 +37,7 @@ struct Renderer;
 
 namespace rn {
 
-struct Plane;
+struct IPlane;
 struct SSConst;
 struct WindowManager;
 
@@ -159,7 +159,7 @@ struct WindowPlane {
   std::unique_ptr<Impl> impl_;
 
  public:
-  Plane& impl();
+  IPlane& impl();
 };
 
 enum class e_unit_selection {

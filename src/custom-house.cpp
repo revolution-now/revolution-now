@@ -84,7 +84,7 @@ wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
   top_array->recompute_child_positions();
 
   // Create window.
-  WindowManager& wm = ts.planes.window().manager();
+  WindowManager& wm = ts.planes.get().window.typed().manager();
   Window         window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();
