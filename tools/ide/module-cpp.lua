@@ -32,7 +32,7 @@ local function files( stem )
   return F
 end
 
--- For the wide monitors.
+-- For large monitors.
 local function layout_wide( stem )
   local F = files( stem )
   local plan = vsplit{
@@ -52,7 +52,7 @@ local function layout_wide( stem )
   return plan
 end
 
--- For the non-wide monitors.
+-- For small monitors.
 local function layout_narrow( stem )
   local F = files( stem )
   local plan = vsplit{
@@ -62,7 +62,7 @@ local function layout_narrow( stem )
   local new_module = not exists( F.hpp ) and not exists( F.cpp )
   local left = {}
   if exists( F.rds ) or new_module then insert( left, F.rds ) end
-  if exists( F.hpp ) then insert( left, F.hpp ) end
+  if exists( F.hpp ) or new_module then insert( left, F.hpp ) end
   if exists( F.rds_iface ) then insert( left, F.rds_iface ) end
   if exists( F.rds_impl ) then insert( left, F.rds_impl ) end
   plan[1] = hsplit( left )
