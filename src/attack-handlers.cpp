@@ -183,7 +183,7 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacker_( ss.units.unit_for( attacker_id ) ),
     attacking_player_( player_for_nation_or_die(
         ss.players, attacker_.nation() ) ),
-    attacker_mind_( ts.euro_minds[attacker_.nation()] ),
+    attacker_mind_( ts.euro_minds()[attacker_.nation()] ),
     attacker_human_( ss.players.humans[attacker_.nation()] ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
@@ -282,7 +282,7 @@ EuroAttackHandlerBase::EuroAttackHandlerBase(
     defender_( ss.units.unit_for( defender_id ) ),
     defending_player_( player_for_nation_or_die(
         ss.players, defender_.nation() ) ),
-    defender_mind_( ts.euro_minds[defender_.nation()] ) {
+    defender_mind_( ts.euro_minds()[defender_.nation()] ) {
   CHECK( defender_id_ != attacker_id_ );
 }
 
@@ -312,7 +312,7 @@ NativeAttackHandlerBase::NativeAttackHandlerBase(
     defender_id_( defender_id ),
     defender_( ss.units.unit_for( defender_id ) ),
     defender_tribe_( tribe_for_unit( ss, defender_ ) ),
-    defender_mind_( ts.native_minds[defender_tribe_.type] ) {}
+    defender_mind_( ts.native_minds()[defender_tribe_.type] ) {}
 
 /****************************************************************
 ** AttackColonyUndefendedHandler
@@ -721,7 +721,7 @@ AttackDwellingHandler::AttackDwellingHandler(
     dwelling_id_( dwelling_id ),
     dwelling_( ss.natives.dwelling_for( dwelling_id ) ),
     tribe_( ss.natives.tribe_for( dwelling_.id ) ),
-    defender_mind_( ts.native_minds[tribe_.type] ),
+    defender_mind_( ts.native_minds()[tribe_.type] ),
     relationship_(
         tribe_.relationship[attacking_player_.nation] ) {}
 
@@ -973,7 +973,7 @@ wait<> AttackDwellingHandler::perform() {
   // Kill dwelling, free braves owned by the dwelling, and any
   // owned land of the dwelling. This will also remove the road
   // under the dwelling.
-  destroy_dwelling( ss_, ts_.map_updater, dwelling_id_ );
+  destroy_dwelling( ss_, ts_.map_updater(), dwelling_id_ );
   perform_euro_unit_combat_effects( ss_, ts_, attacker_,
                                     combat.attacker.outcome );
 

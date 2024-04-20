@@ -176,7 +176,7 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
     Player& player = player_for_nation_or_die(
         ss.players, meet_tribe.nation );
     e_declare_war_on_natives const declare_war =
-        co_await ts.euro_minds[meet_tribe.nation]
+        co_await ts.euro_minds()[meet_tribe.nation]
             .meet_tribe_ui_sequence( meet_tribe );
     perform_meet_tribe( ss, player, meet_tribe, declare_war );
   }
@@ -254,7 +254,8 @@ void UnitOnMapMover::to_map_non_interactive(
   // square. Should be done before unit is moved.
   vector<Coord> const visible = unit_visible_squares(
       ss, unit.nation(), unit.type(), world_square );
-  ts.map_updater.make_squares_visible( unit.nation(), visible );
+  ts.map_updater().make_squares_visible( unit.nation(),
+                                         visible );
 
   // 2. Move the unit. This is the only place where this function
   //    should be called by normal game code.
@@ -294,7 +295,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 
   Unit& unit = ss.units.unit_for( id );
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
-  IEuroMind& euro_mind = ts.euro_minds[player.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[player.nation];
 
   if( !player.new_world_name.has_value() )
     co_await try_discover_new_world( ss, ts, player, euro_mind,

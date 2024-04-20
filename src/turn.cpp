@@ -719,7 +719,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
                          UnitId id ) {
-  IEuroMind& euro_mind = ts.euro_minds[player.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[player.nation];
   Unit&      unit      = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 

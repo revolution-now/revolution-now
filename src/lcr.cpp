@@ -503,7 +503,7 @@ wait<LostCityRumorUnitChange> run_lcr(
   LostCityRumorUnitChange result = co_await run_rumor_result(
       ss, ts, player, unit, world_square, rumor );
   // Remove lost city rumor.
-  ts.map_updater.modify_map_square(
+  ts.map_updater().modify_map_square(
       world_square, []( MapSquare& square ) {
         CHECK_EQ( square.lost_city_rumor, true );
         square.lost_city_rumor = false;

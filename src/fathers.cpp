@@ -170,8 +170,8 @@ void francisco_de_coronado( SS& ss, TS& ts,
       make_visible.push_back( tile );
     }
   }
-  ts.map_updater.make_squares_visible( player.nation,
-                                       make_visible );
+  ts.map_updater().make_squares_visible( player.nation,
+                                         make_visible );
 }
 
 // La Salle gives all current and future colonies a stockade when

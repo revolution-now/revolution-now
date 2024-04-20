@@ -58,7 +58,7 @@ namespace {
 LUA_FN( import_map_file, void, std::string const& path ) {
   TS& ts = st["TS"].as<TS&>();
 
-  ts.map_updater.modify_entire_map_no_redraw(
+  ts.map_updater().modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {
         valid_or<string> const success =
             load_classic_map_file( path, real_terrain );

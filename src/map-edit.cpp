@@ -493,7 +493,7 @@ wait<> MapEditPlane::Impl::click_on_tile( Coord    tile,
       break;
   }
 
-  ts_.map_updater.modify_map_square(
+  ts_.map_updater().modify_map_square(
       tile,
       [&]( MapSquare& to_edit ) { to_edit = new_square; } );
 }
@@ -647,9 +647,11 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   TerrainConnectivity connectivity;
   NativeMinds         native_minds;
   EuroMinds           euro_minds;
-  TS ts( planes, map_updater, st, gui, rand, combat,
-         colony_viewer, ss.root, connectivity, native_minds,
-         euro_minds );
+  TS   ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
+           connectivity );
+  auto _1 = ts.set_map_updater( map_updater );
+  auto _2 = ts.set_native_minds( native_minds );
+  auto _3 = ts.set_euro_minds( euro_minds );
   co_await run_map_editor( ss, ts );
 }
 
@@ -666,7 +668,7 @@ wait<> run_map_editor( SS& ss, TS& ts ) {
   new_group.set_bottom( map_edit_plane.impl() );
 
   auto map_updater_options_popper =
-      ts.map_updater.push_options_and_redraw(
+      ts.map_updater().push_options_and_redraw(
           []( MapUpdaterOptions& options ) {
             // Will cause the entire map to be revealed and
             // redrawn during the map editor session.

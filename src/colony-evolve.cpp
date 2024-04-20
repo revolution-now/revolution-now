@@ -524,7 +524,7 @@ void check_prime_resource_depletion(
     vector<ColonyNotification>& notifications ) {
   vector<DepletionEvent> const events =
       advance_depletion_state( ss, ts.rand, colony );
-  update_depleted_tiles( ts.map_updater, events );
+  update_depleted_tiles( ts.map_updater(), events );
   for( DepletionEvent const& event : events )
     notifications.push_back(
         ColonyNotification::prime_resource_depleted{

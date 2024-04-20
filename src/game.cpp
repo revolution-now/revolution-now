@@ -105,27 +105,24 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
 
   TerrainConnectivity connectivity;
 
-  {
-    // The real map updater needs to know the map size during
-    // construction, so use the non-rendering one, which is fine
-    // because we don't need to render yet anyway.
-    NonRenderingMapUpdater map_updater( ss );
-    EuroMinds              euro_minds;
-    NativeMinds            native_minds;
-    TS ts( planes, map_updater, st, gui, rand, combat,
-           colony_viewer, saved, connectivity, native_minds,
-           euro_minds );
-    if( !co_await loader( ss, ts ) )
-      // Didn't load a game for some reason. Could have failed or
-      // maybe there are no games to load.
-      co_return;
-  }
+  TS ts( planes, st, gui, rand, combat, colony_viewer, saved,
+         connectivity );
+
+  NonRenderingMapUpdater non_rendering_map_updater( ss );
+  auto _1 = ts.set_map_updater( non_rendering_map_updater );
+
+  if( !co_await loader( ss, ts ) )
+    // Didn't load a game for some reason. Could have failed or
+    // maybe there are no games to load.
+    co_return;
 
   NativeMinds native_minds = create_native_minds( ss, rand );
+  auto        _2           = ts.set_native_minds( native_minds );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
   EuroMinds euro_minds = create_euro_minds( ss, gui );
+  auto      _3         = ts.set_euro_minds( euro_minds );
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by
@@ -140,9 +137,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
           .render_fog_of_war =
               ss.settings.game_options.flags
                   [e_game_flag_option::show_fog_of_war] } );
-  TS ts( planes, map_updater, st, gui, rand, combat,
-         colony_viewer, saved, connectivity, native_minds,
-         euro_minds );
+
+  auto _4 = ts.set_map_updater( map_updater );
 
   ensure_human_player( ss.players );
 
@@ -169,10 +165,10 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   // the game crash mid-play. This will render the entire map be-
   // cause that is the default setting of the map updater.
   lg.info( "performing initial full map render." );
-  ts.map_updater.redraw();
+  ts.map_updater().redraw();
   // This is so that when the game is exited the terrain buffers
   // won't continue to render in the background.
-  SCOPE_EXIT { ts.map_updater.unrender(); };
+  SCOPE_EXIT { ts.map_updater().unrender(); };
 
   play( rand, e_game_module_tune_points::start_game );
   // All of the above needs to stay alive, so we must wait.

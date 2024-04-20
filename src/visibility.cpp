@@ -439,13 +439,13 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
 
   // Now affect the changes in batch.
   timer.checkpoint( "make_squares_fogged" );
-  ts.map_updater.make_squares_fogged(
+  ts.map_updater().make_squares_fogged(
       nation, vector<Coord>( fogged.begin(), fogged.end() ) );
 }
 
 void update_map_visibility( TS&                   ts,
                             maybe<e_nation> const nation ) {
-  ts.map_updater.mutate_options_and_redraw(
+  ts.map_updater().mutate_options_and_redraw(
       [&]( MapUpdaterOptions& options ) {
         // This should trigger a redraw but only if we're
         // changing the nation.

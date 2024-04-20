@@ -196,7 +196,7 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   for( e_nation nation : refl::enum_values<e_nation> )
     ss.players.humans[nation] = info_map[nation].on;
 
-  ts.euro_minds = create_euro_minds( ss, ts.gui );
+  ts.euro_minds() = create_euro_minds( ss, ts.gui );
 
   // We do this because we need to back out beyond the individual
   // nation's turn processor in order to handle this configura-
@@ -255,7 +255,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
       copy_real_square_to_frozen_square( ss, coord,
                                          *frozen_square );
   }
-  ts.map_updater.redraw();
+  ts.map_updater().redraw();
 }
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
@@ -410,7 +410,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
       anim_seq_for_cheat_kill_natives( ss, *viz, destroyed ) );
 
   for( e_tribe const tribe : destroyed )
-    destroy_tribe( ss, ts.map_updater, tribe );
+    destroy_tribe( ss, ts.map_updater(), tribe );
 
   // At this point we need to update the fogged squares that con-
   // tained destroyed dwellings on the player maps to remove the
@@ -434,10 +434,10 @@ wait<> kill_natives( SS& ss, TS& ts ) {
           res.push_back( tile );
       return res;
     }();
-    ts.map_updater.make_squares_visible( nation,
-                                         affected_fogged );
-    ts.map_updater.make_squares_fogged( nation,
-                                        affected_fogged );
+    ts.map_updater().make_squares_visible( nation,
+                                           affected_fogged );
+    ts.map_updater().make_squares_fogged( nation,
+                                          affected_fogged );
     // This is actually not necessary since the tile will get re-
     // drawn anyway (either when we destroy the dwelling or when
     // we flip the fog squares above, depending on visibility
@@ -449,8 +449,8 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     // So, just out of principle so that we're not relying on the
     // presence of a road under the dwelling to render a prime
     // resource, we will anyway force a redraw of the tile.
-    if( ts.map_updater.options().nation == nation )
-      ts.map_updater.force_redraw_tiles( affected_fogged );
+    if( ts.map_updater().options().nation == nation )
+      ts.map_updater().force_redraw_tiles( affected_fogged );
   }
 
   for( e_tribe const tribe : destroyed )

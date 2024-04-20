@@ -193,7 +193,7 @@ PlowResult perform_plow_work( SS& ss, TS& ts,
       if( yield.has_value() ) apply_lumber_yield( ss, *yield );
     }
     // We're finished plowing.
-    plow_square( ss.terrain, ts.map_updater, location );
+    plow_square( ss.terrain, ts.map_updater(), location );
     unit.clear_orders();
     consume_20_tools( ss, ts, unit );
     log( "finished" );

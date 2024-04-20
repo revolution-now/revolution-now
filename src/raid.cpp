@@ -88,13 +88,13 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
-  INativeMind&  native_mind = ts.native_minds[tribe_type];
+  INativeMind&  native_mind = ts.native_minds()[tribe_type];
   Unit&         defender    = ss.units.unit_for( defender_id );
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
   Coord const src       = ss.units.coord_for( attacker.id );
-  IEuroMind&  euro_mind = ts.euro_minds[defender.nation()];
+  IEuroMind&  euro_mind = ts.euro_minds()[defender.nation()];
 
   // Note that for attacks the "show indian moves" game flag is
   // not relevant, since there is really no natural way to show
@@ -142,7 +142,7 @@ static wait<> raid_colony_battle(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
-  IEuroMind& euro_mind = ts.euro_minds[colony.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
   Unit&      defender  = ss.units.unit_for( combat.defender.id );
   // Note: there are there still side effects if the brave
   // loses. We only suppress the side effect if the colony is
@@ -166,7 +166,7 @@ static wait<> raid_colony_battle(
 
   // !! NOTE: the attacker will no longer exist at this point.
 
-  INativeMind& native_mind = ts.native_minds[tribe.type];
+  INativeMind& native_mind = ts.native_minds()[tribe.type];
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
@@ -179,7 +179,7 @@ static wait<> raid_colony_battle(
 static wait<> raid_colony_burn(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
-  IEuroMind& euro_mind = ts.euro_minds[colony.nation];
+  IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
   Player&    player =
       player_for_nation_or_die( ss.players, colony.nation );
   Unit& defender = ss.units.unit_for( combat.defender.id );
@@ -224,7 +224,7 @@ static wait<> raid_colony_burn(
   co_await show_woodcut_if_needed( player, euro_mind,
                                    e_woodcut::colony_burning );
 
-  INativeMind& native_mind = ts.native_minds[tribe_type];
+  INativeMind& native_mind = ts.native_minds()[tribe_type];
   co_await show_combat_effects_msg(
       filter_combat_effects_msgs(
           mix_combat_effects_msgs( effects_msg ) ),
@@ -249,7 +249,7 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
-  IEuroMind&    euro_mind  = ts.euro_minds[colony.nation];
+  IEuroMind&    euro_mind  = ts.euro_minds()[colony.nation];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
   Tribe&        tribe      = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =

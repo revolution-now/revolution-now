@@ -124,7 +124,7 @@ wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe ) {
 
 wait<> destroy_tribe_interactive( SS& ss, TS& ts,
                                   e_tribe tribe ) {
-  destroy_tribe( ss, ts.map_updater, tribe );
+  destroy_tribe( ss, ts.map_updater(), tribe );
   co_await tribe_wiped_out_message( ts, tribe );
 }
 

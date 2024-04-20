@@ -1007,7 +1007,7 @@ struct LandViewPlane::Impl : public IPlane {
     // TODO: maybe we could find some way of animating the re-
     // moval of the fog instead of just having it disappear.
     auto const defogger =
-        ts_.map_updater.push_options_and_redraw(
+        ts_.map_updater().push_options_and_redraw(
             []( MapUpdaterOptions& options ) {
               options.render_fog_of_war = false;
             } );

@@ -115,7 +115,7 @@ void perform_road_work( SS& ss, TS& ts, Unit& unit ) {
   CHECK_LE( turns_worked, road_turns );
   if( turns_worked == road_turns ) {
     // We're finished building the road.
-    set_road( ts.map_updater, location );
+    set_road( ts.map_updater(), location );
     unit.clear_orders();
     consume_20_tools( ss, ts, unit );
     log( "finished" );

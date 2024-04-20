@@ -100,7 +100,7 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
 
   Player& player =
       player_for_nation_or_die( ss.players, nation );
-  IEuroMind& euro_mind = ts.euro_minds[nation];
+  IEuroMind& euro_mind = ts.euro_minds()[nation];
   co_await show_woodcut_if_needed( player, euro_mind,
                                    e_woodcut::indian_raid );
 
@@ -125,7 +125,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
                                 e_nation    nation ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
-  IEuroMind& euro_mind = ts.euro_minds[nation];
+  IEuroMind& euro_mind = ts.euro_minds()[nation];
 
   co_await ts.planes.get().get_bottom<ILandViewPlane>().animate(
       anim_seq_for_unit_talk( ss, native_unit.id, direction ) );
@@ -351,7 +351,7 @@ wait<> natives_turn( SS& ss, TS& ts, IRaid const& raid,
 
   for( e_tribe const tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
-    INativeMind& mind = ts.native_minds[tribe];
+    INativeMind& mind = ts.native_minds()[tribe];
     timer.checkpoint( "{}", tribe );
     co_await tribe_turn( ss, ts, *viz, mind, raid,
                          tribe_evolver );

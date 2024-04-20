@@ -196,14 +196,17 @@ namespace {
 // they currently store a reference to themselves in the lua
 // state (please FIXME).
 TS* make_ts( World& world ) {
-  return new TS( world.planes(), world.map_updater(),
-                 world.lua(), world.gui(), world.rand(),
-                 world.combat(), world.colony_viewer(),
-                 world.ss_saved().root, world.connectivity(),
-                 world.native_minds(), world.euro_minds() );
+  auto* ts = new TS(
+      world.planes(), world.lua(), world.gui(), world.rand(),
+      world.combat(), world.colony_viewer(),
+      world.ss_saved().root, world.connectivity() );
+  ts->set_map_updater_no_restore( world.map_updater() );
+  ts->set_native_minds_no_restore( world.native_minds() );
+  ts->set_euro_minds_no_restore( world.euro_minds() );
+  return ts;
 }
 
-}
+} // namespace
 
 TS& World::ts() {
   if( uninitialized_ts_ == nullptr )

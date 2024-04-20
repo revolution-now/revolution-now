@@ -57,7 +57,7 @@ struct BuildHandler : public CommandHandler {
     : ss_( ss ),
       ts_( ts ),
       player_( player ),
-      euro_mind_( ts.euro_minds[player.nation] ),
+      euro_mind_( ts.euro_minds()[player.nation] ),
       unit_id( unit_id_ ) {}
 
   wait<bool> confirm() override {

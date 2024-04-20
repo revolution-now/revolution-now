@@ -59,7 +59,7 @@ void on_option_enabled( TS& ts, e_game_flag_option option ) {
     case e_game_flag_option::tutorial_hints:
       break;
     case e_game_flag_option::show_fog_of_war:
-      ts.map_updater.mutate_options_and_redraw(
+      ts.map_updater().mutate_options_and_redraw(
           [&]( MapUpdaterOptions& options ) {
             options.render_fog_of_war = true;
           } );
@@ -88,7 +88,7 @@ void on_option_disabled( TS& ts, e_game_flag_option option ) {
     case e_game_flag_option::tutorial_hints:
       break;
     case e_game_flag_option::show_fog_of_war:
-      ts.map_updater.mutate_options_and_redraw(
+      ts.map_updater().mutate_options_and_redraw(
           [&]( MapUpdaterOptions& options ) {
             options.render_fog_of_war = false;
           } );

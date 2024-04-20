@@ -297,7 +297,7 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
   ownership_changer.change_to_colony( ts, col, job );
 
   // Add road onto colony square.
-  set_road( ts.map_updater, where );
+  set_road( ts.map_updater(), where );
 
   // The OG does not seem to require the player to pay for this
   // land to found a colony; it just allows the player to found
@@ -433,7 +433,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   // been done in advance, e.g. to offboard any soldiers needed
   // to defend the colony. In that case this just does nothing.
   offboard_units_on_ships( ss, ts, colony_location );
-  clear_abandoned_colony_road( ss, ts.map_updater,
+  clear_abandoned_colony_road( ss, ts.map_updater(),
                                colony.location );
 
   // Send any ships for repair, if a port is available (otherwise
@@ -490,7 +490,7 @@ wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
   // Must extract this info before destroying the colony.
   string const   colony_name   = colony.name;
   e_nation const colony_nation = colony.nation;
-  IEuroMind&     mind          = ts.euro_minds[colony.nation];
+  IEuroMind&     mind          = ts.euro_minds()[colony.nation];
   // In case it hasn't already been done...
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );

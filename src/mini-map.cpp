@@ -514,8 +514,8 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
 void MiniMapView::draw( rr::Renderer& renderer,
                         Coord         where ) const {
   unique_ptr<IVisibility const> const viz =
-      create_visibility_for( ss_,
-                             ts_.map_updater.options().nation );
+      create_visibility_for(
+          ss_, ts_.map_updater().options().nation );
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
       where.distance_from_origin().to_gfx().to_double() );

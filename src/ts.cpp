@@ -37,8 +37,10 @@ struct TS::LuaRefSetAndRestore {
     // FIXME: this really needs to be improved.
     st["TS"]                     = new_ts;
     st["ROOT_TS"]                = st.table.create();
-    st["ROOT_TS"]["map_updater"] = new_ts.map_updater;
-    st["ROOT_TS"]["rand"]        = new_ts.rand;
+    st["ROOT_TS"]["map_updater"] = []( TS& ts ) -> IMapUpdater& {
+      return ts.map_updater();
+    };
+    st["ROOT_TS"]["rand"] = new_ts.rand;
   }
 
   ~LuaRefSetAndRestore() {
@@ -60,13 +62,11 @@ struct TS::LuaRefSetAndRestore {
 /****************************************************************
 ** TS
 *****************************************************************/
-TS::TS( Planes& planes_, IMapUpdater& map_updater_,
-        lua::state& lua_, IGui& gui_, IRand& rand_,
-        ICombat& combat_, IColonyViewer& colony_viewer_,
-        RootState& saved, TerrainConnectivity& connectivity_,
-        NativeMinds& native_minds_, EuroMinds& euro_minds_ )
+TS::TS( Planes& planes_, lua::state& lua_, IGui& gui_,
+        IRand& rand_, ICombat& combat_,
+        IColonyViewer& colony_viewer_, RootState& saved,
+        TerrainConnectivity& connectivity_ )
   : planes( planes_ ),
-    map_updater( map_updater_ ),
     lua( lua_ ),
     gui( gui_ ),
     rand( rand_ ),
@@ -74,23 +74,14 @@ TS::TS( Planes& planes_, IMapUpdater& map_updater_,
     colony_viewer( colony_viewer_ ),
     saved( saved ),
     connectivity( connectivity_ ),
-    native_minds( native_minds_ ),
-    euro_minds( euro_minds_ ),
     pimpl_( new LuaRefSetAndRestore( lua, *this ) ) {}
 
 // These are here because we are using the pimpl idiom.
-TS::~TS()      = default;
-TS::TS( TS&& ) = default;
+TS::~TS() = default;
 
 void to_str( TS const& o, string& out, base::ADL_t ) {
   out += "TS@";
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
-}
-
-TS TS::with_gui( IGui& new_gui ) {
-  return TS( planes, map_updater, lua, new_gui, rand, combat,
-             colony_viewer, saved, connectivity, native_minds,
-             euro_minds );
 }
 
 /****************************************************************
