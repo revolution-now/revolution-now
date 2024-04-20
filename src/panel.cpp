@@ -49,6 +49,14 @@ namespace rn {
 
 namespace {} // namespace
 
+// FIXME FIXME FIXME
+//
+// The minimap is a huge performance drain since it is redrawn
+// each frame... it causes framerate in debug mode to drop to 30
+// fps just with it being enabled... this needs to be improved.
+//
+// FIXME FIXME FIXME
+
 /****************************************************************
 ** PanelPlane::Impl
 *****************************************************************/
