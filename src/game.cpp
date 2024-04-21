@@ -94,6 +94,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   lua::state& st = planes.get().console.typed().lua_state();
   st["ROOT"]     = ss.root;
   st["SS"]       = ss;
+  SCOPE_EXIT { st["ROOT"] = lua::nil; };
+  SCOPE_EXIT { st["SS"] = lua::nil; };
 
   auto        owner = planes.push();
   PlaneGroup& group = owner.group;
