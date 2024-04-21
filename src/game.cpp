@@ -18,8 +18,8 @@
 #include "conductor.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
-#include "gui.hpp"
 #include "ieuro-mind.hpp"
+#include "igui.hpp"
 #include "inative-mind.hpp"
 #include "interrupts.hpp"
 #include "irand.hpp"
@@ -84,7 +84,7 @@ using LoaderFunc =
     base::function_ref<wait<base::NoDiscard<bool>>( SS& ss,
                                                     TS& ts )>;
 
-wait<> run_game( Planes& planes, LoaderFunc loader ) {
+wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   // This is the entire (serializable) state representing a game.
   SS ss;
   // This will hold the state of the game the last time it was
@@ -100,7 +100,6 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   auto        owner = planes.push();
   PlaneGroup& group = owner.group;
 
-  RealGui      gui( planes );
   Rand         rand; // random seed.
   RealCombat   combat( ss, rand );
   ColonyViewer colony_viewer( ss );
@@ -193,7 +192,7 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
 }
 
-wait<> handle_mode( Planes& planes,
+wait<> handle_mode( Planes& planes, IGui& gui,
                     StartMode::new_random const& ) {
   auto factory = []( SS& ss,
                      TS& ts ) -> wait<base::NoDiscard<bool>> {
@@ -201,18 +200,20 @@ wait<> handle_mode( Planes& planes,
         ss.root, /*options=*/lua::nil ) );
     co_return true;
   };
-  co_await run_game( planes, factory );
+  co_await run_game( planes, gui, factory );
 }
 
-wait<> handle_mode( Planes&, StartMode::new_america const& ) {
+wait<> handle_mode( Planes&, IGui&,
+                    StartMode::new_america const& ) {
   NOT_IMPLEMENTED;
 }
 
-wait<> handle_mode( Planes&, StartMode::new_customize const& ) {
+wait<> handle_mode( Planes&, IGui&,
+                    StartMode::new_customize const& ) {
   NOT_IMPLEMENTED;
 }
 
-wait<> handle_mode( Planes&                planes,
+wait<> handle_mode( Planes& planes, IGui& gui,
                     StartMode::load const& load ) {
   auto factory = [&]( SS& ss,
                       TS& ts ) -> wait<base::NoDiscard<bool>> {
@@ -231,7 +232,7 @@ wait<> handle_mode( Planes&                planes,
     co_return co_await load_from_slot_interactive(
         ss, ts, RclGameStorageLoad( ss ), *slot );
   };
-  co_await run_game( planes, factory );
+  co_await run_game( planes, gui, factory );
 }
 
 } // namespace
@@ -239,13 +240,15 @@ wait<> handle_mode( Planes&                planes,
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> run_game_with_mode( Planes&          planes,
+wait<> run_game_with_mode( Planes& planes, IGui& gui,
                            StartMode const& mode ) {
   StartMode next_mode = mode;
   while( true ) {
     try {
       co_await base::visit(
-          [&]( auto& m ) { return handle_mode( planes, m ); },
+          [&]( auto& m ) {
+            return handle_mode( planes, gui, m );
+          },
           next_mode.as_base() );
       break;
     } catch( game_load_interrupt const& load ) {

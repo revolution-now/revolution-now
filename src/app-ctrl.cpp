@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "console.hpp"
+#include "gui.hpp"
 #include "logger.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
@@ -52,7 +53,9 @@ wait<> revolution_now( Planes& planes ) {
   group.console = console_plane;
   group.window  = window_plane;
 
-  co_await run_main_menu( planes );
+  RealGui gui( planes );
+
+  co_await run_main_menu( planes, gui );
 }
 
 } // namespace rn

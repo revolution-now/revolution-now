@@ -16,10 +16,11 @@
 namespace rn {
 
 struct Planes;
+struct IGui;
 
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_main_menu( Planes& planes );
+wait<> run_main_menu( Planes& planes, IGui& gui );
 
 } // namespace rn

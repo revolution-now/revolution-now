@@ -16,7 +16,7 @@
 // Revolution Now
 #include "compositor.hpp"
 #include "game.hpp"
-#include "gui.hpp" // FIXME
+#include "igui.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "tiles.hpp"
@@ -39,12 +39,12 @@ namespace {
 struct MainMenuPlane : public IPlane {
   // State
   Planes&          planes_;
-  RealGui          gui_; // FIXME
+  IGui&            gui_;
   e_main_menu_item curr_item_ = {};
 
  public:
-  MainMenuPlane( Planes& planes )
-    : planes_( planes ), gui_( planes ) {}
+  MainMenuPlane( Planes& planes, IGui& gui )
+    : planes_( planes ), gui_( gui ) {}
 
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_CHECK(
@@ -60,19 +60,19 @@ struct MainMenuPlane : public IPlane {
   wait<> item_selected( e_main_menu_item item ) {
     switch( item ) {
       case e_main_menu_item::new_random:
-        co_await run_game_with_mode( planes_,
+        co_await run_game_with_mode( planes_, gui_,
                                      StartMode::new_random{} );
         break;
       case e_main_menu_item::new_america:
-        co_await run_game_with_mode( planes_,
+        co_await run_game_with_mode( planes_, gui_,
                                      StartMode::new_america{} );
         break;
       case e_main_menu_item::new_customize:
         co_await run_game_with_mode(
-            planes_, StartMode::new_customize{} );
+            planes_, gui_, StartMode::new_customize{} );
         break;
       case e_main_menu_item::load:
-        co_await run_game_with_mode( planes_,
+        co_await run_game_with_mode( planes_, gui_,
                                      StartMode::load{} );
         break;
       case e_main_menu_item::hall_of_fame:
@@ -117,11 +117,11 @@ struct MainMenuPlane : public IPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_main_menu( Planes& planes ) {
+wait<> run_main_menu( Planes& planes, IGui& gui ) {
   auto        owner = planes.push();
   PlaneGroup& group = owner.group;
 
-  MainMenuPlane main_menu_plane( planes );
+  MainMenuPlane main_menu_plane( planes, gui );
   group.bottom = &main_menu_plane;
 
   co_await main_menu_plane.run();
