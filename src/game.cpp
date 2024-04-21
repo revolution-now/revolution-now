@@ -206,12 +206,10 @@ wait<> handle_mode( Planes& planes,
 
 wait<> handle_mode( Planes&, StartMode::new_america const& ) {
   NOT_IMPLEMENTED;
-  co_return;
 }
 
 wait<> handle_mode( Planes&, StartMode::new_customize const& ) {
   NOT_IMPLEMENTED;
-  co_return;
 }
 
 wait<> handle_mode( Planes&                planes,
