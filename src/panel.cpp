@@ -15,7 +15,7 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
-#include "gui.hpp" // FIXME
+#include "igui.hpp"
 #include "menu.hpp"
 #include "mini-map.hpp"
 #include "plane-stack.hpp"

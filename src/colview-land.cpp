@@ -13,7 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
-#include "gui.hpp"
+#include "igui.hpp"
 #include "map-square.hpp"
 #include "native-owned.hpp"
 #include "production.rds.hpp"

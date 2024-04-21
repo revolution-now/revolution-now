@@ -23,7 +23,7 @@
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "equip.hpp"
-#include "gui.hpp"
+#include "igui.hpp"
 #include "interrupts.hpp"
 #include "land-production.hpp"
 #include "logger.hpp"
