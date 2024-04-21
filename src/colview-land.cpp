@@ -121,7 +121,7 @@ maybe<e_direction> ColonyLandView::direction_under_cursor(
     }
     case e_render_mode::_6x6:
       return Coord{ .x = 1, .y = 1 }.direction_to(
-          coord / ( g_tile_delta* Delta{ .w = 2, .h = 2 } ) );
+          coord / ( g_tile_delta * Delta{ .w = 2, .h = 2 } ) );
   }
 }
 
@@ -136,8 +136,8 @@ Rect ColonyLandView::rect_for_unit( e_direction d ) const {
     }
     case e_render_mode::_6x6:
       return Rect::from(
-          Coord{ .x = 1, .y = 1 }.moved( d ) *
-                  g_tile_delta* Delta{ .w = 2, .h = 2 } +
+          Coord{ .x = 1, .y = 1 }.moved( d ) * g_tile_delta *
+                  Delta{ .w = 2, .h = 2 } +
               ( g_tile_delta / Delta{ .w = 2, .h = 2 } ),
           g_tile_delta );
   }
@@ -448,8 +448,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     if( dragging_.has_value() && dragging_->d == direction )
       continue;
     Coord const square_coord =
-        coord + ( center.moved( direction ) *
-                  g_tile_delta* Delta{ .w = 2, .h = 2 } )
+        coord + ( center.moved( direction ) * g_tile_delta *
+                  Delta{ .w = 2, .h = 2 } )
                     .distance_from_origin();
     Coord const unit_coord =
         square_coord +
@@ -482,7 +482,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
 
   // Center square.
   Coord const square_coord =
-      coord + ( center * g_tile_delta* Delta{ .w = 2, .h = 2 } )
+      coord + ( center * g_tile_delta * Delta{ .w = 2, .h = 2 } )
                   .distance_from_origin();
   ColonyProduction const& production = colview_production();
 

@@ -360,7 +360,7 @@ class MarketCommodities
 
   Delta delta() const override {
     return Delta{
-        block_width_* SX{ refl::enum_count<e_commodity> },
+        block_width_ * SX{ refl::enum_count<e_commodity> },
         1 * 32 };
   }
 
