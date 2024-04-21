@@ -11,9 +11,6 @@
 # Revolution Now
 include "maybe.hpp"
 
-# Rds
-include "ui-enums.rds.hpp"
-
 # C++ standard library
 include "<string>"
 include "<vector>"
@@ -26,11 +23,22 @@ struct.ChoiceConfigOption {
   disabled 'bool',
 }
 
+struct.WindowCancelActions {
+  # By default we allow the player to state that they don't wish
+  # to provide any input by either hitting escape or by clicking
+  # outside the window. But there are cases where we want to
+  # limit those for a better user experience.
+  disallow_clicking_outside 'bool',
+  disallow_escape_key 'bool',
+}
+
 # Used to configure a message box that presents the user with
 # some choices.
 struct.ChoiceConfig {
   # This text will be reflowed and may end up on multiple lines.
   msg 'std::string',
+
+  cancel_actions 'WindowCancelActions',
 
   # Needs to be a vector for well-defined and customizable order-
   # ing.
@@ -49,6 +57,7 @@ struct.ChoiceConfig {
 
 struct.YesNoConfig {
   msg 'std::string',
+  cancel_actions 'WindowCancelActions',
   yes_label 'std::string',
   no_label 'std::string',
   no_comes_first 'bool',
@@ -56,11 +65,13 @@ struct.YesNoConfig {
 
 struct.StringInputConfig {
   msg 'std::string',
+  cancel_actions 'WindowCancelActions',
   initial_text 'std::string',
 }
 
 struct.IntInputConfig {
   msg 'std::string',
+  cancel_actions 'WindowCancelActions',
   initial_value 'int',
   min 'maybe<int>',
   max 'maybe<int>',
@@ -69,6 +80,8 @@ struct.IntInputConfig {
 struct.EnumChoiceConfig {
   # This text will be reflowed and may end up on multiple lines.
   msg 'std::string',
+
+  cancel_actions 'WindowCancelActions',
 
   # Should they be sorted by display name before being displayed.
   sort 'bool',

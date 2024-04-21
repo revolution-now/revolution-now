@@ -16,6 +16,7 @@
 #include "enum.hpp"
 #include "error.hpp"
 #include "expect.hpp"
+#include "igui.rds.hpp"
 #include "ui-enums.hpp"
 #include "unit-id.hpp"
 #include "wait.hpp"
@@ -86,20 +87,29 @@ struct Window {
   std::unique_ptr<ui::View> const& view() const { return view_; }
   std::unique_ptr<ui::View>&       view() { return view_; }
 
+  WindowCancelActions const& cancel_actions() const {
+    return cancel_actions_;
+  }
+
+  WindowCancelActions& cancel_actions() {
+    return cancel_actions_;
+  }
+
  private:
   WindowManager&            window_manager_;
   std::unique_ptr<ui::View> view_;
+  WindowCancelActions       cancel_actions_ = {};
 };
 
 /****************************************************************
 ** Helper Configs.
 *****************************************************************/
 struct IntInputBoxOptions {
-  std::string_view msg      = "";
-  maybe<int>       min      = nothing;
-  maybe<int>       max      = nothing;
-  maybe<int>       initial  = nothing;
-  e_input_required required = e_input_required::no;
+  std::string_view    msg            = "";
+  maybe<int>          min            = nothing;
+  maybe<int>          max            = nothing;
+  WindowCancelActions cancel_actions = {};
+  maybe<int>          initial        = nothing;
 };
 
 struct SelectBoxOption {
@@ -143,11 +153,13 @@ struct WindowPlane {
   wait<maybe<int>> select_box(
       std::string_view                    msg,
       std::vector<SelectBoxOption> const& options,
-      e_input_required required, maybe<int> initial_selection );
+      WindowCancelActions const&          cancel_actions,
+      maybe<int>                          initial_selection );
 
   wait<maybe<std::string>> str_input_box(
-      std::string_view msg, std::string_view initial_text,
-      e_input_required required );
+      std::string_view           msg,
+      WindowCancelActions const& cancel_actions,
+      std::string_view           initial_text );
 
   wait<maybe<int>> int_input_box(
       IntInputBoxOptions const& options );

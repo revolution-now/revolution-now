@@ -413,6 +413,10 @@ e_input_handled WindowManager::input(
   maybe<input::mouse_event_base_t const&> mouse_event =
       input::is_mouse_event( event );
   if( !mouse_event ) {
+    if( focused().cancel_actions().disallow_escape_key &&
+        event.get_if<input::key_event_t>().member(
+            &input::key_event_t::keycode ) == ::SDLK_ESCAPE )
+      return e_input_handled::yes;
     // It's a non-mouse event, so just send it to the top-most
     // window and declare it to be handled.
     (void)focused().view()->input( event );
@@ -436,12 +440,14 @@ e_input_handled WindowManager::input(
     // window as an escape key, and the window can decide what to
     // do with it; many windows will cancel/close the window in
     // response.
-    input::key_event_t escape_event;
-    escape_event.change    = input::e_key_change::down;
-    escape_event.keycode   = ::SDLK_ESCAPE;
-    escape_event.scancode  = ::SDL_SCANCODE_ESCAPE;
-    escape_event.direction = nothing;
-    (void)focused().view()->input( escape_event );
+    if( !focused().cancel_actions().disallow_clicking_outside ) {
+      input::key_event_t escape_event;
+      escape_event.change    = input::e_key_change::down;
+      escape_event.keycode   = ::SDLK_ESCAPE;
+      escape_event.scancode  = ::SDL_SCANCODE_ESCAPE;
+      escape_event.direction = nothing;
+      (void)focused().view()->input( escape_event );
+    }
 
     return e_input_handled::yes;
   }
@@ -566,8 +572,9 @@ ui::ValidatorFunc make_int_validator( maybe<int> min,
 namespace {
 [[nodiscard]] unique_ptr<Window> async_window_builder(
     WindowManager& window_manager, unique_ptr<ui::View> view,
-    bool auto_pad ) {
-  auto win = make_unique<Window>( window_manager );
+    WindowCancelActions const& cancel_actions, bool auto_pad ) {
+  auto win              = make_unique<Window>( window_manager );
+  win->cancel_actions() = cancel_actions;
   if( auto_pad ) autopad( *view, /*use_fancy=*/false );
   win->set_view( std::move( view ) );
   window_manager.center_window( *win );
@@ -622,6 +629,7 @@ template<typename ResultT>
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
   return async_window_builder( window_manager, std::move( view ),
+                               WindowCancelActions{},
                                /*auto_pad=*/true );
 }
 
@@ -663,6 +671,7 @@ template<typename ResultT>
       std::move( view_vec ),
       ui::VerticalArrayView::align::center );
   return async_window_builder( window_manager, std::move( view ),
+                               WindowCancelActions{},
                                /*auto_pad=*/true );
 }
 
@@ -670,8 +679,8 @@ namespace {
 
 [[nodiscard]] unique_ptr<Window> text_input_box(
     WindowManager& window_manager, string_view msg,
-    string_view initial_text, e_input_required required,
-    ui::ValidatorFunc               validator,
+    string_view initial_text, ui::ValidatorFunc validator,
+    WindowCancelActions const&      cancel_actions,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
       /*normal=*/config_ui.dialog_text.normal,
@@ -697,8 +706,7 @@ namespace {
         auto const& key_event = event.as<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           return true; // handled.
-        if( required == e_input_required::no &&
-            key_event.keycode == ::SDLK_ESCAPE ) {
+        if( key_event.keycode == ::SDLK_ESCAPE ) {
           lg.info( "cancelled." );
           on_result( nothing );
           return true; // handled.
@@ -725,6 +733,7 @@ namespace {
       std::move( va_view ), std::move( on_input ) );
 
   return async_window_builder( window_manager, std::move( view ),
+                               cancel_actions,
                                /*auto_pad=*/true );
 }
 
@@ -802,6 +811,7 @@ wait<> WindowPlane::message_box( string_view msg ) {
   unique_ptr<Window> win = async_window_builder(
       impl_->wm,
       ui::PlainMessageBoxView::create( string( msg ), p ),
+      WindowCancelActions{},
       /*auto_pad=*/true );
   // Need to keep p alive since it is held by refererence by the
   // message box view.
@@ -814,7 +824,8 @@ void WindowPlane::transient_message_box( string_view msg ) {
 
 wait<maybe<int>> WindowPlane::select_box(
     string_view msg, vector<SelectBoxOption> const& options,
-    e_input_required required, maybe<int> initial_selection ) {
+    WindowCancelActions const& cancel_actions,
+    maybe<int>                 initial_selection ) {
   lg.info( "question: \"{}\"", msg );
   vector<ui::OptionSelectItemView::Option> view_options;
   view_options.reserve( options.size() );
@@ -834,8 +845,7 @@ wait<maybe<int>> WindowPlane::select_box(
         auto const& key_event = event.as<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           return true;
-        if( required == e_input_required::no &&
-            key_event.keycode == ::SDLK_ESCAPE ) {
+        if( key_event.keycode == ::SDLK_ESCAPE ) {
           lg.info( "cancelled." );
           p.set_value( nothing );
           return true; // handled.
@@ -896,9 +906,9 @@ wait<maybe<int>> WindowPlane::select_box(
 
   unique_ptr<ui::View> view   = std::move( va_view );
   ui::CompositeView*   p_view = view->cast<ui::CompositeView>();
-  unique_ptr<Window>   win =
-      async_window_builder( impl_->wm, std::move( view ),
-                            /*auto_pad=*/true );
+  unique_ptr<Window>   win    = async_window_builder(
+      impl_->wm, std::move( view ), cancel_actions,
+      /*auto_pad=*/true );
 
   p_selector_view->grow_to( p_view->delta().w );
   p_view->children_updated();
@@ -909,11 +919,12 @@ wait<maybe<int>> WindowPlane::select_box(
 }
 
 wait<maybe<string>> WindowPlane::str_input_box(
-    string_view msg, string_view initial_text,
-    e_input_required required ) {
+    string_view msg, WindowCancelActions const& cancel_actions,
+    string_view initial_text ) {
   wait_promise<maybe<string>> p;
   unique_ptr<Window>          win = text_input_box(
-      impl_->wm, msg, initial_text, required, L( _.size() > 0 ),
+      impl_->wm, msg, initial_text, L( _.size() > 0 ),
+      cancel_actions,
       [&p]( maybe<string> result ) { p.set_value( result ); } );
   co_return co_await p.wait();
 }
@@ -927,9 +938,9 @@ wait<maybe<int>> WindowPlane::int_input_box(
           ? fmt::format( "{}", *options.initial )
           : "";
   unique_ptr<Window> win = text_input_box(
-      impl_->wm, options.msg, initial_text, options.required,
+      impl_->wm, options.msg, initial_text,
       make_int_validator( options.min, options.max ),
-      [&p]( maybe<string> result ) {
+      options.cancel_actions, [&p]( maybe<string> result ) {
         p.set_value( result.bind( L( base::stoi( _ ) ) ) );
       } );
   co_return co_await p.wait();

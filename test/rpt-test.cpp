@@ -107,7 +107,7 @@ TEST_CASE( "[rpt] click_purchase" ) {
       Field( &C::initial_selection, 0 ) );
 
   W.gui()
-      .EXPECT__choice( config_matcher, e_input_required::no )
+      .EXPECT__choice( config_matcher )
       .returns( make_wait<maybe<string>>( "artillery" ) );
 
   UnitsState const& units = W.ss().units;
@@ -199,7 +199,7 @@ TEST_CASE( "[rpt] click_train" ) {
       Field( &C::initial_selection, 0 ) );
 
   W.gui()
-      .EXPECT__choice( config_matcher, e_input_required::no )
+      .EXPECT__choice( config_matcher )
       .returns( make_wait<maybe<string>>( "expert_fisherman" ) );
 
   UnitsState const& units = W.ss().units;
@@ -271,7 +271,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
       Field( &C::initial_selection, 0 ) );
 
   W.gui()
-      .EXPECT__choice( config_matcher, e_input_required::no )
+      .EXPECT__choice( config_matcher )
       .returns( make_wait<maybe<string>>( "1" ) );
 
   UnitsState const& units = W.ss().units;

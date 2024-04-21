@@ -35,7 +35,6 @@ namespace {
 
 using namespace std;
 
-using ::mock::matchers::_;
 using ::mock::matchers::Eq;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
@@ -138,8 +137,7 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
       W.gui()
           .EXPECT__choice(
               Field( &ChoiceConfig::msg,
-                     "xxx"s + to_string( colony.id ) ),
-              _ )
+                     "xxx"s + to_string( colony.id ) ) )
           .returns<maybe<string>>( nothing );
     }
 

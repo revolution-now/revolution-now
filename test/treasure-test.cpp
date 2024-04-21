@@ -252,9 +252,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns<maybe<string>>( "yes" );
+  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
+      "yes" );
   REQUIRE( f() == expected );
 
   // No galleons, with hernan cortes.
@@ -280,15 +279,12 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns<maybe<string>>( "yes" );
+  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
+      "yes" );
   REQUIRE( f() == expected );
 
   // Chooses no.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "no" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
   REQUIRE( f() == nothing );
 
   W.settings().difficulty = e_difficulty::viceroy;
@@ -315,9 +311,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
                               .display_name = "Accept." },
           ChoiceConfigOption{ .key          = "no",
                               .display_name = "Decline." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns<maybe<string>>( "yes" );
+  W.gui().EXPECT__choice( config ).returns<maybe<string>>(
+      "yes" );
   REQUIRE( f() == expected );
 }
 #endif

@@ -254,8 +254,7 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
                    StrContains( fmt::format(
                        "Who shall we choose as immigrant number "
                        "[{}] out of 8",
-                       i + 1 ) ) ),
-            e_input_required::no )
+                       i + 1 ) ) ) )
         .returns( make_wait<maybe<string>>( "1" ) );
     W.gui()
         .EXPECT__wait_for( chrono::milliseconds( 100 ) )
@@ -461,9 +460,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
       .burial_grounds = nothing };
 
   // Mock function calls.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "yes" ) );
+  W.gui().EXPECT__choice( _ ).returns(
+      make_wait<maybe<string>>( "yes" ) );
   W.gui()
       .EXPECT__message_box(
           StrContains( "recovered a treasure worth" ) )
@@ -520,9 +518,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
       .burial_grounds = nothing };
 
   // Mock function calls.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "yes" ) );
+  W.gui().EXPECT__choice( _ ).returns(
+      make_wait<maybe<string>>( "yes" ) );
   W.gui()
       .EXPECT__message_box( StrContains( "cold and empty" ) )
       .returns( make_wait() );
@@ -562,9 +559,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
       .burial_grounds = nothing };
 
   // Mock function calls.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "yes" ) );
+  W.gui().EXPECT__choice( _ ).returns(
+      make_wait<maybe<string>>( "yes" ) );
 
   W.gui()
       .EXPECT__message_box(
@@ -609,9 +605,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
       .burial_grounds = nothing };
 
   // Mock function calls.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "no" ) );
+  W.gui().EXPECT__choice( _ ).returns(
+      make_wait<maybe<string>>( "no" ) );
 
   // Go
   wait<LostCityRumorUnitChange> lcr_res = run_lcr(
@@ -652,9 +647,8 @@ TEST_CASE(
       .burial_grounds = e_tribe::aztec };
 
   // Mock function calls.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "yes" ) );
+  W.gui().EXPECT__choice( _ ).returns(
+      make_wait<maybe<string>>( "yes" ) );
 
   W.gui()
       .EXPECT__message_box(

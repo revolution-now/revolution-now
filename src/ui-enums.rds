@@ -8,15 +8,6 @@
 # Description: RDS definitions for the ui-enums module.
 #
 # ===============================================================
-namespace "rn"
-
-enum.e_input_required {
-  no,
-  yes,
-
-  _features { nodiscard }
-}
-
 namespace "rn.ui"
 
 enum.e_ok_cancel {

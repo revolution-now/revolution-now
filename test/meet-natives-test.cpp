@@ -471,7 +471,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         .sort    = false,
         .initial_selection = nothing };
     w.gui()
-        .EXPECT__choice( choice_config, e_input_required::yes )
+        .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
     w.gui().EXPECT__message_box(
         "Let us smoke a peace pipe to celebrate our purpetual "
@@ -503,7 +503,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         .sort    = false,
         .initial_selection = nothing };
     w.gui()
-        .EXPECT__choice( choice_config, e_input_required::yes )
+        .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
     w.gui().EXPECT__message_box(
         "Let us smoke a peace pipe to celebrate our purpetual "
@@ -537,7 +537,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         .sort    = false,
         .initial_selection = nothing };
     w.gui()
-        .EXPECT__choice( choice_config, e_input_required::yes )
+        .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
     w.gui().EXPECT__message_box(
         "Let us smoke a peace pipe to celebrate our purpetual "
@@ -567,7 +567,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         .sort    = false,
         .initial_selection = nothing };
     w.gui()
-        .EXPECT__choice( choice_config, e_input_required::yes )
+        .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "no" );
     w.gui().EXPECT__message_box(
         "In that case the mighty [Tupi] will drive you into "

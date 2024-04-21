@@ -105,8 +105,7 @@ TEST_CASE( "[command-plow] native-owned land" ) {
         Field( &ChoiceConfig::msg,
                StrContains( "These grounds help" ) );
     W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
+        .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
@@ -122,8 +121,7 @@ TEST_CASE( "[command-plow] native-owned land" ) {
         Field( &ChoiceConfig::msg,
                StrContains( "These grounds help" ) );
     W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
+        .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );
@@ -144,8 +142,7 @@ TEST_CASE( "[command-plow] native-owned land" ) {
     auto config_matcher = Field(
         &ChoiceConfig::msg, StrContains( "These [forests]" ) );
     W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
+        .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );

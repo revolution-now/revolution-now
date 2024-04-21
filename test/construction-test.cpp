@@ -83,9 +83,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "none" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -127,10 +126,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "tobacconists_shop" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -179,10 +176,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
         .sort              = false,
         .initial_selection = 3 };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "tobacconists_shop" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -252,10 +247,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "fur_trading_post" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "fur_trading_post" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -333,9 +326,8 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "none" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -368,9 +360,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "none" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -414,10 +405,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "tobacconists_shop" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -466,10 +455,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = 3 };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "tobacconists_shop" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -536,10 +523,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "fur_trading_post" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "fur_trading_post" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -619,9 +604,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "none" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "none" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -680,10 +664,8 @@ TEST_CASE(
         .sort              = false,
         .initial_selection = nothing };
 
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns(
-            make_wait<maybe<string>>( "tobacconists_shop" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -1008,9 +990,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns( make_wait<maybe<string>>( nothing ) );
+  W.gui().EXPECT__choice( config ).returns(
+      make_wait<maybe<string>>( nothing ) );
   {
     wait<> w = f();
     REQUIRE( !w.exception() );
@@ -1039,9 +1020,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns( make_wait<maybe<string>>( "no" ) );
+  W.gui().EXPECT__choice( config ).returns(
+      make_wait<maybe<string>>( "no" ) );
   {
     wait<> w = f();
     REQUIRE( !w.exception() );
@@ -1072,9 +1052,8 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
                               .display_name = "Never mind." },
           ChoiceConfigOption{
               .key = "yes", .display_name = "Complete it." } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::no )
-      .returns( make_wait<maybe<string>>( "yes" ) );
+  W.gui().EXPECT__choice( config ).returns(
+      make_wait<maybe<string>>( "yes" ) );
   {
     wait<> w = f();
     REQUIRE( !w.exception() );

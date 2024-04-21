@@ -160,9 +160,8 @@ TEST_CASE( "[on-map] interactive: discovers new world" ) {
   SECTION( "not yet discovered" ) {
     W.euro_mind().EXPECT__show_woodcut(
         e_woodcut::discovered_new_world );
-    W.gui()
-        .EXPECT__string_input( _, e_input_required::yes )
-        .returns<maybe<string>>( "my world 2" );
+    W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
+        "my world 2" );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 0, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -245,9 +244,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer no" ) {
-    W.gui()
-        .EXPECT__choice( _, e_input_required::no )
-        .returns<maybe<string>>( "no" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
     w = TestingOnlyUnitOnMapMover::to_map_interactive(
         W.ss(), W.ts(), unit_id, { .x = 1, .y = 1 } );
     REQUIRE( !w.exception() );
@@ -258,9 +255,7 @@ TEST_CASE( "[on-map] interactive: treasure in colony" ) {
   }
 
   SECTION( "entering colony answer yes" ) {
-    W.gui()
-        .EXPECT__choice( _, e_input_required::no )
-        .returns<maybe<string>>( "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     string const msg =
         "Treasure worth 1000\x7f arrives in Amsterdam!  The "
         "crown has provided a reimbursement of [500\x7f] after "
@@ -307,9 +302,7 @@ TEST_CASE(
 
   for( int i = 0; i < 8; ++i ) {
     // Pick immigrant.
-    W.gui()
-        .EXPECT__choice( _, e_input_required::no )
-        .returns<maybe<string>>( "0" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "0" );
     // Replace with next immigrant.
     W.rand().EXPECT__between_doubles( _, _ ).returns( 0 );
     // Wait a bit.
@@ -531,9 +524,8 @@ TEST_CASE(
 
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
-  W.gui()
-      .EXPECT__string_input( _, e_input_required::yes )
-      .returns<maybe<string>>( "abc" );
+  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
+      "abc" );
   maybe<UnitDeleted> const unit_deleted = f();
   REQUIRE( unit_deleted == nothing );
   REQUIRE( W.units().coord_for( unit_id ) ==

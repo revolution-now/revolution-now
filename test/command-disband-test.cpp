@@ -97,7 +97,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 0, .y = 0 } )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
         nothing );
     REQUIRE( confirm() == false );
     REQUIRE( W.units().exists( ship_id ) );
@@ -109,8 +109,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 0, .y = 0 } )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "no" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
     REQUIRE( confirm() == false );
     REQUIRE( W.units().exists( ship_id ) );
   }
@@ -121,8 +120,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 0, .y = 0 } )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -138,8 +136,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                            { .x = 1, .y = 1 } )
             .id();
     unit_id = free_colonist_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE( W.units().exists( ship_id ) );
@@ -156,8 +153,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = cargo_unit_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE( W.units().exists( ship_id ) );
@@ -175,8 +171,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -193,8 +188,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -221,8 +215,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -249,8 +242,7 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
                              ship_id )
             .id();
     unit_id = ship_id;
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     REQUIRE( confirm() == true );
     perform();
     REQUIRE_FALSE( W.units().exists( ship_id ) );
@@ -296,7 +288,7 @@ TEST_CASE(
       .initial_selection = nothing };
 
   W.gui()
-      .EXPECT__choice( expected_config, e_input_required::no )
+      .EXPECT__choice( expected_config )
       .returns<maybe<string>>( nothing );
   REQUIRE( confirm() == false );
 }

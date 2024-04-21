@@ -521,7 +521,7 @@ TEST_CASE( "[unit-ownership] change_to_map" ) {
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::discovered_new_world );
   // Player asked to name the new world.
-  W.gui().EXPECT__string_input( _, _ ).returns<maybe<string>>(
+  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
       "my land" );
   target = { .x = 0, .y = 1 };
   f();

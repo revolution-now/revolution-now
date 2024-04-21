@@ -281,9 +281,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "William Brewster (Religious Advisor)" },
         } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "francis_drake" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "francis_drake" ) );
 
     fathers_copy = player.fathers;
     f();
@@ -340,9 +339,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "William Brewster (Religious Advisor)" },
         } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "henry_hudson" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "henry_hudson" ) );
 
     fathers_copy = player.fathers;
     f();
@@ -395,9 +393,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .display_name =
                     "Juan de Sepulveda (Religious Advisor)" },
         } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "thomas_paine" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "thomas_paine" ) );
 
     fathers_copy = player.fathers;
     f();
@@ -432,9 +429,8 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
                 .key          = "adam_smith",
                 .display_name = "Adam Smith (Trade Advisor)" },
         } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "adam_smith" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "adam_smith" ) );
     fathers_copy = player.fathers;
     f();
     fathers_copy.pool[e_founding_father_type::trade] =

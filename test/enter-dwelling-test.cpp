@@ -389,25 +389,22 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
 
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::entering_native_village );
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "attack_village" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
+      "attack_village" );
   expected = e_enter_dwelling_option::attack_village;
   REQUIRE( f() == expected );
 
   // Again, no woodcut.
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "attack_village" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
+      "attack_village" );
   expected = e_enter_dwelling_option::attack_village;
   REQUIRE( f() == expected );
 
   // Once more, with brave on top.
   W.add_native_unit_on_map( e_native_unit_type::brave,
                             { .x = 1, .y = 1 }, dwelling.id );
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "attack_village" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
+      "attack_village" );
   expected = e_enter_dwelling_option::attack_brave_on_dwelling;
   REQUIRE( f() == expected );
 }
@@ -544,9 +541,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   // Eligible buy decline.
   outcome = LiveAmongTheNatives::promoted{
       .to = e_unit_type::expert_cotton_planter };
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "no" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
   f();
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( dwelling.has_taught == false );
@@ -554,9 +549,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
   // Eligible and accept.
   outcome = LiveAmongTheNatives::promoted{
       .to = e_unit_type::expert_cotton_planter };
-  W.gui()
-      .EXPECT__choice( _, e_input_required::no )
-      .returns<maybe<string>>( "yes" );
+  W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
 
   W.gui()
       .EXPECT__message_box(

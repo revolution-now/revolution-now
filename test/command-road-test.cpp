@@ -104,8 +104,7 @@ TEST_CASE( "[command-road] native-owned land" ) {
     auto config_matcher = Field(
         &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
     W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
+        .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( confirm() == false );
     REQUIRE( relationship.tribal_alarm == 0 );
@@ -120,8 +119,7 @@ TEST_CASE( "[command-road] native-owned land" ) {
     auto config_matcher = Field(
         &ChoiceConfig::msg, StrContains( "Carving a [road]" ) );
     W.gui()
-        .EXPECT__choice( std::move( config_matcher ),
-                         e_input_required::no )
+        .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "take" );
     REQUIRE( confirm() == true );
     REQUIRE( relationship.tribal_alarm == 10 );

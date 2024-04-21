@@ -37,14 +37,13 @@ struct MockIGui : IGui {
                    ( std::chrono::microseconds ) );
 
   MOCK_GUI_METHOD( wait<maybe<std::string>>, choice,
-                   ( ChoiceConfig const&, e_input_required ) );
+                   (ChoiceConfig const&));
 
   MOCK_GUI_METHOD( wait<maybe<std::string>>, string_input,
-                   ( StringInputConfig const&,
-                     e_input_required ) );
+                   (StringInputConfig const&));
 
   MOCK_GUI_METHOD( wait<maybe<int>>, int_input,
-                   ( IntInputConfig const&, e_input_required ) );
+                   (IntInputConfig const&));
 
   using CheckBoxInfoMap = std::unordered_map<int, CheckBoxInfo>;
   using CheckBoxResultMap = std::unordered_map<int, bool>;

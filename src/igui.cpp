@@ -25,42 +25,41 @@ namespace rn {
 *****************************************************************/
 wait<maybe<string>> IGui::optional_choice(
     ChoiceConfig const& config ) {
-  co_return co_await choice( config, e_input_required::no );
+  co_return co_await choice( config );
 }
 
 wait<string> IGui::required_choice(
     ChoiceConfig const& config ) {
-  maybe<string> const res =
-      co_await choice( config, e_input_required::yes );
-  CHECK( res.has_value() );
-  co_return *res;
+  do {
+    maybe<string> const res = co_await choice( config );
+    if( res.has_value() ) co_return *res;
+  } while( true );
 }
 
 wait<maybe<string>> IGui::optional_string_input(
     StringInputConfig const& config ) {
-  co_return co_await string_input( config,
-                                   e_input_required::no );
+  co_return co_await string_input( config );
 }
 
 wait<string> IGui::required_string_input(
     StringInputConfig const& config ) {
-  maybe<string> const res =
-      co_await string_input( config, e_input_required::yes );
-  CHECK( res.has_value() );
-  co_return *res;
+  do {
+    maybe<string> const res = co_await string_input( config );
+    if( res.has_value() ) co_return *res;
+  } while( true );
 }
 
 wait<maybe<int>> IGui::optional_int_input(
     IntInputConfig const& config ) {
-  co_return co_await int_input( config, e_input_required::no );
+  co_return co_await int_input( config );
 }
 
 wait<int> IGui::required_int_input(
     IntInputConfig const& config ) {
-  maybe<int> const res =
-      co_await int_input( config, e_input_required::yes );
-  CHECK( res.has_value() );
-  co_return *res;
+  do {
+    maybe<int> const res = co_await int_input( config );
+    if( res.has_value() ) co_return *res;
+  } while( true );
 }
 
 wait<maybe<ui::e_confirm>> IGui::optional_yes_no(

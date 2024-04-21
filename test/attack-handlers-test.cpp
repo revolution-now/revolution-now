@@ -289,8 +289,7 @@ TEST_CASE(
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "no" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
     REQUIRE( f() == expected );
   }
 
@@ -300,8 +299,7 @@ TEST_CASE(
     W.units()
         .unit_for( combat.attacker.id )
         .consume_mv_points( MovementPoints::_1_3() );
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     expect_combat();
     W.expect_some_animation();
     W.expect_msg_contains( W.kDefendingNation, "French",
@@ -622,8 +620,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
             .outcome = NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "no" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
     expected = { .order_was_run = false };
     REQUIRE( f() == expected );
     Unit const& attacker =
@@ -650,8 +647,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
             .outcome = NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
-    W.gui().EXPECT__choice( _, _ ).returns<maybe<string>>(
-        "yes" );
+    W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
     expect_combat();
     W.expect_some_animation();
     REQUIRE( f() == expected );

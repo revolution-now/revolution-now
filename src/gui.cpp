@@ -49,8 +49,11 @@ wait<chrono::microseconds> RealGui::wait_for(
 }
 
 wait<maybe<string>> RealGui::choice(
-    ChoiceConfig const& config, e_input_required required ) {
-  if( required == e_input_required::yes ) {
+    ChoiceConfig const& config ) {
+  bool const required =
+      !config.cancel_actions.disallow_escape_key ||
+      !config.cancel_actions.disallow_clicking_outside;
+  if( required ) {
     // If the input is required then there must be at least one
     // enabled choice.
     bool has_enabled = false;
@@ -70,7 +73,7 @@ wait<maybe<string>> RealGui::choice(
                } );
     // Recurse but this time with no sorting.
     new_config.sort = false;
-    co_return co_await choice( new_config, required );
+    co_return co_await choice( new_config );
   }
   {
     // Sanity check.
@@ -96,41 +99,39 @@ wait<maybe<string>> RealGui::choice(
     CHECK_LT( *config.initial_selection, int( options.size() ) );
   }
   maybe<int> const selected = co_await window_plane().select_box(
-      config.msg, options, required, config.initial_selection );
+      config.msg, options, config.cancel_actions,
+      config.initial_selection );
   if( !selected.has_value() ) {
     // User cancelled.
-    CHECK( required == e_input_required::no );
     co_return nothing;
   }
   co_return config.options[*selected].key;
 }
 
 wait<maybe<string>> RealGui::string_input(
-    StringInputConfig const& config,
-    e_input_required         required ) {
+    StringInputConfig const& config ) {
   maybe<string> const res =
       co_await window_plane().str_input_box(
-          config.msg, config.initial_text, required );
+          config.msg, config.cancel_actions,
+          config.initial_text );
   if( !res.has_value() ) {
     // User cancelled.
-    CHECK( required == e_input_required::no );
     co_return nothing;
   }
   co_return *res;
 }
 
 wait<maybe<int>> RealGui::int_input(
-    IntInputConfig const& config, e_input_required required ) {
+    IntInputConfig const& config ) {
   maybe<int> const res = co_await window_plane().int_input_box( {
-      .msg      = config.msg,
-      .min      = config.min,
-      .max      = config.max,
-      .initial  = config.initial_value,
-      .required = required,
+      .msg            = config.msg,
+      .min            = config.min,
+      .max            = config.max,
+      .cancel_actions = config.cancel_actions,
+      .initial        = config.initial_value,
   } );
   if( !res.has_value() ) {
     // User cancelled.
-    CHECK( required == e_input_required::no );
     co_return nothing;
   }
   co_return *res;

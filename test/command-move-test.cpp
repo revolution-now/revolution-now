@@ -335,7 +335,7 @@ TEST_CASE(
   auto choice_matcher =
       Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
   W.gui()
-      .EXPECT__choice( choice_matcher, _ )
+      .EXPECT__choice( choice_matcher )
       .returns<maybe<string>>( "yes" );
   W.gui().EXPECT__message_box(
       StrContains( "Treasure worth 1000" ) );
@@ -388,7 +388,7 @@ TEST_CASE(
   auto choice_matcher =
       Field( &ChoiceConfig::msg, StrContains( "bounty" ) );
   W.gui()
-      .EXPECT__choice( choice_matcher, _ )
+      .EXPECT__choice( choice_matcher )
       .returns<maybe<string>>( "yes" );
   W.gui().EXPECT__message_box(
       StrContains( "Treasure worth 1000" ) );

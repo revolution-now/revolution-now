@@ -133,9 +133,8 @@ TEST_CASE( "[command-dump] galleon" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "2" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "2" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -186,9 +185,8 @@ TEST_CASE( "[command-dump] galleon" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "5" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "5" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -232,9 +230,8 @@ TEST_CASE( "[command-dump] galleon" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( nothing ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( nothing ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -271,9 +268,8 @@ TEST_CASE( "[command-dump] galleon" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "0" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -310,9 +306,8 @@ TEST_CASE( "[command-dump] galleon" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "4" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "4" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );
@@ -391,9 +386,8 @@ TEST_CASE( "[command-dump] wagon train" ) {
                 },
             },
     };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::no )
-        .returns( make_wait<maybe<string>>( "0" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "0" ) );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
     REQUIRE( w_confirm.ready() );

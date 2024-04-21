@@ -98,9 +98,8 @@ TEST_CASE( "[command-build] build colony" ) {
 
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::building_first_colony );
-  W.gui()
-      .EXPECT__string_input( _, e_input_required::no )
-      .returns<maybe<string>>( "my colony" );
+  W.gui().EXPECT__string_input( _ ).returns<maybe<string>>(
+      "my colony" );
   REQUIRE( confirm() == true );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -142,7 +141,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   auto config_matcher =
       Field( &ChoiceConfig::msg, StrContains( "ocean access" ) );
   W.gui()
-      .EXPECT__choice( config_matcher, e_input_required::no )
+      .EXPECT__choice( config_matcher )
       .returns<maybe<string>>( "no" );
   REQUIRE( confirm() == false );
   REQUIRE_FALSE( unit.mv_pts_exhausted() );

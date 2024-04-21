@@ -82,18 +82,17 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
                            e_unit_type::seasoned_scout } };
   MockIGui gui;
 
-  gui.EXPECT__choice(
-         ChoiceConfig{
-             .msg = "please select one",
-             .options =
-                 vector<ChoiceConfigOption>{
-                     { .key          = "0",
-                       .display_name = "Expert Farmer" },
-                     { .key          = "1",
-                       .display_name = "Veteran Soldier" },
-                     { .key          = "2",
-                       .display_name = "Seasoned Scout" } } },
-         e_input_required::no )
+  gui
+      .EXPECT__choice( ChoiceConfig{
+          .msg = "please select one",
+          .options =
+              vector<ChoiceConfigOption>{
+                  { .key          = "0",
+                    .display_name = "Expert Farmer" },
+                  { .key          = "1",
+                    .display_name = "Veteran Soldier" },
+                  { .key          = "2",
+                    .display_name = "Seasoned Scout" } } } )
       .returns( make_wait<maybe<string>>( "1" ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -111,18 +110,17 @@ TEST_CASE(
                            e_unit_type::seasoned_scout } };
   MockIGui gui;
 
-  gui.EXPECT__choice(
-         ChoiceConfig{
-             .msg = "please select one",
-             .options =
-                 vector<ChoiceConfigOption>{
-                     { .key          = "0",
-                       .display_name = "Expert Farmer" },
-                     { .key          = "1",
-                       .display_name = "Veteran Soldier" },
-                     { .key          = "2",
-                       .display_name = "Seasoned Scout" } } },
-         e_input_required::no )
+  gui
+      .EXPECT__choice( ChoiceConfig{
+          .msg = "please select one",
+          .options =
+              vector<ChoiceConfigOption>{
+                  { .key          = "0",
+                    .display_name = "Expert Farmer" },
+                  { .key          = "1",
+                    .display_name = "Veteran Soldier" },
+                  { .key          = "2",
+                    .display_name = "Seasoned Scout" } } } )
       .returns( make_wait<maybe<string>>( nothing ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -487,17 +485,14 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     int const crosses_needed = 11;
 
     W.gui()
-        .EXPECT__choice(
-            AllOf(
-                Field(
-                    &ChoiceConfig::msg,
-                    StartsWith(
-                        "Word of religious freedom has spread! "
-                        "New immigrants are ready to join us in "
-                        "the New World.  Which of the following "
-                        "shall we choose?" ) ),
-                Field( &ChoiceConfig::options, HasSize( 3 ) ) ),
-            e_input_required::no )
+        .EXPECT__choice( AllOf(
+            Field( &ChoiceConfig::msg,
+                   StartsWith(
+                       "Word of religious freedom has spread! "
+                       "New immigrants are ready to join us in "
+                       "the New World.  Which of the following "
+                       "shall we choose?" ) ),
+            Field( &ChoiceConfig::options, HasSize( 3 ) ) ) )
         .returns( make_wait<maybe<string>>( "1" ) );
     // This one is to choose that unit's replacement in the pool,
     // which is always done randomly. 8960.0 was found by summing

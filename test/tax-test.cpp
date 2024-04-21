@@ -127,9 +127,8 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
                 .key          = "yes",
                 .display_name = "Pay [33].",
             } } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "no" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "no" ) );
 
     f();
     REQUIRE( player.money == 33 );
@@ -158,9 +157,8 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
                 .key          = "yes",
                 .display_name = "Pay [33].",
             } } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "yes" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "yes" ) );
 
     f();
     REQUIRE( player.money == 1 );
@@ -359,9 +357,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
                          .display_name =
                              "Hold '[my colony Cigars party]'!",
                      } } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "yes" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "yes" ) );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
   }
@@ -396,9 +393,8 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
                          .display_name =
                              "Hold '[my colony Cigars party]'!",
                      } } };
-    W.gui()
-        .EXPECT__choice( config, e_input_required::yes )
-        .returns( make_wait<maybe<string>>( "no" ) );
+    W.gui().EXPECT__choice( config ).returns(
+        make_wait<maybe<string>>( "no" ) );
     REQUIRE( f() == expected );
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
   }
@@ -725,9 +721,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
               .display_name =
                   "Hold '[my colony 2 Trade Goods party]'!",
           } } };
-  W.gui()
-      .EXPECT__choice( config, e_input_required::yes )
-      .returns( make_wait<maybe<string>>( "no" ) );
+  W.gui().EXPECT__choice( config ).returns(
+      make_wait<maybe<string>>( "no" ) );
   REQUIRE( player.old_world.taxes.tax_rate == 72 );
 
   string const boycott_msg =

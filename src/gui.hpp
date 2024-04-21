@@ -52,18 +52,15 @@ struct RealGui : IGui {
 
   // Implement IGui.
   wait<maybe<std::string>> choice(
-      ChoiceConfig const& config,
-      e_input_required    required ) override;
+      ChoiceConfig const& config ) override;
 
   // Implement IGui.
   wait<maybe<std::string>> string_input(
-      StringInputConfig const& config,
-      e_input_required         required ) override;
+      StringInputConfig const& config ) override;
 
   // Implement IGui.
   wait<maybe<int>> int_input(
-      IntInputConfig const& config,
-      e_input_required      required ) override;
+      IntInputConfig const& config ) override;
 
   // Implement IGui.
   wait<std::unordered_map<int, bool>> check_box_selector(

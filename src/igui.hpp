@@ -15,6 +15,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "maybe.hpp"
+#include "ui-enums.rds.hpp"
 #include "wait.hpp"
 
 // Rds
@@ -221,22 +222,19 @@ struct IGui {
   // choose one. This returns a maybe because it is used to im-
   // plement both the optional and required variants.
   virtual wait<maybe<std::string>> choice(
-      ChoiceConfig const& config,
-      e_input_required    required ) = 0;
+      ChoiceConfig const& config ) = 0;
 
   // Display a prompt and ask the user for a string input. This
   // returns a maybe because it is used to implement both the op-
   // tional and required variants.
   virtual wait<maybe<std::string>> string_input(
-      StringInputConfig const& config,
-      e_input_required         required ) = 0;
+      StringInputConfig const& config ) = 0;
 
   // Display a prompt and ask the user for an integer input. This
   // returns a maybe because it is used to implement both the op-
   // tional and required variants.
   virtual wait<maybe<int>> int_input(
-      IntInputConfig const& config,
-      e_input_required      required ) = 0;
+      IntInputConfig const& config ) = 0;
 
   // Displays a window with a grid of checkboxes for each item
   // and will let the user check or uncheck them, then will re-
@@ -279,8 +277,10 @@ wait<maybe<E>> IGui::optional_enum_choice(
     EnumChoiceConfig const&               enum_config,
     refl::enum_map<E, std::string> const& names,
     refl::enum_map<E, bool> const&        disabled ) {
-  ChoiceConfig config{ .msg  = enum_config.msg,
-                       .sort = enum_config.sort };
+  ChoiceConfig config{
+      .msg            = enum_config.msg,
+      .cancel_actions = enum_config.cancel_actions,
+      .sort           = enum_config.sort };
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
         .key = std::string( refl::enum_value_name( item ) ),
@@ -298,8 +298,10 @@ wait<E> IGui::required_enum_choice(
     EnumChoiceConfig const&               enum_config,
     refl::enum_map<E, std::string> const& names,
     refl::enum_map<E, bool> const&        disabled ) {
-  ChoiceConfig config{ .msg  = enum_config.msg,
-                       .sort = enum_config.sort };
+  ChoiceConfig config{
+      .msg            = enum_config.msg,
+      .cancel_actions = enum_config.cancel_actions,
+      .sort           = enum_config.sort };
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
         .key = std::string( refl::enum_value_name( item ) ),
