@@ -11,9 +11,9 @@
 namespace "rn"
 
 enum.e_main_menu_item {
-  new_,
+  new_random,
+  new_america,
+  new_customize,
   load,
-  settings_graphics,
-  settings_sound,
-  quit,
+  hall_of_fame,
 }

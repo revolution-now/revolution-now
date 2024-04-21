@@ -191,7 +191,8 @@ wait<> run_game( Planes& planes, LoaderFunc loader ) {
   co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
 }
 
-wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {
+wait<> handle_mode( Planes& planes,
+                    StartMode::new_random const& ) {
   auto factory = []( SS& ss,
                      TS& ts ) -> wait<base::NoDiscard<bool>> {
     CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall(
@@ -199,6 +200,16 @@ wait<> handle_mode( Planes& planes, StartMode::new_ const& ) {
     co_return true;
   };
   co_await run_game( planes, factory );
+}
+
+wait<> handle_mode( Planes&, StartMode::new_america const& ) {
+  NOT_IMPLEMENTED;
+  co_return;
+}
+
+wait<> handle_mode( Planes&, StartMode::new_customize const& ) {
+  NOT_IMPLEMENTED;
+  co_return;
 }
 
 wait<> handle_mode( Planes&                planes,

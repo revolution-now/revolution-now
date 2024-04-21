@@ -14,7 +14,9 @@ include "maybe.hpp"
 namespace "rn"
 
 sumtype.StartMode {
-  new_ {},
+  new_random {},
+  new_america {},
+  new_customize {},
   load {
     slot 'maybe<int>',
   },
