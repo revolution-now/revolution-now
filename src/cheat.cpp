@@ -231,7 +231,8 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   auto& m = ss.mutable_terrain_use_with_care
                 .mutable_player_terrain( *nation )
                 .map;
-  for( Coord const coord : gfx::rect_iterator( world_rect ) ) {
+  for( gfx::point const p : gfx::rect_iterator( world_rect ) ) {
+    Coord const coord = Coord::from_gfx( p ); // FIXME
     // This will reveal the square to the player with fog if the
     // square was not already explored but with existing fog
     // status if it was already explored.

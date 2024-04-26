@@ -41,10 +41,9 @@ base::generator<rect> subrects( rect r, size chunk ) {
 *****************************************************************/
 using RI = rect_iterator;
 
-RI::const_iterator::const_iterator( rect r, rn::Coord cursor )
+RI::const_iterator::const_iterator( rect r, point cursor )
   : r_( r ), cursor_( cursor ) {
-  if( r.size.area() == 0 )
-    cursor_ = rn::Coord::from_gfx( r_.sw() );
+  if( r.size.area() == 0 ) cursor_ = r_.sw();
 }
 
 RI::const_iterator& RI::const_iterator::operator++() {

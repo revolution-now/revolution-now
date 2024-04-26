@@ -86,9 +86,10 @@ cdr::value to_canonical( cdr::converter&  conv,
   if( !write_defaults ) {
     conv.to_field( tbl, "has_coords", true );
     rect_iterator const ri( m.rect() );
-    for( rn::Coord const coord : ri ) {
-      T const&       elem = m[coord];
-      static const T def{};
+    for( gfx::point const p : ri ) {
+      rn::Coord const coord = rn::Coord::from_gfx( p ); // FIXME
+      T const&        elem  = m[coord];
+      static const T  def{};
       if( elem == def ) continue;
       lst.emplace_back(
           conv.to( std::pair{ coord, m[coord] } ) );

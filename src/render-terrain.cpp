@@ -2424,7 +2424,8 @@ void render_landscape_buffer(
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::landscape );
   gfx::rect_iterator const ri( viz.rect_tiles() );
-  for( Coord const square : ri ) {
+  for( gfx::point const p : ri ) {
+    Coord const square  = Coord::from_gfx( p );
     tile_bounds[square] = renderer.range_for( [&] {
       render_landscape_square_if_not_fully_hidden(
           renderer, square * g_tile_delta, square, viz,
@@ -2458,7 +2459,8 @@ void render_obfuscation_buffer(
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::obfuscation );
   gfx::rect_iterator const ri( viz.rect_tiles() );
-  for( Coord const square : ri ) {
+  for( gfx::point const p : ri ) {
+    Coord const square  = Coord::from_gfx( p );
     tile_bounds[square] = renderer.range_for( [&] {
       render_obfuscation_overlay( renderer,
                                   square * g_tile_delta, square,

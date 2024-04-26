@@ -12,7 +12,7 @@
 
 // gfx
 #include "cartesian.hpp"
-#include "coord.hpp"
+#include "coord.hpp" // FIXME: remove
 
 // base
 #include "base/generator.hpp"
@@ -51,17 +51,17 @@ struct rect_iterator {
   // right edge or bottom edge will be yielded.
   struct const_iterator {
    private:
-    rect      r_      = {};
-    rn::Coord cursor_ = {};
+    rect  r_      = {};
+    point cursor_ = {};
 
    public:
     using iterator_category = std::input_iterator_tag;
     using difference_type   = int;
-    using value_type        = rn::Coord;
-    using pointer           = rn::Coord const*;
-    using reference         = rn::Coord const&;
+    using value_type        = point;
+    using pointer           = point const*;
+    using reference         = point const&;
     const_iterator()        = default;
-    const_iterator( rect r, rn::Coord cursor );
+    const_iterator( rect r, point cursor );
     bool operator==( const_iterator const& ) const = default;
     value_type const& operator*() const { return cursor_; }
     const_iterator&   operator++();
@@ -70,13 +70,8 @@ struct rect_iterator {
 
   using iterator = const_iterator;
 
-  auto begin() const {
-    return const_iterator( r_, rn::Coord::from_gfx( r_.nw() ) );
-  }
-
-  auto end() const {
-    return const_iterator( r_, rn::Coord::from_gfx( r_.sw() ) );
-  }
+  auto begin() const { return const_iterator( r_, r_.nw() ); }
+  auto end() const { return const_iterator( r_, r_.sw() ); }
 };
 
 // If these are not found with the current headers then we should

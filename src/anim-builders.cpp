@@ -860,7 +860,8 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
 
   // Dwellings.
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
-  for( Coord const tile : ri ) {
+  for( gfx::point const p : ri ) {
+    Coord const            tile = Coord::from_gfx( p ); // FIXME
     maybe<Dwelling const&> dwelling = viz.dwelling_at( tile );
     if( !dwelling.has_value() ) continue;
     e_tribe const tribe_type =

@@ -138,8 +138,9 @@ void remove_depletion_counter_if_needed( SS& ss, Coord tile ) {
 
 void remove_depletion_counters_where_needed( SS& ss ) {
   Rect const rect = ss.terrain.world_rect_tiles();
-  for( Coord const tile : gfx::rect_iterator( rect ) )
-    remove_depletion_counter_if_needed( ss, tile );
+  for( gfx::point const p : gfx::rect_iterator( rect ) )
+    remove_depletion_counter_if_needed( ss,
+                                        Coord::from_gfx( p ) );
 }
 
 } // namespace rn

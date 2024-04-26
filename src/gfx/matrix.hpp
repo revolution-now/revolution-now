@@ -84,15 +84,15 @@ struct Matrix {
     return { &data_[y * w_], size_t( w_ ) };
   }
 
-  T const& operator[]( rn::Coord coord ) const
+  T const& operator[]( gfx::point point ) const
       ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
+    return ( *this )[point.y][point.x];
   };
 
-  T& operator[]( rn::Coord coord ) ATTR_LIFETIMEBOUND {
+  T& operator[]( gfx::point point ) ATTR_LIFETIMEBOUND {
     // These subscript operators should do the range checking.
-    return ( *this )[coord.y][coord.x];
+    return ( *this )[point.y][point.x];
   };
 
   void clear() {

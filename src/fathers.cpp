@@ -165,7 +165,8 @@ void francisco_de_coronado( SS& ss, TS& ts,
                         1 );
   for( auto& [colony_id, colony] : colonies_all ) {
     Rect const to_reveal = expand( colony.location );
-    for( Coord const tile : gfx::rect_iterator( to_reveal ) ) {
+    for( gfx::point const p : gfx::rect_iterator( to_reveal ) ) {
+      Coord const tile = Coord::from_gfx( p ); // FIXME
       if( !ss.terrain.square_exists( tile ) ) continue;
       make_visible.push_back( tile );
     }

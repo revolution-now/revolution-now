@@ -423,10 +423,12 @@ HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
   vector<Coord> const shuffled_coords = [&] {
     vector<Coord> res;
     res.reserve( viz.rect_tiles().area() );
-    for( Coord const tile :
-         gfx::rect_iterator( viz.rect_tiles() ) )
+    for( gfx::point const p :
+         gfx::rect_iterator( viz.rect_tiles() ) ) {
+      Coord const tile = Coord::from_gfx( p ); // FIXME
       if( viz.visible( tile ) != e_tile_visibility::hidden )
         res.push_back( tile );
+    }
     rand.shuffle( res );
     return res;
   }();

@@ -703,7 +703,8 @@ void LandViewRenderer::render_units() const {
 }
 
 void LandViewRenderer::render_dwellings() const {
-  for( Coord const tile : gfx::rect_iterator( covered_ ) ) {
+  for( gfx::point const p : gfx::rect_iterator( covered_ ) ) {
+    Coord const            tile     = Coord::from_gfx( p );
     maybe<Dwelling const&> dwelling = viz_->dwelling_at( tile );
     if( !dwelling.has_value() ) continue;
     if( auto anim = lv_animator_.dwelling_animation( tile );
@@ -764,7 +765,8 @@ void LandViewRenderer::render_colonies() const {
   // FIXME: since colony icons spill over the usual 32x32 tile
   // we need to render colonies that are beyond the `covered`
   // rect.
-  for( Coord const tile : gfx::rect_iterator( covered_ ) ) {
+  for( gfx::point const p : gfx::rect_iterator( covered_ ) ) {
+    Coord const          tile   = Coord::from_gfx( p );
     maybe<Colony const&> colony = viz_->colony_at( tile );
     if( !colony.has_value() ) continue;
     if( auto anim = lv_animator_.colony_animation( tile );

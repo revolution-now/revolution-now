@@ -68,9 +68,9 @@ struct World : testing::World {
   void create_n_dwellings( e_tribe tribe_type, int n ) {
     gfx::rect_iterator const ri(
         terrain().world_rect_tiles().to_gfx() );
-    for( Coord const coord : ri ) {
+    for( gfx::point const p : ri ) {
       if( n-- <= 0 ) return;
-      add_dwelling( coord, tribe_type );
+      add_dwelling( Coord::from_gfx( p ), tribe_type );
     }
   }
 };
