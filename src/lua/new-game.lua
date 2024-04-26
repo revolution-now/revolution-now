@@ -66,7 +66,7 @@ local function set_default_settings( options, settings )
   game_options.set_flag( 'show_fog_of_war', true )
 
   if options.difficulty == 'discoverer' then
-    settings.game_options.flags.tutorial_hints = true
+    game_options.set_flag( 'tutorial_hints', true )
   end
 end
 
