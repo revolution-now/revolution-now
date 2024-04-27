@@ -253,10 +253,12 @@ auto while_throws( const Func& func )
   using Ret = typename std::invoke_result_t<Func>::value_type;
   while( true ) {
     try {
-      if constexpr( std::is_same_v<Ret, std::monostate> )
+      if constexpr( std::is_same_v<Ret, std::monostate> ) {
         co_await func();
-      else
+        co_return;
+      } else {
         co_return co_await func();
+      }
     } catch( Exception const& ) {}
   }
 }
