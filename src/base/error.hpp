@@ -236,6 +236,15 @@
   }                                                  \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
 
+// This is for the case where you want to specify the type.
+#define UNWRAP_CHECK_T( a, ... )                     \
+  auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
+  if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
+    ::base::abort_with_msg( fmt::to_string(          \
+        STRING_JOIN( __e, __LINE__ ).error() ) );    \
+  }                                                  \
+  BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
+
 #define UNWRAP_BREAK( a, e )                             \
   auto&& STRING_JOIN( __e, __LINE__ ) = e;               \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) break; \
