@@ -185,6 +185,9 @@ maybe<char> ascii_char_for_event( key_event_t const& event );
 // Is this event a shift, control, alt, etc.
 bool is_mod_key( key_event_t const& event );
 
+// Is there a mod key down in addition to any other key?
+bool has_mod_key( key_event_t const& event );
+
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-
 // rent origin.

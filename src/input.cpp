@@ -505,6 +505,20 @@ bool is_mod_key( key_event_t const& event ) {
   }
 }
 
+bool has_mod_key( key_event_t const& event ) {
+  return false                    //
+         || event.mod.l_shf_down  //
+         || event.mod.r_shf_down  //
+         || event.mod.shf_down    //
+         || event.mod.l_alt_down  //
+         || event.mod.r_alt_down  //
+         || event.mod.alt_down    //
+         || event.mod.l_ctrl_down //
+         || event.mod.r_ctrl_down //
+         || event.mod.ctrl_down   //
+      ;
+}
+
 event_t move_mouse_origin_by( event_t const& event,
                               Delta          delta ) {
   event_t new_event = event;
