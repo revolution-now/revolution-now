@@ -37,6 +37,9 @@
 #include "gfx/iter.hpp"
 #include "gfx/matrix.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -53,14 +56,91 @@ using ::base::NoDiscard;
 
 struct DifficultyLayout {
   gfx::Matrix<maybe<e_difficulty>> grid;
+  gfx::point                       selected = {};
+
+  void check_invariants() const {
+    CHECK( grid.size().area() == 6 );
+    CHECK( find( grid.data().begin(), grid.data().end(),
+                 nothing ) != grid.data().end(),
+           "could not find blank square in grid of size {}.",
+           grid.size() );
+    for( e_difficulty const difficulty :
+         refl::enum_values<e_difficulty> ) {
+      CHECK( find( grid.data().begin(), grid.data().end(),
+                   difficulty ) != grid.data().end(),
+             "could not find {} in grid of size {}.", difficulty,
+             grid.size() );
+    }
+    CHECK( grid[selected].has_value() );
+  }
+
+  void resize_grid_for_screen_size(
+      const gfx::size workarea_pixels ) {
+    CHECK_GT( workarea_pixels.area(), 0 );
+    double const ratio =
+        double( workarea_pixels.w ) / workarea_pixels.h;
+    CHECK( selected.is_inside( grid.rect() ) );
+    CHECK( grid[selected].has_value() );
+    CHECK( grid[selected].has_value() );
+    // By value so that we don't hold a reference into the grid
+    // data, which will soon become dangling.
+    UNWRAP_CHECK_T( e_difficulty const previous_selected,
+                    grid[selected] );
+
+    if( ratio < .5 ) {
+      grid                     = Delta{ .w = 1, .h = 6 };
+      grid[{ .x = 0, .y = 0 }] = nothing;
+      grid[{ .x = 0, .y = 1 }] = e_difficulty::discoverer;
+      grid[{ .x = 0, .y = 2 }] = e_difficulty::explorer;
+      grid[{ .x = 0, .y = 3 }] = e_difficulty::conquistador;
+      grid[{ .x = 0, .y = 4 }] = e_difficulty::governor;
+      grid[{ .x = 0, .y = 5 }] = e_difficulty::viceroy;
+    } else if( ratio < 1.0 ) {
+      grid                     = Delta{ .w = 2, .h = 3 };
+      grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
+      grid[{ .x = 1, .y = 0 }] = e_difficulty::explorer;
+      grid[{ .x = 0, .y = 1 }] = nothing;
+      grid[{ .x = 1, .y = 1 }] = e_difficulty::conquistador;
+      grid[{ .x = 0, .y = 2 }] = e_difficulty::viceroy;
+      grid[{ .x = 1, .y = 2 }] = e_difficulty::governor;
+    } else if( ratio < 2.0 ) {
+      grid                     = Delta{ .w = 3, .h = 2 };
+      grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
+      grid[{ .x = 1, .y = 0 }] = nothing;
+      grid[{ .x = 2, .y = 0 }] = e_difficulty::viceroy;
+      grid[{ .x = 0, .y = 1 }] = e_difficulty::explorer;
+      grid[{ .x = 1, .y = 1 }] = e_difficulty::conquistador;
+      grid[{ .x = 2, .y = 1 }] = e_difficulty::governor;
+    } else {
+      grid                     = Delta{ .w = 6, .h = 1 };
+      grid[{ .x = 0, .y = 0 }] = nothing;
+      grid[{ .x = 1, .y = 0 }] = e_difficulty::discoverer;
+      grid[{ .x = 2, .y = 0 }] = e_difficulty::explorer;
+      grid[{ .x = 3, .y = 0 }] = e_difficulty::conquistador;
+      grid[{ .x = 4, .y = 0 }] = e_difficulty::governor;
+      grid[{ .x = 5, .y = 0 }] = e_difficulty::viceroy;
+    }
+
+    for( gfx::point const p :
+         gfx::rect_iterator( grid.rect() ) ) {
+      if( grid[p] == previous_selected ) {
+        selected = p;
+        break;
+      }
+    }
+    CHECK( grid[selected] == previous_selected );
+
+    // Sanity checks.
+    check_invariants();
+  }
 };
 
-gfx::pixel color_for_difficulty( e_difficulty d ) {
+gfx::pixel color_for_difficulty( e_difficulty difficulty ) {
   auto const& conf = config_nation.nations;
-  // These colors don't really have anything to do with nations,
-  // it just so happens that the OG reuses the nations' flag
-  // colors here.
-  switch( d ) {
+  // These difficulty levels don't really have anything to do
+  // with nations, it just so happens that the OG reuses the na-
+  // tions' flag colors here.
+  switch( difficulty ) {
     case e_difficulty::conquistador: {
       return conf[e_nation::spanish].flag_color;
     }
@@ -78,6 +158,22 @@ gfx::pixel color_for_difficulty( e_difficulty d ) {
     case e_difficulty::viceroy: {
       return conf[e_nation::english].flag_color;
     }
+  }
+}
+
+string_view description_for_difficulty(
+    e_difficulty difficulty ) {
+  switch( difficulty ) {
+    case e_difficulty::conquistador:
+      return "Moderate";
+    case e_difficulty::discoverer:
+      return "Easiest";
+    case e_difficulty::explorer:
+      return "Easy";
+    case e_difficulty::governor:
+      return "Tough";
+    case e_difficulty::viceroy:
+      return "Toughest";
   }
 }
 
@@ -120,22 +216,57 @@ void draw_empty_rect_no_corners( rr::Painter&     painter,
   }
 }
 
-void draw_difficulty_box_contents( rr::Renderer&      renderer,
-                                   const gfx::rect    box,
-                                   const e_difficulty d ) {
+void draw_difficulty_box_contents(
+    rr::Renderer& renderer, const gfx::rect box,
+    const e_difficulty difficulty ) {
   string const label = [&] {
-    string_view const name   = refl::enum_value_name( d );
+    string_view const name = refl::enum_value_name( difficulty );
     string const capitalized = base::capitalize_initials( name );
-    return fmt::format( "<{}>", capitalized );
+    return fmt::format( "{}", capitalized );
   }();
-  gfx::size const text_box_size =
-      rr::rendered_text_line_size_pixels( label );
-  gfx::rect const text_box = gfx::rect{
-      .origin = gfx::centered_in( text_box_size, box ),
-      .size   = text_box_size };
-  rr::Typer typer =
-      renderer.typer( text_box.nw(), color_for_difficulty( d ) );
-  typer.write( label );
+
+  gfx::pixel const text_color =
+      color_for_difficulty( difficulty );
+  gfx::pixel const shadow_color = gfx::pixel::black();
+
+  int const text_height =
+      rr::rendered_text_line_size_pixels( "X" ).h;
+
+  gfx::rect cur_box = box;
+  cur_box = cur_box.with_new_top_edge( cur_box.center().y -
+                                       text_height / 2 );
+
+  auto render_line_centered = [&]( string_view line ) {
+    gfx::size const text_box_size =
+        rr::rendered_text_line_size_pixels( line );
+    if( cur_box.size.h < text_box_size.h ) return;
+    gfx::rect const text_box = gfx::rect{
+        .origin = gfx::centered_at_top( text_box_size, cur_box ),
+        .size   = text_box_size };
+    { // shadow
+      renderer
+          .typer( text_box.nw() + gfx::size{ .w = 1 },
+                  shadow_color )
+          .write( line );
+      renderer
+          .typer( text_box.nw() + gfx::size{ .h = 1 },
+                  shadow_color )
+          .write( line );
+    }
+    { // foreground text.
+      rr::Typer typer =
+          renderer.typer( text_box.nw(), text_color );
+      typer.write( line );
+      typer.newline();
+      // Plus 1 because we're also doing downward shadows.
+      cur_box =
+          cur_box.with_new_top_edge( typer.position().y + 1 );
+    }
+  };
+
+  render_line_centered( label );
+  render_line_centered( fmt::format(
+      "({})", description_for_difficulty( difficulty ) ) );
 }
 
 /****************************************************************
@@ -143,23 +274,25 @@ void draw_difficulty_box_contents( rr::Renderer&      renderer,
 *****************************************************************/
 struct DifficultyScreen : public IPlane {
   // State
-  wait_promise<maybe<e_difficulty>> result_   = {};
-  DifficultyLayout                  layout_   = {};
-  gfx::point                        selected_ = {};
+  wait_promise<maybe<e_difficulty>> result_ = {};
+  DifficultyLayout                  layout_ = {};
 
  public:
   DifficultyScreen() {
     using namespace gfx;
-    auto& grid = layout_.grid;
-    grid       = Delta{ .w = 3, .h = 2 };
-
-    grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
-    grid[{ .x = 1, .y = 0 }] = nothing;
-    grid[{ .x = 2, .y = 0 }] = e_difficulty::viceroy;
-    grid[{ .x = 0, .y = 1 }] = e_difficulty::explorer;
-    grid[{ .x = 1, .y = 1 }] = e_difficulty::conquistador;
-    grid[{ .x = 2, .y = 1 }] = e_difficulty::governor;
+    layout_.grid                     = Delta{ .w = 1, .h = 1 };
+    layout_.grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
+    recomposite();
   }
+
+  void recomposite() {
+    UNWRAP_CHECK(
+        normal_area,
+        compositor::section( compositor::e_section::normal ) );
+    layout_.resize_grid_for_screen_size( normal_area.delta() );
+  }
+
+  void advance_state() override { recomposite(); }
 
   void draw( rr::Renderer& renderer ) const override {
     using namespace gfx;
@@ -187,7 +320,7 @@ struct DifficultyScreen : public IPlane {
                                       *difficulty );
       draw_empty_rect_no_corners( painter, inner_r,
                                   pixel::black() );
-      if( square == selected_ ) {
+      if( square == layout_.selected ) {
         CHECK( difficulty.has_value() );
         auto color = color_for_difficulty( *difficulty );
         draw_empty_rect_no_corners( painter, inner_r, color );
@@ -196,38 +329,37 @@ struct DifficultyScreen : public IPlane {
   }
 
   void normalize_selected() {
-    if( selected_.x < 0 )
-      selected_.x = layout_.grid.rect().right_edge() - 1;
-    if( selected_.x == layout_.grid.rect().right_edge() )
-      selected_.x = 0;
-    if( selected_.y < 0 )
-      selected_.y = layout_.grid.rect().bottom_edge() - 1;
-    if( selected_.y == layout_.grid.rect().bottom_edge() )
-      selected_.y = 0;
+    if( layout_.selected.x < 0 )
+      layout_.selected.x = layout_.grid.rect().right_edge() - 1;
+    if( layout_.selected.x == layout_.grid.rect().right_edge() )
+      layout_.selected.x = 0;
+    if( layout_.selected.y < 0 )
+      layout_.selected.y = layout_.grid.rect().bottom_edge() - 1;
+    if( layout_.selected.y == layout_.grid.rect().bottom_edge() )
+      layout_.selected.y = 0;
   }
 
   template<typename F>
   void alter_selected( F&& op ) {
     do {
-      op( selected_ );
+      op( layout_.selected );
       normalize_selected();
-    } while( !layout_.grid[selected_].has_value() );
+    } while( !layout_.grid[layout_.selected].has_value() );
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    switch( event.to_enum() ) {
-      using enum input::e_input_event;
-      case key_event: {
-        auto const& key = event.get<input::key_event_t>();
-        if( key.change != input::e_key_change::down ) break;
-        if( input::has_mod_key( key ) ) break;
-        switch( key.keycode ) {
+    SWITCH( event ) {
+      CASE( key_event ) {
+        if( key_event.change != input::e_key_change::down )
+          break;
+        if( input::has_mod_key( key_event ) ) break;
+        switch( key_event.keycode ) {
           case ::SDLK_SPACE:
           case ::SDLK_RETURN:
           case ::SDLK_KP_ENTER:
           case ::SDLK_KP_5:
-            CHECK( layout_.grid[selected_].has_value() );
-            result_.set_value( layout_.grid[selected_] );
+            CHECK( layout_.grid[layout_.selected].has_value() );
+            result_.set_value( layout_.grid[layout_.selected] );
             break;
           case ::SDLK_ESCAPE:
             result_.set_value( nothing );

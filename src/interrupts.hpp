@@ -29,6 +29,10 @@ struct game_load_interrupt : std::exception {
   maybe<int> slot;
 };
 
+// Go back to the main menu. Used during the stages before a game
+// is officially entered.
+struct main_menu_interrupt : std::exception {};
+
 // This is thrown when the user drags the last in-colony unit to
 // the gate. Throwing an exception allows us to immediately abort
 // the entire colony coroutine so that we don't have to propagate
