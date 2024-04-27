@@ -32,26 +32,26 @@ struct size {
   int w = 0;
   int h = 0;
 
-  bool negative() const { return w < 0 || h < 0; }
+  [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
-  int area() const { return w * h; }
+  [[nodiscard]] int area() const { return w * h; }
 
-  size max_with( size const rhs ) const;
+  [[nodiscard]] size max_with( size const rhs ) const;
 
   // Returns a dsize; auto is used to avoid circular dependency.
-  auto to_double() const;
+  [[nodiscard]] auto to_double() const;
 
-  double pythagorean() const;
+  [[nodiscard]] double pythagorean() const;
 
-  size operator+( size term ) const;
+  [[nodiscard]] size operator+( size term ) const;
 
   void operator+=( size term );
 
-  size operator*( int scale ) const;
+  [[nodiscard]] size operator*( int scale ) const;
 
-  size operator/( int scale ) const;
+  [[nodiscard]] size operator/( int scale ) const;
 
-  bool operator==( size const& ) const = default;
+  [[nodiscard]] bool operator==( size const& ) const = default;
 };
 
 /****************************************************************
@@ -62,19 +62,19 @@ struct dsize {
   double w = 0.0;
   double h = 0.0;
 
-  bool negative() const { return w < 0 || h < 0; }
+  [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
-  size truncated() const {
+  [[nodiscard]] size truncated() const {
     return size{ .w = int( w ), .h = int( h ) };
   }
 
   void operator+=( dsize term );
 
-  dsize operator*( double scale ) const;
+  [[nodiscard]] dsize operator*( double scale ) const;
 
-  dsize operator/( double scale ) const;
+  [[nodiscard]] dsize operator/( double scale ) const;
 
-  bool operator==( dsize const& ) const = default;
+  [[nodiscard]] bool operator==( dsize const& ) const = default;
 };
 
 inline auto size::to_double() const {
@@ -92,39 +92,39 @@ struct point {
   int x = 0;
   int y = 0;
 
-  size distance_from_origin() const {
+  [[nodiscard]] size distance_from_origin() const {
     return size{ .w = x, .h = y };
   }
 
   static point origin();
 
-  point point_becomes_origin( point p ) const;
-  point origin_becomes_point( point p ) const;
+  [[nodiscard]] point point_becomes_origin( point p ) const;
+  [[nodiscard]] point origin_becomes_point( point p ) const;
 
   // Returns a dpoint; auto is used to avoid circular dependency.
-  auto to_double() const;
+  [[nodiscard]] auto to_double() const;
 
   // If this point is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line in
   // each direction (or possibly only one direction).
-  point clamped( rect const& r ) const;
+  [[nodiscard]] point clamped( rect const& r ) const;
 
-  bool is_inside( rect const& r ) const;
+  [[nodiscard]] bool is_inside( rect const& r ) const;
 
-  bool operator==( point const& ) const = default;
+  [[nodiscard]] bool operator==( point const& ) const = default;
 
   void operator+=( size const s );
 
-  size operator-( point const rhs ) const;
+  [[nodiscard]] size operator-( point const rhs ) const;
 
-  point operator*( int scale ) const;
+  [[nodiscard]] point operator*( int scale ) const;
 
-  point operator/( int scale ) const;
+  [[nodiscard]] point operator/( int scale ) const;
 
-  point moved_left( int by = 1 ) const;
-  point moved_right( int by = 1 ) const;
-  point moved_up( int by = 1 ) const;
-  point moved_down( int by = 1 ) const;
+  [[nodiscard]] point moved_left( int by = 1 ) const;
+  [[nodiscard]] point moved_right( int by = 1 ) const;
+  [[nodiscard]] point moved_up( int by = 1 ) const;
+  [[nodiscard]] point moved_down( int by = 1 ) const;
 };
 
 /****************************************************************
@@ -135,38 +135,40 @@ struct dpoint {
   double x = 0.0;
   double y = 0.0;
 
-  dsize distance_from_origin() const {
+  [[nodiscard]] dsize distance_from_origin() const {
     return dsize{ .w = x, .h = y };
   }
 
-  point truncated() const {
+  [[nodiscard]] point truncated() const {
     return point{ .x = int( x ), .y = int( y ) };
   }
 
-  dpoint clamped( drect const& r ) const;
+  [[nodiscard]] dpoint clamped( drect const& r ) const;
 
-  bool is_inside( drect const& r ) const;
+  [[nodiscard]] bool is_inside( drect const& r ) const;
 
-  dpoint point_becomes_origin( dpoint p ) const;
-  dpoint origin_becomes_point( dpoint p ) const;
+  [[nodiscard]] dpoint point_becomes_origin( dpoint p ) const;
+  [[nodiscard]] dpoint origin_becomes_point( dpoint p ) const;
 
-  dsize fmod( double d ) const;
+  [[nodiscard]] dsize fmod( double d ) const;
 
   void operator+=( dsize s );
 
   void operator-=( dsize s );
 
-  dpoint operator-( dsize s ) const;
+  [[nodiscard]] dpoint operator-( dsize s ) const;
 
-  dsize operator-( dpoint const rhs ) const;
+  [[nodiscard]] dsize operator-( dpoint const rhs ) const;
 
-  dpoint operator-() const { return dpoint{ .x = -x, .y = -y }; }
+  [[nodiscard]] dpoint operator-() const {
+    return dpoint{ .x = -x, .y = -y };
+  }
 
-  dpoint operator*( double scale ) const;
+  [[nodiscard]] dpoint operator*( double scale ) const;
 
-  dpoint operator/( double scale ) const;
+  [[nodiscard]] dpoint operator/( double scale ) const;
 
-  bool operator==( dpoint const& ) const = default;
+  [[nodiscard]] bool operator==( dpoint const& ) const = default;
 };
 
 inline auto point::to_double() const {
@@ -189,13 +191,13 @@ struct rect {
 
   static rect from( point first, point opposite );
 
-  int area() const { return size.area(); }
+  [[nodiscard]] int area() const { return size.area(); }
 
   // Is inside or touching borders.
-  bool is_inside( rect const other ) const;
+  [[nodiscard]] bool is_inside( rect const other ) const;
 
   // Is inside or touching border.
-  bool contains( point const p ) const;
+  [[nodiscard]] bool contains( point const p ) const;
 
   // Returns a new rect with the same size but with origin given
   // by `p`.
@@ -220,15 +222,15 @@ struct rect {
   // Returns a drect; auto is used to avoid circular dependency.
   auto to_double() const;
 
-  point nw() const;
-  point ne() const;
-  point se() const;
-  point sw() const;
+  [[nodiscard]] point nw() const;
+  [[nodiscard]] point ne() const;
+  [[nodiscard]] point se() const;
+  [[nodiscard]] point sw() const;
 
-  int top() const;
-  int bottom() const;
-  int right() const;
-  int left() const;
+  [[nodiscard]] int top() const;
+  [[nodiscard]] int bottom() const;
+  [[nodiscard]] int right() const;
+  [[nodiscard]] int left() const;
 
   [[nodiscard]] rect with_new_right_edge( int edge ) const;
   [[nodiscard]] rect with_new_left_edge( int edge ) const;
@@ -256,11 +258,11 @@ struct rect {
   // that dimension will remain as-is.
   [[nodiscard]] rect with_edges_removed( int n = 1 ) const;
 
-  rect operator*( int scale ) const;
+  [[nodiscard]] rect operator*( int scale ) const;
 
-  rect operator/( int scale ) const;
+  [[nodiscard]] rect operator/( int scale ) const;
 
-  bool operator==( rect const& ) const = default;
+  [[nodiscard]] bool operator==( rect const& ) const = default;
 };
 
 /****************************************************************
@@ -280,30 +282,30 @@ struct drect {
   [[nodiscard]] base::maybe<drect> clipped_by(
       drect const other ) const;
 
-  drect normalized() const;
+  [[nodiscard]] drect normalized() const;
 
-  dpoint nw() const;
-  dpoint ne() const;
-  dpoint se() const;
-  dpoint sw() const;
+  [[nodiscard]] dpoint nw() const;
+  [[nodiscard]] dpoint ne() const;
+  [[nodiscard]] dpoint se() const;
+  [[nodiscard]] dpoint sw() const;
 
-  double top() const;
-  double bottom() const;
-  double right() const;
-  double left() const;
+  [[nodiscard]] double top() const;
+  [[nodiscard]] double bottom() const;
+  [[nodiscard]] double right() const;
+  [[nodiscard]] double left() const;
 
-  rect truncated() const;
+  [[nodiscard]] rect truncated() const;
 
-  drect clamped( drect bounds ) const;
+  [[nodiscard]] drect clamped( drect bounds ) const;
 
-  drect point_becomes_origin( dpoint p ) const;
-  drect origin_becomes_point( dpoint p ) const;
+  [[nodiscard]] drect point_becomes_origin( dpoint p ) const;
+  [[nodiscard]] drect origin_becomes_point( dpoint p ) const;
 
-  drect operator*( double scale ) const;
+  [[nodiscard]] drect operator*( double scale ) const;
 
-  drect operator/( double scale ) const;
+  [[nodiscard]] drect operator/( double scale ) const;
 
-  bool operator==( drect const& ) const = default;
+  [[nodiscard]] bool operator==( drect const& ) const = default;
 };
 
 inline auto rect::to_double() const {
@@ -318,27 +320,31 @@ inline auto rect::to_double() const {
 /****************************************************************
 ** Free Functions
 *****************************************************************/
-dpoint centered_in( dsize s, drect r );
+[[nodiscard]] dpoint centered_in( dsize s, drect r );
 
-point centered_in( size s, rect r );
+[[nodiscard]] point centered_in( size s, rect r );
 
 // Will return the upper-left coordinate of a rect obtained by
 // centering the area s along the given "wall" of the rect.
-point centered_at_bottom( size const& s, rect const& r );
-point centered_at_top( size const& s, rect const& r );
-point centered_at_left( size const& s, rect const& r );
-point centered_at_right( size const& s, rect const& r );
+[[nodiscard]] point centered_at_bottom( size const& s,
+                                        rect const& r );
+[[nodiscard]] point centered_at_top( size const& s,
+                                     rect const& r );
+[[nodiscard]] point centered_at_left( size const& s,
+                                      rect const& r );
+[[nodiscard]] point centered_at_right( size const& s,
+                                       rect const& r );
 
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
-point operator+( point const p, size const s );
-point operator+( size const s, point const p );
+[[nodiscard]] point operator+( point const p, size const s );
+[[nodiscard]] point operator+( size const s, point const p );
 
-dpoint operator+( dpoint const p, dsize const s );
-dpoint operator+( dsize const s, dpoint const p );
+[[nodiscard]] dpoint operator+( dpoint const p, dsize const s );
+[[nodiscard]] dpoint operator+( dsize const s, dpoint const p );
 
-point operator*( point const p, size const s );
+[[nodiscard]] point operator*( point const p, size const s );
 
 } // namespace gfx
 
