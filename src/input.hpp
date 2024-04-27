@@ -146,16 +146,6 @@ using event_base = base::variant<
   win_event_t
 >;
 
-struct event_t : public event_base {
-  using event_base::event_base;
-
-  event_base const& as_base() const { return *this; }
-  event_base& as_base() { return *this; }
-};
-
-// clang-format on
-NOTHROW_MOVE( event_t );
-
 enum class e_input_event {
   unknown_event,
   quit_event,
@@ -166,6 +156,27 @@ enum class e_input_event {
   mouse_drag_event,
   win_event
 };
+
+struct event_t : public event_base {
+  using event_base::event_base;
+
+  event_base const& as_base() const { return *this; }
+  event_base& as_base() { return *this; }
+
+  using unknown_event = unknown_event_t;
+  using quit_event = quit_event_t;
+  using key_event = key_event_t;
+  using mouse_move_event = mouse_move_event_t;
+  using mouse_button_event = mouse_button_event_t;
+  using mouse_wheel_event = mouse_wheel_event_t;
+  using mouse_drag_event = mouse_drag_event_t;
+  using win_event= win_event_t;
+
+  using e = e_input_event;
+};
+
+// clang-format on
+NOTHROW_MOVE( event_t );
 
 // Grab all new events and put them into the queue.
 void pump_event_queue();
