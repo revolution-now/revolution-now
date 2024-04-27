@@ -121,6 +121,8 @@ struct point {
 
   [[nodiscard]] point operator/( int scale ) const;
 
+  [[nodiscard]] point operator/( size scale ) const;
+
   [[nodiscard]] point moved_left( int by = 1 ) const;
   [[nodiscard]] point moved_right( int by = 1 ) const;
   [[nodiscard]] point moved_up( int by = 1 ) const;
@@ -241,6 +243,9 @@ struct rect {
   [[nodiscard]] rect origin_becomes_point( point p ) const;
 
   [[nodiscard]] rect with_border_added( int n = 1 ) const;
+
+  [[nodiscard]] rect with_inc_size( int n = 1 ) const;
+  [[nodiscard]] rect with_dec_size( int n = 1 ) const;
 
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:

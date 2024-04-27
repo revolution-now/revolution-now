@@ -189,6 +189,13 @@ point point::operator/( int scale ) const {
   return res;
 }
 
+point point::operator/( size scale ) const {
+  point res = *this;
+  res.x /= scale.w;
+  res.y /= scale.h;
+  return res;
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/
@@ -409,6 +416,26 @@ rect rect::with_border_added( int n ) const {
   return rect{
       .origin = origin.moved_up( n ).moved_left( n ),
       .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
+}
+
+rect rect::with_inc_size( int n ) const {
+  auto r = *this;
+  for( int i = 0; i < n; ++i ) {
+    ++r.size.w;
+    ++r.size.h;
+  }
+  return r;
+}
+
+rect rect::with_dec_size( int n ) const {
+  auto r = *this;
+  for( int i = 0; i < n; ++i ) {
+    --r.size.w;
+    --r.size.h;
+  }
+  if( r.size.w < 0 ) r.size.w = 0;
+  if( r.size.h < 0 ) r.size.h = 0;
+  return r;
 }
 
 rect rect::with_edges_removed( int n ) const {

@@ -225,6 +225,12 @@ TEST_CASE( "[gfx/cartesian] operator/( int )" ) {
   REQUIRE( p / 2 == point{ .x = 2, .y = 1 } );
 }
 
+TEST_CASE( "[gfx/cartesian] operator/( size )" ) {
+  point p{ .x = 12, .y = 12 };
+  size  s{ .w = 2, .h = 4 };
+  REQUIRE( p / s == point{ .x = 6, .y = 3 } );
+}
+
 TEST_CASE( "[gfx/cartesian] point::point_becomes_origin" ) {
   point const p{ .x = 4, .y = 2 };
   point const arg{ .x = 2, .y = 1 };
@@ -998,6 +1004,31 @@ TEST_CASE( "[gfx/cartesian] rect::with_new_bottom_edge" ) {
   expect   = { .origin = { .x = 5, .y = 5 },
                .size   = { .w = 7, .h = 45 } };
   REQUIRE( r.with_new_bottom_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_inc_size" ) {
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  rect expected{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = 3, .h = 5 } };
+  REQUIRE( r.with_inc_size() == expected );
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 4, .h = 6 } };
+  REQUIRE( r.with_inc_size( 2 ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_dec_size" ) {
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  rect expected{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = 1, .h = 3 } };
+  REQUIRE( r.with_dec_size() == expected );
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 2 } };
+  REQUIRE( r.with_dec_size( 2 ) == expected );
+  expected = { .origin = { .x = 4, .y = 2 },
+               .size   = { .w = 0, .h = 0 } };
+  REQUIRE( r.with_dec_size( 10 ) == expected );
 }
 
 /****************************************************************
