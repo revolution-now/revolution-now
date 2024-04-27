@@ -228,6 +228,13 @@
 /****************************************************************
 ** Try to unwrap a wrapped type.
 *****************************************************************/
+// TODO: these should be gradually migrated to the _T variants
+// which require specifying a type; it was probably a mistake to
+// just always use auto&&, since we can't specify the type, we
+// can't specify const, and we can't receive by value. When all
+// usages are migrated to the _T variants then we should get rid
+// of the old ones and rename the _T ones.
+
 #define UNWRAP_CHECK( a, ... )                       \
   auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
@@ -264,6 +271,11 @@
   if( !STRING_JOIN( __x, __LINE__ ).has_value() )             \
     return std::move( STRING_JOIN( __x, __LINE__ ) ).error(); \
   auto&& var = *STRING_JOIN( __x, __LINE__ );
+
+#define UNWRAP_RETURN_VOID_T( var, ... )                  \
+  auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;      \
+  if( !STRING_JOIN( __x, __LINE__ ).has_value() ) return; \
+  BASE_IDENTITY( var ) = *STRING_JOIN( __x, __LINE__ );
 
 #define UNWRAP_RETURN_FALSE( var, ... )                         \
   auto&& STRING_JOIN( __x, __LINE__ ) = __VA_ARGS__;            \
