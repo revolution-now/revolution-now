@@ -269,6 +269,10 @@ bool rect::is_inside( rect const other ) const {
 }
 
 rect rect::normalized() const {
+  if( size.w >= 0 && size.h >= 0 )
+    // Fase path for the (likely) usual case when the rect is al-
+    // ready normalized.
+    return *this;
   rect res = *this;
   if( res.size.w < 0 ) {
     res.origin.x += res.size.w;
