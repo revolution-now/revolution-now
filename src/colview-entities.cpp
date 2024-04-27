@@ -1750,8 +1750,9 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       ss, ts, player, colony, comm_block_width );
   g_composition.entities[e_colview_entity::commodities] =
       market_commodities.get();
-  pos = centered_bottom( market_commodities->delta(),
-                         Rect::from( Coord{}, canvas_size ) );
+  pos = Coord::from_gfx( gfx::centered_at_bottom(
+      market_commodities->delta(),
+      Rect::from( Coord{}, canvas_size ) ) );
   auto const market_commodities_top = pos.y;
   views.push_back( ui::OwningPositionedView{
       .view = std::move( market_commodities ), .coord = pos } );

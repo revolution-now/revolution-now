@@ -1334,6 +1334,36 @@ TEST_CASE( "[gfx/cartesian] centered_in (int)" ) {
   REQUIRE( centered_in( delta, r ) == expect );
 }
 
+TEST_CASE( "[coord] centered_at_*" ) {
+  rect  r;
+  size  s;
+  point expect;
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 4 };
+  REQUIRE( centered_at_bottom( s, r ) == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 2 };
+  REQUIRE( centered_at_top( s, r ) == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 1, .y = 3 };
+  REQUIRE( centered_at_left( s, r ) == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 4, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 3 };
+  REQUIRE( centered_at_right( s, r ) == expect );
+}
+
 /****************************************************************
 ** std::hash<gfx::point>
 *****************************************************************/

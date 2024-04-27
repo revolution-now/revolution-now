@@ -209,26 +209,6 @@ TEST_CASE( "[coord] centered*" ) {
   delta  = Delta{ .w = 3, .h = 4 };
   expect = Coord{ .x = 2, .y = 3 };
   REQUIRE( centered( delta, rect ) == expect );
-
-  rect   = Rect{ .x = 1, .y = 2, .w = 5, .h = 6 };
-  delta  = Delta{ .w = 3, .h = 4 };
-  expect = Coord{ .x = 2, .y = 4 };
-  REQUIRE( centered_bottom( delta, rect ) == expect );
-
-  rect   = Rect{ .x = 1, .y = 2, .w = 5, .h = 6 };
-  delta  = Delta{ .w = 3, .h = 4 };
-  expect = Coord{ .x = 2, .y = 0 };
-  REQUIRE( centered_top( delta, rect ) == expect );
-
-  rect   = Rect{ .x = 1, .y = 2, .w = 5, .h = 6 };
-  delta  = Delta{ .w = 3, .h = 4 };
-  expect = Coord{ .x = 0, .y = 3 };
-  REQUIRE( centered_left( delta, rect ) == expect );
-
-  rect   = Rect{ .x = 1, .y = 2, .w = 4, .h = 6 };
-  delta  = Delta{ .w = 3, .h = 4 };
-  expect = Coord{ .x = 2, .y = 3 };
-  REQUIRE( centered_right( delta, rect ) == expect );
 }
 
 TEST_CASE( "[coord] Delta::abs" ) {

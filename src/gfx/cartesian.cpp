@@ -571,6 +571,30 @@ point centered_in( size s, rect r ) {
            .y = r.origin.y + r.size.h / 2 - s.h / 2 };
 }
 
+point centered_at_bottom( size const& s, rect const& r ) {
+  point upper_left = centered_in( s, r );
+  upper_left.y     = r.bottom() - s.h;
+  return upper_left;
+}
+
+point centered_at_top( size const& s, rect const& r ) {
+  point upper_left = centered_in( s, r );
+  upper_left.y     = r.origin.y;
+  return upper_left;
+}
+
+point centered_at_left( size const& s, rect const& r ) {
+  point upper_left = centered_in( s, r );
+  upper_left.x     = r.origin.x;
+  return upper_left;
+}
+
+point centered_at_right( size const& s, rect const& r ) {
+  point upper_left = centered_in( s, r );
+  upper_left.x     = r.right() - s.w;
+  return upper_left;
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

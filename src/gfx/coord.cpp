@@ -525,30 +525,6 @@ Coord centered( Delta const& delta, Rect const& rect ) {
            .y = rect.y + rect.h / 2 - delta.h / 2 };
 }
 
-Coord centered_bottom( Delta const& delta, Rect const& rect ) {
-  Coord upper_left = centered( delta, rect );
-  upper_left.y     = rect.bottom_edge() - delta.h;
-  return upper_left;
-}
-
-Coord centered_top( Delta const& delta, Rect const& rect ) {
-  Coord upper_left = centered( delta, rect );
-  upper_left.y     = 0;
-  return upper_left;
-}
-
-Coord centered_left( Delta const& delta, Rect const& rect ) {
-  Coord upper_left = centered( delta, rect );
-  upper_left.x     = 0;
-  return upper_left;
-}
-
-Coord centered_right( Delta const& delta, Rect const& rect ) {
-  Coord upper_left = centered( delta, rect );
-  upper_left.x     = rect.right_edge() - delta.w;
-  return upper_left;
-}
-
 int inner_product( Delta const& fst, Delta const& snd ) {
   return fst.w * snd.w + fst.h * snd.h;
 }

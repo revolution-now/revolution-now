@@ -322,6 +322,13 @@ dpoint centered_in( dsize s, drect r );
 
 point centered_in( size s, rect r );
 
+// Will return the upper-left coordinate of a rect obtained by
+// centering the area s along the given "wall" of the rect.
+point centered_at_bottom( size const& s, rect const& r );
+point centered_at_top( size const& s, rect const& r );
+point centered_at_left( size const& s, rect const& r );
+point centered_at_right( size const& s, rect const& r );
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
