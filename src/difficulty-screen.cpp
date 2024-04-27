@@ -24,6 +24,7 @@
 // config
 #include "config/nation.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/difficulty.rds.hpp"
@@ -47,6 +48,7 @@
 #include "base/string.hpp"
 
 using namespace std;
+using namespace gfx;
 
 namespace rn {
 
@@ -55,8 +57,13 @@ namespace {
 using ::base::NoDiscard;
 
 struct DifficultyLayout {
-  gfx::Matrix<maybe<e_difficulty>> grid;
-  gfx::point                       selected = {};
+  Matrix<maybe<e_difficulty>> grid;
+  point                       selected = {};
+
+  e_difficulty selected_difficulty() const {
+    CHECK( grid[selected].has_value() );
+    return *grid[selected];
+  }
 
   void check_invariants() const {
     CHECK( grid.size().area() == 6 );
@@ -216,9 +223,49 @@ void draw_empty_rect_no_corners( rr::Painter&     painter,
   }
 }
 
+struct CenteredTyper {
+  CenteredTyper( rr::Renderer& renderer, gfx::pixel color,
+                 gfx::rect box )
+    : renderer_( renderer ), color_( color ), cur_box_( box ) {}
+
+  void render_line_centered( string_view line ) {
+    gfx::size const text_box_size =
+        rr::rendered_text_line_size_pixels( line );
+    if( cur_box_.size.h < text_box_size.h ) return;
+    gfx::rect const text_box =
+        gfx::rect{ .origin = gfx::centered_at_top( text_box_size,
+                                                   cur_box_ ),
+                   .size   = text_box_size };
+    gfx::pixel const shadow_color = gfx::pixel::black();
+    { // shadow
+      renderer_
+          .typer( text_box.nw() + gfx::size{ .w = 1 },
+                  shadow_color )
+          .write( line );
+      renderer_
+          .typer( text_box.nw() + gfx::size{ .h = 1 },
+                  shadow_color )
+          .write( line );
+    }
+    { // foreground text.
+      rr::Typer typer = renderer_.typer( text_box.nw(), color_ );
+      typer.write( line );
+      typer.newline();
+      // Plus 2 because we're also doing downward shadows.
+      cur_box_ =
+          cur_box_.with_new_top_edge( typer.position().y + 2 );
+    }
+  };
+
+ private:
+  rr::Renderer& renderer_;
+  gfx::pixel    color_   = {};
+  gfx::rect     cur_box_ = {};
+};
+
 void draw_difficulty_box_contents(
-    rr::Renderer& renderer, const gfx::rect box,
-    const e_difficulty difficulty ) {
+    rr::Renderer& renderer, gfx::rect const box,
+    e_difficulty const difficulty ) {
   string const label = [&] {
     string_view const name = refl::enum_value_name( difficulty );
     string const capitalized = base::capitalize_initials( name );
@@ -227,8 +274,6 @@ void draw_difficulty_box_contents(
 
   gfx::pixel const text_color =
       color_for_difficulty( difficulty );
-  gfx::pixel const shadow_color = gfx::pixel::black();
-
   int const text_height =
       rr::rendered_text_line_size_pixels( "X" ).h;
 
@@ -236,37 +281,29 @@ void draw_difficulty_box_contents(
   cur_box = cur_box.with_new_top_edge( cur_box.center().y -
                                        text_height / 2 );
 
-  auto render_line_centered = [&]( string_view line ) {
-    gfx::size const text_box_size =
-        rr::rendered_text_line_size_pixels( line );
-    if( cur_box.size.h < text_box_size.h ) return;
-    gfx::rect const text_box = gfx::rect{
-        .origin = gfx::centered_at_top( text_box_size, cur_box ),
-        .size   = text_box_size };
-    { // shadow
-      renderer
-          .typer( text_box.nw() + gfx::size{ .w = 1 },
-                  shadow_color )
-          .write( line );
-      renderer
-          .typer( text_box.nw() + gfx::size{ .h = 1 },
-                  shadow_color )
-          .write( line );
-    }
-    { // foreground text.
-      rr::Typer typer =
-          renderer.typer( text_box.nw(), text_color );
-      typer.write( line );
-      typer.newline();
-      // Plus 1 because we're also doing downward shadows.
-      cur_box =
-          cur_box.with_new_top_edge( typer.position().y + 1 );
-    }
-  };
+  CenteredTyper ctyper( renderer, text_color, cur_box );
 
-  render_line_centered( label );
-  render_line_centered( fmt::format(
+  ctyper.render_line_centered( label );
+  ctyper.render_line_centered( fmt::format(
       "({})", description_for_difficulty( difficulty ) ) );
+}
+
+void draw_info_box_contents( rr::Renderer&   renderer,
+                             gfx::rect const box ) {
+  gfx::pixel const text_color = config_ui.dialog_text.normal;
+  int const        text_height =
+      rr::rendered_text_line_size_pixels( "X" ).h;
+
+  gfx::rect cur_box = box;
+  cur_box = cur_box.with_new_top_edge( cur_box.center().y -
+                                       text_height / 2 );
+
+  CenteredTyper ctyper( renderer, text_color, cur_box );
+
+  ctyper.render_line_centered( "Choose Difficulty Level" );
+  ctyper.render_line_centered( "" );
+  ctyper.render_line_centered( "" );
+  ctyper.render_line_centered( "(click here when finished)" );
 }
 
 /****************************************************************
@@ -276,6 +313,9 @@ struct DifficultyScreen : public IPlane {
   // State
   wait_promise<maybe<e_difficulty>> result_ = {};
   DifficultyLayout                  layout_ = {};
+
+  int const kBorderWidth  = 6;
+  int const kPaddingWidth = 4;
 
  public:
   DifficultyScreen() {
@@ -295,8 +335,43 @@ struct DifficultyScreen : public IPlane {
 
   void advance_state() override { recomposite(); }
 
+  gfx::size get_subrect_size() const {
+    auto const normal_area =
+        compositor::section( compositor::e_section::normal )
+            .value_or( {} );
+    return ( normal_area / layout_.grid.size() )
+        .delta()
+        .to_gfx();
+  }
+
+  rect outer_square_for_block( point block ) const {
+    gfx::size const subrect_size = get_subrect_size();
+    auto const      p            = block * subrect_size;
+    rect const      outer_r{ .origin = p, .size = subrect_size };
+    return outer_r;
+  }
+
+  rect inner_square_for_block( point block ) const {
+    rect const outer_r = outer_square_for_block( block );
+    rect const inner_r = outer_r.with_edges_removed(
+        kPaddingWidth + kBorderWidth );
+    return inner_r;
+  }
+
+  maybe<point> clicked_grid_square( point const p ) const {
+    UNWRAP_RETURN(
+        normal_area,
+        compositor::section( compositor::e_section::normal ) );
+    if( normal_area.area() == 0 ) return nothing;
+    gfx::size const subrect_size = get_subrect_size();
+    point const     block        = p / subrect_size;
+    if( !block.is_inside( layout_.grid.rect() ) ) return nothing;
+    rect const inner_r = inner_square_for_block( block );
+    if( !p.is_inside( inner_r ) ) return nothing;
+    return block;
+  }
+
   void draw( rr::Renderer& renderer ) const override {
-    using namespace gfx;
     using size = gfx::size;
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
@@ -310,22 +385,108 @@ struct DifficultyScreen : public IPlane {
     }
 
     auto const& grid = layout_.grid;
-    size const  subrect_size =
-        ( normal_area / grid.size() ).delta();
-    for( point const square : rect_iterator( grid.rect() ) ) {
-      auto const p = square * subrect_size;
-      rect const r{ .origin = p, .size = subrect_size };
-      rect const inner_r = r.with_edges_removed( 4 );
-      maybe<e_difficulty> const difficulty = grid[square];
-      if( difficulty.has_value() )
-        draw_difficulty_box_contents( renderer, inner_r,
-                                      *difficulty );
-      draw_empty_rect_no_corners( painter, inner_r,
-                                  pixel::black() );
-      if( square == layout_.selected ) {
+    for( point const block : rect_iterator( grid.rect() ) ) {
+      rect const outer_r = outer_square_for_block( block );
+      rect const inner_r = inner_square_for_block( block );
+
+      maybe<e_difficulty> const difficulty = grid[block];
+
+      if( !difficulty.has_value() ) {
+        draw_info_box_contents( renderer, outer_r );
+        continue;
+      }
+
+      // Draw shadow gradient inside box.
+      {
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 )
+        SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                                 0 )
+
+        double const gradient_slope =
+            1.0 / ( inner_r.size.pythagorean() / 3 );
+        {
+          SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .3 )
+          SCOPED_RENDERER_MOD_SET(
+              painter_mods.depixelate.stage_gradient,
+              dsize{ .w = -gradient_slope,
+                     .h = gradient_slope } );
+          rect const ne_quadrant =
+              rect::from( inner_r.center(), inner_r.ne() );
+          SCOPED_RENDERER_MOD_SET(
+              painter_mods.depixelate.stage_anchor,
+              ne_quadrant.center().to_double() );
+          rr::Painter painter = renderer.painter();
+          painter.draw_solid_rect( inner_r, pixel::black() );
+        }
+        {
+          SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .1 )
+          SCOPED_RENDERER_MOD_SET(
+              painter_mods.depixelate.stage_gradient,
+              dsize{ .w = gradient_slope,
+                     .h = -gradient_slope } );
+          rect const sw_quadrant =
+              rect::from( inner_r.sw(), inner_r.center() );
+          SCOPED_RENDERER_MOD_SET(
+              painter_mods.depixelate.stage_anchor,
+              sw_quadrant.center().to_double() );
+          rr::Painter painter = renderer.painter();
+          painter.draw_solid_rect( inner_r, pixel::banana() );
+        }
+
+        painter.draw_solid_rect(
+            inner_r, pixel::black().with_alpha( 200 ) );
+      }
+
+      // Draw border.
+      {
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .55 )
+
+        for( int i = 0; i < kBorderWidth; ++i ) {
+          double const percent =
+              1.0 - double( i + 1 ) / kBorderWidth;
+          SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, percent )
+          rr::Painter painter = renderer.painter();
+
+          // top bar.
+          painter.draw_horizontal_line(
+              { .x = inner_r.left() - i,
+                .y = inner_r.top() - i - 1 },
+              inner_r.size.w + 2 * i, gfx::pixel::black() );
+
+          // right bar.
+          painter.draw_vertical_line(
+              { .x = inner_r.right() + i,
+                .y = inner_r.top() - i - 1 },
+              inner_r.size.h + 2 * i + 1, gfx::pixel::black() );
+
+          // bottom bar.
+          painter.draw_horizontal_line(
+              { .x = inner_r.left() - i - 1,
+                .y = inner_r.bottom() + i },
+              inner_r.size.w + 2 * i + 1,
+              gfx::pixel::banana().with_alpha( 127 ) );
+
+          // left bar.
+          painter.draw_vertical_line(
+              { .x = inner_r.left() - i - 1,
+                .y = inner_r.top() - i },
+              inner_r.size.h + 2 * i,
+              gfx::pixel::banana().with_alpha( 127 ) );
+        }
+      }
+
+      CHECK( difficulty.has_value() );
+      draw_difficulty_box_contents( renderer, inner_r,
+                                    *difficulty );
+      if( block == layout_.selected ) {
         CHECK( difficulty.has_value() );
-        auto color = color_for_difficulty( *difficulty );
-        draw_empty_rect_no_corners( painter, inner_r, color );
+        auto      color   = color_for_difficulty( *difficulty );
+        int const padding = 2;
+        draw_empty_rect_no_corners(
+            painter,
+            inner_r.with_edges_removed( padding )
+                .with_dec_size(),
+            color );
       }
     }
   }
@@ -383,6 +544,30 @@ struct DifficultyScreen : public IPlane {
             alter_selected( []( auto& sel ) { ++sel.y; } );
             break;
         }
+        break;
+      }
+      CASE( mouse_button_event ) {
+        if( mouse_button_event.buttons !=
+            input::e_mouse_button_event::left_up )
+          break;
+        maybe<point> const grid_square =
+            clicked_grid_square( mouse_button_event.pos );
+        if( !grid_square.has_value() )
+          // This means that they clicked on the border some-
+          // where.
+          break;
+        CHECK( grid_square->is_inside( layout_.grid.rect() ) );
+        maybe<e_difficulty> const difficulty =
+            layout_.grid[*grid_square];
+        if( !difficulty.has_value() ) {
+          // This means that they clicked on the info square, so
+          // they are finished.
+          result_.set_value( layout_.selected_difficulty() );
+          break;
+        }
+        // They clicked on a difficulty inner square, so select
+        // it.
+        layout_.selected = *grid_square;
         break;
       }
       default:
