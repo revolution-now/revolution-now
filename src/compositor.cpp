@@ -170,18 +170,21 @@ maybe<Rect> section( e_section sec ) {
       break;
     }
   }
-  // Check invariants before returning.
+
   if( res.has_value() ) {
+    res = res->normalized();
+    res = res->clamp( main_window_logical_rect() );
+  }
+
+  if( res.has_value() ) {
+    // Check invariants before returning.
     Rect total [[maybe_unused]] = main_window_logical_rect();
-    DCHECK( res->right_edge() <= total.right_edge(),
-            "section {} is out of bounds", sec );
-    DCHECK( res->left_edge() >= total.left_edge(),
-            "section {} is out of bounds", sec );
-    DCHECK( res->bottom_edge() <= total.bottom_edge(),
-            "section {} is out of bounds", sec );
-    DCHECK( res->top_edge() >= total.top_edge(),
-            "section {} is out of bounds", sec );
+    CHECK_LE( res->right_edge(), total.right_edge() );
+    CHECK_GE( res->left_edge(), total.left_edge() );
+    CHECK_LE( res->bottom_edge(), total.bottom_edge() );
+    CHECK_GE( res->top_edge(), total.top_edge() );
   }
   return res;
 }
+
 } // namespace rn::compositor

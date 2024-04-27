@@ -286,9 +286,10 @@ struct DifficultyScreen : public IPlane {
   }
 
   void recomposite() {
-    UNWRAP_CHECK(
-        normal_area,
+    UNWRAP_RETURN_VOID_T(
+        auto const normal_area,
         compositor::section( compositor::e_section::normal ) );
+    if( normal_area.area() == 0 ) return;
     layout_.resize_grid_for_screen_size( normal_area.delta() );
   }
 
@@ -297,9 +298,10 @@ struct DifficultyScreen : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     using namespace gfx;
     using size = gfx::size;
-    UNWRAP_CHECK(
-        normal_area,
+    UNWRAP_RETURN_VOID_T(
+        auto const normal_area,
         compositor::section( compositor::e_section::normal ) );
+    if( normal_area.area() == 0 ) return;
     rr::Painter painter = renderer.painter();
 
     {
