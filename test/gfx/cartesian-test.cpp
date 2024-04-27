@@ -933,6 +933,73 @@ TEST_CASE( "[gfx/cartesian] rect::to_double" ) {
                   .size   = { .w = 4.0, .h = 2.0 } } );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::with_new_right_edge" ) {
+  auto const r = rect{ .origin = { .x = 5, .y = 5 },
+                       .size   = { .w = 7, .h = 9 } };
+  int        new_edge{};
+  rect       expect{};
+
+  new_edge = 7;
+  expect   = { .origin = { .x = 5, .y = 5 },
+               .size   = { .w = 2, .h = 9 } };
+  REQUIRE( r.with_new_right_edge( new_edge ) == expect );
+
+  new_edge = 50;
+  expect   = { .origin = { 5, 5 }, .size = { 45, 9 } };
+  REQUIRE( r.with_new_right_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_new_left_edge" ) {
+  auto const r = rect{ .origin = { .x = 5, .y = 5 },
+                       .size   = { .w = 7, .h = 9 } };
+  int        new_edge{};
+  rect       expect{};
+
+  new_edge = 7;
+  expect   = { .origin = { .x = 7, .y = 5 },
+               .size   = { .w = 5, .h = 9 } };
+  REQUIRE( r.with_new_left_edge( new_edge ) == expect );
+
+  new_edge = 3;
+  expect   = { .origin = { .x = 3, .y = 5 },
+               .size   = { .w = 9, .h = 9 } };
+  REQUIRE( r.with_new_left_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_new_top_edge" ) {
+  auto const r = rect{ .origin = { .x = 5, .y = 5 },
+                       .size   = { .w = 7, .h = 9 } };
+  int        new_edge{};
+  rect       expect{};
+
+  new_edge = 7;
+  expect   = { .origin = { .x = 5, .y = 7 },
+               .size   = { .w = 7, .h = 7 } };
+  REQUIRE( r.with_new_top_edge( new_edge ) == expect );
+
+  new_edge = 3;
+  expect   = { .origin = { .x = 5, .y = 3 },
+               .size   = { .w = 7, .h = 11 } };
+  REQUIRE( r.with_new_top_edge( new_edge ) == expect );
+}
+
+TEST_CASE( "[gfx/cartesian] rect::with_new_bottom_edge" ) {
+  auto const r = rect{ .origin = { .x = 5, .y = 5 },
+                       .size   = { .w = 7, .h = 9 } };
+  int        new_edge{};
+  rect       expect{};
+
+  new_edge = 7;
+  expect   = { .origin = { .x = 5, .y = 5 },
+               .size   = { .w = 7, .h = 2 } };
+  REQUIRE( r.with_new_bottom_edge( new_edge ) == expect );
+
+  new_edge = 50;
+  expect   = { .origin = { .x = 5, .y = 5 },
+               .size   = { .w = 7, .h = 45 } };
+  REQUIRE( r.with_new_bottom_edge( new_edge ) == expect );
+}
+
 /****************************************************************
 ** drect
 *****************************************************************/

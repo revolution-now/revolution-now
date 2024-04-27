@@ -324,6 +324,32 @@ int rect::right() const {
   return norm.origin.x + norm.size.w;
 }
 
+rect rect::with_new_right_edge( const int edge ) const {
+  return rect{ .origin = { .x = origin.x, .y = origin.y },
+               .size   = { .w = edge - origin.x, .h = size.h } }
+      .normalized();
+}
+
+rect rect::with_new_left_edge( const int edge ) const {
+  return rect{ .origin = { .x = edge, .y = origin.y },
+               .size   = { .w = size.w + ( origin.x - edge ),
+                           .h = size.h } }
+      .normalized();
+}
+
+rect rect::with_new_top_edge( const int edge ) const {
+  return rect{ .origin = { .x = origin.x, .y = edge },
+               .size   = { .w = size.w,
+                           .h = size.h + ( origin.y - edge ) } }
+      .normalized();
+}
+
+rect rect::with_new_bottom_edge( const int edge ) const {
+  return rect{ .origin = { .x = origin.x, .y = origin.y },
+               .size   = { .w = size.w, .h = edge - origin.y } }
+      .normalized();
+}
+
 maybe<rect> rect::clipped_by( rect const other ) const {
   rect res = this->normalized();
   if( res.right() > other.right() )

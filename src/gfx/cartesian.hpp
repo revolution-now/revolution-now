@@ -230,6 +230,11 @@ struct rect {
   int right() const;
   int left() const;
 
+  [[nodiscard]] rect with_new_right_edge( int edge ) const;
+  [[nodiscard]] rect with_new_left_edge( int edge ) const;
+  [[nodiscard]] rect with_new_top_edge( int edge ) const;
+  [[nodiscard]] rect with_new_bottom_edge( int edge ) const;
+
   [[nodiscard]] rect point_becomes_origin( point p ) const;
   [[nodiscard]] rect origin_becomes_point( point p ) const;
 
