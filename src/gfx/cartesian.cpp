@@ -540,6 +540,11 @@ dpoint centered_in( dsize s, drect r ) {
            .y = r.origin.y + r.size.h / 2 - s.h / 2 };
 }
 
+point centered_in( size s, rect r ) {
+  return { .x = r.origin.x + r.size.w / 2 - s.w / 2,
+           .y = r.origin.y + r.size.h / 2 - s.h / 2 };
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

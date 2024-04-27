@@ -1231,7 +1231,7 @@ TEST_CASE( "[gfx/cartesian] dpoint + dsize" ) {
 /****************************************************************
 ** Free Functions
 *****************************************************************/
-TEST_CASE( "[gfx/cartesian] centered*" ) {
+TEST_CASE( "[gfx/cartesian] centered_in (double)" ) {
   drect  rect;
   dsize  delta;
   dpoint expect;
@@ -1247,6 +1247,24 @@ TEST_CASE( "[gfx/cartesian] centered*" ) {
   delta  = dsize{ .w = 3, .h = 4 };
   expect = dpoint{ .x = 2, .y = 3 };
   REQUIRE( centered_in( delta, rect ) == expect );
+}
+
+TEST_CASE( "[gfx/cartesian] centered_in (int)" ) {
+  rect  r;
+  size  delta;
+  point expect;
+
+  r      = rect{ .origin = { .x = 1, .y = 1 },
+                 .size   = { .w = 0, .h = 0 } };
+  delta  = size{ .w = 4, .h = 3 };
+  expect = point{ .x = -1, .y = 0 };
+  REQUIRE( centered_in( delta, r ) == expect );
+
+  r      = rect{ .origin = { .x = 1, .y = 2 },
+                 .size   = { .w = 5, .h = 6 } };
+  delta  = size{ .w = 3, .h = 4 };
+  expect = point{ .x = 2, .y = 3 };
+  REQUIRE( centered_in( delta, r ) == expect );
 }
 
 /****************************************************************
