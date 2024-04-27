@@ -14,9 +14,11 @@
 #include "main-menu-impl.rds.hpp"
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "compositor.hpp"
 #include "game.hpp"
 #include "igui.hpp"
+#include "interrupts.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "tiles.hpp"
@@ -124,7 +126,8 @@ wait<> run_main_menu( Planes& planes, IGui& gui ) {
   MainMenuPlane main_menu_plane( planes, gui );
   group.bottom = &main_menu_plane;
 
-  co_await main_menu_plane.run();
+  co_await co::while_throws<main_menu_interrupt>(
+      [&] { return main_menu_plane.run(); } );
 }
 
 } // namespace rn
