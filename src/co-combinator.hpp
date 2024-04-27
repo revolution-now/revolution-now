@@ -237,6 +237,31 @@ template<typename Exception>
 inline constexpr Try<Exception> try_{};
 
 /****************************************************************
+** while_throws
+*****************************************************************/
+// Takes an awaitable function and keeps calling it until it re-
+// turns without throwing the given exception, at which its re-
+// turn value will be returned. If it does throw the given excep-
+// tion then it will keep being called until it doesn't. If it
+// throws some other exception then it will go uncaught.
+//
+// Take the function by const& because we need to repeatedly call
+// it and so we don't want to move it.
+template<typename Exception, typename..., typename Func>
+auto while_throws( const Func& func )
+    -> wait<typename std::invoke_result_t<Func>::value_type> {
+  using Ret = typename std::invoke_result_t<Func>::value_type;
+  while( true ) {
+    try {
+      if constexpr( std::is_same_v<Ret, std::monostate> )
+        co_await func();
+      else
+        co_return co_await func();
+    } catch( Exception const& ) {}
+  }
+}
+
+/****************************************************************
 ** Erase
 *****************************************************************/
 // Wait for a wait but ignore the result.

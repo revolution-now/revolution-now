@@ -1105,5 +1105,28 @@ TEST_CASE( "[co-combinator] fmap" ) {
   REQUIRE( *w == "5." );
 }
 
+struct my_exception {};
+
+TEST_CASE( "[co-combinator] while_throws" ) {
+  int called = 0;
+
+  wait<int> w =
+      co::while_throws<my_exception>( [&]() -> wait<int> {
+        ++called;
+        if( called < 3 ) throw my_exception{};
+        co_return called;
+      } );
+
+  REQUIRE( w.ready() );
+  REQUIRE( !w.has_exception() );
+  REQUIRE( *w == 3 );
+
+  // The following should be redundant.
+  run_all_cpp_coroutines();
+  REQUIRE( w.ready() );
+  REQUIRE( !w.has_exception() );
+  REQUIRE( *w == 3 );
+}
+
 } // namespace
 } // namespace rn::co
