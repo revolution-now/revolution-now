@@ -35,7 +35,7 @@ local unit_type = global( 'unit_type' )
 -----------------------------------------------------------------
 function M.default_options()
   return {
-    difficulty='discoverer',
+    difficulty='conquistador',
     -- This determines which nations are enabled and some proper-
     -- ties. If initial ship position is null then the randomly
     -- generated one will be used.
@@ -355,12 +355,11 @@ end
 -----------------------------------------------------------------
 local function add_testing_options( options )
   options.ordered_nations = {
-    -- { nation='english', ship_pos=nil, human=false },
-    { nation='french', ship_pos=nil, human=true },
-    -- { nation='spanish', ship_pos=nil, human=false }
-    -- { nation='dutch', ship_pos=nil, human=false }
+    { nation='english', ship_pos=nil, human=true },
+    -- { nation='french', ship_pos=nil, human=true },
+    -- { nation='spanish', ship_pos=nil, human=true }
+    -- { nation='dutch', ship_pos=nil, human=true }
   }
-  options.difficulty = 'conquistador'
   -- options.map.type = 'america'
   -- options.map.world_size = { w=4, h=4 }
 end

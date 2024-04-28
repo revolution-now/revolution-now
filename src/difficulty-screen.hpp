@@ -13,16 +13,12 @@
 // Revolution Now
 #include "wait.hpp"
 
-// base
-#include "base/vocab.hpp"
-
 namespace rn {
 
 struct Planes;
 
 enum class e_difficulty;
 
-wait<base::NoDiscard<e_difficulty>> choose_difficulty_screen(
-    Planes& planes );
+wait<e_difficulty> choose_difficulty_screen( Planes& planes );
 
 } // namespace rn

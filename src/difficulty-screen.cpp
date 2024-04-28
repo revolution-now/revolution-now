@@ -54,8 +54,6 @@ namespace rn {
 
 namespace {
 
-using ::base::NoDiscard;
-
 struct DifficultyLayout {
   Matrix<maybe<e_difficulty>> grid;
   point                       selected = {};
@@ -372,7 +370,6 @@ struct DifficultyScreen : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    using size = gfx::size;
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
         compositor::section( compositor::e_section::normal ) );
@@ -588,8 +585,7 @@ struct DifficultyScreen : public IPlane {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<NoDiscard<e_difficulty>> choose_difficulty_screen(
-    Planes& planes ) {
+wait<e_difficulty> choose_difficulty_screen( Planes& planes ) {
   auto        owner = planes.push();
   PlaneGroup& group = owner.group;
 

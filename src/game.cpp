@@ -18,6 +18,7 @@
 #include "conductor.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
+#include "difficulty-screen.hpp" // FIXME
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "inative-mind.hpp"
@@ -43,6 +44,7 @@
 #include "ss/root.hpp"
 
 // luapp
+#include "luapp/enum.hpp" // FIXME
 #include "luapp/state.hpp"
 
 // refl
@@ -194,10 +196,12 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
 
 wait<> handle_mode( Planes& planes, IGui& gui,
                     StartMode::new_random const& ) {
-  auto factory = []( SS& ss,
-                     TS& ts ) -> wait<base::NoDiscard<bool>> {
-    CHECK_HAS_VALUE( ts.lua["new_game"]["create"].pcall(
-        ss.root, /*options=*/lua::nil ) );
+  auto factory = [&]( SS& ss,
+                      TS& ts ) -> wait<base::NoDiscard<bool>> {
+    lua::table options = ts.lua.table.create();
+    options["difficulty"] =
+        co_await choose_difficulty_screen( planes );
+    ts.lua["new_game"]["create"]( ss.root, options );
     co_return true;
   };
   co_await run_game( planes, gui, factory );
