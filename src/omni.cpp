@@ -105,13 +105,13 @@ struct OmniPlane::Impl : public IPlane {
             if( key_event.mod.ctrl_down )
               dec_resolution_scale();
             else
-              handled = e_input_handled::no;
+              handled = e_input_handled::yes;
             break;
           case ::SDLK_EQUALS:
             if( key_event.mod.ctrl_down )
               inc_resolution_scale();
             else
-              handled = e_input_handled::no;
+              handled = e_input_handled::yes;
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
