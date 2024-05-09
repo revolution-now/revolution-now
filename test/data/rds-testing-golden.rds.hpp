@@ -1709,7 +1709,7 @@ namespace rn {
     virtual ~IEmpty() = default;
   };
 
-  struct RealEmpty : public IEmpty {};
+  struct RealEmpty final : public IEmpty {};
 
 } // namespace rn
 
@@ -1730,7 +1730,7 @@ namespace rn {
     virtual void some_method() const = 0;
   };
 
-  struct RealOneMethod : public IOneMethod {
+  struct RealOneMethod final : public IOneMethod {
     void some_method() const override {
       return ::rn::some_method();
     }
@@ -1758,7 +1758,7 @@ namespace rn {
         int a ) const = 0;
   };
 
-  struct RealOneMethodWithOneArg : public IOneMethodWithOneArg {
+  struct RealOneMethodWithOneArg final : public IOneMethodWithOneArg {
     void some_method(
         int a ) const override {
       return ::rn::some_method(
@@ -1791,7 +1791,7 @@ namespace rn {
         int b ) const = 0;
   };
 
-  struct RealOneMethodWithTwoArgs : public IOneMethodWithTwoArgs {
+  struct RealOneMethodWithTwoArgs final : public IOneMethodWithTwoArgs {
     double some_method(
         int a,
         int b ) const override {
@@ -1829,7 +1829,7 @@ namespace rn {
     virtual float some_other_method() const = 0;
   };
 
-  struct RealTwoMethodsWithTwoArgs : public ITwoMethodsWithTwoArgs {
+  struct RealTwoMethodsWithTwoArgs final : public ITwoMethodsWithTwoArgs {
     double some_method(
         int a,
         int b ) const override {
@@ -1866,7 +1866,7 @@ namespace rn {
     virtual ~IContextOnly() = default;
   };
 
-  struct RealContextOnly : public IContextOnly {
+  struct RealContextOnly final : public IContextOnly {
     RealContextOnly(
         IEmpty&     aaa,
         IOneMethod& bbb )
@@ -1897,7 +1897,7 @@ namespace rn {
     virtual void some_method() const = 0;
   };
 
-  struct RealContextOnlyEmptyMethod : public IContextOnlyEmptyMethod {
+  struct RealContextOnlyEmptyMethod final : public IContextOnlyEmptyMethod {
     RealContextOnlyEmptyMethod(
         IEmpty&     aaa,
         IOneMethod& bbb )
@@ -1941,7 +1941,7 @@ namespace rn {
         IOneMethodWithTwoArgs const& notification ) const = 0;
   };
 
-  struct RealMulti : public IMulti {
+  struct RealMulti final : public IMulti {
     RealMulti(
         int&          i,
         double const& d )

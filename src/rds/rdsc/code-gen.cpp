@@ -721,7 +721,7 @@ struct CodeGenerator {
 
     // Generate the implementation struct.
     auto real_name = "Real" + no_i_name;
-    frag( "struct {} : public {} {{", real_name,
+    frag( "struct {} final : public {} {{", real_name,
           interface.name );
     if( interface.methods.empty() &&
         interface.context.members.empty() )
