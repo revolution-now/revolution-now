@@ -221,7 +221,7 @@ struct callable_traits<R ( C::* )( Arg... )>
 
 // Const pointer to member function.
 template<typename R, typename C, typename... Arg>
-struct callable_traits<R ( C::*const )( Arg... )>
+struct callable_traits<R ( C::* const )( Arg... )>
   : public detail::member_fn_callable_traits_impl<R(
         C*, Arg... )> {};
 
@@ -233,7 +233,7 @@ struct callable_traits<R ( C::* )( Arg... ) const>
 
 // Const pointer to member function (const abominable).
 template<typename R, typename C, typename... Arg>
-struct callable_traits<R ( C::*const )( Arg... ) const>
+struct callable_traits<R ( C::* const )( Arg... ) const>
   : public detail::member_fn_const_callable_traits_impl<R(
         C*, Arg... )> {};
 
