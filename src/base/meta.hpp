@@ -401,33 +401,6 @@ template<typename List>
 using head_t = typename head<List>::type;
 
 /****************************************************************
-** last
-*****************************************************************/
-namespace detail {
-template<typename T>
-struct select_tag {
-  using type = T;
-};
-} // namespace detail
-
-// Use a fold-expression to fold the comma operator over the pa-
-// rameter pack.
-template<typename... Ts>
-using select_last_t =
-    typename decltype( ( detail::select_tag<Ts>{}, ... ) )::type;
-
-template<typename...>
-struct last;
-
-template<typename... Ts>
-struct last<list<Ts...>> {
-  using type = select_last_t<Ts...>;
-};
-
-template<typename List>
-using last_t = typename last<List>::type;
-
-/****************************************************************
 ** list_size
 *****************************************************************/
 template<typename...>
