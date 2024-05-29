@@ -1379,7 +1379,7 @@ class [[nodiscard]] expect<T&, E> { /* clang-format on */
   explicit( !std::is_convertible_v<V&&, E> )
   constexpr expect( expect<U&, V>&& other )
       noexcept(
-          noexcept( this->new_val( std::move( other.err_ ) ) ) )
+          noexcept( this->new_err( std::move( other.err_ ) ) ) )
       requires( std::is_convertible_v<T&, U&>                    &&
                 std::is_constructible_v<E, V&&>                  &&
                !std::is_convertible_v<expect<U&,V>&, T&>         &&
