@@ -357,7 +357,24 @@ vec3 rgb_to_hsl( in vec3 rgb ) {
 // To fully desaturate we could first conver to HSL, then zero
 // the saturation, then convert back to RGB, but it seems that
 // the following simpler approach produces the same result.
-vec3 desaturate( in vec3 c ) { return vec3( (c.r+c.g+c.b)/3 ); }
+vec3 desaturate_fast( in vec3 c ) { return vec3( (c.r+c.g+c.b)/3 ); }
+
+// This is not accurate for large factors, e.g. 1.5. But for
+// small factors it should be ok.
+vec3 saturate_fast( in vec3 c, float factor ) {
+  float avg = (c.r+c.g+c.b)/3;
+  vec3 delta = c-avg;
+  delta *= factor;
+  return delta+avg;
+}
+
+vec3 saturate_slow( in vec3 c, in float factor ) {
+  c.rgb = rgb_to_hsl( c.rgb );
+  c.g *= factor;
+  if( c.g > 1.0 ) c.g = 1.0;
+  c.rgb = hsl_to_rgb( c.rgb );
+  return c;
+}
 
 /****************************************************************
 ** main
@@ -388,10 +405,12 @@ void main() {
   if( frag_use_fixed_color != 0 ) color.rgb = frag_fixed_color.rgb;
 
   // Desaturation.
-  if( frag_desaturate != 0 ) color.rgb = desaturate( color.rgb );
+  if( frag_desaturate != 0 ) color.rgb = desaturate_fast( color.rgb );
 
   // Uniform depixelation.
   if( frag_uniform_depixelation != 0 ) color *= uniform_depixelate();
+
+  // color.rgb = saturate_slow( color.rgb, 1.5 );
 
   final_color = color;
 }
