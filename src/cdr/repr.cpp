@@ -11,6 +11,8 @@
 *****************************************************************/
 #include "repr.hpp"
 
+#include <algorithm>
+
 // base
 #include "base/to-str-ext-std.hpp"
 
@@ -62,10 +64,10 @@ void to_str( table const& o, std::string& out, base::ADL_t ) {
   bool remove_comma = false;
 
   vector<pair<string, value>> pairs( o.begin(), o.end() );
-  sort( pairs.begin(), pairs.end(),
-        []( auto const& l, auto const& r ) {
-          return l.first < r.first;
-        } );
+  std::sort( pairs.begin(), pairs.end(),
+             []( auto const& l, auto const& r ) {
+               return l.first < r.first;
+             } );
 
   for( auto const& [k, v] : pairs ) {
     to_str( k, out, base::ADL_t{} );

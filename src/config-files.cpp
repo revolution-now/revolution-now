@@ -25,6 +25,7 @@
 #include "base/error.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <string>
 
 using namespace std;

@@ -13,6 +13,9 @@
 // base
 #include "base/string.hpp"
 
+// C++ standard library
+#include <algorithm>
+
 using namespace std;
 
 namespace rn {

@@ -31,7 +31,7 @@ string check_msg( char const* expr, string const& msg ) {
 } // namespace detail
 
 void abort_with_msg( string_view msg, source_location loc ) {
-  fprintf( stderr, "%s:%d: error: %s\n", loc.file_name(),
+  fprintf( stderr, "%s:%u: error: %s\n", loc.file_name(),
            loc.line(), string( msg ).c_str() );
   abort_with_backtrace_here( loc );
 }

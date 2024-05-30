@@ -18,6 +18,7 @@
 #include "base/fs.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <concepts>
 #include <deque>
 #include <queue>

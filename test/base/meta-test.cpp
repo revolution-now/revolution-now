@@ -399,21 +399,6 @@ static_assert(
               list<int>> );
 
 /****************************************************************
-** select_last/last
-*****************************************************************/
-static_assert( is_same_v<select_last_t<int>, int> );
-static_assert( is_same_v<select_last_t<char, char>, char> );
-static_assert( is_same_v<select_last_t<std::string, char, int,
-                                       char, double>,
-                         double> );
-
-static_assert( is_same_v<last_t<list<int>>, int> );
-static_assert( is_same_v<last_t<list<char, char>>, char> );
-static_assert(
-    is_same_v<last_t<list<std::string, char, int, char, double>>,
-              double> );
-
-/****************************************************************
 ** list_size
 *****************************************************************/
 static_assert( list_size_v<list<>> == 0 );

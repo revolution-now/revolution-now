@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "irand.hpp"
 
+// C++ standard library
+#include <algorithm>
+
 using namespace std;
 
 namespace rn {

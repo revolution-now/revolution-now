@@ -244,7 +244,7 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
     SSConst const& ss, TS& ts, Player& player_non_const,
     TaxChangeProposal const& proposal ) {
   Player const& player = player_non_const;
-  string_view constexpr increase_msg =
+  static string_view const constexpr increase_msg =
       "In honor of our marriage to our {}{} wife, we have "
       "decided to raise your tax rate by [{}%].  The tax "
       "rate is now [{}%]. We will graciously allow you to "
@@ -255,9 +255,10 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
     case TaxChangeProposal::e::increase: {
       auto&     o = proposal.get<TaxChangeProposal::increase>();
       int const new_wife = remarry( ts, player_non_const );
-      co_await ts.gui.message_box(
+      string const msg   = fmt::format(
           increase_msg, new_wife, ordinal_for( new_wife ),
           o.amount, player.old_world.taxes.tax_rate + o.amount );
+      co_await ts.gui.message_box( msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  o.amount };
     }
@@ -297,9 +298,10 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
       string_view constexpr decrease_msg =
           "The crown has graciously decided to LOWER your tax "
           "rate by [{}%].  The tax rate is now [{}%].";
-      co_await ts.gui.message_box(
+      string const msg = fmt::format(
           decrease_msg, o.amount,
           player.old_world.taxes.tax_rate - o.amount );
+      co_await ts.gui.message_box( msg );
       co_return TaxChangeResult::tax_change{ .amount =
                                                  -o.amount };
     }
