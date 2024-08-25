@@ -357,7 +357,15 @@ vec3 rgb_to_hsl( in vec3 rgb ) {
 // To fully desaturate we could first conver to HSL, then zero
 // the saturation, then convert back to RGB, but it seems that
 // the following simpler approach produces the same result.
-vec3 desaturate_fast( in vec3 c ) { return vec3( (c.r+c.g+c.b)/3 ); }
+//
+// The human eye tends to be more sensitive to green colors and
+// the least to blue. So to get the most physically accurate re-
+// sults we'll need to use weighted channels. This is as opposed
+// to just taking the average of the three (i.e., multiplying
+// each by .3333). These numbers are taken from learnopengl.com.
+vec3 desaturate_fast( in vec3 c ) {
+  return vec3( 0.2126*c.r + 0.7152*c.g + 0.0722*c.b );
+}
 
 // This is not accurate for large factors, e.g. 1.5. But for
 // small factors it should be ok.
