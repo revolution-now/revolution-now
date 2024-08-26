@@ -224,8 +224,8 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
           "We will respect your wishes and not disturb these "
           "forests.";
       names[e_native_land_grab_result::take] =
-          "Feel free to watch and enjoy the sounds of these "
-          "trees falling!";
+          "We invite you to enjoy the sounds of the falling "
+          "trees!";
       break;
     case e_native_land_grab_type::irrigate:
       config.msg = fmt::format(
