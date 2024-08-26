@@ -59,7 +59,7 @@ struct UniformNonTyped {
 ** Uniform
 *****************************************************************/
 template<typename T>
-struct Uniform : UniformNonTyped {
+struct Uniform : protected UniformNonTyped {
   using type = T;
 
   explicit Uniform( ObjId pgrm_id, std::string_view name )
