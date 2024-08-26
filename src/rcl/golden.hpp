@@ -54,7 +54,8 @@ namespace rcl {
 //
 template<cdr::Canonical T>
 struct Golden {
-  Golden( T const& ref, std::string const& tag,
+  Golden( T const& ref         ATTR_LIFETIMEBOUND,
+          std::string const&   tag,
           std::source_location loc =
               std::source_location::current() );
 
