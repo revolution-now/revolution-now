@@ -560,9 +560,9 @@ TEST_CASE( "[cdr/converter] backtrace" ) {
       "std::unordered_map<std::string, int, "
       "std::hash<std::string>, s...\n"
       " \\-index 1\n"
-      "   \\-std::pair<std::string const, int>\n"
-      "     \\-value for key 'val'\n"
-      "       \\-int";
+      "  \\-std::pair<std::string const, int>\n"
+      "   \\-value for key 'val'\n"
+      "    \\-int";
   REQUIRE( run_conversion_from_canonical<M>( v ) ==
            conv.err( expected ) );
 }

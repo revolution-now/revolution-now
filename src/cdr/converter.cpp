@@ -74,7 +74,7 @@ string converter::dump_error_stack() const {
     if( spaces.empty() )
       spaces = " \\-";
     else
-      spaces = "  " + spaces;
+      spaces = " " + spaces;
   }
   if( !out.empty() )
     out.resize( out.size() - 1 ); // cut traing newline.

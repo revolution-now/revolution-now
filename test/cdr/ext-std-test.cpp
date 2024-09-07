@@ -348,7 +348,7 @@ TEST_CASE( "[cdr/ext-std] unordered_set invalid element" ) {
        "std::unordered_set<int, std::hash<int>, "
        "std::equal_to<int>, st...\n"
        " \\-index 4\n"
-       "   \\-int" );
+       "  \\-int" );
   REQUIRE( conv_from_bt<M>( conv, v ) == expected );
 }
 
