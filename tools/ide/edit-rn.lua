@@ -73,10 +73,13 @@ local function tab_namer( buffer_list )
       path = fnamemodify( path, ':r' )
       return path
     end
+    if ext == 'vert' or ext == 'frag' then
+      path = fnamemodify( path, ':s|^src/||' )
+      path = fnamemodify( path, ':r' )
+      return path
+    end
     if ext == 'txt' then return 'doc/' .. stem end
     if ext == 'lua' then return 'lua/' .. stem end
-    if ext == 'vert' then return 'shaders:' .. stem end
-    if ext == 'frag' then return 'shaders:' .. stem end
   end
   -- We could not determine a name from any of the buffers, so
   -- just use the path of the filename of the first buffer.
