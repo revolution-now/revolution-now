@@ -101,6 +101,9 @@ struct OpenGLGlad : IOpenGL {
   void gl_Uniform2f( GLint location, GLfloat v0,
                      GLfloat v1 ) override;
 
+  void gl_Uniform4iv( GLint location, GLsizei count,
+                      GLint const* values ) override;
+
   void gl_UseProgram( GLuint program ) override;
 
   void gl_ValidateProgram( GLuint program ) override;
@@ -131,7 +134,7 @@ struct OpenGLGlad : IOpenGL {
                       void const* pixels ) override;
 
   void gl_Viewport( GLint x, GLint y, GLsizei width,
-                            GLsizei height ) override;
+                    GLsizei height ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLGlad> );

@@ -88,6 +88,8 @@ struct MockOpenGL : IOpenGL {
   MOCK_GL_METHOD( void, gl_Uniform1i, ( GLint, GLint ) );
   MOCK_GL_METHOD( void, gl_Uniform2f,
                   ( GLint, GLfloat, GLfloat ) );
+  MOCK_GL_METHOD( void, gl_Uniform4iv,
+                  (GLint, GLsizei, GLint const*));
   MOCK_GL_METHOD( void, gl_UseProgram, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_ValidateProgram, ( GLuint ) );
   MOCK_GL_METHOD( void, gl_VertexAttribPointer,
