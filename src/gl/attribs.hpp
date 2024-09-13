@@ -41,6 +41,7 @@ enum class e_attrib_compound_type {
   vec2,
   vec3,
   vec4,
+  ivec4,
 };
 
 int to_GL( e_attrib_compound_type type );
@@ -154,6 +155,31 @@ struct attrib_traits<vec4> {
       e_attrib_type::float_;
   inline static e_attrib_compound_type compound_type =
       e_attrib_compound_type::vec4;
+  inline static int count = 4;
+};
+
+/****************************************************************
+** ivec4
+*****************************************************************/
+struct ivec4 {
+  int32_t x = 0;
+  int32_t y = 0;
+  int32_t z = 0;
+  int32_t w = 0;
+
+  static ivec4 from_rect( gfx::rect r );
+
+  bool operator==( ivec4 const& ) const = default;
+};
+
+static_assert( sizeof( ivec4 ) == 16 );
+
+template<>
+struct attrib_traits<ivec4> {
+  inline static e_attrib_type component_type =
+      e_attrib_type::int_;
+  inline static e_attrib_compound_type compound_type =
+      e_attrib_compound_type::ivec4;
   inline static int count = 4;
 };
 
@@ -273,6 +299,30 @@ struct traits<gl::vec4> {
       refl::StructField{ "z", &gl::vec4::z,
                          offsetof( type, z ) },
       refl::StructField{ "w", &gl::vec4::w,
+                         offsetof( type, w ) },
+  };
+};
+
+// Reflection info for struct gl::ivec4.
+template<>
+struct traits<gl::ivec4> {
+  using type = gl::ivec4;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gl";
+  static constexpr std::string_view name       = "ivec4";
+  static constexpr bool is_sumtype_alternative = false;
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+      refl::StructField{ "x", &gl::ivec4::x,
+                         offsetof( type, x ) },
+      refl::StructField{ "y", &gl::ivec4::y,
+                         offsetof( type, y ) },
+      refl::StructField{ "z", &gl::ivec4::z,
+                         offsetof( type, z ) },
+      refl::StructField{ "w", &gl::ivec4::w,
                          offsetof( type, w ) },
   };
 };

@@ -82,6 +82,14 @@ TEST_CASE( "[attribs] attribute compound type" ) {
            "GL_FLOAT_VEC4" );
   REQUIRE( from_GL( GL_FLOAT_VEC4 ) ==
            e_attrib_compound_type::vec4 );
+
+  // ivec4
+  REQUIRE( to_GL( e_attrib_compound_type::ivec4 ) ==
+           GL_INT_VEC4 );
+  REQUIRE( to_GL_str( e_attrib_compound_type::ivec4 ) ==
+           "GL_INT_VEC4" );
+  REQUIRE( from_GL( GL_INT_VEC4 ) ==
+           e_attrib_compound_type::ivec4 );
 }
 
 template<typename T>
@@ -130,6 +138,13 @@ TEST_CASE( "[attribs] type traits" ) {
              e_attrib_compound_type::vec4 );
     REQUIRE( Tr<T>::count == 4 );
   }
+  SECTION( "ivec4" ) {
+    using T = ivec4;
+    REQUIRE( Tr<T>::component_type == e_attrib_type::int_ );
+    REQUIRE( Tr<T>::compound_type ==
+             e_attrib_compound_type::ivec4 );
+    REQUIRE( Tr<T>::count == 4 );
+  }
   SECTION( "color" ) {
     using T = color;
     REQUIRE( Tr<T>::component_type == e_attrib_type::float_ );
@@ -154,6 +169,11 @@ TEST_CASE( "[attribs] gfx conversion" ) {
                gfx::rect{ .origin = { .x = 3, .y = 4 },
                           .size   = { .w = 2, .h = 3 } } ) ==
            vec4{ .x = 3, .y = 4, .z = 2, .w = 3 } );
+
+  REQUIRE( ivec4::from_rect(
+               gfx::rect{ .origin = { .x = 3, .y = 4 },
+                          .size   = { .w = 2, .h = 3 } } ) ==
+           ivec4{ .x = 3, .y = 4, .z = 2, .w = 3 } );
 
   REQUIRE( color::from_pixel( gfx::pixel{
                .r = 0, .g = 255, .b = 3, .a = 4 } ) ==

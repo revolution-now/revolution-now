@@ -74,6 +74,9 @@ int to_GL( e_attrib_compound_type type ) {
     case e_attrib_compound_type::vec4:
       res = GL_FLOAT_VEC4;
       break;
+    case e_attrib_compound_type::ivec4:
+      res = GL_INT_VEC4;
+      break;
   }
   return static_cast<int>( res );
 }
@@ -92,6 +95,8 @@ string_view to_GL_str( e_attrib_compound_type type ) {
       return "GL_FLOAT_VEC3";
     case e_attrib_compound_type::vec4:
       return "GL_FLOAT_VEC4";
+    case e_attrib_compound_type::ivec4:
+      return "GL_INT_VEC4";
   }
 }
 
@@ -109,6 +114,8 @@ e_attrib_compound_type from_GL( int type ) {
       return e_attrib_compound_type::vec3;
     case GL_FLOAT_VEC4:
       return e_attrib_compound_type::vec4;
+    case GL_INT_VEC4:
+      return e_attrib_compound_type::ivec4;
     default:
       FATAL( "unrecognized OpenGL compound type {}.", type );
   }
@@ -147,6 +154,18 @@ vec4 vec4::from_rect( gfx::rect r ) {
       .y = static_cast<float>( r.origin.y ),
       .z = static_cast<float>( r.size.w ),
       .w = static_cast<float>( r.size.h ),
+  };
+}
+
+/****************************************************************
+** ivec4
+*****************************************************************/
+ivec4 ivec4::from_rect( gfx::rect r ) {
+  return ivec4{
+      .x = r.origin.x,
+      .y = r.origin.y,
+      .z = r.size.w,
+      .w = r.size.h,
   };
 }
 
