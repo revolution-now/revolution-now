@@ -40,7 +40,7 @@ enum class e_attrib_compound_type {
   float_,
   vec2,
   vec3,
-  vec4
+  vec4,
 };
 
 int to_GL( e_attrib_compound_type type );
@@ -253,7 +253,7 @@ struct traits<gl::vec3> {
   };
 };
 
-// Reflection info for struct gl::vec3.
+// Reflection info for struct gl::vec4.
 template<>
 struct traits<gl::vec4> {
   using type = gl::vec4;
