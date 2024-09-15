@@ -259,8 +259,8 @@ TEST_CASE(
         "mock function `repeat_str` called with unexpected "
         "arguments:\n"
         "argument #1 (one-based) does not match.\n"
-        "expected: repeat_str( \"hellx\", 5 )\n"
-        "actual:   \"hello\"" );
+        "expected call: repeat_str( \"hellx\", 5 )\n"
+        "actual arg #1: \"hello\"" );
     // Make the expected call so an error isn't thrown.
     mp.repeat_str( "hello", 5 );
   }

@@ -272,10 +272,10 @@ struct Responder<RetT, std::tuple<Args...>,
                 "mock function `{}` called with unexpected "
                 "arguments:\n"
                 "argument #{} (one-based) does not match.\n"
-                "expected: {}( {} )\n"
-                "actual:   {}",
+                "expected call: {}( {} )\n"
+                "actual arg #{}: {}",
                 fn_name_, ArgIdx + 1, fn_name_, formatted_args,
-                matcher.format_expected() ) );
+                ArgIdx + 1, matcher.format_expected() ) );
         };
     ( check_argument( std::integral_constant<size_t, Idx>{} ),
       ... );
