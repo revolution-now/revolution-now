@@ -75,4 +75,21 @@ UniformNonTyped::set_valid_t UniformNonTyped::set(
   return base::valid;
 }
 
+UniformNonTyped::set_valid_t UniformNonTyped::set(
+    span<ivec4 const> vals ) const {
+  GL_CHECK( CALL_GL( gl_UseProgram, pgrm_id_ ) );
+  // If the span is empty then its data will be nullptr, and not
+  // sure if that is ok to pass to opengl, so we will be safe.
+  static int32_t const empty = {};
+  // The ivec4's are expected to be packed with int32_t.
+  static_assert( sizeof( ivec4 ) == sizeof( int32_t ) * 4 );
+  auto const* ptr =
+      vals.empty() ? &empty : std::addressof( vals[0].x );
+  // No GL_CHECK here since we do it on the next line.
+  CALL_GL( gl_Uniform4iv, location_, vals.size(), ptr );
+  if( vector<string> errors = has_errors(); !errors.empty() )
+    return "failed to set uniform as array of ivec4";
+  return base::valid;
+}
+
 } // namespace gl

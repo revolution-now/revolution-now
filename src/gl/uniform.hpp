@@ -20,6 +20,7 @@
 #include "base/valid.hpp"
 
 // C++ standard library
+#include <span>
 #include <string_view>
 
 namespace gl {
@@ -41,7 +42,6 @@ struct UniformSpec {
 struct UniformNonTyped {
   UniformNonTyped( ObjId pgrm_id, std::string_view name );
 
- protected:
   using set_valid_t = base::valid_or<std::string>;
   // Use the safe-num types as parameters so that there are no
   // ambiguities/uncertainties due to implicit conversions.
@@ -49,16 +49,22 @@ struct UniformNonTyped {
   set_valid_t set( base::safe::integer<long> val ) const;
   set_valid_t set( base::safe::boolean val ) const;
   set_valid_t set( vec2 val ) const;
+  set_valid_t set( std::span<ivec4 const> vals ) const;
 
  private:
   ObjId pgrm_id_;
   int   location_;
 };
 
+template<typename T>
+concept SettableUniform = requires( T const o ) {
+  { std::declval<UniformNonTyped>().set( o ) };
+};
+
 /****************************************************************
 ** Uniform
 *****************************************************************/
-template<typename T>
+template<SettableUniform T>
 struct Uniform : protected UniformNonTyped {
   using type = T;
 
@@ -78,13 +84,17 @@ struct Uniform : protected UniformNonTyped {
   // they have the same type in the shader code as in the C++
   // code).
   base::valid_or<std::string> try_set( T const& val ) {
-    if( cache_ == val ) return base::valid;
-    auto res = this->UniformNonTyped::set( val );
-    if( res.valid() )
-      cache_ = val;
-    else
-      cache_.reset(); // just in case.
-    return res;
+    if constexpr( std::equality_comparable<T> ) {
+      if( cache_ == val ) return base::valid;
+      auto res = this->UniformNonTyped::set( val );
+      if( res.valid() )
+        cache_ = val;
+      else
+        cache_.reset(); // just in case.
+      return res;
+    } else {
+      return this->UniformNonTyped::set( val );
+    }
   }
 
  private:
