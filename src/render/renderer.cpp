@@ -76,6 +76,8 @@ struct ProgramUniforms {
       gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
       gl::UniformSpec<float>( "u_camera_zoom" ),
       gl::UniformSpec<float>( "u_depixelation_stage" ),
+      gl::UniformSpec<span<gl::ivec4 const>>(
+          "u_color_cycle_targets" ),
   };
 };
 
@@ -194,6 +196,25 @@ struct Renderer::Impl {
     }();
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
+
+    // Color cycling.
+    {
+      static gl::ivec4 const X = gl::ivec4{}; // clear.
+
+      static vector<gl::ivec4> const color_cycle_targets{
+          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 }, //
+          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 115 }, //
+          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 50 },  //
+          X,                                                  //
+          X,                                                  //
+          X,                                                  //
+          X,                                                  //
+          X,                                                  //
+          X,                                                  //
+      };
+      pgrm["u_color_cycle_targets"_t] =
+          span<gl::ivec4 const>( color_cycle_targets );
+    }
 
     gfx::size logical_screen_size = config.logical_screen_size;
     pgrm["u_screen_size"_t] =

@@ -159,7 +159,7 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = 54;
+  int const num_get_errors = 59;
 
   mock.EXPECT__gl_GetError()
       .times( num_get_errors )
@@ -240,6 +240,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_GetUniformLocation(
           9, Eq<string>( "u_depixelation_stage" ) )
       .returns( 94 );
+  mock.EXPECT__gl_GetUniformLocation(
+          9, Eq<string>( "u_color_cycle_targets" ) )
+      .returns( 95 );
 
   // Validate the program.
   mock.EXPECT__gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -270,7 +273,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   // Try setting the uniforms to check their type.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform1i( 88, 0 );        // u_atlas
+  mock.EXPECT__gl_Uniform1i( 88, 0 ); // u_atlas
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform2f( 89, 0.0, 0.0 ); // u_atlas_size
   mock.EXPECT__gl_UseProgram( 9 );
@@ -280,11 +283,15 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_UseProgram( 9 );
 
   mock.EXPECT__gl_Uniform2f( 92, 0.0,
-                             0.0 );     // u_camera_translation
+                             0.0 ); // u_camera_translation
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1f( 93, 0.0 ); // u_camera_zoom
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform1f( 94, 0.0 ); // u_depixelation_stage
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform4iv(
+      95, 0,
+      /*values=*/_ ); // u_color_cycle_targets
 
   // Unbind dummy vertex array.
   expect_unbind_vertex_array( mock );
@@ -295,6 +302,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // above and so the cached value is used.
   //  mock.EXPECT__gl_UseProgram( 9 );
   //  mock.EXPECT__gl_Uniform1i( 88, 0 );
+
+  // Set the u_color_cycle_targets uniform.
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform4iv( 95, 9, /*values=*/_ );
 
   // Set the u_screen_size texture.
   mock.EXPECT__gl_UseProgram( 9 );

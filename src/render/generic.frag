@@ -34,7 +34,6 @@ uniform sampler2D u_atlas;
 uniform vec2 u_atlas_size;
 // Screen dimensions in the game's logical pixel units.
 uniform vec2 u_screen_size;
-uniform int u_color_cycle_stage;
 
 // Stage of the global depixelation. This can be used to achieve
 // two different things:
@@ -43,6 +42,9 @@ uniform int u_color_cycle_stage;
 //   2. it can be used to allow depixelating things that are al-
 //      ready normally in a stage of depixelation.
 uniform float u_depixelation_stage;
+
+uniform int u_color_cycle_stage;
+uniform ivec4 u_color_cycle_targets[9];
 
 out vec4 final_color;
 
@@ -281,15 +283,6 @@ const vec3 color_cycle_src[5] = vec3[](
   vec3( 50 ), vec3( 100 ), vec3( 150 ), vec3( 200 ), vec3( 250 )
 );
 
-// const vec3 S = vec3( 90, 122, 148 ); // surf color.
-const vec3 S = vec3( 97, 128, 153 ); // surf color.
-const vec4 X = vec4( 0 );            // clear.
-
-const vec4 color_cycle_dst[9] = vec4[](
-  vec4( S, 230 ), vec4( S, 115 ), vec4( S, 50 ),
-  X, X, X, X, X, X
-);
-
 vec4 color_cycle( in vec4 color ) {
   // We have a color in the range [0,1] but the src and dst
   // colors are specified as [0,255]. So to make the comparison
@@ -299,8 +292,8 @@ vec4 color_cycle( in vec4 color ) {
   for( int i = 0; i < color_cycle_src.length(); ++i ) {
     if( color_cycle_src[i] == rgb_ubyte ) {
       int dst_idx = (i + u_color_cycle_stage)
-                  % color_cycle_dst.length();
-      vec4 dst = color_cycle_dst[dst_idx]/255.0;
+                  % u_color_cycle_targets.length();
+      vec4 dst = u_color_cycle_targets[dst_idx]/255.0;
       // This next line serves no purpose but seems to be needed
       // to work around a strange issue (driver bug?) on Mac OS
       // causing strange visual artifacts to appear.
