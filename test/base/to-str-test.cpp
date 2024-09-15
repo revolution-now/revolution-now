@@ -77,5 +77,9 @@ TEST_CASE( "[to-str] string" ) {
   REQUIRE( call_to_str( "hello world" ) == "hello world" );
 }
 
+TEST_CASE( "[to-str] nullptr_t" ) {
+  REQUIRE( call_to_str( nullptr ) == "nullptr" );
+}
+
 } // namespace
 } // namespace base

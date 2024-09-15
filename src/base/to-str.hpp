@@ -30,6 +30,7 @@ void to_str( long const& o, std::string& out, ADL_t );
 void to_str( char o, std::string& out, ADL_t );
 void to_str( double o, std::string& out, ADL_t );
 void to_str( std::string_view o, std::string& out, ADL_t );
+void to_str( std::nullptr_t o, std::string& out, ADL_t );
 
 // Use a template for bool to prevent implicit conversions.
 template<std::same_as<bool> B>

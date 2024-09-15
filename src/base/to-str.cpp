@@ -36,4 +36,8 @@ void to_str( double o, std::string& out, ADL_t ) {
   out += fmt::to_string( o );
 }
 
+void to_str( std::nullptr_t, std::string& out, ADL_t ) {
+  out += "nullptr";
+}
+
 } // namespace base
