@@ -212,8 +212,7 @@ struct Renderer::Impl {
           X,                                                  //
           X,                                                  //
       };
-      pgrm["u_color_cycle_targets"_t] =
-          span<gl::ivec4 const>( color_cycle_targets );
+      pgrm["u_color_cycle_targets"_t] = color_cycle_targets;
     }
 
     gfx::size logical_screen_size = config.logical_screen_size;
