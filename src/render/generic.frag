@@ -383,6 +383,17 @@ vec3 saturate_slow( in vec3 c, in float factor ) {
 }
 
 /****************************************************************
+** Testing/Debugging
+*****************************************************************/
+vec4 use_me() {
+  vec4 dummy = vec4( 0 )
+    // List variables here to "use".
+    + vec4( frag_aux_idx )
+    ;
+  return .000000000000000000000001*dummy;
+}
+
+/****************************************************************
 ** main
 *****************************************************************/
 void main() {
@@ -418,5 +429,5 @@ void main() {
 
   // color.rgb = saturate_slow( color.rgb, 1.5 );
 
-  final_color = color;
+  final_color = color + use_me();
 }
