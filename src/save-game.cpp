@@ -127,7 +127,7 @@ wait<maybe<int>> select_save_slot(
   maybe<int> slot;
   while( true ) {
     slot = co_await select_save_slot_impl( ts, query );
-    if( !slot.has_value() ) co_return false;
+    if( !slot.has_value() ) co_return nothing;
     if( !query_slot_exists( query, *slot ) ) break;
     YesNoConfig const config{ .msg =
                                   "A saved game already exists "
