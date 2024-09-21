@@ -68,6 +68,11 @@ struct.GenericVertex {
   #
   flags 'uint32_t',
 
+  # General integral parameter:
+  #   * When color cycling is on, this selects which array is used to
+  #   * select the target colors.
+  aux_idx 'int32_t',
+
   # Depixelation. This triangle will have individual pixels ran-
   # domly removed depending on the stage of the animation, which
   # is given by the z value of this parameter, and the inversion

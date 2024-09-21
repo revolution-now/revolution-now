@@ -12,19 +12,21 @@
 
 layout (location = 0)  in int   in_type;
 layout (location = 1)  in uint  in_flags;
-layout (location = 2)  in vec4  in_depixelate;
-layout (location = 3)  in vec4  in_depixelate_stages;
-layout (location = 4)  in vec2  in_position;
-layout (location = 5)  in vec2  in_atlas_position;
-layout (location = 6)  in vec4  in_atlas_rect;
-layout (location = 7)  in vec2  in_atlas_target_offset;
-layout (location = 8)  in vec4  in_stencil_key_color;
-layout (location = 9)  in vec4  in_fixed_color;
-layout (location = 10) in float in_alpha_multiplier;
-layout (location = 11) in float in_scaling;
-layout (location = 12) in vec2  in_translation;
+layout (location = 2)  in int   in_aux_idx;
+layout (location = 3)  in vec4  in_depixelate;
+layout (location = 4)  in vec4  in_depixelate_stages;
+layout (location = 5)  in vec2  in_position;
+layout (location = 6)  in vec2  in_atlas_position;
+layout (location = 7)  in vec4  in_atlas_rect;
+layout (location = 8)  in vec2  in_atlas_target_offset;
+layout (location = 9)  in vec4  in_stencil_key_color;
+layout (location = 10) in vec4  in_fixed_color;
+layout (location = 11) in float in_alpha_multiplier;
+layout (location = 12) in float in_scaling;
+layout (location = 13) in vec2  in_translation;
 
 flat out int   frag_type;
+flat out int   frag_aux_idx;
 flat out int   frag_color_cycle;
 flat out int   frag_desaturate;
 flat out int   frag_use_fixed_color;
@@ -101,6 +103,7 @@ vec2 inverse_scale( in vec2 v ) {
 // screen position of something must be scaled/translated.
 void forwarding() {
   frag_type                 = in_type;
+  frag_aux_idx              = in_aux_idx;
   frag_color_cycle          = get_flag( VERTEX_FLAG_COLOR_CYCLE );
   frag_desaturate           = get_flag( VERTEX_FLAG_DESATURATE );
   frag_use_fixed_color      = get_flag( VERTEX_FLAG_FIXED_COLOR );

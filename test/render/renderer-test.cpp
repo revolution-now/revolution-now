@@ -47,6 +47,7 @@ using namespace ::mock::matchers;
 vector<tuple<int, string, bool>> const kExpectedAttributes{
     { GL_INT, "in_type", true },                        //
     { GL_UNSIGNED_INT, "in_flags", true },              //
+    { GL_INT, "in_aux_idx", true },                     //
     { GL_FLOAT_VEC4, "in_depixelate", false },          //
     { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
     { GL_FLOAT_VEC2, "in_position", false },            //

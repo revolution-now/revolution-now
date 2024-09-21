@@ -11,6 +11,7 @@
 #version 330 core
 
 flat in int   frag_type;
+flat in int   frag_aux_idx;
 flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
 flat in int   frag_use_fixed_color;
@@ -43,8 +44,12 @@ uniform vec2 u_screen_size;
 //      ready normally in a stage of depixelation.
 uniform float u_depixelation_stage;
 
+// Color cycling.
 uniform int u_color_cycle_stage;
-uniform ivec4 u_color_cycle_targets[9];
+const int CYCLE_PLAN_SPAN = 9;
+const int NUM_CYCLE_PLANS = 2;
+const int CYCLE_ARR_SIZE = NUM_CYCLE_PLANS*CYCLE_PLAN_SPAN;
+uniform ivec4 u_color_cycle_targets[CYCLE_ARR_SIZE];
 
 out vec4 final_color;
 
@@ -289,11 +294,11 @@ vec4 color_cycle( in vec4 color ) {
   // between the two immune to rounding errors we will convert
   // the [0,1] color to [0,255] with rounding.
   vec3 rgb_ubyte = round( color.rgb*255.0 );
+  int plan_start = frag_aux_idx*CYCLE_PLAN_SPAN;
   for( int i = 0; i < color_cycle_src.length(); ++i ) {
     if( color_cycle_src[i] == rgb_ubyte ) {
-      int dst_idx = (i + u_color_cycle_stage)
-                  % u_color_cycle_targets.length();
-      vec4 dst = u_color_cycle_targets[dst_idx]/255.0;
+      int dst_idx = (i + u_color_cycle_stage) % CYCLE_PLAN_SPAN;
+      vec4 dst = u_color_cycle_targets[plan_start+dst_idx]/255.0;
       // This next line serves no purpose but seems to be needed
       // to work around a strange issue (driver bug?) on Mac OS
       // causing strange visual artifacts to appear.
