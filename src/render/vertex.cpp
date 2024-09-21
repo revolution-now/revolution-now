@@ -109,6 +109,12 @@ void VertexBase::set_translation( gfx::dsize trans ) {
   translation = gl::vec2::from_dsize( trans );
 }
 
+void VertexBase::set_aux_idx( int32_t const value ) {
+  aux_idx = value;
+}
+
+int32_t VertexBase::get_aux_idx() const { return aux_idx; }
+
 void VertexBase::set_color_cycle( bool enabled ) {
   auto constexpr mask = VERTEX_FLAG_COLOR_CYCLE;
   if( enabled )

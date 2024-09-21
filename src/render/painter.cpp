@@ -139,7 +139,10 @@ void Painter::add_mods( VertexBase&        vert,
     vert.set_fixed_color( *mods.fixed_color );
   if( mods.uniform_depixelation.has_value() )
     vert.set_uniform_depixelation( *mods.uniform_depixelation );
-  vert.set_color_cycle( mods.cycling.enabled );
+  vert.set_color_cycle( mods.cycling.plan.has_value() );
+  if( mods.cycling.plan.has_value() )
+    vert.set_aux_idx(
+        static_cast<int32_t>( *mods.cycling.plan ) );
 }
 
 Painter& Painter::draw_point( point p, pixel color ) {

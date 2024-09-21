@@ -211,13 +211,13 @@ struct Renderer::Impl {
                                                  what.begin(), what.end() );
       };
 
-      auto constexpr kOceanTideColor =
+      auto constexpr kOceanSurfColor =
           gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 };
 
-      CycleTargets const tide_color_cycle_targets{
-          kOceanTideColor.with_alpha( 230 ),
-          kOceanTideColor.with_alpha( 115 ),
-          kOceanTideColor.with_alpha( 50 ),
+      CycleTargets const surf_color_cycle_targets{
+          kOceanSurfColor.with_alpha( 230 ),
+          kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
           kNoColor,
           kNoColor,
           kNoColor,
@@ -225,20 +225,35 @@ struct Renderer::Impl {
           kNoColor,
           kNoColor,
       };
-      append( tide_color_cycle_targets );
+      append( surf_color_cycle_targets );
 
       CycleTargets const sea_lane_color_cycle_targets{
-          kOceanTideColor.with_alpha( 230 ),
-          kOceanTideColor.with_alpha( 115 ),
-          kOceanTideColor.with_alpha( 50 ),
-          kOceanTideColor.with_alpha( 230 ),
-          kOceanTideColor.with_alpha( 115 ),
-          kOceanTideColor.with_alpha( 50 ),
+          kOceanSurfColor.with_alpha( 230 ),
+          kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
+          kOceanSurfColor.with_alpha( 230 ),
+          kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
           kNoColor,
           kNoColor,
           kNoColor,
       };
       append( sea_lane_color_cycle_targets );
+
+      CycleTargets const river_color_cycle_targets{
+          kOceanSurfColor.with_alpha( 230 ),
+          kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
+          kNoColor,
+          kOceanSurfColor.with_alpha( 230 ),
+          kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
+          kNoColor,
+          kNoColor,
+      };
+      append( river_color_cycle_targets );
+
+      // TODO: check that each enum plan value has a vector.
 
       pgrm["u_color_cycle_targets"_t] = color_cycle_targets;
     }

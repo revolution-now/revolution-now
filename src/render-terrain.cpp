@@ -28,6 +28,7 @@
 #include "ss/terrain.hpp"
 
 // render
+#include "render/painter.hpp"
 #include "render/renderer.hpp"
 
 // gfx
@@ -1014,8 +1015,8 @@ void render_river_on_land( IVisibility const& viz,
   rr::Painter painter = renderer.painter();
   render_river_water_tile( renderer, where, water, square );
   {
-    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
-                             true );
+    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
+                             rr::e_color_cycle_plan::river );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
     render_river_water_tile( renderer, where, cycle, square );
   }
@@ -1160,8 +1161,9 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   auto render_maybe_with_sea_lane = [&]( auto&& f ) {
     f( e_tile::terrain_ocean );
     if( square.sea_lane ) {
-      SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
-                               true );
+      SCOPED_RENDERER_MOD_SET(
+          painter_mods.cycling.plan,
+          rr::e_color_cycle_plan::sea_lane );
       f( e_tile::terrain_ocean_sea_lane );
     }
   };
@@ -1855,8 +1857,8 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   if( second_border_tile.has_value() )
     render_sprite( painter, where, *second_border_tile );
   if( surf_tile.has_value() && !square.river.has_value() ) {
-    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
-                             true );
+    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
+                             rr::e_color_cycle_plan::surf );
     rr::Painter painter = renderer.painter();
     render_sprite( painter, where, *surf_tile );
   }

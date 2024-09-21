@@ -886,6 +886,39 @@ TEST_CASE( "[render/painter] mod alpha" ) {
   REQUIRE( v == expected );
 }
 
+TEST_CASE( "[render/painter] mod cycling.plan" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  PainterMods mods;
+  mods.cycling.plan = e_color_cycle_plan::sea_lane;
+  Painter painter   = unmodded_painter.with_mods( mods );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_color_cycle( true );
+    vert.set_aux_idx( 1 );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 230 } ),
+      Vert( { .x = 120, .y = 230 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 120, .y = 30 } ),
+      Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] mod desaturate" ) {
   vector<GenericVertex> v, expected;
 
@@ -981,44 +1014,6 @@ TEST_CASE( "[render/painter] mod uniform depixelation" ) {
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_uniform_depixelation( true );
-    return vert.generic();
-  };
-
-  r = rect{ .origin = { .x = 20, .y = 30 },
-            .size   = { .w = 100, .h = 200 } };
-  painter.draw_solid_rect( r, G );
-  expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
-  };
-  REQUIRE( v == expected );
-}
-
-TEST_CASE( "[render/painter] mod cycling" ) {
-  vector<GenericVertex> v, expected;
-
-  Emitter emitter( v );
-  Painter unmodded_painter( atlas_map(), emitter );
-
-  PainterMods const mods{ .depixelate  = {},
-                          .alpha       = {},
-                          .repos       = {},
-                          .cycling     = { .enabled = true },
-                          .desaturate  = nothing,
-                          .fixed_color = nothing,
-                          .uniform_depixelation = nothing };
-
-  Painter painter = unmodded_painter.with_mods( mods );
-
-  rect r;
-
-  auto Vert = [&]( point p ) {
-    auto vert = SolidVertex( p, G );
-    vert.set_color_cycle( true );
     return vert.generic();
   };
 

@@ -88,6 +88,10 @@ struct VertexBase : protected GenericVertex {
   void set_scaling( double scale );
   void set_translation( gfx::dsize translation );
 
+  // *** Auxiliary index.
+  int32_t get_aux_idx() const;
+  void    set_aux_idx( int32_t value );
+
   // *** Color Cycling.
   bool get_color_cycle() const;
   void set_color_cycle( bool enabled );

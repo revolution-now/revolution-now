@@ -178,6 +178,14 @@ TEST_CASE( "[render/vertex] translation" ) {
            gl::vec2{ .x = 2, .y = -4 } );
 }
 
+TEST_CASE( "[render/vertex] aux_idx" ) {
+  SpriteVertex vert( point{}, point{}, rect{} );
+  REQUIRE( vert.generic().aux_idx == 0 );
+  vert.set_aux_idx( 5 );
+  REQUIRE( vert.generic().aux_idx == 5 );
+  REQUIRE( vert.get_aux_idx() == 5 );
+}
+
 TEST_CASE( "[render/vertex] color_cycle" ) {
   static_assert( VERTEX_FLAG_COLOR_CYCLE == 1 );
   SpriteVertex vert( point{ .x = 6, .y = 12 },
