@@ -92,7 +92,7 @@ void render_unit_flag_single(
     }
     CASE( icon ) {
       render_sprite(
-          painter,
+          renderer,
           Coord::from_gfx( where.moved_down().moved_right() ),
           icon.tile );
       break;
@@ -114,7 +114,6 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
 void render_unit_with_tile( rr::Renderer& renderer, Coord where,
                             e_tile tile, bool damaged,
                             UnitRenderOptions const& options ) {
-  rr::Painter painter = renderer.painter();
   if( !options.flag.has_value() ) {
     // No flag.
     render_unit_no_flag( renderer, where, tile, options );
@@ -136,7 +135,7 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
           renderer, where + Delta{ .w = options.shadow->offset },
           tile, options.shadow->color );
     }
-    render_sprite( painter, where, tile );
+    render_sprite( renderer, where, tile );
   } else {
     // Show the flag in the front.
     render_unit_no_flag( renderer, where, tile, options );
@@ -146,7 +145,7 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
   if( damaged )
     // Reuse the red X from boycotted commodities for the damaged
     // icon (the OG seems to do this).
-    render_sprite( painter, where + Delta{ .w = 8, .h = 8 },
+    render_sprite( renderer, where + Delta{ .w = 8, .h = 8 },
                    e_tile::boycott );
 }
 
@@ -316,7 +315,7 @@ void render_colony( rr::Renderer& renderer, Coord where,
       colony_to_frozen_colony( ss, colony );
   int const   population = colony_population( colony );
   rr::Painter painter    = renderer.painter();
-  render_sprite( painter, where, tile );
+  render_sprite( renderer, where, tile );
   auto const& nation = nation_obj( colony.nation );
   if( options.render_flag )
     render_colony_flag( painter, where + Delta{ .w = 8, .h = 8 },
@@ -358,7 +357,7 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
   e_tribe const tribe_type = frozen_dwelling.tribe;
   auto&         tribe_conf = config_natives.tribes[tribe_type];
   e_tile const  dwelling_tile = tribe_conf.dwelling_tile;
-  render_sprite( painter, where, dwelling_tile );
+  render_sprite( renderer, where, dwelling_tile );
   // Flags.
   e_native_level const native_level = tribe_conf.level;
   gfx::pixel const     flag_color   = tribe_conf.flag_color;
@@ -371,7 +370,7 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
   Delta const offset_32x32{ .w = 6, .h = 6 };
   // Yellow star to mark the capital.
   if( dwelling.is_capital )
-    render_sprite( painter, where + offset_32x32,
+    render_sprite( renderer, where + offset_32x32,
                    e_tile::capital_star );
 
   // If there is a missionary in this dwelling then render a
@@ -389,15 +388,14 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
     render_sprite_silhouette( renderer, where + offset_32x32,
                               e_tile::missionary_cross_inner,
                               cross_color );
-    render_sprite( painter, where + offset_32x32,
+    render_sprite( renderer, where + offset_32x32,
                    e_tile::missionary_cross_outter );
     // This part adds some shadows/highlights to the colored part
     // of the cross.
     {
       double const alpha = is_jesuit ? .10 : .07;
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-      rr::Painter painter = renderer.painter();
-      render_sprite( painter, where + offset_32x32,
+      render_sprite( renderer, where + offset_32x32,
                      e_tile::missionary_cross_accent );
     }
   }
