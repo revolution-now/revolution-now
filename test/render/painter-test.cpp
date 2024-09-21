@@ -762,17 +762,18 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate =
-            DepixelateInfo{
-                .stage       = .7,
-                .inverted    = {},
-                .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha                = nothing,
-        .repos                = {},
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+  PainterMods const mods{
+      .depixelate =
+          DepixelateInfo{
+              .stage       = .7,
+              .inverted    = {},
+              .hash_anchor = point{ .x = 1, .y = 2 } },
+      .alpha                = nothing,
+      .repos                = {},
+      .desaturate           = nothing,
+      .fixed_color          = nothing,
+      .uniform_depixelation = nothing };
+  Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
 
@@ -807,17 +808,18 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
 
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate =
-            DepixelateInfo{
-                .stage       = .7,
-                .inverted    = true,
-                .hash_anchor = point{ .x = 1, .y = 2 } },
-        .alpha                = nothing,
-        .repos                = {},
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+  PainterMods const mods{
+      .depixelate =
+          DepixelateInfo{
+              .stage       = .7,
+              .inverted    = true,
+              .hash_anchor = point{ .x = 1, .y = 2 } },
+      .alpha                = nothing,
+      .repos                = {},
+      .desaturate           = nothing,
+      .fixed_color          = nothing,
+      .uniform_depixelation = nothing };
+  Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
 
@@ -852,13 +854,15 @@ TEST_CASE( "[render/painter] mod alpha" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate           = {},
-        .alpha                = .7,
-        .repos                = {},
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+
+  PainterMods const mods{ .depixelate           = {},
+                          .alpha                = .7,
+                          .repos                = {},
+                          .desaturate           = nothing,
+                          .fixed_color          = nothing,
+                          .uniform_depixelation = nothing };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   rect r;
 
@@ -887,13 +891,15 @@ TEST_CASE( "[render/painter] mod desaturate" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate           = {},
-        .alpha                = {},
-        .repos                = {},
-        .desaturate           = true,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+
+  PainterMods const mods{ .depixelate           = {},
+                          .alpha                = {},
+                          .repos                = {},
+                          .desaturate           = true,
+                          .fixed_color          = nothing,
+                          .uniform_depixelation = nothing };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   rect r;
 
@@ -922,13 +928,15 @@ TEST_CASE( "[render/painter] mod fixed_color" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate           = {},
-        .alpha                = {},
-        .repos                = {},
-        .desaturate           = {},
-        .fixed_color          = gfx::pixel::red(),
-        .uniform_depixelation = nothing } );
+
+  PainterMods const mods{ .depixelate  = {},
+                          .alpha       = {},
+                          .repos       = {},
+                          .desaturate  = {},
+                          .fixed_color = gfx::pixel::red(),
+                          .uniform_depixelation = nothing };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   rect r;
 
@@ -958,13 +966,15 @@ TEST_CASE( "[render/painter] mod uniform depixelation" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate           = {},
-        .alpha                = {},
-        .repos                = {},
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = true } );
+
+  PainterMods const mods{ .depixelate           = {},
+                          .alpha                = {},
+                          .repos                = {},
+                          .desaturate           = nothing,
+                          .fixed_color          = nothing,
+                          .uniform_depixelation = true };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   rect r;
 
@@ -993,14 +1003,16 @@ TEST_CASE( "[render/painter] mod cycling" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate           = {},
-        .alpha                = {},
-        .repos                = {},
-        .cycling              = { .enabled = true },
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+
+  PainterMods const mods{ .depixelate  = {},
+                          .alpha       = {},
+                          .repos       = {},
+                          .cycling     = { .enabled = true },
+                          .desaturate  = nothing,
+                          .fixed_color = nothing,
+                          .uniform_depixelation = nothing };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   rect r;
 
@@ -1029,14 +1041,17 @@ TEST_CASE( "[render/painter] mod reposition" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate = {},
-        .alpha      = {},
-        .repos      = RepositionInfo{
-                 .scale       = 2.0,
-                 .translation = dsize{ .w = 5, .h = 3 },
-                 .use_camera  = false,
-        } } );
+
+  PainterMods const mods{
+      .depixelate = {},
+      .alpha      = {},
+      .repos      = RepositionInfo{
+               .scale       = 2.0,
+               .translation = dsize{ .w = 5, .h = 3 },
+               .use_camera  = false,
+      } };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
@@ -1064,18 +1079,21 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
 
   Emitter emitter( v );
   Painter unmodded_painter( atlas_map(), emitter );
-  Painter painter = unmodded_painter.with_mods(
-      { .depixelate = {},
-        .alpha      = {},
-        .repos =
-            RepositionInfo{
-                .scale       = 2.0,
-                .translation = dsize{ .w = 5.3, .h = 3 },
-                .use_camera  = true,
-            },
-        .desaturate           = nothing,
-        .fixed_color          = nothing,
-        .uniform_depixelation = nothing } );
+
+  PainterMods const mods{
+      .depixelate = {},
+      .alpha      = {},
+      .repos =
+          RepositionInfo{
+              .scale       = 2.0,
+              .translation = dsize{ .w = 5.3, .h = 3 },
+              .use_camera  = true,
+          },
+      .desaturate           = nothing,
+      .fixed_color          = nothing,
+      .uniform_depixelation = nothing };
+
+  Painter painter = unmodded_painter.with_mods( mods );
 
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );

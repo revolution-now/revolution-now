@@ -53,11 +53,15 @@ Delta sprite_size( e_tile tile );
 /****************************************************************
 ** Rendering Tiles
 *****************************************************************/
-void render_sprite( rr::Painter& painter, Coord where,
+void render_sprite( rr::Renderer& renderer, Coord where,
                     e_tile tile );
 
-void render_sprite( rr::Painter& painter, e_tile tile,
-                    Coord pixel_coord );
+[[deprecated]] void render_sprite( rr::Painter& painter,
+                                   Coord where, e_tile tile );
+
+[[deprecated]] void render_sprite( rr::Painter& painter,
+                                   e_tile       tile,
+                                   Coord        pixel_coord );
 
 // This one allows stretching the tile.
 void render_sprite( rr::Painter& painter, Rect where,
@@ -82,7 +86,7 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
 /****************************************************************
 ** Stencils
 *****************************************************************/
-void render_sprite_stencil( rr::Painter& painter, Coord where,
+void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color );
 

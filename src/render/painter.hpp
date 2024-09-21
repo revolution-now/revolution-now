@@ -97,17 +97,16 @@ struct Painter {
     : atlas_( atlas ), emitter_( emitter ), mods_{} {}
 
   Painter( AtlasMap const& atlas, Emitter& emitter,
-           PainterMods mods )
-    : atlas_( atlas ),
-      emitter_( emitter ),
-      mods_( std::move( mods ) ) {}
+           PainterMods const& mods ATTR_LIFETIMEBOUND )
+    : atlas_( atlas ), emitter_( emitter ), mods_( &mods ) {}
 
-  Painter with_mods( PainterMods const& mods );
+  Painter with_mods(
+      PainterMods const& mods ATTR_LIFETIMEBOUND );
   Painter without_mods();
 
   AtlasMap const& atlas() const { return atlas_; }
   Emitter&        emitter() const { return emitter_; }
-  base::maybe<PainterMods const&> mods() const { return mods_; }
+  base::maybe<PainterMods const&> mods() const;
 
   // .......................[[ Points ]]...................... //
 
@@ -186,14 +185,9 @@ struct Painter {
                           gfx::size  replacement_atlas_offset,
                           gfx::pixel key_color );
 
-  AtlasMap const& atlas_;
-  Emitter&        emitter_;
-  // FIXME: it seems inefficient to copy the mods into the struct
-  // each time a painter is created. Try to find a way to hold a
-  // reference here. If we can get the rr::Renderer to maintain
-  // pointer stability on its mod stack objects then that might
-  // be possible.
-  base::maybe<PainterMods> mods_;
+  AtlasMap const&    atlas_;
+  Emitter&           emitter_;
+  PainterMods const* mods_ = {}; // nullptr if no mods present.
 };
 
 } // namespace rr

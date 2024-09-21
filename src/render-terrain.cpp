@@ -621,7 +621,7 @@ void render_terrain_ground( IVisibility const& viz,
       up.surface == e_surface::water &&
       right.surface == e_surface::water ) {
     render_sprite_stencil(
-        painter, where,
+        renderer, where,
         e_tile::terrain_ocean_canal_corner_up_right,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
@@ -633,7 +633,7 @@ void render_terrain_ground( IVisibility const& viz,
       up.surface == e_surface::water &&
       left.surface == e_surface::water ) {
     render_sprite_stencil(
-        painter, where,
+        renderer, where,
         e_tile::terrain_ocean_canal_corner_up_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
@@ -687,14 +687,12 @@ void render_river_water_tile( rr::Renderer& renderer,
                               MapSquare const& square ) {
   double alpha =
       ( square.surface == e_surface::water ) ? .05 : .1;
-  rr::Painter painter = renderer.painter();
-  render_sprite_stencil( painter, where, tile,
+  render_sprite_stencil( renderer, where, tile,
                          e_tile::terrain_ocean,
                          gfx::pixel::black() );
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-    rr::Painter painter = renderer.painter();
-    render_sprite_stencil( painter, where, tile,
+    render_sprite_stencil( renderer, where, tile,
                            e_tile::terrain_river_shading,
                            gfx::pixel::black() );
   }
@@ -1159,13 +1157,20 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
              ( water_down ? ( 1 << 1 ) : 0 ) |
              ( water_left ? ( 1 << 0 ) : 0 );
 
+  auto render_maybe_with_sea_lane = [&]( auto&& f ) {
+    f( e_tile::terrain_ocean );
+    if( square.sea_lane ) {
+      SCOPED_RENDERER_MOD_SET( painter_mods.cycling.enabled,
+                               true );
+      f( e_tile::terrain_ocean_sea_lane );
+    }
+  };
+
   if( mask == 0b1111 ) {
     // All surrounding water.
-    e_tile tile = square.sea_lane
-                      ? e_tile::terrain_ocean_sea_lane
-                      : e_tile::terrain_ocean;
-
-    render_sprite( painter, where, tile );
+    render_maybe_with_sea_lane( [&]( e_tile const tile ) {
+      render_sprite( renderer, where, tile );
+    } );
     render_beach_corners( painter, where, up, right, down, left,
                           up_left, up_right, down_right,
                           down_left );
@@ -1833,15 +1838,16 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   render_terrain_ground( viz, painter, renderer, where,
                          world_square, ground );
 
-  e_tile ocean_background = square.sea_lane
-                                ? e_tile::terrain_ocean_sea_lane
-                                : e_tile::terrain_ocean;
-  render_sprite_stencil( painter, where, water_tile,
-                         ocean_background, gfx::pixel::black() );
-  if( second_water_tile.has_value() )
-    render_sprite_stencil( painter, where, *second_water_tile,
-                           ocean_background,
+  render_maybe_with_sea_lane( [&]( e_tile const tile ) {
+    render_sprite_stencil( renderer, where, water_tile, tile,
                            gfx::pixel::black() );
+  } );
+  if( second_water_tile.has_value() ) {
+    render_maybe_with_sea_lane( [&]( e_tile const tile ) {
+      render_sprite_stencil( renderer, where, *second_water_tile,
+                             tile, gfx::pixel::black() );
+    } );
+  }
   render_sprite( painter, where, beach_tile );
   render_sprite( painter, where, border_tile );
   if( second_beach_tile.has_value() )
@@ -1868,7 +1874,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
       left.surface == e_surface::land &&
       up.surface == e_surface::land ) {
     render_sprite_stencil(
-        painter, where, e_tile::terrain_ocean_canal_up_left,
+        renderer, where, e_tile::terrain_ocean_canal_up_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
     render_sprite( painter, where,
@@ -1878,7 +1884,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
       up.surface == e_surface::land &&
       right.surface == e_surface::land ) {
     render_sprite_stencil(
-        painter, where, e_tile::terrain_ocean_canal_up_right,
+        renderer, where, e_tile::terrain_ocean_canal_up_right,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
     render_sprite( painter, where,
@@ -1888,7 +1894,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
       down.surface == e_surface::land &&
       right.surface == e_surface::land ) {
     render_sprite_stencil(
-        painter, where, e_tile::terrain_ocean_canal_down_right,
+        renderer, where, e_tile::terrain_ocean_canal_down_right,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
     render_sprite( painter, where,
@@ -1898,7 +1904,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
       down.surface == e_surface::land &&
       left.surface == e_surface::land ) {
     render_sprite_stencil(
-        painter, where, e_tile::terrain_ocean_canal_down_left,
+        renderer, where, e_tile::terrain_ocean_canal_down_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
     render_sprite( painter, where,

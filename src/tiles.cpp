@@ -101,6 +101,11 @@ void render_sprite( rr::Painter& painter, Rect where,
   painter.draw_sprite_scale( atlas_lookup( tile ), where );
 }
 
+void render_sprite( rr::Renderer& renderer, Coord where,
+                    e_tile tile ) {
+  renderer.painter().draw_sprite( atlas_lookup( tile ), where );
+}
+
 void render_sprite( rr::Painter& painter, e_tile tile,
                     Coord where ) {
   painter.draw_sprite( atlas_lookup( tile ), where );
@@ -146,12 +151,12 @@ void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
   }
 }
 
-void render_sprite_stencil( rr::Painter& painter, Coord where,
+void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color ) {
-  painter.draw_stencil( atlas_lookup( tile ),
-                        atlas_lookup( replacement_tile ), where,
-                        key_color );
+  renderer.painter().draw_stencil(
+      atlas_lookup( tile ), atlas_lookup( replacement_tile ),
+      where, key_color );
 }
 
 void tile_sprite( rr::Painter& painter, e_tile tile,

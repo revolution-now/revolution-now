@@ -79,15 +79,20 @@ void Painter::emit( VertexBase&& vert ) {
   emitter_.emit( vert );
 }
 
+base::maybe<PainterMods const&> Painter::mods() const {
+  if( mods_ == nullptr ) return base::nothing;
+  return *mods_;
+}
+
 Painter Painter::with_mods( PainterMods const& mods ) {
   Painter res = *this;
-  res.mods_   = mods;
+  res.mods_   = &mods;
   return res;
 }
 
 Painter Painter::without_mods() {
   Painter res = *this;
-  res.mods_.reset();
+  res.mods_   = {};
   return res;
 }
 
