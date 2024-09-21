@@ -157,6 +157,12 @@ vec4 vec4::from_rect( gfx::rect r ) {
   };
 }
 
+vec4 vec4::with_alpha( float a ) const {
+  auto copy = *this;
+  copy.w    = a;
+  return copy;
+}
+
 /****************************************************************
 ** ivec4
 *****************************************************************/
@@ -167,6 +173,12 @@ ivec4 ivec4::from_rect( gfx::rect r ) {
       .z = r.size.w,
       .w = r.size.h,
   };
+}
+
+ivec4 ivec4::with_alpha( int32_t a ) const {
+  auto copy = *this;
+  copy.w    = a;
+  return copy;
 }
 
 /****************************************************************

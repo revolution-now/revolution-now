@@ -183,5 +183,14 @@ TEST_CASE( "[attribs] gfx conversion" ) {
                   .a = 4.0f / 255.0f } );
 }
 
+TEST_CASE( "[attribs] with_alpha" ) {
+  REQUIRE(
+      vec4{ .x = 1.1, .y = 2.2, .z = 3.3, .w = 4.4 }.with_alpha(
+          5.5 ) ==
+      vec4{ .x = 1.1, .y = 2.2, .z = 3.3, .w = 5.5 } );
+  REQUIRE( ivec4{ .x = 1, .y = 2, .z = 3, .w = 4 }.with_alpha(
+               5 ) == ivec4{ .x = 1, .y = 2, .z = 3, .w = 5 } );
+}
+
 } // namespace
 } // namespace gl

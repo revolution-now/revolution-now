@@ -146,6 +146,9 @@ struct vec4 {
 
   static vec4 from_rect( gfx::rect r );
 
+  // When interpreted as rgba.
+  vec4 with_alpha( float a ) const;
+
   bool operator==( vec4 const& ) const = default;
 };
 
@@ -168,6 +171,9 @@ struct ivec4 {
   int32_t w = 0;
 
   static ivec4 from_rect( gfx::rect r );
+
+  // When interpreted as rgba.
+  ivec4 with_alpha( int32_t a ) const;
 
   bool operator==( ivec4 const& ) const = default;
 };
