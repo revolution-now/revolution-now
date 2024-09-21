@@ -44,6 +44,7 @@
 #include "base/keyval.hpp"
 
 // C++ standard library
+#include <array>
 #include <stack>
 
 using namespace ::std;
@@ -199,19 +200,46 @@ struct Renderer::Impl {
 
     // Color cycling.
     {
-      static gl::ivec4 const X = gl::ivec4{}; // clear.
+      gl::ivec4 const kNoColor = gl::ivec4{}; // clear.
 
-      static vector<gl::ivec4> const color_cycle_targets{
-          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 }, //
-          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 115 }, //
-          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 50 },  //
-          X,                                                  //
-          X,                                                  //
-          X,                                                  //
-          X,                                                  //
-          X,                                                  //
-          X,                                                  //
+      size_t constexpr CYCLE_PLAN_SPAN = 9;
+      using CycleTargets = array<gl::ivec4, CYCLE_PLAN_SPAN>;
+
+      vector<gl::ivec4> color_cycle_targets;
+      auto              append = [&]( auto const& what ) {
+        color_cycle_targets.insert( color_cycle_targets.end(),
+                                                 what.begin(), what.end() );
       };
+
+      auto constexpr kOceanTideColor =
+          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 };
+
+      CycleTargets const tide_color_cycle_targets{
+          kOceanTideColor.with_alpha( 230 ),
+          kOceanTideColor.with_alpha( 115 ),
+          kOceanTideColor.with_alpha( 50 ),
+          kNoColor,
+          kNoColor,
+          kNoColor,
+          kNoColor,
+          kNoColor,
+          kNoColor,
+      };
+      append( tide_color_cycle_targets );
+
+      CycleTargets const sea_lane_color_cycle_targets{
+          kOceanTideColor.with_alpha( 230 ),
+          kOceanTideColor.with_alpha( 115 ),
+          kOceanTideColor.with_alpha( 50 ),
+          kOceanTideColor.with_alpha( 230 ),
+          kOceanTideColor.with_alpha( 115 ),
+          kOceanTideColor.with_alpha( 50 ),
+          kNoColor,
+          kNoColor,
+          kNoColor,
+      };
+      append( sea_lane_color_cycle_targets );
+
       pgrm["u_color_cycle_targets"_t] = color_cycle_targets;
     }
 
