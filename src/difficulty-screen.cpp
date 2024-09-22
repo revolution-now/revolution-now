@@ -63,6 +63,16 @@ struct DifficultyLayout {
     return *grid[selected];
   }
 
+  maybe<point> find_difficulty(
+      e_difficulty const difficulty ) const {
+    for( auto const p : rect_iterator( grid.rect() ) ) {
+      auto const& cell = grid[p];
+      if( !cell.has_value() ) continue;
+      if( *cell == difficulty ) return p;
+    }
+    return nothing;
+  }
+
   void check_invariants() const {
     CHECK( grid.size().area() == 6 );
     CHECK( find( grid.data().begin(), grid.data().end(),
@@ -321,6 +331,10 @@ struct DifficultyScreen : public IPlane {
     layout_.grid                     = Delta{ .w = 1, .h = 1 };
     layout_.grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
     recomposite();
+    UNWRAP_CHECK_T(
+        point const conquistador,
+        layout_.find_difficulty( e_difficulty::conquistador ) );
+    layout_.selected = conquistador;
   }
 
   void recomposite() {
