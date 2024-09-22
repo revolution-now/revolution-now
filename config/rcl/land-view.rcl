@@ -37,3 +37,11 @@ input_overrun_detection {
   # to zero alpha. This is purely visual.
   hourglass_fade_time: 400  # milliseconds
 }
+
+mini_map {
+  # When this is on, sea lane tiles will be distinguishable from
+  # standard ocean tiles on the map. The OG has it off, which
+  # seems to make the map look a bit nicer. But it may be useful
+  # to turn it on.
+  show_sea_lane: false
+}

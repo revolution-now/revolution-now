@@ -31,6 +31,10 @@ struct.InputOverrunDetection {
   hourglass_fade_time 'std::chrono::milliseconds',
 }
 
+struct.MiniMap {
+  show_sea_lane 'bool',
+}
+
 namespace "rn"
 
 struct.config_land_view_t {
@@ -38,6 +42,8 @@ struct.config_land_view_t {
   colony_name_offset 'Delta',
 
   input_overrun_detection 'config::land_view::InputOverrunDetection',
+
+  mini_map 'config::land_view::MiniMap',
 }
 
 config.land_view {}

@@ -22,6 +22,7 @@
 #include "visibility.hpp"
 
 // config
+#include "config/land-view.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // ss
@@ -77,8 +78,12 @@ gfx::pixel const kSwampColor     = parse_color( "257380" );
 gfx::pixel const kTundraColor    = parse_color( "cdad94" );
 
 gfx::pixel color_for_square( MapSquare const& square ) {
-  if( square.surface == e_surface::water )
-    return square.sea_lane ? kSeaLaneColor : kOceanColor;
+  if( square.surface == e_surface::water ) {
+    if( square.sea_lane &&
+        config_land_view.mini_map.show_sea_lane )
+      return kSeaLaneColor;
+    return kOceanColor;
+  }
   if( square.overlay.has_value() ) {
     switch( *square.overlay ) {
       case e_land_overlay::mountains:
