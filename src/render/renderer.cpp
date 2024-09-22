@@ -202,13 +202,18 @@ struct Renderer::Impl {
     {
       gl::ivec4 const kNoColor = gl::ivec4{}; // clear.
 
-      size_t constexpr CYCLE_PLAN_SPAN = 9;
-      using CycleTargets = array<gl::ivec4, CYCLE_PLAN_SPAN>;
+      // This needs to match the corresponding value in the
+      // shader.
+      size_t constexpr CYCLE_PLAN_SPAN = 10;
+
+      using CycleTargets = vector<gl::ivec4>;
 
       vector<gl::ivec4> color_cycle_targets;
-      auto              append = [&]( auto const& what ) {
+
+      auto append = [&]( auto const& what ) {
+        CHECK( what.size() == CYCLE_PLAN_SPAN );
         color_cycle_targets.insert( color_cycle_targets.end(),
-                                                 what.begin(), what.end() );
+                                    what.begin(), what.end() );
       };
 
       auto constexpr kOceanSurfColor =
@@ -217,6 +222,7 @@ struct Renderer::Impl {
       CycleTargets const surf_color_cycle_targets{
           kOceanSurfColor.with_alpha( 230 ),
           kOceanSurfColor.with_alpha( 115 ),
+          kOceanSurfColor.with_alpha( 50 ),
           kOceanSurfColor.with_alpha( 50 ),
           kNoColor,
           kNoColor,
@@ -231,9 +237,10 @@ struct Renderer::Impl {
           kOceanSurfColor.with_alpha( 230 ),
           kOceanSurfColor.with_alpha( 115 ),
           kOceanSurfColor.with_alpha( 50 ),
-          kOceanSurfColor.with_alpha( 230 ),
-          kOceanSurfColor.with_alpha( 115 ),
-          kOceanSurfColor.with_alpha( 50 ),
+          kOceanSurfColor.with_alpha( 28 ),
+          kNoColor,
+          kNoColor,
+          kNoColor,
           kNoColor,
           kNoColor,
           kNoColor,
@@ -244,6 +251,7 @@ struct Renderer::Impl {
           kOceanSurfColor.with_alpha( 230 ),
           kOceanSurfColor.with_alpha( 115 ),
           kOceanSurfColor.with_alpha( 50 ),
+          kNoColor,
           kNoColor,
           kOceanSurfColor.with_alpha( 230 ),
           kOceanSurfColor.with_alpha( 115 ),

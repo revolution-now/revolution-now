@@ -46,7 +46,7 @@ uniform float u_depixelation_stage;
 
 // Color cycling.
 uniform int u_color_cycle_stage;
-const int CYCLE_PLAN_SPAN = 9;
+const int CYCLE_PLAN_SPAN = 10;
 const int NUM_CYCLE_PLANS = 3;
 const int CYCLE_ARR_SIZE = NUM_CYCLE_PLANS*CYCLE_PLAN_SPAN;
 uniform ivec4 u_color_cycle_targets[CYCLE_ARR_SIZE];
@@ -284,8 +284,20 @@ vec4 alpha( in vec4 color ) {
 // placed with a color in the destination array, at an index de-
 // termined by the current color cycling stage. Should probably
 // replace these with uniforms.
-const vec3 color_cycle_src[5] = vec3[](
-  vec3( 50 ), vec3( 100 ), vec3( 150 ), vec3( 200 ), vec3( 250 )
+const vec3 color_cycle_src[CYCLE_PLAN_SPAN] = vec3[](
+  // Grey ramp.
+  vec3(  50,  50,  50 ),
+  vec3( 100, 100, 100 ),
+  vec3( 150, 150, 150 ),
+  vec3( 200, 200, 200 ),
+  vec3( 250, 250, 250 ),
+
+  // Red ramp.
+  vec3(  50,   0,   0 ),
+  vec3( 100,   0,   0 ),
+  vec3( 150,   0,   0 ),
+  vec3( 200,   0,   0 ),
+  vec3( 250,   0,   0 )
 );
 
 vec4 color_cycle( in vec4 color ) {
