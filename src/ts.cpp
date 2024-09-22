@@ -37,8 +37,8 @@ struct TS::LuaRefSetAndRestore {
     // FIXME: this really needs to be improved.
     st["TS"]                     = new_ts;
     st["ROOT_TS"]                = st.table.create();
-    st["ROOT_TS"]["map_updater"] = []( TS& ts ) -> IMapUpdater& {
-      return ts.map_updater();
+    st["ROOT_TS"]["map_updater"] = [&]() -> IMapUpdater& {
+      return new_ts.map_updater();
     };
     st["ROOT_TS"]["rand"] = new_ts.rand;
   }
