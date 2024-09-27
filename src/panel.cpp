@@ -189,8 +189,7 @@ struct PanelPlane::Impl : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    rr::Painter painter = renderer.painter();
-    tile_sprite( painter, e_tile::wood_middle, rect() );
+    tile_sprite( renderer, e_tile::wood_middle, rect() );
     // Render border on left and bottom.
     Rect const r = rect();
     {

@@ -328,7 +328,7 @@ ButtonBaseView::ButtonBaseView( string label,
                                 e_type type )
   : label_( std::move( label ) ),
     type_( type ),
-    size_in_pixels_( size_in_blocks* Delta{ .w = 8, .h = 8 } ),
+    size_in_pixels_( size_in_blocks * Delta{ .w = 8, .h = 8 } ),
     text_size_in_pixels_(
         rendered_text_size( /*reflow_info=*/{}, label_ ) ) {}
 
@@ -369,9 +369,8 @@ void ButtonBaseView::draw( rr::Renderer& renderer,
 
 void ButtonBaseView::render_disabled( rr::Renderer& renderer,
                                       gfx::point where ) const {
-  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      painter, Coord::from_gfx( where ),
+      renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -394,9 +393,8 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
 
 void ButtonBaseView::render_pressed( rr::Renderer& renderer,
                                      gfx::point where ) const {
-  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      painter, Coord::from_gfx( where ),
+      renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_down_mm, e_tile::button_down_um,
       e_tile::button_down_lm, e_tile::button_down_ml,
@@ -418,9 +416,8 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
 
 void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
                                        gfx::point where ) const {
-  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      painter, Coord::from_gfx( where ),
+      renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -443,9 +440,8 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
 
 void ButtonBaseView::render_hover( rr::Renderer& renderer,
                                    gfx::point    where ) const {
-  rr::Painter painter = renderer.painter();
   render_rect_of_sprites_with_border(
-      painter, Coord::from_gfx( where ),
+      renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
       e_tile::button_up_mm, e_tile::button_up_um,
       e_tile::button_up_lm, e_tile::button_up_ml,
@@ -470,8 +466,7 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
 *****************************************************************/
 void SpriteView::draw( rr::Renderer& renderer,
                        Coord         coord ) const {
-  rr::Painter painter = renderer.painter();
-  render_sprite( painter, tile_, coord );
+  render_sprite( renderer, coord, tile_ );
 }
 
 /****************************************************************
@@ -657,14 +652,14 @@ PaddingView::PaddingView( std::unique_ptr<View> view, int pixels,
     r_( r ),
     u_( u ),
     d_( d ),
-    delta_( single()->delta() +                      //
+    delta_( single()->delta() + //
             Delta{ .w = ( l ? W{ pixels_ } : 0 ) } +
             Delta{ .h = ( u ? H{ pixels_ } : 0 ) } + //
             Delta{ .w = ( r ? W{ pixels_ } : 0 ) } + //
             Delta{ .h = ( d ? H{ pixels_ } : 0 ) } ) {}
 
 void PaddingView::notify_children_updated() {
-  delta_ = single()->delta() +                       //
+  delta_ = single()->delta() + //
            Delta{ .w = ( l_ ? W{ pixels_ } : 0 ) } +
            Delta{ .h = ( u_ ? H{ pixels_ } : 0 ) } + //
            Delta{ .w = ( r_ ? W{ pixels_ } : 0 ) } + //

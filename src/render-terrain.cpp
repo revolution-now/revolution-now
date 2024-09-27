@@ -113,7 +113,7 @@ maybe<e_ground_terrain> ground_terrain_for_square(
 }
 
 void render_mountains( IVisibility const& viz,
-                       rr::Painter& painter, Coord where,
+                       rr::Renderer& renderer, Coord where,
                        Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
   CHECK( here.surface == e_surface::land );
@@ -224,11 +224,12 @@ void render_mountains( IVisibility const& viz,
       FATAL( "invalid mountains mask: {}", mask );
     }
   }
-  render_sprite( painter, where, mountains_tile );
+  render_sprite( renderer, where, mountains_tile );
 }
 
-void render_hills( IVisibility const& viz, rr::Painter& painter,
-                   Coord where, Coord world_square ) {
+void render_hills( IVisibility const& viz,
+                   rr::Renderer& renderer, Coord where,
+                   Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
   CHECK( here.surface == e_surface::land );
 
@@ -337,15 +338,16 @@ void render_hills( IVisibility const& viz, rr::Painter& painter,
       FATAL( "invalid hills mask: {}", mask );
     }
   }
-  render_sprite( painter, where, hills_tile );
+  render_sprite( renderer, where, hills_tile );
 }
 
-void render_forest( IVisibility const& viz, rr::Painter& painter,
-                    Coord where, Coord world_square ) {
+void render_forest( IVisibility const& viz,
+                    rr::Renderer& renderer, Coord where,
+                    Coord world_square ) {
   MapSquare const& here = viz.square_at( world_square );
   CHECK( here.surface == e_surface::land );
   if( here.ground == e_ground_terrain::desert ) {
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_forest_scrub_island );
     return;
   }
@@ -457,7 +459,7 @@ void render_forest( IVisibility const& viz, rr::Painter& painter,
       FATAL( "invalid forest mask: {}", mask );
     }
   }
-  render_sprite( painter, where, forest_tile );
+  render_sprite( renderer, where, forest_tile );
 }
 
 void render_adjacent_overlap( IVisibility const& viz,
@@ -595,12 +597,11 @@ void render_adjacent_overlap( IVisibility const& viz,
 }
 
 void render_terrain_ground( IVisibility const& viz,
-                            rr::Painter&       painter,
                             rr::Renderer& renderer, Coord where,
                             Coord            world_square,
                             e_ground_terrain ground ) {
   e_tile tile = tile_for_ground_terrain( ground );
-  render_sprite( painter, where, tile );
+  render_sprite( renderer, where, tile );
   render_adjacent_overlap(
       viz, renderer, where, world_square,
       /*chop_percent=*/
@@ -627,7 +628,7 @@ void render_terrain_ground( IVisibility const& viz,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
     render_sprite(
-        painter, where,
+        renderer, where,
         e_tile::terrain_border_canal_corner_up_right );
   }
   if( up_left.surface == e_surface::land &&
@@ -638,24 +639,23 @@ void render_terrain_ground( IVisibility const& viz,
         e_tile::terrain_ocean_canal_corner_up_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_border_canal_corner_up_left );
   }
 }
 
 // Pass in the painter as well for efficiency.
 void render_terrain_land_square( IVisibility const& viz,
-                                 rr::Painter&       painter,
                                  rr::Renderer&      renderer,
                                  Coord where, Coord world_square,
                                  MapSquare const& square ) {
   DCHECK( square.surface == e_surface::land );
-  render_terrain_ground( viz, painter, renderer, where,
-                         world_square, square.ground );
+  render_terrain_ground( viz, renderer, where, world_square,
+                         square.ground );
 }
 
 void render_beach_corners(
-    rr::Painter& painter, Coord where, MapSquare const& up,
+    rr::Renderer& renderer, Coord where, MapSquare const& up,
     MapSquare const& right, MapSquare const& down,
     MapSquare const& left, MapSquare const& up_left,
     MapSquare const& up_right, MapSquare const& down_right,
@@ -664,22 +664,22 @@ void render_beach_corners(
   if( up_left.surface == e_surface::land &&
       left.surface == e_surface::water &&
       up.surface == e_surface::water )
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_beach_corner_up_left );
   if( up_right.surface == e_surface::land &&
       up.surface == e_surface::water &&
       right.surface == e_surface::water )
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_beach_corner_up_right );
   if( down_right.surface == e_surface::land &&
       down.surface == e_surface::water &&
       right.surface == e_surface::water )
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_beach_corner_down_right );
   if( down_left.surface == e_surface::land &&
       down.surface == e_surface::water &&
       left.surface == e_surface::water )
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_beach_corner_down_left );
 }
 
@@ -732,20 +732,18 @@ void render_river_on_ocean( IVisibility const& viz,
   bool river_left =
       left.river.has_value() && left.surface == e_surface::land;
 
-  rr::Painter painter = renderer.painter();
-
   if( river_left ) {
     render_river_water_tile(
         renderer, where, e_tile::terrain_river_fanout_land_left,
         square );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_river_fanout_bank_land_left );
   }
   if( river_up ) {
     render_river_water_tile(
         renderer, where, e_tile::terrain_river_fanout_land_up,
         square );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_river_fanout_bank_land_up );
   }
   if( river_right ) {
@@ -753,14 +751,14 @@ void render_river_on_ocean( IVisibility const& viz,
         renderer, where, e_tile::terrain_river_fanout_land_right,
         square );
     render_sprite(
-        painter, where,
+        renderer, where,
         e_tile::terrain_river_fanout_bank_land_right );
   }
   if( river_down ) {
     render_river_water_tile(
         renderer, where, e_tile::terrain_river_fanout_land_down,
         square );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_river_fanout_bank_land_down );
   }
 }
@@ -1012,7 +1010,6 @@ void render_river_on_land( IVisibility const& viz,
                     ? major_bank_tile
                     : minor_bank_tile;
 
-  rr::Painter painter = renderer.painter();
   render_river_water_tile( renderer, where, water, square );
   {
     SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
@@ -1020,7 +1017,7 @@ void render_river_on_land( IVisibility const& viz,
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
     render_river_water_tile( renderer, where, cycle, square );
   }
-  if( !no_bank ) render_sprite( painter, where, bank );
+  if( !no_bank ) render_sprite( renderer, where, bank );
 }
 
 bool has_surrounding_nonforest_river_squares(
@@ -1079,14 +1076,13 @@ void render_river_hinting( IVisibility const& viz,
 }
 
 void render_land_overlay( IVisibility const& viz,
-                          rr::Renderer&      renderer,
-                          rr::Painter& painter, Coord where,
+                          rr::Renderer& renderer, Coord where,
                           Coord            world_square,
                           MapSquare const& square ) {
   if( !square.overlay.has_value() ) return;
   switch( *square.overlay ) {
     case e_land_overlay::forest: {
-      render_forest( viz, painter, where, world_square );
+      render_forest( viz, renderer, where, world_square );
       if( square.river.has_value() ) {
         if( square.ground != e_ground_terrain::desert )
           // This forest square, which contains a river, has al-
@@ -1113,16 +1109,15 @@ void render_land_overlay( IVisibility const& viz,
       break;
     }
     case e_land_overlay::hills:
-      render_hills( viz, painter, where, world_square );
+      render_hills( viz, renderer, where, world_square );
       break;
     case e_land_overlay::mountains:
-      render_mountains( viz, painter, where, world_square );
+      render_mountains( viz, renderer, where, world_square );
       break;
   }
 }
 
 void render_terrain_ocean_square( rr::Renderer&      renderer,
-                                  rr::Painter&       painter,
                                   Coord              where,
                                   IVisibility const& viz,
                                   MapSquare const&   square,
@@ -1173,7 +1168,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
     render_maybe_with_sea_lane( [&]( e_tile const tile ) {
       render_sprite( renderer, where, tile );
     } );
-    render_beach_corners( painter, where, up, right, down, left,
+    render_beach_corners( renderer, where, up, right, down, left,
                           up_left, up_right, down_right,
                           down_left );
     return;
@@ -1837,8 +1832,8 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   // land visible on this tile.
   UNWRAP_CHECK( ground, ground_terrain_for_square(
                             viz, square, world_square ) );
-  render_terrain_ground( viz, painter, renderer, where,
-                         world_square, ground );
+  render_terrain_ground( viz, renderer, where, world_square,
+                         ground );
 
   render_maybe_with_sea_lane( [&]( e_tile const tile ) {
     render_sprite_stencil( renderer, where, water_tile, tile,
@@ -1850,25 +1845,23 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
                              tile, gfx::pixel::black() );
     } );
   }
-  render_sprite( painter, where, beach_tile );
-  render_sprite( painter, where, border_tile );
+  render_sprite( renderer, where, beach_tile );
+  render_sprite( renderer, where, border_tile );
   if( second_beach_tile.has_value() )
-    render_sprite( painter, where, *second_beach_tile );
+    render_sprite( renderer, where, *second_beach_tile );
   if( second_border_tile.has_value() )
-    render_sprite( painter, where, *second_border_tile );
+    render_sprite( renderer, where, *second_border_tile );
   if( surf_tile.has_value() && !square.river.has_value() ) {
     SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
                              rr::e_color_cycle_plan::surf );
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, where, *surf_tile );
+    render_sprite( renderer, where, *surf_tile );
   }
 
   // It's ok to draw canals after this because this won't be on a
   // tile with canals.
   if( sand_tile.has_value() ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .9 );
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, where, *sand_tile );
+    render_sprite( renderer, where, *sand_tile );
   }
 
   // Render canals.
@@ -1879,7 +1872,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
         renderer, where, e_tile::terrain_ocean_canal_up_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_border_canal_up_left );
   }
   if( up_right.surface == e_surface::water &&
@@ -1889,7 +1882,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
         renderer, where, e_tile::terrain_ocean_canal_up_right,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_border_canal_up_right );
   }
   if( down_right.surface == e_surface::water &&
@@ -1899,7 +1892,7 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
         renderer, where, e_tile::terrain_ocean_canal_down_right,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_border_canal_down_right );
   }
   if( down_left.surface == e_surface::water &&
@@ -1909,19 +1902,19 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
         renderer, where, e_tile::terrain_ocean_canal_down_left,
         e_tile::terrain_ocean_canal_background,
         gfx::pixel::black() );
-    render_sprite( painter, where,
+    render_sprite( renderer, where,
                    e_tile::terrain_border_canal_down_left );
   }
 
-  render_beach_corners( painter, where, up, right, down, left,
+  render_beach_corners( renderer, where, up, right, down, left,
                         up_left, up_right, down_right,
                         down_left );
 }
 
-void render_lost_city_rumor( rr::Painter& painter, Coord where,
+void render_lost_city_rumor( rr::Renderer& renderer, Coord where,
                              MapSquare const& square ) {
   if( square.lost_city_rumor )
-    render_sprite( painter, where, e_tile::lost_city_rumor );
+    render_sprite( renderer, where, e_tile::lost_city_rumor );
 }
 
 void render_fish( IVisibility const& viz, rr::Renderer& renderer,
@@ -1966,9 +1959,8 @@ void render_fish( IVisibility const& viz, rr::Renderer& renderer,
                                 fish_body, outline_color );
   }
 
-  rr::Painter painter = renderer.painter();
-  render_sprite( painter, where, fish_body );
-  render_sprite( painter, where, fish_splash_fin );
+  render_sprite( renderer, where, fish_body );
+  render_sprite( renderer, where, fish_splash_fin );
 }
 
 e_tile resource_tile( e_natural_resource resource ) {
@@ -2003,7 +1995,6 @@ e_tile resource_tile( e_natural_resource resource ) {
 }
 
 void render_resources( rr::Renderer&      renderer,
-                       rr::Painter&       painter,
                        IVisibility const& viz, Coord where,
                        Coord world_square ) {
   maybe<e_natural_resource> const resource =
@@ -2011,7 +2002,7 @@ void render_resources( rr::Renderer&      renderer,
   if( !resource.has_value() ) return;
   if( *resource == e_natural_resource::fish )
     return render_fish( viz, renderer, where, world_square );
-  render_sprite( painter, where, resource_tile( *resource ) );
+  render_sprite( renderer, where, resource_tile( *resource ) );
 }
 
 // This function is for squares that have some overlay but also
@@ -2300,30 +2291,28 @@ void render_visible_terrain_square( rr::Renderer& renderer,
                                     Coord         where,
                                     Coord const   world_square,
                                     IVisibility const& viz ) {
-  rr::Painter      painter = renderer.painter();
-  MapSquare const& square  = viz.square_at( world_square );
+  MapSquare const& square = viz.square_at( world_square );
   if( square.surface == e_surface::water ) {
-    render_terrain_ocean_square( renderer, painter, where, viz,
-                                 square, world_square );
+    render_terrain_ocean_square( renderer, where, viz, square,
+                                 world_square );
     if( square.river.has_value() )
       render_river_on_ocean( viz, renderer, where, world_square,
                              square );
   } else {
-    render_terrain_land_square( viz, painter, renderer, where,
+    render_terrain_land_square( viz, renderer, where,
                                 world_square, square );
     if( square.river.has_value() )
       render_river_on_land( viz, renderer, where, world_square,
                             square,
                             /*no_bank=*/false );
   }
-  render_land_overlay( viz, renderer, painter, where,
-                       world_square, square );
-  render_plow_if_present( painter, where,
+  render_land_overlay( viz, renderer, where, world_square,
+                       square );
+  render_plow_if_present( renderer, where,
                           viz.square_at( world_square ) );
-  render_resources( renderer, painter, viz, where,
-                    world_square );
-  render_road_if_present( painter, where, viz, world_square );
-  render_lost_city_rumor( painter, where, square );
+  render_resources( renderer, viz, where, world_square );
+  render_road_if_present( renderer, where, viz, world_square );
+  render_lost_city_rumor( renderer, where, square );
 }
 
 // An "overlay" can represent some kind of sprite that is over-
@@ -2382,8 +2371,7 @@ void render_obfuscation_overlay(
         viz, world_square,
         { { e_tile_visibility::hidden, true } } );
     if( hidden.fully_surrounded ) {
-      rr::Painter painter = renderer.painter();
-      render_sprite( painter, where, e_tile::terrain_hidden );
+      render_sprite( renderer, where, e_tile::terrain_hidden );
     } else {
       render_pixelated_overlay_transitions(
           renderer, where, world_square, viz,
@@ -2400,8 +2388,7 @@ void render_obfuscation_overlay(
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
                              config_gfx.fog_of_war_alpha );
     if( fogged.fully_surrounded ) {
-      rr::Painter painter = renderer.painter();
-      render_sprite( painter, where, e_tile::terrain_fogged );
+      render_sprite( renderer, where, e_tile::terrain_fogged );
     } else {
       render_pixelated_overlay_transitions(
           renderer, where, world_square, viz,

@@ -69,11 +69,11 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    rr::Painter painter = renderer.painter();
     render_framerate( renderer );
     render_sprite(
-        painter, e_tile::mouse_arrow1,
-        input::current_mouse_position() - Delta{ .w = 16 } );
+        renderer,
+        input::current_mouse_position() - Delta{ .w = 16 },
+        e_tile::mouse_arrow1 );
   }
 
   e_input_handled input( input::event_t const& event ) override {

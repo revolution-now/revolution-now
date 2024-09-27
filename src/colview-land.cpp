@@ -424,7 +424,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     UNWRAP_CHECK( d,
                   local_colony_loc.direction_to( local_coord ) );
     if( !native_owned_land_[d].has_value() ) continue;
-    render_sprite( painter, local_coord * g_tile_delta,
+    render_sprite( renderer, local_coord * g_tile_delta,
                    e_tile::totem_pole );
   }
 }
@@ -438,9 +438,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   // Further drawing should not be scaled.
 
   // Render units.
-  rr::Painter   painter = renderer.painter();
-  Colony const& colony  = ss_.colonies.colony_for( colony_.id );
-  Coord const   center  = Coord{ .x = 1, .y = 1 };
+  Colony const& colony = ss_.colonies.colony_for( colony_.id );
+  Coord const   center = Coord{ .x = 1, .y = 1 };
 
   for( auto const& [direction, outdoor_unit] :
        colony.outdoor_jobs ) {
@@ -465,7 +464,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     e_tile const product_tile = tile_for_outdoor_job( job );
     Coord const  product_coord =
         square_coord + Delta{ .w = 4, .h = 4 };
-    render_sprite( painter, product_coord, product_tile );
+    render_sprite( renderer, product_coord, product_tile );
     Delta const product_tile_size = sprite_size( product_tile );
     SquareProduction const& production =
         colview_production().land_production[direction];
@@ -492,7 +491,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         tile_for_outdoor_job( e_outdoor_job::food );
     Coord const product_coord =
         square_coord + Delta{ .w = 12, .h = 4 };
-    render_sprite( painter, product_coord, product_tile );
+    render_sprite( renderer, product_coord, product_tile );
     Delta const  product_tile_size = sprite_size( product_tile );
     int          quantity = production.center_food_production;
     string const q_str    = fmt::format( "x {}", quantity );
@@ -512,7 +511,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     e_tile const product_tile = tile_for_outdoor_job( job );
     Coord const  product_coord =
         square_coord + Delta{ .w = 12, .h = 32 };
-    render_sprite( painter, product_coord, product_tile );
+    render_sprite( renderer, product_coord, product_tile );
     Delta const product_tile_size = sprite_size( product_tile );
     int const   quantity =
         production.center_extra_production->quantity;

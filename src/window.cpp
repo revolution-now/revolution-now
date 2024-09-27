@@ -294,7 +294,8 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     // Render shadow behind window.
     painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                              gfx::pixel{ 0, 0, 0, 64 } );
-    tile_sprite( painter, e_tile::wood_middle, rect( Coord{} ) );
+    tile_sprite( renderer, e_tile::wood_middle,
+                 rect( Coord{} ) );
     // Render window border, highlights on top and right.
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );

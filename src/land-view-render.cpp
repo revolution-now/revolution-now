@@ -599,8 +599,7 @@ void LandViewRenderer::render_input_overrun_indicator() const {
     alpha = 1.0 - alpha;
   }
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-  rr::Painter painter = renderer.painter();
-  render_sprite( painter, indicator_render_rect.upper_left(),
+  render_sprite( renderer, indicator_render_rect.upper_left(),
                  e_tile::lift_key );
 }
 

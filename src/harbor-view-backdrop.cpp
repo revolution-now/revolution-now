@@ -57,7 +57,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     Delta const water_size =
         sprite_size( e_tile::harbor_water_slice );
     while( coord.x < size_.w ) {
-      render_sprite( painter, coord,
+      render_sprite( renderer, coord,
                      e_tile::harbor_water_slice );
       coord.x += water_size.w;
     }
@@ -72,12 +72,12 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     coord.y                     = size_.h - layout_.horizon - 16;
     coord.x                     = layout_.land_tip;
     Coord const main_upper_left = coord;
-    render_sprite( painter, coord, e_tile::harbor_land_front );
+    render_sprite( renderer, coord, e_tile::harbor_land_front );
     // Next the bottom slices.
     coord = main_upper_left;
     coord.y += land_size.h;
     while( coord.y < size_.h ) {
-      render_sprite( painter, coord,
+      render_sprite( renderer, coord,
                      e_tile::harbor_land_bottom_slice );
       coord.y += land_size.h;
     }
@@ -85,7 +85,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     coord = main_upper_left;
     coord.x += land_size.w;
     while( coord.x < size_.w ) {
-      render_sprite( painter, coord,
+      render_sprite( renderer, coord,
                      e_tile::harbor_land_right_slice );
       coord.x += land_size.w;
     }
@@ -95,7 +95,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     while( coord.y < size_.h ) {
       coord.x = main_upper_left.x + land_size.w;
       while( coord.x < size_.w ) {
-        render_sprite( painter, coord,
+        render_sprite( renderer, coord,
                        e_tile::harbor_land_right_bottom_slice );
         coord.x += land_size.w;
       }
@@ -110,14 +110,14 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     Coord coord = layout_.dock_lower_right;
     coord.x -= kDockEdgeThickness;
     coord.y -= dock_segment_size.h;
-    render_sprite( painter, coord, e_tile::harbor_dock_right );
+    render_sprite( renderer, coord, e_tile::harbor_dock_right );
     for( int i = 0; i < layout_.num_dock_segments; i++ ) {
       coord.x -= dock_segment_size.w;
-      render_sprite( painter, coord,
+      render_sprite( renderer, coord,
                      e_tile::harbor_dock_middle );
     }
     coord.x -= dock_segment_size.w;
-    render_sprite( painter, coord, e_tile::harbor_dock_left );
+    render_sprite( renderer, coord, e_tile::harbor_dock_left );
   }
 }
 
@@ -177,7 +177,7 @@ PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
   Coord const origin = {};
 
   view            = make_unique<HarborBackdrop>( ss, ts, player,
-                                      canvas.delta(), layout );
+                                                 canvas.delta(), layout );
   harbor_sub_view = view.get();
   HarborBackdrop* p_actual = view.get();
   return PositionedHarborSubView<HarborBackdrop>{

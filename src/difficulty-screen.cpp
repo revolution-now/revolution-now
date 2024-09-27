@@ -392,7 +392,7 @@ struct DifficultyScreen : public IPlane {
 
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
-      tile_sprite( painter, e_tile::wood_middle, normal_area );
+      tile_sprite( renderer, e_tile::wood_middle, normal_area );
     }
 
     auto const& grid = layout_.grid;

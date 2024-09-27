@@ -458,14 +458,13 @@ struct MenuPlane::Impl : public IPlane {
   void render_open_menu( rr::Renderer& renderer, Coord pos,
                          e_menu             menu,
                          maybe<e_menu_item> subject ) const {
-    rr::Painter painter = renderer.painter();
     if( subject.has_value() ) {
       CHECK( item_to_menu_[*subject] == menu );
     }
 
     Rect const body_rect =
         Rect::from( pos, menu_body_delta( menu ) );
-    tile_sprite( painter, e_tile::wood_middle, body_rect );
+    tile_sprite( renderer, e_tile::wood_middle, body_rect );
     render_shadow_hightlight_border(
         renderer, body_rect.edges_removed( 2 ),
         config_ui.window.border_dark,
@@ -557,10 +556,10 @@ struct MenuPlane::Impl : public IPlane {
     rr::Painter painter    = renderer.painter();
     for( Coord c = start; c.x >= 0 - wood_width;
          c -= Delta{ .w = wood_width } )
-      render_sprite( painter, e_tile::wood_middle, c );
+      render_sprite( renderer, c, e_tile::wood_middle );
     for( Coord c = start; c.x < bar_rect.right_edge();
          c += Delta{ .w = wood_width } )
-      render_sprite( painter, e_tile::wood_middle, c );
+      render_sprite( renderer, c, e_tile::wood_middle );
 
     // Render some border lines.
     painter.draw_horizontal_line(

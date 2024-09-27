@@ -89,7 +89,7 @@ bool can_plow( Unit const& unit );
 /****************************************************************
 ** Rendering
 *****************************************************************/
-void render_plow_if_present( rr::Painter& painter, Coord where,
+void render_plow_if_present( rr::Renderer& renderer, Coord where,
                              MapSquare const& square );
 
 } // namespace rn

@@ -214,10 +214,10 @@ bool can_plow( Unit const& unit ) {
 /****************************************************************
 ** Rendering
 *****************************************************************/
-void render_plow_if_present( rr::Painter& painter, Coord where,
+void render_plow_if_present( rr::Renderer& renderer, Coord where,
                              MapSquare const& square ) {
   if( !has_irrigation( square ) ) return;
-  render_sprite( painter, where, e_tile::irrigation );
+  render_sprite( renderer, where, e_tile::irrigation );
 }
 
 } // namespace rn

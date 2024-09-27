@@ -193,7 +193,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
           Delta{ .h =
                      H{ rr::rendered_text_line_size_pixels( "x" )
                             .h } };
-      render_sprite( painter, pos, tile );
+      render_sprite( renderer, pos, tile );
       pos.x += sprite_size( tile ).w;
       rr::Typer typer =
           renderer.typer( pos, gfx::pixel::black() );

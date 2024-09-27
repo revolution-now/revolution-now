@@ -106,16 +106,6 @@ void render_sprite( rr::Renderer& renderer, Coord where,
   renderer.painter().draw_sprite( atlas_lookup( tile ), where );
 }
 
-void render_sprite( rr::Painter& painter, e_tile tile,
-                    Coord where ) {
-  painter.draw_sprite( atlas_lookup( tile ), where );
-}
-
-void render_sprite( rr::Painter& painter, Coord where,
-                    e_tile tile ) {
-  painter.draw_sprite( atlas_lookup( tile ), where );
-}
-
 void render_sprite_section( rr::Painter& painter, e_tile tile,
                             Coord where, Rect source ) {
   painter.draw_sprite_section( atlas_lookup( tile ), where,
@@ -133,16 +123,14 @@ void render_sprite_silhouette( rr::Renderer& renderer,
 void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
                            Coord where, bool dulled ) {
   if( !dulled ) {
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, tile, where );
+    render_sprite( renderer, where, tile );
     return;
   }
   // First draw the sprite desaturated, then draw it again but
   // with a transparent black silhouette.
   {
     SCOPED_RENDERER_MOD_OR( painter_mods.desaturate, true );
-    rr::Painter painter = renderer.painter();
-    render_sprite( painter, tile, where );
+    render_sprite( renderer, where, tile );
   }
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .3 );
@@ -159,7 +147,7 @@ void render_sprite_stencil( rr::Renderer& renderer, Coord where,
       where, key_color );
 }
 
-void tile_sprite( rr::Painter& painter, e_tile tile,
+void tile_sprite( rr::Renderer& renderer, e_tile tile,
                   Rect const& rect ) {
   Delta info = sprite_size( tile );
   auto  mod  = rect.delta() % info;
@@ -171,9 +159,11 @@ void tile_sprite( rr::Painter& painter, e_tile tile,
   for( Rect const r : gfx::subrects(
            Rect::from( Coord{}, smaller_rect.delta() / info ) ) )
     render_sprite(
-        painter, tile,
+        renderer,
         rect.upper_left() +
-            r.upper_left().distance_from_origin() * info );
+            r.upper_left().distance_from_origin() * info,
+        tile );
+  rr::Painter painter = renderer.painter();
   for( H h = 0; h < smaller_rect.h / info.h; ++h ) {
     auto where = rect.upper_right() - Delta{ .w = mod.w } +
                  Delta{ .h = h } * info.h;
@@ -194,18 +184,18 @@ void tile_sprite( rr::Painter& painter, e_tile tile,
 }
 
 void render_rect_of_sprites_with_border(
-    rr::Painter& painter,     // where to draw it
-    Coord        dest_origin, // pixel coord of upper left
-    Delta        size_tiles,  // tile coords, including border
-    e_tile       middle,      //
-    e_tile       top,         //
-    e_tile       bottom,      //
-    e_tile       left,        //
-    e_tile       right,       //
-    e_tile       top_left,    //
-    e_tile       top_right,   //
-    e_tile       bottom_left, //
-    e_tile       bottom_right //
+    rr::Renderer& renderer,    // where to draw it
+    Coord         dest_origin, // pixel coord of upper left
+    Delta         size_tiles,  // tile coords, including border
+    e_tile        middle,      //
+    e_tile        top,         //
+    e_tile        bottom,      //
+    e_tile        left,        //
+    e_tile        right,       //
+    e_tile        top_left,    //
+    e_tile        top_right,   //
+    e_tile        bottom_left, //
+    e_tile        bottom_right //
 ) {
   Delta sprite_middle = sprite_size( middle );
   CHECK( sprite_middle.w == sprite_middle.h );
@@ -226,47 +216,52 @@ void render_rect_of_sprites_with_border(
   Rect dst_tile_rect = Rect::from( Coord{}, size_tiles );
   for( Rect const r :
        gfx::subrects( dst_tile_rect.edges_removed() ) )
-    render_sprite( painter, middle,
-                   to_pixels( r.upper_left() ) );
+    render_sprite( renderer, to_pixels( r.upper_left() ),
+                   middle );
 
   for( X x = dst_tile_rect.x + 1;
        x < dst_tile_rect.right_edge() - 1; ++x )
-    render_sprite( painter, top,
-                   to_pixels( { .x = x, .y = 0 } ) );
+    render_sprite( renderer, to_pixels( { .x = x, .y = 0 } ),
+                   top );
   for( X x = dst_tile_rect.x + 1;
        x < dst_tile_rect.right_edge() - 1; ++x )
     render_sprite(
-        painter, bottom,
+        renderer,
         to_pixels(
             { .x = x,
-              .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
+              .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ),
+        bottom );
   for( Y y = dst_tile_rect.y + 1;
        y < dst_tile_rect.bottom_edge() - 1; ++y )
-    render_sprite( painter, left,
-                   to_pixels( { .x = 0, .y = y } ) );
+    render_sprite( renderer, to_pixels( { .x = 0, .y = y } ),
+                   left );
   for( Y y = dst_tile_rect.y + 1;
        y < dst_tile_rect.bottom_edge() - 1; ++y )
     render_sprite(
-        painter, right,
+        renderer,
         to_pixels( { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
-                     .y = y } ) );
+                     .y = y } ),
+        right );
 
-  render_sprite( painter, top_left,
-                 to_pixels( { .x = 0, .y = 0 } ) );
+  render_sprite( renderer, to_pixels( { .x = 0, .y = 0 } ),
+                 top_left );
   render_sprite(
-      painter, top_right,
+      renderer,
       to_pixels( { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
-                   .y = 0 } ) );
+                   .y = 0 } ),
+      top_right );
   render_sprite(
-      painter, bottom_left,
+      renderer,
       to_pixels(
           { .x = 0,
-            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
+            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ),
+      bottom_left );
   render_sprite(
-      painter, bottom_right,
+      renderer,
       to_pixels(
           { .x = 0 + ( dst_tile_rect.right_edge() - 1 ),
-            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ) );
+            .y = 0 + ( dst_tile_rect.bottom_edge() - 1 ) } ),
+      bottom_right );
 }
 
 } // namespace rn

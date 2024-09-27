@@ -136,7 +136,7 @@ struct ConsolePlane::Impl : public IPlane {
     Rect text_rect = console_rect;
     if( render_edit_box ) text_rect.h -= edit_box_delta.h;
 
-    tile_sprite( painter, e_tile::wood_middle, console_rect );
+    tile_sprite( renderer, e_tile::wood_middle, console_rect );
     painter.draw_solid_rect( divider_rect,
                              config_ui.window.border_dark );
 

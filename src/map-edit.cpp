@@ -581,7 +581,7 @@ void MapEditPlane::Impl::render_toolbar(
   Coord where = toolbar_rect().upper_left();
   for( editor::e_toolbar_item item :
        refl::enum_values<editor::e_toolbar_item> ) {
-    render_sprite( painter, where, g_toolbar_items[item].tile );
+    render_sprite( renderer, where, g_toolbar_items[item].tile );
     if( selected_tool_ == item )
       painter.draw_empty_rect(
           Rect::from( where, g_tile_delta ),

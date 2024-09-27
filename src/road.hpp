@@ -58,7 +58,7 @@ bool can_build_road( Unit const& unit );
 /****************************************************************
 ** Rendering
 *****************************************************************/
-void render_road_if_present( rr::Painter& painter, Coord where,
+void render_road_if_present( rr::Renderer& renderer, Coord where,
                              IVisibility const& viz,
                              Coord              world_tile );
 

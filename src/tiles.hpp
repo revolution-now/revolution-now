@@ -56,13 +56,6 @@ Delta sprite_size( e_tile tile );
 void render_sprite( rr::Renderer& renderer, Coord where,
                     e_tile tile );
 
-[[deprecated]] void render_sprite( rr::Painter& painter,
-                                   Coord where, e_tile tile );
-
-[[deprecated]] void render_sprite( rr::Painter& painter,
-                                   e_tile       tile,
-                                   Coord        pixel_coord );
-
 // This one allows stretching the tile.
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile );
@@ -95,25 +88,25 @@ void render_sprite_stencil( rr::Renderer& renderer, Coord where,
 *****************************************************************/
 // Here the word "tile" is used to mean "repeat the sprite in a
 // tiled pattern within the rectangle".
-void tile_sprite( rr::Painter& painter, e_tile tile,
+void tile_sprite( rr::Renderer& renderer, e_tile tile,
                   Rect const& rect );
 
 // This function will render a rectangle with border, but
 // where the rectangle and border are comprised of tiles,
 // not pixels.  All given tiles must have the same dimensions.
 void render_rect_of_sprites_with_border(
-    rr::Painter& painter,     // where to draw it
-    Coord        dest_origin, // pixel coord of upper left
-    Delta        size_tiles,  // tile coords, including border
-    e_tile       middle,      //
-    e_tile       top,         //
-    e_tile       bottom,      //
-    e_tile       left,        //
-    e_tile       right,       //
-    e_tile       top_left,    //
-    e_tile       top_right,   //
-    e_tile       bottom_left, //
-    e_tile       bottom_right //
+    rr::Renderer& renderer,    // where to draw it
+    Coord         dest_origin, // pixel coord of upper left
+    Delta         size_tiles,  // tile coords, including border
+    e_tile        middle,      //
+    e_tile        top,         //
+    e_tile        bottom,      //
+    e_tile        left,        //
+    e_tile        right,       //
+    e_tile        top_left,    //
+    e_tile        top_right,   //
+    e_tile        bottom_left, //
+    e_tile        bottom_right //
 );
 
 } // namespace rn

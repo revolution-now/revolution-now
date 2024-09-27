@@ -135,7 +135,7 @@ bool can_build_road( Unit const& unit ) {
 /****************************************************************
 ** Rendering
 *****************************************************************/
-void render_road_if_present( rr::Painter& painter, Coord where,
+void render_road_if_present( rr::Renderer& renderer, Coord where,
                              IVisibility const& viz,
                              Coord              world_tile ) {
   auto has_road = [&]( Coord tile ) {
@@ -165,14 +165,14 @@ void render_road_if_present( rr::Painter& painter, Coord where,
     // what we want.
     if( !has_road( shifted ) ) continue;
     road_in_surroundings = true;
-    render_sprite( painter, where, tile );
+    render_sprite( renderer, where, tile );
   }
   if( !road_in_surroundings ) {
     // Native dwellings have roads under them, but they don't re-
     // ally look good with a "road island" under them, which hap-
     // pens when there are no adjacent roads.
     if( !viz.dwelling_at( world_tile ).has_value() )
-      render_sprite( painter, where, e_tile::road_island );
+      render_sprite( renderer, where, e_tile::road_island );
   }
 }
 

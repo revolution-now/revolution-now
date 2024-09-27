@@ -35,8 +35,7 @@ namespace {} // namespace
 *****************************************************************/
 void PopulationView::draw_sons_of_liberty(
     rr::Renderer& renderer, Coord coord ) const {
-  rr::Painter painter          = renderer.painter();
-  Coord       pos              = coord;
+  Coord pos                    = coord;
   int constexpr kVerticalStart = 3;
   pos.y += kVerticalStart;
   // This is the number of pixels of padding to add on each side
@@ -75,7 +74,7 @@ void PopulationView::draw_sons_of_liberty(
   int const kTextVerticalOffset = 4;
   if( info.sol_integral_percent > 0 ) {
     pos.x += kIconPadding;
-    render_sprite( painter, pos, e_tile::rebel_flag );
+    render_sprite( renderer, pos, e_tile::rebel_flag );
     pos.x += sprite_size( e_tile::rebel_flag ).w + kIconPadding;
     rr::Typer typer = renderer.typer(
         pos + gfx::size{ .h = kTextVerticalOffset },
@@ -99,7 +98,7 @@ void PopulationView::draw_sons_of_liberty(
   typer.write( tories_str );
   pos.x = typer.position().x;
   pos.x += kIconPadding;
-  render_sprite( painter, pos, e_tile::crown );
+  render_sprite( renderer, pos, e_tile::crown );
 }
 
 void PopulationView::draw( rr::Renderer& renderer,

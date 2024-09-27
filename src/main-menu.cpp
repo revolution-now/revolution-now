@@ -54,8 +54,7 @@ struct MainMenuPlane : public IPlane {
         compositor::section( compositor::e_section::normal ) );
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
-      rr::Painter painter = renderer.painter();
-      tile_sprite( painter, e_tile::wood_middle, normal_area );
+      tile_sprite( renderer, e_tile::wood_middle, normal_area );
     }
   }
 
