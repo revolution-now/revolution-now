@@ -163,3 +163,16 @@ in the corrections.txt doc or rebalancing.txt.
   that one can set to restore the OG's behavior and allow Custom
   Houses to sell boycotted goods if one wants to play in that
   way.
+
+                       Goto Harbor
+                       -----------
+  Normally when a ship is adjacent to a sea lane square it takes
+  to movements to go to the harbor: one to move onto the sea lane
+  tile and another to go to the harbor. But if you instead click
+  on Orders -> Go to Port, then it can skip that first movement
+  and go to the port directly on the first sea lane square, which
+  can save a turn when you would otherwise end a ships turn on
+  that first movement onto the sea lane square. This seems like a
+  bug/oversight that we will fix for consistency. In the NG, the
+  go-to-harbor command will stil require those two hops as it
+  would if you were moving the unit manually.
