@@ -121,12 +121,12 @@ TEST_CASE( "[lua] returns double" ) {
 
 TEST_CASE( "[lua] returns string" ) {
   lua::state st;
-  auto       script = R"lualua(
+  auto       script = R"lua(
     local function f( s )
       return s .. '!'
     end
     return f( 'hello' )
-  )lualua";
+  )lua";
   REQUIRE( st.script.run_safe<lua::rstring>( script ) ==
            "hello!" );
 }
