@@ -44,7 +44,10 @@ string capitalize_initials( string_view sv ) {
 string str_replace( string_view sv, string_view from,
                     string_view to ) {
   string res;
-  if( from.size() == 0 ) return string( sv );
+  if( from.size() == 0 ) {
+    res = sv;
+    return res;
+  }
   size_t pos   = 0;
   size_t where = sv.find( from, pos );
   res.reserve( sv.size() );
@@ -87,14 +90,14 @@ vector<string> str_split_on_any( string_view sv,
 
 string str_join( vector<string> const& v,
                  string_view const     sep ) {
-  if( !v.size() ) return "";
+  std::string res;
+  if( !v.size() ) return res;
   // First attempt to compute how much space we need, which  we
   // should be able to do exactly.
   size_t total = 0;
   for( auto const& e : v ) total += e.size();
   total += sep.size() * ( v.size() - 1 ); // v.size() > 0 always
   // Now construct the result (reserve +1 for good measure).
-  std::string res;
   res.reserve( total + 1 );
   bool first = true;
   for( auto const& e : v ) {

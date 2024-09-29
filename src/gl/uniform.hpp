@@ -85,8 +85,9 @@ struct Uniform : protected UniformNonTyped {
   // code).
   base::valid_or<std::string> try_set( T const& val ) {
     if constexpr( std::equality_comparable<T> ) {
-      if( cache_ == val ) return base::valid;
-      auto res = this->UniformNonTyped::set( val );
+      base::valid_or<std::string> res = base::valid;
+      if( cache_ == val ) return res;
+      res = this->UniformNonTyped::set( val );
       if( res.valid() )
         cache_ = val;
       else

@@ -267,7 +267,7 @@ template<FromCanonical T>
 result<T> conv_from_bt( converter& conv, value const& v ) {
   auto res = conv.from<T>( v );
   if( !res.has_value() )
-    return conv.from_canonical_readable_error( res.error() );
+    res = conv.from_canonical_readable_error( res.error() );
   return res;
 };
 
