@@ -407,7 +407,7 @@ struct fmt::formatter<::base::generic_err>
   : fmt::formatter<std::string> {
   template<typename FormatContext>
   auto format( ::base::generic_err const& o,
-               FormatContext&             ctx ) {
+               FormatContext&             ctx ) const {
     std::string out;
     to_str( o, out, base::ADL );
     return fmt::formatter<std::string>::format( out, ctx );

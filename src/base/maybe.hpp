@@ -468,8 +468,8 @@ class [[nodiscard]] maybe { /* clang-format on */
     static_assert(
         (std::is_nothrow_move_constructible_v<T> &&
          std::is_nothrow_move_assignable_v<T>) ==
-        ( noexcept( new_val( std::move( *rhs ) ) )&& noexcept(
-            ( **this ) = std::move( *rhs ) ) ) );
+        ( noexcept( new_val( std::move( *rhs ) ) ) &&
+          noexcept( ( **this ) = std::move( *rhs ) ) ) );
     if( !rhs.has_value() ) {
       if( has_value() ) reset();
       return *this;
@@ -1561,7 +1561,8 @@ struct fmt::
   /* clang-format on */
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
-  auto format( base::maybe<T> const& o, FormatContext& ctx ) {
+  auto format( base::maybe<T> const& o,
+               FormatContext&        ctx ) const {
     static const std::string nothing_str( "nothing" );
     return formatter_base::format(
         o.has_value() ? fmt::format( "{}", *o ) : nothing_str,
@@ -1575,7 +1576,8 @@ struct fmt::formatter<base::nothing_t>
   : fmt::formatter<std::string> {
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
-  auto format( base::nothing_t const&, FormatContext& ctx ) {
+  auto format( base::nothing_t const&,
+               FormatContext& ctx ) const {
     static const std::string nothing_str( "nothing" );
     return formatter_base::format( nothing_str, ctx );
   }

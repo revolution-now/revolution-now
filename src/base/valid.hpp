@@ -135,7 +135,8 @@ struct fmt::formatter<base::valid_or<E>>
   : fmt::formatter<std::string> {
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
-  auto format( base::valid_or<E> const& e, FormatContext& ctx ) {
+  auto format( base::valid_or<E> const& e,
+               FormatContext&           ctx ) const {
     if( e )
       return formatter_base::format( "valid", ctx );
     else
@@ -150,7 +151,7 @@ struct fmt::formatter<base::valid_t>
   : fmt::formatter<std::string> {
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
-  auto format( base::valid_t const&, FormatContext& ctx ) {
+  auto format( base::valid_t const&, FormatContext& ctx ) const {
     static const std::string valid_str( "valid" );
     return formatter_base::format( valid_str, ctx );
   }

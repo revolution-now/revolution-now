@@ -1752,7 +1752,7 @@ struct fmt::formatter<base::expect<T, E>>
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::expect<T, E> const& e,
-               FormatContext&            ctx ) {
+               FormatContext&            ctx ) const {
     if( e.has_value() )
       return formatter_base::format( fmt::format( "{}", *e ),
                                      ctx );

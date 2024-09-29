@@ -104,7 +104,7 @@ requires( !detail::ExcludeFromFmtPromotion<std::remove_cvref_t<S>> )
 struct formatter<S> : formatter<std::string> {
   // clang-format on
   template<typename FormatContext>
-  auto format( S const& o, FormatContext& ctx ) {
+  auto format( S const& o, FormatContext& ctx ) const {
     return formatter<std::string>::format( base::to_str( o ),
                                            ctx );
   }
