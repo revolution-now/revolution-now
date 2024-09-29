@@ -86,6 +86,7 @@ function( set_warning_options target )
         $<$<CXX_COMPILER_ID:GNU>:
             -Wall
             -Wextra
+            -Wnrvo
             # For some reason gcc warns us when we reach the end
             # of a function without a return statement even if it
             # the function is guaranteed to return early due to
