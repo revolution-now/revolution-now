@@ -48,7 +48,7 @@ constexpr int const k_max_commodity_cargo_per_slot = 100;
 
 CargoHold::CargoHold( int num_slots )
   : o_( wrapped::CargoHold{
-        .slots = vector<CargoSlot>( num_slots ) } ) {}
+      .slots = vector<CargoSlot>( num_slots ) } ) {}
 
 base::valid_or<string> wrapped::CargoHold::validate() const {
   int slots_total = slots.size();
@@ -126,9 +126,9 @@ valid_or<generic_err> CargoHold::validate(
   for( int i = 0; i < slots_total(); ++i ) {
     auto const& slot = o_.slots[i];
     switch( slot.to_enum() ) {
-      case CargoSlot::e::empty:    //
+      case CargoSlot::e::empty:
         break;
-      case CargoSlot::e::overflow: //
+      case CargoSlot::e::overflow:
         break;
       case CargoSlot::e::cargo: {
         auto& cargo = slot.get<CargoSlot::cargo>();
@@ -398,15 +398,14 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
                             k_max_commodity_cargo_per_slot );
               CHECK( quantity_to_add > 0 );
               commodity.quantity -= quantity_to_add;
-              CHECK(
-                  try_add( units_state,
-                           Cargo::commodity{ Commodity{
-                               /*type=*/commodity.type,
-                               /*quantity=*/quantity_to_add } },
-                           idx ),
-                  "failed to add commodity of type {} and "
-                  "quantity {} to slot {}",
-                  commodity.type, quantity_to_add, idx )
+              CHECK( try_add( units_state,
+                              Cargo::commodity{ Commodity{
+                                .type     = commodity.type,
+                                .quantity = quantity_to_add } },
+                              idx ),
+                     "failed to add commodity of type {} and "
+                     "quantity {} to slot {}",
+                     commodity.type, quantity_to_add, idx )
               break;
             }
             case CargoSlot::e::overflow:
@@ -426,8 +425,8 @@ bool CargoHold::try_add_somewhere( UnitsState const& units_state,
                         try_add(
                             units_state,
                             Cargo::commodity{ Commodity{
-                                /*type=*/commodity.type,
-                                /*quantity=*/quantity_to_add } },
+                              .type     = commodity.type,
+                              .quantity = quantity_to_add } },
                             idx ),
                         "failed to add commodity of type {} and "
                         "quantity {} to slot {}",
