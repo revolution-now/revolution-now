@@ -58,6 +58,13 @@ void run_all_cpp_coroutines() {
     h.resume();
     // May have added some more coroutines into the queue or re-
     // moved some (due to coroutine cancellation).
+
+    // I think we can say that the coroutine that we just popped
+    // will not have been re-added at this point, since I can't
+    // think of how that could happen. It doesn't seem like it
+    // would be a problem if it did happen, but we will put this
+    // check in just out of curiosity.
+    CHECK( !g_coros_to_resume.contains( h ) );
   }
 }
 
