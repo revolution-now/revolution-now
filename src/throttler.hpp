@@ -18,14 +18,14 @@
 
 namespace rn {
 
-inline constexpr auto kFrameDuration =
+constexpr auto kFrameDuration =
     std::chrono::duration<int, std::ratio<1, 60>>{ 1 };
 
 // This is a standard (1/60 s) frame, with a bit subtracted so
 // that when we delay for one standard frame (in an animation)
 // and we're running at 60Hz then we won't skip frames. This
 // should probably be moved into a configuration file.
-inline constexpr auto kAlmostStandardFrame =
+constexpr auto kAlmostStandardFrame =
     std::chrono::duration_cast<std::chrono::microseconds>(
         kFrameDuration ) -
     std::chrono::microseconds{ 300 };

@@ -22,12 +22,8 @@ namespace rn {
 ** AnimThrottler
 *****************************************************************/
 wait<> AnimThrottler::operator()() {
-  // Need >= so that the first frame runs immediately.
-  if( accum >= gap ) {
-    accum -= gap;
-    co_return;
-  }
-  accum += co_await ( gap - accum );
+  // Need < and not <= so that the first frame runs immediately.
+  if( accum < gap ) accum += co_await ( gap - accum );
   accum -= gap;
 }
 
