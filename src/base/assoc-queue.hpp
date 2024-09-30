@@ -71,6 +71,10 @@ struct AssociativeQueue {
     iters_.erase( it );
   }
 
+  bool contains( T const& elem ) const {
+    return iters_.contains( elem );
+  }
+
  private:
   std::list<T>                                           elems_;
   std::unordered_map<T, typename std::list<T>::iterator> iters_;

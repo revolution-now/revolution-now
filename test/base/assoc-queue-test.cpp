@@ -96,5 +96,43 @@ TEST_CASE( "[base/assoc-queue] erase" ) {
   REQUIRE( q.size() == 0 );
 }
 
+TEST_CASE( "[base/assoc-queue] contains" ) {
+  AssociativeQueue<int> q;
+
+  REQUIRE( !q.contains( 5 ) );
+  REQUIRE( !q.contains( 6 ) );
+  REQUIRE( !q.contains( 7 ) );
+
+  q.push( 6 );
+  REQUIRE( !q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( !q.contains( 7 ) );
+
+  q.push( 8 );
+  REQUIRE( !q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( !q.contains( 7 ) );
+
+  q.push( 5 );
+  REQUIRE( q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( !q.contains( 7 ) );
+
+  q.push( 0 );
+  REQUIRE( q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( !q.contains( 7 ) );
+
+  q.push( 7 );
+  REQUIRE( q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( q.contains( 7 ) );
+
+  q.push( 10 );
+  REQUIRE( q.contains( 5 ) );
+  REQUIRE( q.contains( 6 ) );
+  REQUIRE( q.contains( 7 ) );
+}
+
 } // namespace
 } // namespace base
