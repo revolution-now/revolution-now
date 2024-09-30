@@ -13,7 +13,8 @@ AllowAllConstructorInitializersOnNextLine:                    true
 AllowAllParametersOfDeclarationOnNextLine:                    true
 AllowShortBlocksOnASingleLine:                                true
 AllowShortCaseLabelsOnASingleLine:                            false
-# (FIXME) AllowShortEnumsOnASingleLine:                                 false
+AllowShortCompoundRequirementOnASingleLine:                   true
+AllowShortEnumsOnASingleLine:                                 false
 AllowShortFunctionsOnASingleLine:                             All
 AllowShortIfStatementsOnASingleLine:                          true
 AllowShortLambdasOnASingleLine:                               All
@@ -25,6 +26,8 @@ AlwaysBreakTemplateDeclarations:                              Yes
 BinPackArguments:                                             true
 BinPackParameters:                                            true
 BitFieldColonSpacing:                                         Both
+BracedInitializerIndentWidth:                                 2
+BreakAdjacentStringLiterals:                                  true
 BreakBeforeBinaryOperators:                                   None
 BreakBeforeBraces:                                            Attach
 BreakBeforeConceptDeclarations:                               true
@@ -34,6 +37,7 @@ BreakConstructorInitializers:                                 BeforeColon
 BreakConstructorInitializersBeforeComma:                      false
 BreakInheritanceList:                                         BeforeColon
 BreakStringLiterals:                                          true
+BreakTemplateDeclarations:                                    Leave
 ColumnLimit:                                                  65
 CommentPragmas:                                               '^ IWYU pragma:'
 CompactNamespaces:                                            false
@@ -68,8 +72,13 @@ IndentPPDirectives:                                           AfterHash
 IndentWidth:                                                  2
 IndentWrappedFunctionNames:                                   false
 IndentRequires:                                               false
+IntegerLiteralSeparator:
+  Binary: 8
+  Decimal: 3
+  Hex: -1
 KeepEmptyLinesAtTheStartOfBlocks:                             false
 # LambdaBodyIndentation:                                      OuterScope # Not working as expected
+LineEnding:                                                   LF
 MacroBlockBegin:                                              ''
 MacroBlockEnd:                                                ''
 MaxEmptyLinesToKeep:                                          1
@@ -100,6 +109,7 @@ RawStringFormats:
       - 'C++'
     CanonicalDelimiter: ''
 ReflowComments:                                               true
+RequiresClausePosition:                                       OwnLine
 ShortNamespaceLines:                                          5 # No effect?
 SortIncludes:                                                 true
 SortUsingDeclarations:                                        true
@@ -120,12 +130,15 @@ SpaceInEmptyBlock:                                            false
 SpacesBeforeTrailingComments:                                 1
 SpacesInAngles:                                               false
 SpacesInContainerLiterals:                                    true
-SpacesInConditionalStatement:                                 true
-SpacesInCStyleCastParentheses:                                false
 SpacesInLineCommentPrefix:
   Minimum:  1
   Maximum: -1
-SpacesInParentheses:                                          true
+SpacesInParens:                                               Custom
+SpacesInParensOptions:
+  InConditionalStatements:                                    true
+  InCStyleCasts:                                              false
+  InEmptyParentheses:                                         false
+  Other:                                                      true
 SpacesInSquareBrackets:                                       false
 Standard:                                                     Auto
 StatementMacros:                                              []
