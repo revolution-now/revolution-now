@@ -48,10 +48,10 @@ struct World : testing::World {
     set_default_player( e_nation::dutch );
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, //
-        L, L, L, L, //
-        L, L, L, L, //
-        L, L, L, L, //
+      L, L, L, L, //
+      L, L, L, L, //
+      L, L, L, L, //
+      L, L, L, L, //
     };
     build_map( std::move( tiles ), 5 );
   }

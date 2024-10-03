@@ -111,16 +111,15 @@ struct BuildHandler : public CommandHandler {
     if( !colony_has_ocean_access( ss_, ts_.connectivity,
                                   location ) ) {
       YesNoConfig const config{
-          .msg =
-              "Your Excellency, this square does not have "
-              "[ocean access].  This means that we will not be "
-              "able to access it by ship and thus we will have "
-              "to build a wagon train to transport goods to and "
-              "from it.",
-          .yes_label =
-              "Yes, that is exactly what I had in mind.",
-          .no_label       = "Nevermind, I forgot about that.",
-          .no_comes_first = true };
+        .msg =
+            "Your Excellency, this square does not have "
+            "[ocean access].  This means that we will not be "
+            "able to access it by ship and thus we will have "
+            "to build a wagon train to transport goods to and "
+            "from it.",
+        .yes_label = "Yes, that is exactly what I had in mind.",
+        .no_label  = "Nevermind, I forgot about that.",
+        .no_comes_first = true };
       maybe<ui::e_confirm> const answer =
           co_await ts_.gui.optional_yes_no( config );
       if( answer != ui::e_confirm::yes ) co_return false;

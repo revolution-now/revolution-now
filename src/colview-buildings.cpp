@@ -178,9 +178,9 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
                 .upper_left(),
             ss_.units.unit_for( unit_id ),
             UnitRenderOptions{
-                .shadow = UnitShadow{
-                    .color = config_colony.colors
-                                 .unit_shadow_color_light } } );
+              .shadow = UnitShadow{
+                .color = config_colony.colors
+                             .unit_shadow_color_light } } );
       }
     }
 
@@ -190,9 +190,9 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
       UNWRAP_CHECK( tile, tile_for_slot( slot ) );
       Coord pos =
           rect.upper_left() + Delta{ .w = 2 } +
-          Delta{ .h =
-                     H{ rr::rendered_text_line_size_pixels( "x" )
-                            .h } };
+          Delta{
+            .h = H{
+              rr::rendered_text_line_size_pixels( "x" ).h } };
       render_sprite( renderer, pos, tile );
       pos.x += sprite_size( tile ).w;
       rr::Typer typer =
@@ -229,7 +229,7 @@ ColViewBuildings::can_receive( ColViewObject const& o, int,
   // Note that we don't check for number of workers in building
   // here; that is done in the check function.
   return CanReceiveDraggable<ColViewObject>::yes{
-      .draggable = o }; // allowed.
+    .draggable = o }; // allowed.
 }
 
 wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
@@ -257,10 +257,10 @@ wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
             ? config_colony.worker_names_plural[indoor_job]
             : config_colony.worker_names_singular[indoor_job];
     co_return DragRejection{
-        .reason = fmt::format(
-            "There can be at most [{}] {} in a [{}].",
-            allowed_units, worker_name,
-            config_colony.building_display_names[building] ) };
+      .reason = fmt::format(
+          "There can be at most [{}] {} in a [{}].",
+          allowed_units, worker_name,
+          config_colony.building_display_names[building] ) };
   }
   // This should have already been checked.
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
@@ -306,8 +306,8 @@ ColViewBuildings::object_here( Coord const& where ) const {
     Rect rect = visible_rect_for_unit_in_slot( slot, idx );
     if( where.is_inside( rect ) )
       return DraggableObjectWithBounds<ColViewObject>{
-          .obj    = ColViewObject::unit{ .id = colonists[idx] },
-          .bounds = sprite_rect_for_unit_in_slot( slot, idx ) };
+        .obj    = ColViewObject::unit{ .id = colonists[idx] },
+        .bounds = sprite_rect_for_unit_in_slot( slot, idx ) };
   }
   return nothing;
 }

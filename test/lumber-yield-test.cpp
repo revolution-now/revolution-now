@@ -45,7 +45,7 @@ struct World : testing::World {
     set_default_player( e_nation::dutch );
     MapSquare const   L = make_terrain( terrain );
     vector<MapSquare> tiles{
-        // clang-format off
+      // clang-format off
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
@@ -53,7 +53,7 @@ struct World : testing::World {
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
-        // clang-format on
+      // clang-format on
     };
     build_map( std::move( tiles ), 7 );
 
@@ -200,12 +200,12 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
     colony2.commodities[e_commodity::lumber] = 0;
 
     expected = {
-        LumberYield{ .colony_id              = 2,
-                     .total_yield            = 20,
-                     .yield_to_add_to_colony = 20 },
-        LumberYield{ .colony_id              = 1,
-                     .total_yield            = 80,
-                     .yield_to_add_to_colony = 80 },
+      LumberYield{ .colony_id              = 2,
+                   .total_yield            = 20,
+                   .yield_to_add_to_colony = 20 },
+      LumberYield{ .colony_id              = 1,
+                   .total_yield            = 80,
+                   .yield_to_add_to_colony = 80 },
     };
     REQUIRE( f() == expected );
   }
@@ -220,12 +220,12 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
     colony2.commodities[e_commodity::lumber] = 0;
 
     expected = {
-        LumberYield{ .colony_id              = 2,
-                     .total_yield            = 20,
-                     .yield_to_add_to_colony = 20 },
-        LumberYield{ .colony_id              = 1,
-                     .total_yield            = 80,
-                     .yield_to_add_to_colony = 80 },
+      LumberYield{ .colony_id              = 2,
+                   .total_yield            = 20,
+                   .yield_to_add_to_colony = 20 },
+      LumberYield{ .colony_id              = 1,
+                   .total_yield            = 80,
+                   .yield_to_add_to_colony = 80 },
     };
     REQUIRE( f() == expected );
   }
@@ -361,12 +361,12 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
     colony2.commodities[e_commodity::lumber] = 0;
 
     expected = {
-        LumberYield{ .colony_id              = 2,
-                     .total_yield            = 40,
-                     .yield_to_add_to_colony = 40 },
-        LumberYield{ .colony_id              = 1,
-                     .total_yield            = 160,
-                     .yield_to_add_to_colony = 100 },
+      LumberYield{ .colony_id              = 2,
+                   .total_yield            = 40,
+                   .yield_to_add_to_colony = 40 },
+      LumberYield{ .colony_id              = 1,
+                   .total_yield            = 160,
+                   .yield_to_add_to_colony = 100 },
     };
     REQUIRE( f() == expected );
   }
@@ -381,12 +381,12 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
     colony2.commodities[e_commodity::lumber] = 0;
 
     expected = {
-        LumberYield{ .colony_id              = 2,
-                     .total_yield            = 40,
-                     .yield_to_add_to_colony = 40 },
-        LumberYield{ .colony_id              = 1,
-                     .total_yield            = 160,
-                     .yield_to_add_to_colony = 100 },
+      LumberYield{ .colony_id              = 2,
+                   .total_yield            = 40,
+                   .yield_to_add_to_colony = 40 },
+      LumberYield{ .colony_id              = 1,
+                   .total_yield            = 160,
+                   .yield_to_add_to_colony = 100 },
     };
     REQUIRE( f() == expected );
   }

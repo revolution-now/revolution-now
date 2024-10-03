@@ -53,12 +53,12 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, L, L, //
-        L, L, L, L, L, L, //
-        _, L, L, L, L, L, //
-        _, L, _, L, L, L, //
-        _, L, L, L, L, L, //
-        L, L, L, L, L, L, //
+      _, L, _, L, L, L, //
+      L, L, L, L, L, L, //
+      _, L, L, L, L, L, //
+      _, L, _, L, L, L, //
+      _, L, L, L, L, L, //
+      L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 6 );
   }
@@ -88,9 +88,8 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
   SECTION( "without updates" ) {
     // This one should not try to center the viewport on the
     // colony.
-    for( Coord const coord :
-         vector{ Coord{ .x = 1, .y = 1 },
-                 Coord{ .x = 3, .y = 3 } } ) {
+    for( Coord const coord : vector{
+           Coord{ .x = 1, .y = 1 }, Coord{ .x = 3, .y = 3 } } ) {
       Colony& colony = W.add_colony( coord );
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{ .notifications = { {} } };
@@ -101,8 +100,8 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
           .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
-              .msg       = "xxx"s + to_string( colony.id ),
-              .transient = true } );
+            .msg       = "xxx"s + to_string( colony.id ),
+            .transient = true } );
     }
 
     W.gui().EXPECT__transient_message_box( "xxx1" );
@@ -111,13 +110,12 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
   }
 
   SECTION( "with blocking updates" ) {
-    for( Coord const coord :
-         vector{ Coord{ .x = 1, .y = 1 },
-                 Coord{ .x = 3, .y = 3 } } ) {
+    for( Coord const coord : vector{
+           Coord{ .x = 1, .y = 1 }, Coord{ .x = 3, .y = 3 } } ) {
       Colony& colony = W.add_colony( coord );
       // Doesn't matter what this holds, only the count.
       ColonyEvolution const evolution{
-          .notifications = { {}, {} } };
+        .notifications = { {}, {} } };
       mock_colony_evolver
           .EXPECT__evolve_colony_one_turn( Eq( ref( colony ) ) )
           .returns( evolution );
@@ -125,14 +123,14 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
           .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[0] )
           .returns( ColonyNotificationMessage{
-              .msg       = "xxx"s + to_string( colony.id ),
-              .transient = false } );
+            .msg       = "xxx"s + to_string( colony.id ),
+            .transient = false } );
       mock_colony_notification_generator
           .EXPECT__generate_colony_notification_message(
               colony, evolution.notifications[1] )
           .returns( ColonyNotificationMessage{
-              .msg       = "xxx"s + to_string( colony.id ),
-              .transient = true } );
+            .msg       = "xxx"s + to_string( colony.id ),
+            .transient = true } );
       land_view_plane.EXPECT__ensure_visible( coord );
       W.gui()
           .EXPECT__choice(

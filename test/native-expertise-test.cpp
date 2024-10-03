@@ -50,11 +50,11 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, L, //
-        L, L, L, L, L, //
-        _, L, L, L, L, //
-        _, L, L, L, L, //
-        _, _, L, _, L, //
+      _, L, _, L, L, //
+      L, L, L, L, L, //
+      _, L, L, L, L, //
+      _, L, L, L, L, //
+      _, _, L, _, L, //
     };
     tiles[0]  = make_terrain( e_terrain::desert );
     tiles[1]  = make_terrain( e_terrain::scrub );
@@ -87,16 +87,16 @@ TEST_CASE( "[native-expertise] select_expertise_for_dwelling" ) {
   World W;
 
   refl::enum_map<e_native_skill, int> const weights{
-      { e_native_skill::farming, 10 },
-      { e_native_skill::fishing, 9 },
-      { e_native_skill::sugar_planting, 8 },
-      { e_native_skill::tobacco_planting, 7 },
-      { e_native_skill::cotton_planting, 6 },
-      { e_native_skill::fur_trapping, 5 },
-      { e_native_skill::ore_mining, 4 },
-      { e_native_skill::silver_mining, 3 },
-      { e_native_skill::fur_trading, 2 },
-      { e_native_skill::scouting, 1 },
+    { e_native_skill::farming, 10 },
+    { e_native_skill::fishing, 9 },
+    { e_native_skill::sugar_planting, 8 },
+    { e_native_skill::tobacco_planting, 7 },
+    { e_native_skill::cotton_planting, 6 },
+    { e_native_skill::fur_trapping, 5 },
+    { e_native_skill::ore_mining, 4 },
+    { e_native_skill::silver_mining, 3 },
+    { e_native_skill::fur_trading, 2 },
+    { e_native_skill::scouting, 1 },
   };
 
   W.rand().EXPECT__between_ints( 0, 55 - 1 ).returns( 10 );
@@ -166,7 +166,7 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
   SECTION( "civilized" ) {
     dwelling =
         &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
-    expected = { { { e_native_skill::farming, 2350 },
+    expected = { { { e_native_skill::farming, 2'350 },
                    { e_native_skill::fishing, 520 },
                    { e_native_skill::sugar_planting, 21 },
                    { e_native_skill::tobacco_planting, 0 },
@@ -183,7 +183,7 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
     dwelling =
         &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
     W.square( { .x = 2, .y = 2 } ).road = false;
-    expected = { { { e_native_skill::farming, 2350 },
+    expected = { { { e_native_skill::farming, 2'350 },
                    { e_native_skill::fishing, 520 },
                    { e_native_skill::sugar_planting, 21 },
                    { e_native_skill::tobacco_planting, 0 },

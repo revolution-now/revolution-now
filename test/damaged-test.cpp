@@ -49,14 +49,14 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, _, L, _, L, //
-        L, _, L, _, L, _, L, _, //
-        _, L, _, L, _, L, _, L, //
-        L, _, L, _, L, _, L, _, //
-        _, L, _, L, _, L, _, L, //
-        L, _, L, _, L, _, L, _, //
-        _, L, _, L, _, L, _, L, //
-        L, _, L, _, L, _, L, _, //
+      _, L, _, L, _, L, _, L, //
+      L, _, L, _, L, _, L, _, //
+      _, L, _, L, _, L, _, L, //
+      L, _, L, _, L, _, L, _, //
+      _, L, _, L, _, L, _, L, //
+      L, _, L, _, L, _, L, _, //
+      _, L, _, L, _, L, _, L, //
+      L, _, L, _, L, _, L, _, //
     };
     build_map( std::move( tiles ), 8 );
   }
@@ -549,8 +549,8 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::world{ .coord = { .x = 0, .y = 0 } } );
@@ -576,13 +576,13 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( caravel.id() ) ==
         UnitOwnership::world{ .coord = { .x = 0, .y = 0 } } );
@@ -606,18 +606,18 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( privateer.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE(
         as_const( W.units() ).ownership_of( caravel.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
   }
 
   SECTION( "to colony" ) {

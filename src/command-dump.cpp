@@ -79,8 +79,8 @@ struct DumpHandler : public CommandHandler {
     }
 
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options = {},
+      .msg     = "What cargo would you like to dump overboard?",
+      .options = {},
     };
 
     for( auto const& [slot, comm] : commodities ) {
@@ -90,8 +90,8 @@ struct DumpHandler : public CommandHandler {
           "{} {}", comm.quantity,
           lowercase_commodity_display_name( comm.type ) );
       ChoiceConfigOption option{
-          .key          = fmt::to_string( slot ),
-          .display_name = text,
+        .key          = fmt::to_string( slot ),
+        .display_name = text,
       };
       config.options.push_back( option );
     }

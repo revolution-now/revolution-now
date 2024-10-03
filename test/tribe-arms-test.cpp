@@ -52,15 +52,15 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -248,7 +248,7 @@ TEST_CASE( "[tribe-arms] acquire_horses_from_colony_raid" ) {
   REQUIRE( tribe.horse_herds == 5 );
   REQUIRE( tribe.horse_breeding == 54 );
 
-  f( 300000 );
+  f( 300'000 );
   REQUIRE( tribe.muskets == 0 );
   REQUIRE( tribe.horse_herds == 6 );
   REQUIRE( tribe.horse_breeding == 54 );
@@ -796,9 +796,9 @@ TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
   REQUIRE( tribe.horse_herds == 8 );
   REQUIRE( tribe.horse_breeding == 19 );
 
-  tribe.horse_herds = 1000;
+  tribe.horse_herds = 1'000;
   f();
-  REQUIRE( tribe.horse_herds == 1000 );
+  REQUIRE( tribe.horse_herds == 1'000 );
   REQUIRE( tribe.horse_breeding == 52 );
 
   REQUIRE( tribe.muskets == 0 );

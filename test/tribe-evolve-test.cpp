@@ -54,9 +54,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }

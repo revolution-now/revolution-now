@@ -43,9 +43,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -66,7 +66,7 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
     add( e_unit_type::privateer ); // 1
     sort_euro_unit_stack( W.ss(), units );
     expected = {
-        UnitId{ 1 },
+      UnitId{ 1 },
     };
     REQUIRE( units == expected );
   }
@@ -108,7 +108,7 @@ TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
     add( e_native_unit_type::brave ); // 1
     sort_native_unit_stack( W.ss(), units );
     expected = {
-        NativeUnitId{ 1 },
+      NativeUnitId{ 1 },
     };
     REQUIRE( units == expected );
   }
@@ -148,7 +148,7 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
     add( e_native_unit_type::brave ); // 1
     sort_unit_stack( W.ss(), units );
     expected = {
-        GenericUnitId{ 1 },
+      GenericUnitId{ 1 },
     };
     REQUIRE( units == expected );
   }

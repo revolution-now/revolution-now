@@ -102,14 +102,14 @@ AnimationAction& AnimationBuilder::enpixelate_unit(
 AnimationAction& AnimationBuilder::pixelate_euro_unit_to_target(
     UnitId unit_id, e_unit_type target ) {
   return push( P::pixelate_euro_unit_to_target{
-      .unit_id = unit_id, .target = target } );
+    .unit_id = unit_id, .target = target } );
 }
 
 AnimationAction&
 AnimationBuilder::pixelate_native_unit_to_target(
     NativeUnitId unit_id, e_native_unit_type target ) {
   return push( P::pixelate_native_unit_to_target{
-      .unit_id = unit_id, .target = target } );
+    .unit_id = unit_id, .target = target } );
 }
 
 AnimationAction& AnimationBuilder::depixelate_colony(

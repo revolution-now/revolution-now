@@ -74,7 +74,9 @@ namespace {
 
 #define BEHAVIOR( c, r, e, ... )                              \
   namespace BEHAVIOR_NS( c, r, e ) {                          \
-  enum class e_vals { __VA_ARGS__ };                          \
+  enum class e_vals {                                         \
+    __VA_ARGS__                                               \
+  };                                                          \
   }                                                           \
   template<>                                                  \
   struct to_behaviors<BEHAVIOR_VALUES( c, r, e )> {           \
@@ -85,8 +87,16 @@ namespace {
   behavior<BEHAVIOR_VALUES( c, r, e )>(                       \
       UnitTypeAttributes const& desc )
 
-enum class e_unit_relationship { neutral, friendly, foreign };
-enum class e_entity_category { empty, unit, colony };
+enum class e_unit_relationship {
+  neutral,
+  friendly,
+  foreign
+};
+enum class e_entity_category {
+  empty,
+  unit,
+  colony
+};
 
 TEMPLATE_BEHAVIOR
 struct to_behaviors {
@@ -601,7 +611,7 @@ TravelHandler::confirm_travel_impl() {
           society_on_square( ss_, move_dst );
       society.has_value() ) {
     CHECK( *society == Society{ Society::european{
-                           .nation = unit.nation() } } );
+                         .nation = unit.nation() } } );
     relationship = e_unit_relationship::friendly;
   }
 
@@ -1044,12 +1054,12 @@ struct NativeDwellingHandler : public CommandHandler {
     switch( option ) {
       case e_enter_dwelling_option::live_among_the_natives:
         return EnterDwellingOutcome::live_among_the_natives{
-            .outcome = compute_live_among_the_natives(
-                ss_, dwelling_, unit_ ) };
+          .outcome = compute_live_among_the_natives(
+              ss_, dwelling_, unit_ ) };
       case e_enter_dwelling_option::speak_with_chief:
         return EnterDwellingOutcome::speak_with_chief{
-            .outcome = compute_speak_with_chief(
-                ss_, ts_, dwelling_, unit_ ) };
+          .outcome = compute_speak_with_chief(
+              ss_, ts_, dwelling_, unit_ ) };
       case e_enter_dwelling_option::attack_village:
         // Outcome handled by the delegated handler.
         return EnterDwellingOutcome::attack_village{};
@@ -1057,12 +1067,12 @@ struct NativeDwellingHandler : public CommandHandler {
         return EnterDwellingOutcome::attack_brave_on_dwelling{};
       case e_enter_dwelling_option::establish_mission:
         return EnterDwellingOutcome::establish_mission{
-            .outcome = compute_establish_mission( ss_, player_,
-                                                  dwelling_ ) };
+          .outcome = compute_establish_mission( ss_, player_,
+                                                dwelling_ ) };
       case e_enter_dwelling_option::trade:
         return EnterDwellingOutcome::trade{
-            .outcome = compute_trade_with_natives( ss_, player_,
-                                                   dwelling_ ) };
+          .outcome = compute_trade_with_natives( ss_, player_,
+                                                 dwelling_ ) };
       case e_enter_dwelling_option::cancel:
         return EnterDwellingOutcome::cancel{};
     }
@@ -1234,7 +1244,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   CHECK( society.has_value() );
 
   if( *society == Society{ Society::european{
-                      .nation = attacker.nation() } } )
+                    .nation = attacker.nation() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
                                        player );

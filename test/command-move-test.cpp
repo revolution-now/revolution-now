@@ -193,7 +193,7 @@ TEST_CASE(
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
     CommandHandlerRunResult const expected_result{
-        .order_was_run = true, .units_to_prioritize = {} };
+      .order_was_run = true, .units_to_prioritize = {} };
     REQUIRE( *w == expected_result );
   };
 
@@ -282,9 +282,9 @@ TEST_CASE(
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
   CommandHandlerRunResult const expected_res{
-      .order_was_run       = true,
-      .units_to_prioritize = { missionary.id(),
-                               free_colonist.id() } };
+    .order_was_run       = true,
+    .units_to_prioritize = { missionary.id(),
+                             free_colonist.id() } };
   CommandHandlerRunResult const res =
       move_unit( galleon.id(), e_direction::se );
   REQUIRE( res == expected_res );
@@ -343,7 +343,7 @@ TEST_CASE(
       .EXPECT__show( _, colony.id )
       .returns( e_colony_abandoned::no );
   CommandHandlerRunResult const expected_res{
-      .order_was_run = true, .units_to_prioritize = {} };
+    .order_was_run = true, .units_to_prioritize = {} };
   CommandHandlerRunResult const res =
       move_unit( galleon.id(), e_direction::se );
   REQUIRE( res == expected_res );
@@ -393,7 +393,7 @@ TEST_CASE(
   W.gui().EXPECT__message_box(
       StrContains( "Treasure worth 1000" ) );
   CommandHandlerRunResult const expected_res{
-      .order_was_run = true, .units_to_prioritize = {} };
+    .order_was_run = true, .units_to_prioritize = {} };
   CommandHandlerRunResult const res =
       move_unit( treasure_id, e_direction::e );
   REQUIRE( res == expected_res );
@@ -537,15 +537,15 @@ TEST_CASE(
     // some plausible values so that we can test that the combat
     // creation function is called with the correct defender.
     CombatEuroAttackUndefendedColony const combat{
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id = soldier.id(),
-                       .outcome =
-                           EuroUnitCombatOutcome::no_change{} },
-        .defender  = {
-             .id = master_distiller.id(),
-             .outcome =
-                EuroColonyWorkerCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id = soldier.id(),
+                     .outcome =
+                         EuroUnitCombatOutcome::no_change{} },
+      .defender  = {
+         .id = master_distiller.id(),
+         .outcome =
+            EuroColonyWorkerCombatOutcome::no_change{} } };
     W.combat()
         .EXPECT__euro_attack_undefended_colony(
             soldier, master_distiller, colony )
@@ -575,13 +575,13 @@ TEST_CASE(
     // some plausible values so that we can test that the combat
     // creation function is called with the correct defender.
     CombatEuroAttackEuro const combat{
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id = soldier.id(),
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id      = soldier_onboard.id(),
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id = soldier.id(),
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id      = soldier_onboard.id(),
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     // In this scenario, since the soldier should have been auto-
     // matically offboarded from the ship, it should have been
     // chosen as the defender. So that means it is just a regular

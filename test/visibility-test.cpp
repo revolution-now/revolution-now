@@ -936,8 +936,8 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
           .fog_status.emplace<fogged>()
           .contents;
   frozen_square1 = FrozenSquare{
-      .colony   = Colony{},
-      .dwelling = Dwelling{ .is_capital = true },
+    .colony   = Colony{},
+    .dwelling = Dwelling{ .is_capital = true },
   };
 
   W.add_tribe( e_tribe::sioux );
@@ -1015,9 +1015,9 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   SECTION( "with overrides, entire" ) {
     p_viz = &viz_overrides_entire;
     MapSquare const override_square2{
-        .overlay = e_land_overlay::forest };
+      .overlay = e_land_overlay::forest };
     MapSquare const override_square3{
-        .overlay = e_land_overlay::hills };
+      .overlay = e_land_overlay::hills };
     overrides.squares[{ .x = 0, .y = 1 }] = override_square2;
     overrides.squares[{ .x = 1, .y = 1 }] = override_square3;
 
@@ -1060,9 +1060,9 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   SECTION( "with overrides, player" ) {
     p_viz = &viz_overrides_nation;
     MapSquare const override_square2{
-        .overlay = e_land_overlay::forest };
+      .overlay = e_land_overlay::forest };
     MapSquare const override_square3{
-        .overlay = e_land_overlay::hills };
+      .overlay = e_land_overlay::hills };
     overrides.squares[{ .x = 0, .y = 1 }] = override_square2;
     overrides.squares[{ .x = 1, .y = 1 }] = override_square3;
 

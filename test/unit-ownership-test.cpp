@@ -52,9 +52,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, //
-        L, L, L, L, //
-        _, L, L, L, //
+      _, L, _, L, //
+      L, L, L, L, //
+      _, L, L, L, //
     };
     build_map( std::move( tiles ), 4 );
   }
@@ -266,8 +266,8 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_missionary =
       UnitOwnership::cargo{ .holder = caravel_id };
   expected_caravel = UnitOwnership::harbor{
-      .port_status = PortStatus::inbound{ .turns = 0 },
-      .sailed_from = Coord{ .x = 0, .y = 0 } };
+    .port_status = PortStatus::inbound{ .turns = 0 },
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( caravel_id )
       .change_to_harbor( PortStatus::inbound{ .turns = 0 },
                          Coord{} );
@@ -295,8 +295,8 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_missionary =
       UnitOwnership::cargo{ .holder = caravel_id };
   expected_caravel = UnitOwnership::harbor{
-      .port_status = PortStatus::outbound{ .turns = 4 },
-      .sailed_from = Coord{ .x = 0, .y = 0 } };
+    .port_status = PortStatus::outbound{ .turns = 4 },
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( caravel_id )
       .change_to_harbor( PortStatus::outbound{ .turns = 4 },
                          Coord{} );
@@ -324,8 +324,8 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_missionary =
       UnitOwnership::cargo{ .holder = caravel_id };
   expected_caravel = UnitOwnership::harbor{
-      .port_status = PortStatus::in_port{},
-      .sailed_from = Coord{ .x = 0, .y = 0 } };
+    .port_status = PortStatus::in_port{},
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( caravel_id )
       .change_to_harbor( PortStatus::in_port{}, Coord{} );
   REQUIRE( W.units().all().size() == 3 );
@@ -352,8 +352,8 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_missionary =
       UnitOwnership::cargo{ .holder = caravel_id };
   expected_caravel = UnitOwnership::harbor{
-      .port_status = PortStatus::in_port{},
-      .sailed_from = Coord{ .x = 0, .y = 0 } };
+    .port_status = PortStatus::in_port{},
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( free_colonist_id )
       .change_to_colony(
           W.ts(), colony,
@@ -392,8 +392,8 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
   expected_missionary =
       UnitOwnership::cargo{ .holder = caravel_id };
   expected_caravel = UnitOwnership::harbor{
-      .port_status = PortStatus::in_port{},
-      .sailed_from = Coord{ .x = 0, .y = 0 } };
+    .port_status = PortStatus::in_port{},
+    .sailed_from = Coord{ .x = 0, .y = 0 } };
   o( missionary_id )
       .change_to_cargo( caravel_id, /*starting_slot=*/0 );
   REQUIRE( W.units().all().size() == 2 );

@@ -235,8 +235,8 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
   Coord const tile_under_cursor = colony.location.moved( d );
   if( !ss_.terrain.square_exists( tile_under_cursor ) )
     co_return DragRejection{
-        .reason =
-            "This tile is beyond the bounds of the world map." };
+      .reason =
+          "This tile is beyond the bounds of the world map." };
   MapSquare const& square =
       ss_.terrain.square_at( tile_under_cursor );
 
@@ -253,16 +253,16 @@ wait<base::valid_or<DragRejection>> ColonyLandView::sink_check(
       !colony_has_building_level( colony,
                                   e_colony_building::docks ) ) {
     co_return DragRejection{
-        .reason =
-            "We must build [docks] in this colony in "
-            "order to work on sea squares." };
+      .reason =
+          "We must build [docks] in this colony in "
+          "order to work on sea squares." };
   }
 
   if( square.lost_city_rumor ) {
     co_return DragRejection{
-        .reason =
-            "We must explore this Lost City Rumor before we "
-            "can work this square." };
+      .reason =
+          "We must explore this Lost City Rumor before we "
+          "can work this square." };
   }
 
   co_return base::valid;
@@ -299,8 +299,8 @@ ColonyLandView::object_here( Coord const& where ) const {
   UNWRAP_RETURN( unit_id, unit_under_cursor( where ) );
   UNWRAP_RETURN( d, direction_under_cursor( where ) );
   return DraggableObjectWithBounds<ColViewObject>{
-      .obj    = ColViewObject::unit{ .id = unit_id },
-      .bounds = rect_for_unit( d ) };
+    .obj    = ColViewObject::unit{ .id = unit_id },
+    .bounds = rect_for_unit( d ) };
 }
 
 bool ColonyLandView::try_drag( ColViewObject const&,

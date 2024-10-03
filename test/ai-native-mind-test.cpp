@@ -47,9 +47,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -141,10 +141,10 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
     W.rand().EXPECT__bernoulli( 0.08 ).returns( false );
 
     expected = NativeUnitCommand::equip{
-        .how = EquippedBrave{
-            .type          = e_native_unit_type::mounted_warrior,
-            .muskets_delta = -1,
-            .horse_breeding_delta = -25 } };
+      .how = EquippedBrave{
+        .type          = e_native_unit_type::mounted_warrior,
+        .muskets_delta = -1,
+        .horse_breeding_delta = -25 } };
     REQUIRE( mind.command_for( brave.id ) == expected );
   }
 }
@@ -198,10 +198,10 @@ TEST_CASE(
     W.rand().EXPECT__bernoulli( 0.08 ).returns( false );
 
     expected = NativeUnitCommand::equip{
-        .how = EquippedBrave{
-            .type          = e_native_unit_type::mounted_warrior,
-            .muskets_delta = -1,
-            .horse_breeding_delta = 0 } };
+      .how = EquippedBrave{
+        .type          = e_native_unit_type::mounted_warrior,
+        .muskets_delta = -1,
+        .horse_breeding_delta = 0 } };
     REQUIRE( mind.command_for( brave.id ) == expected );
   }
 
@@ -240,10 +240,10 @@ TEST_CASE(
     W.rand().EXPECT__bernoulli( 0.08 ).returns( false );
 
     expected = NativeUnitCommand::equip{
-        .how = EquippedBrave{
-            .type          = e_native_unit_type::mounted_warrior,
-            .muskets_delta = 0,
-            .horse_breeding_delta = -25 } };
+      .how = EquippedBrave{
+        .type          = e_native_unit_type::mounted_warrior,
+        .muskets_delta = 0,
+        .horse_breeding_delta = -25 } };
     REQUIRE( mind.command_for( brave.id ) == expected );
   }
 

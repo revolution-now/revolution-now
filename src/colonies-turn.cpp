@@ -56,8 +56,8 @@ wait<bool> present_blocking_colony_update(
   CHECK( !msg.transient );
   if( ask_to_zoom ) {
     vector<ChoiceConfigOption> choices{
-        { .key = "no_zoom", .display_name = "Continue turn" },
-        { .key = "zoom", .display_name = "Zoom to colony" } };
+      { .key = "no_zoom", .display_name = "Continue turn" },
+      { .key = "zoom", .display_name = "Zoom to colony" } };
     maybe<string> res = co_await gui.optional_choice(
         { .msg = msg.msg, .options = std::move( choices ) } );
     // If the user hits escape then we don't zoom.

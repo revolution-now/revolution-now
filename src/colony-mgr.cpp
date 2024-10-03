@@ -171,9 +171,9 @@ ColonyId create_empty_colony( ColoniesState& colonies_state,
                               e_nation nation, Coord where,
                               string_view name ) {
   return colonies_state.add_colony( Colony{
-      .nation   = nation,
-      .name     = string( name ),
-      .location = where,
+    .nation   = nation,
+    .name     = string( name ),
+    .location = where,
   } );
 }
 

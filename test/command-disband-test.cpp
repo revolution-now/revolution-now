@@ -47,9 +47,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -277,15 +277,15 @@ TEST_CASE(
   };
 
   ChoiceConfig const expected_config{
-      .msg     = "Really disband [Galleon]?",
-      .options = { ChoiceConfigOption{ .key          = "no",
-                                       .display_name = "No" },
-                   ChoiceConfigOption{ .key          = "yes",
-                                       .display_name = "Yes" } },
-      .sort    = false,
-      // This should cause the first enabled item to be selected
-      // by default.
-      .initial_selection = nothing };
+    .msg     = "Really disband [Galleon]?",
+    .options = { ChoiceConfigOption{ .key          = "no",
+                                     .display_name = "No" },
+                 ChoiceConfigOption{ .key          = "yes",
+                                     .display_name = "Yes" } },
+    .sort    = false,
+    // This should cause the first enabled item to be selected
+    // by default.
+    .initial_selection = nothing };
 
   W.gui()
       .EXPECT__choice( expected_config )

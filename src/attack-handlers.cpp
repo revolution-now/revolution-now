@@ -623,13 +623,13 @@ wait<bool> AttackNativeUnitHandler::confirm() {
   if( !relationship.nation_has_attacked_tribe ) {
     if( attacker_human_ ) {
       YesNoConfig const config{
-          .msg = fmt::format(
-              "Shall we attack the [{}]?",
-              ts_.gui.identifier_to_display_name(
-                  fmt::to_string( defender_tribe_.type ) ) ),
-          .yes_label      = "Attack",
-          .no_label       = "Cancel",
-          .no_comes_first = true };
+        .msg = fmt::format(
+            "Shall we attack the [{}]?",
+            ts_.gui.identifier_to_display_name(
+                fmt::to_string( defender_tribe_.type ) ) ),
+        .yes_label      = "Attack",
+        .no_label       = "Cancel",
+        .no_comes_first = true };
       maybe<ui::e_confirm> const proceed =
           co_await ts_.gui.optional_yes_no( config );
       if( proceed != ui::e_confirm::yes ) co_return false;
@@ -789,9 +789,9 @@ wait<> AttackDwellingHandler::with_phantom_brave_combat(
   NativeUnitId const phantom_brave = create_phantom_brave();
   SCOPE_EXIT { ss_.units.destroy_unit( phantom_brave ); };
   CombatEuroAttackBrave phantom_combat{
-      .winner   = combat.winner,
-      .attacker = combat.attacker,
-      .defender = { .id = phantom_brave } };
+    .winner   = combat.winner,
+    .attacker = combat.attacker,
+    .defender = { .id = phantom_brave } };
   if( combat.winner == e_combat_winner::attacker )
     phantom_combat.defender.outcome =
         NativeUnitCombatOutcome::destroyed{};
@@ -1008,8 +1008,8 @@ wait<> AttackDwellingHandler::perform() {
                   UnitComposition::create(
                       e_unit_type::treasure,
                       UnitComposition::UnitInventoryMap{
-                          { e_unit_inventory::gold,
-                            *destruction.treasure_amount } } ) );
+                        { e_unit_inventory::gold,
+                          *destruction.treasure_amount } } ) );
     // This one needs to be non-interactive for the same reason
     // as is described in the comment further above at the point
     // when we release the missionary from the dwelling. Specfi-

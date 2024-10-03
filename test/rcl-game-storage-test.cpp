@@ -118,7 +118,7 @@ TEST_CASE( "[rcl-game-storage] no default values (compact)" ) {
       data_dir() / "saves/compact.sav.rcl";
 
   static RclGameStorageSave::options const opts{
-      .verbosity = e_savegame_verbosity::compact,
+    .verbosity = e_savegame_verbosity::compact,
   };
 
   RclGameStorageSave saver( W.ss(), opts );
@@ -218,7 +218,7 @@ TEST_CASE(
   CHECK( !fs::exists( dst ) );
 
   RclGameStorageSave::options const opts{
-      .verbosity = e_savegame_verbosity::full,
+    .verbosity = e_savegame_verbosity::full,
   };
 
   RclGameStorageSave saver( W.ss(), opts );
@@ -254,7 +254,7 @@ TEST_CASE(
   CHECK( !fs::exists( dst ) );
 
   RclGameStorageSave::options const opts{
-      .verbosity = e_savegame_verbosity::compact,
+    .verbosity = e_savegame_verbosity::compact,
   };
 
   RclGameStorageSave saver( W.ss(), opts );
@@ -281,7 +281,7 @@ TEST_CASE( "[rcl-game-storage] determinism" ) {
     if( fs::exists( dst ) ) fs::remove( dst );
     CHECK( !fs::exists( dst ) );
     static RclGameStorageSave::options const opts{
-        .verbosity = e_savegame_verbosity::compact,
+      .verbosity = e_savegame_verbosity::compact,
     };
     expect_rands( W );
     generate_save_file( W, dst, opts );

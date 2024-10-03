@@ -733,7 +733,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
   int const kFirst  = 1;
   int const kSecond = 10;
   int const kThird  = 100;
-  int const kFourth = 1000;
+  int const kFourth = 1'000;
 
   SECTION( "stream" ) {
     co::stream<int> s;
@@ -988,8 +988,8 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
   }
 
   vector<base::variant<int, double, string>> expected{
-      { 3 },   { 4 },   { 5 },    { 0.0 },  { 1.0 },
-      { 2.0 }, { "x" }, { "xx" }, { "xxx" } };
+    { 3 },   { 4 },   { 5 },    { 0.0 },  { 1.0 },
+    { 2.0 }, { "x" }, { "xx" }, { "xxx" } };
 
   REQUIRE_THAT( found, Equals( expected ) );
 }

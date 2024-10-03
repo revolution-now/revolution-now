@@ -323,13 +323,13 @@ TEST_CASE( "[colony-mgr] initial colony buildings." ) {
     if( has ) buildings.insert( building );
   REQUIRE( buildings ==
            unordered_set<e_colony_building>{
-               e_colony_building::blacksmiths_house,
-               e_colony_building::carpenters_shop,
-               e_colony_building::fur_traders_house,
-               e_colony_building::rum_distillers_house,
-               e_colony_building::tobacconists_house,
-               e_colony_building::weavers_house,
-               e_colony_building::town_hall,
+             e_colony_building::blacksmiths_house,
+             e_colony_building::carpenters_shop,
+             e_colony_building::fur_traders_house,
+             e_colony_building::rum_distillers_house,
+             e_colony_building::tobacconists_house,
+             e_colony_building::weavers_house,
+             e_colony_building::town_hall,
            } );
 }
 
@@ -418,13 +418,13 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( ship3.id() ) );
     REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
   }
 
   // This will make sure that sure that units on ships will be
@@ -453,13 +453,13 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( soldier_id ) );
     REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE(
         as_const( W.units() ).ownership_of( free_colonist_id ) ==
         UnitOwnership::world{ .coord = loc } );
@@ -599,13 +599,13 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
     REQUIRE( W.units().exists( ship3.id() ) );
     REQUIRE( as_const( W.units() ).ownership_of( ship1.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship2.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( ship3.id() ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
   }
 
   SECTION( "interactive with ship, post-revolution" ) {
@@ -683,10 +683,10 @@ TEST_CASE(
       find_occupied_surrounding_colony_squares( W.ss(), colony );
 
   refl::enum_map<e_direction, bool> const expected{
-      { e_direction::nw, true }, { e_direction::n, false },
-      { e_direction::ne, true }, { e_direction::w, false },
-      { e_direction::e, false }, { e_direction::sw, true },
-      { e_direction::s, false }, { e_direction::se, false },
+    { e_direction::nw, true }, { e_direction::n, false },
+    { e_direction::ne, true }, { e_direction::w, false },
+    { e_direction::e, false }, { e_direction::sw, true },
+    { e_direction::s, false }, { e_direction::se, false },
   };
 
   REQUIRE( occupied_red_box == expected );

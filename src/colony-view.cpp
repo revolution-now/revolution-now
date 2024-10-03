@@ -169,8 +169,8 @@ struct ColonyPlane : public IPlane {
       // pointers; see the comment about that in the dragging
       // coroutine. This should probably be fixed).
       input_.send( input::win_event_t{
-          input::event_base_t{},
-          /*type=*/input::e_win_event_type::resized } );
+        input::event_base_t{},
+        /*type=*/input::e_win_event_type::resized } );
     }
   }
 
