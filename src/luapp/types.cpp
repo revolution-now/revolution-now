@@ -191,7 +191,9 @@ void to_str( lightuserdata const& o, std::string& out,
 }
 
 #define TYPE_CASE( e ) \
-  case type::e: s = #e; break
+  case type::e:        \
+    s = #e;            \
+    break
 
 void to_str( type t, string& out, base::ADL_t ) {
   string_view s = "unknown";

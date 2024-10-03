@@ -123,12 +123,14 @@ using TraitsForModel = std::conditional_t<
         userdata_type_traits_lua_owned<T>, void>>;
 
 template<typename T>
-concept HasRefUserdataOwnershipModel = HasTraitsNvalues<T> &&
+concept HasRefUserdataOwnershipModel =
+    HasTraitsNvalues<T> &&
     std::is_base_of_v<userdata_type_traits_cpp_owned<T>,
                       traits_for<T>>;
 
 template<typename T>
-concept HasValueUserdataOwnershipModel = HasTraitsNvalues<T> &&
+concept HasValueUserdataOwnershipModel =
+    HasTraitsNvalues<T> &&
     std::is_base_of_v<userdata_type_traits_lua_owned<T>,
                       traits_for<T>>;
 template<typename T>

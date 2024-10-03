@@ -201,7 +201,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
             id, braves_for_dwelling_[ownership.dwelling_id],
             ownership.dwelling_id );
         braves_for_dwelling_[ownership.dwelling_id] = {
-            NativeUnitId{ to_underlying( id ) } };
+          NativeUnitId{ to_underlying( id ) } };
         break;
       }
       case UnitState::e::euro:
@@ -228,7 +228,7 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
 
 UnitsState::UnitsState()
   : UnitsState( wrapped::UnitsState{
-        .next_unit_id = kFirstUnitId, .units = {} } ) {
+      .next_unit_id = kFirstUnitId, .units = {} } ) {
   validate_or_die();
 }
 
@@ -471,7 +471,7 @@ maybe<DwellingId> UnitsState::maybe_dwelling_for_missionary(
     case UnitOwnership::e::world:
     case UnitOwnership::e::free:
     case UnitOwnership::e::harbor:
-    case UnitOwnership::e::colony:   //
+    case UnitOwnership::e::colony: //
       return nothing;
     case UnitOwnership::e::dwelling: //
       return o.get<UnitOwnership::dwelling>().id;
@@ -605,7 +605,7 @@ void UnitsState::change_to_harbor_view(
   if( !ownership.holds<UnitOwnership::harbor>() )
     disown_unit( id );
   ownership = UnitOwnership::harbor{
-      .port_status = port_status, .sailed_from = sailed_from };
+    .port_status = port_status, .sailed_from = sailed_from };
 }
 
 void UnitsState::change_to_dwelling( UnitId     unit_id,
@@ -671,9 +671,9 @@ NativeUnitId UnitsState::add_unit_on_map(
   CHECK( !native_units_.contains( native_id ) );
   CHECK( !deleted_.contains( id ) );
   o_.units[id] = UnitState::native{
-      .unit      = std::move( unit ),
-      .ownership = NativeUnitOwnership{
-          .coord = target, .dwelling_id = dwelling_id } };
+    .unit      = std::move( unit ),
+    .ownership = NativeUnitOwnership{
+      .coord = target, .dwelling_id = dwelling_id } };
   native_units_[native_id] =
       &o_.units[id].get<UnitState::native>();
   units_from_coords_[target].insert( id );

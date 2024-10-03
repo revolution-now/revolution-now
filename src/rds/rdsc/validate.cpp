@@ -39,9 +39,12 @@ struct Validator {
 
       for( expr::e_feature feat : features ) {
         switch( feat ) {
-          case expr::e_feature::equality: break;
-          case expr::e_feature::offsets: break;
-          case expr::e_feature::validation: break;
+          case expr::e_feature::equality:
+            break;
+          case expr::e_feature::offsets:
+            break;
+          case expr::e_feature::validation:
+            break;
           case expr::e_feature::nodiscard:
             error(
                 "sumtypes do not support the 'nodiscard' "
@@ -59,7 +62,8 @@ struct Validator {
 
       for( expr::e_feature feat : features ) {
         switch( feat ) {
-          case expr::e_feature::nodiscard: break;
+          case expr::e_feature::nodiscard:
+            break;
           case expr::e_feature::equality:
           case expr::e_feature::offsets:
           case expr::e_feature::validation:

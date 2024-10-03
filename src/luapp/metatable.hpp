@@ -33,8 +33,8 @@ base::maybe<table> metatable_for( cthread L, T&& o ) {
 }
 
 template<typename T>
-requires( Pushable<T>&& HasCthread<T> )
-    base::maybe<table> metatable_for( T&& o ) {
+requires( Pushable<T> && HasCthread<T> )
+base::maybe<table> metatable_for( T&& o ) {
   cthread L = o.this_cthread();
   return metatable_for( L, std::forward<T>( o ) );
 }

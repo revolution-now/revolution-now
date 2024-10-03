@@ -179,9 +179,9 @@ void TerrainState::initialize_player_terrain( e_nation nation,
   for( Rect const tile :
        gfx::subrects( o_.real_terrain.map.rect() ) )
     map[tile.upper_left()] = PlayerSquare::explored{
-        .fog_status = FogStatus::fogged{
-            .contents = { .square =
-                              world_map[tile.upper_left()] } } };
+      .fog_status = FogStatus::fogged{
+        .contents = { .square =
+                          world_map[tile.upper_left()] } } };
 }
 
 bool TerrainState::is_pacific_ocean( Coord coord ) const {

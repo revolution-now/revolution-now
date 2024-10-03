@@ -135,7 +135,11 @@ struct Painter {
   // in_out means that the border will be on the inside on the
   // top and left while it will be on the outside on the bottom
   // and right.
-  enum class e_border_mode { inside, outside, in_out };
+  enum class e_border_mode {
+    inside,
+    outside,
+    in_out
+  };
 
   // FIXME: these are expensive, requires 24 vertices. Probably
   // should have shader support for these builtin.

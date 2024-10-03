@@ -28,18 +28,18 @@ enum class vertex_type {
 GenericVertex proto_vertex( vertex_type type,
                             gfx::point  position ) {
   return GenericVertex{
-      .type                = static_cast<int32_t>( type ),
-      .flags               = 0,
-      .depixelate          = gl::vec4{},
-      .depixelate_stages   = gl::vec4{},
-      .position            = gl::vec2::from_point( position ),
-      .atlas_position      = {},
-      .atlas_rect          = {},
-      .atlas_target_offset = {},
-      .fixed_color         = {},
-      .alpha_multiplier    = 1.0f,
-      .scaling             = 1.0,
-      .translation         = {},
+    .type                = static_cast<int32_t>( type ),
+    .flags               = 0,
+    .depixelate          = gl::vec4{},
+    .depixelate_stages   = gl::vec4{},
+    .position            = gl::vec2::from_point( position ),
+    .atlas_position      = {},
+    .atlas_rect          = {},
+    .atlas_target_offset = {},
+    .fixed_color         = {},
+    .alpha_multiplier    = 1.0f,
+    .scaling             = 1.0,
+    .translation         = {},
   };
 }
 

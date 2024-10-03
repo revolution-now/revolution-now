@@ -395,8 +395,8 @@ void setup_new_metatable( cthread                    L,
   // We will only use those values where the function pointer is
   // not nullptr, so we can freely put them all in this list.
   initializer_list<pair<string, LuaCFunction*>> metatable{
-      { "__gc", call_destructor },
-      { "__tostring", fmt },
+    { "__gc", call_destructor },
+    { "__tostring", fmt },
   };
 
   for( auto& [name, func] : metatable ) {

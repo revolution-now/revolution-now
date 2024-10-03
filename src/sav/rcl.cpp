@@ -49,13 +49,13 @@ using LoadFn = function_ref<expect<rcl::doc>(
 
 valid_or<string> load_rcl_impl( ColonySAV& out, LoadFn load ) {
   cdr::converter::options const cdr_opts{
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = true,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = true,
   };
   base::ScopedTimer timer( "load-ColonySAV-from-rcl" );
   timer.checkpoint( "rcl parse" );
   rcl::ProcessingOptions const proc_opts{
-      .run_key_parse = true, .unflatten_keys = true };
+    .run_key_parse = true, .unflatten_keys = true };
   UNWRAP_RETURN( rcl_doc, load( proc_opts ) );
   timer.checkpoint( "from_canonical" );
   UNWRAP_RETURN( converted,
@@ -91,7 +91,7 @@ valid_or<string> load_rcl_from_file( std::string const& path,
 string save_rcl_to_string( ColonySAV const& in,
                            e_rcl_dialect    dialect ) {
   cdr::converter::options const cdr_opts{
-      .write_fields_with_default_value = true };
+    .write_fields_with_default_value = true };
   base::ScopedTimer timer( "save-ColonySAV-to-rcl" );
   timer.checkpoint( "to_canonical" );
   cdr::value cdr_val =
@@ -107,7 +107,7 @@ string save_rcl_to_string( ColonySAV const& in,
   switch( dialect ) {
     case e_rcl_dialect::standard: {
       rcl::EmitOptions const emit_opts{
-          .flatten_keys = true,
+        .flatten_keys = true,
       };
       return rcl::emit( rcl_doc, emit_opts );
     }

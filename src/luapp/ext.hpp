@@ -116,16 +116,16 @@ concept GettableViaTraits =
 // gives more revealing error messages.
 template<typename T>
 concept Pushable =
-    (PushableViaAdl<T> || PushableViaTraits<T>)&&!(
-        PushableViaAdl<T> && PushableViaTraits<T> );
+    ( PushableViaAdl<T> || PushableViaTraits<T> ) &&
+    !( PushableViaAdl<T> && PushableViaTraits<T> );
 
 // Must be one or the other to avoid ambiguity.  We could
 // use the xor operator, but the following representation
 // gives more revealing error messages.
 template<typename T>
 concept Gettable =
-    (GettableViaAdl<T> || GettableViaTraits<T>)&&!(
-        GettableViaAdl<T> && GettableViaTraits<T> );
+    ( GettableViaAdl<T> || GettableViaTraits<T> ) &&
+    !( GettableViaAdl<T> && GettableViaTraits<T> );
 
 // Can the type be sent to and from Lua.
 template<typename T>

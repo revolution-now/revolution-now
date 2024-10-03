@@ -98,7 +98,7 @@ UnitComposition::UnitComposition( e_unit_type type )
 expect<UnitComposition> UnitComposition::create(
     UnitType type, UnitInventoryMap inventory ) {
   auto inner = wrapped::UnitComposition{
-      .type = type, .inventory = std::move( inventory ) };
+    .type = type, .inventory = std::move( inventory ) };
   if( auto ok = inner.validate(); !ok ) return ok.error();
   return UnitComposition( std::move( inner ) );
 }

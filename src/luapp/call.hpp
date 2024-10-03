@@ -285,7 +285,7 @@ call_lua_resume_safe_and_get( cthread L_toresume,
     }
     internal::pop_call_results( L_toresume, nresults_needed );
     return resume_result_with_value<R>{
-        .status = res->status, .value = std::move( *ret_val ) };
+      .status = res->status, .value = std::move( *ret_val ) };
   } else {
     return resume_result_with_value<void>{ .status =
                                                res->status };

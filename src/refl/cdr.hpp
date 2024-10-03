@@ -41,7 +41,7 @@ concept HasValidateMethod = requires( T& o ) {
   { o.validate() };
 };
 
-}
+} // namespace detail
 
 } // namespace refl
 

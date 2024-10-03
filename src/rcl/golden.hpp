@@ -109,8 +109,8 @@ T Golden<T>::load_from_golden() const {
                              file_.string() ) );
   UNWRAP_CHECK( rcl_doc, rcl::parse( file_.string(), rcl_str ) );
   cdr::converter::options const options{
-      .allow_unrecognized_fields        = true,
-      .default_construct_missing_fields = true,
+    .allow_unrecognized_fields        = true,
+    .default_construct_missing_fields = true,
   };
   UNWRAP_CHECK( o, cdr::run_conversion_from_canonical<T>(
                        rcl_doc.top_val(), options ) );
@@ -120,7 +120,7 @@ T Golden<T>::load_from_golden() const {
 template<cdr::Canonical T>
 void Golden<T>::save_to_golden( fs::path const& p ) const {
   cdr::converter::options const options{
-      .write_fields_with_default_value = false };
+    .write_fields_with_default_value = false };
   cdr::value cdr_val =
       cdr::run_conversion_to_canonical( ref_, options );
   UNWRAP_CHECK(

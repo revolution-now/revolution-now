@@ -70,15 +70,15 @@ using ProgramAttributes =
 
 struct ProgramUniforms {
   static constexpr tuple uniforms{
-      gl::UniformSpec<int>( "u_atlas" ),
-      gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
-      gl::UniformSpec<gl::vec2>( "u_screen_size" ),
-      gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
-      gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
-      gl::UniformSpec<float>( "u_camera_zoom" ),
-      gl::UniformSpec<float>( "u_depixelation_stage" ),
-      gl::UniformSpec<span<gl::ivec4 const>>(
-          "u_color_cycle_targets" ),
+    gl::UniformSpec<int>( "u_atlas" ),
+    gl::UniformSpec<gl::vec2>( "u_atlas_size" ),
+    gl::UniformSpec<gl::vec2>( "u_screen_size" ),
+    gl::UniformSpec<int32_t>( "u_color_cycle_stage" ),
+    gl::UniformSpec<gl::vec2>( "u_camera_translation" ),
+    gl::UniformSpec<float>( "u_camera_zoom" ),
+    gl::UniformSpec<float>( "u_depixelation_stage" ),
+    gl::UniformSpec<span<gl::ivec4 const>>(
+        "u_color_cycle_targets" ),
   };
 };
 
@@ -220,44 +220,44 @@ struct Renderer::Impl {
           gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 };
 
       CycleTargets const surf_color_cycle_targets{
-          kOceanSurfColor.with_alpha( 230 ),
-          kOceanSurfColor.with_alpha( 115 ),
-          kOceanSurfColor.with_alpha( 50 ),
-          kOceanSurfColor.with_alpha( 50 ),
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
+        kOceanSurfColor.with_alpha( 230 ),
+        kOceanSurfColor.with_alpha( 115 ),
+        kOceanSurfColor.with_alpha( 50 ),
+        kOceanSurfColor.with_alpha( 50 ),
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
       };
       append( surf_color_cycle_targets );
 
       CycleTargets const sea_lane_color_cycle_targets{
-          kOceanSurfColor.with_alpha( 230 ),
-          kOceanSurfColor.with_alpha( 115 ),
-          kOceanSurfColor.with_alpha( 50 ),
-          kOceanSurfColor.with_alpha( 28 ),
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
-          kNoColor,
+        kOceanSurfColor.with_alpha( 230 ),
+        kOceanSurfColor.with_alpha( 115 ),
+        kOceanSurfColor.with_alpha( 50 ),
+        kOceanSurfColor.with_alpha( 28 ),
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
+        kNoColor,
       };
       append( sea_lane_color_cycle_targets );
 
       CycleTargets const river_color_cycle_targets{
-          kOceanSurfColor.with_alpha( 230 ),
-          kOceanSurfColor.with_alpha( 115 ),
-          kOceanSurfColor.with_alpha( 50 ),
-          kNoColor,
-          kNoColor,
-          kOceanSurfColor.with_alpha( 230 ),
-          kOceanSurfColor.with_alpha( 115 ),
-          kOceanSurfColor.with_alpha( 50 ),
-          kNoColor,
-          kNoColor,
+        kOceanSurfColor.with_alpha( 230 ),
+        kOceanSurfColor.with_alpha( 115 ),
+        kOceanSurfColor.with_alpha( 50 ),
+        kNoColor,
+        kNoColor,
+        kOceanSurfColor.with_alpha( 230 ),
+        kOceanSurfColor.with_alpha( 115 ),
+        kOceanSurfColor.with_alpha( 50 ),
+        kNoColor,
+        kNoColor,
       };
       append( river_color_cycle_targets );
 

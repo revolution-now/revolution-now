@@ -172,7 +172,7 @@ void push_cpp_function_impl(
     (void)get_arg; // use it in case zero args.
 
     StorageArgs args{
-        get_arg( std::integral_constant<size_t, Idx>{} )... };
+      get_arg( std::integral_constant<size_t, Idx>{} )... };
 
     if constexpr( std::is_same_v<R, void> ) {
       std::apply( func, std::move( args ) );

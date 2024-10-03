@@ -50,8 +50,8 @@ void reset_players( PlayersState&           players_state,
     players[nation].reset();
   for( e_nation nation : nations )
     players[nation] = Player{
-        .nation = nation,
-        .money  = 0,
+      .nation = nation,
+      .money  = 0,
     };
   set_unique_human_player( players_state, human );
 }

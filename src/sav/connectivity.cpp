@@ -156,10 +156,10 @@ struct ConnectivityFinder {
 maybe<point> ConnectivityFinder::find_anchor(
     point const q ) const {
   static auto anchor_deltas = {
-      size{ .w = 1, .h = 1 },
-      size{ .w = 1, .h = 2 },
-      size{ .w = 2, .h = 1 },
-      size{ .w = 2, .h = 2 },
+    size{ .w = 1, .h = 1 },
+    size{ .w = 1, .h = 2 },
+    size{ .w = 2, .h = 1 },
+    size{ .w = 2, .h = 2 },
   };
   point const p = q * 4;
   for( size const s : anchor_deltas ) {
@@ -224,9 +224,9 @@ void ConnectivityFinder::populate_connectivity(
 
       auto connectivity_quads = [&] {
         return pair{
-            connectivity_quad( { .x = qx, .y = qy } ),
-            connectivity_quad( { .x = qx + quad_delta_x,
-                                 .y = qy + quad_delta_y } ),
+          connectivity_quad( { .x = qx, .y = qy } ),
+          connectivity_quad( { .x = qx + quad_delta_x,
+                               .y = qy + quad_delta_y } ),
         };
       };
 

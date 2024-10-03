@@ -20,17 +20,27 @@ namespace lua {
 void to_str( resume_status status, std::string& out,
              base::ADL_t ) {
   switch( status ) {
-    case resume_status::ok: out += "ok"; break;
-    case resume_status::yield: out += "yield"; break;
+    case resume_status::ok:
+      out += "ok";
+      break;
+    case resume_status::yield:
+      out += "yield";
+      break;
   }
 }
 
 void to_str( coroutine_status status, std::string& out,
              base::ADL_t ) {
   switch( status ) {
-    case coroutine_status::suspended: out += "suspended"; break;
-    case coroutine_status::normal: out += "normal"; break;
-    case coroutine_status::dead: out += "dead"; break;
+    case coroutine_status::suspended:
+      out += "suspended";
+      break;
+    case coroutine_status::normal:
+      out += "normal";
+      break;
+    case coroutine_status::dead:
+      out += "dead";
+      break;
   }
 }
 

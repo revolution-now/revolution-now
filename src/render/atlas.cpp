@@ -68,7 +68,7 @@ maybe<Atlas> AtlasBuilder::build( size max_size ) const {
       rect const&       src       = rects_[id];
       gfx::point const& dst_point = packed_rects[id].origin;
       DCHECK( src.is_inside( rect{
-          .origin = {}, .size = src_img.size_pixels() } ) );
+        .origin = {}, .size = src_img.size_pixels() } ) );
       DCHECK( ( rect{ .origin = {},
                       .size   = atlas_img.size_pixels() } )
                   .contains( dst_point ) );

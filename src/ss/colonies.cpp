@@ -137,7 +137,7 @@ ColoniesState::ColoniesState( wrapped::ColoniesState&& o )
 
 ColoniesState::ColoniesState()
   : ColoniesState( wrapped::ColoniesState{
-        .next_colony_id = kFirstColonyId, .colonies = {} } ) {
+      .next_colony_id = kFirstColonyId, .colonies = {} } ) {
   validate_or_die();
 }
 

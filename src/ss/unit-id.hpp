@@ -36,7 +36,8 @@ inline constexpr auto to_underlying( Enum e ) noexcept {
 ** UnitId
 *****************************************************************/
 // European units.
-enum class UnitId : int {};
+enum class UnitId : int {
+};
 
 // to_str
 void to_str( UnitId o, std::string& out, base::ADL_t );
@@ -59,7 +60,8 @@ base::maybe<UnitId> lua_get( lua::cthread L, int idx,
 ** NativeUnitId
 *****************************************************************/
 // Native units.
-enum class NativeUnitId : int {};
+enum class NativeUnitId : int {
+};
 
 // to_str
 void to_str( NativeUnitId o, std::string& out, base::ADL_t );

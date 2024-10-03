@@ -155,8 +155,7 @@ NativesState::NativesState( wrapped::NativesState&& o )
 
 NativesState::NativesState()
   : NativesState( wrapped::NativesState{
-        .next_dwelling_id = kFirstDwellingId,
-        .dwellings        = {} } ) {
+      .next_dwelling_id = kFirstDwellingId, .dwellings = {} } ) {
   validate_or_die();
 }
 
@@ -272,9 +271,9 @@ DwellingId NativesState::add_dwelling( e_tribe    tribe,
   // Must be last to avoid use-after-move.
   CHECK( !o_.dwellings.contains( id ) );
   o_.dwellings[id] = {
-      .dwelling  = std::move( dwelling ),
-      .ownership = DwellingOwnership{ .location = location,
-                                      .tribe    = tribe } };
+    .dwelling  = std::move( dwelling ),
+    .ownership = DwellingOwnership{ .location = location,
+                                    .tribe    = tribe } };
   return id;
 }
 

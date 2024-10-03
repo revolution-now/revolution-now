@@ -42,9 +42,8 @@ template<CanHaveUsertype T>
 struct usertype;
 
 template<typename Func, typename T>
-concept CanSetAsMember = requires( usertype<T>&       ut,
-                                   std::string const& n,
-                                   Func&&             func ) {
+concept CanSetAsMember = requires(
+    usertype<T>& ut, std::string const& n, Func&& func ) {
   ut.set_member( n, std::forward<Func>( func ) );
 };
 
@@ -65,7 +64,7 @@ struct usertype {
           std::remove_const_t<
               typename mp::callable_traits<F>::object_type>,
           T>
-  void set_member( std::string_view name, F func ) {
+      void set_member( std::string_view name, F func ) {
     using traits = mp::callable_traits<F>;
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;
@@ -102,7 +101,7 @@ struct usertype {
           std::remove_const_t<
               typename mp::callable_traits<F>::object_type>,
           T>
-  void set_member( std::string_view name, F&& func ) {
+      void set_member( std::string_view name, F&& func ) {
     using traits = mp::callable_traits<F>;
     using R      = typename traits::ret_type;
     using O = std::remove_const_t<typename traits::object_type>;

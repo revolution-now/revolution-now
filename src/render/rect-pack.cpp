@@ -23,7 +23,10 @@ using ::gfx::rect;
 using ::gfx::size;
 
 struct packer {
-  enum class [[nodiscard]] e_status{ failed, good };
+  enum class [[nodiscard]] e_status {
+    failed,
+    good
+  };
 
   e_status pack_rect( rect& what, rect const allowed ) {
     if( allowed.size.h < what.size.h ||
@@ -32,7 +35,7 @@ struct packer {
     point const& where = allowed.origin;
     what.origin        = where;
     size_used_         = size_used_.max_with(
-                ( where + what.size ).distance_from_origin() );
+        ( where + what.size ).distance_from_origin() );
     ++cur_;
     return e_status::good;
   }
@@ -52,10 +55,10 @@ struct packer {
       // the next rect since we can always then try the next col-
       // umn.
       (void)pack_rows( rect{
-          .origin = { .x = allowed.origin.x,
-                      .y = allowed.origin.y + first.size.h },
-          .size   = { .w = first.size.w,
-                      .h = allowed.size.h - first.size.h } } );
+        .origin = { .x = allowed.origin.x,
+                    .y = allowed.origin.y + first.size.h },
+        .size   = { .w = first.size.w,
+                    .h = allowed.size.h - first.size.h } } );
 
       // Move to the next column in this row.
       allowed =
@@ -77,19 +80,19 @@ struct packer {
       // the first rect. Note that this is not a failure if this
       // fails to find a spot for the next rect since we can al-
       // ways then try the next
-      (void)pack_cols(
-          rect{ .origin = allowed.origin,
-                .size   = { .w = allowed.size.w,
-                            .h = std::min( first.size.h,
-                                           allowed.size.h ) } } );
+      (void)pack_cols( rect{
+        .origin = allowed.origin,
+        .size   = {
+            .w = allowed.size.w,
+            .h = std::min( first.size.h, allowed.size.h ) } } );
 
       // Move to the remainder of this allowed region (i.e. sub-
       // sequent rows).
       allowed = rect{
-          .origin = { .x = allowed.origin.x,
-                      .y = allowed.origin.y + first.size.h },
-          .size   = { .w = allowed.size.w,
-                      .h = allowed.size.h - first.size.h } };
+        .origin = { .x = allowed.origin.x,
+                    .y = allowed.origin.y + first.size.h },
+        .size   = { .w = allowed.size.w,
+                    .h = allowed.size.h - first.size.h } };
     }
   }
 

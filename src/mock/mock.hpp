@@ -78,7 +78,7 @@
   [[maybe_unused]] responder__##fn_name& EXPECT__##fn_name(    \
       Args&&... args ) {                                       \
     auto matchers = responder__##fn_name::matchers_t{          \
-        std::forward<Args>( args )... };                       \
+      std::forward<Args>( args )... };                         \
     return queue__##fn_name.add( std::move( matchers ) );      \
   }                                                            \
                                                                \
