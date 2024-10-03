@@ -151,25 +151,25 @@ TEST_CASE( "[market] apply_invoice" ) {
   W.set_current_bid_price( e_commodity::silver, 10 );
 
   invoice = {
-      .what = Commodity{ .type     = e_commodity::silver,
-                         .quantity = 100 },
-      .money_delta_before_taxes = 9999, // shouldn't be used.
-      .tax_rate                 = 9999, // shouldn't be used.
-      .tax_amount               = 9999, // shouldn't be used.
-      .money_delta_final        = 123,
-      .player_volume_delta      = 345,
-      .intrinsic_volume_delta =
-          {
-              { e_nation::english, 9 },
-              { e_nation::french, 11 },
-          },
-      .global_intrinsic_volume_deltas =
-          {
-              { e_commodity::food, 13 },
-              { e_commodity::muskets, 15 },
-          },
-      .price_change = create_price_change(
-          W.player(), e_commodity::silver, 3 ),
+    .what = Commodity{ .type     = e_commodity::silver,
+                       .quantity = 100 },
+    .money_delta_before_taxes = 9'999, // shouldn't be used.
+    .tax_rate                 = 9'999, // shouldn't be used.
+    .tax_amount               = 9'999, // shouldn't be used.
+    .money_delta_final        = 123,
+    .player_volume_delta      = 345,
+    .intrinsic_volume_delta =
+        {
+          { e_nation::english, 9 },
+          { e_nation::french, 11 },
+        },
+    .global_intrinsic_volume_deltas =
+        {
+          { e_commodity::food, 13 },
+          { e_commodity::muskets, 15 },
+        },
+    .price_change = create_price_change(
+        W.player(), e_commodity::silver, 3 ),
   };
 
   Player const& p = W.default_player();
@@ -247,46 +247,46 @@ TEST_CASE( "[market] evolve_group_model_volumes" ) {
 
   W.ss()
       .players.global_market_state.commodities[e_commodity::rum]
-      .intrinsic_volume = 5000;
+      .intrinsic_volume = 5'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cigars]
-      .intrinsic_volume = 4000;
+      .intrinsic_volume = 4'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cloth]
-      .intrinsic_volume = 3000;
+      .intrinsic_volume = 3'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::coats]
-      .intrinsic_volume = 2000;
+      .intrinsic_volume = 2'000;
 
   // These should influence the evolution but they should not
   // change.
   player.old_world.market.commodities[e_commodity::rum]
-      .player_traded_volume = 1000;
+      .player_traded_volume = 1'000;
   player.old_world.market.commodities[e_commodity::cigars]
-      .player_traded_volume = 2000;
+      .player_traded_volume = 2'000;
   player.old_world.market.commodities[e_commodity::cloth]
-      .player_traded_volume = 3000;
+      .player_traded_volume = 3'000;
   player.old_world.market.commodities[e_commodity::coats]
-      .player_traded_volume = 4000;
+      .player_traded_volume = 4'000;
 
   // Do the evolution.
   evolve_group_model_volumes( W.ss() );
 
   // Tests.
   REQUIRE( player.old_world.market.commodities[e_commodity::rum]
-               .player_traded_volume == 1000 );
+               .player_traded_volume == 1'000 );
   REQUIRE(
       player.old_world.market.commodities[e_commodity::cigars]
-          .player_traded_volume == 2000 );
+          .player_traded_volume == 2'000 );
   REQUIRE(
       player.old_world.market.commodities[e_commodity::cloth]
-          .player_traded_volume == 3000 );
+          .player_traded_volume == 3'000 );
   REQUIRE(
       player.old_world.market.commodities[e_commodity::coats]
-          .player_traded_volume == 4000 );
+          .player_traded_volume == 4'000 );
 
   int expected = 0;
 
@@ -518,10 +518,13 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   vol( e_commodity::ore ) += 399;     // just below fall.
   vol( e_commodity::silver ) += 100;  // just at fall.
   vol( e_commodity::horses ) += 201;  // just above fall.
-  vol( e_commodity::rum )    = 9999; // shouldn't have an effect.
-  vol( e_commodity::cigars ) = 9999; // shouldn't have an effect.
-  vol( e_commodity::cloth ) = -9999; // shouldn't have an effect.
-  vol( e_commodity::coats ) = -9999; // shouldn't have an effect.
+  vol( e_commodity::rum ) = 9'999; // shouldn't have an effect.
+  vol( e_commodity::cigars ) =
+      9'999; // shouldn't have an effect.
+  vol( e_commodity::cloth ) =
+      -9'999; // shouldn't have an effect.
+  vol( e_commodity::coats ) =
+      -9'999; // shouldn't have an effect.
   vol( e_commodity::trade_goods ) += 900; // three falls.
   vol( e_commodity::tools ) += 100;       // below a fall.
   vol( e_commodity::muskets ) += 200;     // just at a fall.
@@ -587,25 +590,25 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   REQUIRE( changes[e_commodity::horses].delta == 4 - 5 );
 
   REQUIRE( curr_price( e_commodity::rum ) == 9 );
-  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::rum ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
   REQUIRE( changes[e_commodity::rum].delta == 1 );
 
   REQUIRE( curr_price( e_commodity::cigars ) == 12 );
-  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( changes[e_commodity::cigars].delta == 0 );
 
   REQUIRE( curr_price( e_commodity::cloth ) == 17 );
-  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( changes[e_commodity::cloth].delta == -1 );
 
   REQUIRE( curr_price( e_commodity::coats ) == 8 );
-  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::coats ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
   REQUIRE( changes[e_commodity::coats].delta == 0 );
@@ -629,25 +632,25 @@ TEST_CASE( "[market] evolve_player_prices (non-dutch)" ) {
   changes = evolve_player_prices( W.ss(), player );
 
   REQUIRE( curr_price( e_commodity::rum ) == 10 );
-  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::rum ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
   REQUIRE( changes[e_commodity::rum].delta == 1 );
 
   REQUIRE( curr_price( e_commodity::cigars ) == 12 );
-  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( changes[e_commodity::cigars].delta == 0 );
 
   REQUIRE( curr_price( e_commodity::cloth ) == 16 );
-  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( changes[e_commodity::cloth].delta == -1 );
 
   REQUIRE( curr_price( e_commodity::coats ) == 8 );
-  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::coats ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
   REQUIRE( changes[e_commodity::coats].delta == 0 );
@@ -852,10 +855,13 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   vol( e_commodity::ore ) += 399;     // just below fall.
   vol( e_commodity::silver ) += 100;  // just at fall.
   vol( e_commodity::horses ) += 201;  // just above fall.
-  vol( e_commodity::rum )    = 9999; // shouldn't have an effect.
-  vol( e_commodity::cigars ) = 9999; // shouldn't have an effect.
-  vol( e_commodity::cloth ) = -9999; // shouldn't have an effect.
-  vol( e_commodity::coats ) = -9999; // shouldn't have an effect.
+  vol( e_commodity::rum ) = 9'999; // shouldn't have an effect.
+  vol( e_commodity::cigars ) =
+      9'999; // shouldn't have an effect.
+  vol( e_commodity::cloth ) =
+      -9'999; // shouldn't have an effect.
+  vol( e_commodity::coats ) =
+      -9'999; // shouldn't have an effect.
   vol( e_commodity::trade_goods ) += 900; // three falls.
   vol( e_commodity::tools ) += 100;       // below a fall.
   vol( e_commodity::muskets ) += 200;     // just at a fall.
@@ -921,25 +927,25 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   REQUIRE( changes[e_commodity::horses].delta == 4 - 5 );
 
   REQUIRE( curr_price( e_commodity::rum ) == 9 );
-  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::rum ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
   REQUIRE( changes[e_commodity::rum].delta == 1 );
 
   REQUIRE( curr_price( e_commodity::cigars ) == 12 );
-  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::cigars ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( changes[e_commodity::cigars].delta == 0 );
 
   REQUIRE( curr_price( e_commodity::cloth ) == 17 );
-  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( changes[e_commodity::cloth].delta == -1 );
 
   REQUIRE( curr_price( e_commodity::coats ) == 8 );
-  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::coats ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
   REQUIRE( changes[e_commodity::coats].delta == 0 );
@@ -963,25 +969,25 @@ TEST_CASE( "[market] evolve_player_prices (dutch)" ) {
   changes = evolve_player_prices( W.ss(), player );
 
   REQUIRE( curr_price( e_commodity::rum ) == 10 );
-  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::rum ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::rum ) == 100 );
   REQUIRE( total_traded_vol( e_commodity::rum ) == 200 );
   REQUIRE( changes[e_commodity::rum].delta == 1 );
 
   REQUIRE( curr_price( e_commodity::cigars ) == 12 );
-  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cigars ) == 9'999 );
   REQUIRE( traded_vol( e_commodity::cigars ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cigars ) == 100 );
   REQUIRE( changes[e_commodity::cigars].delta == 0 );
 
   REQUIRE( curr_price( e_commodity::cloth ) == 16 );
-  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::cloth ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::cloth ) == 0 );
   REQUIRE( changes[e_commodity::cloth].delta == -1 );
 
   REQUIRE( curr_price( e_commodity::coats ) == 8 );
-  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9999 );
+  REQUIRE( intrinsic_vol( e_commodity::coats ) == -9'999 );
   REQUIRE( traded_vol( e_commodity::coats ) == 0 );
   REQUIRE( total_traded_vol( e_commodity::coats ) == 300 );
   REQUIRE( changes[e_commodity::coats].delta == 0 );
@@ -1044,7 +1050,7 @@ TEST_CASE(
   Invoice const invoice = transaction_invoice(
       W.ss(), W.player(),
       Commodity{ .type     = e_commodity::muskets,
-                 .quantity = 1000 },
+                 .quantity = 1'000 },
       e_transaction::buy, immediate_price_change_allowed );
 
   REQUIRE( invoice.price_change.delta == 0 );
@@ -1066,19 +1072,19 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
   W.ss()
       .players.global_market_state.commodities[e_commodity::rum]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cigars]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cloth]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::coats]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
 
   SECTION( "human, conquistador, non-dutch" ) {
     W.set_default_player( e_nation::french );
@@ -1094,43 +1100,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -200 }, // volatility...
-                { e_nation::french, -200 },
-                { e_nation::spanish, -200 },
-                { e_nation::dutch, -200 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -200 }, // volatility...
+            { e_nation::french, -200 },
+            { e_nation::spanish, -200 },
+            { e_nation::dutch, -200 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change =
-            create_price_change( player, e_commodity::cloth, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1148,43 +1154,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -200 }, // volatility...
-                { e_nation::french, -200 },
-                { e_nation::spanish, -200 },
-                { e_nation::dutch, -200 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -200 }, // volatility...
+            { e_nation::french, -200 },
+            { e_nation::spanish, -200 },
+            { e_nation::dutch, -200 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change =
-            create_price_change( player, e_commodity::cloth, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1202,43 +1208,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -133 }, // volatility...
-                { e_nation::french, -133 },
-                { e_nation::spanish, -133 },
-                { e_nation::dutch, -133 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -133 }, // volatility...
+            { e_nation::french, -133 },
+            { e_nation::spanish, -133 },
+            { e_nation::dutch, -133 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change =
-            create_price_change( player, e_commodity::cloth, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1256,43 +1262,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -133 }, // volatility...
-                { e_nation::french, -133 },
-                { e_nation::spanish, -133 },
-                { e_nation::dutch, -133 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -133 }, // volatility...
+            { e_nation::french, -133 },
+            { e_nation::spanish, -133 },
+            { e_nation::dutch, -133 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change =
-            create_price_change( player, e_commodity::cloth, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1309,43 +1315,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::ore, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -6 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -6 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -33 },
-                { e_nation::french, -33 },
-                { e_nation::spanish, -33 },
-                { e_nation::dutch, -33 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change =
-            create_price_change( player, e_commodity::ore, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -6 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -6 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -33 },
+            { e_nation::french, -33 },
+            { e_nation::spanish, -33 },
+            { e_nation::dutch, -33 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::ore, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cigars, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cigars, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1362,43 +1368,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::muskets, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -33 },
-                { e_nation::french, -33 },
-                { e_nation::spanish, -33 },
-                { e_nation::dutch, -33 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::muskets, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -33 },
+            { e_nation::french, -33 },
+            { e_nation::spanish, -33 },
+            { e_nation::dutch, -33 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cigars, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cigars, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1415,43 +1421,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::muskets, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -33 },
-                { e_nation::french, -33 },
-                { e_nation::spanish, -33 },
-                { e_nation::dutch, -33 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::muskets, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -33 },
+            { e_nation::french, -33 },
+            { e_nation::spanish, -33 },
+            { e_nation::dutch, -33 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cigars, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cigars, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1468,43 +1474,43 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::muskets, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -33 },
-                { e_nation::french, -33 },
-                { e_nation::spanish, -33 },
-                { e_nation::dutch, -33 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::muskets, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -33 },
+            { e_nation::french, -33 },
+            { e_nation::spanish, -33 },
+            { e_nation::dutch, -33 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::muskets, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_buy   = { e_commodity::cigars, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cigars, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cigars, 1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1523,22 +1529,22 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 50,
-        .player_volume_delta      = -50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, -200 }, // volatility...
-                { e_nation::french, -200 },
-                { e_nation::spanish, -200 },
-                { e_nation::dutch, -200 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 50,
+      .player_volume_delta      = -50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, -200 }, // volatility...
+            { e_nation::french, -200 },
+            { e_nation::spanish, -200 },
+            { e_nation::dutch, -200 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
@@ -1549,22 +1555,22 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 
     to_buy   = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_buy,
-        .money_delta_before_taxes = -11 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 0,
-        .money_delta_final        = -11 * 100,
-        .player_volume_delta      = -100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change =
-            create_price_change( player, e_commodity::cloth, 1 ),
+      .what                     = to_buy,
+      .money_delta_before_taxes = -11 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 0,
+      .money_delta_final        = -11 * 100,
+      .player_volume_delta      = -100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, 1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
@@ -1593,19 +1599,19 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
   W.ss()
       .players.global_market_state.commodities[e_commodity::rum]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cigars]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::cloth]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
   W.ss()
       .players.global_market_state
       .commodities[e_commodity::coats]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
 
   SECTION( "human, conquistador, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
@@ -1621,43 +1627,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 200 }, // volatility...
-                { e_nation::french, 100 },  // price fell...
-                { e_nation::spanish, 200 },
-                { e_nation::dutch, 133 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 200 }, // volatility...
+            { e_nation::french, 100 },  // price fell...
+            { e_nation::spanish, 200 },
+            { e_nation::dutch, 133 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, -7 },
-                { e_commodity::cigars, -7 },
-                { e_commodity::cloth, -8 },
-                { e_commodity::coats, -7 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, -7 },
+            { e_commodity::cigars, -7 },
+            { e_commodity::cloth, -8 },
+            { e_commodity::coats, -7 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1675,43 +1681,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 200 }, // volatility...
-                { e_nation::french, 200 },  // price fell...
-                { e_nation::spanish, 200 },
-                { e_nation::dutch, 33 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 200 }, // volatility...
+            { e_nation::french, 200 },  // price fell...
+            { e_nation::spanish, 200 },
+            { e_nation::dutch, 33 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1729,43 +1735,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 33 },   // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 133 }, // volatility...
+            { e_nation::french, 33 },   // price fell...
+            { e_nation::spanish, 133 },
+            { e_nation::dutch, 88 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, -7 },
-                { e_commodity::cigars, -7 },
-                { e_commodity::cloth, -8 },
-                { e_commodity::coats, -7 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, -7 },
+            { e_commodity::cigars, -7 },
+            { e_commodity::cloth, -8 },
+            { e_commodity::coats, -7 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1783,43 +1789,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 133 },  // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 133 }, // volatility...
+            { e_nation::french, 133 },  // price fell...
+            { e_nation::spanish, 133 },
+            { e_nation::dutch, 88 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1836,43 +1842,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::ore, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 3 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 75,
-        .money_delta_final        = 75,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 33 }, // volatility...
-                { e_nation::french, 33 },  // price fell...
-                { e_nation::spanish, 33 },
-                { e_nation::dutch, 22 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change =
-            create_price_change( player, e_commodity::ore, 0 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 3 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 75,
+      .money_delta_final        = 75,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 33 }, // volatility...
+            { e_nation::french, 33 },  // price fell...
+            { e_nation::spanish, 33 },
+            { e_nation::dutch, 22 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::ore, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, -7 },
-                { e_commodity::cigars, -7 },
-                { e_commodity::cloth, -8 },
-                { e_commodity::coats, -7 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, -7 },
+            { e_commodity::cigars, -7 },
+            { e_commodity::cloth, -8 },
+            { e_commodity::coats, -7 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1889,43 +1895,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 133 },  // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 133 }, // volatility...
+            { e_nation::french, 133 },  // price fell...
+            { e_nation::spanish, 133 },
+            { e_nation::dutch, 88 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1942,43 +1948,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 33 },   // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 133 }, // volatility...
+            { e_nation::french, 33 },   // price fell...
+            { e_nation::spanish, 133 },
+            { e_nation::dutch, 88 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, -7 },
-                { e_commodity::cigars, -7 },
-                { e_commodity::cloth, -8 },
-                { e_commodity::coats, -7 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, -7 },
+            { e_commodity::cigars, -7 },
+            { e_commodity::cloth, -8 },
+            { e_commodity::coats, -7 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -1995,43 +2001,43 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 133 }, // volatility...
-                { e_nation::french, 133 },  // price fell...
-                { e_nation::spanish, 133 },
-                { e_nation::dutch, 88 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, 0 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 133 }, // volatility...
+            { e_nation::french, 133 },  // price fell...
+            { e_nation::spanish, 133 },
+            { e_nation::dutch, 88 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, 0 ),
     };
     REQUIRE( f() == expected );
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, 0 },
-                { e_commodity::cigars, 0 },
-                { e_commodity::cloth, 0 },
-                { e_commodity::coats, 0 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, 0 },
+            { e_commodity::cigars, 0 },
+            { e_commodity::cloth, 0 },
+            { e_commodity::coats, 0 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
   }
@@ -2050,22 +2056,22 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::silver, 50 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 50,
-        .tax_rate                 = 50,
-        .tax_amount               = 250,
-        .money_delta_final        = 250,
-        .player_volume_delta      = 50,
-        .intrinsic_volume_delta =
-            {
-                { e_nation::english, 200 }, // volatility...
-                { e_nation::french, 100 },  // price fell...
-                { e_nation::spanish, 200 },
-                { e_nation::dutch, 133 },
-            },
-        .global_intrinsic_volume_deltas = {},
-        .price_change                   = create_price_change(
-            player, e_commodity::silver, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 50,
+      .tax_rate                 = 50,
+      .tax_amount               = 250,
+      .money_delta_final        = 250,
+      .player_volume_delta      = 50,
+      .intrinsic_volume_delta =
+          {
+            { e_nation::english, 200 }, // volatility...
+            { e_nation::french, 100 },  // price fell...
+            { e_nation::spanish, 200 },
+            { e_nation::dutch, 133 },
+          },
+      .global_intrinsic_volume_deltas = {},
+      .price_change =
+          create_price_change( player, e_commodity::silver, -1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
@@ -2081,22 +2087,22 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
 
     to_sell  = { e_commodity::cloth, 100 };
     expected = {
-        .what                     = to_sell,
-        .money_delta_before_taxes = 10 * 100,
-        .tax_rate                 = 50,
-        .tax_amount               = 500,
-        .money_delta_final        = 500,
-        .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = {},
-        .global_intrinsic_volume_deltas =
-            {
-                { e_commodity::rum, -7 },
-                { e_commodity::cigars, -7 },
-                { e_commodity::cloth, -8 },
-                { e_commodity::coats, -7 },
-            },
-        .price_change = create_price_change(
-            player, e_commodity::cloth, -1 ),
+      .what                     = to_sell,
+      .money_delta_before_taxes = 10 * 100,
+      .tax_rate                 = 50,
+      .tax_amount               = 500,
+      .money_delta_final        = 500,
+      .player_volume_delta      = 100,
+      .intrinsic_volume_delta   = {},
+      .global_intrinsic_volume_deltas =
+          {
+            { e_commodity::rum, -7 },
+            { e_commodity::cigars, -7 },
+            { e_commodity::cloth, -8 },
+            { e_commodity::coats, -7 },
+          },
+      .price_change =
+          create_price_change( player, e_commodity::cloth, -1 ),
     };
     REQUIRE( f() == expected );
     immediate_price_change_allowed =
@@ -2134,7 +2140,7 @@ TEST_CASE( "[market] attrition bonus" ) {
   for( e_commodity c : refl::enum_values<e_commodity> ) {
     if( is_in_processed_goods_price_group( c ) ) continue;
     player.old_world.market.commodities[c].intrinsic_volume =
-        1000;
+        1'000;
   }
 
   (void)evolve_player_prices( W.ss(), player );

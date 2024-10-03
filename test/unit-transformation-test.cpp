@@ -70,9 +70,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -95,27 +95,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::free_colonist );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -125,27 +124,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -155,25 +153,23 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::jesuit_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::jesuit_missionary,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      } };
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::jesuit_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::jesuit_missionary,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -188,45 +184,41 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::indentured_servant,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::indentured_servant )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::indentured_servant,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::indentured_servant )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      } };
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -241,44 +233,41 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::hardy_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::hardy_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    80 } } )
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::hardy_pioneer,
+                  e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{ { e_unit_inventory::tools, 80 } } )
+              .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::hardy_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -287,42 +276,40 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -335,42 +322,40 @@ TEST_CASE(
           .value() );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::petty_criminal,
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::petty_criminal,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::petty_criminal )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::petty_criminal )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -380,102 +365,96 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::veteran_dragoon );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::veteran_colonist,
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::veteran_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_soldier,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_soldier,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_dragoon,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_dragoon,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_army,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_army,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_cavalry,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_cavalry,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -499,84 +478,78 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::free_colonist );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::dragoon,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -587,92 +560,86 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::dragoon,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -683,92 +650,86 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::jesuit_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::jesuit_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::jesuit_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::jesuit_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::jesuit_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_missionary,
-                              e_unit_type::jesuit_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::jesuit_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::jesuit_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::dragoon,
+                          e_unit_type::jesuit_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::jesuit_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::jesuit_missionary,
+                          e_unit_type::jesuit_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::jesuit_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -784,100 +745,94 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::indentured_servant,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/
-                          UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::tools, 100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/
-                          UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::tools, 100 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::indentured_servant )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::indentured_servant,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/
+              UnitType::create( e_unit_type::soldier,
+                                e_unit_type::indentured_servant )
                   .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::tools, 100 } },
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/
+              UnitType::create( e_unit_type::dragoon,
+                                e_unit_type::indentured_servant )
+                  .value(),
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::tools, 100 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::indentured_servant )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
                           .value(),
-          .modifier_deltas =
-              {
-                  { e_unit_type_modifier::tools,
-                    e_unit_type_modifier_delta::del },
-                  { e_unit_type_modifier::horses,
-                    e_unit_type_modifier_delta::add },
-              },
-          .commodity_deltas = { { e_commodity::tools, 100 },
-                                { e_commodity::horses, -50 } },
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::indentured_servant )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas =
+          {
+            { e_unit_type_modifier::tools,
+              e_unit_type_modifier_delta::del },
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier_delta::add },
+          },
+      .commodity_deltas = { { e_commodity::tools, 100 },
+                            { e_commodity::horses, -50 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -893,99 +848,94 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/
-                  UnitType::create( e_unit_type::soldier,
-                                    e_unit_type::hardy_colonist )
-                      .value(),
-                  /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/
+              UnitType::create( e_unit_type::soldier,
+                                e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/
-                  UnitType::create( e_unit_type::dragoon,
-                                    e_unit_type::hardy_colonist )
-                      .value(),
-                  /*inventory=*/{} )
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/
+              UnitType::create( e_unit_type::dragoon,
+                                e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, -50 },
-                                { e_commodity::tools, 80 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, -50 },
+                            { e_commodity::tools, 80 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::hardy_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              {
-                  { e_unit_type_modifier::tools,
-                    e_unit_type_modifier_delta::del },
-                  { e_unit_type_modifier::horses,
-                    e_unit_type_modifier_delta::add },
-              },
-          .commodity_deltas = { { e_commodity::tools, 80 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::hardy_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = { { e_commodity::tools, -20 } },
-      },
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::hardy_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas =
+          {
+            { e_unit_type_modifier::tools,
+              e_unit_type_modifier_delta::del },
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier_delta::add },
+          },
+      .commodity_deltas = { { e_commodity::tools, 80 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::hardy_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_pioneer,
+                          e_unit_type::hardy_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = { { e_commodity::tools, -20 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -995,89 +945,83 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, -100 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::dragoon,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, -100 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -1090,211 +1034,197 @@ TEST_CASE(
           .value() );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::petty_criminal,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::dragoon,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::petty_criminal )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::petty_criminal,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, -100 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::dragoon,
+                          e_unit_type::petty_criminal )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 },
-                                { e_commodity::horses, -50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::petty_criminal )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::petty_criminal )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, -100 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::petty_criminal )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 },
+                            { e_commodity::horses, -50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::petty_criminal )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
 
   // Veteran Dragoon.
   comp     = UnitComposition( e_unit_type::veteran_dragoon );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::veteran_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::veteran_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, 50 },
-                                { e_commodity::horses, 50 },
-                                { e_commodity::tools, -100 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, 50 },
+                            { e_commodity::horses, 50 },
+                            { e_commodity::tools, -100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::veteran_colonist,
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::veteran_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_soldier,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_soldier,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_dragoon,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_dragoon,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_army,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_army,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_cavalry,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_cavalry,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1318,42 +1248,39 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::free_colonist );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::free_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -40 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -40 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1364,44 +1291,41 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::free_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -40 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -40 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1412,44 +1336,41 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::jesuit_missionary );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::jesuit_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::jesuit_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::jesuit_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::jesuit_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::tools, -40 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::jesuit_missionary,
-                              e_unit_type::jesuit_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::tools, -40 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::jesuit_missionary,
+                          e_unit_type::jesuit_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1465,45 +1386,41 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::indentured_servant,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::indentured_servant )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::indentured_servant,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::pioneer,
+                          e_unit_type::indentured_servant )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 100 } },
-      },
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1519,44 +1436,41 @@ TEST_CASE(
              .value();
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::hardy_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::hardy_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, 80 } },
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = { { e_commodity::tools, -20 } },
-      },
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::hardy_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_pioneer,
+                          e_unit_type::hardy_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = { { e_commodity::tools, -20 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1567,60 +1481,56 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::soldier );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::free_colonist,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::free_colonist )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::free_colonist,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, -40 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::free_colonist )
+                  .value(),
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, -40 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::free_colonist )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
   sort_by_new_type( res );
   sort_by_new_type( expected );
   REQUIRE( FmtVerticalJsonList{ res } ==
@@ -1633,182 +1543,170 @@ TEST_CASE(
           .value() );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::petty_criminal,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::petty_criminal )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::petty_criminal,
+                      /*inventory=*/{} )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::tools, -40 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::petty_criminal )
-                              .value(),
-                          /*inventory=*/{} )
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::petty_criminal )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      } };
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::petty_criminal )
+                  .value(),
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, -40 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::petty_criminal )
+                          .value(),
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    } };
 
   // Veteran Dragoon.
   comp     = UnitComposition( e_unit_type::veteran_dragoon );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::pioneer,
-                      e_unit_type::veteran_colonist )
-                      .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::pioneer,
+                  e_unit_type::veteran_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::muskets, 50 },
-                                { e_commodity::horses, 50 },
-                                { e_commodity::tools, -40 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::missionary,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, 50 },
+                            { e_commodity::horses, 50 },
+                            { e_commodity::tools, -40 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::missionary,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::blessing,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::veteran_colonist,
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::veteran_colonist,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_soldier,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del },
-                { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 },
-                                { e_commodity::muskets, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_soldier,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::veteran_dragoon,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::veteran_dragoon,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_army,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_army,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add },
+                            { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::continental_cavalry,
+                          e_unit_type::veteran_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add },
-                { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::continental_cavalry,
-                              e_unit_type::veteran_colonist )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::independence,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::independence,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1832,27 +1730,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::regular );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::regular,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::cavalry,
-                              e_unit_type::regular )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = { { e_commodity::horses, -50 } },
-      },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::regular,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create( e_unit_type::cavalry,
+                                         e_unit_type::regular )
+                  .value(),
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::horses, -50 } },
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1863,27 +1760,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::cavalry );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/e_unit_type::regular,
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = { { e_commodity::horses, 50 } },
-      },
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::cavalry,
-                              e_unit_type::regular )
-                              .value(),
-                          /*inventory=*/{} )
-                          .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::regular,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
+    },
+    UnitTransformation{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create( e_unit_type::cavalry,
+                                         e_unit_type::regular )
+                  .value(),
+              /*inventory=*/{} )
+              .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1894,28 +1790,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::artillery );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::artillery,
-                              e_unit_type::damaged_artillery )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::artillery,
+                          e_unit_type::damaged_artillery )
                           .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::damaged_artillery,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::strength,
-                  e_unit_type_modifier_delta::del } },
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::damaged_artillery,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::strength,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1926,28 +1820,26 @@ TEST_CASE(
   comp     = UnitComposition( e_unit_type::damaged_artillery );
   res      = possible_unit_transformations( comp, comms );
   expected = {
-      UnitTransformation{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::artillery,
-                              e_unit_type::damaged_artillery )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::artillery,
+                          e_unit_type::damaged_artillery )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::strength,
-                  e_unit_type_modifier_delta::add } },
-          .commodity_deltas = {},
-      },
-      UnitTransformation{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/e_unit_type::damaged_artillery,
-                  /*inventory=*/{} )
-                  .value(),
-          .modifier_deltas  = {},
-          .commodity_deltas = {},
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = { { e_unit_type_modifier::strength,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
+    },
+    UnitTransformation{
+      .new_comp = UnitComposition::create(
+                      /*type=*/e_unit_type::damaged_artillery,
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -1976,19 +1868,18 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::muskets, .quantity = 50 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::soldier,
-                              e_unit_type::free_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformationFromCommodity{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::soldier,
+                          e_unit_type::free_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::muskets,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = 50,
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas = { { e_unit_type_modifier::muskets,
+                             e_unit_type_modifier_delta::add } },
+      .quantity_used   = 50,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2020,19 +1911,18 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::horses, .quantity = 100 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::scout,
-                              e_unit_type::indentured_servant )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformationFromCommodity{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::scout,
+                          e_unit_type::indentured_servant )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::horses,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = 50,
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas = { { e_unit_type_modifier::horses,
+                             e_unit_type_modifier_delta::add } },
+      .quantity_used   = 50,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2044,21 +1934,19 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 50 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
-                      .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+    UnitTransformationFromCommodity{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::hardy_pioneer,
+                  e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = 40,
-      },
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas = { { e_unit_type_modifier::tools,
+                             e_unit_type_modifier_delta::add } },
+      .quantity_used   = 40,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2070,21 +1958,19 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 120 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
+    UnitTransformationFromCommodity{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_pioneer,
+                          e_unit_type::hardy_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::add } },
-          .quantity_used = 100,
-      },
+      .modifier_deltas = { { e_unit_type_modifier::tools,
+                             e_unit_type_modifier_delta::add } },
+      .quantity_used   = 100,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2099,19 +1985,18 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 20 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
-                      .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    40 } } )
+    UnitTransformationFromCommodity{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::hardy_pioneer,
+                  e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas = {},
-          .quantity_used   = 20,
-      },
+              /*inventory=*/{ { e_unit_inventory::tools, 40 } } )
+              .value(),
+      .modifier_deltas = {},
+      .quantity_used   = 20,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2126,19 +2011,18 @@ TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 45 };
   res      = unit_receive_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
+    UnitTransformationFromCommodity{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_pioneer,
+                          e_unit_type::hardy_colonist )
+                          .value(),
+                      /*inventory=*/{ { e_unit_inventory::tools,
+                                        100 } } )
                       .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    100 } } )
-                  .value(),
-          .modifier_deltas = {},
-          .quantity_used   = 20,
-      },
+      .modifier_deltas = {},
+      .quantity_used   = 20,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2167,48 +2051,48 @@ TEST_CASE(
 
     // Add independence after independence is declared.
     input = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } } },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } } },
     };
     expected = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } } },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } } },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/true );
@@ -2217,38 +2101,38 @@ TEST_CASE(
 
     // Add independence before independence is declared.
     input = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } },
+      },
     };
     expected = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
+                        /*inventory=*/{} )
+                        .value(),
+      },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/false );
@@ -2257,32 +2141,32 @@ TEST_CASE(
 
     // Remove independence before independence is declared.
     input = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::del } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::del } },
+      },
     };
     expected = {
-        UnitTransformation{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformation{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::del } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::del } },
+      },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/false );
@@ -2295,50 +2179,50 @@ TEST_CASE(
 
     // Add independence after independence is declared.
     input = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } },
+      },
     };
     expected = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } },
+      },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/true );
@@ -2347,38 +2231,38 @@ TEST_CASE(
 
     // Add independence before independence is declared.
     input = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::continental_army,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+                        /*inventory=*/{} )
+                        .value(),
+      },
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::continental_army,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::add } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::add } },
+      },
     };
     expected = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-        },
+                        /*inventory=*/{} )
+                        .value(),
+      },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/false );
@@ -2387,32 +2271,32 @@ TEST_CASE(
 
     // Remove independence before independence is declared.
     input = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::del } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::del } },
+      },
     };
     expected = {
-        UnitTransformationFromCommodity{
-            .new_comp = UnitComposition::create(
-                            /*type=*/UnitType::create(
-                                e_unit_type::veteran_soldier,
-                                e_unit_type::veteran_colonist )
-                                .value(),
-                            /*inventory=*/{} )
+      UnitTransformationFromCommodity{
+        .new_comp = UnitComposition::create(
+                        /*type=*/UnitType::create(
+                            e_unit_type::veteran_soldier,
+                            e_unit_type::veteran_colonist )
                             .value(),
-            .modifier_deltas =
-                { { e_unit_type_modifier::independence,
-                    e_unit_type_modifier_delta::del } },
-        },
+                        /*inventory=*/{} )
+                        .value(),
+        .modifier_deltas =
+            { { e_unit_type_modifier::independence,
+                e_unit_type_modifier_delta::del } },
+      },
     };
     adjust_for_independence_status(
         input, /*independence_declared=*/false );
@@ -2429,24 +2313,24 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
   comp     = UnitComposition( e_unit_type::free_colonist );
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::free_colonist,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = {},
-      .commodity_deltas = {},
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::free_colonist,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = {},
+    .commodity_deltas = {},
   };
   REQUIRE( res == expected );
 
   comp     = UnitComposition( e_unit_type::expert_farmer );
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::expert_farmer,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = {},
-      .commodity_deltas = {},
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::expert_farmer,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = {},
+    .commodity_deltas = {},
   };
   REQUIRE( res == expected );
 
@@ -2456,32 +2340,32 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
           .value() );
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::indentured_servant,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = { { e_unit_type_modifier::horses,
-                              e_unit_type_modifier_delta::del },
-                            { e_unit_type_modifier::muskets,
-                              e_unit_type_modifier_delta::del } },
-      .commodity_deltas = { { e_commodity::horses, 50 },
-                            { e_commodity::muskets, 50 } },
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::indentured_servant,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = { { e_unit_type_modifier::horses,
+                            e_unit_type_modifier_delta::del },
+                          { e_unit_type_modifier::muskets,
+                            e_unit_type_modifier_delta::del } },
+    .commodity_deltas = { { e_commodity::horses, 50 },
+                          { e_commodity::muskets, 50 } },
   };
   REQUIRE( res == expected );
 
   comp     = UnitComposition( e_unit_type::veteran_dragoon );
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::veteran_colonist,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = { { e_unit_type_modifier::horses,
-                              e_unit_type_modifier_delta::del },
-                            { e_unit_type_modifier::muskets,
-                              e_unit_type_modifier_delta::del } },
-      .commodity_deltas = { { e_commodity::horses, 50 },
-                            { e_commodity::muskets, 50 } },
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::veteran_colonist,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = { { e_unit_type_modifier::horses,
+                            e_unit_type_modifier_delta::del },
+                          { e_unit_type_modifier::muskets,
+                            e_unit_type_modifier_delta::del } },
+    .commodity_deltas = { { e_commodity::horses, 50 },
+                          { e_commodity::muskets, 50 } },
   };
   REQUIRE( res == expected );
 
@@ -2493,13 +2377,13 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
              .value();
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::free_colonist,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = { { e_unit_type_modifier::tools,
-                              e_unit_type_modifier_delta::del } },
-      .commodity_deltas = { { e_commodity::tools, 80 } },
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::free_colonist,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = { { e_unit_type_modifier::tools,
+                            e_unit_type_modifier_delta::del } },
+    .commodity_deltas = { { e_commodity::tools, 80 } },
   };
   REQUIRE( res == expected );
 
@@ -2509,13 +2393,13 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
              .value();
   res      = strip_to_base_type( comp );
   expected = UnitTransformation{
-      .new_comp = UnitComposition::create(
-                      /*type=*/e_unit_type::hardy_colonist,
-                      /*inventory=*/{} )
-                      .value(),
-      .modifier_deltas  = { { e_unit_type_modifier::tools,
-                              e_unit_type_modifier_delta::del } },
-      .commodity_deltas = { { e_commodity::tools, 100 } },
+    .new_comp = UnitComposition::create(
+                    /*type=*/e_unit_type::hardy_colonist,
+                    /*inventory=*/{} )
+                    .value(),
+    .modifier_deltas  = { { e_unit_type_modifier::tools,
+                            e_unit_type_modifier_delta::del } },
+    .commodity_deltas = { { e_commodity::tools, 100 } },
   };
   REQUIRE( res == expected );
 }
@@ -2531,9 +2415,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::free_colonist );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
 
@@ -2541,9 +2425,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
 
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
   }
@@ -2553,9 +2437,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::expert_farmer );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
 
@@ -2563,9 +2447,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
 
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
   }
@@ -2575,11 +2459,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::missionary );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::blessing,
-                e_unit_type_modifier_delta::add } },
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
 
@@ -2587,11 +2470,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
 
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::blessing,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
   }
@@ -2601,13 +2483,12 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::missionary );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::muskets,
-                e_unit_type_modifier_delta::del },
-              { e_unit_type_modifier::blessing,
-                e_unit_type_modifier_delta::add } },
-        .commodity_deltas = { { e_commodity::muskets, 50 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::blessing,
+                              e_unit_type_modifier_delta::add } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
     };
     REQUIRE( res == expected );
 
@@ -2626,14 +2507,13 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to  = UnitComposition( e_unit_type::indentured_servant );
     res = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::horses,
-                e_unit_type_modifier_delta::del },
-              { e_unit_type_modifier::muskets,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::horses, 50 },
-                              { e_commodity::muskets, 50 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
     };
     REQUIRE( res == expected );
 
@@ -2703,11 +2583,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
             .value() );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::horses,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::horses, 50 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 } },
     };
     REQUIRE( res == expected );
 
@@ -2729,11 +2608,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
             .value() );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::muskets,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::muskets, 50 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::muskets, 50 } },
     };
     REQUIRE( res == expected );
 
@@ -2749,14 +2627,13 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::veteran_colonist );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::horses,
-                e_unit_type_modifier_delta::del },
-              { e_unit_type_modifier::muskets,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::horses, 50 },
-                              { e_commodity::muskets, 50 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::horses,
+                              e_unit_type_modifier_delta::del },
+                            { e_unit_type_modifier::muskets,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::horses, 50 },
+                            { e_commodity::muskets, 50 } },
     };
     REQUIRE( res == expected );
 
@@ -2778,11 +2655,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::free_colonist );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::tools,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::tools, 80 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 80 } },
     };
     REQUIRE( res == expected );
 
@@ -2809,9 +2685,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
              .value();
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
 
@@ -2819,9 +2695,9 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
 
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp         = to,
-        .modifier_deltas  = {},
-        .commodity_deltas = {},
+      .new_comp         = to,
+      .modifier_deltas  = {},
+      .commodity_deltas = {},
     };
     REQUIRE( res == expected );
   }
@@ -2853,11 +2729,10 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
     to       = UnitComposition( e_unit_type::hardy_colonist );
     res      = query_unit_transformation( from, to );
     expected = UnitTransformation{
-        .new_comp = to,
-        .modifier_deltas =
-            { { e_unit_type_modifier::tools,
-                e_unit_type_modifier_delta::del } },
-        .commodity_deltas = { { e_commodity::tools, 100 } },
+      .new_comp         = to,
+      .modifier_deltas  = { { e_unit_type_modifier::tools,
+                              e_unit_type_modifier_delta::del } },
+      .commodity_deltas = { { e_commodity::tools, 100 } },
     };
     REQUIRE( res == expected );
 
@@ -2884,19 +2759,18 @@ TEST_CASE( "[unit-transformation] unit_lose_commodity" ) {
   res  = unit_lose_commodity( comp, comm );
 
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp = UnitComposition::create(
-                          /*type=*/UnitType::create(
-                              e_unit_type::hardy_colonist,
-                              e_unit_type::hardy_colonist )
-                              .value(),
-                          /*inventory=*/{} )
+    UnitTransformationFromCommodity{
+      .new_comp = UnitComposition::create(
+                      /*type=*/UnitType::create(
+                          e_unit_type::hardy_colonist,
+                          e_unit_type::hardy_colonist )
                           .value(),
-          .modifier_deltas =
-              { { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } },
-          .quantity_used = -20,
-      },
+                      /*inventory=*/{} )
+                      .value(),
+      .modifier_deltas = { { e_unit_type_modifier::tools,
+                             e_unit_type_modifier_delta::del } },
+      .quantity_used   = -20,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );
@@ -2911,19 +2785,18 @@ TEST_CASE( "[unit-transformation] unit_lose_commodity" ) {
   comm     = { .type = e_commodity::tools, .quantity = 20 };
   res      = unit_lose_commodity( comp, comm );
   expected = {
-      UnitTransformationFromCommodity{
-          .new_comp =
-              UnitComposition::create(
-                  /*type=*/UnitType::create(
-                      e_unit_type::hardy_pioneer,
-                      e_unit_type::hardy_colonist )
-                      .value(),
-                  /*inventory=*/{ { e_unit_inventory::tools,
-                                    60 } } )
+    UnitTransformationFromCommodity{
+      .new_comp =
+          UnitComposition::create(
+              /*type=*/UnitType::create(
+                  e_unit_type::hardy_pioneer,
+                  e_unit_type::hardy_colonist )
                   .value(),
-          .modifier_deltas = {},
-          .quantity_used   = -20,
-      },
+              /*inventory=*/{ { e_unit_inventory::tools, 60 } } )
+              .value(),
+      .modifier_deltas = {},
+      .quantity_used   = -20,
+    },
   };
   sort_by_new_type( res );
   sort_by_new_type( expected );

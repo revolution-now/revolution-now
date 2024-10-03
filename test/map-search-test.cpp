@@ -56,11 +56,11 @@ struct World : testing::World {
     set_default_player_as_human();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 5 );
   }
@@ -119,12 +119,12 @@ TEST_CASE(
     // nates on its own.
     vector<point> const vec = rl::all( gen ).to_vector();
     vector<point> const expected{
-        { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
-        { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
-        { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
-        { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
-        { .x = 1, .y = 3 }, { .x = 2, .y = 1 },
-        { .x = 4, .y = 3 }, { .x = 0, .y = 3 } };
+      { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
+      { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
+      { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
+      { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
+      { .x = 1, .y = 3 }, { .x = 2, .y = 1 },
+      { .x = 4, .y = 3 }, { .x = 0, .y = 3 } };
     REQUIRE( vec == expected );
   }
 
@@ -136,17 +136,17 @@ TEST_CASE(
     // nates on its own.
     vector<point> const vec = rl::all( gen ).to_vector();
     vector<point> const expected{
-        { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
-        { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
-        { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
-        { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
-        { .x = 1, .y = 3 }, { .x = 0, .y = 1 },
-        { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
-        { .x = 3, .y = 1 }, { .x = 4, .y = 1 },
-        { .x = 4, .y = 2 }, { .x = 4, .y = 3 },
-        { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
-        { .x = 0, .y = 3 }, { .x = 0, .y = 2 },
-        { .x = 2, .y = 0 } };
+      { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
+      { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
+      { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
+      { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
+      { .x = 1, .y = 3 }, { .x = 0, .y = 1 },
+      { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
+      { .x = 3, .y = 1 }, { .x = 4, .y = 1 },
+      { .x = 4, .y = 2 }, { .x = 4, .y = 3 },
+      { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
+      { .x = 0, .y = 3 }, { .x = 0, .y = 2 },
+      { .x = 2, .y = 0 } };
     REQUIRE( vec == expected );
   }
 
@@ -158,43 +158,35 @@ TEST_CASE(
     // nates on its own.
     vector<point> const vec = rl::all( gen ).to_vector();
     vector<point> const expected{
-        { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
-        { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
-        { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
-        { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
-        { .x = 1, .y = 3 }, { .x = 0, .y = 1 },
-        { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
-        { .x = 3, .y = 1 }, { .x = 4, .y = 1 },
-        { .x = 4, .y = 2 }, { .x = 4, .y = 3 },
-        { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
-        { .x = 0, .y = 3 }, { .x = 0, .y = 2 },
-        { .x = 0, .y = 0 }, { .x = 1, .y = 0 },
-        { .x = 2, .y = 0 }, { .x = 3, .y = 0 },
-        { .x = 4, .y = 0 } };
+      { .x = 2, .y = 3 }, { .x = 1, .y = 2 }, { .x = 2, .y = 2 },
+      { .x = 3, .y = 2 }, { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
+      { .x = 2, .y = 4 }, { .x = 1, .y = 4 }, { .x = 1, .y = 3 },
+      { .x = 0, .y = 1 }, { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
+      { .x = 3, .y = 1 }, { .x = 4, .y = 1 }, { .x = 4, .y = 2 },
+      { .x = 4, .y = 3 }, { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
+      { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 0 },
+      { .x = 1, .y = 0 }, { .x = 2, .y = 0 }, { .x = 3, .y = 0 },
+      { .x = 4, .y = 0 } };
     REQUIRE( vec == expected );
   }
 
   SECTION( "max distance" ) {
-    max_distance      = 1000;
+    max_distance      = 1'000;
     vector<point> gen = outward_spiral_pythdist_search_existing(
         W.ss(), { .x = 2, .y = 3 }, max_distance );
     // Don't cut off the stream just to make sure that it termi-
     // nates on its own.
     vector<point> const vec = rl::all( gen ).to_vector();
     vector<point> const expected{
-        { .x = 2, .y = 3 }, { .x = 1, .y = 2 },
-        { .x = 2, .y = 2 }, { .x = 3, .y = 2 },
-        { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
-        { .x = 2, .y = 4 }, { .x = 1, .y = 4 },
-        { .x = 1, .y = 3 }, { .x = 0, .y = 1 },
-        { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
-        { .x = 3, .y = 1 }, { .x = 4, .y = 1 },
-        { .x = 4, .y = 2 }, { .x = 4, .y = 3 },
-        { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
-        { .x = 0, .y = 3 }, { .x = 0, .y = 2 },
-        { .x = 0, .y = 0 }, { .x = 1, .y = 0 },
-        { .x = 2, .y = 0 }, { .x = 3, .y = 0 },
-        { .x = 4, .y = 0 } };
+      { .x = 2, .y = 3 }, { .x = 1, .y = 2 }, { .x = 2, .y = 2 },
+      { .x = 3, .y = 2 }, { .x = 3, .y = 3 }, { .x = 3, .y = 4 },
+      { .x = 2, .y = 4 }, { .x = 1, .y = 4 }, { .x = 1, .y = 3 },
+      { .x = 0, .y = 1 }, { .x = 1, .y = 1 }, { .x = 2, .y = 1 },
+      { .x = 3, .y = 1 }, { .x = 4, .y = 1 }, { .x = 4, .y = 2 },
+      { .x = 4, .y = 3 }, { .x = 4, .y = 4 }, { .x = 0, .y = 4 },
+      { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 0 },
+      { .x = 1, .y = 0 }, { .x = 2, .y = 0 }, { .x = 3, .y = 0 },
+      { .x = 4, .y = 0 } };
     REQUIRE( vec == expected );
   }
 }

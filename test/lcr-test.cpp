@@ -398,7 +398,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
 
   // Set outcome types.
   LostCityRumor const rumor =
-      LostCityRumor::cibola{ .gold = 5500 };
+      LostCityRumor::cibola{ .gold = 5'500 };
 
   // Mock function calls.
 
@@ -431,7 +431,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.
-  REQUIRE( gold == 5500 );
+  REQUIRE( gold == 5'500 );
   // Money is zero because the gold is on the treasure train.
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
@@ -456,8 +456,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
-      .mounds         = BurialMounds::treasure{ .gold = 2200 },
-      .burial_grounds = nothing };
+    .mounds         = BurialMounds::treasure{ .gold = 2'200 },
+    .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui().EXPECT__choice( _ ).returns(
@@ -491,7 +491,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
   // These number come from the config files for the min/max
   // amount of a treasure train for a non-scout on the lowest
   // difficulty mode.
-  REQUIRE( gold == 2200 );
+  REQUIRE( gold == 2'200 );
   // Money is zero because the gold is on the treasure train.
   REQUIRE( player.money == 0 );
   REQUIRE( W.units().exists( unit_id ) );
@@ -514,8 +514,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
-      .mounds         = BurialMounds::cold_and_empty{},
-      .burial_grounds = nothing };
+    .mounds         = BurialMounds::cold_and_empty{},
+    .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui().EXPECT__choice( _ ).returns(
@@ -555,8 +555,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
-      .mounds         = BurialMounds::trinkets{ .gold = 150 },
-      .burial_grounds = nothing };
+    .mounds         = BurialMounds::trinkets{ .gold = 150 },
+    .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui().EXPECT__choice( _ ).returns(
@@ -601,8 +601,8 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
-      .mounds         = BurialMounds::trinkets{},
-      .burial_grounds = nothing };
+    .mounds         = BurialMounds::trinkets{},
+    .burial_grounds = nothing };
 
   // Mock function calls.
   W.gui().EXPECT__choice( _ ).returns(
@@ -643,8 +643,8 @@ TEST_CASE(
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::burial_mounds{
-      .mounds         = BurialMounds::trinkets{ .gold = 150 },
-      .burial_grounds = e_tribe::aztec };
+    .mounds         = BurialMounds::trinkets{ .gold = 150 },
+    .burial_grounds = e_tribe::aztec };
 
   // Mock function calls.
   W.gui().EXPECT__choice( _ ).returns(
@@ -701,7 +701,7 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
 
   // Set outcome types.
   LostCityRumor const rumor = LostCityRumor::holy_shrines{
-      .tribe = e_tribe::aztec, .alarm_increase = 5 };
+    .tribe = e_tribe::aztec, .alarm_increase = 5 };
 
   // Mock function calls.
   W.gui()
@@ -789,12 +789,14 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=burial_mounds, treasure, no grounds" ) {
     expected = LostCityRumor::burial_mounds{
-        .mounds         = BurialMounds::treasure{ .gold = 3300 },
-        .burial_grounds = nothing };
+      .mounds         = BurialMounds::treasure{ .gold = 3'300 },
+      .burial_grounds = nothing };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 0 );
     // Will be rounded down to the nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 4000 ).returns( 3333 );
+    W.rand()
+        .EXPECT__between_ints( 2'500, 4'000 )
+        .returns( 3'333 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(
             player.nation, gfx::point{ .x = 0, .y = 0 }, 15 )
@@ -807,8 +809,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=burial_mounds, trinkets, no grounds" ) {
     expected = LostCityRumor::burial_mounds{
-        .mounds         = BurialMounds::trinkets{ .gold = 110 },
-        .burial_grounds = nothing };
+      .mounds         = BurialMounds::trinkets{ .gold = 110 },
+      .burial_grounds = nothing };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 50 );
     // Will be rounded down to the nearest 10.
@@ -825,8 +827,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=burial_mounds, cold-and-empty, no grounds" ) {
     expected = LostCityRumor::burial_mounds{
-        .mounds         = BurialMounds::cold_and_empty{},
-        .burial_grounds = nothing };
+      .mounds         = BurialMounds::cold_and_empty{},
+      .burial_grounds = nothing };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
     mock_map_search
@@ -841,8 +843,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=burial_mounds, cold-and-empty, with grounds" ) {
     expected = LostCityRumor::burial_mounds{
-        .mounds         = BurialMounds::cold_and_empty{},
-        .burial_grounds = e_tribe::sioux };
+      .mounds         = BurialMounds::cold_and_empty{},
+      .burial_grounds = e_tribe::sioux };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 76 );
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 95 );
     mock_map_search
@@ -876,19 +878,23 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
     // weight below.
     player.fathers.has[e_founding_father::hernando_de_soto] =
         true;
-    expected = LostCityRumor::cibola{ .gold = 5500 };
+    expected = LostCityRumor::cibola{ .gold = 5'500 };
     W.rand().EXPECT__between_ints( 0, 95 ).returns( 94 );
     // Will be rounded down to nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    W.rand()
+        .EXPECT__between_ints( 2'500, 12'000 )
+        .returns( 5'555 );
     REQUIRE( f() == expected );
     W.rand().queue__between_ints.ensure_expectations();
   }
 
   SECTION( "type=cibola" ) {
-    expected = LostCityRumor::cibola{ .gold = 5500 };
+    expected = LostCityRumor::cibola{ .gold = 5'500 };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 97 );
     // Will be rounded down to nearest 100.
-    W.rand().EXPECT__between_ints( 2500, 12000 ).returns( 5555 );
+    W.rand()
+        .EXPECT__between_ints( 2'500, 12'000 )
+        .returns( 5'555 );
     REQUIRE( f() == expected );
     W.rand().queue__between_ints.ensure_expectations();
   }
@@ -906,7 +912,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
 
   SECTION( "type=holy_shrines" ) {
     expected = LostCityRumor::holy_shrines{
-        .tribe = e_tribe::sioux, .alarm_increase = 16 };
+      .tribe = e_tribe::sioux, .alarm_increase = 16 };
     W.rand().EXPECT__between_ints( 0, 99 ).returns( 99 );
     mock_map_search
         .EXPECT__find_close_encountered_tribe(

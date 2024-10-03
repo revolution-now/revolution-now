@@ -77,22 +77,20 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
   ImmigrationState immigration{
-      .immigrants_pool = { e_unit_type::expert_farmer,
-                           e_unit_type::veteran_soldier,
-                           e_unit_type::seasoned_scout } };
+    .immigrants_pool = { e_unit_type::expert_farmer,
+                         e_unit_type::veteran_soldier,
+                         e_unit_type::seasoned_scout } };
   MockIGui gui;
 
   gui
       .EXPECT__choice( ChoiceConfig{
-          .msg = "please select one",
-          .options =
-              vector<ChoiceConfigOption>{
-                  { .key          = "0",
-                    .display_name = "Expert Farmer" },
-                  { .key          = "1",
-                    .display_name = "Veteran Soldier" },
-                  { .key          = "2",
-                    .display_name = "Seasoned Scout" } } } )
+        .msg = "please select one",
+        .options =
+            vector<ChoiceConfigOption>{
+              { .key = "0", .display_name = "Expert Farmer" },
+              { .key = "1", .display_name = "Veteran Soldier" },
+              { .key          = "2",
+                .display_name = "Seasoned Scout" } } } )
       .returns( make_wait<maybe<string>>( "1" ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -105,22 +103,20 @@ TEST_CASE( "[immigration] ask_player_to_choose_immigrant" ) {
 TEST_CASE(
     "[immigration] ask_player_to_choose_immigrant cancels" ) {
   ImmigrationState immigration{
-      .immigrants_pool = { e_unit_type::expert_farmer,
-                           e_unit_type::veteran_soldier,
-                           e_unit_type::seasoned_scout } };
+    .immigrants_pool = { e_unit_type::expert_farmer,
+                         e_unit_type::veteran_soldier,
+                         e_unit_type::seasoned_scout } };
   MockIGui gui;
 
   gui
       .EXPECT__choice( ChoiceConfig{
-          .msg = "please select one",
-          .options =
-              vector<ChoiceConfigOption>{
-                  { .key          = "0",
-                    .display_name = "Expert Farmer" },
-                  { .key          = "1",
-                    .display_name = "Veteran Soldier" },
-                  { .key          = "2",
-                    .display_name = "Seasoned Scout" } } } )
+        .msg = "please select one",
+        .options =
+            vector<ChoiceConfigOption>{
+              { .key = "0", .display_name = "Expert Farmer" },
+              { .key = "1", .display_name = "Veteran Soldier" },
+              { .key          = "2",
+                .display_name = "Seasoned Scout" } } } )
       .returns( make_wait<maybe<string>>( nothing ) );
 
   wait<maybe<int>> w = ask_player_to_choose_immigrant(
@@ -144,8 +140,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   SECTION( "default" ) {
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = 2,
-        .crosses_needed     = 8 + 2 * ( 0 + 0 ),
+      .dock_crosses_bonus = 2,
+      .crosses_needed     = 8 + 2 * ( 0 + 0 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -159,8 +155,8 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = 2,
-        .crosses_needed     = 8 + 2 * ( 2 + 0 ),
+      .dock_crosses_bonus = 2,
+      .crosses_needed     = 8 + 2 * ( 2 + 0 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -173,9 +169,9 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = -2,
-        // Dock units are counted twice.
-        .crosses_needed = 8 + 2 * ( 1 + 1 ),
+      .dock_crosses_bonus = -2,
+      // Dock units are counted twice.
+      .crosses_needed = 8 + 2 * ( 1 + 1 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -188,9 +184,9 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = -2,
-        // Dock units are counted twice.
-        .crosses_needed = 8 + 2 * ( 1 + 1 ),
+      .dock_crosses_bonus = -2,
+      // Dock units are counted twice.
+      .crosses_needed = 8 + 2 * ( 1 + 1 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -211,9 +207,9 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_in_cargo( e_unit_type::free_colonist, ship );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = -4,
-        // Dock units are counted twice.
-        .crosses_needed = 8 + 2 * ( 2 + 3 ),
+      .dock_crosses_bonus = -4,
+      // Dock units are counted twice.
+      .crosses_needed = 8 + 2 * ( 2 + 3 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -235,9 +231,9 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.ship_to_outbound( ship );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = 2,
-        // Dock units are counted twice.
-        .crosses_needed = 8 + 2 * ( 0 + 3 ),
+      .dock_crosses_bonus = 2,
+      // Dock units are counted twice.
+      .crosses_needed = 8 + 2 * ( 0 + 3 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -253,9 +249,9 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = -4,
-        // Dock units are counted twice.
-        .crosses_needed = 8 + 2 * ( 4 + 2 ),
+      .dock_crosses_bonus = -4,
+      // Dock units are counted twice.
+      .crosses_needed = 8 + 2 * ( 4 + 2 ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -280,9 +276,9 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   SECTION( "default" ) {
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = 2,
-        .crosses_needed =
-            int( std::lround( .6666 * ( 8 + 2 * ( 0 + 0 ) ) ) ),
+      .dock_crosses_bonus = 2,
+      .crosses_needed =
+          int( std::lround( .6666 * ( 8 + 2 * ( 0 + 0 ) ) ) ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -296,9 +292,9 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
     world.add_unit_on_map( e_unit_type::free_colonist, Coord{} );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = 2,
-        .crosses_needed =
-            int( std::lround( .6666 * ( 8 + 2 * ( 2 + 0 ) ) ) ),
+      .dock_crosses_bonus = 2,
+      .crosses_needed =
+          int( std::lround( .6666 * ( 8 + 2 * ( 2 + 0 ) ) ) ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -311,10 +307,10 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
     world.add_unit_in_port( e_unit_type::free_colonist );
     crosses  = compute_crosses( units_state, player.nation );
     expected = {
-        .dock_crosses_bonus = -2,
-        // Dock units are counted twice.
-        .crosses_needed =
-            int( std::lround( .6666 * ( 8 + 2 * ( 1 + 1 ) ) ) ),
+      .dock_crosses_bonus = -2,
+      // Dock units are counted twice.
+      .crosses_needed =
+          int( std::lround( .6666 * ( 8 + 2 * ( 1 + 1 ) ) ) ),
     };
     REQUIRE( crosses == expected );
     add_player_crosses( player,
@@ -419,9 +415,9 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 
   // Set up the immigrants pool.
   ImmigrationState const initial_state = {
-      .immigrants_pool = { e_unit_type::expert_farmer,
-                           e_unit_type::veteran_soldier,
-                           e_unit_type::seasoned_scout } };
+    .immigrants_pool = { e_unit_type::expert_farmer,
+                         e_unit_type::veteran_soldier,
+                         e_unit_type::seasoned_scout } };
   Player& player = W.default_player();
   player.old_world.immigration.immigrants_pool =
       initial_state.immigrants_pool;
@@ -472,8 +468,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
     UnitOwnership const expected_ownership{
-        UnitOwnership::harbor{ .port_status =
-                                   PortStatus::in_port{} } };
+      UnitOwnership::harbor{ .port_status =
+                                 PortStatus::in_port{} } };
     REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
@@ -517,8 +513,8 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
     REQUIRE( W.units().all().begin()->first ==
              GenericUnitId{ 1 } );
     UnitOwnership const expected_ownership{
-        UnitOwnership::harbor{ .port_status =
-                                   PortStatus::in_port{} } };
+      UnitOwnership::harbor{ .port_status =
+                                 PortStatus::in_port{} } };
     REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
              expected_ownership );
   }
@@ -630,7 +626,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   pool[0]      = e_unit_type::veteran_soldier;
   pool[1]      = e_unit_type::pioneer;
   pool[2]      = e_unit_type::petty_criminal;
-  player.money = 1000;
+  player.money = 1'000;
   REQUIRE( compute_crosses( W.units(), player.nation )
                .crosses_needed == 8 ); // sanity check.
   player.crosses                                   = 5;
@@ -644,7 +640,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   REQUIRE( player.crosses == 0 );
   REQUIRE( player.old_world.immigration.num_recruits_rushed ==
            4 );
-  REQUIRE( player.money == 1000 - 153 );
+  REQUIRE( player.money == 1'000 - 153 );
 
   REQUIRE( pool[0] == e_unit_type::veteran_soldier );
   REQUIRE( pool[1] == e_unit_type::free_colonist ); // replaced
@@ -657,7 +653,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   REQUIRE( W.units().unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::pioneer );
   UnitOwnership const expected_ownership{ UnitOwnership::harbor{
-      .port_status = PortStatus::in_port{} } };
+    .port_status = PortStatus::in_port{} } };
   REQUIRE( as_const( W.units() ).ownership_of( UnitId{ 1 } ) ==
            expected_ownership );
 }

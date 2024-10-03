@@ -82,7 +82,11 @@ void copy( PGStruct const& l, PGMap& r ) {
 }
 
 struct TestCaseConfig {
-  enum e_action_type { buy, sell, sell_all };
+  enum e_action_type {
+    buy,
+    sell,
+    sell_all
+  };
 
   struct Action {
     int              count = 0;
@@ -123,311 +127,266 @@ PGStruct const STARTING_12_9_14_8{ .rum    = 0x1f3,
 ** Scenarios
 *****************************************************************/
 TestCaseConfig const scenario_0{
-    .starting_intrinsic_volumes = { .rum    = 0x0295,
-                                    .cigars = 0x02b2,
-                                    .cloth  = 0x0214,
-                                    .coats  = 0x0324 },
+  .starting_intrinsic_volumes = { .rum    = 0x0295,
+                                  .cigars = 0x02b2,
+                                  .cloth  = 0x0214,
+                                  .coats  = 0x0324 },
 
-    .steps = { TestCaseConfig::Step{
-        .action     = { .count = 30,
-                        .type  = ACTION_SELL_ALL,
-                        .good  = {} },
-        .expect_eq  = { .rum    = 12,
-                        .cigars = 11,
-                        .cloth  = 12,
-                        .coats  = 11 },
-        .expect_vol = { .rum    = 0xFBB2,
-                        .cigars = 0xFBCB,
-                        .cloth  = 0xFBA4,
-                        .coats  = 0xFC09 } } } };
+  .steps = { TestCaseConfig::Step{
+    .action = { .count = 30,
+                .type  = ACTION_SELL_ALL,
+                .good  = {} },
+    .expect_eq =
+        { .rum = 12, .cigars = 11, .cloth = 12, .coats = 11 },
+    .expect_vol = { .rum    = 0xFBB2,
+                    .cigars = 0xFBCB,
+                    .cloth  = 0xFBA4,
+                    .coats  = 0xFC09 } } } };
 
 TestCaseConfig const scenario_1{
-    // 11/12  10/11  14/15  9/10
-    .starting_intrinsic_volumes = { .rum    = 0x0295,
-                                    .cigars = 0x02b2,
-                                    .cloth  = 0x0214,
-                                    .coats  = 0x0324 },
+  // 11/12  10/11  14/15  9/10
+  .starting_intrinsic_volumes = { .rum    = 0x0295,
+                                  .cigars = 0x02b2,
+                                  .cloth  = 0x0214,
+                                  .coats  = 0x0324 },
 
-    .steps = { { .action     = { .count = 28,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 20,
-                                 .cloth  = 4,
-                                 .coats  = 20 },
-                 .expect_vol = { .rum    = 0x01DB,
-                                 .cigars = 0x01ED,
-                                 .cloth  = 0xFEEE,
-                                 .coats  = 0x023D } },
-               { .action     = { .count = 28,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 8,
-                                 .cigars = 8,
-                                 .cloth  = 20,
-                                 .coats  = 7 },
-                 .expect_vol = { .rum    = 0x0187,
-                                 .cigars = 0x0199,
-                                 .cloth  = 0xFF94,
-                                 .coats  = 0x01D9 } } } };
+  .steps = {
+    { .action = { .count = 28,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 20, .cigars = 20, .cloth = 4, .coats = 20 },
+      .expect_vol = { .rum    = 0x01DB,
+                      .cigars = 0x01ED,
+                      .cloth  = 0xFEEE,
+                      .coats  = 0x023D } },
+    { .action = { .count = 28,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 8, .cigars = 8, .cloth = 20, .coats = 7 },
+      .expect_vol = { .rum    = 0x0187,
+                      .cigars = 0x0199,
+                      .cloth  = 0xFF94,
+                      .coats  = 0x01D9 } } } };
 
 TestCaseConfig const scenario_2{
-    .starting_intrinsic_volumes = STARTING_11_10_14_9,
+  .starting_intrinsic_volumes = STARTING_11_10_14_9,
 
-    .steps = { { .action     = { .count = 18,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 5,
-                                 .cloth  = 20,
-                                 .coats  = 16 },
-                 .expect_vol = { .rum    = 0x0208,
-                                 .cigars = 0x00AC,
-                                 .cloth  = 0x01A8,
-                                 .coats  = 0x0275 } },
-               { .action     = { .count = 12,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::coats },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 5,
-                                 .cloth  = 20,
-                                 .coats  = 16 },
-                 .expect_vol = { .rum    = 0x0208,
-                                 .cigars = 0x00AC,
-                                 .cloth  = 0x01A8,
-                                 .coats  = 0x0275 } },
-               { .action     = { .count = 1,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::rum },
-                 .expect_eq  = { .rum    = 17,
-                                 .cigars = 5,
-                                 .cloth  = 20,
-                                 .coats  = 17 },
-                 .expect_vol = { .rum    = 0x01F7,
-                                 .cigars = 0x009D,
-                                 .cloth  = 0x01A5,
-                                 .coats  = 0x0271 } },
-               { .action     = { .count = 1,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::rum },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 5,
-                                 .cloth  = 20,
-                                 .coats  = 16 },
-                 .expect_vol = { .rum    = 0x01FF,
-                                 .cigars = 0x008E,
-                                 .cloth  = 0x01A2,
-                                 .coats  = 0x026D } } } };
+  .steps = {
+    { .action = { .count = 18,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 5, .cloth = 20, .coats = 16 },
+      .expect_vol = { .rum    = 0x0208,
+                      .cigars = 0x00AC,
+                      .cloth  = 0x01A8,
+                      .coats  = 0x0275 } },
+    { .action = { .count = 12,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::coats },
+      .expect_eq =
+          { .rum = 20, .cigars = 5, .cloth = 20, .coats = 16 },
+      .expect_vol = { .rum    = 0x0208,
+                      .cigars = 0x00AC,
+                      .cloth  = 0x01A8,
+                      .coats  = 0x0275 } },
+    { .action = { .count = 1,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::rum },
+      .expect_eq =
+          { .rum = 17, .cigars = 5, .cloth = 20, .coats = 17 },
+      .expect_vol = { .rum    = 0x01F7,
+                      .cigars = 0x009D,
+                      .cloth  = 0x01A5,
+                      .coats  = 0x0271 } },
+    { .action = { .count = 1,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::rum },
+      .expect_eq =
+          { .rum = 20, .cigars = 5, .cloth = 20, .coats = 16 },
+      .expect_vol = { .rum    = 0x01FF,
+                      .cigars = 0x008E,
+                      .cloth  = 0x01A2,
+                      .coats  = 0x026D } } } };
 
 TestCaseConfig const scenario_3{
-    .starting_intrinsic_volumes = STARTING_11_10_14_9,
+  .starting_intrinsic_volumes = STARTING_11_10_14_9,
 
-    .steps = { { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::rum },
-                 .expect_eq  = { .rum    = 7,
-                                 .cigars = 14,
-                                 .cloth  = 18,
-                                 .coats  = 12 },
-                 .expect_vol = { .rum    = 0x01D2,
-                                 .cigars = 0x024F,
-                                 .cloth  = 0x01CC,
-                                 .coats  = 0x02AF } },
-               { .action     = { .count = 8,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 9,
-                                 .cigars = 17,
-                                 .cloth  = 9,
-                                 .coats  = 15 },
-                 .expect_vol = { .rum    = 0x0194,
-                                 .cigars = 0x022F,
-                                 .cloth  = 0x0127,
-                                 .coats  = 0x0287 } },
-               { .action     = { .count = 3,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::coats },
-                 .expect_eq  = { .rum    = 10,
-                                 .cigars = 19,
-                                 .cloth  = 9,
-                                 .coats  = 11 },
-                 .expect_vol = { .rum    = 0x017F,
-                                 .cigars = 0x0223,
-                                 .cloth  = 0x010F,
-                                 .coats  = 0x024A } },
-               { .action     = { .count = 8,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::rum },
-                 .expect_eq  = { .rum    = 19,
-                                 .cigars = 16,
-                                 .cloth  = 8,
-                                 .coats  = 10 },
-                 .expect_vol = { .rum    = 0x01BD,
-                                 .cigars = 0x020B,
-                                 .cloth  = 0x00DF,
-                                 .coats  = 0x0226 } },
-               { .action     = { .count = 10,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 7,
-                                 .cloth  = 10,
-                                 .coats  = 13 },
-                 .expect_vol = { .rum    = 0x019F,
-                                 .cigars = 0x0136,
-                                 .cloth  = 0x0099,
-                                 .coats  = 0x01EA } },
-               { .action     = { .count = 8,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 6,
-                                 .cloth  = 20,
-                                 .coats  = 10 },
-                 .expect_vol = { .rum    = 0x0187,
-                                 .cigars = 0x00EA,
-                                 .cloth  = 0x00F1,
-                                 .coats  = 0x01BE } } } };
+  .steps = {
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::rum },
+      .expect_eq =
+          { .rum = 7, .cigars = 14, .cloth = 18, .coats = 12 },
+      .expect_vol = { .rum    = 0x01D2,
+                      .cigars = 0x024F,
+                      .cloth  = 0x01CC,
+                      .coats  = 0x02AF } },
+    { .action = { .count = 8,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 9, .cigars = 17, .cloth = 9, .coats = 15 },
+      .expect_vol = { .rum    = 0x0194,
+                      .cigars = 0x022F,
+                      .cloth  = 0x0127,
+                      .coats  = 0x0287 } },
+    { .action = { .count = 3,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::coats },
+      .expect_eq =
+          { .rum = 10, .cigars = 19, .cloth = 9, .coats = 11 },
+      .expect_vol = { .rum    = 0x017F,
+                      .cigars = 0x0223,
+                      .cloth  = 0x010F,
+                      .coats  = 0x024A } },
+    { .action = { .count = 8,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::rum },
+      .expect_eq =
+          { .rum = 19, .cigars = 16, .cloth = 8, .coats = 10 },
+      .expect_vol = { .rum    = 0x01BD,
+                      .cigars = 0x020B,
+                      .cloth  = 0x00DF,
+                      .coats  = 0x0226 } },
+    { .action = { .count = 10,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 7, .cloth = 10, .coats = 13 },
+      .expect_vol = { .rum    = 0x019F,
+                      .cigars = 0x0136,
+                      .cloth  = 0x0099,
+                      .coats  = 0x01EA } },
+    { .action = { .count = 8,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 20, .cigars = 6, .cloth = 20, .coats = 10 },
+      .expect_vol = { .rum    = 0x0187,
+                      .cigars = 0x00EA,
+                      .cloth  = 0x00F1,
+                      .coats  = 0x01BE } } } };
 
 TestCaseConfig const scenario_4{
-    .starting_intrinsic_volumes = STARTING_11_10_14_9,
+  .starting_intrinsic_volumes = STARTING_11_10_14_9,
 
-    .steps = { { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 14,
-                                 .cigars = 14,
-                                 .cloth  = 8,
-                                 .coats  = 12 },
-                 .expect_vol = { .rum    = 0x0238,
-                                 .cigars = 0x024F,
-                                 .cloth  = 0x0166,
-                                 .coats  = 0x02AF } },
-               { .action     = { .count = 3,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 13,
-                                 .cigars = 12,
-                                 .cloth  = 10,
-                                 .coats  = 11 },
-                 .expect_vol = { .rum    = 0x022C,
-                                 .cigars = 0x0243,
-                                 .cloth  = 0x0181,
-                                 .coats  = 0x02A0 } },
-               { .action     = { .count = 12,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 19,
-                                 .cigars = 6,
-                                 .cloth  = 15,
-                                 .coats  = 15 },
-                 .expect_vol = { .rum    = 0x01FC,
-                                 .cigars = 0x0133,
-                                 .cloth  = 0x0147,
-                                 .coats  = 0x0269 } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 5,
-                                 .cloth  = 18,
-                                 .coats  = 18 },
-                 .expect_vol = { .rum    = 0x01EA,
-                                 .cigars = 0x008C,
-                                 .cloth  = 0x012F,
-                                 .coats  = 0x0251 } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cloth },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 6,
-                                 .cloth  = 11,
-                                 .coats  = 20 },
-                 .expect_vol = { .rum    = 0x01D8,
-                                 .cigars = 0x0036,
-                                 .cloth  = 0x00B3,
-                                 .coats  = 0x0239 } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::coats },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 7,
-                                 .cloth  = 12,
-                                 .coats  = 12 },
-                 .expect_vol = { .rum    = 0x01C6,
-                                 .cigars = 0xFFE3,
-                                 .cloth  = 0x0083,
-                                 .coats  = 0x01BA } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::coats },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 8,
-                                 .cloth  = 14,
-                                 .coats  = 9 },
-                 .expect_vol = { .rum    = 0x01B4,
-                                 .cigars = 0xFF95,
-                                 .cloth  = 0x0058,
-                                 .coats  = 0x0129 } },
-               { .action     = { .count = 18,
-                                 .type  = ACTION_BUY,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 20,
-                                 .cloth  = 9,
-                                 .coats  = 5 },
-                 .expect_vol = { .rum    = 0x017E,
-                                 .cigars = 0x002F,
-                                 .cloth  = 0xFFDE,
-                                 .coats  = 0x006C } } } };
+  .steps = {
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 14, .cigars = 14, .cloth = 8, .coats = 12 },
+      .expect_vol = { .rum    = 0x0238,
+                      .cigars = 0x024F,
+                      .cloth  = 0x0166,
+                      .coats  = 0x02AF } },
+    { .action = { .count = 3,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 13, .cigars = 12, .cloth = 10, .coats = 11 },
+      .expect_vol = { .rum    = 0x022C,
+                      .cigars = 0x0243,
+                      .cloth  = 0x0181,
+                      .coats  = 0x02A0 } },
+    { .action = { .count = 12,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 19, .cigars = 6, .cloth = 15, .coats = 15 },
+      .expect_vol = { .rum    = 0x01FC,
+                      .cigars = 0x0133,
+                      .cloth  = 0x0147,
+                      .coats  = 0x0269 } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 5, .cloth = 18, .coats = 18 },
+      .expect_vol = { .rum    = 0x01EA,
+                      .cigars = 0x008C,
+                      .cloth  = 0x012F,
+                      .coats  = 0x0251 } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cloth },
+      .expect_eq =
+          { .rum = 20, .cigars = 6, .cloth = 11, .coats = 20 },
+      .expect_vol = { .rum    = 0x01D8,
+                      .cigars = 0x0036,
+                      .cloth  = 0x00B3,
+                      .coats  = 0x0239 } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::coats },
+      .expect_eq =
+          { .rum = 20, .cigars = 7, .cloth = 12, .coats = 12 },
+      .expect_vol = { .rum    = 0x01C6,
+                      .cigars = 0xFFE3,
+                      .cloth  = 0x0083,
+                      .coats  = 0x01BA } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::coats },
+      .expect_eq =
+          { .rum = 20, .cigars = 8, .cloth = 14, .coats = 9 },
+      .expect_vol = { .rum    = 0x01B4,
+                      .cigars = 0xFF95,
+                      .cloth  = 0x0058,
+                      .coats  = 0x0129 } },
+    { .action = { .count = 18,
+                  .type  = ACTION_BUY,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 20, .cloth = 9, .coats = 5 },
+      .expect_vol = { .rum    = 0x017E,
+                      .cigars = 0x002F,
+                      .cloth  = 0xFFDE,
+                      .coats  = 0x006C } } } };
 
 TestCaseConfig const scenario_5{
-    .starting_intrinsic_volumes = STARTING_12_9_14_8,
+  .starting_intrinsic_volumes = STARTING_12_9_14_8,
 
-    .steps = { { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 17,
-                                 .cigars = 7,
-                                 .cloth  = 19,
-                                 .coats  = 12 },
-                 .expect_vol = { .rum    = 0x01A5,
-                                 .cigars = 0x01A8,
-                                 .cloth  = 0x017A,
-                                 .coats  = 0x0242 } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 5,
-                                 .cloth  = 20,
-                                 .coats  = 15 },
-                 .expect_vol = { .rum    = 0x0193,
-                                 .cigars = 0x0118,
-                                 .cloth  = 0x016E,
-                                 .coats  = 0x022A } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 4,
-                                 .cloth  = 20,
-                                 .coats  = 18 },
-                 .expect_vol = { .rum    = 0x0181,
-                                 .cigars = 0x0071,
-                                 .cloth  = 0x0162,
-                                 .coats  = 0x0212 } },
-               { .action     = { .count = 6,
-                                 .type  = ACTION_SELL,
-                                 .good  = e_processed_good::cigars },
-                 .expect_eq  = { .rum    = 20,
-                                 .cigars = 4,
-                                 .cloth  = 20,
-                                 .coats  = 20 },
-                 .expect_vol = { .rum    = 0x0174,
-                                 .cigars = 0xFFB8,
-                                 .cloth  = 0x0156,
-                                 .coats  = 0x01FB } } } };
+  .steps = {
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 17, .cigars = 7, .cloth = 19, .coats = 12 },
+      .expect_vol = { .rum    = 0x01A5,
+                      .cigars = 0x01A8,
+                      .cloth  = 0x017A,
+                      .coats  = 0x0242 } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 5, .cloth = 20, .coats = 15 },
+      .expect_vol = { .rum    = 0x0193,
+                      .cigars = 0x0118,
+                      .cloth  = 0x016E,
+                      .coats  = 0x022A } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 4, .cloth = 20, .coats = 18 },
+      .expect_vol = { .rum    = 0x0181,
+                      .cigars = 0x0071,
+                      .cloth  = 0x0162,
+                      .coats  = 0x0212 } },
+    { .action = { .count = 6,
+                  .type  = ACTION_SELL,
+                  .good  = e_processed_good::cigars },
+      .expect_eq =
+          { .rum = 20, .cigars = 4, .cloth = 20, .coats = 20 },
+      .expect_vol = { .rum    = 0x0174,
+                      .cigars = 0xFFB8,
+                      .cloth  = 0x0156,
+                      .coats  = 0x01FB } } } };
 
 /****************************************************************
 ** Scenario Runners.
@@ -534,46 +493,48 @@ TEST_CASE( "[price-group] evolve without buy/sell" ) {
   // advantage when buying/selling in the price group model.
   config.dutch = true;
   config.starting_intrinsic_volumes[e_processed_good::rum] =
-      5000;
+      5'000;
   config.starting_intrinsic_volumes[e_processed_good::cigars] =
-      4000;
+      4'000;
   config.starting_intrinsic_volumes[e_processed_good::cloth] =
-      3000;
+      3'000;
   config.starting_intrinsic_volumes[e_processed_good::coats] =
-      2000;
+      2'000;
 
   // These should influence the evolution but they should not
   // change.
-  config.starting_traded_volumes[e_processed_good::rum] = 1000;
+  config.starting_traded_volumes[e_processed_good::rum] = 1'000;
   config.starting_traded_volumes[e_processed_good::cigars] =
-      2000;
-  config.starting_traded_volumes[e_processed_good::cloth] = 3000;
-  config.starting_traded_volumes[e_processed_good::coats] = 4000;
+      2'000;
+  config.starting_traded_volumes[e_processed_good::cloth] =
+      3'000;
+  config.starting_traded_volumes[e_processed_good::coats] =
+      4'000;
 
   ProcessedGoodsPriceGroup group( config );
 
   // Sanity check.
   REQUIRE( group.intrinsic_volume( e_processed_good::rum ) ==
-           5000 );
+           5'000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::cigars ) ==
-           4000 );
+           4'000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::cloth ) ==
-           3000 );
+           3'000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::coats ) ==
-           2000 );
+           2'000 );
 
   // Do the evolution.
   group.evolve();
 
   // Tests.
   REQUIRE( group.traded_volume( e_processed_good::rum ) ==
-           1000 );
+           1'000 );
   REQUIRE( group.traded_volume( e_processed_good::cigars ) ==
-           2000 );
+           2'000 );
   REQUIRE( group.traded_volume( e_processed_good::cloth ) ==
-           3000 );
+           3'000 );
   REQUIRE( group.traded_volume( e_processed_good::coats ) ==
-           4000 );
+           4'000 );
 
   int expected = 0;
 

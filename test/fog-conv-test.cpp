@@ -54,9 +54,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -84,7 +84,7 @@ TEST_CASE( "[fog-conv] colony_to_frozen_colony" ) {
   colony.indoor_jobs[e_indoor_job::bells] = { UnitId{ 1 },
                                               UnitId{ 2 } };
   colony.outdoor_jobs[e_direction::nw]    = OutdoorUnit{
-         .unit_id = UnitId{ 3 }, .job = e_outdoor_job::food };
+       .unit_id = UnitId{ 3 }, .job = e_outdoor_job::food };
 
   expected =
       FrozenColony{ .sons_of_liberty_integral_percent = 67 };
@@ -123,8 +123,8 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                    .nation = e_nation::spanish,
-                    .level  = e_missionary_type::jesuit } };
+                  .nation = e_nation::spanish,
+                  .level  = e_missionary_type::jesuit } };
   REQUIRE( f() == expected );
 
   change_unit_type( W.ss(), W.ts(), missionary,
@@ -132,8 +132,8 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                    .nation = e_nation::spanish,
-                    .level  = e_missionary_type::normal } };
+                  .nation = e_nation::spanish,
+                  .level  = e_missionary_type::normal } };
   REQUIRE( f() == expected );
 
   change_unit_nation( W.ss(), W.ts(), missionary,
@@ -141,8 +141,8 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
   expected = { .tribe    = e_tribe::cherokee,
                .location = { .x = 1, .y = 0 },
                .mission  = FrozenMission{
-                    .nation = e_nation::french,
-                    .level  = e_missionary_type::normal } };
+                  .nation = e_nation::french,
+                  .level  = e_missionary_type::normal } };
   REQUIRE( f() == expected );
 }
 
@@ -162,8 +162,8 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
 
   coord    = { .x = 1, .y = 0 };
   expected = { .square = MapSquare{
-                   .surface = e_surface::land,
-                   .ground  = e_ground_terrain::grassland } };
+                 .surface = e_surface::land,
+                 .ground  = e_ground_terrain::grassland } };
   f();
   REQUIRE( output == expected );
 
@@ -171,15 +171,14 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
   coord    = { .x = 1, .y = 0 };
   expected = {
-      .square = MapSquare{ .surface = e_surface::land,
-                           .ground = e_ground_terrain::grassland,
-                           .road   = true },
-      .dwelling =
-          Dwelling{ .id         = 0,
-                    .population = 5,
-                    .frozen     = FrozenDwelling{
-                            .tribe    = e_tribe::cherokee,
-                            .location = { .x = 1, .y = 0 } } } };
+    .square   = MapSquare{ .surface = e_surface::land,
+                           .ground  = e_ground_terrain::grassland,
+                           .road    = true },
+    .dwelling = Dwelling{ .id         = 0,
+                          .population = 5,
+                          .frozen     = FrozenDwelling{
+                                .tribe    = e_tribe::cherokee,
+                                .location = { .x = 1, .y = 0 } } } };
   f();
   REQUIRE( output == expected );
 
@@ -187,23 +186,22 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
   coord               = { .x = 1, .y = 0 };
 
   expected = {
-      .square = MapSquare{ .surface = e_surface::land,
-                           .ground = e_ground_terrain::grassland,
-                           .road   = true },
-      .dwelling =
-          Dwelling{ .id         = 0,
-                    .is_capital = true,
-                    .population = 5,
-                    .frozen     = FrozenDwelling{
-                            .tribe    = e_tribe::cherokee,
-                            .location = { .x = 1, .y = 0 } } } };
+    .square   = MapSquare{ .surface = e_surface::land,
+                           .ground  = e_ground_terrain::grassland,
+                           .road    = true },
+    .dwelling = Dwelling{ .id         = 0,
+                          .is_capital = true,
+                          .population = 5,
+                          .frozen     = FrozenDwelling{
+                                .tribe    = e_tribe::cherokee,
+                                .location = { .x = 1, .y = 0 } } } };
   f();
   REQUIRE( output == expected );
 
   coord    = { .x = 0, .y = 1 };
   expected = { .square = MapSquare{
-                   .surface = e_surface::land,
-                   .ground  = e_ground_terrain::grassland } };
+                 .surface = e_surface::land,
+                 .ground  = e_ground_terrain::grassland } };
   f();
   REQUIRE( output == expected );
 
@@ -211,60 +209,58 @@ TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
       W.add_colony( { .x = 0, .y = 1 }, e_nation::spanish );
   coord    = { .x = 0, .y = 1 };
   expected = {
-      .square = MapSquare{ .surface = e_surface::land,
-                           .ground = e_ground_terrain::grassland,
-                           .road   = true },
-      .colony = Colony{ .id        = 0,
-                        .nation    = e_nation::spanish,
-                        .name      = "1",
-                        .location  = { .x = 0, .y = 1 },
-                        .buildings = colony.buildings,
-                        .frozen    = FrozenColony{} } };
+    .square = MapSquare{ .surface = e_surface::land,
+                         .ground  = e_ground_terrain::grassland,
+                         .road    = true },
+    .colony = Colony{ .id        = 0,
+                      .nation    = e_nation::spanish,
+                      .name      = "1",
+                      .location  = { .x = 0, .y = 1 },
+                      .buildings = colony.buildings,
+                      .frozen    = FrozenColony{} } };
   f();
   REQUIRE( output == expected );
 
   colony.name = "hello";
   coord       = { .x = 0, .y = 1 };
   expected    = {
-         .square = MapSquare{ .surface = e_surface::land,
-                              .ground = e_ground_terrain::grassland,
-                              .road   = true },
-         .colony = Colony{ .id        = 0,
-                           .nation    = e_nation::spanish,
-                           .name      = "hello",
-                           .location  = { .x = 0, .y = 1 },
-                           .buildings = colony.buildings,
-                           .frozen    = FrozenColony{} } };
+       .square = MapSquare{ .surface = e_surface::land,
+                            .ground  = e_ground_terrain::grassland,
+                            .road    = true },
+       .colony = Colony{ .id        = 0,
+                         .nation    = e_nation::spanish,
+                         .name      = "hello",
+                         .location  = { .x = 0, .y = 1 },
+                         .buildings = colony.buildings,
+                         .frozen    = FrozenColony{} } };
   f();
   REQUIRE( output == expected );
 
   coord    = { .x = 1, .y = 0 };
   expected = {
-      .square = MapSquare{ .surface = e_surface::land,
-                           .ground = e_ground_terrain::grassland,
-                           .road   = true },
-      .dwelling =
-          Dwelling{ .id         = 0,
-                    .is_capital = true,
-                    .population = 5,
-                    .frozen     = FrozenDwelling{
-                            .tribe    = e_tribe::cherokee,
-                            .location = { .x = 1, .y = 0 } } } };
+    .square   = MapSquare{ .surface = e_surface::land,
+                           .ground  = e_ground_terrain::grassland,
+                           .road    = true },
+    .dwelling = Dwelling{ .id         = 0,
+                          .is_capital = true,
+                          .population = 5,
+                          .frozen     = FrozenDwelling{
+                                .tribe    = e_tribe::cherokee,
+                                .location = { .x = 1, .y = 0 } } } };
   f();
   REQUIRE( output == expected );
 
   coord    = { .x = 1, .y = 0 };
   expected = {
-      .square = MapSquare{ .surface = e_surface::land,
-                           .ground = e_ground_terrain::grassland,
-                           .road   = true },
-      .dwelling =
-          Dwelling{ .id         = 0,
-                    .is_capital = true,
-                    .population = 5,
-                    .frozen     = FrozenDwelling{
-                            .tribe    = e_tribe::cherokee,
-                            .location = { .x = 1, .y = 0 } } } };
+    .square   = MapSquare{ .surface = e_surface::land,
+                           .ground  = e_ground_terrain::grassland,
+                           .road    = true },
+    .dwelling = Dwelling{ .id         = 0,
+                          .is_capital = true,
+                          .population = 5,
+                          .frozen     = FrozenDwelling{
+                                .tribe    = e_tribe::cherokee,
+                                .location = { .x = 1, .y = 0 } } } };
   f();
   REQUIRE( output == expected );
 }

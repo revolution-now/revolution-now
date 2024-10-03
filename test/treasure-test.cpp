@@ -87,47 +87,47 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 
   tax_rate = 0;
   expected = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 0,
-      .net_received      = 100 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 0,
+    .net_received      = 100 };
   REQUIRE( f() == expected );
 
   tax_rate = 10;
   expected = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 10,
-      .net_received      = 90 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 10,
+    .net_received      = 90 };
   REQUIRE( f() == expected );
 
   tax_rate = 99;
   expected = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 99,
-      .net_received      = 1 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 99,
+    .net_received      = 1 };
   REQUIRE( f() == expected );
 
   tax_rate = 100;
   expected = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 100,
-      .net_received      = 0 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 100,
+    .net_received      = 0 };
   REQUIRE( f() == expected );
 
   tax_rate = 110;
   expected = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 110,
-      .net_received      = 0 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 110,
+    .net_received      = 0 };
   REQUIRE( f() == expected );
 }
 
@@ -144,11 +144,11 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
   REQUIRE( player.money == 0 );
 
   TreasureReceipt const receipt{
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 10,
-      .net_received      = 90 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 10,
+    .net_received      = 90 };
   apply_treasure_reimbursement( W.ss(), player, receipt );
 
   REQUIRE( W.units().all().size() == 0 );
@@ -168,11 +168,11 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   };
 
   receipt = {
-      .treasure_id       = UnitId{ 1 },
-      .transport_mode    = e_treasure_transport_mode::player,
-      .original_worth    = 100,
-      .kings_cut_percent = 10,
-      .net_received      = 90 };
+    .treasure_id       = UnitId{ 1 },
+    .transport_mode    = e_treasure_transport_mode::player,
+    .original_worth    = 100,
+    .kings_cut_percent = 10,
+    .net_received      = 90 };
   msg =
       "Treasure worth 100\x7f reimbursed in Amsterdam yielding "
       "[90\x7f] after 10% taxes witheld.";
@@ -193,12 +193,12 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   f();
 
   receipt = {
-      .treasure_id = UnitId{ 1 },
-      .transport_mode =
-          e_treasure_transport_mode::king_no_extra_charge,
-      .original_worth    = 100,
-      .kings_cut_percent = 10,
-      .net_received      = 90 };
+    .treasure_id = UnitId{ 1 },
+    .transport_mode =
+        e_treasure_transport_mode::king_no_extra_charge,
+    .original_worth    = 100,
+    .kings_cut_percent = 10,
+    .net_received      = 90 };
   msg =
       "Treasure worth 100\x7f arrives in Amsterdam!  The crown "
       "has provided a reimbursement of [90\x7f] after a [10%] "
@@ -232,12 +232,12 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
 
   // No galleons.
   expected = TreasureReceipt{
-      .treasure_id = UnitId{ 1 },
-      .transport_mode =
-          e_treasure_transport_mode::king_with_charge,
-      .original_worth    = 100,
-      .kings_cut_percent = 50,
-      .net_received      = 50 };
+    .treasure_id = UnitId{ 1 },
+    .transport_mode =
+        e_treasure_transport_mode::king_with_charge,
+    .original_worth    = 100,
+    .kings_cut_percent = 50,
+    .net_received      = 50 };
   msg =
       "The crown is happy to see the bounty that you've "
       "acquired. Seeing that you don't have a fleet of Galleons "
@@ -246,12 +246,11 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "make an assessment of the appropriate percentage to "
       "withhold as compensation.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "yes",
-                              .display_name = "Accept." },
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Decline." } } };
+    .msg     = msg,
+    .options = { ChoiceConfigOption{ .key          = "yes",
+                                     .display_name = "Accept." },
+                 ChoiceConfigOption{
+                   .key = "no", .display_name = "Decline." } } };
   W.gui().EXPECT__choice( config ).returns<maybe<string>>(
       "yes" );
   REQUIRE( f() == expected );
@@ -259,12 +258,12 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   // No galleons, with hernan cortes.
   player.fathers.has[e_founding_father::hernan_cortes] = true;
   expected = TreasureReceipt{
-      .treasure_id = UnitId{ 1 },
-      .transport_mode =
-          e_treasure_transport_mode::king_no_extra_charge,
-      .original_worth    = 100,
-      .kings_cut_percent = 7,
-      .net_received      = 93 };
+    .treasure_id = UnitId{ 1 },
+    .transport_mode =
+        e_treasure_transport_mode::king_no_extra_charge,
+    .original_worth    = 100,
+    .kings_cut_percent = 7,
+    .net_received      = 93 };
   msg =
       "The crown is happy to see the bounty that you've "
       "acquired. Seeing that you don't have a fleet of Galleons "
@@ -273,12 +272,11 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "[no extra charge], only withholding an amount "
       "determined by the current tax rate.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "yes",
-                              .display_name = "Accept." },
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Decline." } } };
+    .msg     = msg,
+    .options = { ChoiceConfigOption{ .key          = "yes",
+                                     .display_name = "Accept." },
+                 ChoiceConfigOption{
+                   .key = "no", .display_name = "Decline." } } };
   W.gui().EXPECT__choice( config ).returns<maybe<string>>(
       "yes" );
   REQUIRE( f() == expected );
@@ -291,12 +289,12 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   W.add_unit_on_map( e_unit_type::galleon, { .x = 0, .y = 0 } );
   player.fathers.has[e_founding_father::hernan_cortes] = false;
   expected = TreasureReceipt{
-      .treasure_id = UnitId{ 1 },
-      .transport_mode =
-          e_treasure_transport_mode::king_with_charge,
-      .original_worth    = 100,
-      .kings_cut_percent = 70,
-      .net_received      = 30 };
+    .treasure_id = UnitId{ 1 },
+    .transport_mode =
+        e_treasure_transport_mode::king_with_charge,
+    .original_worth    = 100,
+    .kings_cut_percent = 70,
+    .net_received      = 30 };
   msg =
       "The crown is happy to see the bounty that you've "
       "acquired. Because we don't want you to be burdened by "
@@ -305,12 +303,11 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       "an assessment of the appropriate percentage to withhold "
       "as compensation.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "yes",
-                              .display_name = "Accept." },
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Decline." } } };
+    .msg     = msg,
+    .options = { ChoiceConfigOption{ .key          = "yes",
+                                     .display_name = "Accept." },
+                 ChoiceConfigOption{
+                   .key = "no", .display_name = "Decline." } } };
   W.gui().EXPECT__choice( config ).returns<maybe<string>>(
       "yes" );
   REQUIRE( f() == expected );
@@ -384,8 +381,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand().EXPECT__between_ints( 2000, 6000 ).returns( 5123 );
-  expected = 5100;
+  W.rand().EXPECT__between_ints( 2'000, 6'000 ).returns( 5'123 );
+  expected = 5'100;
   REQUIRE( f() == expected );
 
   // Civilized, no capital, no cortes, yes treasure.
@@ -393,8 +390,10 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
-  expected = 8100;
+  W.rand()
+      .EXPECT__between_ints( 3'000, 10'000 )
+      .returns( 8'123 );
+  expected = 8'100;
   REQUIRE( f() == expected );
 
   // Civilized, no capital, with cortes. (viceroy).
@@ -402,8 +401,10 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = false;
   W.settings().difficulty = e_difficulty::viceroy;
-  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
-  expected = 12100;
+  W.rand()
+      .EXPECT__between_ints( 3'000, 10'000 )
+      .returns( 8'123 );
+  expected = 12'100;
   REQUIRE( f() == expected );
 
   // Civilized, capital, with cortes. (governor).
@@ -411,8 +412,10 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = true;
   W.settings().difficulty = e_difficulty::governor;
-  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
-  expected = 24300;
+  W.rand()
+      .EXPECT__between_ints( 3'000, 10'000 )
+      .returns( 8'123 );
+  expected = 24'300;
   REQUIRE( f() == expected );
 }
 

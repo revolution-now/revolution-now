@@ -52,7 +52,7 @@ struct World : testing::World {
 
   void initialize_map( MapSquare const& L ) {
     vector<MapSquare> tiles{
-        // clang-format off
+      // clang-format off
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
@@ -60,7 +60,7 @@ struct World : testing::World {
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
         L,L,L,L,L,L,L,
-        // clang-format on
+      // clang-format on
     };
     build_map( std::move( tiles ), 7 );
   }
@@ -84,48 +84,48 @@ TEST_CASE( "[plow] can_irrigate" ) {
   bool      expected;
 
   square = MapSquare{
-      .surface         = e_surface::water,
-      .ground_resource = e_natural_resource::fish,
+    .surface         = e_surface::water,
+    .ground_resource = e_natural_resource::fish,
   };
   expected = false;
   REQUIRE( can_irrigate( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .road    = true,
   };
   expected = true;
   REQUIRE( can_irrigate( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::forest,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::forest,
+    .road    = true,
   };
   expected = false;
   REQUIRE( can_irrigate( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::hills,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::hills,
   };
   expected = false;
   REQUIRE( can_irrigate( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::mountains,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::mountains,
   };
   expected = false;
   REQUIRE( can_irrigate( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::arctic,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::arctic,
   };
   expected = true;
   REQUIRE( can_irrigate( square ) == expected );
@@ -519,10 +519,10 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
         W.ss(), W.ts(), W.default_player(), unit );
     REQUIRE( plow_result ==
              PlowResult::cleared_forest{
-                 .yield = LumberYield{
-                     .colony_id              = 1,
-                     .total_yield            = 20,
-                     .yield_to_add_to_colony = 20 } } );
+               .yield = LumberYield{
+                 .colony_id              = 1,
+                 .total_yield            = 20,
+                 .yield_to_add_to_colony = 20 } } );
 
     // Tell unit to start plowing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };
@@ -589,10 +589,10 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
         W.ss(), W.ts(), W.default_player(), unit );
     REQUIRE( plow_result ==
              PlowResult::cleared_forest{
-                 .yield = LumberYield{
-                     .colony_id              = 2,
-                     .total_yield            = 160,
-                     .yield_to_add_to_colony = 80 } } );
+               .yield = LumberYield{
+                 .colony_id              = 2,
+                 .total_yield            = 160,
+                 .yield_to_add_to_colony = 80 } } );
 
     // Tell unit to start plowing work.
     unit.orders() = unit_orders::plow{ .turns_worked = 0 };

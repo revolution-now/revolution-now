@@ -69,7 +69,7 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        // clang-format off
+      // clang-format off
         L, L, L, L, L, L,
         L, L, L, L, L, L,
         L, _, _, L, _, _,
@@ -77,7 +77,7 @@ struct World : testing::World {
         L, L, L, L, L, L,
         L, L, L, L, L, L,
         L, L, L, L, L, L,
-        // clang-format on
+      // clang-format on
     };
     build_map( std::move( tiles ), 6 );
   }
@@ -248,7 +248,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   };
 
   SECTION( "fills pool and chooses, year 1500" ) {
-    W.turn().time_point.year = 1500;
+    W.turn().time_point.year = 1'500;
     // These ranges are sums of the relevant father weights for
     // the year in question.
     expect_rand( 0, 15, 2 );
@@ -257,30 +257,29 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     expect_rand( 0, 17, 12 );
     expect_rand( 0, 24, 0 );
     ChoiceConfig const config{
-        .msg =
-            "Which Founding Father shall we appoint as the next "
-            "member of the Continental Congress?",
-        .options = {
-            ChoiceConfigOption{
-                .key          = "peter_minuit",
-                .display_name = "Peter Minuit (Trade Advisor)" },
-            ChoiceConfigOption{
-                .key = "ferdinand_magellan",
-                .display_name =
-                    "Ferdinand Magellan (Exploration Advisor)" },
-            ChoiceConfigOption{
-                .key = "francis_drake",
-                .display_name =
-                    "Francis Drake (Military Advisor)" },
-            ChoiceConfigOption{
-                .key = "benjamin_franklin",
-                .display_name =
-                    "Benjamin Franklin (Political Advisor)" },
-            ChoiceConfigOption{
-                .key = "william_brewster",
-                .display_name =
-                    "William Brewster (Religious Advisor)" },
-        } };
+      .msg =
+          "Which Founding Father shall we appoint as the next "
+          "member of the Continental Congress?",
+      .options = {
+        ChoiceConfigOption{
+          .key          = "peter_minuit",
+          .display_name = "Peter Minuit (Trade Advisor)" },
+        ChoiceConfigOption{
+          .key = "ferdinand_magellan",
+          .display_name =
+              "Ferdinand Magellan (Exploration Advisor)" },
+        ChoiceConfigOption{
+          .key          = "francis_drake",
+          .display_name = "Francis Drake (Military Advisor)" },
+        ChoiceConfigOption{
+          .key = "benjamin_franklin",
+          .display_name =
+              "Benjamin Franklin (Political Advisor)" },
+        ChoiceConfigOption{
+          .key = "william_brewster",
+          .display_name =
+              "William Brewster (Religious Advisor)" },
+      } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "francis_drake" ) );
 
@@ -304,7 +303,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 
   SECTION(
       "fills pool and chooses, year 1600, one slot populated" ) {
-    W.turn().time_point.year = 1600;
+    W.turn().time_point.year = 1'600;
     player.fathers.pool[e_founding_father_type::political] =
         e_founding_father::benjamin_franklin;
     // These ranges are sums of the relevant father weights for
@@ -315,30 +314,28 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     // expect_rand( 0, 21, 0 ); // political already present.
     expect_rand( 0, 28, 0 );
     ChoiceConfig const config{
-        .msg =
-            "Which Founding Father shall we appoint as the next "
-            "member of the Continental Congress?",
-        .options = {
-            ChoiceConfigOption{
-                .key          = "jakob_fugger",
-                .display_name = "Jakob Fugger (Trade Advisor)" },
-            ChoiceConfigOption{
-                .key = "henry_hudson",
-                .display_name =
-                    "Henry Hudson (Exploration Advisor)" },
-            ChoiceConfigOption{
-                .key = "john_paul_jones",
-                .display_name =
-                    "John Paul Jones (Military Advisor)" },
-            ChoiceConfigOption{
-                .key = "benjamin_franklin",
-                .display_name =
-                    "Benjamin Franklin (Political Advisor)" },
-            ChoiceConfigOption{
-                .key = "william_brewster",
-                .display_name =
-                    "William Brewster (Religious Advisor)" },
-        } };
+      .msg =
+          "Which Founding Father shall we appoint as the next "
+          "member of the Continental Congress?",
+      .options = {
+        ChoiceConfigOption{
+          .key          = "jakob_fugger",
+          .display_name = "Jakob Fugger (Trade Advisor)" },
+        ChoiceConfigOption{
+          .key          = "henry_hudson",
+          .display_name = "Henry Hudson (Exploration Advisor)" },
+        ChoiceConfigOption{
+          .key          = "john_paul_jones",
+          .display_name = "John Paul Jones (Military Advisor)" },
+        ChoiceConfigOption{
+          .key = "benjamin_franklin",
+          .display_name =
+              "Benjamin Franklin (Political Advisor)" },
+        ChoiceConfigOption{
+          .key = "william_brewster",
+          .display_name =
+              "William Brewster (Religious Advisor)" },
+      } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "henry_hudson" ) );
 
@@ -360,7 +357,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 
   SECTION(
       "fills pool and chooses, year 1700, one slot populated" ) {
-    W.turn().time_point.year = 1700;
+    W.turn().time_point.year = 1'700;
     // These ranges are sums of the relevant father weights for
     // the year in question.
     expect_rand( 0, 32, 22 );
@@ -369,30 +366,28 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     expect_rand( 0, 28, 9 );
     expect_rand( 0, 17, 6 );
     ChoiceConfig const config{
-        .msg =
-            "Which Founding Father shall we appoint as the next "
-            "member of the Continental Congress?",
-        .options = {
-            ChoiceConfigOption{
-                .key          = "jan_de_witt",
-                .display_name = "Jan de Witt (Trade Advisor)" },
-            ChoiceConfigOption{
-                .key = "sieur_de_la_salle",
-                .display_name =
-                    "Sieur de La Salle (Exploration Advisor)" },
-            ChoiceConfigOption{
-                .key = "john_paul_jones",
-                .display_name =
-                    "John Paul Jones (Military Advisor)" },
-            ChoiceConfigOption{
-                .key = "thomas_paine",
-                .display_name =
-                    "Thomas Paine (Political Advisor)" },
-            ChoiceConfigOption{
-                .key = "juan_de_sepulveda",
-                .display_name =
-                    "Juan de Sepulveda (Religious Advisor)" },
-        } };
+      .msg =
+          "Which Founding Father shall we appoint as the next "
+          "member of the Continental Congress?",
+      .options = {
+        ChoiceConfigOption{
+          .key          = "jan_de_witt",
+          .display_name = "Jan de Witt (Trade Advisor)" },
+        ChoiceConfigOption{
+          .key = "sieur_de_la_salle",
+          .display_name =
+              "Sieur de La Salle (Exploration Advisor)" },
+        ChoiceConfigOption{
+          .key          = "john_paul_jones",
+          .display_name = "John Paul Jones (Military Advisor)" },
+        ChoiceConfigOption{
+          .key          = "thomas_paine",
+          .display_name = "Thomas Paine (Political Advisor)" },
+        ChoiceConfigOption{
+          .key = "juan_de_sepulveda",
+          .display_name =
+              "Juan de Sepulveda (Religious Advisor)" },
+      } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "thomas_paine" ) );
 
@@ -418,17 +413,17 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     FOR_ENUM( father, e_founding_father )
       player.fathers.has[father] = true;
     player.fathers.has[e_founding_father::adam_smith] = false;
-    W.turn().time_point.year                          = 1700;
+    W.turn().time_point.year                          = 1'700;
     expect_rand( 0, 6, 2 );
     ChoiceConfig const config{
-        .msg =
-            "Which Founding Father shall we appoint as the next "
-            "member of the Continental Congress?",
-        .options = {
-            ChoiceConfigOption{
-                .key          = "adam_smith",
-                .display_name = "Adam Smith (Trade Advisor)" },
-        } };
+      .msg =
+          "Which Founding Father shall we appoint as the next "
+          "member of the Continental Congress?",
+      .options = {
+        ChoiceConfigOption{
+          .key          = "adam_smith",
+          .display_name = "Adam Smith (Trade Advisor)" },
+      } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "adam_smith" ) );
     fathers_copy = player.fathers;

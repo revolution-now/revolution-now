@@ -52,12 +52,12 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, //
-        _, _, _, //
-        _, L, L, //
-        L, L, L, //
-        L, _, L, //
-        L, L, L, //
+      L, L, L, //
+      _, _, _, //
+      _, L, L, //
+      L, L, L, //
+      L, _, L, //
+      L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -116,17 +116,17 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
         "lifts the boycott, which it will not do unless we "
         "agree to pay [33] in back taxes.";
     ChoiceConfig const config{
-        .msg     = expected_msg,
-        .options = {
-            ChoiceConfigOption{
-                .key = "no",
-                .display_name =
-                    "This is taxation without representation!",
-            },
-            ChoiceConfigOption{
-                .key          = "yes",
-                .display_name = "Pay [33].",
-            } } };
+      .msg     = expected_msg,
+      .options = {
+        ChoiceConfigOption{
+          .key = "no",
+          .display_name =
+              "This is taxation without representation!",
+        },
+        ChoiceConfigOption{
+          .key          = "yes",
+          .display_name = "Pay [33].",
+        } } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "no" ) );
 
@@ -146,17 +146,17 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
         "lifts the boycott, which it will not do unless we "
         "agree to pay [33] in back taxes.";
     ChoiceConfig const config{
-        .msg     = expected_msg,
-        .options = {
-            ChoiceConfigOption{
-                .key = "no",
-                .display_name =
-                    "This is taxation without representation!",
-            },
-            ChoiceConfigOption{
-                .key          = "yes",
-                .display_name = "Pay [33].",
-            } } };
+      .msg     = expected_msg,
+      .options = {
+        ChoiceConfigOption{
+          .key = "no",
+          .display_name =
+              "This is taxation without representation!",
+        },
+        ChoiceConfigOption{
+          .key          = "yes",
+          .display_name = "Pay [33].",
+        } } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "yes" ) );
 
@@ -183,19 +183,19 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 
   type = e_commodity::ore;
   player.old_world.market.commodities[type].bid_price = 5;
-  expected                                            = 4000;
+  expected                                            = 4'000;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 
   type = e_commodity::silver;
   player.old_world.market.commodities[type].bid_price = 19;
-  expected                                            = 10000;
+  expected                                            = 10'000;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 
   type = e_commodity::rum;
   player.old_world.market.commodities[type].bid_price = 2;
-  expected                                            = 1500;
+  expected                                            = 1'500;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 }
@@ -255,14 +255,14 @@ TEST_CASE( "[tax] apply_tax_result" ) {
 
   SECTION( "party" ) {
     change = TaxChangeResult::party{
-        .how = TeaParty{
-            .commodity =
-                CommodityInColony{
-                    .colony_id = 1,
-                    .type_and_quantity =
-                        Commodity{ .type     = e_commodity::ore,
-                                   .quantity = 79 } },
-            .rebels_bump = .5 } };
+      .how = TeaParty{
+        .commodity =
+            CommodityInColony{
+              .colony_id = 1,
+              .type_and_quantity =
+                  Commodity{ .type     = e_commodity::ore,
+                             .quantity = 79 } },
+        .rebels_bump = .5 } };
     f();
     REQUIRE( player.old_world.taxes.tax_rate == 50 );
     colony_saved.commodities[e_commodity::ore] = 1;
@@ -329,15 +329,15 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 
   SECTION( "increase_or_party, chooses yes" ) {
     TeaParty const party = TeaParty{
-        .commodity =
-            CommodityInColony{
-                .colony_id = 1,
-                .type_and_quantity =
-                    Commodity{ .type     = e_commodity::cigars,
-                               .quantity = 23 } },
-        .rebels_bump = 0.5 };
+      .commodity =
+          CommodityInColony{
+            .colony_id = 1,
+            .type_and_quantity =
+                Commodity{ .type     = e_commodity::cigars,
+                           .quantity = 23 } },
+      .rebels_bump = 0.5 };
     proposal = TaxChangeProposal::increase_or_party{
-        .amount = 13, .party = party };
+      .amount = 13, .party = party };
     expected = TaxChangeResult::tax_change{ .amount = 13 };
     string const expected_msg =
         "In honor of our marriage to our 8th wife, we have "
@@ -347,16 +347,16 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     // Re-marriage number.
     W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
     ChoiceConfig const config{
-        .msg     = expected_msg,
-        .options = { ChoiceConfigOption{
-                         .key          = "yes",
-                         .display_name = "Kiss pinky ring.",
-                     },
-                     ChoiceConfigOption{
-                         .key = "no",
-                         .display_name =
-                             "Hold '[my colony Cigars party]'!",
-                     } } };
+      .msg     = expected_msg,
+      .options = {
+        ChoiceConfigOption{
+          .key          = "yes",
+          .display_name = "Kiss pinky ring.",
+        },
+        ChoiceConfigOption{
+          .key          = "no",
+          .display_name = "Hold '[my colony Cigars party]'!",
+        } } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "yes" ) );
     REQUIRE( f() == expected );
@@ -365,15 +365,15 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 
   SECTION( "increase_or_party, chooses no" ) {
     TeaParty const party = TeaParty{
-        .commodity =
-            CommodityInColony{
-                .colony_id = 1,
-                .type_and_quantity =
-                    Commodity{ .type     = e_commodity::cigars,
-                               .quantity = 23 } },
-        .rebels_bump = 0.5 };
+      .commodity =
+          CommodityInColony{
+            .colony_id = 1,
+            .type_and_quantity =
+                Commodity{ .type     = e_commodity::cigars,
+                           .quantity = 23 } },
+      .rebels_bump = 0.5 };
     proposal = TaxChangeProposal::increase_or_party{
-        .amount = 13, .party = party };
+      .amount = 13, .party = party };
     expected = TaxChangeResult::party{ .how = party };
     string const expected_msg =
         "In honor of our marriage to our 8th wife, we have "
@@ -383,16 +383,16 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
     // Re-marriage number.
     W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
     ChoiceConfig const config{
-        .msg     = expected_msg,
-        .options = { ChoiceConfigOption{
-                         .key          = "yes",
-                         .display_name = "Kiss pinky ring.",
-                     },
-                     ChoiceConfigOption{
-                         .key = "no",
-                         .display_name =
-                             "Hold '[my colony Cigars party]'!",
-                     } } };
+      .msg     = expected_msg,
+      .options = {
+        ChoiceConfigOption{
+          .key          = "yes",
+          .display_name = "Kiss pinky ring.",
+        },
+        ChoiceConfigOption{
+          .key          = "no",
+          .display_name = "Hold '[my colony Cigars party]'!",
+        } } };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "no" ) );
     REQUIRE( f() == expected );
@@ -481,19 +481,19 @@ TEST_CASE( "[tax] compute_tax_change" ) {
 
             SECTION( "larger than zero" ) {
               player.old_world.taxes.tax_rate = 5;
-              expected = { .next_tax_event_turn = 51,
-                           .proposed_tax_change =
-                               TaxChangeProposal::decrease{
-                                   .amount = 4 } };
+              expected                        = {
+                                       .next_tax_event_turn = 51,
+                                       .proposed_tax_change =
+                    TaxChangeProposal::decrease{ .amount = 4 } };
               REQUIRE( f() == expected );
             }
 
             SECTION( "capped" ) {
               player.old_world.taxes.tax_rate = 3;
-              expected = { .next_tax_event_turn = 51,
-                           .proposed_tax_change =
-                               TaxChangeProposal::decrease{
-                                   .amount = 3 } };
+              expected                        = {
+                                       .next_tax_event_turn = 51,
+                                       .proposed_tax_change =
+                    TaxChangeProposal::decrease{ .amount = 3 } };
               REQUIRE( f() == expected );
             }
           }
@@ -517,7 +517,7 @@ TEST_CASE( "[tax] compute_tax_change" ) {
                 expected = { .next_tax_event_turn = 51,
                              .proposed_tax_change =
                                  TaxChangeProposal::increase{
-                                     .amount = 3 } };
+                                   .amount = 3 } };
                 REQUIRE( f() == expected );
               }
 
@@ -547,20 +547,19 @@ TEST_CASE( "[tax] compute_tax_change" ) {
                     .returns( .7 );
 
                 TeaParty const party{
-                    .commodity =
-                        CommodityInColony{
-                            .colony_id = 2,
-                            .type_and_quantity =
-                                Commodity{
-                                    .type =
-                                        e_commodity::trade_goods,
-                                    .quantity = 80 } },
-                    .rebels_bump = .7 };
+                  .commodity =
+                      CommodityInColony{
+                        .colony_id = 2,
+                        .type_and_quantity =
+                            Commodity{
+                              .type = e_commodity::trade_goods,
+                              .quantity = 80 } },
+                  .rebels_bump = .7 };
                 expected = {
-                    .next_tax_event_turn = 51,
-                    .proposed_tax_change =
-                        TaxChangeProposal::increase_or_party{
-                            .amount = 3, .party = party } };
+                  .next_tax_event_turn = 51,
+                  .proposed_tax_change =
+                      TaxChangeProposal::increase_or_party{
+                        .amount = 3, .party = party } };
                 REQUIRE( f() == expected );
               }
             }
@@ -629,17 +628,17 @@ TEST_CASE(
   W.rand().EXPECT__between_doubles( 0.0, 1.0 ).returns( .7 );
 
   TeaParty const party{
-      .commodity =
-          CommodityInColony{
-              .colony_id = 2,
-              .type_and_quantity =
-                  Commodity{ .type     = e_commodity::muskets,
-                             .quantity = 1 } },
-      .rebels_bump = .7 };
-  expected = { .next_tax_event_turn = 51,
-               .proposed_tax_change =
-                   TaxChangeProposal::increase_or_party{
-                       .amount = 3, .party = party } };
+    .commodity =
+        CommodityInColony{
+          .colony_id = 2,
+          .type_and_quantity =
+              Commodity{ .type     = e_commodity::muskets,
+                         .quantity = 1 } },
+    .rebels_bump = .7 };
+  expected = {
+    .next_tax_event_turn = 51,
+    .proposed_tax_change = TaxChangeProposal::increase_or_party{
+      .amount = 3, .party = party } };
   REQUIRE( f() == expected );
 }
 
@@ -710,17 +709,16 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   // Re-marriage number.
   W.rand().EXPECT__between_ints( 1, 3 ).returns( 2 );
   ChoiceConfig const config{
-      .msg     = expected_msg,
-      .options = {
-          ChoiceConfigOption{
-              .key          = "yes",
-              .display_name = "Kiss pinky ring.",
-          },
-          ChoiceConfigOption{
-              .key = "no",
-              .display_name =
-                  "Hold '[my colony 2 Trade Goods party]'!",
-          } } };
+    .msg     = expected_msg,
+    .options = { ChoiceConfigOption{
+                   .key          = "yes",
+                   .display_name = "Kiss pinky ring.",
+                 },
+                 ChoiceConfigOption{
+                   .key = "no",
+                   .display_name =
+                       "Hold '[my colony 2 Trade Goods party]'!",
+                 } } };
   W.gui().EXPECT__choice( config ).returns(
       make_wait<maybe<string>>( "no" ) );
   REQUIRE( player.old_world.taxes.tax_rate == 72 );
@@ -784,8 +782,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
                   .maximum_tax_rate );
 
   expected = {
-      .next_tax_event_turn = 51,
-      .proposed_tax_change = TaxChangeProposal::none{} };
+    .next_tax_event_turn = 51,
+    .proposed_tax_change = TaxChangeProposal::none{} };
 
   REQUIRE( f() == expected );
 }

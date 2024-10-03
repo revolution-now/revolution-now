@@ -115,7 +115,7 @@ TEST_CASE( "[teaching] sync_colony_teachers" ) {
 
   SECTION( "mixed" ) {
     colony.indoor_jobs[e_indoor_job::teacher] = {
-        UnitId{ 6 }, UnitId{ 4 }, UnitId{ 3 } };
+      UnitId{ 6 }, UnitId{ 4 }, UnitId{ 3 } };
     sync_colony_teachers( colony );
     expected = { { UnitId{ 6 }, 2 },
                  { UnitId{ 4 }, 0 },
@@ -241,9 +241,9 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
                             e_unit_type::master_carpenter )
             .id();
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
     REQUIRE( f() == expected );
@@ -251,16 +251,16 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::taught_no_one{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action = TeacherAction::taught_no_one{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
     // Another round.
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
     REQUIRE( f() == expected );
@@ -268,9 +268,9 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::taught_no_one{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action = TeacherAction::taught_no_one{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
   }
@@ -285,9 +285,9 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
             .id();
     // First round goes to indentured servant.
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
@@ -296,20 +296,19 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action          = TeacherAction::taught_unit{
-                           .taught_id = UnitId{ 1 },
-                           .from_type = e_unit_type::petty_criminal,
-                           .to_type =
-                      e_unit_type::indentured_servant } } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::taught_unit{
+                     .taught_id = UnitId{ 1 },
+                     .from_type = e_unit_type::petty_criminal,
+                     .to_type   = e_unit_type::indentured_servant } } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
     // Second round goes to free colonist.
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
     REQUIRE( f() == expected );
@@ -317,19 +316,19 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action          = TeacherAction::taught_unit{
-                           .taught_id = UnitId{ 1 },
-                           .from_type = e_unit_type::indentured_servant,
-                           .to_type = e_unit_type::free_colonist } } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::taught_unit{
+                     .taught_id = UnitId{ 1 },
+                     .from_type = e_unit_type::indentured_servant,
+                     .to_type   = e_unit_type::free_colonist } } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
     // Third round goes to master carpenter.
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
     REQUIRE( f() == expected );
@@ -337,20 +336,19 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action          = TeacherAction::taught_unit{
-                           .taught_id = UnitId{ 1 },
-                           .from_type = e_unit_type::free_colonist,
-                           .to_type =
-                      e_unit_type::master_carpenter } } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::taught_unit{
+                     .taught_id = UnitId{ 1 },
+                     .from_type = e_unit_type::free_colonist,
+                     .to_type   = e_unit_type::master_carpenter } } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
     // Last round does nothing.
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 1 } } );
     REQUIRE( f() == expected );
@@ -358,9 +356,9 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::taught_no_one{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action = TeacherAction::taught_no_one{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers == TM{ { teacher1, 0 } } );
   }
@@ -393,10 +391,10 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
             .id();
     // First round goes to indentured servant.
     expected = { .teachers = {
-                     { .teacher_unit_id = teacher1,
-                       .action = TeacherAction::in_progress{} },
-                     { .teacher_unit_id = teacher2,
-                       .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher1,
+                     .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher2,
+                     .action = TeacherAction::in_progress{} },
                  } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
@@ -408,18 +406,17 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 3 }, { teacher2, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action =
-                  TeacherAction::taught_unit{
-                      // Takes from the back.
-                      .taught_id = teachable1,
-                      .from_type =
-                          e_unit_type::indentured_servant,
-                      .to_type = e_unit_type::free_colonist } },
-            { .teacher_unit_id = teacher2,
-              .action          = TeacherAction::in_progress{} },
-        } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action =
+              TeacherAction::taught_unit{
+                // Takes from the back.
+                .taught_id = teachable1,
+                .from_type = e_unit_type::indentured_servant,
+                .to_type   = e_unit_type::free_colonist } },
+        { .teacher_unit_id = teacher2,
+          .action          = TeacherAction::in_progress{} },
+      } };
     // We want teachable2, teachable3, teachable1, and then it
     // takes from the back.
     expect_shuffle( W.rand(), { 1, 2, 0 } );
@@ -428,10 +425,10 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
              TM{ { teacher1, 0 }, { teacher2, 4 } } );
     // Next round will end up teaching the remaining two.
     expected = { .teachers = {
-                     { .teacher_unit_id = teacher1,
-                       .action = TeacherAction::in_progress{} },
-                     { .teacher_unit_id = teacher2,
-                       .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher1,
+                     .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher2,
+                     .action = TeacherAction::in_progress{} },
                  } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
@@ -443,20 +440,18 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 3 }, { teacher2, 7 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action =
-                  TeacherAction::taught_unit{
-                      .taught_id = teachable2,
-                      .from_type = e_unit_type::free_colonist,
-                      .to_type =
-                          e_unit_type::master_carpenter } },
-            { .teacher_unit_id = teacher2,
-              .action          = TeacherAction::taught_unit{
-                           .taught_id = teachable1,
-                           .from_type = e_unit_type::free_colonist,
-                           .to_type =
-                      e_unit_type::elder_statesman } } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action =
+              TeacherAction::taught_unit{
+                .taught_id = teachable2,
+                .from_type = e_unit_type::free_colonist,
+                .to_type   = e_unit_type::master_carpenter } },
+        { .teacher_unit_id = teacher2,
+          .action          = TeacherAction::taught_unit{
+                     .taught_id = teachable1,
+                     .from_type = e_unit_type::free_colonist,
+                     .to_type   = e_unit_type::elder_statesman } } } };
     // We want teachable3, teachable1, teachable2, and then it
     // takes from the back.
     expect_shuffle( W.rand(), { 2, 0, 1 } );
@@ -465,10 +460,10 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
              TM{ { teacher1, 0 }, { teacher2, 0 } } );
     // Next round will teach the remaining colonist.
     expected = { .teachers = {
-                     { .teacher_unit_id = teacher1,
-                       .action = TeacherAction::in_progress{} },
-                     { .teacher_unit_id = teacher2,
-                       .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher1,
+                     .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher2,
+                     .action = TeacherAction::in_progress{} },
                  } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
@@ -480,25 +475,24 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 3 }, { teacher2, 3 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action =
-                  TeacherAction::taught_unit{
-                      .taught_id = teachable3,
-                      .from_type = e_unit_type::free_colonist,
-                      .to_type =
-                          e_unit_type::master_carpenter } },
-            { .teacher_unit_id = teacher2,
-              .action = TeacherAction::in_progress{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action =
+              TeacherAction::taught_unit{
+                .taught_id = teachable3,
+                .from_type = e_unit_type::free_colonist,
+                .to_type   = e_unit_type::master_carpenter } },
+        { .teacher_unit_id = teacher2,
+          .action          = TeacherAction::in_progress{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 0 }, { teacher2, 4 } } );
     // Last round will teach no one.
     expected = { .teachers = {
-                     { .teacher_unit_id = teacher1,
-                       .action = TeacherAction::in_progress{} },
-                     { .teacher_unit_id = teacher2,
-                       .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher1,
+                     .action = TeacherAction::in_progress{} },
+                   { .teacher_unit_id = teacher2,
+                     .action = TeacherAction::in_progress{} },
                  } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
@@ -510,11 +504,11 @@ TEST_CASE( "[teaching] evolve_teachers" ) {
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 3 }, { teacher2, 7 } } );
     expected = {
-        .teachers = {
-            { .teacher_unit_id = teacher1,
-              .action = TeacherAction::taught_no_one{} },
-            { .teacher_unit_id = teacher2,
-              .action = TeacherAction::taught_no_one{} } } };
+      .teachers = {
+        { .teacher_unit_id = teacher1,
+          .action          = TeacherAction::taught_no_one{} },
+        { .teacher_unit_id = teacher2,
+          .action = TeacherAction::taught_no_one{} } } };
     REQUIRE( f() == expected );
     REQUIRE( colony.teachers ==
              TM{ { teacher1, 0 }, { teacher2, 0 } } );

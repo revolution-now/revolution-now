@@ -216,52 +216,52 @@ TEST_CASE( "[map-square] effective_terrain" ) {
   e_terrain expected;
 
   square = MapSquare{
-      .surface         = e_surface::water,
-      .ground_resource = e_natural_resource::fish,
-      .sea_lane        = true,
+    .surface         = e_surface::water,
+    .ground_resource = e_natural_resource::fish,
+    .sea_lane        = true,
   };
   expected = e_terrain::ocean;
   REQUIRE( effective_terrain( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .road    = true,
   };
   expected = e_terrain::savannah;
   REQUIRE( effective_terrain( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::forest,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::forest,
+    .road    = true,
   };
   expected = e_terrain::tropical;
   REQUIRE( effective_terrain( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::hills,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::hills,
+    .road    = true,
   };
   expected = e_terrain::hills;
   REQUIRE( effective_terrain( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::mountains,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::mountains,
+    .road    = true,
   };
   expected = e_terrain::mountains;
   REQUIRE( effective_terrain( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::arctic,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::arctic,
+    .road    = true,
   };
   expected = e_terrain::arctic;
   REQUIRE( effective_terrain( square ) == expected );
@@ -272,48 +272,48 @@ TEST_CASE( "[map-square] has_forest" ) {
   bool      expected;
 
   square = MapSquare{
-      .surface         = e_surface::water,
-      .forest_resource = e_natural_resource::fish,
+    .surface         = e_surface::water,
+    .forest_resource = e_natural_resource::fish,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .road    = true,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::forest,
-      .road    = true,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::forest,
+    .road    = true,
   };
   expected = true;
   REQUIRE( has_forest( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::hills,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::hills,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
-      .overlay = e_land_overlay::mountains,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
+    .overlay = e_land_overlay::mountains,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
 
   square = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::arctic,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::arctic,
   };
   expected = false;
   REQUIRE( has_forest( square ) == expected );
@@ -323,10 +323,10 @@ TEST_CASE( "[map-square] clear_forest" ) {
   MapSquare square, expected;
 
   square = expected = MapSquare{
-      .surface         = e_surface::land,
-      .ground          = e_ground_terrain::savannah,
-      .overlay         = e_land_overlay::forest,
-      .forest_resource = e_natural_resource::beaver,
+    .surface         = e_surface::land,
+    .ground          = e_ground_terrain::savannah,
+    .overlay         = e_land_overlay::forest,
+    .forest_resource = e_natural_resource::beaver,
   };
   expected.overlay = nothing;
   REQUIRE( effective_terrain( expected ) ==
@@ -337,9 +337,9 @@ TEST_CASE( "[map-square] clear_forest" ) {
   REQUIRE( square == expected );
 
   square = expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::desert,
-      .overlay = e_land_overlay::forest,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::desert,
+    .overlay = e_land_overlay::forest,
   };
   expected.overlay = nothing;
   REQUIRE( effective_terrain( expected ) == e_terrain::desert );
@@ -353,16 +353,16 @@ TEST_CASE( "[map-square] irrigate" ) {
   MapSquare square, expected;
 
   square = expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::savannah,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::savannah,
   };
   expected.irrigation = true;
   irrigate( square );
   REQUIRE( square == expected );
 
   square = expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::desert,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::desert,
   };
   expected.irrigation = true;
   irrigate( square );
@@ -374,58 +374,58 @@ TEST_CASE( "[map-square] map_square_for_terrain" ) {
 
   square   = map_square_for_terrain( e_terrain::ocean );
   expected = MapSquare{
-      .surface = e_surface::water,
+    .surface = e_surface::water,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::arctic );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::arctic,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::arctic,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::grassland );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::grassland,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::grassland,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::conifer );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::grassland,
-      .overlay = e_land_overlay::forest,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::grassland,
+    .overlay = e_land_overlay::forest,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::prairie );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::prairie,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::prairie,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::broadleaf );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .ground  = e_ground_terrain::prairie,
-      .overlay = e_land_overlay::forest,
+    .surface = e_surface::land,
+    .ground  = e_ground_terrain::prairie,
+    .overlay = e_land_overlay::forest,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::hills );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .overlay = e_land_overlay::hills,
+    .surface = e_surface::land,
+    .overlay = e_land_overlay::hills,
   };
   REQUIRE( square == expected );
 
   square   = map_square_for_terrain( e_terrain::mountains );
   expected = MapSquare{
-      .surface = e_surface::land,
-      .overlay = e_land_overlay::mountains,
+    .surface = e_surface::land,
+    .overlay = e_land_overlay::mountains,
   };
   REQUIRE( square == expected );
 }
@@ -438,45 +438,45 @@ TEST_CASE( "[map-square] effective_resource" ) {
   REQUIRE( effective_resource( square ) == nothing );
 
   square = MapSquare{
-      .overlay = e_land_overlay::forest,
+    .overlay = e_land_overlay::forest,
   };
   REQUIRE( effective_resource( square ) == nothing );
 
   square = MapSquare{
-      .ground_resource = e_natural_resource::fish,
+    .ground_resource = e_natural_resource::fish,
   };
   expected = e_natural_resource::fish;
   REQUIRE( effective_resource( square ) == expected );
 
   square = MapSquare{
-      .overlay         = e_land_overlay::forest,
-      .ground_resource = e_natural_resource::cotton,
+    .overlay         = e_land_overlay::forest,
+    .ground_resource = e_natural_resource::cotton,
   };
   REQUIRE( effective_resource( square ) == nothing );
 
   square = MapSquare{
-      .forest_resource = e_natural_resource::beaver,
+    .forest_resource = e_natural_resource::beaver,
   };
   REQUIRE( effective_resource( square ) == nothing );
 
   square = MapSquare{
-      .overlay         = e_land_overlay::forest,
-      .forest_resource = e_natural_resource::beaver,
+    .overlay         = e_land_overlay::forest,
+    .forest_resource = e_natural_resource::beaver,
   };
   expected = e_natural_resource::beaver;
   REQUIRE( effective_resource( square ) == expected );
 
   square = MapSquare{
-      .ground_resource = e_natural_resource::cotton,
-      .forest_resource = e_natural_resource::beaver,
+    .ground_resource = e_natural_resource::cotton,
+    .forest_resource = e_natural_resource::beaver,
   };
   expected = e_natural_resource::cotton;
   REQUIRE( effective_resource( square ) == expected );
 
   square = MapSquare{
-      .overlay         = e_land_overlay::forest,
-      .ground_resource = e_natural_resource::cotton,
-      .forest_resource = e_natural_resource::beaver,
+    .overlay         = e_land_overlay::forest,
+    .ground_resource = e_natural_resource::cotton,
+    .forest_resource = e_natural_resource::beaver,
   };
   expected = e_natural_resource::beaver;
   REQUIRE( effective_resource( square ) == expected );

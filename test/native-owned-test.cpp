@@ -55,16 +55,16 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        _, L, L, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        L, L, _, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
-        L, L, L, L, L, L, L, L, L, L, //
+      _, L, _, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      _, L, L, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      L, L, _, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
+      L, L, L, L, L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 10 );
   }
@@ -187,11 +187,11 @@ TEST_CASE( "[native-owned] native_owned_land_around_square" ) {
 
   tribe.relationship[player.nation].encountered = true;
   expected                                      = {
-      { e_direction::nw, dwelling.id },
-      { e_direction::n, dwelling.id },
-      { e_direction::w, dwelling.id },
-      { e_direction::e, dwelling.id },
-      { e_direction::s, dwelling.id },
+    { e_direction::nw, dwelling.id },
+    { e_direction::n, dwelling.id },
+    { e_direction::w, dwelling.id },
+    { e_direction::e, dwelling.id },
+    { e_direction::s, dwelling.id },
   };
   REQUIRE( f() == expected );
 
@@ -927,7 +927,7 @@ TEST_CASE(
   TribeRelationship& relationship =
       tribe.relationship[player.nation];
   relationship.encountered = true;
-  player.money             = 1000;
+  player.money             = 1'000;
 
   // Mark some tiles as owned.
   for( int y = 0; y < 7; ++y )
@@ -949,7 +949,7 @@ TEST_CASE(
     tile                = { .x = 2, .y = 2 };
     relationship.at_war = true;
     REQUIRE( f() == true );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE_FALSE(
         is_land_native_owned( W.ss(), W.default_player(), tile )
@@ -963,7 +963,7 @@ TEST_CASE(
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
         nothing );
     REQUIRE( f() == false );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
@@ -994,7 +994,7 @@ TEST_CASE(
         .EXPECT__choice( std::move( config_matcher ) )
         .returns<maybe<string>>( "cancel" );
     REQUIRE( f() == false );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
@@ -1093,7 +1093,7 @@ TEST_CASE(
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
         "cancel" );
     REQUIRE( f() == false );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
@@ -1106,7 +1106,7 @@ TEST_CASE(
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
         "cancel" );
     REQUIRE( f() == false );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );
@@ -1119,7 +1119,7 @@ TEST_CASE(
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>(
         "cancel" );
     REQUIRE( f() == false );
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( relationship.land_squares_paid_for == 0 );
     REQUIRE( is_land_native_owned( W.ss(), W.default_player(),
                                    tile ) );

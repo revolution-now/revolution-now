@@ -232,33 +232,33 @@ TEST_CASE(
     SECTION( "conifer forest" ) {
       W.add_forest( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 6,
-                            .raw_delta_theoretical = 6,
-                            .raw_delta_final       = 6,
+                          .raw_produced          = 6,
+                          .raw_delta_theoretical = 6,
+                          .raw_delta_final       = 6,
                         } );
 
       // With road.
       W.add_road( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 8,
-                            .raw_delta_theoretical = 8,
-                            .raw_delta_final       = 8,
+                          .raw_produced          = 8,
+                          .raw_delta_theoretical = 8,
+                          .raw_delta_final       = 8,
                         } );
 
       // With minor river.
       W.add_minor_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 10,
-                            .raw_delta_theoretical = 10,
-                            .raw_delta_final       = 10,
+                          .raw_produced          = 10,
+                          .raw_delta_theoretical = 10,
+                          .raw_delta_final       = 10,
                         } );
 
       // With major river.
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 12,
-                            .raw_delta_theoretical = 12,
-                            .raw_delta_final       = 12,
+                          .raw_produced          = 12,
+                          .raw_delta_theoretical = 12,
+                          .raw_delta_final       = 12,
                         } );
     }
     SECTION( "mountains" ) {
@@ -301,33 +301,33 @@ TEST_CASE(
     SECTION( "conifer forest" ) {
       W.add_forest( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 6,
-                            .raw_delta_theoretical = 6,
-                            .raw_delta_final       = 6,
+                          .raw_produced          = 6,
+                          .raw_delta_theoretical = 6,
+                          .raw_delta_final       = 6,
                         } );
 
       // With road.
       W.add_road( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 8,
-                            .raw_delta_theoretical = 8,
-                            .raw_delta_final       = 8,
+                          .raw_produced          = 8,
+                          .raw_delta_theoretical = 8,
+                          .raw_delta_final       = 8,
                         } );
 
       // With minor river.
       W.add_minor_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 10,
-                            .raw_delta_theoretical = 10,
-                            .raw_delta_final       = 10,
+                          .raw_produced          = 10,
+                          .raw_delta_theoretical = 10,
+                          .raw_delta_final       = 10,
                         } );
 
       // With major river.
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 12,
-                            .raw_delta_theoretical = 12,
-                            .raw_delta_final       = 12,
+                          .raw_produced          = 12,
+                          .raw_delta_theoretical = 12,
+                          .raw_delta_final       = 12,
                         } );
     }
     SECTION( "mountains" ) {
@@ -370,33 +370,33 @@ TEST_CASE(
     SECTION( "conifer forest" ) {
       W.add_forest( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 6,
-                            .raw_delta_theoretical = 6,
-                            .raw_delta_final       = 6,
+                          .raw_produced          = 6,
+                          .raw_delta_theoretical = 6,
+                          .raw_delta_final       = 6,
                         } );
 
       // With road.
       W.add_road( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 8,
-                            .raw_delta_theoretical = 8,
-                            .raw_delta_final       = 8,
+                          .raw_produced          = 8,
+                          .raw_delta_theoretical = 8,
+                          .raw_delta_final       = 8,
                         } );
 
       // With minor river.
       W.add_minor_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 10,
-                            .raw_delta_theoretical = 10,
-                            .raw_delta_final       = 10,
+                          .raw_produced          = 10,
+                          .raw_delta_theoretical = 10,
+                          .raw_delta_final       = 10,
                         } );
 
       // With major river.
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 12,
-                            .raw_delta_theoretical = 12,
-                            .raw_delta_final       = 12,
+                          .raw_produced          = 12,
+                          .raw_delta_theoretical = 12,
+                          .raw_delta_final       = 12,
                         } );
     }
     SECTION( "mountains" ) {
@@ -439,33 +439,33 @@ TEST_CASE(
     SECTION( "conifer forest" ) {
       W.add_forest( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 12,
-                            .raw_delta_theoretical = 12,
-                            .raw_delta_final       = 12,
+                          .raw_produced          = 12,
+                          .raw_delta_theoretical = 12,
+                          .raw_delta_final       = 12,
                         } );
 
       // With road.
       W.add_road( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 16,
-                            .raw_delta_theoretical = 16,
-                            .raw_delta_final       = 16,
+                          .raw_produced          = 16,
+                          .raw_delta_theoretical = 16,
+                          .raw_delta_final       = 16,
                         } );
 
       // With minor river.
       W.add_minor_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 20,
-                            .raw_delta_theoretical = 20,
-                            .raw_delta_final       = 20,
+                          .raw_produced          = 20,
+                          .raw_delta_theoretical = 20,
+                          .raw_delta_final       = 20,
                         } );
 
       // With major river.
       W.add_major_river( P );
       REQUIRE( lum() == RawMaterialAndProduct{
-                            .raw_produced          = 24,
-                            .raw_delta_theoretical = 24,
-                            .raw_delta_final       = 24,
+                          .raw_produced          = 24,
+                          .raw_delta_theoretical = 24,
+                          .raw_delta_final       = 24,
                         } );
     }
     SECTION( "mountains" ) {
@@ -511,14 +511,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
     REQUIRE( pr.land_production == LP{} );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -535,14 +535,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 6 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 6,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -560,14 +560,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 6 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -585,14 +585,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 12 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 12,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 12,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -610,14 +610,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 6 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -630,14 +630,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -650,14 +650,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 1,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 1,
-                 .product_delta_final          = 1,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 1,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 1,
+               .product_delta_final          = 1,
              } );
   }
 
@@ -671,14 +671,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -700,14 +700,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 6 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -730,14 +730,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 12 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 12,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 12,
              } );
   }
 
@@ -762,14 +762,14 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
                                   .quantity = 12 } } } );
     REQUIRE( pr.lumber_hammers ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 24,
-                 .raw_delta_final              = -12,
-                 .product_produced_theoretical = 24,
-                 .product_produced_actual      = 24,
-                 .product_delta_final          = 24,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 24,
+               .raw_delta_final              = -12,
+               .product_produced_theoretical = 24,
+               .product_produced_actual      = 24,
+               .product_delta_final          = 24,
              } );
   }
 }
@@ -809,14 +809,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     int const ex = 6;
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = ex,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = ex,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = ex,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = ex,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = ex,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = ex,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 
@@ -841,14 +841,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     int const ex = 7;
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = ex,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = ex,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = ex,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = ex,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = ex,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = ex,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 
@@ -869,14 +869,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     int const ex = 6;
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = ex,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = ex,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = ex,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = ex,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = ex,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = ex,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 
@@ -896,14 +896,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = 6,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = 6,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = 2,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = 6,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = 6,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = 2,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 
@@ -923,14 +923,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = 6,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = 6,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = 0,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = 6,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = 6,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = 0,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 
@@ -950,14 +950,14 @@ TEST_CASE( "[production] silver [discoverer]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.silver == RMP{
-                              .raw_produced                 = 6,
-                              .raw_consumed_theoretical     = 0,
-                              .raw_delta_theoretical        = 6,
-                              .raw_consumed_actual          = 0,
-                              .raw_delta_final              = 0,
-                              .product_produced_theoretical = 0,
-                              .product_produced_actual      = 0,
-                              .product_delta_final          = 0,
+                            .raw_produced                 = 6,
+                            .raw_consumed_theoretical     = 0,
+                            .raw_delta_theoretical        = 6,
+                            .raw_consumed_actual          = 0,
+                            .raw_delta_final              = 0,
+                            .product_produced_theoretical = 0,
+                            .product_produced_actual      = 0,
+                            .product_delta_final          = 0,
                           } );
   }
 }
@@ -982,14 +982,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 4,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 4,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 4,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1005,14 +1005,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 4,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1027,14 +1027,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 4,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1049,14 +1049,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 4,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1075,14 +1075,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 7,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 7,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 7,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 7,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 7,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 7,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1096,14 +1096,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1119,14 +1119,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1145,14 +1145,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -1171,14 +1171,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -1197,14 +1197,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -1223,14 +1223,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -1250,15 +1250,15 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 2,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 2,
              } );
   }
 
@@ -1278,15 +1278,15 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1306,15 +1306,15 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1334,14 +1334,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -2,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 4,
-                 .product_delta_final          = 4,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -2,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 4,
+               .product_delta_final          = 4,
              } );
   }
 
@@ -1361,14 +1361,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -2,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 4,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -2,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 4,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1397,14 +1397,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 7,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -5,
-                 .raw_consumed_actual          = 7,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 7,
-                 .product_delta_final          = 7,
+               .raw_produced                 = 7,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -5,
+               .raw_consumed_actual          = 7,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 7,
+               .product_delta_final          = 7,
              } );
   }
 
@@ -1433,14 +1433,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 7,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -5,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -5,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 12,
+               .raw_produced                 = 7,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -5,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -5,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 12,
              } );
   }
 
@@ -1468,14 +1468,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 7,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -5,
-                 .raw_consumed_actual          = 7,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 11,
-                 .product_delta_final          = 11,
+               .raw_produced                 = 7,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -5,
+               .raw_consumed_actual          = 7,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 11,
+               .product_delta_final          = 11,
              } );
   }
 
@@ -1503,14 +1503,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 7,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -5,
-                 .raw_consumed_actual          = 9,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 14,
-                 .product_delta_final          = 14,
+               .raw_produced                 = 7,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -5,
+               .raw_consumed_actual          = 9,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 14,
+               .product_delta_final          = 14,
              } );
   }
 
@@ -1538,14 +1538,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 10,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -2,
-                 .raw_consumed_actual          = 10,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 15,
-                 .product_delta_final          = 15,
+               .raw_produced                 = 10,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -2,
+               .raw_consumed_actual          = 10,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 15,
+               .product_delta_final          = 15,
              } );
   }
 
@@ -1578,14 +1578,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 13,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = 1,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = 1,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 18,
+               .raw_produced                 = 13,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = 1,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = 1,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 18,
              } );
   }
 
@@ -1618,14 +1618,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 13,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = 1,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 18,
+               .raw_produced                 = 13,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = 1,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 18,
              } );
   }
 
@@ -1660,14 +1660,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 13,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -11,
-                 .raw_consumed_actual          = 24,
-                 .raw_delta_final              = -11,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 36,
-                 .product_delta_final          = 36,
+               .raw_produced                 = 13,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -11,
+               .raw_consumed_actual          = 24,
+               .raw_delta_final              = -11,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 36,
+               .product_delta_final          = 36,
              } );
   }
 
@@ -1702,14 +1702,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 13,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -11,
-                 .raw_consumed_actual          = 15,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 23,
-                 .product_delta_final          = 23,
+               .raw_produced                 = 13,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -11,
+               .raw_consumed_actual          = 15,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 23,
+               .product_delta_final          = 23,
              } );
   }
 
@@ -1744,14 +1744,14 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 4 } );
     REQUIRE( pr.tobacco_cigars ==
              RMP{
-                 .raw_produced                 = 13,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -11,
-                 .raw_consumed_actual          = 15,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 23,
-                 .product_delta_final          = 10,
+               .raw_produced                 = 13,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -11,
+               .raw_consumed_actual          = 15,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 23,
+               .product_delta_final          = 10,
              } );
   }
 }
@@ -1776,14 +1776,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 3,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 3,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1798,14 +1798,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1820,14 +1820,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1842,14 +1842,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1868,14 +1868,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 6,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1889,14 +1889,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1912,14 +1912,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -1937,14 +1937,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -1963,14 +1963,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -1989,14 +1989,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -2015,14 +2015,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -2042,15 +2042,15 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 2,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 2,
              } );
   }
 
@@ -2070,15 +2070,15 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -2098,15 +2098,15 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced             = 0,
-                 .raw_consumed_theoretical = 6,
-                 .raw_delta_theoretical    = -6,
-                 // No backpressure.
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
+               .raw_produced             = 0,
+               .raw_consumed_theoretical = 6,
+               .raw_delta_theoretical    = -6,
+               // No backpressure.
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -2126,14 +2126,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -2153,14 +2153,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -2188,14 +2188,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -2223,14 +2223,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 12,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 12,
              } );
   }
 
@@ -2258,14 +2258,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 9,
-                 .product_delta_final          = 9,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 9,
+               .product_delta_final          = 9,
              } );
   }
 
@@ -2293,14 +2293,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 8,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 12,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 8,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 12,
              } );
   }
 
@@ -2328,14 +2328,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 9,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 9,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 14,
-                 .product_delta_final          = 14,
+               .raw_produced                 = 9,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -3,
+               .raw_consumed_actual          = 9,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 14,
+               .product_delta_final          = 14,
              } );
   }
 
@@ -2368,14 +2368,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 18,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 18,
              } );
   }
 
@@ -2408,14 +2408,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 18,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 18,
              } );
   }
 
@@ -2450,14 +2450,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 24,
-                 .raw_delta_final              = -12,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 36,
-                 .product_delta_final          = 36,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 24,
+               .raw_delta_final              = -12,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 36,
+               .product_delta_final          = 36,
              } );
   }
 
@@ -2492,14 +2492,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 14,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 21,
-                 .product_delta_final          = 21,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 14,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 21,
+               .product_delta_final          = 21,
              } );
   }
 
@@ -2534,14 +2534,14 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
         SP{ .what = e_outdoor_job::cotton, .quantity = 3 } );
     REQUIRE( pr.cotton_cloth ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 14,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 21,
-                 .product_delta_final          = 10,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 14,
+               .raw_delta_final              = -2,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 21,
+               .product_delta_final          = 10,
              } );
   }
 }
@@ -2565,21 +2565,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 0 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 2,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 2,
-                 .food_consumed_by_colonists_theoretical = 0,
-                 .food_consumed_by_colonists_actual      = 0,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 2,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 2,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 2,
+               .fish_produced                          = 0,
+               .food_produced                          = 2,
+               .food_consumed_by_colonists_theoretical = 0,
+               .food_consumed_by_colonists_actual      = 0,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 2,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 2,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2591,21 +2591,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 0,
-                 .food_consumed_by_colonists_actual      = 0,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 5,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 3,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 5,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 0,
+               .food_consumed_by_colonists_actual      = 0,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 5,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 3,
+               .max_new_horses_allowed                 = 3,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 5,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2618,21 +2618,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 0,
-                 .food_consumed_by_colonists_actual      = 0,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 5,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 3,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 5,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 0,
+               .food_consumed_by_colonists_actual      = 0,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 5,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 3,
+               .max_new_horses_allowed                 = 3,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 5,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2650,21 +2650,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 8,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 8,
-                 .food_consumed_by_colonists_theoretical = 2,
-                 .food_consumed_by_colonists_actual      = 2,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 6,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 3,
-                 .max_new_horses_allowed                 = 3,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 6,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 8,
+               .fish_produced                          = 0,
+               .food_produced                          = 8,
+               .food_consumed_by_colonists_theoretical = 2,
+               .food_consumed_by_colonists_actual      = 2,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 6,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 3,
+               .max_new_horses_allowed                 = 3,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 6,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2682,21 +2682,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 6,
-                 .food_produced                          = 11,
-                 .food_consumed_by_colonists_theoretical = 2,
-                 .food_consumed_by_colonists_actual      = 2,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 9,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 5,
-                 .max_new_horses_allowed                 = 5,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 9,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 6,
+               .food_produced                          = 11,
+               .food_consumed_by_colonists_theoretical = 2,
+               .food_consumed_by_colonists_actual      = 2,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 9,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 5,
+               .max_new_horses_allowed                 = 5,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 9,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2718,21 +2718,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 8,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 8,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 8,
+               .fish_produced                          = 0,
+               .food_produced                          = 8,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2755,21 +2755,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 8,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 8,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 2,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 8,
+               .fish_produced                          = 0,
+               .food_produced                          = 8,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 2,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2792,21 +2792,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 1,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2829,21 +2829,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 2,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 1,
-                 .food_consumed_by_horses                = 1,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 1,
+               .horses_produced_theoretical            = 2,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 1,
+               .food_consumed_by_horses                = 1,
+               .horses_delta_final                     = 1,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2865,21 +2865,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 6,
-                 .food_produced                          = 11,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 3,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 6,
+               .food_produced                          = 11,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 3,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2901,21 +2901,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 2,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 2,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 2,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2937,21 +2937,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 2,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -2974,21 +2974,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 1,
-                 .food_consumed_by_horses                = 1,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 1,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 1,
+               .food_consumed_by_horses                = 1,
+               .horses_delta_final                     = 1,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3010,21 +3010,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 1,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3046,21 +3046,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3083,21 +3083,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 2,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3120,21 +3120,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 9,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 9,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 3,
-                 .horses_produced_theoretical            = 8,
-                 .max_horse_food_consumption_allowed     = 2,
-                 .max_new_horses_allowed                 = 2,
-                 .horses_produced_actual                 = 2,
-                 .food_consumed_by_horses                = 2,
-                 .horses_delta_final                     = 2,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 9,
+               .fish_produced                          = 0,
+               .food_produced                          = 9,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 3,
+               .horses_produced_theoretical            = 8,
+               .max_horse_food_consumption_allowed     = 2,
+               .max_new_horses_allowed                 = 2,
+               .horses_produced_actual                 = 2,
+               .food_consumed_by_horses                = 2,
+               .horses_delta_final                     = 2,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3153,21 +3153,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = -1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = -1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3186,21 +3186,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 8,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = -3,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 8,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = -3,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3217,21 +3217,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 5,
-                 .food_deficit                           = 3,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = true,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 5,
+               .food_deficit                           = 3,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = true,
              } );
   }
 
@@ -3249,21 +3249,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 5,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 5,
-                 .food_consumed_by_colonists_theoretical = 8,
-                 .food_consumed_by_colonists_actual      = 5,
-                 .food_deficit                           = 3,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 4,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = true,
+               .corn_produced                          = 5,
+               .fish_produced                          = 0,
+               .food_produced                          = 5,
+               .food_consumed_by_colonists_theoretical = 8,
+               .food_consumed_by_colonists_actual      = 5,
+               .food_deficit                           = 3,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 4,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = true,
              } );
   }
 
@@ -3300,21 +3300,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 13,
-                 .fish_produced                          = 10,
-                 .food_produced                          = 23,
-                 .food_consumed_by_colonists_theoretical = 14,
-                 .food_consumed_by_colonists_actual      = 14,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 9,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 5,
-                 .max_new_horses_allowed                 = 5,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 9,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 13,
+               .fish_produced                          = 10,
+               .food_produced                          = 23,
+               .food_consumed_by_colonists_theoretical = 14,
+               .food_consumed_by_colonists_actual      = 14,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 9,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 5,
+               .max_new_horses_allowed                 = 5,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 9,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3354,21 +3354,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 13,
-                 .fish_produced                          = 10,
-                 .food_produced                          = 23,
-                 .food_consumed_by_colonists_theoretical = 10,
-                 .food_consumed_by_colonists_actual      = 10,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 13,
-                 .horses_produced_theoretical            = 12,
-                 .max_horse_food_consumption_allowed     = 7,
-                 .max_new_horses_allowed                 = 7,
-                 .horses_produced_actual                 = 7,
-                 .food_consumed_by_horses                = 7,
-                 .horses_delta_final                     = 7,
-                 .food_delta_final                       = 6,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 13,
+               .fish_produced                          = 10,
+               .food_produced                          = 23,
+               .food_consumed_by_colonists_theoretical = 10,
+               .food_consumed_by_colonists_actual      = 10,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 13,
+               .horses_produced_theoretical            = 12,
+               .max_horse_food_consumption_allowed     = 7,
+               .max_new_horses_allowed                 = 7,
+               .horses_produced_actual                 = 7,
+               .food_consumed_by_horses                = 7,
+               .horses_delta_final                     = 7,
+               .food_delta_final                       = 6,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3395,21 +3395,21 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 8,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 8,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 2,
-                 .horses_produced_theoretical            = 16,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 1,
-                 .food_consumed_by_horses                = 1,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 8,
+               .fish_produced                          = 0,
+               .food_produced                          = 8,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 2,
+               .horses_produced_theoretical            = 16,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 1,
+               .food_consumed_by_horses                = 1,
+               .horses_delta_final                     = 1,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 }
@@ -3436,21 +3436,21 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
     REQUIRE( pr.center_food_production == 0 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 1,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 1,
-                 .food_consumed_by_colonists_theoretical = 0,
-                 .food_consumed_by_colonists_actual      = 0,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 1,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 1,
+               .fish_produced                          = 0,
+               .food_produced                          = 1,
+               .food_consumed_by_colonists_theoretical = 0,
+               .food_consumed_by_colonists_actual      = 0,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 1,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 1,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3477,21 +3477,21 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 7,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 7,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 1,
-                 .horses_produced_theoretical            = 8,
-                 .max_horse_food_consumption_allowed     = 1,
-                 .max_new_horses_allowed                 = 1,
-                 .horses_produced_actual                 = 1,
-                 .food_consumed_by_horses                = 1,
-                 .horses_delta_final                     = 1,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 7,
+               .fish_produced                          = 0,
+               .food_produced                          = 7,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 1,
+               .horses_produced_theoretical            = 8,
+               .max_horse_food_consumption_allowed     = 1,
+               .max_new_horses_allowed                 = 1,
+               .horses_produced_actual                 = 1,
+               .food_consumed_by_horses                = 1,
+               .horses_delta_final                     = 1,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 }
@@ -3518,21 +3518,21 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
     REQUIRE( pr.center_food_production == 0 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 0,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 0,
-                 .food_consumed_by_colonists_theoretical = 0,
-                 .food_consumed_by_colonists_actual      = 0,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 0,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 0,
+               .fish_produced                          = 0,
+               .food_produced                          = 0,
+               .food_consumed_by_colonists_theoretical = 0,
+               .food_consumed_by_colonists_actual      = 0,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 0,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 
@@ -3559,21 +3559,21 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
     REQUIRE( pr.center_food_production == 3 + bonus );
     REQUIRE( pr.food_horses ==
              FP{
-                 .corn_produced                          = 6,
-                 .fish_produced                          = 0,
-                 .food_produced                          = 6,
-                 .food_consumed_by_colonists_theoretical = 6,
-                 .food_consumed_by_colonists_actual      = 6,
-                 .food_deficit                           = 0,
-                 .food_surplus_before_horses             = 0,
-                 .horses_produced_theoretical            = 8,
-                 .max_horse_food_consumption_allowed     = 0,
-                 .max_new_horses_allowed                 = 0,
-                 .horses_produced_actual                 = 0,
-                 .food_consumed_by_horses                = 0,
-                 .horses_delta_final                     = 0,
-                 .food_delta_final                       = 0,
-                 .colonist_starved                       = false,
+               .corn_produced                          = 6,
+               .fish_produced                          = 0,
+               .food_produced                          = 6,
+               .food_consumed_by_colonists_theoretical = 6,
+               .food_consumed_by_colonists_actual      = 6,
+               .food_deficit                           = 0,
+               .food_surplus_before_horses             = 0,
+               .horses_produced_theoretical            = 8,
+               .max_horse_food_consumption_allowed     = 0,
+               .max_new_horses_allowed                 = 0,
+               .horses_produced_actual                 = 0,
+               .food_consumed_by_horses                = 0,
+               .horses_delta_final                     = 0,
+               .food_delta_final                       = 0,
+               .colonist_starved                       = false,
              } );
   }
 }
@@ -3595,27 +3595,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 2,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3627,27 +3626,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 2,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3659,27 +3657,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 1,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 1,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3691,27 +3688,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 0,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3723,27 +3719,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 0,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3760,27 +3755,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.land_production ==
         LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
                                   .quantity = 2 } } } );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 4,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 4,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 4,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 4,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3793,27 +3787,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 0,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 0,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 0,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3830,27 +3823,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 2,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 3,
+                               .raw_delta_theoretical    = -3,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 3,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 2,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3868,27 +3860,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 2,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 2,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3909,27 +3900,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 2,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 2,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 2,
+               .product_delta_final          = 2,
              } );
   }
 
@@ -3947,27 +3937,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 3,
+                               .raw_delta_theoretical    = -3,
+                               .raw_consumed_actual      = 3,
+                               .raw_delta_final          = -3,
+                               .product_produced_theoretical = 3,
+                               .product_produced_actual      = 3,
+                               .product_delta_final          = 3,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 3,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 3,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 3,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 3,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -3986,27 +3975,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 2,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 6,
+                               .raw_delta_final          = -6,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 6,
+                               .product_delta_final          = 2,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4029,27 +4017,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 6,
+                               .raw_delta_final          = -6,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 6,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = 0,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -4068,27 +4055,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4111,27 +4097,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -1,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -1,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -1,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -1,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -4155,27 +4140,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -4,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -4,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -4,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 2,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -4,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 2,
              } );
   }
 
@@ -4199,27 +4183,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 6,
+                               .raw_delta_final          = -6,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 6,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = 3,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = 3,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4238,27 +4221,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4281,27 +4263,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -4,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -4,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -4,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -4,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -4325,27 +4306,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -4,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -4,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -4,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 5,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -4,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 5,
              } );
   }
 
@@ -4369,27 +4349,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = -2,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -4,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = -2,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -4,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -4,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -4,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4404,27 +4383,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 2,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 2,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -4,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 2,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4440,27 +4418,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 2,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 2,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 2,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4480,27 +4457,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 0,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 0,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4521,27 +4497,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.center_extra_production ==
         SP{ .what = e_outdoor_job::tobacco, .quantity = 3 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = -6,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 0,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -6,
+                               .raw_consumed_actual      = 0,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 0,
+                               .product_delta_final = -6,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -4557,27 +4532,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 0,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 2,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -4,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final          = 0,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 2,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 2,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4596,27 +4570,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -1,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 2,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -4,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -1,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -1,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 3,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -1,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 3,
              } );
   }
 
@@ -4636,27 +4609,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
     REQUIRE( pr.center_extra_production ==
              SP{ .what = e_outdoor_job::ore, .quantity = 2 } );
     REQUIRE( pr.land_production == LP{} );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 2,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = -1,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced             = 2,
+                               .raw_consumed_theoretical = 6,
+                               .raw_delta_theoretical    = -4,
+                               .raw_consumed_actual      = 2,
+                               .raw_delta_final          = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 2,
+                               .product_delta_final = -1,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 2,
-                 .raw_consumed_theoretical     = 3,
-                 .raw_delta_theoretical        = -1,
-                 .raw_consumed_actual          = 3,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 3,
-                 .product_produced_actual      = 3,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 2,
+               .raw_consumed_theoretical     = 3,
+               .raw_delta_theoretical        = -1,
+               .raw_consumed_actual          = 3,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 3,
+               .product_produced_actual      = 3,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4681,25 +4653,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 2 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 4,
-                 .product_delta_final          = 4,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 4,
+               .product_delta_final          = 4,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 4,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 4,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 4,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 4,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4728,25 +4700,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 2 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -8,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -8,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 6,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 6,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -4772,25 +4744,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -6,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 12,
-                 .product_delta_final          = 12,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -6,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 12,
+               .product_delta_final          = 12,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 12,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 12,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 12,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 12,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 12,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 12,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4819,25 +4791,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 2 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 4,
-                 .product_delta_final          = -8,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 4,
+               .product_delta_final          = -8,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -8,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 18,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -8,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 18,
              } );
   }
 
@@ -4863,25 +4835,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 2 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 6,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4910,25 +4882,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 2 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -8,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = -3,
+               .raw_produced                 = 4,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -8,
+               .raw_consumed_actual          = 4,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 6,
+               .product_delta_final          = -3,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -6,
-                 .raw_consumed_actual          = 9,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 14,
-                 .product_delta_final          = 14,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -6,
+               .raw_consumed_actual          = 9,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 14,
+               .product_delta_final          = 14,
              } );
   }
 
@@ -4950,27 +4922,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.land_production ==
         LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
                                   .quantity = 2 } } } );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 4,
-                 .raw_consumed_theoretical     = 4,
-                 .raw_delta_theoretical        = 0,
-                 .raw_consumed_actual          = 4,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 4,
+                               .raw_consumed_theoretical     = 4,
+                               .raw_delta_theoretical        = 0,
+                               .raw_consumed_actual          = 4,
+                               .raw_delta_final              = 0,
+                               .product_produced_theoretical = 6,
+                               .product_produced_actual      = 6,
+                               .product_delta_final          = 6,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 6,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 6,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 6,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -4994,27 +4965,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.land_production ==
         LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
                                   .quantity = 4 } } } );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = -1,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 6,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 6,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 6,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final = -1,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 1,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 12,
-                 .product_produced_actual      = 1,
-                 .product_delta_final          = 1,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 1,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 12,
+               .product_produced_actual      = 1,
+               .product_delta_final          = 1,
              } );
   }
 
@@ -5038,27 +5008,26 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
         pr.land_production ==
         LP{ { e_direction::e, SP{ .what     = e_outdoor_job::ore,
                                   .quantity = 4 } } } );
-    REQUIRE( pr.ore_tools ==
-             RMP{
-                 .raw_produced                 = 6,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 6,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 6,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = -1,
-             } );
+    REQUIRE( pr.ore_tools == RMP{
+                               .raw_produced                 = 6,
+                               .raw_consumed_theoretical     = 0,
+                               .raw_delta_theoretical        = 6,
+                               .raw_consumed_actual          = 0,
+                               .raw_delta_final              = 6,
+                               .product_produced_theoretical = 0,
+                               .product_produced_actual      = 0,
+                               .product_delta_final = -1,
+                             } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 0,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -12,
-                 .raw_consumed_actual          = 1,
-                 .raw_delta_final              = -1,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 2,
-                 .product_delta_final          = 2,
+               .raw_produced                 = 0,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -12,
+               .raw_consumed_actual          = 1,
+               .raw_delta_final              = -1,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 2,
+               .product_delta_final          = 2,
              } );
   }
 
@@ -5091,25 +5060,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 18,
-                 .raw_delta_theoretical        = -10,
-                 .raw_consumed_actual          = 18,
-                 .raw_delta_final              = -10,
-                 .product_produced_theoretical = 27,
-                 .product_produced_actual      = 27,
-                 .product_delta_final          = 27,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 18,
+               .raw_delta_theoretical        = -10,
+               .raw_consumed_actual          = 18,
+               .raw_delta_final              = -10,
+               .product_produced_theoretical = 27,
+               .product_produced_actual      = 27,
+               .product_delta_final          = 27,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 27,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 27,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 27,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 27,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 27,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 27,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -5144,25 +5113,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 12,
-                 .raw_delta_theoretical        = -4,
-                 .raw_consumed_actual          = 12,
-                 .raw_delta_final              = -4,
-                 .product_produced_theoretical = 18,
-                 .product_produced_actual      = 18,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 12,
+               .raw_delta_theoretical        = -4,
+               .raw_consumed_actual          = 12,
+               .raw_delta_final              = -4,
+               .product_produced_theoretical = 18,
+               .product_produced_actual      = 18,
+               .product_delta_final          = 0,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 18,
-                 .raw_consumed_theoretical     = 6,
-                 .raw_delta_theoretical        = 12,
-                 .raw_consumed_actual          = 6,
-                 .raw_delta_final              = 0,
-                 .product_produced_theoretical = 6,
-                 .product_produced_actual      = 6,
-                 .product_delta_final          = 6,
+               .raw_produced                 = 18,
+               .raw_consumed_theoretical     = 6,
+               .raw_delta_theoretical        = 12,
+               .raw_consumed_actual          = 6,
+               .raw_delta_final              = 0,
+               .product_produced_theoretical = 6,
+               .product_produced_actual      = 6,
+               .product_delta_final          = 6,
              } );
   }
 
@@ -5195,25 +5164,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 11,
-                 .raw_delta_final              = -3,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 17,
-                 .product_delta_final          = 17,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 11,
+               .raw_delta_final              = -3,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 17,
+               .product_delta_final          = 17,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 17,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 17,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 17,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 17,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 17,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 17,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -5247,25 +5216,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 13,
-                 .raw_delta_final              = -5,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 20,
-                 .product_delta_final          = 2,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 13,
+               .raw_delta_final              = -5,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 20,
+               .product_delta_final          = 2,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 20,
-                 .raw_consumed_theoretical     = 0,
-                 .raw_delta_theoretical        = 20,
-                 .raw_consumed_actual          = 0,
-                 .raw_delta_final              = 2,
-                 .product_produced_theoretical = 0,
-                 .product_produced_actual      = 0,
-                 .product_delta_final          = 0,
+               .raw_produced                 = 20,
+               .raw_consumed_theoretical     = 0,
+               .raw_delta_theoretical        = 20,
+               .raw_consumed_actual          = 0,
+               .raw_delta_final              = 2,
+               .product_produced_theoretical = 0,
+               .product_produced_actual      = 0,
+               .product_delta_final          = 0,
              } );
   }
 
@@ -5306,25 +5275,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 13,
-                 .raw_delta_final              = -5,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 20,
-                 .product_delta_final          = -16,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 13,
+               .raw_delta_final              = -5,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 20,
+               .product_delta_final          = -16,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 20,
-                 .raw_consumed_theoretical     = 36,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 36,
-                 .raw_delta_final              = -16,
-                 .product_produced_theoretical = 54,
-                 .product_produced_actual      = 54,
-                 .product_delta_final          = 54,
+               .raw_produced                 = 20,
+               .raw_consumed_theoretical     = 36,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 36,
+               .raw_delta_final              = -16,
+               .product_produced_theoretical = 54,
+               .product_produced_actual      = 54,
+               .product_delta_final          = 54,
              } );
   }
 
@@ -5367,25 +5336,25 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
                                   .quantity = 4 } } } );
     REQUIRE( pr.ore_tools ==
              RMP{
-                 .raw_produced                 = 8,
-                 .raw_consumed_theoretical     = 24,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 13,
-                 .raw_delta_final              = -5,
-                 .product_produced_theoretical = 36,
-                 .product_produced_actual      = 20,
-                 .product_delta_final          = -16,
+               .raw_produced                 = 8,
+               .raw_consumed_theoretical     = 24,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 13,
+               .raw_delta_final              = -5,
+               .product_produced_theoretical = 36,
+               .product_produced_actual      = 20,
+               .product_delta_final          = -16,
              } );
     REQUIRE( pr.tools_muskets ==
              RMP{
-                 .raw_produced                 = 20,
-                 .raw_consumed_theoretical     = 36,
-                 .raw_delta_theoretical        = -16,
-                 .raw_consumed_actual          = 36,
-                 .raw_delta_final              = -16,
-                 .product_produced_theoretical = 54,
-                 .product_produced_actual      = 54,
-                 .product_delta_final          = 10,
+               .raw_produced                 = 20,
+               .raw_consumed_theoretical     = 36,
+               .raw_delta_theoretical        = -16,
+               .raw_consumed_actual          = 36,
+               .raw_delta_final              = -16,
+               .product_produced_theoretical = 54,
+               .product_produced_actual      = 54,
+               .product_delta_final          = 10,
              } );
   }
 }
@@ -5659,32 +5628,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::se,
-              SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XE ) } },
-            { e_direction::s,
-              SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XE } },
-            { e_direction::sw,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XE } },
-            { e_direction::e,
-              SquareProduction{
-                  .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XE } },
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } },
-            { e_direction::ne,
-              SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XE } },
-            { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::furs,
-                                .quantity = 2 * 2 + XE } },
-            { e_direction::nw,
-              SquareProduction{
-                  .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XE } } } );
+          { e_direction::se,
+            SquareProduction{ .what     = e_outdoor_job::food,
+                              .quantity = ( 5 + 2 + XE ) } },
+          { e_direction::s,
+            SquareProduction{ .what     = e_outdoor_job::ore,
+                              .quantity = ( 2 * 2 ) + XE } },
+          { e_direction::sw,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = ( 3 * 2 ) + XE } },
+          { e_direction::e,
+            SquareProduction{ .what     = e_outdoor_job::silver,
+                              .quantity = ( 1 + 2 ) * 2 + XE } },
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } },
+          { e_direction::ne,
+            SquareProduction{ .what     = e_outdoor_job::lumber,
+                              .quantity = 4 * 2 + XE } },
+          { e_direction::n,
+            SquareProduction{ .what     = e_outdoor_job::furs,
+                              .quantity = 2 * 2 + XE } },
+          { e_direction::nw,
+            SquareProduction{ .what     = e_outdoor_job::fish,
+                              .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "50+% SoL bonus and no tory penalty" ) {
@@ -5768,32 +5735,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::se,
-              SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XE ) } },
-            { e_direction::s,
-              SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XE } },
-            { e_direction::sw,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XE } },
-            { e_direction::e,
-              SquareProduction{
-                  .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XE } },
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } },
-            { e_direction::ne,
-              SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XE } },
-            { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::furs,
-                                .quantity = 2 * 2 + XE } },
-            { e_direction::nw,
-              SquareProduction{
-                  .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XE } } } );
+          { e_direction::se,
+            SquareProduction{ .what     = e_outdoor_job::food,
+                              .quantity = ( 5 + 2 + XE ) } },
+          { e_direction::s,
+            SquareProduction{ .what     = e_outdoor_job::ore,
+                              .quantity = ( 2 * 2 ) + XE } },
+          { e_direction::sw,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = ( 3 * 2 ) + XE } },
+          { e_direction::e,
+            SquareProduction{ .what     = e_outdoor_job::silver,
+                              .quantity = ( 1 + 2 ) * 2 + XE } },
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } },
+          { e_direction::ne,
+            SquareProduction{ .what     = e_outdoor_job::lumber,
+                              .quantity = 4 * 2 + XE } },
+          { e_direction::n,
+            SquareProduction{ .what     = e_outdoor_job::furs,
+                              .quantity = 2 * 2 + XE } },
+          { e_direction::nw,
+            SquareProduction{ .what     = e_outdoor_job::fish,
+                              .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "100% SoL bonus and no tory penalty" ) {
@@ -5877,32 +5842,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::se,
-              SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XE ) } },
-            { e_direction::s,
-              SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XE } },
-            { e_direction::sw,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XE } },
-            { e_direction::e,
-              SquareProduction{
-                  .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XE } },
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } },
-            { e_direction::ne,
-              SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XE } },
-            { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::furs,
-                                .quantity = 2 * 2 + XE } },
-            { e_direction::nw,
-              SquareProduction{
-                  .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XE } } } );
+          { e_direction::se,
+            SquareProduction{ .what     = e_outdoor_job::food,
+                              .quantity = ( 5 + 2 + XE ) } },
+          { e_direction::s,
+            SquareProduction{ .what     = e_outdoor_job::ore,
+                              .quantity = ( 2 * 2 ) + XE } },
+          { e_direction::sw,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = ( 3 * 2 ) + XE } },
+          { e_direction::e,
+            SquareProduction{ .what     = e_outdoor_job::silver,
+                              .quantity = ( 1 + 2 ) * 2 + XE } },
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } },
+          { e_direction::ne,
+            SquareProduction{ .what     = e_outdoor_job::lumber,
+                              .quantity = 4 * 2 + XE } },
+          { e_direction::n,
+            SquareProduction{ .what     = e_outdoor_job::furs,
+                              .quantity = 2 * 2 + XE } },
+          { e_direction::nw,
+            SquareProduction{ .what     = e_outdoor_job::fish,
+                              .quantity = 2 + 2 + 2 + XE } } } );
   }
 
   SECTION( "No SoL bonus and with tory penalty" ) {
@@ -5983,32 +5946,30 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::se,
-              SquareProduction{ .what     = e_outdoor_job::food,
-                                .quantity = ( 5 + 2 + XE ) } },
-            { e_direction::s,
-              SquareProduction{ .what     = e_outdoor_job::ore,
-                                .quantity = ( 2 * 2 ) + XE } },
-            { e_direction::sw,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = ( 3 * 2 ) + XE } },
-            { e_direction::e,
-              SquareProduction{
-                  .what     = e_outdoor_job::silver,
-                  .quantity = ( 1 + 2 ) * 2 + XE } },
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } },
-            { e_direction::ne,
-              SquareProduction{ .what = e_outdoor_job::lumber,
-                                .quantity = 4 * 2 + XE } },
-            { e_direction::n,
-              SquareProduction{ .what     = e_outdoor_job::furs,
-                                .quantity = 2 * 2 + XE } },
-            { e_direction::nw,
-              SquareProduction{
-                  .what     = e_outdoor_job::fish,
-                  .quantity = 2 + 2 + 2 + XE } } } );
+          { e_direction::se,
+            SquareProduction{ .what     = e_outdoor_job::food,
+                              .quantity = ( 5 + 2 + XE ) } },
+          { e_direction::s,
+            SquareProduction{ .what     = e_outdoor_job::ore,
+                              .quantity = ( 2 * 2 ) + XE } },
+          { e_direction::sw,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = ( 3 * 2 ) + XE } },
+          { e_direction::e,
+            SquareProduction{ .what     = e_outdoor_job::silver,
+                              .quantity = ( 1 + 2 ) * 2 + XE } },
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } },
+          { e_direction::ne,
+            SquareProduction{ .what     = e_outdoor_job::lumber,
+                              .quantity = 4 * 2 + XE } },
+          { e_direction::n,
+            SquareProduction{ .what     = e_outdoor_job::furs,
+                              .quantity = 2 * 2 + XE } },
+          { e_direction::nw,
+            SquareProduction{ .what     = e_outdoor_job::fish,
+                              .quantity = 2 + 2 + 2 + XE } } } );
   }
 }
 
@@ -6060,9 +6021,9 @@ TEST_CASE(
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } } } );
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } } } );
   }
 
   SECTION( "50+% SoL bonus and no tory penalty" ) {
@@ -6093,9 +6054,9 @@ TEST_CASE(
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } } } );
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } } } );
   }
 
   SECTION( "100% SoL bonus and no tory penalty" ) {
@@ -6126,9 +6087,9 @@ TEST_CASE(
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } } } );
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } } } );
   }
 
   SECTION( "No SoL bonus and with tory penalty" ) {
@@ -6167,9 +6128,9 @@ TEST_CASE(
     REQUIRE(
         pr.land_production ==
         refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::w,
-              SquareProduction{ .what = e_outdoor_job::tobacco,
-                                .quantity = 0 } } } );
+          { e_direction::w,
+            SquareProduction{ .what     = e_outdoor_job::tobacco,
+                              .quantity = 0 } } } );
   }
 }
 
@@ -6211,12 +6172,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 1 );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 1 } } } );
   }
 
   SECTION( "expert, 50+% SoL bonus and no tory penalty" ) {
@@ -6251,12 +6211,11 @@ TEST_CASE(
     // bonuses in the original game; this game modifies that to
     // allow Sol/tory bonuses/penalties here.
     REQUIRE( pr.silver.raw_produced == 1 + XE );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XE } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 1 + XE } } } );
   }
 
   SECTION( "expert, 100% SoL bonus and no tory penalty" ) {
@@ -6291,12 +6250,11 @@ TEST_CASE(
     // bonuses in the original game; this game modifies that to
     // allow Sol/tory bonuses/penalties here.
     REQUIRE( pr.silver.raw_produced == 1 + XE );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XE } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 1 + XE } } } );
   }
 
   SECTION( "expert, No SoL bonus and with tory penalty" ) {
@@ -6338,12 +6296,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 1 + XE );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 1 + XE } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 1 + XE } } } );
   }
 
   SECTION( "non-expert, no SoL bonus or penalty" ) {
@@ -6368,12 +6325,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 0 );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 0 } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 0 } } } );
   }
 
   SECTION( "non-expert, 50+% SoL bonus and no tory penalty" ) {
@@ -6398,12 +6354,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 0 );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 0 } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 0 } } } );
   }
 
   SECTION( "non-expert, 100% SoL bonus and no tory penalty" ) {
@@ -6428,12 +6383,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 0 );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 0 } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 0 } } } );
   }
 
   SECTION( "non-expert, No SoL bonus and with tory penalty" ) {
@@ -6471,12 +6425,11 @@ TEST_CASE(
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.silver.raw_produced == 0 );
-    REQUIRE(
-        pr.land_production ==
-        refl::enum_map<e_direction, SquareProduction>{
-            { e_direction::e,
-              SquareProduction{ .what = e_outdoor_job::silver,
-                                .quantity = 0 } } } );
+    REQUIRE( pr.land_production ==
+             refl::enum_map<e_direction, SquareProduction>{
+               { e_direction::e,
+                 SquareProduction{ .what = e_outdoor_job::silver,
+                                   .quantity = 0 } } } );
   }
 }
 

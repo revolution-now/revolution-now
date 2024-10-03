@@ -59,9 +59,9 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, //
-        L, L, L, //
-        L, L, L, //
+      L, L, L, //
+      L, L, L, //
+      L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -98,20 +98,19 @@ TEST_CASE( "[raid] raid_unit" ) {
     UnitId const soldier_id = soldier.id();
 
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = brave.id,
-                      .modifiers       = {},
-                      .base_weight     = 1,
-                      .modified_weight = 1,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = soldier.id(),
-            .modifiers       = {},
-            .base_weight     = 2,
-            .modified_weight = 2,
-            .outcome         = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_soldier } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = brave.id,
+                    .modifiers       = {},
+                    .base_weight     = 1,
+                    .modified_weight = 1,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{} },
+      .defender = { .id              = soldier.id(),
+                    .modifiers       = {},
+                    .base_weight     = 2,
+                    .modified_weight = 2,
+                    .outcome = EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } } };
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
@@ -142,21 +141,21 @@ TEST_CASE( "[raid] raid_unit" ) {
     UnitId const soldier_id = soldier.id();
 
     combat = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = brave.id,
-              .modifiers       = {},
-              .base_weight     = 1,
-              .modified_weight = 1,
-              .outcome =
-                  NativeUnitCombatOutcome::promoted{
-                      .to = e_native_unit_type::armed_brave } },
-        .defender = { .id              = soldier.id(),
-                      .modifiers       = {},
-                      .base_weight     = 2,
-                      .modified_weight = 2,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = brave.id,
+            .modifiers       = {},
+            .base_weight     = 1,
+            .modified_weight = 1,
+            .outcome =
+                NativeUnitCombatOutcome::promoted{
+                  .to = e_native_unit_type::armed_brave } },
+      .defender = { .id              = soldier.id(),
+                    .modifiers       = {},
+                    .base_weight     = 2,
+                    .modified_weight = 2,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
@@ -208,19 +207,19 @@ TEST_CASE( "[raid] raid_unit" ) {
     UnitId const free_colonist2_id = free_colonist2.id();
 
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = brave.id,
-                      .modifiers       = {},
-                      .base_weight     = 1,
-                      .modified_weight = 1,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = soldier.id(),
-            .modifiers       = {},
-            .base_weight     = 2,
-            .modified_weight = 2,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = brave.id,
+                    .modifiers       = {},
+                    .base_weight     = 1,
+                    .modified_weight = 1,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{} },
+      .defender = {
+        .id              = soldier.id(),
+        .modifiers       = {},
+        .base_weight     = 2,
+        .modified_weight = 2,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
@@ -279,19 +278,19 @@ TEST_CASE( "[raid] raid_unit" ) {
     UnitId const free_colonist2_id = free_colonist2.id();
 
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = brave.id,
-                      .modifiers       = {},
-                      .base_weight     = 1,
-                      .modified_weight = 1,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = soldier.id(),
-            .modifiers       = {},
-            .base_weight     = 2,
-            .modified_weight = 2,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = brave.id,
+                    .modifiers       = {},
+                    .base_weight     = 1,
+                    .modified_weight = 1,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{} },
+      .defender = {
+        .id              = soldier.id(),
+        .modifiers       = {},
+        .base_weight     = 2,
+        .modified_weight = 2,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     W.combat()
         .EXPECT__brave_attack_euro( brave, soldier )
         .returns( combat );
@@ -347,7 +346,7 @@ TEST_CASE( "[raid] raid_colony" ) {
   MockINativeMind& mock_native_mind =
       W.native_mind( tribe_type );
   Player& player = W.default_player();
-  player.money   = 1000;
+  player.money   = 1'000;
 
   // Sanity checks.
   REQUIRE( W.square( colony.location ).road );
@@ -383,15 +382,15 @@ TEST_CASE( "[raid] raid_colony" ) {
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
     CombatBraveAttackColony const combat{
-        .winner           = e_combat_winner::attacker,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id = attacker.id,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = { .id      = defender_id,
-                              .outcome = EuroUnitCombatOutcome::demoted{
-                                  .to = e_unit_type::free_colonist } } };
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id = attacker.id,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = { .id      = defender_id,
+                            .outcome = EuroUnitCombatOutcome::demoted{
+                              .to = e_unit_type::free_colonist } } };
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -425,12 +424,12 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[1] for repairs." );
     mock_native_mind.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::ship_in_port_damaged{
-                    .which   = frigate_id,
-                    .sent_to = ShipRepairPort::colony{
-                        .id = colony.id } } );
+                  .which   = frigate_id,
+                  .sent_to = ShipRepairPort::colony{
+                    .id = colony.id } } );
     f( attacker );
 
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE( W.colonies().exists( colony_id ) );
@@ -479,16 +478,15 @@ TEST_CASE( "[raid] raid_colony" ) {
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
     CombatBraveAttackColony const combat{
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id = attacker.id,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id      = defender_id,
-                    .outcome = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_soldier } } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id = attacker.id,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = { .id      = defender_id,
+                            .outcome = EuroUnitCombatOutcome::promoted{
+                              .to = e_unit_type::veteran_soldier } } };
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -522,10 +520,10 @@ TEST_CASE( "[raid] raid_colony" ) {
         "[Newspaper] in [1]!" );
     mock_native_mind.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::building_destroyed{
-                    .which = e_colony_building::newspaper } );
+                  .which = e_colony_building::newspaper } );
     f( attacker );
 
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE( W.colonies().exists( colony_id ) );
@@ -565,15 +563,15 @@ TEST_CASE( "[raid] raid_colony" ) {
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
     CombatBraveAttackColony const combat{
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id = attacker.id,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id      = defender_id,
-                    .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id = attacker.id,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id      = defender_id,
+                .outcome = EuroUnitCombatOutcome::no_change{} } };
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -603,7 +601,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         "the treasury!" );
     mock_native_mind.EXPECT__on_attack_colony_finished(
         combat, BraveAttackColonyEffect::money_stolen{
-                    .quantity = 123 } );
+                  .quantity = 123 } );
     f( attacker );
 
     REQUIRE( player.money == 877 );
@@ -631,15 +629,15 @@ TEST_CASE( "[raid] raid_colony" ) {
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
     CombatBraveAttackColony const combat{
-        .winner           = e_combat_winner::attacker,
-        .colony_id        = colony.id,
-        .colony_destroyed = true,
-        .attacker         = { .id = attacker.id,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id      = defender_id,
-                    .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = true,
+      .attacker         = { .id = attacker.id,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id      = defender_id,
+                .outcome = EuroUnitCombatOutcome::destroyed{} } };
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -661,7 +659,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );
 
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );
@@ -704,15 +702,15 @@ TEST_CASE( "[raid] raid_colony" ) {
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
     CombatBraveAttackColony const combat{
-        .winner           = e_combat_winner::attacker,
-        .colony_id        = colony.id,
-        .colony_destroyed = true,
-        .attacker         = { .id = attacker.id,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id      = defender_id,
-                    .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = true,
+      .attacker         = { .id = attacker.id,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id      = defender_id,
+                .outcome = EuroUnitCombatOutcome::destroyed{} } };
     W.combat()
         .EXPECT__brave_attack_colony( attacker, defender,
                                       colony )
@@ -743,7 +741,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );
 
-    REQUIRE( player.money == 1000 );
+    REQUIRE( player.money == 1'000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );
@@ -766,10 +764,10 @@ TEST_CASE( "[raid] raid_colony" ) {
                  .holds<unit_orders::damaged>() );
     REQUIRE( as_const( W.units() ).ownership_of( caravel_id ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
     REQUIRE( as_const( W.units() ).ownership_of( frigate_id ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{} } );
+               .port_status = PortStatus::in_port{} } );
   }
 }
 

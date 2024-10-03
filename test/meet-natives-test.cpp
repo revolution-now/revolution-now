@@ -108,12 +108,12 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::inca );
     square   = { .x = 0, .y = 1 };
     expected = {
-        MeetTribe{
-            .nation        = e_nation::english,
-            .tribe         = e_tribe::inca,
-            .num_dwellings = 2,
-            .land_awarded  = {},
-        },
+      MeetTribe{
+        .nation        = e_nation::english,
+        .tribe         = e_tribe::inca,
+        .num_dwellings = 2,
+        .land_awarded  = {},
+      },
     };
     REQUIRE( f() == expected );
   }
@@ -142,18 +142,18 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::inca );
     square   = { .x = 0, .y = 1 };
     expected = {
-        MeetTribe{
-            .nation        = e_nation::english,
-            .tribe         = e_tribe::aztec,
-            .num_dwellings = 1,
-            .land_awarded  = {},
-        },
-        MeetTribe{
-            .nation        = e_nation::english,
-            .tribe         = e_tribe::inca,
-            .num_dwellings = 2,
-            .land_awarded  = {},
-        },
+      MeetTribe{
+        .nation        = e_nation::english,
+        .tribe         = e_tribe::aztec,
+        .num_dwellings = 1,
+        .land_awarded  = {},
+      },
+      MeetTribe{
+        .nation        = e_nation::english,
+        .tribe         = e_tribe::inca,
+        .num_dwellings = 2,
+        .land_awarded  = {},
+      },
     };
     REQUIRE( f() == expected );
   }
@@ -164,12 +164,12 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
     W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::inca );
     square   = { .x = 0, .y = 1 };
     expected = {
-        MeetTribe{
-            .nation        = e_nation::english,
-            .tribe         = e_tribe::inca,
-            .num_dwellings = 3,
-            .land_awarded  = {},
-        },
+      MeetTribe{
+        .nation        = e_nation::english,
+        .tribe         = e_tribe::inca,
+        .num_dwellings = 3,
+        .land_awarded  = {},
+      },
     };
     REQUIRE( f() == expected );
   }
@@ -197,12 +197,12 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                                  { .x = 3, .y = 3 } );
     square   = { .x = 3, .y = 3 };
     expected = {
-        MeetTribe{
-            .nation        = e_nation::english,
-            .tribe         = e_tribe::inca,
-            .num_dwellings = 1,
-            .land_awarded  = {},
-        },
+      MeetTribe{
+        .nation        = e_nation::english,
+        .tribe         = e_tribe::inca,
+        .num_dwellings = 1,
+        .land_awarded  = {},
+      },
     };
     REQUIRE( f() == expected );
   }
@@ -233,11 +233,11 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-        MeetTribe{ .nation        = e_nation::english,
-                   .tribe         = e_tribe::inca,
-                   .num_dwellings = 1,
-                   .land_awarded  = { { .x = 1, .y = 3 },
-                                      { .x = 2, .y = 3 } } },
+      MeetTribe{ .nation        = e_nation::english,
+                 .tribe         = e_tribe::inca,
+                 .num_dwellings = 1,
+                 .land_awarded  = { { .x = 1, .y = 3 },
+                                    { .x = 2, .y = 3 } } },
     };
     REQUIRE( f() == expected );
   }
@@ -270,10 +270,10 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
                          e_outdoor_job::food );
     square   = { .x = 3, .y = 3 };
     expected = {
-        MeetTribe{ .nation        = e_nation::english,
-                   .tribe         = e_tribe::inca,
-                   .num_dwellings = 1,
-                   .land_awarded  = {} },
+      MeetTribe{ .nation        = e_nation::english,
+                 .tribe         = e_tribe::inca,
+                 .num_dwellings = 1,
+                 .land_awarded  = {} },
     };
     REQUIRE( f() == expected );
   }
@@ -319,13 +319,13 @@ TEST_CASE( "[meet-natives] check_meet_europeans" ) {
                                { .x = 1, .y = 1 } );
 
   expected = {
-      MeetTribe{ .nation        = e_nation::english,
-                 .tribe         = e_tribe::apache,
-                 .num_dwellings = 1,
-                 .land_awarded  = { { .x = 1, .y = 1 } } },
-      MeetTribe{ .nation        = e_nation::french,
-                 .tribe         = e_tribe::apache,
-                 .num_dwellings = 1 } };
+    MeetTribe{ .nation        = e_nation::english,
+               .tribe         = e_tribe::apache,
+               .num_dwellings = 1,
+               .land_awarded  = { { .x = 1, .y = 1 } } },
+    MeetTribe{ .nation        = e_nation::french,
+               .tribe         = e_tribe::apache,
+               .num_dwellings = 1 } };
   REQUIRE( f( { .x = 1, .y = 0 } ) == expected );
 }
 
@@ -350,11 +350,11 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
                 .relationship[nation]
                 .encountered );
 
-  meet_tribe = { .nation        = e_nation::dutch,
-                 .tribe         = tribe,
-                 .num_dwellings = 3,
-                 .land_awarded  = { { .x = 1, .y = 0 },
-                                    { .x = 2, .y = 0 } } };
+  meet_tribe = {
+    .nation        = e_nation::dutch,
+    .tribe         = tribe,
+    .num_dwellings = 3,
+    .land_awarded = { { .x = 1, .y = 0 }, { .x = 2, .y = 0 } } };
   W.natives().mark_land_owned( dwelling.id, { .x = 1, .y = 0 } );
   W.natives().mark_land_owned( dwelling.id, { .x = 2, .y = 0 } );
   W.natives().mark_land_owned( dwelling.id, { .x = 2, .y = 1 } );
@@ -448,10 +448,10 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
   };
 
   meet_tribe = {
-      .nation        = w.default_nation(),
-      .tribe         = e_tribe::tupi,
-      .num_dwellings = 3,
-      .land_awarded = { { .x = 1, .y = 1 }, { .x = 2, .y = 1 } },
+    .nation        = w.default_nation(),
+    .tribe         = e_tribe::tupi,
+    .num_dwellings = 3,
+    .land_awarded  = { { .x = 1, .y = 1 }, { .x = 2, .y = 1 } },
   };
 
   SECTION( "tupi" ) {
@@ -460,16 +460,16 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         e_woodcut::meeting_the_natives );
 
     ChoiceConfig const choice_config{
-        .msg =
-            "The [Tupi] tribe is a celebrated nation of [3 "
-            "camps].  In honor of our glorious future together "
-            "we will generously give you all of the land that "
-            "your colonies now occupy. Will you accept our "
-            "peace treaty and agree to live in harmony with us?",
-        .options = { { .key = "yes", .display_name = "Yes" },
-                     { .key = "no", .display_name = "No" } },
-        .sort    = false,
-        .initial_selection = nothing };
+      .msg =
+          "The [Tupi] tribe is a celebrated nation of [3 "
+          "camps].  In honor of our glorious future together "
+          "we will generously give you all of the land that "
+          "your colonies now occupy. Will you accept our "
+          "peace treaty and agree to live in harmony with us?",
+      .options = { { .key = "yes", .display_name = "Yes" },
+                   { .key = "no", .display_name = "No" } },
+      .sort    = false,
+      .initial_selection = nothing };
     w.gui()
         .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
@@ -492,16 +492,16 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         e_woodcut::meeting_the_aztec_empire );
 
     ChoiceConfig const choice_config{
-        .msg =
-            "The [Aztec] tribe is a celebrated nation of [3 "
-            "cities].  In honor of our glorious future together "
-            "we will generously give you all of the land that "
-            "your colonies now occupy. Will you accept our "
-            "peace treaty and agree to live in harmony with us?",
-        .options = { { .key = "yes", .display_name = "Yes" },
-                     { .key = "no", .display_name = "No" } },
-        .sort    = false,
-        .initial_selection = nothing };
+      .msg =
+          "The [Aztec] tribe is a celebrated nation of [3 "
+          "cities].  In honor of our glorious future together "
+          "we will generously give you all of the land that "
+          "your colonies now occupy. Will you accept our "
+          "peace treaty and agree to live in harmony with us?",
+      .options = { { .key = "yes", .display_name = "Yes" },
+                   { .key = "no", .display_name = "No" } },
+      .sort    = false,
+      .initial_selection = nothing };
     w.gui()
         .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
@@ -526,16 +526,16 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         e_woodcut::meeting_the_inca_nation );
 
     ChoiceConfig const choice_config{
-        .msg =
-            "The [Inca] tribe is a celebrated nation of [3 "
-            "cities].  In honor of our glorious future together "
-            "we will generously give you all of the land that "
-            "your colonies now occupy. Will you accept our "
-            "peace treaty and agree to live in harmony with us?",
-        .options = { { .key = "yes", .display_name = "Yes" },
-                     { .key = "no", .display_name = "No" } },
-        .sort    = false,
-        .initial_selection = nothing };
+      .msg =
+          "The [Inca] tribe is a celebrated nation of [3 "
+          "cities].  In honor of our glorious future together "
+          "we will generously give you all of the land that "
+          "your colonies now occupy. Will you accept our "
+          "peace treaty and agree to live in harmony with us?",
+      .options = { { .key = "yes", .display_name = "Yes" },
+                   { .key = "no", .display_name = "No" } },
+      .sort    = false,
+      .initial_selection = nothing };
     w.gui()
         .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "yes" );
@@ -556,16 +556,16 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
         true;
 
     ChoiceConfig const choice_config{
-        .msg =
-            "The [Tupi] tribe is a celebrated nation of [3 "
-            "camps].  In honor of our glorious future together "
-            "we will generously give you all of the land that "
-            "your colonies now occupy. Will you accept our "
-            "peace treaty and agree to live in harmony with us?",
-        .options = { { .key = "yes", .display_name = "Yes" },
-                     { .key = "no", .display_name = "No" } },
-        .sort    = false,
-        .initial_selection = nothing };
+      .msg =
+          "The [Tupi] tribe is a celebrated nation of [3 "
+          "camps].  In honor of our glorious future together "
+          "we will generously give you all of the land that "
+          "your colonies now occupy. Will you accept our "
+          "peace treaty and agree to live in harmony with us?",
+      .options = { { .key = "yes", .display_name = "Yes" },
+                   { .key = "no", .display_name = "No" } },
+      .sort    = false,
+      .initial_selection = nothing };
     w.gui()
         .EXPECT__choice( choice_config )
         .returns<maybe<string>>( "no" );

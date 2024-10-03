@@ -279,24 +279,24 @@ TEST_CASE( "[wait] coro cancel" ) {
 
     REQUIRE( ws.get() == "12!." );
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "run: coro2-2", //
-        "run: coro1",   //
-        "~~~: coro1",   //
-        "run: coro2-3", //
-        "~~~: coro2-3", //
-        "~~~: coro2-2", //
-        "run: coro3-2", //
-        "run: coro",    //
-        "~~~: coro",    //
-        "run: coro3-3", //
-        "~~~: coro3-3", //
-        "~~~: coro3-2", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "run: coro2-3", //
+      "~~~: coro2-3", //
+      "~~~: coro2-2", //
+      "run: coro3-2", //
+      "run: coro",    //
+      "~~~: coro",    //
+      "run: coro3-3", //
+      "~~~: coro3-3", //
+      "~~~: coro3-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -309,12 +309,12 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -331,12 +331,12 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -355,16 +355,16 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "run: coro2-2", //
-        "run: coro1",   //
-        "~~~: coro1",   //
-        "~~~: coro2-2", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "~~~: coro2-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -386,16 +386,16 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "run: coro2-2", //
-        "run: coro1",   //
-        "~~~: coro1",   //
-        "~~~: coro2-2", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "~~~: coro2-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -419,22 +419,22 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "run: coro2-2", //
-        "run: coro1",   //
-        "~~~: coro1",   //
-        "run: coro2-3", //
-        "~~~: coro2-3", //
-        "~~~: coro2-2", //
-        "run: coro3-2", //
-        "run: coro",    //
-        "~~~: coro",    //
-        "~~~: coro3-2", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "run: coro2-3", //
+      "~~~: coro2-3", //
+      "~~~: coro2-2", //
+      "run: coro3-2", //
+      "run: coro",    //
+      "~~~: coro",    //
+      "~~~: coro3-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -462,22 +462,22 @@ TEST_CASE( "[wait] coro cancel" ) {
     REQUIRE( !ws.ready() );
 
     vector<string> expected{
-        "run: coro3-1", //
-        "run: coro2-1", //
-        "run: coro0",   //
-        "~~~: coro0",   //
-        "~~~: coro2-1", //
-        "run: coro2-2", //
-        "run: coro1",   //
-        "~~~: coro1",   //
-        "run: coro2-3", //
-        "~~~: coro2-3", //
-        "~~~: coro2-2", //
-        "run: coro3-2", //
-        "run: coro",    //
-        "~~~: coro",    //
-        "~~~: coro3-2", //
-        "~~~: coro3-1", //
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "run: coro2-3", //
+      "~~~: coro2-3", //
+      "~~~: coro2-2", //
+      "run: coro3-2", //
+      "run: coro",    //
+      "~~~: coro",    //
+      "~~~: coro3-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -506,22 +506,6 @@ TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
       REQUIRE( !ws.ready() );
 
       vector<string> expected{
-          "run: coro3-1", //
-          "run: coro2-1", //
-          "run: coro0",   //
-          "~~~: coro0",   //
-          "~~~: coro2-1", //
-          "run: coro2-2", //
-          "run: coro1",   //
-          "~~~: coro1",   //
-      };
-      REQUIRE_THAT( string_log, Equals( expected ) );
-      // !! ws goes out of scope here and should get cancelled in
-      // the process.
-    }
-    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
-
-    vector<string> expected{
         "run: coro3-1", //
         "run: coro2-1", //
         "run: coro0",   //
@@ -530,8 +514,24 @@ TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
         "run: coro2-2", //
         "run: coro1",   //
         "~~~: coro1",   //
-        "~~~: coro2-2", //
-        "~~~: coro3-1", //
+      };
+      REQUIRE_THAT( string_log, Equals( expected ) );
+      // !! ws goes out of scope here and should get cancelled in
+      // the process.
+    }
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
+
+    vector<string> expected{
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "~~~: coro2-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }
@@ -555,28 +555,6 @@ TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
       REQUIRE( !ws.ready() );
 
       vector<string> expected{
-          "run: coro3-1", //
-          "run: coro2-1", //
-          "run: coro0",   //
-          "~~~: coro0",   //
-          "~~~: coro2-1", //
-          "run: coro2-2", //
-          "run: coro1",   //
-          "~~~: coro1",   //
-          "run: coro2-3", //
-          "~~~: coro2-3", //
-          "~~~: coro2-2", //
-          "run: coro3-2", //
-          "run: coro",    //
-          "~~~: coro",    //
-      };
-      REQUIRE_THAT( string_log, Equals( expected ) );
-      // !! ws goes out of scope here and should get cancelled in
-      // the process.
-    }
-    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
-
-    vector<string> expected{
         "run: coro3-1", //
         "run: coro2-1", //
         "run: coro0",   //
@@ -591,8 +569,30 @@ TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
         "run: coro3-2", //
         "run: coro",    //
         "~~~: coro",    //
-        "~~~: coro3-2", //
-        "~~~: coro3-1", //
+      };
+      REQUIRE_THAT( string_log, Equals( expected ) );
+      // !! ws goes out of scope here and should get cancelled in
+      // the process.
+    }
+    REQUIRE( number_of_queued_cpp_coroutines() == 0 );
+
+    vector<string> expected{
+      "run: coro3-1", //
+      "run: coro2-1", //
+      "run: coro0",   //
+      "~~~: coro0",   //
+      "~~~: coro2-1", //
+      "run: coro2-2", //
+      "run: coro1",   //
+      "~~~: coro1",   //
+      "run: coro2-3", //
+      "~~~: coro2-3", //
+      "~~~: coro2-2", //
+      "run: coro3-2", //
+      "run: coro",    //
+      "~~~: coro",    //
+      "~~~: coro3-2", //
+      "~~~: coro3-1", //
     };
     REQUIRE_THAT( string_log, Equals( expected ) );
   }

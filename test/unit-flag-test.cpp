@@ -53,9 +53,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -76,24 +76,23 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
 
   // Common.
   expected = {
-      .stacked          = false,
-      .size             = { .w = 14, .h = 14 },
-      .offsets          = { .offset_first   = { .w = 32 - 14,
-                                                .h = 32 - 14 },
-                            .offset_stacked = { .w = 32 - 2 - 14,
-                                                .h = 32 - 2 - 14 } },
-      .outline_color    = { .r = 0xcc,
-                            .g = 0x07,
-                            .b = 0x22,
-                            .a = 0xff },
-      .background_color = { .r = 255, .a = 255 },
-      .contents =
-          UnitFlagContents::character{ .value = '-',
-                                       .color = { .r = 0x22,
-                                                  .g = 0x22,
-                                                  .b = 0x22,
-                                                  .a = 0xff } },
-      .in_front = false,
+    .stacked = false,
+    .size    = { .w = 14, .h = 14 },
+    .offsets = { .offset_first = { .w = 32 - 14, .h = 32 - 14 },
+                 .offset_stacked = { .w = 32 - 2 - 14,
+                                     .h = 32 - 2 - 14 } },
+    .outline_color    = { .r = 0xcc,
+                          .g = 0x07,
+                          .b = 0x22,
+                          .a = 0xff },
+    .background_color = { .r = 255, .a = 255 },
+    .contents =
+        UnitFlagContents::character{ .value = '-',
+                                     .color = { .r = 0x22,
+                                                .g = 0x22,
+                                                .b = 0x22,
+                                                .a = 0xff } },
+    .in_front = false,
   };
   auto baseline = expected;
 
@@ -116,7 +115,7 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   expected.contents.get<UnitFlagContents::character>().value =
       'F';
   expected.contents.get<UnitFlagContents::character>().color = {
-      .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
+    .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
   REQUIRE( f() == expected );
 
   // Man-o-war.
@@ -126,8 +125,8 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   expected          = baseline;
   expected.in_front = true;
   expected.offsets  = {
-       .offset_first   = { .w = 32 - 14, .h = 0 },
-       .offset_stacked = { .w = 32 - 2 - 14, .h = 2 } };
+     .offset_first   = { .w = 32 - 14, .h = 0 },
+     .offset_stacked = { .w = 32 - 2 - 14, .h = 2 } };
   REQUIRE( f() == expected );
 }
 
@@ -148,24 +147,23 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 
   // Common.
   expected = {
-      .stacked          = false,
-      .size             = { .w = 14, .h = 14 },
-      .offsets          = { .offset_first   = { .w = 32 - 14,
-                                                .h = 32 - 14 },
-                            .offset_stacked = { .w = 32 - 2 - 14,
-                                                .h = 32 - 2 - 14 } },
-      .outline_color    = { .r = 0xcc,
-                            .g = 0x07,
-                            .b = 0x22,
-                            .a = 0xff },
-      .background_color = { .r = 255, .a = 255 },
-      .contents =
-          UnitFlagContents::character{ .value = '-',
-                                       .color = { .r = 0x22,
-                                                  .g = 0x22,
-                                                  .b = 0x22,
-                                                  .a = 0xff } },
-      .in_front = false,
+    .stacked = false,
+    .size    = { .w = 14, .h = 14 },
+    .offsets = { .offset_first = { .w = 32 - 14, .h = 32 - 14 },
+                 .offset_stacked = { .w = 32 - 2 - 14,
+                                     .h = 32 - 2 - 14 } },
+    .outline_color    = { .r = 0xcc,
+                          .g = 0x07,
+                          .b = 0x22,
+                          .a = 0xff },
+    .background_color = { .r = 255, .a = 255 },
+    .contents =
+        UnitFlagContents::character{ .value = '-',
+                                     .color = { .r = 0x22,
+                                                .g = 0x22,
+                                                .b = 0x22,
+                                                .a = 0xff } },
+    .in_front = false,
   };
   auto baseline = expected;
 
@@ -189,7 +187,7 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   expected.contents.get<UnitFlagContents::character>().value =
       'F';
   expected.contents.get<UnitFlagContents::character>().color = {
-      .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
+    .r = 0x77, .g = 0x77, .b = 0x77, .a = 0xff };
   REQUIRE( f() == expected );
 
   // Man-o-war.
@@ -200,8 +198,8 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   expected          = baseline;
   expected.in_front = true;
   expected.offsets  = {
-       .offset_first   = { .w = 32 - 14, .h = 0 },
-       .offset_stacked = { .w = 32 - 2 - 14, .h = 2 } };
+     .offset_first   = { .w = 32 - 14, .h = 0 },
+     .offset_stacked = { .w = 32 - 2 - 14, .h = 2 } };
   REQUIRE( f() == expected );
 
   // Privateer / visible.
@@ -230,9 +228,9 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   expected.offsets       = { .offset_first   = { .w = 0, .h = 0 },
                              .offset_stacked = { .w = 2, .h = 2 } };
   expected.outline_color = {
-      .r = 0x1b, .g = 0x1b, .b = 0x1b, .a = 0xff };
+    .r = 0x1b, .g = 0x1b, .b = 0x1b, .a = 0xff };
   expected.background_color = {
-      .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
+    .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
   expected.contents =
       UnitFlagContents::icon{ .tile = e_tile::privateer_x };
   REQUIRE( f() == expected );
@@ -258,27 +256,26 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
 
   // Common.
   expected = {
-      .stacked          = false,
-      .size             = { .w = 14, .h = 14 },
-      .offsets          = { .offset_first   = { .w = 32 - 14,
-                                                .h = 32 - 14 },
-                            .offset_stacked = { .w = 32 - 2 - 14,
-                                                .h = 32 - 2 - 14 } },
-      .outline_color    = { .r = 0x6f,
-                            .g = 0x04,
-                            .b = 0x12,
-                            .a = 0xff },
-      .background_color = { .r = 0x91,
-                            .g = 0x00,
-                            .b = 0x00,
-                            .a = 255 },
-      .contents =
-          UnitFlagContents::character{ .value = '-',
-                                       .color = { .r = 0x22,
-                                                  .g = 0x22,
-                                                  .b = 0x22,
-                                                  .a = 0xff } },
-      .in_front = false,
+    .stacked = false,
+    .size    = { .w = 14, .h = 14 },
+    .offsets = { .offset_first = { .w = 32 - 14, .h = 32 - 14 },
+                 .offset_stacked = { .w = 32 - 2 - 14,
+                                     .h = 32 - 2 - 14 } },
+    .outline_color    = { .r = 0x6f,
+                          .g = 0x04,
+                          .b = 0x12,
+                          .a = 0xff },
+    .background_color = { .r = 0x91,
+                          .g = 0x00,
+                          .b = 0x00,
+                          .a = 255 },
+    .contents =
+        UnitFlagContents::character{ .value = '-',
+                                     .color = { .r = 0x22,
+                                                .g = 0x22,
+                                                .b = 0x22,
+                                                .a = 0xff } },
+    .in_front = false,
   };
 
   // brave.
@@ -304,27 +301,26 @@ TEST_CASE( "[unit-flag] native_unit_type_flag_render_info" ) {
 
   // Common.
   expected = {
-      .stacked          = false,
-      .size             = { .w = 14, .h = 14 },
-      .offsets          = { .offset_first   = { .w = 32 - 14,
-                                                .h = 32 - 14 },
-                            .offset_stacked = { .w = 32 - 2 - 14,
-                                                .h = 32 - 2 - 14 } },
-      .outline_color    = { .r = 0x6f,
-                            .g = 0x04,
-                            .b = 0x12,
-                            .a = 0xff },
-      .background_color = { .r = 0x91,
-                            .g = 0x00,
-                            .b = 0x00,
-                            .a = 255 },
-      .contents =
-          UnitFlagContents::character{ .value = '-',
-                                       .color = { .r = 0x22,
-                                                  .g = 0x22,
-                                                  .b = 0x22,
-                                                  .a = 0xff } },
-      .in_front = false,
+    .stacked = false,
+    .size    = { .w = 14, .h = 14 },
+    .offsets = { .offset_first = { .w = 32 - 14, .h = 32 - 14 },
+                 .offset_stacked = { .w = 32 - 2 - 14,
+                                     .h = 32 - 2 - 14 } },
+    .outline_color    = { .r = 0x6f,
+                          .g = 0x04,
+                          .b = 0x12,
+                          .a = 0xff },
+    .background_color = { .r = 0x91,
+                          .g = 0x00,
+                          .b = 0x00,
+                          .a = 255 },
+    .contents =
+        UnitFlagContents::character{ .value = '-',
+                                     .color = { .r = 0x22,
+                                                .g = 0x22,
+                                                .b = 0x22,
+                                                .a = 0xff } },
+    .in_front = false,
   };
 
   // brave.

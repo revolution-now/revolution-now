@@ -200,55 +200,55 @@ TEST_CASE(
 
   // Roads.
   tiles = {
-      { .x = 1, .y = 3 }, { .x = 1, .y = 0 }, { .x = 2, .y = 2 },
-      { .x = 2, .y = 2 }, { .x = 0, .y = 3 }, { .x = 3, .y = 0 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 0 }, { .x = 2, .y = 2 },
+    { .x = 2, .y = 2 }, { .x = 0, .y = 3 }, { .x = 3, .y = 0 },
   };
   for( Coord const tile : tiles ) W.square( tile ).road = true;
 
   // Irrigation.
   tiles = {
-      { .x = 1, .y = 0 }, { .x = 3, .y = 3 }, { .x = 1, .y = 0 },
-      { .x = 3, .y = 2 }, { .x = 0, .y = 1 }, { .x = 3, .y = 2 },
+    { .x = 1, .y = 0 }, { .x = 3, .y = 3 }, { .x = 1, .y = 0 },
+    { .x = 3, .y = 2 }, { .x = 0, .y = 1 }, { .x = 3, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).irrigation = true;
 
   // Rivers.
   tiles = {
-      { .x = 2, .y = 1 }, { .x = 0, .y = 2 }, { .x = 1, .y = 1 },
-      { .x = 1, .y = 0 }, { .x = 1, .y = 3 }, { .x = 2, .y = 1 },
+    { .x = 2, .y = 1 }, { .x = 0, .y = 2 }, { .x = 1, .y = 1 },
+    { .x = 1, .y = 0 }, { .x = 1, .y = 3 }, { .x = 2, .y = 1 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).river = e_river::minor;
 
   // Mountains.
   tiles = {
-      { .x = 1, .y = 2 }, { .x = 0, .y = 1 }, { .x = 3, .y = 1 },
-      { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 0, .y = 2 },
+    { .x = 1, .y = 2 }, { .x = 0, .y = 1 }, { .x = 3, .y = 1 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 0, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).overlay = e_land_overlay::mountains;
 
   // Hills.
   tiles = {
-      { .x = 2, .y = 2 }, { .x = 2, .y = 1 }, { .x = 3, .y = 1 },
-      { .x = 1, .y = 0 }, { .x = 3, .y = 0 }, { .x = 3, .y = 1 },
+    { .x = 2, .y = 2 }, { .x = 2, .y = 1 }, { .x = 3, .y = 1 },
+    { .x = 1, .y = 0 }, { .x = 3, .y = 0 }, { .x = 3, .y = 1 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).overlay = e_land_overlay::hills;
 
   // Forests.
   tiles = {
-      { .x = 2, .y = 1 }, { .x = 1, .y = 1 }, { .x = 2, .y = 0 },
-      { .x = 2, .y = 0 }, { .x = 1, .y = 2 }, { .x = 2, .y = 2 },
+    { .x = 2, .y = 1 }, { .x = 1, .y = 1 }, { .x = 2, .y = 0 },
+    { .x = 2, .y = 0 }, { .x = 1, .y = 2 }, { .x = 2, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).overlay = e_land_overlay::forest;
 
   // Ground resources.
   tiles = {
-      { .x = 3, .y = 0 }, { .x = 2, .y = 0 }, { .x = 2, .y = 0 },
-      { .x = 2, .y = 1 }, { .x = 1, .y = 0 }, { .x = 0, .y = 2 },
+    { .x = 3, .y = 0 }, { .x = 2, .y = 0 }, { .x = 2, .y = 0 },
+    { .x = 2, .y = 1 }, { .x = 1, .y = 0 }, { .x = 0, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).ground_resource =
@@ -256,47 +256,47 @@ TEST_CASE(
 
   // Forest resources.
   tiles = {
-      { .x = 0, .y = 1 }, { .x = 3, .y = 3 }, { .x = 1, .y = 2 },
-      { .x = 2, .y = 1 }, { .x = 2, .y = 0 }, { .x = 2, .y = 3 },
+    { .x = 0, .y = 1 }, { .x = 3, .y = 3 }, { .x = 1, .y = 2 },
+    { .x = 2, .y = 1 }, { .x = 2, .y = 0 }, { .x = 2, .y = 3 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).forest_resource = e_natural_resource::deer;
 
   // LCRs.
   tiles = {
-      { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 3 },
-      { .x = 0, .y = 2 }, { .x = 3, .y = 2 }, { .x = 2, .y = 3 },
+    { .x = 0, .y = 3 }, { .x = 0, .y = 2 }, { .x = 0, .y = 3 },
+    { .x = 0, .y = 2 }, { .x = 3, .y = 2 }, { .x = 2, .y = 3 },
   };
   for( Coord const tile : tiles )
     W.square( tile ).lost_city_rumor = true;
 
   // Colonies.
   tiles = {
-      { .x = 3, .y = 3 }, { .x = 0, .y = 3 }, { .x = 2, .y = 1 },
-      { .x = 2, .y = 2 }, { .x = 3, .y = 1 }, { .x = 1, .y = 0 },
+    { .x = 3, .y = 3 }, { .x = 0, .y = 3 }, { .x = 2, .y = 1 },
+    { .x = 2, .y = 2 }, { .x = 3, .y = 1 }, { .x = 1, .y = 0 },
   };
   for( Coord const tile : tiles ) W.add_colony( tile );
 
   // Dwellings.
   tiles = {
-      { .x = 2, .y = 0 }, { .x = 1, .y = 3 }, { .x = 3, .y = 2 },
-      { .x = 1, .y = 2 }, { .x = 2, .y = 1 }, { .x = 2, .y = 2 },
+    { .x = 2, .y = 0 }, { .x = 1, .y = 3 }, { .x = 3, .y = 2 },
+    { .x = 1, .y = 2 }, { .x = 2, .y = 1 }, { .x = 2, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.add_dwelling( tile, e_tribe::apache );
 
   // Units.
   tiles = {
-      { .x = 1, .y = 3 }, { .x = 1, .y = 3 }, { .x = 2, .y = 3 },
-      { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 3, .y = 3 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 3 }, { .x = 2, .y = 3 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 1 }, { .x = 3, .y = 3 },
   };
   W.add_unit_on_map( e_unit_type::caravel, { .x = 0, .y = 0 } );
   for( Coord const tile : tiles )
     W.add_unit_on_map( e_unit_type::free_colonist, tile );
 
   tiles = {
-      { .x = 3, .y = 1 }, { .x = 3, .y = 3 }, { .x = 3, .y = 0 },
-      { .x = 1, .y = 3 }, { .x = 1, .y = 2 }, { .x = 1, .y = 2 },
+    { .x = 3, .y = 1 }, { .x = 3, .y = 3 }, { .x = 3, .y = 0 },
+    { .x = 1, .y = 3 }, { .x = 1, .y = 2 }, { .x = 1, .y = 2 },
   };
   for( Coord const tile : tiles )
     W.add_native_unit_on_map( e_native_unit_type::brave, tile,

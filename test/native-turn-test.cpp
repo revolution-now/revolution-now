@@ -77,12 +77,12 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, L, L, //
-        L, L, L, L, L, L, //
-        L, L, L, L, L, L, //
-        L, L, L, L, L, L, //
-        L, L, L, L, L, L, //
-        L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
+      L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 6 );
   }
@@ -366,12 +366,12 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );
@@ -409,25 +409,25 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 2. Move unit 2 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 3. Move unit 1 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 4. Move unit 2 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 5. unit 1 forfeights.
     native_mind.EXPECT__select_unit( set{ unit_id1, unit_id2 } )
         .returns( unit_id1 );
@@ -438,7 +438,7 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id2 );
     native_mind.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );
@@ -478,13 +478,13 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 2. Move unit 1 to the right.
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
     native_mind.EXPECT__command_for( unit_id1 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 3. unit 1 forfeights.
     native_mind.EXPECT__select_unit( set{ unit_id1 } )
         .returns( unit_id1 );
@@ -495,19 +495,19 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 5. Move unit 2 to the right.
     native_mind2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     // 6. Move unit 2 to the right.
     native_mind2.EXPECT__select_unit( set{ unit_id2 } )
         .returns( unit_id2 );
     native_mind2.EXPECT__command_for( unit_id2 )
         .returns( NativeUnitCommand::move{
-            .direction = e_direction::e } );
+          .direction = e_direction::e } );
     f();
     REQUIRE( W.units().unit_for( unit_id1 ).movement_points ==
              0 );
@@ -667,9 +667,9 @@ TEST_CASE( "[native-turn] brave equips" ) {
       .returns( NativeUnitId{ 1 } );
   native_mind.EXPECT__command_for( NativeUnitId{ 1 } )
       .returns( NativeUnitCommand::equip{
-          .how = { .type = e_native_unit_type::mounted_warrior,
-                   .muskets_delta        = -1,
-                   .horse_breeding_delta = -3 } } );
+        .how = { .type = e_native_unit_type::mounted_warrior,
+                 .muskets_delta        = -1,
+                 .horse_breeding_delta = -3 } } );
   f();
   REQUIRE( W.units().all().size() == 1 );
   REQUIRE( W.units().exists( brave_id ) );

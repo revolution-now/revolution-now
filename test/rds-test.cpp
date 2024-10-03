@@ -245,19 +245,19 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   // static_assert( base::Show<V> );
   V v = inner::CompositeTemplateTwo<rn::my_optional<int>,
                                     short>::first{
-      .ttp = inner::TemplateTwoParams<rn::my_optional<int>,
-                                      short>::third_alternative{
-          .hello =
-              Maybe<rn::my_optional<int>>::just{
-                  rn::my_optional<int>{ 3 } }, //
-          .u = 9                               //
-      } };
+    .ttp = inner::TemplateTwoParams<rn::my_optional<int>,
+                                    short>::third_alternative{
+      .hello =
+          Maybe<rn::my_optional<int>>::just{
+            rn::my_optional<int>{ 3 } }, //
+      .u = 9                             //
+    } };
   using second_t =
       inner::CompositeTemplateTwo<rn::my_optional<int>,
                                   short>::second;
   static_assert( sizeof( second_t ) == 1 );
   switch( v.to_enum() ) {
-    case V::e::first:  //
+    case V::e::first: //
       break;
     case V::e::second: //
       REQUIRE( false );
@@ -447,9 +447,9 @@ TEST_CASE( "[rds] structs" ) {
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
     MyStruct ms{
-        .xxx     = 5,
-        .yyy     = 2.3,
-        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+      .xxx     = 5,
+      .yyy     = 2.3,
+      .zzz_map = { { "hello", "1" }, { "world", "2" } },
     };
     { // field 0
       auto& [name, acc, off] = std::get<0>( Tr::fields );
@@ -472,11 +472,11 @@ TEST_CASE( "[rds] structs" ) {
       static_assert( name == "zzz_map" );
       REQUIRE( ms.zzz_map ==
                unordered_map<string, string>{
-                   { "hello", "1" }, { "world", "2" } } );
+                 { "hello", "1" }, { "world", "2" } } );
       ( ms.*acc ) =
           unordered_map<string, string>{ { "one", "two" } };
       REQUIRE( ms.zzz_map == unordered_map<string, string>{
-                                 { "one", "two" } } );
+                               { "one", "two" } } );
       REQUIRE( ( off.index() == 1 && off.get<size_t>() > 0 ) );
     }
   }
@@ -493,9 +493,9 @@ TEST_CASE( "[rds] structs" ) {
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 3 );
     test::MyTemplateStruct<int, string> mts{
-        .xxx     = 5,
-        .yyy     = 2.3,
-        .zzz_map = { { "hello", "1" }, { "world", "2" } },
+      .xxx     = 5,
+      .yyy     = 2.3,
+      .zzz_map = { { "hello", "1" }, { "world", "2" } },
     };
     { // field 0
       auto& [name, acc, off] = std::get<0>( Tr::fields );
@@ -518,11 +518,11 @@ TEST_CASE( "[rds] structs" ) {
       static_assert( name == "zzz_map" );
       REQUIRE( mts.zzz_map ==
                unordered_map<string, string>{
-                   { "hello", "1" }, { "world", "2" } } );
+                 { "hello", "1" }, { "world", "2" } } );
       ( mts.*acc ) =
           unordered_map<string, string>{ { "one", "two" } };
       REQUIRE( mts.zzz_map == unordered_map<string, string>{
-                                  { "one", "two" } } );
+                                { "one", "two" } } );
       REQUIRE( off.index() == 0 );
     }
   }
@@ -549,8 +549,8 @@ TEST_CASE( "[rds] sumtype reflection" ) {
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 2 );
     MySumtype::some ms{
-        .s = "hello",
-        .y = 5,
+      .s = "hello",
+      .y = 5,
     };
     { // field 0
       auto& [name, acc, off] = std::get<0>( Tr::fields );
@@ -579,7 +579,7 @@ TEST_CASE( "[rds] sumtype reflection" ) {
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
     MySumtype::more ms{
-        .d = 2.3,
+      .d = 2.3,
     };
     { // field 0
       auto& [name, acc, off] = std::get<0>( Tr::fields );
@@ -615,7 +615,7 @@ TEST_CASE( "[rds] sumtype reflection w/ templates" ) {
 
     static_assert( tuple_size_v<decltype( Tr::fields )> == 1 );
     rdstest::Maybe<int>::just ms{
-        .val = 2,
+      .val = 2,
     };
     { // field 0
       auto& [name, acc, off] = std::get<0>( Tr::fields );

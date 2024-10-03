@@ -66,10 +66,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.forfeight_mv_points();
     needed   = MovementPoints( 0 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -80,10 +80,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit     = create( e_unit_type::free_colonist );
     needed   = MovementPoints( 0 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -94,10 +94,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit     = create( e_unit_type::free_colonist );
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -109,10 +109,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints::_2_3() );
     needed   = MovementPoints::_1_3();
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -125,10 +125,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints::_2_3() );
     needed   = MovementPoints( 0 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -139,10 +139,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit     = create( e_unit_type::free_colonist );
     needed   = MovementPoints( 2 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = true,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = true,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -154,10 +154,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints::_1_3() );
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     W.rand()
         .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( false );
@@ -173,10 +173,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints::_1_3() );
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = true };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = true };
     W.rand()
         .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( true );
@@ -191,10 +191,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit     = create( e_unit_type::scout );
     needed   = MovementPoints( 4 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -205,10 +205,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit     = create( e_unit_type::scout );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = true,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = true,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -220,10 +220,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints( 2 ) );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     W.rand()
         .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( false );
@@ -238,10 +238,10 @@ TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
     unit.consume_mv_points( MovementPoints( 2 ) );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points(),
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = true };
+      .has                           = unit.movement_points(),
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = true };
     W.rand()
         .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( true );
@@ -274,10 +274,10 @@ TEST_CASE(
     unit.movement_points = 0;
     needed               = MovementPoints( 0 );
     expected             = MovementPointsAnalysis{
-                    .has                           = unit.movement_points,
-                    .needed                        = needed,
-                    .using_start_of_turn_exemption = false,
-                    .using_overdraw_allowance      = false };
+                  .has                           = unit.movement_points,
+                  .needed                        = needed,
+                  .using_start_of_turn_exemption = false,
+                  .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -288,10 +288,10 @@ TEST_CASE(
     unit     = create( e_native_unit_type::brave );
     needed   = MovementPoints( 0 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -302,10 +302,10 @@ TEST_CASE(
     unit     = create( e_native_unit_type::brave );
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -317,10 +317,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints::_2_3();
     needed   = MovementPoints::_1_3();
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -333,10 +333,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints::_2_3();
     needed   = MovementPoints( 0 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -347,10 +347,10 @@ TEST_CASE(
     unit     = create( e_native_unit_type::brave );
     needed   = MovementPoints( 2 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = true,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = true,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -362,10 +362,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints::_1_3();
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     W.rand()
         .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( false );
@@ -381,10 +381,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints::_1_3();
     needed   = MovementPoints( 1 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = true };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = true };
     W.rand()
         .EXPECT__bernoulli( Approx( .666666, .00001 ) )
         .returns( true );
@@ -399,10 +399,10 @@ TEST_CASE(
     unit     = create( e_native_unit_type::mounted_brave );
     needed   = MovementPoints( 4 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -413,10 +413,10 @@ TEST_CASE(
     unit     = create( e_native_unit_type::mounted_brave );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = true,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = true,
+      .using_overdraw_allowance      = false };
     res = f();
     REQUIRE( res == expected );
     REQUIRE( res.allowed() );
@@ -428,10 +428,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints( 2 );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = false };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = false };
     W.rand()
         .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( false );
@@ -446,10 +446,10 @@ TEST_CASE(
     unit.movement_points -= MovementPoints( 2 );
     needed   = MovementPoints( 5 );
     expected = MovementPointsAnalysis{
-        .has                           = unit.movement_points,
-        .needed                        = needed,
-        .using_start_of_turn_exemption = false,
-        .using_overdraw_allowance      = true };
+      .has                           = unit.movement_points,
+      .needed                        = needed,
+      .using_start_of_turn_exemption = false,
+      .using_overdraw_allowance      = true };
     W.rand()
         .EXPECT__bernoulli( Approx( .4, .00001 ) )
         .returns( true );

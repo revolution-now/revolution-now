@@ -53,9 +53,9 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -92,9 +92,8 @@ TEST_CASE(
   REQUIRE( frozen_square() == unexplored{} );
 
   // On hidden.
-  expected_buffers    = { { .tile        = tile,
-                            .landscape   = false,
-                            .obfuscation = false } };
+  expected_buffers = {
+    { .tile = tile, .landscape = false, .obfuscation = false } };
   expected_fog_square = unexplored{};
   REQUIRE( f() == expected_buffers );
   REQUIRE( frozen_square() == expected_fog_square );
@@ -103,9 +102,8 @@ TEST_CASE(
   frozen_square()
       .emplace<explored>()
       .fog_status.emplace<clear>();
-  expected_buffers = { { .tile        = tile,
-                         .landscape   = false,
-                         .obfuscation = true } };
+  expected_buffers = {
+    { .tile = tile, .landscape = false, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
@@ -115,9 +113,8 @@ TEST_CASE(
   // Now change the real square and verify no update.
   BASE_CHECK( !real_square.road );
   real_square.road = true;
-  expected_buffers = { { .tile        = tile,
-                         .landscape   = false,
-                         .obfuscation = false } };
+  expected_buffers = {
+    { .tile = tile, .landscape = false, .obfuscation = false } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
@@ -134,9 +131,8 @@ TEST_CASE(
   // landscape is false here because the make_squares_fogged
   // method assumes that, if the fog was removed, then the tile
   // has already been rendered in its actual state.
-  expected_buffers = { { .tile        = tile,
-                         .landscape   = false,
-                         .obfuscation = true } };
+  expected_buffers = {
+    { .tile = tile, .landscape = false, .obfuscation = true } };
   BASE_CHECK( real_square.road );
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<fogged>()
@@ -198,7 +194,7 @@ TEST_CASE(
   // On hidden.
   nation           = W.default_nation();
   expected_buffers = {
-      { .tile = tile, .landscape = true, .obfuscation = true } };
+    { .tile = tile, .landscape = true, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
@@ -208,7 +204,7 @@ TEST_CASE(
   nation = e_nation::french;
   BASE_CHECK( nation != W.default_nation() );
   expected_buffers = {
-      { .tile = tile, .landscape = true, .obfuscation = true } };
+    { .tile = tile, .landscape = true, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
@@ -219,9 +215,8 @@ TEST_CASE(
   frozen_square()
       .emplace<explored>()
       .fog_status.emplace<clear>();
-  expected_buffers = { { .tile        = tile,
-                         .landscape   = false,
-                         .obfuscation = false } };
+  expected_buffers = {
+    { .tile = tile, .landscape = false, .obfuscation = false } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
@@ -233,9 +228,8 @@ TEST_CASE(
       .emplace<explored>()
       .fog_status.emplace<fogged>()
       .contents.square = real_square;
-  expected_buffers     = { { .tile        = tile,
-                             .landscape   = false,
-                             .obfuscation = true } };
+  expected_buffers     = {
+    { .tile = tile, .landscape = false, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   REQUIRE( f() == expected_buffers );
@@ -249,7 +243,7 @@ TEST_CASE(
       .contents.square = real_square;
   real_square.road     = true;
   expected_buffers     = {
-      { .tile = tile, .landscape = true, .obfuscation = true } };
+    { .tile = tile, .landscape = true, .obfuscation = true } };
   expected_fog_square.emplace<explored>()
       .fog_status.emplace<clear>();
   BASE_CHECK( real_square.road == true );
@@ -287,7 +281,7 @@ TEST_CASE(
   // No-op, with no nation.
   {
     expected_buffers = {
-        .tile = tile, .landscape = false, .obfuscation = false };
+      .tile = tile, .landscape = false, .obfuscation = false };
     expected_real_square = real_square;
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
@@ -302,7 +296,7 @@ TEST_CASE(
           options.nation = e_nation::dutch;
         } );
     expected_buffers = {
-        .tile = tile, .landscape = false, .obfuscation = false };
+      .tile = tile, .landscape = false, .obfuscation = false };
     expected_real_square = real_square;
     mutator              = +[]( MapSquare& ) {};
     REQUIRE( f() == expected_buffers );
@@ -315,7 +309,7 @@ TEST_CASE(
   {
     REQUIRE( map_updater.options().nation == nothing );
     expected_buffers = {
-        .tile = tile, .landscape = true, .obfuscation = false };
+      .tile = tile, .landscape = true, .obfuscation = false };
     expected_real_square      = real_square;
     expected_real_square.road = !expected_real_square.road;
     mutator =
@@ -334,7 +328,7 @@ TEST_CASE(
         } );
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
-        .tile = tile, .landscape = false, .obfuscation = false };
+      .tile = tile, .landscape = false, .obfuscation = false };
     expected_real_square      = real_square;
     expected_real_square.road = !expected_real_square.road;
     mutator =
@@ -352,7 +346,7 @@ TEST_CASE(
         } );
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
-        .tile = tile, .landscape = false, .obfuscation = false };
+      .tile = tile, .landscape = false, .obfuscation = false };
     frozen_square()
         .emplace<explored>()
         .fog_status.emplace<fogged>();
@@ -374,7 +368,7 @@ TEST_CASE(
         } );
     REQUIRE( map_updater.options().nation == e_nation::dutch );
     expected_buffers = {
-        .tile = tile, .landscape = true, .obfuscation = false };
+      .tile = tile, .landscape = true, .obfuscation = false };
     BASE_CHECK( !frozen_square().holds<unexplored>() );
     frozen_square()
         .emplace<explored>()
@@ -453,12 +447,11 @@ TEST_CASE( "[map-updater] fog of war" ) {
   REQUIRE( player_terrain.map[coord2] == unexplored{} );
 
   {
-    expected = { { .tile        = coord1,
-                   .landscape   = true,
-                   .obfuscation = true },
-                 { .tile        = coord2,
-                   .landscape   = true,
-                   .obfuscation = true } };
+    expected = {
+      { .tile = coord1, .landscape = true, .obfuscation = true },
+      { .tile        = coord2,
+        .landscape   = true,
+        .obfuscation = true } };
     REQUIRE( map_updater.make_squares_visible(
                  nation, { coord1, coord2 } ) == expected );
     REQUIRE( !player_terrain.map[coord1].holds<unexplored>() );
@@ -501,12 +494,11 @@ TEST_CASE( "[map-updater] fog of war" ) {
   }
 
   {
-    expected = { { .tile        = coord1,
-                   .landscape   = true,
-                   .obfuscation = true },
-                 { .tile        = coord2,
-                   .landscape   = false,
-                   .obfuscation = true } };
+    expected = {
+      { .tile = coord1, .landscape = true, .obfuscation = true },
+      { .tile        = coord2,
+        .landscape   = false,
+        .obfuscation = true } };
 
     player_terrain.map[coord1] = unexplored{};
     REQUIRE( map_updater.make_squares_visible(

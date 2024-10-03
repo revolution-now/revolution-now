@@ -45,20 +45,18 @@ TEST_CASE( "[markup] parse_markup" ) {
 
   input    = "a";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "a", .style = MarkupStyle{} } } } };
+    .chunks = { { { .text = "a", .style = MarkupStyle{} } } } };
   REQUIRE( f() == expected );
 
   input    = "ab";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "ab", .style = MarkupStyle{} } } } };
+    .chunks = { { { .text = "ab", .style = MarkupStyle{} } } } };
   REQUIRE( f() == expected );
 
   input    = "abcd efgh";
   expected = MarkedUpText{
-      .chunks = { { { .text  = "abcd efgh",
-                      .style = MarkupStyle{} } } } };
+    .chunks = {
+      { { .text = "abcd efgh", .style = MarkupStyle{} } } } };
   REQUIRE( f() == expected );
 
   input    = "[]";
@@ -75,78 +73,75 @@ TEST_CASE( "[markup] parse_markup" ) {
 
   input    = "[a]";
   expected = MarkedUpText{
-      .chunks = { { { .text  = "a",
-                      .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "a", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[ab]";
   expected = MarkedUpText{
-      .chunks = { { { .text  = "ab",
-                      .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "ab", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[a]b";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "a", .style = { .highlight = true } },
-            { .text = "b" } } } };
+    .chunks = {
+      { { .text = "a", .style = { .highlight = true } },
+        { .text = "b" } } } };
   REQUIRE( f() == expected );
 
   input    = "a[b]";
   expected = MarkedUpText{
-      .chunks = { { { .text = "a" },
-                    { .text  = "b",
-                      .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "a" },
+        { .text = "b", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[a][b]";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "a", .style = { .highlight = true } },
-            { .text  = "b",
-              .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "a", .style = { .highlight = true } },
+        { .text = "b", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[a]bc[d e]fg[h]";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "a", .style = { .highlight = true } },
-            { .text = "bc" },
-            { .text = "d e", .style = { .highlight = true } },
-            { .text = "fg" },
-            { .text  = "h",
-              .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "a", .style = { .highlight = true } },
+        { .text = "bc" },
+        { .text = "d e", .style = { .highlight = true } },
+        { .text = "fg" },
+        { .text = "h", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[a][bc][d e][fg][h]";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "a", .style = { .highlight = true } },
-            { .text = "bc", .style = { .highlight = true } },
-            { .text = "d e", .style = { .highlight = true } },
-            { .text = "fg", .style = { .highlight = true } },
-            { .text  = "h",
-              .style = { .highlight = true } } } } };
+    .chunks = {
+      { { .text = "a", .style = { .highlight = true } },
+        { .text = "bc", .style = { .highlight = true } },
+        { .text = "d e", .style = { .highlight = true } },
+        { .text = "fg", .style = { .highlight = true } },
+        { .text = "h", .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[abcd efgh]";
   expected = MarkedUpText{
-      .chunks = { { { .text  = "abcd efgh",
-                      .style = { .highlight = true } } } } };
+    .chunks = { { { .text  = "abcd efgh",
+                    .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "[abcd efgh][]";
   expected = MarkedUpText{
-      .chunks = { { { .text  = "abcd efgh",
-                      .style = { .highlight = true } } } } };
+    .chunks = { { { .text  = "abcd efgh",
+                    .style = { .highlight = true } } } } };
   REQUIRE( f() == expected );
 
   input    = "abcd [ef]gh";
   expected = MarkedUpText{
-      .chunks = {
-          { { .text = "abcd " },
-            { .text = "ef", .style = { .highlight = true } },
-            { .text = "gh" } } } };
+    .chunks = {
+      { { .text = "abcd " },
+        { .text = "ef", .style = { .highlight = true } },
+        { .text = "gh" } } } };
   REQUIRE( f() == expected );
 }
 
