@@ -82,8 +82,8 @@ Delta const& window_border() {
 // window's view.
 Delta const& window_padding() {
   static Delta const delta{
-      W( config_ui.window.window_padding ),
-      H( config_ui.window.window_padding ) };
+    W( config_ui.window.window_padding ),
+    H( config_ui.window.window_padding ) };
   return delta;
 }
 
@@ -371,7 +371,7 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
                              rr::Painter::e_border_mode::outside,
                              gfx::pixel::black() );
     TextMarkupInfo const markup_info{
-        .shadow = gfx::pixel::black(),
+      .shadow = gfx::pixel::black(),
     };
     TextReflowInfo const& reflow_info =
         active_transient_message_->reflow_info;
@@ -531,11 +531,10 @@ wait<> WindowManager::process_transient_messages() {
     string msg = co_await transient_messages_.next();
     TextReflowInfo const reflow_info{ .max_cols = 50 };
     active_transient_message_ = {
-        .msg         = msg,
-        .alpha       = 1.0,
-        .reflow_info = reflow_info,
-        .rendered_size =
-            rendered_text_size( reflow_info, msg ) };
+      .msg           = msg,
+      .alpha         = 1.0,
+      .reflow_info   = reflow_info,
+      .rendered_size = rendered_text_size( reflow_info, msg ) };
     SCOPE_EXIT { active_transient_message_.reset(); };
     double delta = .003;
     while( active_transient_message_->alpha > 0 ) {
@@ -684,10 +683,10 @@ namespace {
     WindowCancelActions const&      cancel_actions,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
-      /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted };
+    /*normal=*/config_ui.dialog_text.normal,
+    /*highlight=*/config_ui.dialog_text.highlighted };
   TextReflowInfo r_info{
-      /*max_cols=*/config_ui.dialog_text.columns };
+    /*max_cols=*/config_ui.dialog_text.columns };
   auto text =
       make_unique<ui::TextView>( string( msg ), m_info, r_info );
   auto le_view = make_unique<ui::LineEditorView>(

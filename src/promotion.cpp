@@ -375,7 +375,7 @@ workers_to_promote_for_on_the_job_training(
       e_unit_type const promoted_type =
           expert_for_activity( activity );
       res.push_back( OnTheJobPromotionResult{
-          .unit_id = unit_id, .promoted_to = promoted_type } );
+        .unit_id = unit_id, .promoted_to = promoted_type } );
     }
   }
 
@@ -414,7 +414,7 @@ workers_to_promote_for_on_the_job_training(
     e_unit_type const promoted_type =
         expert_for_activity( activity );
     res.push_back( OnTheJobPromotionResult{
-        .unit_id = unit_id, .promoted_to = promoted_type } );
+      .unit_id = unit_id, .promoted_to = promoted_type } );
   }
 
   return res;

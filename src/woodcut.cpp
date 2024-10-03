@@ -47,11 +47,11 @@ string_view msg_for_woodcut( e_woodcut cut ) {
       return "Cargo from the New World";
     case e_woodcut::meeting_fellow_europeans:
       return "Meeting Fellow Europeans";
-    case e_woodcut::colony_burning:   //
+    case e_woodcut::colony_burning: //
       return "Colony Burning!";
     case e_woodcut::colony_destroyed: //
       return "Colony Destroyed";
-    case e_woodcut::indian_raid:      //
+    case e_woodcut::indian_raid: //
       return "Indian Raid!";
   }
 }

@@ -23,17 +23,17 @@ using namespace std;
 namespace rn {
 
 unordered_set<e_menu_item> const kSupportedMenuItems{
-    e_menu_item::exit,
-    e_menu_item::save,
-    e_menu_item::load,
-    e_menu_item::revolution,
-    e_menu_item::harbor_view,
-    e_menu_item::cheat_explore_entire_map,
-    e_menu_item::cheat_set_human_players,
-    e_menu_item::cheat_kill_natives,
-    e_menu_item::cheat_map_editor,
-    e_menu_item::cheat_edit_fathers,
-    e_menu_item::game_options,
+  e_menu_item::exit,
+  e_menu_item::save,
+  e_menu_item::load,
+  e_menu_item::revolution,
+  e_menu_item::harbor_view,
+  e_menu_item::cheat_explore_entire_map,
+  e_menu_item::cheat_set_human_players,
+  e_menu_item::cheat_kill_natives,
+  e_menu_item::cheat_map_editor,
+  e_menu_item::cheat_edit_fathers,
+  e_menu_item::game_options,
 };
 
 /****************************************************************

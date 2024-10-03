@@ -70,7 +70,7 @@ vector<pair<TuneId, int>> tune_difference_scores(
 }
 
 TuneId gen_tune_id() {
-  static int next_id = 12345;
+  static int next_id = 12'345;
   return TuneId( next_id++ );
 }
 
@@ -123,15 +123,15 @@ TuneVecDimensions TuneOptDimensions::to_vec_dims() const {
 TuneOptDimensions to_opt_dims(
     TuneDimensions const& dimensions ) {
   return {
-      dimensions.tempo,     //
-      dimensions.genre,     //
-      dimensions.culture,   //
-      dimensions.inst,      //
-      dimensions.sentiment, //
-      dimensions.key,       //
-      dimensions.tonality,  //
-      dimensions.epoch,     //
-      dimensions.purpose,   //
+    dimensions.tempo,     //
+    dimensions.genre,     //
+    dimensions.culture,   //
+    dimensions.inst,      //
+    dimensions.sentiment, //
+    dimensions.key,       //
+    dimensions.tonality,  //
+    dimensions.epoch,     //
+    dimensions.purpose,   //
   };
 }
 
@@ -233,9 +233,9 @@ vector<TuneId> tunes_not_like( TuneId id ) {
 // one would never get picked.
 TuneId random_tune( IRand& rand ) {
   TuneOptDimensions dims{
-      //
-      EVAL( PP_MAP_COMMAS( TUNE_DIMENSION_PICK_ONE,
-                           EVAL( TUNE_DIMENSION_LIST ) ) ) //
+    //
+    EVAL( PP_MAP_COMMAS( TUNE_DIMENSION_PICK_ONE,
+                         EVAL( TUNE_DIMENSION_LIST ) ) ) //
   };
   auto tunes_scores =
       tune_difference_scores( dims.to_vec_dims() );

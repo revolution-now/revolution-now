@@ -57,12 +57,12 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   int const price = cost_of_recruit(
       player, crosses.crosses_needed, ss.settings.difficulty );
   ChoiceConfig config{
-      .msg = fmt::format(
-          "The following individuals will accompany us to the "
-          "new world if we pay their passage ([{}{}]).  "
-          "Whom shall we recruit?",
-          price, config_text.special_chars.currency ),
-      .initial_selection = 0 };
+    .msg = fmt::format(
+        "The following individuals will accompany us to the "
+        "new world if we pay their passage ([{}{}]).  "
+        "Whom shall we recruit?",
+        price, config_text.special_chars.currency ),
+    .initial_selection = 0 };
   static string const kNone = "none";
   config.options.push_back(
       { .key = kNone, .display_name = "(None)" } );
@@ -104,12 +104,12 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
       { .key = kNone, .display_name = "None" } );
   auto& costs = config_harbor.purchases;
   unordered_map<e_unit_type, int> const prices{
-      { e_unit_type::artillery, artillery_price( player ) },
-      { e_unit_type::caravel, costs.caravel_cost },
-      { e_unit_type::merchantman, costs.merchantman_cost },
-      { e_unit_type::galleon, costs.galleon_cost },
-      { e_unit_type::privateer, costs.privateer_cost },
-      { e_unit_type::frigate, costs.frigate_cost },
+    { e_unit_type::artillery, artillery_price( player ) },
+    { e_unit_type::caravel, costs.caravel_cost },
+    { e_unit_type::merchantman, costs.merchantman_cost },
+    { e_unit_type::galleon, costs.galleon_cost },
+    { e_unit_type::privateer, costs.privateer_cost },
+    { e_unit_type::frigate, costs.frigate_cost },
   };
   auto push = [&]( e_unit_type type ) {
     string const key = string( refl::enum_value_name( type ) );
@@ -145,11 +145,11 @@ wait<> click_purchase( SS& ss, TS& ts, Player& player ) {
 
 wait<> click_train( SS& ss, TS& ts, Player& player ) {
   ChoiceConfig config{
-      .msg =
-          "The [Royal University] can provide us with "
-          "specialists if we grease the right palms.  Which "
-          "skill shall we request?",
-      .initial_selection = 0 };
+    .msg =
+        "The [Royal University] can provide us with "
+        "specialists if we grease the right palms.  Which "
+        "skill shall we request?",
+    .initial_selection = 0 };
   static string const kNone = "none";
   config.options.push_back(
       { .key = kNone, .display_name = "None" } );

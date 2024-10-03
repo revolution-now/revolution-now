@@ -100,9 +100,9 @@ maybe<CommodityInColony> find_what_to_boycott(
       largest_value = value;
 
       res = CommodityInColony{
-          .colony_id         = colony_id,
-          .type_and_quantity = { .type     = comm,
-                                 .quantity = quantity } };
+        .colony_id         = colony_id,
+        .type_and_quantity = { .type     = comm,
+                               .quantity = quantity } };
     }
   }
   return res;
@@ -236,7 +236,7 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
                            .rebels_bump = rebels_bump };
   update.proposed_tax_change =
       TaxChangeProposal::increase_or_party{
-          .amount = clamped_amount, .party = party };
+        .amount = clamped_amount, .party = party };
   return update;
 }
 
@@ -276,10 +276,10 @@ wait<TaxChangeResult> prompt_for_tax_change_result(
           uppercase_commodity_display_name(
               o.party.commodity.type_and_quantity.type ) );
       YesNoConfig const config{
-          .msg            = msg,
-          .yes_label      = "Kiss pinky ring.",
-          .no_label       = party,
-          .no_comes_first = false,
+        .msg            = msg,
+        .yes_label      = "Kiss pinky ring.",
+        .no_label       = party,
+        .no_comes_first = false,
       };
       ui::e_confirm const answer =
           co_await ts.gui.required_yes_no( config );
@@ -393,10 +393,10 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
     co_return;
   }
   YesNoConfig const config{
-      .msg       = msg,
-      .yes_label = fmt::format( "Pay [{}].", back_taxes ),
-      .no_label  = "This is taxation without representation!",
-      .no_comes_first = true,
+    .msg            = msg,
+    .yes_label      = fmt::format( "Pay [{}].", back_taxes ),
+    .no_label       = "This is taxation without representation!",
+    .no_comes_first = true,
   };
   ui::e_confirm const answer =
       co_await ts.gui.required_yes_no( config );

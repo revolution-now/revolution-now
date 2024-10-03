@@ -142,10 +142,10 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
       break;
   }
   YesNoConfig const config{
-      .msg            = msg,
-      .yes_label      = "Accept.",
-      .no_label       = "Decline.",
-      .no_comes_first = false,
+    .msg            = msg,
+    .yes_label      = "Accept.",
+    .no_label       = "Decline.",
+    .no_comes_first = false,
   };
   maybe<ui::e_confirm> const choice =
       co_await ts.gui.optional_yes_no( config );

@@ -43,19 +43,18 @@ namespace rl = ::base::rl;
 using ::base::function_ref;
 using ::lua::lua_valid;
 
-size_t constexpr max_scrollback_lines = 10000;
+size_t constexpr max_scrollback_lines = 10'000;
 
 unordered_map<string,
               function_ref<void( Terminal& ) const>> const
     kConsoleCommands{
-        { "clear",
-          []( Terminal& terminal ) { terminal.clear(); } }, //
-        { "abort",
-          []( Terminal& ) {
-            FATAL( "aborting in response to terminal command." );
-          } }, //
-        { "quit",
-          []( Terminal& ) { throw exception_exit{}; } } //
+      { "clear",
+        []( Terminal& terminal ) { terminal.clear(); } }, //
+      { "abort",
+        []( Terminal& ) {
+          FATAL( "aborting in response to terminal command." );
+        } },                                                  //
+      { "quit", []( Terminal& ) { throw exception_exit{}; } } //
     };
 
 bool is_statement( string const& cmd ) {

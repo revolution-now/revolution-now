@@ -339,7 +339,7 @@ void ButtonBaseView::draw( rr::Renderer& renderer,
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
   auto time        = system_clock::now().time_since_epoch();
-  auto one_second  = 1000ms;
+  auto one_second  = 1'000ms;
   auto half_second = 500ms;
   bool on          = time % one_second > half_second;
 
@@ -379,8 +379,8 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
       e_tile::button_up_lr );
 
   auto markup_info = TextMarkupInfo{
-      gfx::pixel{ .r = 0x50, .g = 0x50, .b = 0x50, .a = 255 },
-      /*highlight=*/{} };
+    gfx::pixel{ .r = 0x50, .g = 0x50, .b = 0x50, .a = 255 },
+    /*highlight=*/{} };
 
   Coord text_position =
       centered( text_size_in_pixels_,
@@ -594,14 +594,14 @@ void LineEditorView::set( std::string_view new_string,
 *****************************************************************/
 TextMarkupInfo const& default_text_markup_info() {
   static TextMarkupInfo info{
-      /*normal=*/config_ui.dialog_text.normal,
-      /*highlight=*/config_ui.dialog_text.highlighted };
+    /*normal=*/config_ui.dialog_text.normal,
+    /*highlight=*/config_ui.dialog_text.highlighted };
   return info;
 }
 
 TextReflowInfo const& default_text_reflow_info() {
   static TextReflowInfo info{
-      /*max_cols=*/config_ui.dialog_text.columns };
+    /*max_cols=*/config_ui.dialog_text.columns };
   return info;
 }
 
@@ -897,8 +897,8 @@ void VerticalArrayView::recompute_child_positions() {
     CHECK( x >= 0 );
     CHECK( x <= 0 + max_width );
     OwningPositionedView pos_view{
-        .view  = std::move( view ),
-        .coord = Coord{ .x = x, .y = y } };
+      .view  = std::move( view ),
+      .coord = Coord{ .x = x, .y = y } };
     ( *this )[i] = std::move( pos_view );
     y += size.h;
   }
@@ -954,8 +954,8 @@ void HorizontalArrayView::recompute_child_positions() {
     CHECK( y >= 0 );
     CHECK( y <= 0 + max_height );
     OwningPositionedView pos_view{
-        .view  = std::move( view ),
-        .coord = Coord{ .x = x, .y = y } };
+      .view  = std::move( view ),
+      .coord = Coord{ .x = x, .y = y } };
     ( *this )[i] = std::move( pos_view );
     x += size.w;
   }
@@ -1158,7 +1158,7 @@ OptionSelectView::OptionSelectView(
     auto width  = view->delta().w;
     auto height = view->delta().h;
     this->push_back( OwningPositionedView{
-        .view = std::move( view ), .coord = so_far } );
+      .view = std::move( view ), .coord = so_far } );
     // `view` is no longer available here (moved from).
     so_far.y += height;
     min_width = std::max( min_width, width );

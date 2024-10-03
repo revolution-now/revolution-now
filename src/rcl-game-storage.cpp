@@ -100,8 +100,8 @@ string save_game_to_rcl(
     RootState const&                   root,
     RclGameStorageSave::options const& opts ) {
   cdr::converter::options const cdr_opts{
-      .write_fields_with_default_value =
-          should_write_fields_with_default_values( opts ) };
+    .write_fields_with_default_value =
+        should_write_fields_with_default_values( opts ) };
   base::ScopedTimer timer( "save-game" );
   timer.checkpoint( "to_canonical" );
   cdr::value cdr_val =
@@ -114,7 +114,7 @@ string save_game_to_rcl(
   UNWRAP_CHECK(
       rcl_doc, rcl::doc::create( std::move( tbl ), proc_opts ) );
   rcl::EmitOptions emit_opts{
-      .flatten_keys = true,
+    .flatten_keys = true,
   };
   timer.checkpoint( "emit rcl" );
   return rcl::emit( rcl_doc, emit_opts );
@@ -125,8 +125,8 @@ valid_or<string> load_game_from_rcl( RootState&    out_root,
                                      string_view   filename,
                                      string const& in ) {
   cdr::converter::options const cdr_opts{
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = true,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = true,
   };
   base::ScopedTimer timer( "load-game" );
   timer.checkpoint( "rcl parse" );

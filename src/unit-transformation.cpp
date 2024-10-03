@@ -72,9 +72,9 @@ vector<UnitTransformationFromCommodity> unit_delta_commodity(
     if( abs( quantity_delta ) > abs( commodity.quantity ) )
       continue;
     res.push_back( UnitTransformationFromCommodity{
-        .new_comp        = utr.new_comp,
-        .modifier_deltas = utr.modifier_deltas,
-        .quantity_used   = -quantity_delta } );
+      .new_comp        = utr.new_comp,
+      .modifier_deltas = utr.modifier_deltas,
+      .quantity_used   = -quantity_delta } );
   }
   return res;
 }
@@ -267,9 +267,9 @@ vector<UnitTransformation> possible_unit_transformations(
       }
 
       res.push_back( UnitTransformation{
-          .new_comp         = std::move( new_comp ),
-          .modifier_deltas  = std::move( modifier_deltas ),
-          .commodity_deltas = std::move( commodity_deltas ) } );
+        .new_comp         = std::move( new_comp ),
+        .modifier_deltas  = std::move( modifier_deltas ),
+        .commodity_deltas = std::move( commodity_deltas ) } );
     }
     // !! This label must be last line of loop.
   next_unit_type:
@@ -352,8 +352,8 @@ void consume_20_tools( SS& ss, TS& ts, Unit& unit ) {
         result.modifier_deltas ==
             refl::enum_map<e_unit_type_modifier,
                            e_unit_type_modifier_delta>{
-                { e_unit_type_modifier::tools,
-                  e_unit_type_modifier_delta::del } } ) {
+              { e_unit_type_modifier::tools,
+                e_unit_type_modifier_delta::del } } ) {
       valid_results.push_back( result );
     }
   }

@@ -74,7 +74,7 @@ BraveAttackColonyEffect choose_stolen_commodity(
   Commodity const commodity{ .type     = type,
                              .quantity = quantity_to_steal };
   return BraveAttackColonyEffect::commodity_stolen{
-      .what = commodity };
+    .what = commodity };
 }
 
 BraveAttackColonyEffect calculate_money_stolen(
@@ -136,7 +136,7 @@ BraveAttackColonyEffect choose_ship_to_damage(
   maybe<ShipRepairPort> const port = find_repair_port_for_ship(
       ss, colony.nation, colony.location );
   return BraveAttackColonyEffect::ship_in_port_damaged{
-      .which = ship, .sent_to = port };
+    .which = ship, .sent_to = port };
 }
 
 BraveAttackColonyEffect choose_building_to_destroy(
@@ -163,7 +163,7 @@ BraveAttackColonyEffect choose_building_to_destroy(
   if( config_colony.initial_colony_buildings[*building] )
     return none;
   return BraveAttackColonyEffect::building_destroyed{
-      .which = *building };
+    .which = *building };
 }
 
 } // namespace

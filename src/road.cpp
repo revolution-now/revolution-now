@@ -147,14 +147,14 @@ void render_road_if_present( rr::Renderer& renderer, Coord where,
 
   static constexpr array<pair<e_direction, e_tile>, 8> const
       road_tiles{
-          pair{ e_direction::nw, e_tile::road_nw },
-          pair{ e_direction::n, e_tile::road_n },
-          pair{ e_direction::ne, e_tile::road_ne },
-          pair{ e_direction::e, e_tile::road_e },
-          pair{ e_direction::se, e_tile::road_se },
-          pair{ e_direction::s, e_tile::road_s },
-          pair{ e_direction::sw, e_tile::road_sw },
-          pair{ e_direction::w, e_tile::road_w },
+        pair{ e_direction::nw, e_tile::road_nw },
+        pair{ e_direction::n, e_tile::road_n },
+        pair{ e_direction::ne, e_tile::road_ne },
+        pair{ e_direction::e, e_tile::road_e },
+        pair{ e_direction::se, e_tile::road_se },
+        pair{ e_direction::s, e_tile::road_s },
+        pair{ e_direction::sw, e_tile::road_sw },
+        pair{ e_direction::w, e_tile::road_w },
       };
 
   bool road_in_surroundings = false;

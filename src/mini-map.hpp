@@ -114,7 +114,10 @@ struct MiniMapView : ui::View {
   // White box rect relative to this view in pixels.
   gfx::rect white_box_pixels() const;
 
-  enum class e_mini_map_drag { map, white_box };
+  enum class e_mini_map_drag {
+    map,
+    white_box
+  };
 
   // Any non-const method should call this at the end.
   void fix_invariants();

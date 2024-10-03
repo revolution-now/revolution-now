@@ -425,7 +425,7 @@ void compute_food_production(
                              quantity );
       out.corn_produced += quantity;
       out_land_production[d] = SquareProduction{
-          .what = e_outdoor_job::food, .quantity = quantity };
+        .what = e_outdoor_job::food, .quantity = quantity };
     }
   }
   // This must have already been computed.
@@ -443,7 +443,7 @@ void compute_food_production(
                              quantity );
       out.fish_produced += quantity;
       out_land_production[d] = SquareProduction{
-          .what = e_outdoor_job::fish, .quantity = quantity };
+        .what = e_outdoor_job::fish, .quantity = quantity };
     }
   }
 
@@ -565,7 +565,7 @@ void compute_raw(
           quantity );
       out.raw_produced += quantity;
       out_land_production[d] = SquareProduction{
-          .what = outdoor_job, .quantity = quantity };
+        .what = outdoor_job, .quantity = quantity };
     }
   }
 
@@ -841,13 +841,13 @@ void fill_in_center_square(
   e_outdoor_job const outdoor_job =
       to_outdoor_job( *center_secondary );
   pr.center_extra_production = SquareProduction{
-      .what = outdoor_job,
-      // Note that this quantity must be checked by the functions
-      // dedicated to individual goods in order to factor them in
-      // to the total calculations.
-      .quantity = commodity_production_on_center_square(
-          *center_secondary, square, player,
-          ss.settings.difficulty ) };
+    .what = outdoor_job,
+    // Note that this quantity must be checked by the functions
+    // dedicated to individual goods in order to factor them in
+    // to the total calculations.
+    .quantity = commodity_production_on_center_square(
+        *center_secondary, square, player,
+        ss.settings.difficulty ) };
   bells_modifiers.apply( activity_for_outdoor_job( outdoor_job ),
                          unit_type,
                          pr.center_extra_production->quantity );
@@ -895,11 +895,11 @@ BellsModifiers compute_bells_modifiers(
       compute_sons_of_liberty_bonus(
           sons_of_liberty_integral_percent, /*is_expert=*/true );
 
-  return BellsModifiers{ .sons_of_liberty_bonus_non_expert =
-                             sons_of_liberty_bonus_non_expert,
-                         .sons_of_liberty_bonus_expert =
-                             sons_of_liberty_bonus_expert,
-                         .tory_penalty = tory_penalty };
+  return BellsModifiers{
+    .sons_of_liberty_bonus_non_expert =
+        sons_of_liberty_bonus_non_expert,
+    .sons_of_liberty_bonus_expert = sons_of_liberty_bonus_expert,
+    .tory_penalty                 = tory_penalty };
 }
 
 } // namespace

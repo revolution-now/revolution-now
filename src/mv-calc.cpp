@@ -36,10 +36,10 @@ MovementPointsAnalysis can_unit_move_based_on_mv_points_impl(
     TS& ts, MovementPoints has, MovementPoints start_of_turn_pts,
     MovementPoints needed ) {
   MovementPointsAnalysis res{
-      .has                           = has,
-      .needed                        = needed,
-      .using_start_of_turn_exemption = false,
-      .using_overdraw_allowance      = false };
+    .has                           = has,
+    .needed                        = needed,
+    .using_start_of_turn_exemption = false,
+    .using_overdraw_allowance      = false };
   if( has == 0 ) return res;
   if( has >= needed ) return res;
   // At this point the unit does not have enough movement points

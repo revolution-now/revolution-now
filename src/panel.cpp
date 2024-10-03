@@ -97,9 +97,9 @@ struct PanelPlane::Impl : public IPlane {
     Coord const mini_map_upper_left =
         centered( mini_map->delta(), mini_map_available );
     view_vec.emplace_back( ui::OwningPositionedView{
-        .view  = std::move( mini_map ),
-        .coord = mini_map_upper_left.with_new_origin(
-            rect().upper_left() ) } );
+      .view  = std::move( mini_map ),
+      .coord = mini_map_upper_left.with_new_origin(
+          rect().upper_left() ) } );
 
     auto button_view =
         make_unique<ui::ButtonView>( "Next Turn", [this] {
@@ -115,7 +115,7 @@ struct PanelPlane::Impl : public IPlane {
     where = Coord{} + ( where - rect().upper_left() );
 
     ui::OwningPositionedView p_view{
-        .view = std::move( button_view ), .coord = where };
+      .view = std::move( button_view ), .coord = where };
     view_vec.emplace_back( std::move( p_view ) );
 
     view = make_unique<ui::InvisibleView>(

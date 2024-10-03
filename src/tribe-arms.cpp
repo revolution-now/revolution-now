@@ -87,14 +87,13 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
   bool const depletes_horses = take_horses;
 
   return EquippedBrave{
-      .type          = find_brave( has_muskets || take_muskets,
-                                   has_horses || take_horses ),
-      .muskets_delta = depletes_muskets ? -1 : 0,
-      .horse_breeding_delta =
-          depletes_horses
-              ? -config_natives.arms
-                     .internal_horses_per_mounted_brave
-              : 0,
+    .type          = find_brave( has_muskets || take_muskets,
+                                 has_horses || take_horses ),
+    .muskets_delta = depletes_muskets ? -1 : 0,
+    .horse_breeding_delta =
+        depletes_horses ? -config_natives.arms
+                               .internal_horses_per_mounted_brave
+                        : 0,
   };
 }
 
@@ -225,8 +224,8 @@ ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
       tribe.horse_breeding /
       config_natives.arms.internal_horses_per_mounted_brave;
 
-  int const musket_units = tribe.muskets         //
-                           + armed_brave_count   //
+  int const musket_units = tribe.muskets       //
+                           + armed_brave_count //
                            + mounted_warrior_count;
   int const horse_units = tribe.horse_herds      //
                           + horse_breeding_count //
@@ -234,12 +233,12 @@ ArmsReportForIndianAdvisorReport tribe_arms_for_advisor_report(
                           + mounted_warrior_count;
 
   return {
-      .muskets =
-          config_natives.arms.display_muskets_per_armed_brave *
-          musket_units,
-      .horses =
-          config_natives.arms.display_horses_per_mounted_brave *
-          horse_units };
+    .muskets =
+        config_natives.arms.display_muskets_per_armed_brave *
+        musket_units,
+    .horses =
+        config_natives.arms.display_horses_per_mounted_brave *
+        horse_units };
 }
 
 void on_muskets_sold_to_tribe( Tribe& tribe, int amount ) {

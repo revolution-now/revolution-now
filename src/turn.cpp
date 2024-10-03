@@ -125,13 +125,13 @@ using UserInput = base::variant< //
 // To be called once per turn.
 wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   ++time_point.turns;
-  if( time_point.year == 1600 &&
+  if( time_point.year == 1'600 &&
       time_point.season == e_season::spring )
     co_await gui.message_box(
         "Starting in the year [1600] the time scale "
         "changes.  Henceforth there will be both a "
         "[Spring] and a [Fall] turn each year." );
-  bool const two_turns = ( time_point.year >= 1600 );
+  bool const two_turns = ( time_point.year >= 1'600 );
   switch( time_point.season ) {
     case e_season::winter:
       // We're not currently supporting four seasons per year, so
@@ -381,12 +381,12 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
     case e_menu_item::revolution: {
       // TODO: requires 50% rebel sentiment.
       ChoiceConfig config{
-          .msg     = "Declare Revolution?",
-          .options = {
-              { .key = "no", .display_name = "Not Yet..." },
-              { .key          = "yes",
-                .display_name = "Give me liberty or give me "
-                                "death!" } } };
+        .msg     = "Declare Revolution?",
+        .options = {
+          { .key = "no", .display_name = "Not Yet..." },
+          { .key          = "yes",
+            .display_name = "Give me liberty or give me "
+                            "death!" } } };
       maybe<string> const answer =
           co_await ts.gui.optional_choice( config );
       co_await ts.gui.message_box( "You selected: {}", answer );
@@ -507,7 +507,7 @@ wait<EndOfTurnResult> process_player_input(
       // not the one that the player last clicked on. This would
       // seem strange to the player, and this avoids that.
       co_return EndOfTurnResult::return_to_units{
-          .first_to_ask = units.back() };
+        .first_to_ask = units.back() };
     }
   }
   co_return EndOfTurnResult::not_done_yet{};
@@ -672,7 +672,7 @@ wait<LandViewPlayerInput> landview_player_input(
   LandViewPlayerInput response;
   if( auto maybe_command = pop_unit_command( id ) ) {
     response = LandViewPlayerInput::give_command{
-        .cmd = *maybe_command };
+      .cmd = *maybe_command };
   } else {
     lg.debug( "asking orders for: {}",
               debug_string( as_const( ss.units ), id ) );
@@ -1070,7 +1070,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
         CASE( proceed ) { co_return NationTurnState::finish{}; }
         CASE( return_to_units ) {
           co_return NationTurnState::units{
-              .q = { return_to_units.first_to_ask } };
+            .q = { return_to_units.first_to_ask } };
         }
       }
       SHOULD_NOT_BE_HERE; // for gcc.

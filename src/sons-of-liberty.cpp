@@ -246,11 +246,11 @@ ColonySonsOfLiberty compute_colony_sons_of_liberty(
       compute_tory_number( sons_of_liberty_number, population );
   CHECK( tory_number + sons_of_liberty_number == population );
   return ColonySonsOfLiberty{
-      .sol_integral_percent = sons_of_liberty_integral_percent,
-      .rebels               = sons_of_liberty_number,
-      .tory_integral_percent =
-          100 - sons_of_liberty_integral_percent,
-      .tories = tory_number };
+    .sol_integral_percent = sons_of_liberty_integral_percent,
+    .rebels               = sons_of_liberty_number,
+    .tory_integral_percent =
+        100 - sons_of_liberty_integral_percent,
+    .tories = tory_number };
 }
 
 } // namespace rn

@@ -71,9 +71,9 @@ double constexpr greyscale_max_saturation = 0.08;
 // This is intended to be looked up by index, where the index is
 // the "hue bucket".
 array<char const*, hue_buckets> constexpr hue_names{
-    "red",   "orange",       "yellow",  "chartreuse_green",
-    "green", "spring_green", "cyan",    "azure",
-    "blue",  "violet",       "magenta", "rose",
+  "red",   "orange",       "yellow",  "chartreuse_green",
+  "green", "spring_green", "cyan",    "azure",
+  "blue",  "violet",       "magenta", "rose",
 };
 static_assert( hue_names.size() == hue_buckets );
 

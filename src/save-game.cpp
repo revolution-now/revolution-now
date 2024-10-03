@@ -97,8 +97,8 @@ static wait<maybe<int>> select_save_slot_impl(
       slots[i] =
           query.description( query_file_for_slot( query, i ) );
   ChoiceConfig config{
-      .msg  = "Select a slot:",
-      .sort = false,
+    .msg  = "Select a slot:",
+    .sort = false,
   };
   int const    num_slots  = number_of_normal_slots();
   string const kEmptyName = "(none)";
@@ -157,8 +157,8 @@ wait<maybe<int>> select_load_slot(
     co_return nothing;
   }
   ChoiceConfig config{
-      .msg  = "Select a slot:",
-      .sort = false,
+    .msg  = "Select a slot:",
+    .sort = false,
   };
   int const    num_slots  = number_of_total_slots();
   string const kEmptyName = "(none)";

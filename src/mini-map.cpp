@@ -324,9 +324,9 @@ void MiniMap::drag_box( gfx::size const mouse_delta ) {
 }
 
 gfx::drect MiniMap::tiles_visible_on_minimap() const {
-  return { .origin = origin(),
-           .size   = size_screen_pixels_.to_double() /
-                   kPixelsPerPoint };
+  return {
+    .origin = origin(),
+    .size = size_screen_pixels_.to_double() / kPixelsPerPoint };
 }
 
 gfx::dpoint MiniMap::origin() const {
@@ -404,7 +404,7 @@ gfx::rect MiniMapView::white_box_pixels() const {
 void MiniMapView::draw_impl( rr::Renderer&      renderer,
                              IVisibility const& viz ) const {
   gfx::rect const actual{
-      .origin = {}, .size = mini_map_.size_screen_pixels() };
+    .origin = {}, .size = mini_map_.size_screen_pixels() };
   gfx::drect const squares =
       mini_map_.tiles_visible_on_minimap();
 
@@ -443,7 +443,7 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
   bool const blink_on =
       chrono::duration_cast<chrono::milliseconds>(
           Clock_t::now().time_since_epoch() ) %
-          chrono::milliseconds{ 1000 } >
+          chrono::milliseconds{ 1'000 } >
       chrono::milliseconds{ 500 };
 
   for( gfx::rect r : gfx::subrects( squares.truncated() ) ) {
@@ -467,10 +467,10 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
       }
     }
     gfx::rect const pixel{
-        .origin = actual.nw() + ( land_coord.to_gfx() -
-                                  squares.nw().truncated() ) *
-                                    kPixelsPerPoint,
-        .size = pixel_size };
+      .origin = actual.nw() + ( land_coord.to_gfx() -
+                                squares.nw().truncated() ) *
+                                  kPixelsPerPoint,
+      .size = pixel_size };
     painter.draw_solid_rect( pixel, color );
   }
 
@@ -479,7 +479,7 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
   gfx::rect const white_box =
       white_box_pixels().clamped( rect( Coord{} ) );
   gfx::rect const bounds = gfx::rect{
-      .origin = {}, .size = mini_map_.size_screen_pixels() };
+    .origin = {}, .size = mini_map_.size_screen_pixels() };
   gfx::pixel const kBoxColor =
       gfx::pixel{ .r = 0xdf, .g = 0xdf, .b = 0xef, .a = 0xff };
   // Left.

@@ -21,7 +21,7 @@ bool Object::input( input::event_t const& event ) {
   switch( event.to_enum() ) {
     case input::e_input_event::unknown_event: //
       return false;
-    case input::e_input_event::quit_event:    //
+    case input::e_input_event::quit_event: //
       return false;
     case input::e_input_event::win_event: {
       auto& val = event.get<input::win_event_t>();

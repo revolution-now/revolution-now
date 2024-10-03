@@ -132,9 +132,9 @@ ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
                                     to_promote.composition(),
                                     expert_activity ) );
         tev.action = TeacherAction::taught_unit{
-            .taught_id = to_promote_id,
-            .from_type = to_promote.type(),
-            .to_type   = new_comp.type() };
+          .taught_id = to_promote_id,
+          .from_type = to_promote.type(),
+          .to_type   = new_comp.type() };
         shuffled_teachable().pop_back();
         change_unit_type( ss, ts, to_promote, new_comp );
       }

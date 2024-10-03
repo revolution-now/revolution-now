@@ -32,11 +32,11 @@ void paint_things( rr::Renderer& renderer ) {
   int x = 50;
 
   vector<pair<dsize, double>> directions{
-      { dsize{ .h = -grad_mag }, 1.0 },
-      { dsize{ .w = grad_mag }, 0.0 },
-      { dsize{ .h = grad_mag }, 0.0 },
-      { dsize{ .w = -grad_mag }, 1.0 },
-      { dsize{ .w = -grad_mag, .h = -grad_mag }, 1.0 },
+    { dsize{ .h = -grad_mag }, 1.0 },
+    { dsize{ .w = grad_mag }, 0.0 },
+    { dsize{ .h = grad_mag }, 0.0 },
+    { dsize{ .w = -grad_mag }, 1.0 },
+    { dsize{ .w = -grad_mag, .h = -grad_mag }, 1.0 },
   };
 
   for( auto p : directions ) {

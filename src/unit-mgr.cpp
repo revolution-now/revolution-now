@@ -142,21 +142,21 @@ UnitId create_free_unit( UnitsState&            units_state,
 Unit create_unregistered_unit( Player const&          player,
                                UnitComposition const& comp ) {
   wrapped::Unit refl_unit{
-      .id          = UnitId{ 0 }, // will be set later.
-      .composition = std::move( comp ),
-      .orders      = unit_orders::none{},
-      .cargo = CargoHold( unit_attr( comp.type() ).cargo_slots ),
-      .nation = player.nation,
-      .mv_pts = movement_points( player, comp.type() ),
+    .id          = UnitId{ 0 }, // will be set later.
+    .composition = std::move( comp ),
+    .orders      = unit_orders::none{},
+    .cargo  = CargoHold( unit_attr( comp.type() ).cargo_slots ),
+    .nation = player.nation,
+    .mv_pts = movement_points( player, comp.type() ),
   };
   return Unit( std::move( refl_unit ) );
 }
 
 NativeUnit create_unregistered_unit( e_native_unit_type type ) {
   return NativeUnit{
-      .id              = NativeUnitId{ 0 }, // will be set later.
-      .type            = type,
-      .movement_points = unit_attr( type ).movement_points };
+    .id              = NativeUnitId{ 0 }, // will be set later.
+    .type            = type,
+    .movement_points = unit_attr( type ).movement_points };
 }
 
 UnitId create_unit_on_map_non_interactive(

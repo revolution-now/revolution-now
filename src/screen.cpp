@@ -389,7 +389,7 @@ DisplayMode current_display_mode() {
   SDL_DisplayMode dm;
   SDL_GetCurrentDisplayMode( 0, &dm );
   DisplayMode res{
-      { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
+    { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
   return res;
 }
 

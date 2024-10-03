@@ -36,12 +36,12 @@ vector<IPlane*> PlaneGroup::planes() const {
   res.reserve( 10 );
 
   auto add = mp::overload{
-      [&]( IPlane* p ) {
-        if( p ) res.push_back( p );
-      },
-      [&]( auto const& p ) {
-        if( p ) res.push_back( &p.untyped() );
-      },
+    [&]( IPlane* p ) {
+      if( p ) res.push_back( p );
+    },
+    [&]( auto const& p ) {
+      if( p ) res.push_back( &p.untyped() );
+    },
   };
 
   switch( bottom.index() ) {

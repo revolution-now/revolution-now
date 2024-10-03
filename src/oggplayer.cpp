@@ -72,7 +72,11 @@ class OggTune {
 };
 NOTHROW_MOVE( OggTune );
 
-enum class e_ogg_state { playing, paused, stopped };
+enum class e_ogg_state {
+  playing,
+  paused,
+  stopped
+};
 
 /****************************************************************
 ** Global State
@@ -183,14 +187,14 @@ OggMusicPlayer::player() {
   auto how_it_works = "Uses SDL backend.";
 
   auto desc = MusicPlayerDesc{
-      /*name=*/name,
-      /*description=*/description,
-      /*how_it_works=*/how_it_works,
+    /*name=*/name,
+    /*description=*/description,
+    /*how_it_works=*/how_it_works,
   };
 
   return {
-      desc,
-      g_ogg_player,
+    desc,
+    g_ogg_player,
   };
 }
 
@@ -239,9 +243,9 @@ MusicPlayerState OggMusicPlayer::state() const {
   if( is_playing || is_paused ) {
     CHECK( g_current_music );
     maybe_tune_info = TunePlayerInfo{
-        /*id=*/g_current_music->id(),
-        /*length=*/g_current_music->duration(),
-        /*progress=*/nothing,
+      /*id=*/g_current_music->id(),
+      /*length=*/g_current_music->duration(),
+      /*progress=*/nothing,
     };
   }
   return { /*tune_info=*/maybe_tune_info,
@@ -250,11 +254,11 @@ MusicPlayerState OggMusicPlayer::state() const {
 
 MusicPlayerCapabilities OggMusicPlayer::capabilities() const {
   return {
-      /*can_pause=*/true,
-      /*has_volume=*/true,
-      /*has_progress=*/false,
-      /*has_tune_duration=*/false,
-      /*can_seek=*/false,
+    /*can_pause=*/true,
+    /*has_volume=*/true,
+    /*has_progress=*/false,
+    /*has_tune_duration=*/false,
+    /*can_seek=*/false,
   };
 }
 

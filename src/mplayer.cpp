@@ -28,9 +28,9 @@ SilentMusicPlayer::player() {
   static SilentMusicPlayer player;
   return make_pair<MusicPlayerDesc, MaybeMusicPlayer>(
       /*desc=*/{
-          /*name=*/"Silent Music Player",
-          /*description=*/"For testing; does not play music",
-          /*how_it_works=*/"It doesn't.",
+        /*name=*/"Silent Music Player",
+        /*description=*/"For testing; does not play music",
+        /*how_it_works=*/"It doesn't.",
       },
       /*player=*/player );
 }
@@ -76,11 +76,11 @@ MusicPlayerState SilentMusicPlayer::state() const {
 // Implement MusicPlayer
 MusicPlayerCapabilities SilentMusicPlayer::capabilities() const {
   return {
-      /*can_pause=*/true,
-      /*has_volume=*/false,
-      /*has_progress=*/true,
-      /*has_tune_duration=*/true,
-      /*can_seek=*/false,
+    /*can_pause=*/true,
+    /*has_volume=*/false,
+    /*has_progress=*/true,
+    /*has_tune_duration=*/true,
+    /*can_seek=*/false,
   };
 }
 

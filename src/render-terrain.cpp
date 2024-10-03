@@ -1946,7 +1946,7 @@ void render_fish( IVisibility const& viz, rr::Renderer& renderer,
                    : e_tile::resource_fish_splash_fin_large;
 
   gfx::pixel const outline_color = {
-      .r = 32, .g = 85, .b = 78, .a = 255 };
+    .r = 32, .g = 85, .b = 78, .a = 255 };
 
   if( should_outline_up || should_outline_left ) {
     if( should_outline_up )

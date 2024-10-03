@@ -322,7 +322,10 @@ class TextView : public View {
 
 class ButtonBaseView : public View {
  public:
-  enum class e_type { standard, blink };
+  enum class e_type {
+    standard,
+    blink
+  };
 
   ButtonBaseView( std::string label );
   ButtonBaseView( std::string label, e_type type );
@@ -339,7 +342,12 @@ class ButtonBaseView : public View {
   bool needs_padding() const override { return true; }
 
  protected:
-  enum class button_state { down, up, hover, disabled };
+  enum class button_state {
+    down,
+    up,
+    hover,
+    disabled
+  };
 
   void set_state( button_state state ) { state_ = state; }
   button_state state() const { return state_; }
@@ -591,7 +599,11 @@ class OkButtonView : public CompositeSingleView {
 // will generally have different widths.
 class VerticalArrayView : public VectorView {
  public:
-  enum class align { left, right, center };
+  enum class align {
+    left,
+    right,
+    center
+  };
   VerticalArrayView( align how );
 
   // This will compute child positions.
@@ -618,7 +630,11 @@ class VerticalArrayView : public VectorView {
 // will generally have different heights.
 class HorizontalArrayView : public VectorView {
  public:
-  enum class align { up, down, middle };
+  enum class align {
+    up,
+    down,
+    middle
+  };
 
   HorizontalArrayView( align how );
 
@@ -681,7 +697,10 @@ class OkCancelAdapterView : public VerticalArrayView {
                        OnClickFunc           on_click );
 };
 
-enum class e_option_active { inactive, active };
+enum class e_option_active {
+  inactive,
+  active
+};
 
 class OptionSelectItemView : public CompositeView {
  public:

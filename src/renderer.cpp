@@ -59,8 +59,8 @@ void init_renderer() {
 
   // The window and context must have been created first.
   g_gl_iface = gl::init_opengl( gl::InitOptions{
-      .include_glfunc_logging             = false,
-      .initial_window_physical_pixel_size = physical_screen_size,
+    .include_glfunc_logging             = false,
+    .initial_window_physical_pixel_size = physical_screen_size,
   } );
 
   lg.info( "{}", g_gl_iface.driver_info.pretty_print() );
@@ -68,12 +68,12 @@ void init_renderer() {
   // =========== Renderer Config
 
   rr::RendererConfig renderer_config = {
-      .logical_screen_size = logical_screen_size,
-      .max_atlas_size      = { .w = 3000, .h = 2000 },
-      // These are taken by reference.
-      .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
-      .font_sheets    = config_tile_sheet.sheets.font_sheets,
-      .dump_atlas_png = config_tile_sheet.dump_texture_atlas_to,
+    .logical_screen_size = logical_screen_size,
+    .max_atlas_size      = { .w = 3'000, .h = 2'000 },
+    // These are taken by reference.
+    .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
+    .font_sheets    = config_tile_sheet.sheets.font_sheets,
+    .dump_atlas_png = config_tile_sheet.dump_texture_atlas_to,
   };
 
   // This renderer needs to be released before the SDL context is

@@ -50,9 +50,9 @@ double pan_accel_drag_init() {
 
 SmoothViewport::SmoothViewport()
   : SmoothViewport( wrapped::SmoothViewport{
-        .zoom     = 1.0,
-        .center_x = 0.0,
-        .center_y = 0.0,
+      .zoom     = 1.0,
+      .center_x = 0.0,
+      .center_y = 0.0,
     } ) {}
 
 SmoothViewport::SmoothViewport( wrapped::SmoothViewport&& o )
@@ -200,13 +200,13 @@ NOTHROW_MOVE( TargetingRates );
 // when it is within a critical distance it will start moving at
 // a linear rate so that it doesn't take too long to get there.
 constexpr TargetingRates translation_seeking_parameters{
-    /*rate=*/.90,
-    /*shift=*/1.0,
-    /*linear_window=*/8.0 };
+  /*rate=*/.90,
+  /*shift=*/1.0,
+  /*linear_window=*/8.0 };
 constexpr TargetingRates zoom_seeking_parameters{
-    /*rate=*/.95,
-    /*shift=*/.001,
-    /*linear_window=*/.015 };
+  /*rate=*/.95,
+  /*shift=*/.001,
+  /*linear_window=*/.015 };
 
 // This function will take a numerical value that is being gradu-
 // ally moved to a target value (in a somewhat asymptotic manner
@@ -387,9 +387,9 @@ double SmoothViewport::end_y() const {
 }
 gfx::drect SmoothViewport::get_bounds() const {
   return {
-      .origin = gfx::dpoint{ .x = start_x(), .y = start_y() },
-      .size   = gfx::dsize{ .w = x_world_pixels_in_viewport(),
-                            .h = y_world_pixels_in_viewport() } };
+    .origin = gfx::dpoint{ .x = start_x(), .y = start_y() },
+    .size   = gfx::dsize{ .w = x_world_pixels_in_viewport(),
+                          .h = y_world_pixels_in_viewport() } };
 }
 
 Rect SmoothViewport::get_bounds_rounded() const {
@@ -511,10 +511,10 @@ Rect SmoothViewport::fully_covered_tiles() const {
                     .y = base::round_up_to_nearest_int_multiple(
                         long( start_y() ), g_tile_height ) };
   Coord lower_right{
-      .x = base::round_down_to_nearest_int_multiple(
-          long( end_x() ), g_tile_width ),
-      .y = base::round_down_to_nearest_int_multiple(
-          long( end_y() ), g_tile_height ) };
+    .x = base::round_down_to_nearest_int_multiple(
+        long( end_x() ), g_tile_width ),
+    .y = base::round_down_to_nearest_int_multiple(
+        long( end_y() ), g_tile_height ) };
   return Rect::from( upper_left, lower_right ) / g_tile_delta;
 }
 
@@ -609,10 +609,10 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
       get_bounds_rounded().clamp( this->world_rect_pixels() );
 
   auto res = Coord{
-      X{ int( long( viewport_or_world.x +
-                    percent_x * viewport_or_world.w ) ) },
-      Y{ int( long( viewport_or_world.y +
-                    percent_y * viewport_or_world.h ) ) } };
+    X{ int( long( viewport_or_world.x +
+                  percent_x * viewport_or_world.w ) ) },
+    Y{ int( long( viewport_or_world.y +
+                  percent_y * viewport_or_world.h ) ) } };
 
   DCHECK( res.x >= 0 && res.y >= 0 );
   return res;
@@ -726,12 +726,12 @@ wait<> SmoothViewport::center_on_tile_smooth( Coord coord ) {
   }
   wait_promise<> p;
   coro_smooth_scroll_ = SmoothScroll{
-      .x_target = double(
-          ( coord.x * g_tile_width + g_tile_width / 2 ) ),
-      .y_target = double(
-          ( coord.y * g_tile_height + g_tile_height / 2 ) ),
-      .tile_target = coord,
-      .promise     = &p };
+    .x_target =
+        double( ( coord.x * g_tile_width + g_tile_width / 2 ) ),
+    .y_target = double(
+        ( coord.y * g_tile_height + g_tile_height / 2 ) ),
+    .tile_target = coord,
+    .promise     = &p };
   // When the coroutine ends we will null out the promise so that
   // no one tries to access it (because it will be gone) but we
   // don't reset the coro_smooth_scroll_ variable, that way it
