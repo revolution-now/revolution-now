@@ -27,8 +27,12 @@ namespace gl {
 void to_str( e_shader_type type, std::string& out,
              base::ADL_t ) {
   switch( type ) {
-    case e_shader_type::vertex: out += "vertex"; return;
-    case e_shader_type::fragment: out += "fragment"; return;
+    case e_shader_type::vertex:
+      out += "vertex";
+      return;
+    case e_shader_type::fragment:
+      out += "fragment";
+      return;
   }
 }
 

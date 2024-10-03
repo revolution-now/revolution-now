@@ -22,8 +22,10 @@ namespace {
 
 auto to_gl_draw_mode( e_draw_mode mode ) {
   switch( mode ) {
-    case e_draw_mode::stat1c: return GL_STATIC_DRAW;
-    case e_draw_mode::dynamic: return GL_DYNAMIC_DRAW;
+    case e_draw_mode::stat1c:
+      return GL_STATIC_DRAW;
+    case e_draw_mode::dynamic:
+      return GL_DYNAMIC_DRAW;
   }
 }
 

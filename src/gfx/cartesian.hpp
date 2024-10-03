@@ -79,8 +79,8 @@ struct dsize {
 
 inline auto size::to_double() const {
   return dsize{
-      .w = static_cast<double>( w ),
-      .h = static_cast<double>( h ),
+    .w = static_cast<double>( w ),
+    .h = static_cast<double>( h ),
   };
 }
 
@@ -315,10 +315,10 @@ struct drect {
 
 inline auto rect::to_double() const {
   return drect{
-      .origin = { .x = static_cast<double>( origin.x ),
-                  .y = static_cast<double>( origin.y ) },
-      .size   = { .w = static_cast<double>( size.w ),
-                  .h = static_cast<double>( size.h ) },
+    .origin = { .x = static_cast<double>( origin.x ),
+                .y = static_cast<double>( origin.y ) },
+    .size   = { .w = static_cast<double>( size.w ),
+                .h = static_cast<double>( size.h ) },
   };
 }
 
@@ -371,10 +371,8 @@ struct traits<gfx::size> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "w", &gfx::size::w,
-                         offsetof( type, w ) },
-      refl::StructField{ "h", &gfx::size::h,
-                         offsetof( type, h ) },
+    refl::StructField{ "w", &gfx::size::w, offsetof( type, w ) },
+    refl::StructField{ "h", &gfx::size::h, offsetof( type, h ) },
   };
 };
 
@@ -391,10 +389,10 @@ struct traits<gfx::dsize> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "w", &gfx::dsize::w,
-                         offsetof( type, w ) },
-      refl::StructField{ "h", &gfx::dsize::h,
-                         offsetof( type, h ) },
+    refl::StructField{ "w", &gfx::dsize::w,
+                       offsetof( type, w ) },
+    refl::StructField{ "h", &gfx::dsize::h,
+                       offsetof( type, h ) },
   };
 };
 
@@ -411,10 +409,10 @@ struct traits<gfx::point> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gfx::point::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gfx::point::y,
-                         offsetof( type, y ) },
+    refl::StructField{ "x", &gfx::point::x,
+                       offsetof( type, x ) },
+    refl::StructField{ "y", &gfx::point::y,
+                       offsetof( type, y ) },
   };
 };
 
@@ -431,10 +429,10 @@ struct traits<gfx::dpoint> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gfx::dpoint::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gfx::dpoint::y,
-                         offsetof( type, y ) },
+    refl::StructField{ "x", &gfx::dpoint::x,
+                       offsetof( type, x ) },
+    refl::StructField{ "y", &gfx::dpoint::y,
+                       offsetof( type, y ) },
   };
 };
 
@@ -451,10 +449,10 @@ struct traits<gfx::rect> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "origin", &gfx::rect::origin,
-                         offsetof( type, origin ) },
-      refl::StructField{ "size", &gfx::rect::size,
-                         offsetof( type, size ) } };
+    refl::StructField{ "origin", &gfx::rect::origin,
+                       offsetof( type, origin ) },
+    refl::StructField{ "size", &gfx::rect::size,
+                       offsetof( type, size ) } };
 };
 
 // Reflection info for struct drect.
@@ -470,10 +468,10 @@ struct traits<gfx::drect> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "origin", &gfx::drect::origin,
-                         offsetof( type, origin ) },
-      refl::StructField{ "size", &gfx::drect::size,
-                         offsetof( type, size ) } };
+    refl::StructField{ "origin", &gfx::drect::origin,
+                       offsetof( type, origin ) },
+    refl::StructField{ "size", &gfx::drect::size,
+                       offsetof( type, size ) } };
 };
 
 } // namespace refl

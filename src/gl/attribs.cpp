@@ -126,22 +126,22 @@ e_attrib_compound_type from_GL( int type ) {
 *****************************************************************/
 vec2 vec2::from_point( gfx::point p ) {
   return vec2{
-      .x = static_cast<float>( p.x ),
-      .y = static_cast<float>( p.y ),
+    .x = static_cast<float>( p.x ),
+    .y = static_cast<float>( p.y ),
   };
 }
 
 vec2 vec2::from_size( gfx::size s ) {
   return vec2{
-      .x = static_cast<float>( s.w ),
-      .y = static_cast<float>( s.h ),
+    .x = static_cast<float>( s.w ),
+    .y = static_cast<float>( s.h ),
   };
 }
 
 vec2 vec2::from_dsize( gfx::dsize ds ) {
   return vec2{
-      .x = static_cast<float>( ds.w ),
-      .y = static_cast<float>( ds.h ),
+    .x = static_cast<float>( ds.w ),
+    .y = static_cast<float>( ds.h ),
   };
 }
 
@@ -150,10 +150,10 @@ vec2 vec2::from_dsize( gfx::dsize ds ) {
 *****************************************************************/
 vec4 vec4::from_rect( gfx::rect r ) {
   return vec4{
-      .x = static_cast<float>( r.origin.x ),
-      .y = static_cast<float>( r.origin.y ),
-      .z = static_cast<float>( r.size.w ),
-      .w = static_cast<float>( r.size.h ),
+    .x = static_cast<float>( r.origin.x ),
+    .y = static_cast<float>( r.origin.y ),
+    .z = static_cast<float>( r.size.w ),
+    .w = static_cast<float>( r.size.h ),
   };
 }
 
@@ -168,10 +168,10 @@ vec4 vec4::with_alpha( float a ) const {
 *****************************************************************/
 ivec4 ivec4::from_rect( gfx::rect r ) {
   return ivec4{
-      .x = r.origin.x,
-      .y = r.origin.y,
-      .z = r.size.w,
-      .w = r.size.h,
+    .x = r.origin.x,
+    .y = r.origin.y,
+    .z = r.size.w,
+    .w = r.size.h,
   };
 }
 
@@ -186,10 +186,10 @@ ivec4 ivec4::with_alpha( int32_t a ) const {
 *****************************************************************/
 color color::from_pixel( gfx::pixel p ) {
   return color{
-      .r = static_cast<float>( p.r ) / 255.0f,
-      .g = static_cast<float>( p.g ) / 255.0f,
-      .b = static_cast<float>( p.b ) / 255.0f,
-      .a = static_cast<float>( p.a ) / 255.0f,
+    .r = static_cast<float>( p.r ) / 255.0f,
+    .g = static_cast<float>( p.g ) / 255.0f,
+    .b = static_cast<float>( p.b ) / 255.0f,
+    .a = static_cast<float>( p.a ) / 255.0f,
   };
 }
 

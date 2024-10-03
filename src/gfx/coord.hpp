@@ -547,10 +547,8 @@ struct traits<rn::Delta> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "w", &rn::Delta::w,
-                         offsetof( type, w ) },
-      refl::StructField{ "h", &rn::Delta::h,
-                         offsetof( type, h ) },
+    refl::StructField{ "w", &rn::Delta::w, offsetof( type, w ) },
+    refl::StructField{ "h", &rn::Delta::h, offsetof( type, h ) },
   };
 };
 
@@ -567,10 +565,8 @@ struct traits<rn::Coord> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &rn::Coord::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &rn::Coord::y,
-                         offsetof( type, y ) },
+    refl::StructField{ "x", &rn::Coord::x, offsetof( type, x ) },
+    refl::StructField{ "y", &rn::Coord::y, offsetof( type, y ) },
   };
 };
 
@@ -587,14 +583,10 @@ struct traits<rn::Rect> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &rn::Rect::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &rn::Rect::y,
-                         offsetof( type, y ) },
-      refl::StructField{ "w", &rn::Rect::w,
-                         offsetof( type, w ) },
-      refl::StructField{ "h", &rn::Rect::h,
-                         offsetof( type, h ) },
+    refl::StructField{ "x", &rn::Rect::x, offsetof( type, x ) },
+    refl::StructField{ "y", &rn::Rect::y, offsetof( type, y ) },
+    refl::StructField{ "w", &rn::Rect::w, offsetof( type, w ) },
+    refl::StructField{ "h", &rn::Rect::h, offsetof( type, h ) },
   };
 };
 

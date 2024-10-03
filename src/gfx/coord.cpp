@@ -501,8 +501,8 @@ double Delta::diagonal() const {
 
 Delta Delta::multiply_and_round( double scale ) const {
   return Delta{
-      W{ static_cast<int>( std::lround( w * scale ) ) },
-      H{ static_cast<int>( std::lround( h * scale ) ) } };
+    W{ static_cast<int>( std::lround( w * scale ) ) },
+    H{ static_cast<int>( std::lround( h * scale ) ) } };
 }
 
 Delta Delta::multiply_and_truncate( double scale ) const {

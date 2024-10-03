@@ -24,7 +24,7 @@ base::generator<rn::Rect> subrects( rn::Rect  rect,
     for( int x = rect.left_edge(); x < rect.right_edge();
          x += chunk.w )
       co_yield rn::Rect{
-          .x = x, .y = y, .w = chunk.w, .h = chunk.h }
+        .x = x, .y = y, .w = chunk.w, .h = chunk.h }
           .clamp( rect );
 }
 

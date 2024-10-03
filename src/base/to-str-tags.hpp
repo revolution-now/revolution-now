@@ -40,8 +40,8 @@ concept FormattableSizedRange =
 // not real json since e.g. strings will not have quotes around
 // them.
 namespace detail {
-  void json_style_list_impl( std::vector<std::string> const& vec,
-                             std::string& out );
+void json_style_list_impl( std::vector<std::string> const& vec,
+                           std::string&                    out );
 }
 
 template<FormattableRange R>
@@ -107,9 +107,9 @@ void vertical_map_impl(
     std::string& out );
 }
 
-template<template<typename K, typename V, typename...>
-         typename M,
-         typename K, typename V>
+template<
+    template<typename K, typename V, typename...> typename M,
+    typename K, typename V>
 struct FmtVerticalMap {
   M<K, V> const& m;
 
@@ -128,9 +128,9 @@ struct FmtVerticalMap {
   }
 };
 
-template<template<typename K, typename V, typename...>
-         typename M,
-         typename K, typename V>
+template<
+    template<typename K, typename V, typename...> typename M,
+    typename K, typename V>
 FmtVerticalMap( M<K, V> const& ) -> FmtVerticalMap<M, K, V>;
 
 } // namespace base

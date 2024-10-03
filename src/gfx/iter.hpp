@@ -27,11 +27,10 @@ namespace gfx {
 // inside the main rect.
 base::generator<rn::Rect> subrects( rn::Rect  rect,
                                     rn::Delta chunk = rn::Delta{
-                                        .w = 1, .h = 1 } );
+                                      .w = 1, .h = 1 } );
 
-base::generator<rect> subrects( rect rect,
-                                size chunk = size{ .w = 1,
-                                                   .h = 1 } );
+base::generator<rect> subrects( rect rect, size chunk = size{
+                                             .w = 1, .h = 1 } );
 
 /****************************************************************
 ** rect_iterator

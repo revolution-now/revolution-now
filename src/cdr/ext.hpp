@@ -52,15 +52,15 @@ concept CanonicalBase = //
 // data representation. If they support it, it is expected that
 // such a conversion will always succeed.
 template<typename T>
-concept ToCanonical = CanonicalBase<T> &&
-    requires( T const& o, converter& conv ) {
-  requires std::equality_comparable<T>;
-  requires std::is_default_constructible_v<T>;
-  // clang-format off
+concept ToCanonical =
+    CanonicalBase<T> && requires( T const& o, converter& conv ) {
+      requires std::equality_comparable<T>;
+      requires std::is_default_constructible_v<T>;
+      // clang-format off
   { to_canonical( conv, o, tag<std::remove_const_t<T>> ) }
       -> std::same_as<value>;
-  // clang-format on
-};
+      // clang-format on
+    };
 
 /****************************************************************
 ** Canonical ==> C++
@@ -69,15 +69,17 @@ concept ToCanonical = CanonicalBase<T> &&
 // ical data representation. Unlike `to_canonical`, this one may
 // fail.
 template<typename T>
-concept FromCanonical = CanonicalBase<T> &&
+concept FromCanonical =
+    CanonicalBase<T> &&
     requires( value const& o, converter& conv ) {
-  // Note that this from_canonical function is expected to per-
-  // form any validation that is needed after the conversion.
-  // clang-format off
+      // Note that this from_canonical function is expected to
+      // per- form any validation that is needed after the
+      // conversion.
+      // clang-format off
   { from_canonical( conv, o, tag<std::remove_const_t<T>> ) }
       -> std::same_as<result<std::remove_const_t<T>>>;
-  // clang-format on
-};
+      // clang-format on
+    };
 
 /****************************************************************
 ** C++ <==> Canonical

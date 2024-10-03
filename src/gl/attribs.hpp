@@ -25,7 +25,11 @@ namespace gl {
 /****************************************************************
 ** Attribute Type
 *****************************************************************/
-enum class e_attrib_type { int_, uint, float_ };
+enum class e_attrib_type {
+  int_,
+  uint,
+  float_
+};
 
 int to_GL( e_attrib_type type );
 
@@ -232,14 +236,10 @@ struct traits<gl::color> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "r", &gl::color::r,
-                         offsetof( type, r ) },
-      refl::StructField{ "g", &gl::color::g,
-                         offsetof( type, g ) },
-      refl::StructField{ "b", &gl::color::b,
-                         offsetof( type, b ) },
-      refl::StructField{ "a", &gl::color::a,
-                         offsetof( type, a ) },
+    refl::StructField{ "r", &gl::color::r, offsetof( type, r ) },
+    refl::StructField{ "g", &gl::color::g, offsetof( type, g ) },
+    refl::StructField{ "b", &gl::color::b, offsetof( type, b ) },
+    refl::StructField{ "a", &gl::color::a, offsetof( type, a ) },
   };
 };
 
@@ -256,10 +256,8 @@ struct traits<gl::vec2> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gl::vec2::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gl::vec2::y,
-                         offsetof( type, y ) },
+    refl::StructField{ "x", &gl::vec2::x, offsetof( type, x ) },
+    refl::StructField{ "y", &gl::vec2::y, offsetof( type, y ) },
   };
 };
 
@@ -276,12 +274,9 @@ struct traits<gl::vec3> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gl::vec3::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gl::vec3::y,
-                         offsetof( type, y ) },
-      refl::StructField{ "z", &gl::vec3::z,
-                         offsetof( type, z ) },
+    refl::StructField{ "x", &gl::vec3::x, offsetof( type, x ) },
+    refl::StructField{ "y", &gl::vec3::y, offsetof( type, y ) },
+    refl::StructField{ "z", &gl::vec3::z, offsetof( type, z ) },
   };
 };
 
@@ -298,14 +293,10 @@ struct traits<gl::vec4> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gl::vec4::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gl::vec4::y,
-                         offsetof( type, y ) },
-      refl::StructField{ "z", &gl::vec4::z,
-                         offsetof( type, z ) },
-      refl::StructField{ "w", &gl::vec4::w,
-                         offsetof( type, w ) },
+    refl::StructField{ "x", &gl::vec4::x, offsetof( type, x ) },
+    refl::StructField{ "y", &gl::vec4::y, offsetof( type, y ) },
+    refl::StructField{ "z", &gl::vec4::z, offsetof( type, z ) },
+    refl::StructField{ "w", &gl::vec4::w, offsetof( type, w ) },
   };
 };
 
@@ -322,14 +313,10 @@ struct traits<gl::ivec4> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "x", &gl::ivec4::x,
-                         offsetof( type, x ) },
-      refl::StructField{ "y", &gl::ivec4::y,
-                         offsetof( type, y ) },
-      refl::StructField{ "z", &gl::ivec4::z,
-                         offsetof( type, z ) },
-      refl::StructField{ "w", &gl::ivec4::w,
-                         offsetof( type, w ) },
+    refl::StructField{ "x", &gl::ivec4::x, offsetof( type, x ) },
+    refl::StructField{ "y", &gl::ivec4::y, offsetof( type, y ) },
+    refl::StructField{ "z", &gl::ivec4::z, offsetof( type, z ) },
+    refl::StructField{ "w", &gl::ivec4::w, offsetof( type, w ) },
   };
 };
 

@@ -76,11 +76,11 @@ InitResult init_opengl( InitOptions opts ) {
       glGetIntegerv( GL_MAX_TEXTURE_SIZE, &max_texture_size ) );
 
   DriverInfo driver_info{
-      .vendor           = get_str( GL_VENDOR ),
-      .version          = get_str( GL_VERSION ),
-      .renderer         = get_str( GL_RENDERER ),
-      .max_texture_size = gfx::size{ .w = max_texture_size,
-                                     .h = max_texture_size } };
+    .vendor           = get_str( GL_VENDOR ),
+    .version          = get_str( GL_VERSION ),
+    .renderer         = get_str( GL_RENDERER ),
+    .max_texture_size = gfx::size{ .w = max_texture_size,
+                                   .h = max_texture_size } };
 
   // I guess we don't need depth testing...
   // GL_CHECK( glEnable( GL_DEPTH_TEST ) );
@@ -101,9 +101,9 @@ InitResult init_opengl( InitOptions opts ) {
   clear( gfx::pixel::black() );
 
   return InitResult{
-      .driver_info   = std::move( driver_info ),
-      .iface         = std::move( iface ),
-      .logging_iface = std::move( logger ),
+    .driver_info   = std::move( driver_info ),
+    .iface         = std::move( iface ),
+    .logging_iface = std::move( logger ),
   };
 }
 

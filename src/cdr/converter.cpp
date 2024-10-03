@@ -57,10 +57,10 @@ string converter::dump_error_stack() const {
   // change. The idea is to make whatever substitutions are nec-
   // essary to make the output clean and readable.
   static initializer_list<pair<string, string>> replacements{
-      { base::demangled_typename<string>(), "std::string" },
-      { "::__1", "" },
-      { "::(anonymous namespace)", "" },
-      { " >", ">" },
+    { base::demangled_typename<string>(), "std::string" },
+    { "::__1", "" },
+    { "::(anonymous namespace)", "" },
+    { " >", ">" },
   };
   for( string const& frame : error_stack() ) {
     string sanitized =

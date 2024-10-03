@@ -34,7 +34,10 @@ struct ProgramNonTyped;
 /****************************************************************
 ** Shader Type
 *****************************************************************/
-enum class e_shader_type { vertex, fragment };
+enum class e_shader_type {
+  vertex,
+  fragment
+};
 
 void to_str( e_shader_type type, std::string& out, base::ADL_t );
 
@@ -132,18 +135,19 @@ struct Program : ProgramNonTyped {
 
   template<typename... VertexBuffers>
   void run( VertexArray<VertexBuffers...> const& vert_array,
-            int num_vertices ) requires
-      std::is_same_v<InputAttribTypeList,
-                     typename VertexArray<
-                         VertexBuffers...>::AttribTypeList> {
+            int                                  num_vertices )
+  requires std::is_same_v<
+      InputAttribTypeList,
+      typename VertexArray<VertexBuffers...>::AttribTypeList>
+  {
     this->ProgramNonTyped::run( vert_array, num_vertices );
   }
 
   /* clang-format off */
 private:
-   /* clang-format on */
-   static base::valid_or<std::string>
-   try_initialize_uniforms( Program& pgrm ) {
+  /* clang-format on */
+  static base::valid_or<std::string> try_initialize_uniforms(
+      Program& pgrm ) {
     static constexpr int kNumUniforms =
         std::tuple_size_v<decltype( ProgramUniforms::uniforms )>;
     base::valid_or<std::string> res = base::valid;
@@ -206,7 +210,7 @@ private:
     return base::valid;
   }
 
-  static constexpr size_t kInvalidUniformName = 1234567;
+  static constexpr size_t kInvalidUniformName = 1'234'567;
 
   template<size_t... Idx>
   constexpr static size_t find_uniform_index_impl(
@@ -246,7 +250,7 @@ private:
     UniformArray( ObjId                       pgrm_id,
                   std::tuple<Specs...> const& specs )
       : values{ Uniform<typename Specs::type>{
-            pgrm_id, std::get<Idx>( specs ).name }... } {}
+          pgrm_id, std::get<Idx>( specs ).name }... } {}
 
     using values_t =
         std::tuple<Uniform<typename Specs::type>...>;

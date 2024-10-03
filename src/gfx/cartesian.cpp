@@ -342,16 +342,16 @@ rect rect::with_new_right_edge( const int edge ) const {
 }
 
 rect rect::with_new_left_edge( const int edge ) const {
-  return rect{ .origin = { .x = edge, .y = origin.y },
-               .size   = { .w = size.w + ( origin.x - edge ),
-                           .h = size.h } }
+  return rect{
+    .origin = { .x = edge, .y = origin.y },
+    .size = { .w = size.w + ( origin.x - edge ), .h = size.h } }
       .normalized();
 }
 
 rect rect::with_new_top_edge( const int edge ) const {
-  return rect{ .origin = { .x = origin.x, .y = edge },
-               .size   = { .w = size.w,
-                           .h = size.h + ( origin.y - edge ) } }
+  return rect{
+    .origin = { .x = origin.x, .y = edge },
+    .size = { .w = size.w, .h = size.h + ( origin.y - edge ) } }
       .normalized();
 }
 
@@ -394,8 +394,8 @@ rect rect::with_origin( point const p ) const {
 
 point rect::center() const {
   return point{
-      .x = origin.x + size.w / 2,
-      .y = origin.y + size.h / 2,
+    .x = origin.x + size.w / 2,
+    .y = origin.y + size.h / 2,
   };
 }
 
@@ -414,8 +414,8 @@ rect rect::with_border_added( int n ) const {
   CHECK_GE( size.w, 0 );
   CHECK_GE( size.h, 0 );
   return rect{
-      .origin = origin.moved_up( n ).moved_left( n ),
-      .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
+    .origin = origin.moved_up( n ).moved_left( n ),
+    .size   = { .w = size.w + 2 * n, .h = size.h + 2 * n } };
 }
 
 rect rect::with_inc_size( int n ) const {

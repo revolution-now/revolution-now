@@ -27,30 +27,32 @@ struct NoCopy {
   /**************************************************************
   ** Allowed
   ***************************************************************/
-  NoCopy() requires( std::is_default_constructible_v<T> ) =
-      default;
+  NoCopy()
+  requires( std::is_default_constructible_v<T> )
+  = default;
 
   NoCopy( T&& val_ ) : val( std::move( val_ ) ) {}
 
-  NoCopy( NoCopy&& ) requires(
-      std::is_trivially_move_constructible_v<T> ) = default;
+  NoCopy( NoCopy&& )
+  requires( std::is_trivially_move_constructible_v<T> )
+  = default;
 
-  NoCopy( NoCopy&& o ) requires(
-      std::is_move_constructible_v<T> &&
-      !std::is_trivially_move_constructible_v<T> )
+  NoCopy( NoCopy&& o )
+  requires( std::is_move_constructible_v<T> &&
+            !std::is_trivially_move_constructible_v<T> )
     : val( std::move( o.val ) ) {}
 
   NoCopy& operator=( T&& val_ ) { val = std::move( val_ ); }
 
-  NoCopy& operator                             =( NoCopy&& ) &
+  NoCopy& operator=( NoCopy&& ) &
       requires( std::is_move_assignable_v<T> ) = default;
 
   /**************************************************************
   ** Now Allowed
   ***************************************************************/
-  NoCopy( T const& )      = delete;
-  NoCopy( NoCopy const& ) = delete;
-  NoCopy& operator=( T const& ) = delete;
+  NoCopy( T const& )                 = delete;
+  NoCopy( NoCopy const& )            = delete;
+  NoCopy& operator=( T const& )      = delete;
   NoCopy& operator=( NoCopy const& ) = delete;
 
   /**************************************************************
@@ -98,7 +100,7 @@ template<typename T>
 struct [[nodiscard]] NoDiscard {
   template<typename U>
   NoDiscard( U&& val_ ) : val( std::forward<U>( val_ ) ){};
-           operator T&() { return val; }
+  operator T&() { return val; }
   T&       get() { return val; }
   T const& get() const { return val; }
   T        val;

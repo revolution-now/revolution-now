@@ -15,11 +15,10 @@
 // C++ standard library.
 #include <utility>
 
-#define LIFT( f )                                      \
-  []<typename... Args>( Args && ... args ) noexcept(   \
-      noexcept( f( std::forward<Args>( args )... ) ) ) \
-      ->decltype( auto ) {                             \
-    return f( std::forward<Args>( args )... );         \
+#define LIFT( f )                                               \
+  []<typename... Args>( Args&&... args ) noexcept( noexcept( f( \
+      std::forward<Args>( args )... ) ) ) -> decltype( auto ) { \
+    return f( std::forward<Args>( args )... );                  \
   }
 
 // This is intended to lessen typing for the simplest of lambda

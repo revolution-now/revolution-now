@@ -78,9 +78,9 @@ void ScopedTimer::flush_latest_segment() {
 void ScopedTimer::add_segment( Segment& segment, string label,
                                source_location const& loc ) {
   segment = Segment{
-      .label      = std::move( label ),
-      .source_loc = loc,
-      .start      = clock::now(),
+    .label      = std::move( label ),
+    .source_loc = loc,
+    .start      = clock::now(),
   };
 }
 

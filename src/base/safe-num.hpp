@@ -47,7 +47,8 @@ struct pointer {
 
   std::conditional_t<std::is_same_v<T, void>, Void, T>&
   operator*() const noexcept
-      requires( !std::is_same_v<T, void> ) {
+  requires( !std::is_same_v<T, void> )
+  {
     return *value_;
   }
 

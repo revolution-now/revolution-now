@@ -24,7 +24,7 @@
 // This is in case there are any variables in there that would
 // otherwise be unused in a release build and trigger warnings.
 #  define assert_bt( ... ) \
-    (void)( ( decltype( __VA_ARGS__ )* ){} );
+    (void)( (decltype( __VA_ARGS__ )*){} );
 #endif
 
 namespace base {

@@ -99,8 +99,9 @@ struct cursor_supports_reverse : std::false_type {};
 template<typename T>
 struct cursor_supports_reverse<
     T,
-    std::void_t<decltype( std::declval<typename T::riterator>().
-                          operator++() )>> : std::true_type {};
+    std::void_t<decltype( std::declval<typename T::riterator>()
+                              .operator++() )>>
+  : std::true_type {};
 
 template<typename T>
 constexpr bool cursor_supports_reverse_v =
@@ -1175,7 +1176,11 @@ class ChainView {
       iterator pos() const { return it_; }
 
       func_storage_t<Func> const* func_;
-      enum class e_state { taking, last, finished };
+      enum class e_state {
+        taking,
+        last,
+        finished
+      };
       e_state state_;
     };
     return make_chain<TakeWhileInclCursor>(
@@ -1209,7 +1214,7 @@ class ChainView {
       decltype( auto ) get( ChainView const& input ) const {
         assert_bt( !end( input ) );
         return std::pair<decltype( *it_ ), decltype( *it2_ )>{
-            *it_, *it2_ };
+          *it_, *it2_ };
       }
 
       void next( ChainView const& input ) {
@@ -1518,7 +1523,7 @@ class ChainView {
     return std::move( *this ).map( [func = std::forward<Func>(
                                         func )]( auto&& arg ) {
       return std::pair<decltype( arg ), decltype( func( arg ) )>{
-          arg, func( arg ) };
+        arg, func( arg ) };
     } );
   }
 

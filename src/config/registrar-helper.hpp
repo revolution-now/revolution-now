@@ -26,8 +26,8 @@ namespace rds {
 
 inline cdr::converter::options const& converter_options() {
   static cdr::converter::options opts{
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = false,
   };
   return opts;
 }

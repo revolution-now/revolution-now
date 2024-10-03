@@ -67,7 +67,7 @@ auto handle_pointer( T&& arg ) {
 
 void log_gl_call( string_view name, string_view params ) {
   static unordered_set<string_view> const no_log{
-      "gl_GetError",
+    "gl_GetError",
   };
   DCHECK( name.starts_with( "gl_" ) );
   if( base::find( no_log, name ) == no_log.end() ) return;

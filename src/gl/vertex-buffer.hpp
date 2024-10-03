@@ -22,7 +22,10 @@
 
 namespace gl {
 
-enum class e_draw_mode { stat1c, dynamic };
+enum class e_draw_mode {
+  stat1c,
+  dynamic
+};
 
 /****************************************************************
 ** VertexBufferNonTyped
