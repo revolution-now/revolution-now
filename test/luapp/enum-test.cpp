@@ -26,11 +26,19 @@ using namespace std;
 *****************************************************************/
 namespace my_ns {
 
-enum class non_reflected_enum { yes, no };
+enum class non_reflected_enum {
+  yes,
+  no
+};
 
-enum class empty_enum {};
+enum class empty_enum {
+};
 
-enum class my_enum { red, blue, green };
+enum class my_enum {
+  red,
+  blue,
+  green
+};
 
 } // namespace my_ns
 
@@ -56,9 +64,9 @@ struct traits<my_ns::my_enum> {
 
   // Enum specific.
   static constexpr array<string_view, 3> value_names{
-      "red",
-      "blue",
-      "green",
+    "red",
+    "blue",
+    "green",
   };
 };
 

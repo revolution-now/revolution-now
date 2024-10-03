@@ -297,7 +297,7 @@ TEST_CASE( "[render/rect-pack] multiple 1" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   add_rect( size{ .w = 2, .h = 1 } );
@@ -469,7 +469,7 @@ TEST_CASE( "[render/rect-pack] multiple 2" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   add_rect( size{ .w = 2, .h = 1 } );
@@ -501,7 +501,7 @@ TEST_CASE( "[render/rect-pack] multiple 3" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   add_rect( size{ .w = 1, .h = 4 } );
@@ -599,7 +599,7 @@ TEST_CASE( "[render/rect-pack] some vertical bars" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   add_rect( size{ .w = 1, .h = 4 } );
@@ -675,7 +675,7 @@ TEST_CASE( "[render/rect-pack] lots o squares" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   // Generate 16*16 2x2 squares.
@@ -713,7 +713,7 @@ TEST_CASE( "[render/rect-pack] lots o bars" ) {
   vector<rect> input;
   auto         add_rect = [&]( size const s ) mutable {
     input.push_back(
-                rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
+        rect{ .origin = { .x = -1, .y = -1 }, .size = s } );
   };
 
   // Generate 10 10x1 rects.

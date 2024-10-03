@@ -94,11 +94,11 @@ struct traits<my_ns::Address> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::StructField{ "street_number",
-                         &my_ns::Address::street_number,
-                         offsetof( type, street_number ) },
-      refl::StructField{ "state", &my_ns::Address::state,
-                         offsetof( type, state ) },
+    refl::StructField{ "street_number",
+                       &my_ns::Address::street_number,
+                       offsetof( type, street_number ) },
+    refl::StructField{ "state", &my_ns::Address::state,
+                       offsetof( type, state ) },
   };
 };
 
@@ -112,7 +112,11 @@ static_assert( base::Show<my_ns::Address> );
 namespace my_ns {
 namespace {
 
-enum class e_pet { cat, dog, frog };
+enum class e_pet {
+  cat,
+  dog,
+  frog
+};
 
 void to_str( e_pet const& o, string& out, base::ADL_t ) {
   switch( o ) {
@@ -140,9 +144,9 @@ struct traits<my_ns::e_pet> {
 
   // Enum specific.
   static constexpr array<string_view, 3> value_names{
-      "cat",
-      "dog",
-      "frog",
+    "cat",
+    "dog",
+    "frog",
   };
 };
 
@@ -188,16 +192,16 @@ struct traits<my_ns::Person> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::StructField{ "name", &my_ns::Person::name,
-                         offsetof( type, name ) },
-      refl::StructField{ "height", &my_ns::Person::height,
-                         offsetof( type, height ) },
-      refl::StructField{ "male", &my_ns::Person::male,
-                         offsetof( type, male ) },
-      refl::StructField{ "houses", &my_ns::Person::houses,
-                         offsetof( type, houses ) },
-      refl::StructField{ "pets", &my_ns::Person::pets,
-                         offsetof( type, pets ) },
+    refl::StructField{ "name", &my_ns::Person::name,
+                       offsetof( type, name ) },
+    refl::StructField{ "height", &my_ns::Person::height,
+                       offsetof( type, height ) },
+    refl::StructField{ "male", &my_ns::Person::male,
+                       offsetof( type, male ) },
+    refl::StructField{ "houses", &my_ns::Person::houses,
+                       offsetof( type, houses ) },
+    refl::StructField{ "pets", &my_ns::Person::pets,
+                       offsetof( type, pets ) },
   };
 };
 
@@ -276,12 +280,12 @@ struct traits<my_ns::Rolodex> {
   using template_types = tuple<>;
 
   static constexpr tuple fields{
-      refl::StructField{ "self", &my_ns::Rolodex::self,
-                         offsetof( type, self ) },
-      refl::StructField{ "updated", &my_ns::Rolodex::updated,
-                         offsetof( type, updated ) },
-      refl::StructField{ "contacts", &my_ns::Rolodex::contacts,
-                         offsetof( type, contacts ) },
+    refl::StructField{ "self", &my_ns::Rolodex::self,
+                       offsetof( type, self ) },
+    refl::StructField{ "updated", &my_ns::Rolodex::updated,
+                       offsetof( type, updated ) },
+    refl::StructField{ "contacts", &my_ns::Rolodex::contacts,
+                       offsetof( type, contacts ) },
   };
 };
 
@@ -317,319 +321,319 @@ static_assert( base::Show<my_ns::Variant3> );
 ** Test Data
 *****************************************************************/
 value const cdr_rolodex_1 = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+      },
+  "updated"_key = "1900-02-01",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "male"_key   = false,
+              "houses"_key = list{},
+              "pets"_key =
+                  table{
+                    "cat"_key = 7,
+                    "dog"_key = 8,
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-        },
-    "updated"_key = "1900-02-01",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "male"_key   = false,
-                    "houses"_key = list{},
-                    "pets"_key =
-                        table{
-                            "cat"_key = 7,
-                            "dog"_key = 8,
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        table{
-                            "dog"_key = 2,
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  table{
+                    "dog"_key = 2,
+                  },
+            },
+      },
 };
 
 value const cdr_rolodex_1_missing_houses = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+      },
+  "updated"_key = "1900-02-01",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "male"_key   = false,
+              "pets"_key =
+                  table{
+                    "cat"_key = 7,
+                    "dog"_key = 8,
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-        },
-    "updated"_key = "1900-02-01",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "male"_key   = false,
-                    "pets"_key =
-                        table{
-                            "cat"_key = 7,
-                            "dog"_key = 8,
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        table{
-                            "dog"_key = 2,
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  table{
+                    "dog"_key = 2,
+                  },
+            },
+      },
 };
 
 value const cdr_rolodex_1_extra_field = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+        "xyz"_key = 5,
+      },
+  "updated"_key = "1900-02-01",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "male"_key   = false,
+              "houses"_key = list{},
+              "pets"_key =
+                  table{
+                    "cat"_key = 7,
+                    "dog"_key = 8,
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-            "xyz"_key = 5,
-        },
-    "updated"_key = "1900-02-01",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "male"_key   = false,
-                    "houses"_key = list{},
-                    "pets"_key =
-                        table{
-                            "cat"_key = 7,
-                            "dog"_key = 8,
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        table{
-                            "dog"_key = 2,
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  table{
+                    "dog"_key = 2,
+                  },
+            },
+      },
 };
 
 my_ns::Rolodex const native_rolodex_1{
-    .self    = { {
-           .name   = "bob",
-           .height = 5.5,
-           .male   = true,
-           .houses =
-            {
-                {
-                       .street_number = 444,
-                       .state         = "CA",
-                },
-                {
-                       .street_number = 555,
-                       .state         = "MD",
-                },
-            },
-           .pets =
-            {
-                { my_ns::e_pet::cat, 3 },
-                { my_ns::e_pet::frog, 6 },
-            },
-    } },
-    .updated = "1900-02-01",
-    .contacts =
+  .self    = { {
+       .name   = "bob",
+       .height = 5.5,
+       .male   = true,
+       .houses =
         {
-            {
-                "joe",
-                {
-                    .name   = "joe",
-                    .height = 7.5,
-                    .male   = false,
-                    .houses = {},
-                    .pets =
-                        {
-                            { my_ns::e_pet::cat, 7 },
-                            { my_ns::e_pet::dog, 8 },
-                        },
-                },
-            },
-            {
-                "moe",
-                {
-                    .name   = "moe",
-                    .height = 8.5,
-                    .male   = true,
-                    .houses =
-                        {
-                            {
-                                .street_number = 666,
-                                .state         = "VA",
-                            },
-                        },
-                    .pets =
-                        {
-                            { my_ns::e_pet::dog, 2 },
-                        },
-                },
-            },
+          {
+               .street_number = 444,
+               .state         = "CA",
+          },
+          {
+               .street_number = 555,
+               .state         = "MD",
+          },
         },
+       .pets =
+        {
+          { my_ns::e_pet::cat, 3 },
+          { my_ns::e_pet::frog, 6 },
+        },
+  } },
+  .updated = "1900-02-01",
+  .contacts =
+      {
+        {
+          "joe",
+          {
+            .name   = "joe",
+            .height = 7.5,
+            .male   = false,
+            .houses = {},
+            .pets =
+                {
+                  { my_ns::e_pet::cat, 7 },
+                  { my_ns::e_pet::dog, 8 },
+                },
+          },
+        },
+        {
+          "moe",
+          {
+            .name   = "moe",
+            .height = 8.5,
+            .male   = true,
+            .houses =
+                {
+                  {
+                    .street_number = 666,
+                    .state         = "VA",
+                  },
+                },
+            .pets =
+                {
+                  { my_ns::e_pet::dog, 2 },
+                },
+          },
+        },
+      },
 };
 
 my_ns::Person const person_default{};
 
 value const cdr_person_default = table{
-    "name"_key = "",      "height"_key = 0.0,
-    "male"_key = false,   "houses"_key = cdr::list{},
-    "pets"_key = table{},
+  "name"_key = "",      "height"_key = 0.0,
+  "male"_key = false,   "houses"_key = cdr::list{},
+  "pets"_key = table{},
 };
 
 my_ns::Person const person1{
-    .name   = "joe",
-    .height = 7.5,
-    .male   = false,
-    .houses = {},
-    .pets =
-        {
-            { my_ns::e_pet::cat, 7 },
-            { my_ns::e_pet::dog, 8 },
-        },
+  .name   = "joe",
+  .height = 7.5,
+  .male   = false,
+  .houses = {},
+  .pets =
+      {
+        { my_ns::e_pet::cat, 7 },
+        { my_ns::e_pet::dog, 8 },
+      },
 };
 
 value const cdr_person1 = table{
-    "name"_key   = "joe",
-    "height"_key = 7.5,
-    "male"_key   = false,
-    "houses"_key = cdr::list{},
-    "pets"_key =
-        table{
-            "cat"_key = 7,
-            "dog"_key = 8,
-        },
+  "name"_key   = "joe",
+  "height"_key = 7.5,
+  "male"_key   = false,
+  "houses"_key = cdr::list{},
+  "pets"_key =
+      table{
+        "cat"_key = 7,
+        "dog"_key = 8,
+      },
 };
 
 my_ns::Person const person2{
-    .name   = "moe",
-    .height = 8.5,
-    .male   = true,
-    .houses =
+  .name   = "moe",
+  .height = 8.5,
+  .male   = true,
+  .houses =
+      {
         {
-            {
-                .street_number = 666,
-                .state         = "VA",
-            },
+          .street_number = 666,
+          .state         = "VA",
         },
-    .pets =
-        {
-            { my_ns::e_pet::frog, 10 },
-        },
+      },
+  .pets =
+      {
+        { my_ns::e_pet::frog, 10 },
+      },
 };
 
 value const cdr_person2 = table{
-    "name"_key   = "moe",
-    "height"_key = 8.5,
-    "male"_key   = true,
-    "houses"_key =
-        cdr::list{
-            table{
-                "street_number"_key = 666,
-                "state"_key         = "VA",
-            },
-        },
-    "pets"_key =
+  "name"_key   = "moe",
+  "height"_key = 8.5,
+  "male"_key   = true,
+  "houses"_key =
+      cdr::list{
         table{
-            "frog"_key = 10,
+          "street_number"_key = 666,
+          "state"_key         = "VA",
         },
+      },
+  "pets"_key =
+      table{
+        "frog"_key = 10,
+      },
 };
 
 my_ns::Address const address1{
-    .street_number = 32,
-    .state         = "PA",
+  .street_number = 32,
+  .state         = "PA",
 };
 
 value const cdr_address1 = table{
-    "street_number"_key = 32,
-    "state"_key         = "PA",
+  "street_number"_key = 32,
+  "state"_key         = "PA",
 };
 
 value const cdr_address1_invalid_state = table{
-    "street_number"_key = 32,
-    "state"_key         = "XX",
+  "street_number"_key = 32,
+  "state"_key         = "XX",
 };
 
 my_ns::Variant1 const variant1              = person1;
@@ -642,33 +646,33 @@ my_ns::Variant3 const variant3d             = my_ns::Person{};
 my_ns::Variant3 const variant3d_fst_default = my_ns::Address{};
 
 cdr::table const cdr_variant1{
-    "Person"_key = cdr_person1,
+  "Person"_key = cdr_person1,
 };
 
 cdr::table const cdr_variant1_empty{};
 
 cdr::table const cdr_variant1_default{
-    "Person"_key = cdr_person_default,
+  "Person"_key = cdr_person_default,
 };
 
 cdr::table const cdr_variant2{
-    "Address"_key = cdr_address1,
+  "Address"_key = cdr_address1,
 };
 
 cdr::table const cdr_variant3a{
-    "Address"_key = cdr_address1,
+  "Address"_key = cdr_address1,
 };
 
 cdr::table const cdr_variant3b{
-    "Person"_key = cdr_person2,
+  "Person"_key = cdr_person2,
 };
 
 cdr::table const cdr_variant3c{
-    "Rolodex"_key = cdr_rolodex_1,
+  "Rolodex"_key = cdr_rolodex_1,
 };
 
 cdr::table const cdr_variant3d_no_default{
-    "Person"_key = cdr::table{},
+  "Person"_key = cdr::table{},
 };
 
 cdr::table const cdr_variant3_no_fields{};
@@ -676,16 +680,16 @@ cdr::table const cdr_variant3_no_fields{};
 cdr::list const cdr_variant3_non_table{};
 
 cdr::table const cdr_variant3_extra_field{
-    "Rolodex"_key = cdr_rolodex_1,
-    "Person"_key  = cdr_person1,
+  "Rolodex"_key = cdr_rolodex_1,
+  "Person"_key  = cdr_person1,
 };
 
 cdr::table const cdr_variant3_extra_field_inner{
-    "Rolodex"_key = cdr_rolodex_1_extra_field,
+  "Rolodex"_key = cdr_rolodex_1_extra_field,
 };
 
 cdr::table const cdr_variant3_unknown_field{
-    "abc"_key = cdr_person1,
+  "abc"_key = cdr_person1,
 };
 
 namespace {
@@ -826,8 +830,8 @@ TEST_CASE( "[refl] variant" ) {
 TEST_CASE( "[refl] variant/defaults" ) {
   using namespace ::refl::my_ns;
   converter conv{ {
-      .write_fields_with_default_value  = false,
-      .default_construct_missing_fields = true,
+    .write_fields_with_default_value  = false,
+    .default_construct_missing_fields = true,
   } };
   SECTION( "to_canonical" ) {
     // These are important tests: they test that alternatives be-
@@ -861,20 +865,20 @@ TEST_CASE( "[refl] validation on from_canonical" ) {
   SECTION( "has no validation method" ) {
     static_assert( !ValidatableStruct<MyStruct> );
     MyStruct my_struct{
-        .xxx = 7,
-        .yyy = 5.5,
-        .zzz_map =
-            {
-                { "one", "two" },
-            },
+      .xxx = 7,
+      .yyy = 5.5,
+      .zzz_map =
+          {
+            { "one", "two" },
+          },
     };
     cdr::value cdr_my_struct = cdr::table{
-        "xxx"_key = 7,
-        "yyy"_key = 5.5,
-        "zzz_map"_key =
-            cdr::table{
-                "one"_key = "two",
-            },
+      "xxx"_key = 7,
+      "yyy"_key = 5.5,
+      "zzz_map"_key =
+          cdr::table{
+            "one"_key = "two",
+          },
     };
     converter conv;
     REQUIRE( conv_from_bt<MyStruct>( conv, cdr_my_struct ) ==
@@ -883,12 +887,12 @@ TEST_CASE( "[refl] validation on from_canonical" ) {
   SECTION( "has validation method and passes" ) {
     static_assert( ValidatableStruct<StructWithValidation> );
     StructWithValidation swv{
-        .xxx = 7,
-        .yyy = 8.0,
+      .xxx = 7,
+      .yyy = 8.0,
     };
     cdr::value cdr_swv = cdr::table{
-        "xxx"_key = 7,
-        "yyy"_key = 8.0,
+      "xxx"_key = 7,
+      "yyy"_key = 8.0,
     };
     converter conv;
     REQUIRE( conv_from_bt<StructWithValidation>(
@@ -898,8 +902,8 @@ TEST_CASE( "[refl] validation on from_canonical" ) {
     static_assert( ValidatableStruct<StructWithValidation> );
     static_assert( base::Show<StructWithValidation> );
     cdr::value cdr_swv = cdr::table{
-        "xxx"_key = 7,
-        "yyy"_key = 5.5,
+      "xxx"_key = 7,
+      "yyy"_key = 5.5,
     };
     converter conv;
     REQUIRE( conv.from<StructWithValidation>( cdr_swv ) ==

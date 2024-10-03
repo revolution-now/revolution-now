@@ -141,7 +141,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
                   tuple<int, int, int, int, int, int>> );
 
     REQUIRE( t == tuple<int, int, int, int, int, int>{
-                      1, 2, 3, 4, 5, 6 } );
+                    1, 2, 3, 4, 5, 6 } );
   }
   SECTION( "with userdata" ) {
     MyUserdata mud{ .n = 9 };

@@ -717,7 +717,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk no yield or error" ) {
   REQUIRE( k_returned == false );
 
   resume_result expected = resume_result{
-      .status = resume_status::ok, .nresults = 0 };
+    .status = resume_status::ok, .nresults = 0 };
   REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( C2.status() == thread_status::ok );
@@ -773,7 +773,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
   REQUIRE( k_ran == false );
 
   resume_result expected = resume_result{
-      .status = resume_status::yield, .nresults = 0 };
+    .status = resume_status::yield, .nresults = 0 };
   REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( C2.status() == thread_status::yield );
@@ -836,7 +836,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
   REQUIRE( k_ran == false );
 
   resume_result expected = resume_result{
-      .status = resume_status::ok, .nresults = 0 };
+    .status = resume_status::ok, .nresults = 0 };
   // The error will be caught by pcallk and the continuation will
   // run, so the thread will not be in an error state.
   REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
@@ -893,7 +893,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
   REQUIRE( k_ran == false );
 
   resume_result expected = resume_result{
-      .status = resume_status::yield, .nresults = 0 };
+    .status = resume_status::yield, .nresults = 0 };
   REQUIRE( C.resume_or_reset( L2, /*nargs=*/0 ) == expected );
   REQUIRE( C2.status() == thread_status::yield );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
@@ -1455,7 +1455,7 @@ LUA_TEST_CASE( "[lua-c-api] concat" ) {
 }
 
 LUA_TEST_CASE( "[lua-c-api] tostring" ) {
-  size_t len = 10000;
+  size_t len = 10'000;
 
   SECTION( "nil" ) {
     C.push( nil );
@@ -1688,8 +1688,8 @@ LUA_TEST_CASE( "[lua-c-api] rawlen" ) {
   REQUIRE( C.rawlen( -1 ) == 1 );
   C.pop();
 
-  C.newuserdata( 1000 );
-  REQUIRE( C.rawlen( -1 ) == 1000 );
+  C.newuserdata( 1'000 );
+  REQUIRE( C.rawlen( -1 ) == 1'000 );
   C.pop();
 }
 

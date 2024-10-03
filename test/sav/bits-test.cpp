@@ -65,10 +65,10 @@ TEST_CASE( "[sav/bits] clamping" ) {
   bits<6> bs6( 255 );
   REQUIRE( bs6.n() == 63 );
 
-  bits<63> bs63_max( 9223372036854775807UL );
-  REQUIRE( bs63_max.n() == 9223372036854775807UL );
+  bits<63> bs63_max( 9'223'372'036'854'775'807UL );
+  REQUIRE( bs63_max.n() == 9'223'372'036'854'775'807UL );
 
-  bits<63> bs63_over( 9223372036854775808UL );
+  bits<63> bs63_over( 9'223'372'036'854'775'808UL );
   REQUIRE( bs63_over.n() == 0 );
 }
 
@@ -94,11 +94,11 @@ TEST_CASE( "[sav/bits] number construction" ) {
   bits<32> bs32( 0 );
   REQUIRE( bs32.n() == 0 );
 
-  bits<64> bs64( 123456789 );
-  REQUIRE( bs64.n() == 123456789 );
+  bits<64> bs64( 123'456'789 );
+  REQUIRE( bs64.n() == 123'456'789 );
 
-  bits<64> bs64_max( 18446744073709551615UL );
-  REQUIRE( bs64_max.n() == 18446744073709551615UL );
+  bits<64> bs64_max( 18'446'744'073'709'551'615UL );
+  REQUIRE( bs64_max.n() == 18'446'744'073'709'551'615UL );
 }
 
 TEST_CASE( "[sav/bits] to_str" ) {
@@ -124,12 +124,12 @@ TEST_CASE( "[sav/bits] to_str" ) {
   REQUIRE( base::to_str( bs32 ) ==
            "00000000000000000000000000000000" );
 
-  bits<64> bs64( 123456789 );
+  bits<64> bs64( 123'456'789 );
   REQUIRE( base::to_str( bs64 ) ==
            "0000000000000000000000000000000000000111010110111100"
            "110100010101" );
 
-  bits<64> bs64_max( 18446744073709551615UL );
+  bits<64> bs64_max( 18'446'744'073'709'551'615UL );
   REQUIRE( base::to_str( bs64_max ) ==
            "1111111111111111111111111111111111111111111111111111"
            "111111111111" );
@@ -159,12 +159,12 @@ TEST_CASE( "[sav/bits] to_canonical" ) {
   REQUIRE( conv.to( bs32 ) ==
            "00000000000000000000000000000000" );
 
-  bits<64> bs64( 123456789 );
+  bits<64> bs64( 123'456'789 );
   REQUIRE( conv.to( bs64 ) ==
            "0000000000000000000000000000000000000111010110111100"
            "110100010101" );
 
-  bits<64> bs64_max( 18446744073709551615UL );
+  bits<64> bs64_max( 18'446'744'073'709'551'615UL );
   REQUIRE( conv.to( bs64_max ) ==
            "1111111111111111111111111111111111111111111111111111"
            "111111111111" );
@@ -202,12 +202,12 @@ TEST_CASE( "[sav/bits] from_canonical" ) {
   v = "00000000000000000000000000000000";
   REQUIRE( conv.from<bits<32>>( v ) == bs32 );
 
-  bits<64> bs64( 123456789 );
+  bits<64> bs64( 123'456'789 );
   v = "000000000000000000000000000000000000011101011011110011010"
       "0010101";
   REQUIRE( conv.from<bits<64>>( v ) == bs64 );
 
-  bits<64> bs64_max( 18446744073709551615UL );
+  bits<64> bs64_max( 18'446'744'073'709'551'615UL );
   v = "111111111111111111111111111111111111111111111111111111111"
       "1111111";
   REQUIRE( conv.from<bits<64>>( v ) == bs64_max );
@@ -240,7 +240,7 @@ TEST_CASE( "[sav/bits] read_binary" ) {
   }
   SECTION( "single" ) {
     array<unsigned char, 16> buffer = {
-        128, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+      128, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
     bits<8> const     expected = bits<8>( 128 );
     bits<8>           as;
@@ -252,7 +252,7 @@ TEST_CASE( "[sav/bits] read_binary" ) {
   }
   SECTION( "double" ) {
     array<unsigned char, 16> buffer = {
-        128, 200, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+      128, 200, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
     bits<16> const    expected =
         bits<16>( ( 128UL << 0 ) + ( 200UL << 8 ) );
@@ -265,7 +265,7 @@ TEST_CASE( "[sav/bits] read_binary" ) {
   }
   SECTION( "many" ) {
     array<unsigned char, 16> buffer = {
-        128, 200, 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
+      128, 200, 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
     bits<40> const    expected = bits<40>(
         ( 128UL << 0 ) + ( 200UL << 8 ) + ( 1UL << 16 ) +

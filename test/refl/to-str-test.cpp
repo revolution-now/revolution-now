@@ -68,9 +68,9 @@ TEST_CASE( "[refl/to-str] empty struct" ) {
 TEST_CASE( "[refl/to-str] struct" ) {
   using namespace ::rn;
   MyStruct ms{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    .xxx     = 5,
+    .yyy     = 2.3,
+    .zzz_map = { { "hello", "1" }, { "world", "2" } },
   };
   string s = base::to_str( ms );
   REQUIRE( (
@@ -82,9 +82,9 @@ TEST_CASE( "[refl/to-str] struct" ) {
 TEST_CASE( "[refl/to-str] template struct" ) {
   using namespace ::rn;
   test::MyTemplateStruct<int, string> mts{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    .xxx     = 5,
+    .yyy     = 2.3,
+    .zzz_map = { { "hello", "1" }, { "world", "2" } },
   };
   string s = base::to_str( mts );
   // Need to test start and finish to avoid the std::string in
@@ -101,9 +101,9 @@ TEST_CASE( "[refl/to-str] template struct" ) {
 TEST_CASE( "[refl/to-str] wrapper" ) {
   using namespace ::rn;
   MyStructWrapper msw( MyStruct{
-      .xxx     = 5,
-      .yyy     = 2.3,
-      .zzz_map = { { "hello", "1" }, { "world", "2" } },
+    .xxx     = 5,
+    .yyy     = 2.3,
+    .zzz_map = { { "hello", "1" }, { "world", "2" } },
   } );
   string          s = base::to_str( msw );
   REQUIRE( ( s == "other::MyStructWrapper{xxx=5,yyy=2.3,zzz_map="

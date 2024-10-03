@@ -52,11 +52,11 @@ TEST_CASE( "[render/atlas] single image" ) {
   AtlasBuilder builder;
 
   pixel img_pixels[] = {
-      R, R, G, G, B, //
-      R, R, G, G, B, //
-      R, R, _, _, B, //
-      _, _, W, W, _, //
-      _, _, W, W, _, //
+    R, R, G, G, B, //
+    R, R, G, G, B, //
+    R, R, _, _, B, //
+    _, _, W, W, _, //
+    _, _, W, W, _, //
   };
   gfx::image img = new_image_from_pixels( size{ .w = 5, .h = 5 },
                                           img_pixels );
@@ -64,21 +64,17 @@ TEST_CASE( "[render/atlas] single image" ) {
   AtlasBuilder::ImageBuilder img_builder =
       builder.add_image( std::move( img ) );
 
-  int blue_id = img_builder.add_sprite(
-      rect{ .origin = { .x = 4, .y = 0 },
-            .size   = { .w = 1, .h = 3 } } );
+  int blue_id = img_builder.add_sprite( rect{
+    .origin = { .x = 4, .y = 0 }, .size = { .w = 1, .h = 3 } } );
   REQUIRE( blue_id == 0 );
-  int green_id = img_builder.add_sprite(
-      rect{ .origin = { .x = 2, .y = 0 },
-            .size   = { .w = 2, .h = 2 } } );
+  int green_id = img_builder.add_sprite( rect{
+    .origin = { .x = 2, .y = 0 }, .size = { .w = 2, .h = 2 } } );
   REQUIRE( green_id == 1 );
-  int white_id = img_builder.add_sprite(
-      rect{ .origin = { .x = 2, .y = 3 },
-            .size   = { .w = 2, .h = 2 } } );
+  int white_id = img_builder.add_sprite( rect{
+    .origin = { .x = 2, .y = 3 }, .size = { .w = 2, .h = 2 } } );
   REQUIRE( white_id == 2 );
-  int red_id = img_builder.add_sprite(
-      rect{ .origin = { .x = 0, .y = 0 },
-            .size   = { .w = 2, .h = 3 } } );
+  int red_id = img_builder.add_sprite( rect{
+    .origin = { .x = 0, .y = 0 }, .size = { .w = 2, .h = 3 } } );
   REQUIRE( red_id == 3 );
 
   // Try some cases that are too small to fit.
@@ -101,11 +97,11 @@ TEST_CASE( "[render/atlas] single image" ) {
 
   REQUIRE( atlas->img.size_pixels() == size{ .w = 5, .h = 5 } );
   pixel expected_atlas_pixels[] = {
-      R, R, B, G, G, //
-      R, R, B, G, G, //
-      R, R, B, _, _, //
-      W, W, _, _, _, //
-      W, W, _, _, _, //
+    R, R, B, G, G, //
+    R, R, B, G, G, //
+    R, R, B, _, _, //
+    W, W, _, _, _, //
+    W, W, _, _, _, //
   };
   REQUIRE( image_equals( atlas->img, expected_atlas_pixels ) );
 
@@ -128,11 +124,11 @@ TEST_CASE( "[render/atlas] multiple images" ) {
   AtlasBuilder builder;
 
   pixel img_pixels1[] = {
-      R, R, G, G, B, //
-      R, R, G, G, B, //
-      R, R, _, _, B, //
-      _, _, W, W, _, //
-      _, _, W, W, _, //
+    R, R, G, G, B, //
+    R, R, G, G, B, //
+    R, R, _, _, B, //
+    _, _, W, W, _, //
+    _, _, W, W, _, //
   };
   gfx::image img1 = new_image_from_pixels(
       size{ .w = 5, .h = 5 }, img_pixels1 );
@@ -140,29 +136,25 @@ TEST_CASE( "[render/atlas] multiple images" ) {
   AtlasBuilder::ImageBuilder img_builder1 =
       builder.add_image( std::move( img1 ) );
 
-  int blue_id1 = img_builder1.add_sprite(
-      rect{ .origin = { .x = 4, .y = 0 },
-            .size   = { .w = 1, .h = 3 } } );
+  int blue_id1 = img_builder1.add_sprite( rect{
+    .origin = { .x = 4, .y = 0 }, .size = { .w = 1, .h = 3 } } );
   REQUIRE( blue_id1 == 0 );
-  int green_id1 = img_builder1.add_sprite(
-      rect{ .origin = { .x = 2, .y = 0 },
-            .size   = { .w = 2, .h = 2 } } );
+  int green_id1 = img_builder1.add_sprite( rect{
+    .origin = { .x = 2, .y = 0 }, .size = { .w = 2, .h = 2 } } );
   REQUIRE( green_id1 == 1 );
-  int white_id1 = img_builder1.add_sprite(
-      rect{ .origin = { .x = 2, .y = 3 },
-            .size   = { .w = 2, .h = 2 } } );
+  int white_id1 = img_builder1.add_sprite( rect{
+    .origin = { .x = 2, .y = 3 }, .size = { .w = 2, .h = 2 } } );
   REQUIRE( white_id1 == 2 );
-  int red_id1 = img_builder1.add_sprite(
-      rect{ .origin = { .x = 0, .y = 0 },
-            .size   = { .w = 2, .h = 3 } } );
+  int red_id1 = img_builder1.add_sprite( rect{
+    .origin = { .x = 0, .y = 0 }, .size = { .w = 2, .h = 3 } } );
   REQUIRE( red_id1 == 3 );
 
   pixel img_pixels2[] = {
-      R, B, B, B, _, _, _, _, //
-      R, B, B, B, _, _, _, _, //
-      R, _, _, _, _, G, _, _, //
-      R, _, _, _, _, W, W, W, //
-      R, _, _, _, _, W, W, W, //
+    R, B, B, B, _, _, _, _, //
+    R, B, B, B, _, _, _, _, //
+    R, _, _, _, _, G, _, _, //
+    R, _, _, _, _, W, W, W, //
+    R, _, _, _, _, W, W, W, //
   };
   gfx::image img2 = new_image_from_pixels(
       size{ .w = 8, .h = 5 }, img_pixels2 );
@@ -170,21 +162,17 @@ TEST_CASE( "[render/atlas] multiple images" ) {
   AtlasBuilder::ImageBuilder img_builder2 =
       builder.add_image( std::move( img2 ) );
 
-  int blue_id2 = img_builder2.add_sprite(
-      rect{ .origin = { .x = 1, .y = 0 },
-            .size   = { .w = 3, .h = 2 } } );
+  int blue_id2 = img_builder2.add_sprite( rect{
+    .origin = { .x = 1, .y = 0 }, .size = { .w = 3, .h = 2 } } );
   REQUIRE( blue_id2 == 4 );
-  int green_id2 = img_builder2.add_sprite(
-      rect{ .origin = { .x = 5, .y = 2 },
-            .size   = { .w = 1, .h = 1 } } );
+  int green_id2 = img_builder2.add_sprite( rect{
+    .origin = { .x = 5, .y = 2 }, .size = { .w = 1, .h = 1 } } );
   REQUIRE( green_id2 == 5 );
-  int white_id2 = img_builder2.add_sprite(
-      rect{ .origin = { .x = 5, .y = 3 },
-            .size   = { .w = 3, .h = 2 } } );
+  int white_id2 = img_builder2.add_sprite( rect{
+    .origin = { .x = 5, .y = 3 }, .size = { .w = 3, .h = 2 } } );
   REQUIRE( white_id2 == 6 );
-  int red_id2 = img_builder2.add_sprite(
-      rect{ .origin = { .x = 0, .y = 0 },
-            .size   = { .w = 1, .h = 5 } } );
+  int red_id2 = img_builder2.add_sprite( rect{
+    .origin = { .x = 0, .y = 0 }, .size = { .w = 1, .h = 5 } } );
   REQUIRE( red_id2 == 7 );
 
   // Try some cases that are too small to fit.
@@ -205,11 +193,11 @@ TEST_CASE( "[render/atlas] multiple images" ) {
 
   REQUIRE( atlas->img.size_pixels() == size{ .w = 9, .h = 5 } );
   pixel expected_atlas_pixels[] = {
-      R, R, R, B, B, B, B, G, G, //
-      R, R, R, B, B, B, B, G, G, //
-      R, R, R, B, W, W, W, W, W, //
-      R, _, _, _, W, W, W, W, W, //
-      R, _, _, _, _, _, _, G, _, //
+    R, R, R, B, B, B, B, G, G, //
+    R, R, R, B, B, B, B, G, G, //
+    R, R, R, B, W, W, W, W, W, //
+    R, _, _, _, W, W, W, W, W, //
+    R, _, _, _, _, _, _, G, _, //
   };
   REQUIRE( image_equals( atlas->img, expected_atlas_pixels ) );
 

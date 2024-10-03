@@ -387,7 +387,7 @@ TEST_CASE( "[mock] IterableElementsAre" ) {
                              IterableElementsAre( 2, 3 ) ) )
       .returns( 12 );
   vector<vector<unsigned int>> v3{
-      { 1, 2 }, { 2, 2 }, { 2, 3 } };
+    { 1, 2 }, { 2, 2 }, { 2, 3 } };
   REQUIRE( user.sum_ints_nested( v3 ) == 12 );
 }
 

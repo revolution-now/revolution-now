@@ -56,11 +56,11 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
   // Bit struct type.
   {
     NationInfo const o{
-        .nation_id      = nation_4bit_type::cherokee,
-        .vis_to_english = true,
-        .vis_to_french  = false,
-        .vis_to_spanish = true,
-        .vis_to_dutch   = false,
+      .nation_id      = nation_4bit_type::cherokee,
+      .vis_to_english = true,
+      .vis_to_french  = false,
+      .vis_to_spanish = true,
+      .vis_to_dutch   = false,
     };
     expected =
         "NationInfo{nation_id=Cherokee,vis_to_english=true,vis_"
@@ -74,7 +74,7 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
     BackupForce const o{ .regulars   = 1,
                          .dragoons   = 0,
                          .man_o_wars = 2,
-                         .artillery  = 65535 };
+                         .artillery  = 65'535 };
     expected =
         "BackupForce{regulars=1,dragoons=0,man_o_wars=2,"
         "artillery=65535}";
@@ -84,16 +84,16 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
   // Bit field with bits<> type.
   {
     GameOptions const o{
-        .unused01                    = 33,
-        .tutorial_hints              = true,
-        .disable_water_color_cycling = false,
-        .combat_analysis             = true,
-        .autosave                    = false,
-        .end_of_turn                 = false,
-        .fast_piece_slide            = true,
-        .cheats_enabled              = false,
-        .show_foreign_moves          = true,
-        .show_indian_moves           = false,
+      .unused01                    = 33,
+      .tutorial_hints              = true,
+      .disable_water_color_cycling = false,
+      .combat_analysis             = true,
+      .autosave                    = false,
+      .end_of_turn                 = false,
+      .fast_piece_slide            = true,
+      .cheats_enabled              = false,
+      .show_foreign_moves          = true,
+      .show_indian_moves           = false,
     };
     expected =
         "GameOptions{unused01=0100001,tutorial_hints=true,"

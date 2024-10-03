@@ -42,13 +42,13 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
   AtlasBuilder                       builder;
   unordered_map<string, int>         atlas_ids;
   unordered_map<string, point> const names{
-      // These are arbitrary names.
-      { "_1", point{ .x = 2, .y = 0 } },
-      { "_0", point{ .x = 1, .y = 0 } },
-      { "_2", point{ .x = 0, .y = 1 } },
-      { "_3", point{ .x = 1, .y = 1 } },
-      { "_4", point{ .x = 2, .y = 1 } },
-      { "_5", point{ .x = 0, .y = 2 } },
+    // These are arbitrary names.
+    { "_1", point{ .x = 2, .y = 0 } },
+    { "_0", point{ .x = 1, .y = 0 } },
+    { "_2", point{ .x = 0, .y = 1 } },
+    { "_3", point{ .x = 1, .y = 1 } },
+    { "_4", point{ .x = 2, .y = 1 } },
+    { "_5", point{ .x = 0, .y = 2 } },
   };
   REQUIRE( load_sprite_sheet(
                builder,
@@ -57,8 +57,8 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
                atlas_ids ) == valid );
 
   unordered_map<string, int> expected_atlas_ids{
-      { "_0", 0 }, { "_1", 1 }, { "_2", 2 },
-      { "_3", 3 }, { "_4", 4 }, { "_5", 5 },
+    { "_0", 0 }, { "_1", 1 }, { "_2", 2 },
+    { "_3", 3 }, { "_4", 4 }, { "_5", 5 },
   };
   REQUIRE( atlas_ids == expected_atlas_ids );
   maybe<Atlas> atlas =
@@ -88,13 +88,13 @@ TEST_CASE(
   AtlasBuilder                       builder;
   unordered_map<string, int>         atlas_ids;
   unordered_map<string, point> const names{
-      // These are arbitrary names.
-      { "_1", point{ .x = 10, .y = 0 } },
-      { "_0", point{ .x = 1, .y = 0 } },
-      { "_2", point{ .x = 0, .y = 1 } },
-      { "_3", point{ .x = 1, .y = 1 } },
-      { "_4", point{ .x = 2, .y = 1 } },
-      { "_5", point{ .x = 0, .y = 2 } },
+    // These are arbitrary names.
+    { "_1", point{ .x = 10, .y = 0 } },
+    { "_0", point{ .x = 1, .y = 0 } },
+    { "_2", point{ .x = 0, .y = 1 } },
+    { "_3", point{ .x = 1, .y = 1 } },
+    { "_4", point{ .x = 2, .y = 1 } },
+    { "_5", point{ .x = 0, .y = 2 } },
   };
   REQUIRE(
       load_sprite_sheet(
@@ -114,13 +114,13 @@ TEST_CASE(
   unordered_map<string, int> atlas_ids;
   atlas_ids["_0"] = 0;
   unordered_map<string, point> const names{
-      // These are arbitrary names.
-      { "_1", point{ .x = 0, .y = 0 } },
-      { "_0", point{ .x = 1, .y = 0 } },
-      { "_2", point{ .x = 0, .y = 1 } },
-      { "_3", point{ .x = 1, .y = 1 } },
-      { "_4", point{ .x = 2, .y = 1 } },
-      { "_5", point{ .x = 0, .y = 2 } },
+    // These are arbitrary names.
+    { "_1", point{ .x = 0, .y = 0 } },
+    { "_0", point{ .x = 1, .y = 0 } },
+    { "_2", point{ .x = 0, .y = 1 } },
+    { "_3", point{ .x = 1, .y = 1 } },
+    { "_4", point{ .x = 2, .y = 1 } },
+    { "_5", point{ .x = 0, .y = 2 } },
   };
   REQUIRE(
       load_sprite_sheet(

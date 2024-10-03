@@ -121,7 +121,7 @@ TEST_CASE( "[sav/string] write_binary" ) {
 TEST_CASE( "[sav/string] read_binary" ) {
   SECTION( "null zero" ) {
     array<unsigned char, 16> buffer = {
-        'y', 'e', 's', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
+      'y', 'e', 's', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO     b( buffer );
     array_string<5> const expected = { 'y', 'e', 's', 0, 1 };
     array_string<5>       as;
@@ -133,8 +133,7 @@ TEST_CASE( "[sav/string] read_binary" ) {
   }
   SECTION( "no null zero" ) {
     array<unsigned char, 16> buffer = {
-        'h', 'e', 'l', 'l', 'o', 1, 1, 1,
-        1,   1,   1,   1,   1,   1, 1, 1 };
+      'h', 'e', 'l', 'l', 'o', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO     b( buffer );
     array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
     array_string<5>       as;

@@ -37,26 +37,21 @@ using ::gfx::size;
 
 AtlasMap const& atlas_map() {
   static const auto m = AtlasMap( vector<rect>{
-      /*id=0*/ { .origin = { .x = 0, .y = 1 },
-                 .size   = { .w = 2, .h = 3 } },
-      /*id=1*/
-      { .origin = { .x = 2, .y = 3 },
-        .size   = { .w = 4, .h = 5 } },
-      /*id=2*/
-      { .origin = { .x = 3, .y = 4 },
-        .size   = { .w = 5, .h = 6 } },
-      /*id=3*/
-      { .origin = { .x = 4, .y = 5 },
-        .size   = { .w = 6, .h = 7 } },
-      /*id=4*/
-      { .origin = { .x = 5, .y = 6 },
-        .size   = { .w = 7, .h = 8 } },
-      /*id=5*/
-      { .origin = { .x = 6, .y = 7 },
-        .size   = { .w = 8, .h = 9 } },
-      /*id=6*/
-      { .origin = { .x = 7, .y = 10 },
-        .size   = { .w = 8, .h = 9 } },
+    /*id=0*/ { .origin = { .x = 0, .y = 1 },
+               .size   = { .w = 2, .h = 3 } },
+    /*id=1*/
+    { .origin = { .x = 2, .y = 3 }, .size = { .w = 4, .h = 5 } },
+    /*id=2*/
+    { .origin = { .x = 3, .y = 4 }, .size = { .w = 5, .h = 6 } },
+    /*id=3*/
+    { .origin = { .x = 4, .y = 5 }, .size = { .w = 6, .h = 7 } },
+    /*id=4*/
+    { .origin = { .x = 5, .y = 6 }, .size = { .w = 7, .h = 8 } },
+    /*id=5*/
+    { .origin = { .x = 6, .y = 7 }, .size = { .w = 8, .h = 9 } },
+    /*id=6*/
+    { .origin = { .x = 7, .y = 10 },
+      .size   = { .w = 8, .h = 9 } },
   } );
   return m;
 }
@@ -93,12 +88,12 @@ TEST_CASE( "[render/painter] draw_solid_rect" ) {
               .size   = { .w = 0, .h = 0 } };
     painter.draw_solid_rect( r, R );
     expected = {
-        VertR( { .x = 20, .y = 30 } ),
-        VertR( { .x = 20, .y = 30 } ),
-        VertR( { .x = 20, .y = 30 } ),
-        VertR( { .x = 20, .y = 30 } ),
-        VertR( { .x = 20, .y = 30 } ),
-        VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
+      VertR( { .x = 20, .y = 30 } ),
     };
     REQUIRE( v == expected );
   }
@@ -108,12 +103,12 @@ TEST_CASE( "[render/painter] draw_solid_rect" ) {
               .size   = { .w = 100, .h = 200 } };
     painter.draw_solid_rect( r, G );
     expected = {
-        VertG( { .x = 20, .y = 30 } ),
-        VertG( { .x = 20, .y = 230 } ),
-        VertG( { .x = 120, .y = 230 } ),
-        VertG( { .x = 20, .y = 30 } ),
-        VertG( { .x = 120, .y = 30 } ),
-        VertG( { .x = 120, .y = 230 } ),
+      VertG( { .x = 20, .y = 30 } ),
+      VertG( { .x = 20, .y = 230 } ),
+      VertG( { .x = 120, .y = 230 } ),
+      VertG( { .x = 20, .y = 30 } ),
+      VertG( { .x = 120, .y = 30 } ),
+      VertG( { .x = 120, .y = 230 } ),
     };
     REQUIRE( v == expected );
   }
@@ -123,12 +118,12 @@ TEST_CASE( "[render/painter] draw_solid_rect" ) {
               .size   = { .w = -100, .h = 200 } };
     painter.draw_solid_rect( r, B );
     expected = {
-        VertB( { .x = -80, .y = 30 } ),
-        VertB( { .x = -80, .y = 230 } ),
-        VertB( { .x = 20, .y = 230 } ),
-        VertB( { .x = -80, .y = 30 } ),
-        VertB( { .x = 20, .y = 30 } ),
-        VertB( { .x = 20, .y = 230 } ),
+      VertB( { .x = -80, .y = 30 } ),
+      VertB( { .x = -80, .y = 230 } ),
+      VertB( { .x = 20, .y = 230 } ),
+      VertB( { .x = -80, .y = 30 } ),
+      VertB( { .x = 20, .y = 30 } ),
+      VertB( { .x = 20, .y = 230 } ),
     };
     REQUIRE( v == expected );
   }
@@ -152,12 +147,9 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
     length = 0;
     painter.draw_horizontal_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -167,12 +159,9 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
     length = 1;
     painter.draw_horizontal_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -182,12 +171,9 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
     length = 10;
     painter.draw_horizontal_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 30, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 30, .y = 30 } ),
-        Vert( { .x = 30, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 30, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 30, .y = 30 } ), Vert( { .x = 30, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -197,12 +183,9 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
     length = -5;
     painter.draw_horizontal_line( p, length, G );
     expected = {
-        Vert( { .x = 15, .y = 30 } ),
-        Vert( { .x = 15, .y = 31 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 15, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 15, .y = 30 } ), Vert( { .x = 15, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ), Vert( { .x = 15, .y = 30 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -226,12 +209,9 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
     length = 0;
     painter.draw_vertical_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 30 } ),
     };
     REQUIRE( v == expected );
   }
@@ -241,12 +221,9 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
     length = 1;
     painter.draw_vertical_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -256,12 +233,9 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
     length = 10;
     painter.draw_vertical_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 40 } ),
-        Vert( { .x = 21, .y = 40 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 40 } ),
+      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 21, .y = 40 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 40 } ),
     };
     REQUIRE( v == expected );
   }
@@ -271,12 +245,9 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
     length = -5;
     painter.draw_vertical_line( p, length, G );
     expected = {
-        Vert( { .x = 20, .y = 25 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 20, .y = 25 } ),
-        Vert( { .x = 21, .y = 25 } ),
-        Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 20, .y = 25 } ), Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 20, .y = 25 } ),
+      Vert( { .x = 21, .y = 25 } ), Vert( { .x = 21, .y = 30 } ),
     };
     REQUIRE( v == expected );
   }
@@ -297,21 +268,21 @@ TEST_CASE( "[render/painter] draw_point" ) {
   p = point{ .x = 20, .y = 30 };
   painter.draw_point( p, W );
   expected = {
-      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
-      Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
+    Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+    Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
   };
   REQUIRE( v == expected );
 
   p = point{ .x = -1, .y = 0 };
   painter.draw_point( p, W );
   expected = {
-      Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
-      Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
-      Vert( { .x = -1, .y = 0 } ),  Vert( { .x = -1, .y = 1 } ),
-      Vert( { .x = 0, .y = 1 } ),   Vert( { .x = -1, .y = 0 } ),
-      Vert( { .x = 0, .y = 0 } ),   Vert( { .x = 0, .y = 1 } ),
+    Vert( { .x = 20, .y = 30 } ), Vert( { .x = 20, .y = 31 } ),
+    Vert( { .x = 21, .y = 31 } ), Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 21, .y = 30 } ), Vert( { .x = 21, .y = 31 } ),
+    Vert( { .x = -1, .y = 0 } ),  Vert( { .x = -1, .y = 1 } ),
+    Vert( { .x = 0, .y = 1 } ),   Vert( { .x = -1, .y = 0 } ),
+    Vert( { .x = 0, .y = 0 } ),   Vert( { .x = 0, .y = 1 } ),
   };
   REQUIRE( v == expected );
 }
@@ -342,34 +313,34 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
               .size   = { .w = 1, .h = 1 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 0.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        // Vertical line from (20,30) with length 1.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        // Horizontal line from (20,30) with length 0.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        // Vertical line from (20,30) with length 1.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
+      // Horizontal line from (20,30) with length 0.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      // Vertical line from (20,30) with length 1.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      // Horizontal line from (20,30) with length 0.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      // Vertical line from (20,30) with length 1.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -379,34 +350,34 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
               .size   = { .w = 10, .h = 10 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 9.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 29, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 29, .y = 30 } ),
-        Vert( { .x = 29, .y = 31 } ),
-        // Vertical line from (29,30) with length 10.
-        Vert( { .x = 29, .y = 30 } ),
-        Vert( { .x = 29, .y = 40 } ),
-        Vert( { .x = 30, .y = 40 } ),
-        Vert( { .x = 29, .y = 30 } ),
-        Vert( { .x = 30, .y = 30 } ),
-        Vert( { .x = 30, .y = 40 } ),
-        // Horizontal line from (20,39) with length 9.
-        Vert( { .x = 20, .y = 39 } ),
-        Vert( { .x = 20, .y = 40 } ),
-        Vert( { .x = 29, .y = 40 } ),
-        Vert( { .x = 20, .y = 39 } ),
-        Vert( { .x = 29, .y = 39 } ),
-        Vert( { .x = 29, .y = 40 } ),
-        // Vertical line from (20,30) with length 10.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 40 } ),
-        Vert( { .x = 21, .y = 40 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 40 } ),
+      // Horizontal line from (20,30) with length 9.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 29, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 29, .y = 30 } ),
+      Vert( { .x = 29, .y = 31 } ),
+      // Vertical line from (29,30) with length 10.
+      Vert( { .x = 29, .y = 30 } ),
+      Vert( { .x = 29, .y = 40 } ),
+      Vert( { .x = 30, .y = 40 } ),
+      Vert( { .x = 29, .y = 30 } ),
+      Vert( { .x = 30, .y = 30 } ),
+      Vert( { .x = 30, .y = 40 } ),
+      // Horizontal line from (20,39) with length 9.
+      Vert( { .x = 20, .y = 39 } ),
+      Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 29, .y = 40 } ),
+      Vert( { .x = 20, .y = 39 } ),
+      Vert( { .x = 29, .y = 39 } ),
+      Vert( { .x = 29, .y = 40 } ),
+      // Vertical line from (20,30) with length 10.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 21, .y = 40 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 40 } ),
     };
     REQUIRE( v == expected );
   }
@@ -416,34 +387,34 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
               .size   = { .w = -2, .h = -2 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 1.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        // Vertical line from (21,30) with length 2.
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 22, .y = 32 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 22, .y = 30 } ),
-        Vert( { .x = 22, .y = 32 } ),
-        // Horizontal line from (20,31) with length 1.
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        // Vertical line from (20,30) with length 2.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 32 } ),
+      // Horizontal line from (20,30) with length 1.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      // Vertical line from (21,30) with length 2.
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 22, .y = 32 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 22, .y = 30 } ),
+      Vert( { .x = 22, .y = 32 } ),
+      // Horizontal line from (20,31) with length 1.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      // Vertical line from (20,30) with length 2.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 32 } ),
     };
     REQUIRE( v == expected );
   }
@@ -467,34 +438,34 @@ TEST_CASE( "[render/painter] draw_empty_rect in_out" ) {
               .size   = { .w = 10, .h = 10 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 10.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 30, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 30, .y = 30 } ),
-        Vert( { .x = 30, .y = 31 } ),
-        // Vertical line from (30,30) with length 11.
-        Vert( { .x = 30, .y = 30 } ),
-        Vert( { .x = 30, .y = 41 } ),
-        Vert( { .x = 31, .y = 41 } ),
-        Vert( { .x = 30, .y = 30 } ),
-        Vert( { .x = 31, .y = 30 } ),
-        Vert( { .x = 31, .y = 41 } ),
-        // Horizontal line from (20,40) with length 10.
-        Vert( { .x = 20, .y = 40 } ),
-        Vert( { .x = 20, .y = 41 } ),
-        Vert( { .x = 30, .y = 41 } ),
-        Vert( { .x = 20, .y = 40 } ),
-        Vert( { .x = 30, .y = 40 } ),
-        Vert( { .x = 30, .y = 41 } ),
-        // Vertical line from (20,30) with length 11.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 41 } ),
-        Vert( { .x = 21, .y = 41 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 41 } ),
+      // Horizontal line from (20,30) with length 10.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 30, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 30, .y = 30 } ),
+      Vert( { .x = 30, .y = 31 } ),
+      // Vertical line from (30,30) with length 11.
+      Vert( { .x = 30, .y = 30 } ),
+      Vert( { .x = 30, .y = 41 } ),
+      Vert( { .x = 31, .y = 41 } ),
+      Vert( { .x = 30, .y = 30 } ),
+      Vert( { .x = 31, .y = 30 } ),
+      Vert( { .x = 31, .y = 41 } ),
+      // Horizontal line from (20,40) with length 10.
+      Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 20, .y = 41 } ),
+      Vert( { .x = 30, .y = 41 } ),
+      Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 30, .y = 40 } ),
+      Vert( { .x = 30, .y = 41 } ),
+      // Vertical line from (20,30) with length 11.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 41 } ),
+      Vert( { .x = 21, .y = 41 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 41 } ),
     };
     REQUIRE( v == expected );
   }
@@ -518,34 +489,34 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
               .size   = { .w = 0, .h = 0 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 1.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        // Vertical line from (21,30) with length 2.
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 22, .y = 32 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 22, .y = 30 } ),
-        Vert( { .x = 22, .y = 32 } ),
-        // Horizontal line from (20,31) with length 1.
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 21, .y = 31 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        // Vertical line from (20,30) with length 2.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 21, .y = 32 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 32 } ),
+      // Horizontal line from (20,30) with length 1.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      // Vertical line from (21,30) with length 2.
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 22, .y = 32 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 22, .y = 30 } ),
+      Vert( { .x = 22, .y = 32 } ),
+      // Horizontal line from (20,31) with length 1.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      // Vertical line from (20,30) with length 2.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 32 } ),
     };
     REQUIRE( v == expected );
   }
@@ -555,34 +526,34 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
               .size   = { .w = 1, .h = 1 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 2.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 22, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 22, .y = 30 } ),
-        Vert( { .x = 22, .y = 31 } ),
-        // Vertical line from (22,30) with length 3.
-        Vert( { .x = 22, .y = 30 } ),
-        Vert( { .x = 22, .y = 33 } ),
-        Vert( { .x = 23, .y = 33 } ),
-        Vert( { .x = 22, .y = 30 } ),
-        Vert( { .x = 23, .y = 30 } ),
-        Vert( { .x = 23, .y = 33 } ),
-        // Horizontal line from (20,32) with length 2.
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 20, .y = 33 } ),
-        Vert( { .x = 22, .y = 33 } ),
-        Vert( { .x = 20, .y = 32 } ),
-        Vert( { .x = 22, .y = 32 } ),
-        Vert( { .x = 22, .y = 33 } ),
-        // Vertical line from (20,30) with length 3.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 33 } ),
-        Vert( { .x = 21, .y = 33 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 33 } ),
+      // Horizontal line from (20,30) with length 2.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 22, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 22, .y = 30 } ),
+      Vert( { .x = 22, .y = 31 } ),
+      // Vertical line from (22,30) with length 3.
+      Vert( { .x = 22, .y = 30 } ),
+      Vert( { .x = 22, .y = 33 } ),
+      Vert( { .x = 23, .y = 33 } ),
+      Vert( { .x = 22, .y = 30 } ),
+      Vert( { .x = 23, .y = 30 } ),
+      Vert( { .x = 23, .y = 33 } ),
+      // Horizontal line from (20,32) with length 2.
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 20, .y = 33 } ),
+      Vert( { .x = 22, .y = 33 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 22, .y = 32 } ),
+      Vert( { .x = 22, .y = 33 } ),
+      // Vertical line from (20,30) with length 3.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 33 } ),
+      Vert( { .x = 21, .y = 33 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 33 } ),
     };
     REQUIRE( v == expected );
   }
@@ -592,34 +563,34 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
               .size   = { .w = 10, .h = 10 } };
     painter.draw_empty_rect( r, mode, B );
     expected = {
-        // Horizontal line from (20,30) with length 11.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 31 } ),
-        Vert( { .x = 31, .y = 31 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 31, .y = 30 } ),
-        Vert( { .x = 31, .y = 31 } ),
-        // Vertical line from (31,30) with length 12.
-        Vert( { .x = 31, .y = 30 } ),
-        Vert( { .x = 31, .y = 42 } ),
-        Vert( { .x = 32, .y = 42 } ),
-        Vert( { .x = 31, .y = 30 } ),
-        Vert( { .x = 32, .y = 30 } ),
-        Vert( { .x = 32, .y = 42 } ),
-        // Horizontal line from (20,41) with length 11.
-        Vert( { .x = 20, .y = 41 } ),
-        Vert( { .x = 20, .y = 42 } ),
-        Vert( { .x = 31, .y = 42 } ),
-        Vert( { .x = 20, .y = 41 } ),
-        Vert( { .x = 31, .y = 41 } ),
-        Vert( { .x = 31, .y = 42 } ),
-        // Vertical line from (20,30) with length 12.
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 20, .y = 42 } ),
-        Vert( { .x = 21, .y = 42 } ),
-        Vert( { .x = 20, .y = 30 } ),
-        Vert( { .x = 21, .y = 30 } ),
-        Vert( { .x = 21, .y = 42 } ),
+      // Horizontal line from (20,30) with length 11.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 31, .y = 31 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 31, .y = 30 } ),
+      Vert( { .x = 31, .y = 31 } ),
+      // Vertical line from (31,30) with length 12.
+      Vert( { .x = 31, .y = 30 } ),
+      Vert( { .x = 31, .y = 42 } ),
+      Vert( { .x = 32, .y = 42 } ),
+      Vert( { .x = 31, .y = 30 } ),
+      Vert( { .x = 32, .y = 30 } ),
+      Vert( { .x = 32, .y = 42 } ),
+      // Horizontal line from (20,41) with length 11.
+      Vert( { .x = 20, .y = 41 } ),
+      Vert( { .x = 20, .y = 42 } ),
+      Vert( { .x = 31, .y = 42 } ),
+      Vert( { .x = 20, .y = 41 } ),
+      Vert( { .x = 31, .y = 41 } ),
+      Vert( { .x = 31, .y = 42 } ),
+      // Vertical line from (20,30) with length 12.
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 20, .y = 42 } ),
+      Vert( { .x = 21, .y = 42 } ),
+      Vert( { .x = 20, .y = 30 } ),
+      Vert( { .x = 21, .y = 30 } ),
+      Vert( { .x = 21, .y = 42 } ),
     };
     REQUIRE( v == expected );
   }
@@ -645,12 +616,12 @@ TEST_CASE( "[render/painter] draw_sprite" ) {
   // atlas: { .origin = { .x = 2, .y = 3 },
   //          .size   = { .w = 4, .h = 5 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 20, .y = 35 }, { .x = 2, .y = 8 } ),
-      Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 24, .y = 30 }, { .x = 6, .y = 3 } ),
-      Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+    Vert( { .x = 20, .y = 35 }, { .x = 2, .y = 8 } ),
+    Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+    Vert( { .x = 24, .y = 30 }, { .x = 6, .y = 3 } ),
+    Vert( { .x = 24, .y = 35 }, { .x = 6, .y = 8 } ),
   };
   REQUIRE( v == expected );
 }
@@ -683,12 +654,12 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   //        { .origin = { .x = 4, .y = 5 },
   //          .size   = { .w = 6, .h = 7 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
   };
   REQUIRE( v == expected );
 }
@@ -714,12 +685,12 @@ TEST_CASE( "[render/painter] draw_sprite_scale" ) {
   // atlas: { .origin = { .x = 2, .y = 3 },
   //          .size   = { .w = 4, .h = 5 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 20, .y = 40 }, { .x = 2, .y = 8 } ),
-      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
-      Vert( { .x = 28, .y = 30 }, { .x = 6, .y = 3 } ),
-      Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+    Vert( { .x = 20, .y = 40 }, { .x = 2, .y = 8 } ),
+    Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 2, .y = 3 } ),
+    Vert( { .x = 28, .y = 30 }, { .x = 6, .y = 3 } ),
+    Vert( { .x = 28, .y = 40 }, { .x = 6, .y = 8 } ),
   };
   REQUIRE( v == expected );
 }
@@ -746,12 +717,12 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
   // atlas: { .origin = { .x = 2, .y = 3 },
   //          .size   = { .w = 4, .h = 5 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
-      Vert( { .x = 20, .y = 33 }, { .x = 3, .y = 8 } ),
-      Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
-      Vert( { .x = 23, .y = 30 }, { .x = 6, .y = 5 } ),
-      Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
+    Vert( { .x = 20, .y = 33 }, { .x = 3, .y = 8 } ),
+    Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 5 } ),
+    Vert( { .x = 23, .y = 30 }, { .x = 6, .y = 5 } ),
+    Vert( { .x = 23, .y = 33 }, { .x = 6, .y = 8 } ),
   };
   REQUIRE( v == expected );
 }
@@ -763,16 +734,15 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
-      .depixelate =
-          DepixelateInfo{
-              .stage       = .7,
-              .inverted    = {},
-              .hash_anchor = point{ .x = 1, .y = 2 } },
-      .alpha                = nothing,
-      .repos                = {},
-      .desaturate           = nothing,
-      .fixed_color          = nothing,
-      .uniform_depixelation = nothing };
+    .depixelate =
+        DepixelateInfo{ .stage       = .7,
+                        .inverted    = {},
+                        .hash_anchor = point{ .x = 1, .y = 2 } },
+    .alpha                = nothing,
+    .repos                = {},
+    .desaturate           = nothing,
+    .fixed_color          = nothing,
+    .uniform_depixelation = nothing };
   Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
@@ -792,12 +762,12 @@ TEST_CASE( "[render/painter] mod depixelate to blank" ) {
   // atlas: { .origin = { .x = 3, .y = 4 },
   //          .size   = { .w = 5, .h = 6 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
   };
   REQUIRE( v == expected );
 }
@@ -809,16 +779,15 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
-      .depixelate =
-          DepixelateInfo{
-              .stage       = .7,
-              .inverted    = true,
-              .hash_anchor = point{ .x = 1, .y = 2 } },
-      .alpha                = nothing,
-      .repos                = {},
-      .desaturate           = nothing,
-      .fixed_color          = nothing,
-      .uniform_depixelation = nothing };
+    .depixelate =
+        DepixelateInfo{ .stage       = .7,
+                        .inverted    = true,
+                        .hash_anchor = point{ .x = 1, .y = 2 } },
+    .alpha                = nothing,
+    .repos                = {},
+    .desaturate           = nothing,
+    .fixed_color          = nothing,
+    .uniform_depixelation = nothing };
   Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
@@ -839,12 +808,12 @@ TEST_CASE( "[render/painter] mod depixelate with inversion" ) {
   // atlas: { .origin = { .x = 3, .y = 4 },
   //          .size   = { .w = 5, .h = 6 } },
   expected = {
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
-      Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
-      Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 20, .y = 36 }, { .x = 3, .y = 10 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
+    Vert( { .x = 20, .y = 30 }, { .x = 3, .y = 4 } ),
+    Vert( { .x = 25, .y = 30 }, { .x = 8, .y = 4 } ),
+    Vert( { .x = 25, .y = 36 }, { .x = 8, .y = 10 } ),
   };
   REQUIRE( v == expected );
 }
@@ -876,12 +845,12 @@ TEST_CASE( "[render/painter] mod alpha" ) {
             .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -909,12 +878,12 @@ TEST_CASE( "[render/painter] mod cycling.plan" ) {
             .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -946,12 +915,12 @@ TEST_CASE( "[render/painter] mod desaturate" ) {
             .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -984,12 +953,12 @@ TEST_CASE( "[render/painter] mod fixed_color" ) {
             .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -1021,12 +990,12 @@ TEST_CASE( "[render/painter] mod uniform depixelation" ) {
             .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -1038,13 +1007,13 @@ TEST_CASE( "[render/painter] mod reposition" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
-      .depixelate = {},
-      .alpha      = {},
-      .repos      = RepositionInfo{
-               .scale       = 2.0,
-               .translation = dsize{ .w = 5, .h = 3 },
-               .use_camera  = false,
-      } };
+    .depixelate = {},
+    .alpha      = {},
+    .repos      = RepositionInfo{
+           .scale       = 2.0,
+           .translation = dsize{ .w = 5, .h = 3 },
+           .use_camera  = false,
+    } };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1059,12 +1028,12 @@ TEST_CASE( "[render/painter] mod reposition" ) {
                  .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }
@@ -1076,17 +1045,17 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods const mods{
-      .depixelate = {},
-      .alpha      = {},
-      .repos =
-          RepositionInfo{
-              .scale       = 2.0,
-              .translation = dsize{ .w = 5.3, .h = 3 },
-              .use_camera  = true,
-          },
-      .desaturate           = nothing,
-      .fixed_color          = nothing,
-      .uniform_depixelation = nothing };
+    .depixelate = {},
+    .alpha      = {},
+    .repos =
+        RepositionInfo{
+          .scale       = 2.0,
+          .translation = dsize{ .w = 5.3, .h = 3 },
+          .use_camera  = true,
+        },
+    .desaturate           = nothing,
+    .fixed_color          = nothing,
+    .uniform_depixelation = nothing };
 
   Painter painter = unmodded_painter.with_mods( mods );
 
@@ -1102,12 +1071,12 @@ TEST_CASE( "[render/painter] mod use_camera" ) {
                  .size   = { .w = 100, .h = 200 } };
   painter.draw_solid_rect( r, G );
   expected = {
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 230 } ),
-      Vert( { .x = 120, .y = 230 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 120, .y = 30 } ),
-      Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
   };
   REQUIRE( v == expected );
 }

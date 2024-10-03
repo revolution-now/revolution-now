@@ -44,11 +44,11 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 5 );
   }

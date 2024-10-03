@@ -211,7 +211,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
   CargoSlot::cargo cargo = GENERATE_REF(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ id } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
-          /*type=*/e_commodity::food, /*quantity=*/100 } } } );
+        /*type=*/e_commodity::food, /*quantity=*/100 } } } );
 
   REQUIRE( ch.slots_total() == 1 );
   REQUIRE( ch.slots_remaining() == 1 );
@@ -244,7 +244,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
       REQUIRE_THAT(
           ch.commodities(),
           UnorderedEquals( vector<pair<Commodity, int>>{
-              { comm->obj, 0 } } ) );
+            { comm->obj, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Cargo::commodity{obj=Commodity{"
                "type=food,quantity=100}}}]" );
@@ -279,7 +279,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
       REQUIRE_THAT(
           ch.commodities(),
           UnorderedEquals( vector<pair<Commodity, int>>{
-              { comm->obj, 0 } } ) );
+            { comm->obj, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Cargo::commodity{obj=Commodity{"
                "type=food,quantity=100}}}]" );
@@ -305,7 +305,7 @@ TEST_CASE(
   auto cargo = GENERATE_REF(
       CargoSlot::cargo{ /*contents=*/Cargo::unit{ id } },
       CargoSlot::cargo{ /*contents=*/Cargo::commodity{ Commodity{
-          /*type=*/e_commodity::food, /*quantity=*/100 } } } );
+        /*type=*/e_commodity::food, /*quantity=*/100 } } } );
 
   REQUIRE( ch.slots_total() == 6 );
   REQUIRE( ch.slots_remaining() == 6 );
@@ -338,7 +338,7 @@ TEST_CASE(
       REQUIRE_THAT(
           ch.commodities(),
           UnorderedEquals( vector<pair<Commodity, int>>{
-              { comm->obj, 0 } } ) );
+            { comm->obj, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Cargo::commodity{obj=Commodity{"
                "type=food,quantity=100}}},empty,empty,empty,"
@@ -371,7 +371,7 @@ TEST_CASE(
       REQUIRE_THAT(
           ch.commodities(),
           UnorderedEquals( vector<pair<Commodity, int>>{
-              { comm->obj, 3 } } ) );
+            { comm->obj, 3 } } ) );
       REQUIRE( ch.debug_string() ==
                "[empty,empty,empty,cargo{contents=Cargo::"
                "commodity{obj=Commodity{type=food,quantity=100}"
@@ -405,7 +405,7 @@ TEST_CASE(
       REQUIRE_THAT(
           ch.commodities(),
           UnorderedEquals( vector<pair<Commodity, int>>{
-              { comm->obj, 0 } } ) );
+            { comm->obj, 0 } } ) );
       REQUIRE( ch.debug_string() ==
                "[cargo{contents=Cargo::commodity{obj=Commodity{"
                "type=food,quantity=100}}},empty,empty,empty,"
@@ -450,7 +450,7 @@ TEST_CASE(
     REQUIRE( ch.o_.slots[0] == CargoSlot::empty{} );
     REQUIRE( ch.o_.slots[1] ==
              CargoSlot::cargo{
-                 /*contents=*/Cargo::unit{ unit_id } } );
+               /*contents=*/Cargo::unit{ unit_id } } );
     REQUIRE( ch.o_.slots[2] == CargoSlot::overflow{} );
     REQUIRE( ch.o_.slots[3] == CargoSlot::overflow{} );
     REQUIRE( ch.o_.slots[4] == CargoSlot::overflow{} );
@@ -480,7 +480,7 @@ TEST_CASE(
     REQUIRE( ch.slots_occupied() == 6 );
     REQUIRE( ch.o_.slots[0] ==
              CargoSlot::cargo{
-                 /*contents=*/Cargo::unit{ unit_id } } );
+               /*contents=*/Cargo::unit{ unit_id } } );
     REQUIRE( ch.o_.slots[1] == CargoSlot::overflow{} );
     REQUIRE( ch.o_.slots[2] == CargoSlot::overflow{} );
     REQUIRE( ch.o_.slots[3] == CargoSlot::overflow{} );
@@ -593,7 +593,7 @@ TEST_CASE( "CargoHold add multiple units" ) {
                 UnorderedEquals( vector<UnitId>{ unit_id1 } ) );
   REQUIRE_THAT( ch.items_of_type<Cargo::unit>(),
                 UnorderedEquals( vector<Cargo::unit>{
-                    Cargo::unit{ unit_id1 } } ) );
+                  Cargo::unit{ unit_id1 } } ) );
   REQUIRE(
       ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch.try_add_somewhere( W.units(),
@@ -601,25 +601,24 @@ TEST_CASE( "CargoHold add multiple units" ) {
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.count_items_of_type<Cargo::unit>() == 2 );
   REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
-                                unit_id1, unit_id2 } ) );
+                              unit_id1, unit_id2 } ) );
   REQUIRE_THAT(
       ch.items_of_type<Cargo::unit>(),
       UnorderedEquals( vector<Cargo::unit>{
-          Cargo::unit{ unit_id1 }, Cargo::unit{ unit_id2 } } ) );
+        Cargo::unit{ unit_id1 }, Cargo::unit{ unit_id2 } } ) );
   REQUIRE(
       ch.fits_somewhere( W.units(), Cargo::unit{ unit_id3 } ) );
   REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id3 } ) );
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.count_items_of_type<Cargo::unit>() == 3 );
-  REQUIRE_THAT( ch.units(),
-                UnorderedEquals( vector<UnitId>{
-                    unit_id1, unit_id2, unit_id3 } ) );
+  REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
+                              unit_id1, unit_id2, unit_id3 } ) );
   REQUIRE_THAT(
       ch.items_of_type<Cargo::unit>(),
       UnorderedEquals( vector<Cargo::unit>{
-          Cargo::unit{ unit_id1 }, Cargo::unit{ unit_id2 },
-          Cargo::unit{ unit_id3 } } ) );
+        Cargo::unit{ unit_id1 }, Cargo::unit{ unit_id2 },
+        Cargo::unit{ unit_id3 } } ) );
   REQUIRE( ch.slots_occupied() == 8 );
   REQUIRE( ch.slots_remaining() == 0 );
 
@@ -777,7 +776,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[0] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE(
@@ -787,7 +786,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
   cmp_slots[1] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
   for( int i = 2; i <= 6; ++i )
     cmp_slots[i] = CargoSlot::overflow{};
   REQUIRE( ch.o_.slots == cmp_slots );
@@ -799,7 +798,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 13 );
   cmp_slots[7] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id3 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id3 } } };
   for( int i = 8; i <= 12; ++i )
     cmp_slots[i] = CargoSlot::overflow{};
   REQUIRE( ch.o_.slots == cmp_slots );
@@ -811,7 +810,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 14 );
   cmp_slots[13] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE_FALSE(
@@ -858,7 +857,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 1 );
   REQUIRE( ch.slots_occupied() == 1 );
   cmp_slots[2] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id1 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id2 },
@@ -869,7 +868,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 2 );
   REQUIRE( ch.slots_occupied() == 7 );
   cmp_slots[3] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id2 } } };
   for( int i = 4; i <= 8; ++i )
     cmp_slots[i] = CargoSlot::overflow{};
   REQUIRE( ch.o_.slots == cmp_slots );
@@ -891,7 +890,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 3 );
   REQUIRE( ch.slots_occupied() == 8 );
   cmp_slots[9] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id4 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id5 },
@@ -902,7 +901,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 4 );
   REQUIRE( ch.slots_occupied() == 9 );
   cmp_slots[10] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id5 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id5 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id6 },
@@ -913,7 +912,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 5 );
   REQUIRE( ch.slots_occupied() == 10 );
   cmp_slots[11] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id6 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id6 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id7 },
@@ -924,7 +923,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 6 );
   REQUIRE( ch.slots_occupied() == 11 );
   cmp_slots[0] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id7 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id7 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE( ch.fits_somewhere( W.units(), Cargo::unit{ unit_id8 },
@@ -935,7 +934,7 @@ TEST_CASE(
   REQUIRE( ch.count_items() == 7 );
   REQUIRE( ch.slots_occupied() == 12 );
   cmp_slots[1] = CargoSlot{
-      CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id8 } } };
+    CargoSlot::cargo{ /*contents=*/Cargo::unit{ unit_id8 } } };
   REQUIRE( ch.o_.slots == cmp_slots );
 
   REQUIRE_FALSE( ch.fits_somewhere( W.units(),
@@ -983,7 +982,7 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
     REQUIRE( ch.count_items() == i + 1 );
     REQUIRE( ch.slots_occupied() == i + 1 );
     cmp_slots[( i + start ) % 6] = CargoSlot::cargo{
-        /*contents=*/Cargo::unit{ unit_ids[i] } };
+      /*contents=*/Cargo::unit{ unit_ids[i] } };
     REQUIRE( ch.o_.slots == cmp_slots );
   }
 
@@ -1097,7 +1096,7 @@ TEST_CASE( "CargoHold check broken invariants" ) {
 
   SECTION( "no overflow following commodity" ) {
     ch.o_.slots[2] = CargoSlot::cargo{
-        /*contents=*/Cargo::commodity{ comm1 } };
+      /*contents=*/Cargo::commodity{ comm1 } };
     REQUIRE( ch.count_items() == 1 );
     REQUIRE( ch.slots_remaining() == 7 );
     REQUIRE_GOOD_INVARIANTS;
@@ -1107,17 +1106,17 @@ TEST_CASE( "CargoHold check broken invariants" ) {
 
   SECTION( "commodities don't exceed max quantity" ) {
     ch.o_.slots[0] = CargoSlot::cargo{
-        /*contents=*/Cargo::commodity{ comm1 } };
+      /*contents=*/Cargo::commodity{ comm1 } };
     REQUIRE_GOOD_INVARIANTS;
     ch.o_.slots[1] = CargoSlot::cargo{
-        /*contents=*/Cargo::commodity{ comm2 } };
+      /*contents=*/Cargo::commodity{ comm2 } };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
   SECTION( "commodities don't have zero quantity" ) {
     REQUIRE_GOOD_INVARIANTS;
     ch.o_.slots[0] = CargoSlot::cargo{
-        /*contents=*/Cargo::commodity{ comm3 } };
+      /*contents=*/Cargo::commodity{ comm3 } };
     REQUIRE_BROKEN_INVARIANTS;
   }
 
@@ -1140,8 +1139,8 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE_FALSE(
         ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE_FALSE(
@@ -1160,8 +1159,8 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE_FALSE(
         ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE(
@@ -1170,15 +1169,15 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
         W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE_FALSE(
         ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
@@ -1188,8 +1187,8 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/75 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/75 } } } );
     REQUIRE( ch[1] == CargoSlot::empty{} );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE_FALSE(
@@ -1200,8 +1199,8 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[1] == CargoSlot::empty{} );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE_FALSE(
@@ -1235,8 +1234,8 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE_FALSE(
         ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE_FALSE(
@@ -1263,8 +1262,8 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE_FALSE(
         ch.fits( W.units(), Cargo::commodity{ food_full }, 0 ) );
     REQUIRE(
@@ -1281,15 +1280,15 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
         W.units(), Cargo::commodity{ sugar_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ food_part }, 0 ) );
     REQUIRE( ch[0] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch.try_add( W.units(),
                          Cargo::commodity{ sugar_part }, 1 ) );
@@ -1311,8 +1310,8 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
                          Cargo::commodity{ sugar_part }, 1 ) );
     REQUIRE( ch[1] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 2 );
   }
 
@@ -1349,16 +1348,16 @@ TEST_CASE(
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch.try_add_somewhere(
         W.units(), Cargo::commodity{ food_part }, start ) );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.slots_occupied() == 2 );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ food_part }, start ) );
@@ -1367,8 +1366,8 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 2 );
     // This should cause overflow.
     REQUIRE( ch.fits_somewhere(
@@ -1378,12 +1377,12 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[next2] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch[next3] == CargoSlot::empty{} );
     REQUIRE( ch.fits_somewhere(
@@ -1393,8 +1392,8 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[next2] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/75 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/75 } } } );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch[prev] == CargoSlot::empty{} );
   }
@@ -1408,8 +1407,8 @@ TEST_CASE(
     REQUIRE( ch.slots_occupied() == 1 );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ sugar_part }, start ) );
     REQUIRE( ch.try_add_somewhere(
@@ -1417,8 +1416,8 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.slots_occupied() == 2 );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ sugar_part }, start ) );
@@ -1427,12 +1426,12 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 2 );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ food_full }, start ) );
@@ -1441,16 +1440,16 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch[next2] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/25 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/25 } } } );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch.fits_somewhere(
         W.units(), Cargo::commodity{ food_part }, start ) );
@@ -1459,16 +1458,16 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch[next2] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch[next3] == CargoSlot::empty{} );
     REQUIRE( ch.slots_occupied() == 3 );
     REQUIRE( ch.fits_somewhere(
@@ -1478,20 +1477,20 @@ TEST_CASE(
     REQUIRE( ch[prev] == CargoSlot::empty{} );
     REQUIRE( ch[start] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[next] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/100 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/100 } } } );
     REQUIRE( ch[next2] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::food,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::food,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch[next3] ==
              CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-                 Commodity{ /*type=*/e_commodity::sugar,
-                            /*quantity=*/50 } } } );
+               Commodity{ /*type=*/e_commodity::sugar,
+                          /*quantity=*/50 } } } );
     REQUIRE( ch.slots_occupied() == 4 );
     REQUIRE( ch[prev] == CargoSlot::empty{} );
   }
@@ -1533,7 +1532,7 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
 
   ch.clear();
 }
@@ -1558,7 +1557,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[0] == CargoSlot::empty{} );
   REQUIRE( ch[3] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
 
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1566,7 +1565,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
 
   // Test idempotency.
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
@@ -1575,7 +1574,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
 
   ch.clear();
 }
@@ -1602,7 +1601,7 @@ TEST_CASE( "CargoHold compactify size-8 with size-6 unit" ) {
   REQUIRE( ch[0] == CargoSlot::empty{} );
   REQUIRE( ch[1] == CargoSlot::empty{} );
   REQUIRE( ch[2] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[3] == CargoSlot::overflow{} );
   REQUIRE( ch[4] == CargoSlot::overflow{} );
   REQUIRE( ch[5] == CargoSlot::overflow{} );
@@ -1614,7 +1613,7 @@ TEST_CASE( "CargoHold compactify size-8 with size-6 unit" ) {
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 6 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[1] == CargoSlot::overflow{} );
   REQUIRE( ch[2] == CargoSlot::overflow{} );
   REQUIRE( ch[3] == CargoSlot::overflow{} );
@@ -1629,7 +1628,7 @@ TEST_CASE( "CargoHold compactify size-8 with size-6 unit" ) {
   REQUIRE( ch.slots_remaining() == 2 );
   REQUIRE( ch.slots_occupied() == 6 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[1] == CargoSlot::overflow{} );
   REQUIRE( ch[2] == CargoSlot::overflow{} );
   REQUIRE( ch[3] == CargoSlot::overflow{} );
@@ -1661,7 +1660,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 6 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[1] == CargoSlot::overflow{} );
   REQUIRE( ch[2] == CargoSlot::overflow{} );
   REQUIRE( ch[3] == CargoSlot::overflow{} );
@@ -1673,7 +1672,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
   REQUIRE( ch.slots_remaining() == 0 );
   REQUIRE( ch.slots_occupied() == 6 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[1] == CargoSlot::overflow{} );
   REQUIRE( ch[2] == CargoSlot::overflow{} );
   REQUIRE( ch[3] == CargoSlot::overflow{} );
@@ -1713,15 +1712,15 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   REQUIRE( ch.try_add_somewhere( W.units(),
                                  Cargo::unit{ unit_id2 } ) );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id1 } } );
+                      /*contents=*/Cargo::unit{ unit_id1 } } );
   REQUIRE( ch[1] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
   REQUIRE( ch[7] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id5 } } );
-  REQUIRE( ch[13] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id4 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id5 } } );
+  REQUIRE( ch[13] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id2 } } );
   REQUIRE( ch.slots_total() == 24 );
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
@@ -1731,15 +1730,15 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
   REQUIRE( ch[6] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id4 } } );
-  REQUIRE( ch[12] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id5 } } );
-  REQUIRE( ch[18] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id1 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[12] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id5 } } );
+  REQUIRE( ch[18] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id1 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id2 } } );
 
   // Test idempotency.
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
@@ -1747,15 +1746,15 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 20 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
   REQUIRE( ch[6] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id4 } } );
-  REQUIRE( ch[12] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id5 } } );
-  REQUIRE( ch[18] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id1 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[12] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id5 } } );
+  REQUIRE( ch[18] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id1 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id2 } } );
 
   ch.clear();
 }
@@ -1784,7 +1783,7 @@ TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
   REQUIRE( ch.slots_occupied() == 1 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
 
   ch.clear();
 }
@@ -1811,7 +1810,7 @@ TEST_CASE(
   REQUIRE( ch[0] == CargoSlot::empty{} );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
 
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1820,7 +1819,7 @@ TEST_CASE(
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
 
   // Test idempotency.
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
@@ -1830,7 +1829,7 @@ TEST_CASE(
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
 
   ch.clear();
 }
@@ -1863,13 +1862,13 @@ TEST_CASE(
   REQUIRE( ch[2] == CargoSlot::empty{} );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[4] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[5] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
 
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1877,13 +1876,13 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 3 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[2] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[4] == CargoSlot::empty{} );
   REQUIRE( ch[5] == CargoSlot::empty{} );
@@ -1895,13 +1894,13 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 3 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[2] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[4] == CargoSlot::empty{} );
   REQUIRE( ch[5] == CargoSlot::empty{} );
@@ -1938,13 +1937,13 @@ TEST_CASE(
   REQUIRE( ch[2] == CargoSlot::empty{} );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
   REQUIRE( ch[4] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
   REQUIRE( ch[5] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_part } } );
+             /*contents=*/Cargo::commodity{ food_part } } );
 
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 6 );
@@ -1952,10 +1951,10 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 2 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_almost_full } } );
+             food_almost_full } } );
   REQUIRE( ch[2] == CargoSlot::empty{} );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[4] == CargoSlot::empty{} );
@@ -1968,10 +1967,10 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 2 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_almost_full } } );
+             food_almost_full } } );
   REQUIRE( ch[2] == CargoSlot::empty{} );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[4] == CargoSlot::empty{} );
@@ -2026,19 +2025,19 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 5 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[2] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_overflow } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ food_overflow } } );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ sugar_full } } );
+             /*contents=*/Cargo::commodity{ sugar_full } } );
   REQUIRE( ch[4] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               sugar_combined } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ sugar_combined } } );
   REQUIRE( ch[5] == CargoSlot::empty{} );
   REQUIRE( ch[6] == CargoSlot::empty{} );
 
@@ -2049,19 +2048,19 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 5 );
   REQUIRE( ch[0] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[2] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_overflow } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ food_overflow } } );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ sugar_full } } );
+             /*contents=*/Cargo::commodity{ sugar_full } } );
   REQUIRE( ch[4] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               sugar_combined } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ sugar_combined } } );
   REQUIRE( ch[5] == CargoSlot::empty{} );
   REQUIRE( ch[6] == CargoSlot::empty{} );
 
@@ -2126,27 +2125,27 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 24 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
   REQUIRE( ch[6] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id4 } } );
-  REQUIRE( ch[12] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id5 } } );
-  REQUIRE( ch[18] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id1 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[12] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id5 } } );
+  REQUIRE( ch[18] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id1 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id2 } } );
   REQUIRE( ch[20] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[21] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[22] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_overflow } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ food_overflow } } );
   REQUIRE( ch[23] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               sugar_combined } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ sugar_combined } } );
   REQUIRE( ch[24] == CargoSlot::empty{} );
   REQUIRE( ch[25] == CargoSlot::empty{} );
   REQUIRE( ch[26] == CargoSlot::empty{} );
@@ -2186,23 +2185,23 @@ TEST_CASE(
   REQUIRE( ch.slots_occupied() == 0 );
 
   Cargo cargos[10] = {
-      Cargo::unit{ unit_id1 },        //
-      Cargo::unit{ unit_id2 },        //
-      Cargo::unit{ unit_id3 },        //
-      Cargo::unit{ unit_id4 },        //
-      Cargo::unit{ unit_id5 },        //
-      Cargo::commodity{ food_part },  //
-      Cargo::commodity{ food_part },  //
-      Cargo::commodity{ food_full },  //
-      Cargo::commodity{ sugar_part }, //
-      Cargo::commodity{ sugar_part }  //
+    Cargo::unit{ unit_id1 },        //
+    Cargo::unit{ unit_id2 },        //
+    Cargo::unit{ unit_id3 },        //
+    Cargo::unit{ unit_id4 },        //
+    Cargo::unit{ unit_id5 },        //
+    Cargo::commodity{ food_part },  //
+    Cargo::commodity{ food_part },  //
+    Cargo::commodity{ food_full },  //
+    Cargo::commodity{ sugar_part }, //
+    Cargo::commodity{ sugar_part }  //
   };
 
   // Catch2 takes its seed on the command line; from this seed we
   // generate some random numbers to reseed our own random gener-
   // ator to get predictable results based on Catch2's seed.
   uint32_t sub_seed =
-      GENERATE( take( 100, random( 0, 1000000 ) ) );
+      GENERATE( take( 100, random( 0, 1'000'000 ) ) );
   INFO( fmt::format( "sub_seed: {}", sub_seed ) );
   default_random_engine rng_engine( sub_seed );
 
@@ -2231,27 +2230,27 @@ TEST_CASE(
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 24 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id2 } } );
   REQUIRE( ch[6] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
-  REQUIRE( ch[12] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id4 } } );
-  REQUIRE( ch[18] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id1 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id5 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
+  REQUIRE( ch[12] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[18] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id1 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id5 } } );
   REQUIRE( ch[20] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[21] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[22] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_overflow } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ food_overflow } } );
   REQUIRE( ch[23] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               sugar_combined } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ sugar_combined } } );
   REQUIRE( ch[24] == CargoSlot::empty{} );
   REQUIRE( ch[25] == CargoSlot::empty{} );
   REQUIRE( ch[26] == CargoSlot::empty{} );
@@ -2263,42 +2262,42 @@ TEST_CASE(
   REQUIRE( ch.slots_remaining() == 4 );
   REQUIRE( ch.slots_occupied() == 24 );
   REQUIRE( ch[0] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id2 } } );
+                      /*contents=*/Cargo::unit{ unit_id2 } } );
   REQUIRE( ch[6] == CargoSlot::cargo{
-                        /*contents=*/Cargo::unit{ unit_id3 } } );
-  REQUIRE( ch[12] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id4 } } );
-  REQUIRE( ch[18] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id1 } } );
-  REQUIRE( ch[19] == CargoSlot::cargo{ /*contents=*/Cargo::unit{
-                         unit_id5 } } );
+                      /*contents=*/Cargo::unit{ unit_id3 } } );
+  REQUIRE( ch[12] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id4 } } );
+  REQUIRE( ch[18] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id1 } } );
+  REQUIRE( ch[19] == CargoSlot::cargo{
+                       /*contents=*/Cargo::unit{ unit_id5 } } );
   REQUIRE( ch[20] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[21] ==
            CargoSlot::cargo{
-               /*contents=*/Cargo::commodity{ food_full } } );
+             /*contents=*/Cargo::commodity{ food_full } } );
   REQUIRE( ch[22] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               food_overflow } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ food_overflow } } );
   REQUIRE( ch[23] ==
-           CargoSlot::cargo{ /*contents=*/Cargo::commodity{
-               sugar_combined } } );
+           CargoSlot::cargo{
+             /*contents=*/Cargo::commodity{ sugar_combined } } );
   REQUIRE( ch[24] == CargoSlot::empty{} );
   REQUIRE( ch[25] == CargoSlot::empty{} );
   REQUIRE( ch[26] == CargoSlot::empty{} );
   REQUIRE( ch[27] == CargoSlot::empty{} );
 
   REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
-                                unit_id1, unit_id2, unit_id3,
-                                unit_id4, unit_id5 } ) );
+                              unit_id1, unit_id2, unit_id3,
+                              unit_id4, unit_id5 } ) );
 
   REQUIRE_THAT( ch.commodities(),
                 UnorderedEquals( vector<pair<Commodity, int>>{
-                    { food_full, 20 },
-                    { food_full, 21 },
-                    { food_overflow, 22 },
-                    { sugar_combined, 23 } } ) );
+                  { food_full, 20 },
+                  { food_full, 21 },
+                  { food_overflow, 22 },
+                  { sugar_combined, 23 } } ) );
 
   ch.clear();
 }
@@ -2339,9 +2338,8 @@ TEST_CASE( "CargoHold find_unit" ) {
   REQUIRE( ch.find_unit( unit_id2 ) == 1 );
   REQUIRE( ch.find_unit( unit_id3 ) == 7 );
 
-  REQUIRE_THAT( ch.units(),
-                UnorderedEquals( vector<UnitId>{
-                    unit_id1, unit_id2, unit_id3 } ) );
+  REQUIRE_THAT( ch.units(), UnorderedEquals( vector<UnitId>{
+                              unit_id1, unit_id2, unit_id3 } ) );
 
   ch.clear();
 }
@@ -2753,14 +2751,14 @@ TEST_CASE( "CargoHold::clear_commodities" ) {
   REQUIRE( ch[0] == CargoSlot::empty{} );
   REQUIRE( ch[1] ==
            CargoSlot::cargo{
-               .contents = Cargo::commodity{ .obj = food } } );
+             .contents = Cargo::commodity{ .obj = food } } );
   REQUIRE( ch[2] == CargoSlot::cargo{ .contents = Cargo::unit{
-                                          .id = unit_id1 } } );
+                                        .id = unit_id1 } } );
   REQUIRE( ch[3] ==
            CargoSlot::cargo{
-               .contents = Cargo::commodity{ .obj = silver } } );
+             .contents = Cargo::commodity{ .obj = silver } } );
   REQUIRE( ch[4] == CargoSlot::cargo{ .contents = Cargo::unit{
-                                          .id = unit_id2 } } );
+                                        .id = unit_id2 } } );
   REQUIRE( ch[5] == CargoSlot::empty{} );
   REQUIRE( ch.slots_occupied() == 4 );
   REQUIRE( ch.slots_remaining() == 2 );
@@ -2771,10 +2769,10 @@ TEST_CASE( "CargoHold::clear_commodities" ) {
   REQUIRE( ch[0] == CargoSlot::empty{} );
   REQUIRE( ch[1] == CargoSlot::empty{} );
   REQUIRE( ch[2] == CargoSlot::cargo{ .contents = Cargo::unit{
-                                          .id = unit_id1 } } );
+                                        .id = unit_id1 } } );
   REQUIRE( ch[3] == CargoSlot::empty{} );
   REQUIRE( ch[4] == CargoSlot::cargo{ .contents = Cargo::unit{
-                                          .id = unit_id2 } } );
+                                        .id = unit_id2 } } );
   REQUIRE( ch[5] == CargoSlot::empty{} );
   REQUIRE( ch.slots_occupied() == 2 );
   REQUIRE( ch.slots_remaining() == 4 );

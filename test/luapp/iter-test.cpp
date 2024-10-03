@@ -77,7 +77,7 @@ LUA_TEST_CASE( "[iter] iterate" ) {
     pairs.push_back( { as<string>( k ), as<int>( v ) } );
 
   vector<pair<string, int>> expected{
-      { "hello", 5 }, { "world", 6 }, { "the_end", 7 } };
+    { "hello", 5 }, { "world", 6 }, { "the_end", 7 } };
 
   REQUIRE_THAT( pairs, Catch::UnorderedEquals( expected ) );
 }
@@ -98,7 +98,7 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
   // even for numeric indices. (To iterate through the indices of
   // an array, use a numerical-for loop, or C equivalent).
   unordered_map<int, int> int_keys{
-      { 5, 5 }, { 1, 7 }, { 2, 9 } };
+    { 5, 5 }, { 1, 7 }, { 2, 9 } };
   unordered_map<string, int> str_keys{ { "world", 6 } };
 
   auto it = begin( tbl );

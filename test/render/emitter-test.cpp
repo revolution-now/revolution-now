@@ -72,19 +72,18 @@ TEST_CASE( "[render/emitter] emit" ) {
 
     emitter.emit( span<SpriteVertex const>( sprites ) );
     REQUIRE( v == vector<GenericVertex>{
-                      vert1.generic(), vert2.generic(),
-                      vert2.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic() } );
+                    vert1.generic(), vert2.generic(),
+                    vert2.generic(), vert1.generic(),
+                    vert3.generic(), vert3.generic(),
+                    vert1.generic() } );
 
     emitter.emit( span<SpriteVertex const>( sprites ) );
-    REQUIRE( v == vector<GenericVertex>{
-                      vert1.generic(), vert2.generic(),
-                      vert2.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic() } );
+    REQUIRE( v ==
+             vector<GenericVertex>{
+               vert1.generic(), vert2.generic(), vert2.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic(), vert1.generic(), vert3.generic(),
+               vert3.generic(), vert1.generic() } );
   }
 
   // Overwrite.
@@ -93,14 +92,13 @@ TEST_CASE( "[render/emitter] emit" ) {
     emitter.log_capacity_changes( log_capacity_changes );
 
     emitter.emit( span<SpriteVertex const>( sprites ) );
-    REQUIRE( v == vector<GenericVertex>{
-                      vert1.generic(), vert2.generic(),
-                      vert2.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic(), vert1.generic(),
-                      vert3.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic() } );
+    REQUIRE( v ==
+             vector<GenericVertex>{
+               vert1.generic(), vert2.generic(), vert2.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic(), vert1.generic(), vert3.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic() } );
   }
 
   {
@@ -108,15 +106,14 @@ TEST_CASE( "[render/emitter] emit" ) {
     emitter.log_capacity_changes( log_capacity_changes );
 
     emitter.emit( span<SpriteVertex const>( sprites ) );
-    REQUIRE( v == vector<GenericVertex>{
-                      vert1.generic(), vert2.generic(),
-                      vert2.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic(), vert1.generic(),
-                      vert3.generic(), vert1.generic(),
-                      vert3.generic(), vert3.generic(),
-                      vert1.generic(), vert3.generic(),
-                      vert3.generic(), vert1.generic() } );
+    REQUIRE( v ==
+             vector<GenericVertex>{
+               vert1.generic(), vert2.generic(), vert2.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic(), vert1.generic(), vert3.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic(), vert3.generic(), vert3.generic(),
+               vert1.generic() } );
   }
 
   {

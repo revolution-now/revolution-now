@@ -76,14 +76,14 @@ TEST_CASE( "[enum-map] enum_map primitive initialization" ) {
 
 TEST_CASE( "[enum-map] enum_map initializer list init" ) {
   enum_map<e_color, int> m1{
-      { e_color::red, 4 },
-      { e_color::blue, 5 },
-      { e_color::green, 6 },
+    { e_color::red, 4 },
+    { e_color::blue, 5 },
+    { e_color::green, 6 },
   };
   enum_map<e_color, int> m2 = {
-      { e_color::red, 5 },
-      { e_color::blue, 6 },
-      { e_color::green, 7 },
+    { e_color::red, 5 },
+    { e_color::blue, 6 },
+    { e_color::green, 7 },
   };
   REQUIRE( m1[e_color::red] == 4 );
   REQUIRE( m1[e_color::blue] == 5 );
@@ -124,41 +124,41 @@ TEST_CASE( "[enum-map] enum_map equality" ) {
 }
 
 enum_map<e_color, string> const native_colors1{
-    { e_color::red, "one" },
-    /*{ e_color::green, "" },*/
-    { e_color::blue, "three" },
+  { e_color::red, "one" },
+  /*{ e_color::green, "" },*/
+  { e_color::blue, "three" },
 };
 
 cdr::value const cdr_colors1 = cdr::table{
-    "red"_key   = "one",
-    "green"_key = "",
-    "blue"_key  = "three",
+  "red"_key   = "one",
+  "green"_key = "",
+  "blue"_key  = "three",
 };
 
 cdr::value const cdr_colors1_extra_field = cdr::table{
-    "red"_key    = "one",
-    "green"_key  = "",
-    "blue"_key   = "three",
-    "purple"_key = "four",
+  "red"_key    = "one",
+  "green"_key  = "",
+  "blue"_key   = "three",
+  "purple"_key = "four",
 };
 
 cdr::value const cdr_colors1_wrong_type = cdr::table{
-    "red"_key   = "one",
-    "green"_key = 5,
-    "blue"_key  = "three",
+  "red"_key   = "one",
+  "green"_key = 5,
+  "blue"_key  = "three",
 };
 
 cdr::value const cdr_colors1_missing_field = cdr::table{
-    "red"_key  = "one",
-    "blue"_key = "three",
+  "red"_key  = "one",
+  "blue"_key = "three",
 };
 
 TEST_CASE( "[enum-map] cdr/strict" ) {
   using M = enum_map<e_color, string>;
   cdr::converter conv{ {
-      .write_fields_with_default_value  = true,
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false,
+    .write_fields_with_default_value  = true,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = false,
   } };
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( native_colors1 ) == cdr_colors1 );
@@ -182,9 +182,9 @@ TEST_CASE( "[enum-map] cdr/strict" ) {
 TEST_CASE( "[enum-map] cdr/no-defaults" ) {
   using M = enum_map<e_color, string>;
   cdr::converter conv{ {
-      .write_fields_with_default_value  = false,
-      .allow_unrecognized_fields        = true,
-      .default_construct_missing_fields = true,
+    .write_fields_with_default_value  = false,
+    .allow_unrecognized_fields        = true,
+    .default_construct_missing_fields = true,
   } };
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( native_colors1 ) ==
@@ -243,14 +243,14 @@ TEST_CASE( "[enum-map] iteration order" ) {
   copy( em.begin(), em.end(), out.begin() );
 
   vector<pair<e_count, bool>> const expected{
-      { e_count::one, false },      { e_count::two, false },
-      { e_count::three, false },    { e_count::four, false },
-      { e_count::five, false },     { e_count::six, false },
-      { e_count::seven, false },    { e_count::eight, false },
-      { e_count::nine, false },     { e_count::ten, false },
-      { e_count::eleven, false },   { e_count::twelve, false },
-      { e_count::thirteen, false }, { e_count::fourteen, false },
-      { e_count::fifteen, false },
+    { e_count::one, false },      { e_count::two, false },
+    { e_count::three, false },    { e_count::four, false },
+    { e_count::five, false },     { e_count::six, false },
+    { e_count::seven, false },    { e_count::eight, false },
+    { e_count::nine, false },     { e_count::ten, false },
+    { e_count::eleven, false },   { e_count::twelve, false },
+    { e_count::thirteen, false }, { e_count::fourteen, false },
+    { e_count::fifteen, false },
   };
   REQUIRE( out == expected );
 }

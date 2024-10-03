@@ -45,11 +45,11 @@ TEST_CASE( "[unit-composition] pioneer tool count" ) {
   auto uc = UnitComposition::create( ut, /*inventory=*/{} );
   REQUIRE( !uc.has_value() );
   uc = UnitComposition::create(
-      ut, /*inventory=*/{ { e_unit_inventory::gold, 1000 } } );
+      ut, /*inventory=*/{ { e_unit_inventory::gold, 1'000 } } );
   REQUIRE( !uc.has_value() );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 100 },
-                          { e_unit_inventory::gold, 1000 } } );
+                          { e_unit_inventory::gold, 1'000 } } );
   REQUIRE( !uc.has_value() );
   uc = UnitComposition::create(
       ut, /*inventory=*/{ { e_unit_inventory::tools, 120 } } );

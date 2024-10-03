@@ -130,17 +130,17 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{
-            { e_unit_type::missionary,
-              { e_unit_type_modifier::blessing } },
-            { e_unit_type::scout,
-              { e_unit_type_modifier::horses } },
-            { e_unit_type::pioneer,
-              { e_unit_type_modifier::tools } },
-            { e_unit_type::soldier,
-              { e_unit_type_modifier::muskets } },
-            { e_unit_type::dragoon,
-              { e_unit_type_modifier::horses,
-                e_unit_type_modifier::muskets } },
+          { e_unit_type::missionary,
+            { e_unit_type_modifier::blessing } },
+          { e_unit_type::scout,
+            { e_unit_type_modifier::horses } },
+          { e_unit_type::pioneer,
+            { e_unit_type_modifier::tools } },
+          { e_unit_type::soldier,
+            { e_unit_type_modifier::muskets } },
+          { e_unit_type::dragoon,
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
     REQUIRE( desc.inventory_types ==
@@ -173,21 +173,21 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
              UnitPromotion::fixed{
-                 .type = e_unit_type::indentured_servant } );
+               .type = e_unit_type::indentured_servant } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{
-            { e_unit_type::missionary,
-              { e_unit_type_modifier::blessing } },
-            { e_unit_type::scout,
-              { e_unit_type_modifier::horses } },
-            { e_unit_type::pioneer,
-              { e_unit_type_modifier::tools } },
-            { e_unit_type::soldier,
-              { e_unit_type_modifier::muskets } },
-            { e_unit_type::dragoon,
-              { e_unit_type_modifier::horses,
-                e_unit_type_modifier::muskets } },
+          { e_unit_type::missionary,
+            { e_unit_type_modifier::blessing } },
+          { e_unit_type::scout,
+            { e_unit_type_modifier::horses } },
+          { e_unit_type::pioneer,
+            { e_unit_type_modifier::tools } },
+          { e_unit_type::soldier,
+            { e_unit_type_modifier::muskets } },
+          { e_unit_type::dragoon,
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
     REQUIRE( desc.inventory_types ==
@@ -222,17 +222,17 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{
-            { e_unit_type::missionary,
-              { e_unit_type_modifier::blessing } },
-            { e_unit_type::scout,
-              { e_unit_type_modifier::horses } },
-            { e_unit_type::pioneer,
-              { e_unit_type_modifier::tools } },
-            { e_unit_type::soldier,
-              { e_unit_type_modifier::muskets } },
-            { e_unit_type::dragoon,
-              { e_unit_type_modifier::horses,
-                e_unit_type_modifier::muskets } },
+          { e_unit_type::missionary,
+            { e_unit_type_modifier::blessing } },
+          { e_unit_type::scout,
+            { e_unit_type_modifier::horses } },
+          { e_unit_type::pioneer,
+            { e_unit_type_modifier::tools } },
+          { e_unit_type::soldier,
+            { e_unit_type_modifier::muskets } },
+          { e_unit_type::dragoon,
+            { e_unit_type_modifier::horses,
+              e_unit_type_modifier::muskets } },
         };
     REQUIRE( desc.modifiers == expected_modifiers );
     REQUIRE( desc.inventory_types ==
@@ -263,13 +263,13 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.cargo_slots_occupies == 1 );
     REQUIRE( desc.on_death ==
              UnitDeathAction::demote{
-                 .lose = { e_unit_type_modifier::horses } } );
+               .lose = { e_unit_type_modifier::horses } } );
     REQUIRE( desc.canonical_base ==
              e_unit_type::veteran_colonist );
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
              UnitPromotion::modifier{
-                 .kind = e_unit_type_modifier::independence } );
+               .kind = e_unit_type_modifier::independence } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -305,7 +305,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
              UnitPromotion::expertise{
-                 .kind = e_unit_activity::scouting } );
+               .kind = e_unit_activity::scouting } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -341,14 +341,14 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
              UnitPromotion::expertise{
-                 .kind = e_unit_activity::pioneering } );
+               .kind = e_unit_activity::pioneering } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
     REQUIRE( desc.modifiers == expected_modifiers );
     REQUIRE( desc.inventory_types ==
              unordered_set<e_unit_inventory>{
-                 e_unit_inventory::tools } );
+               e_unit_inventory::tools } );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::pioneer );
     REQUIRE( desc.is_derived == true );
@@ -378,7 +378,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.expertise == nothing );
     REQUIRE( desc.promotion ==
              UnitPromotion::expertise{
-                 .kind = e_unit_activity::missioning } );
+               .kind = e_unit_activity::missioning } );
     unordered_map<e_unit_type,
                   unordered_set<e_unit_type_modifier>>
         expected_modifiers{};
@@ -418,7 +418,7 @@ TEST_CASE( "[unit-type] unit type attributes deserialization" ) {
     REQUIRE( desc.modifiers == expected_modifiers );
     REQUIRE( desc.inventory_types ==
              unordered_set<e_unit_inventory>{
-                 e_unit_inventory::gold } );
+               e_unit_inventory::gold } );
     // Derived fields.
     REQUIRE( desc.type == e_unit_type::treasure );
     REQUIRE( desc.is_derived == false );

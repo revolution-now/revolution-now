@@ -45,20 +45,20 @@ using namespace ::mock::matchers;
 
 // (type, name, is_integral).  The precise names don't matter.
 vector<tuple<int, string, bool>> const kExpectedAttributes{
-    { GL_INT, "in_type", true },                        //
-    { GL_UNSIGNED_INT, "in_flags", true },              //
-    { GL_INT, "in_aux_idx", true },                     //
-    { GL_FLOAT_VEC4, "in_depixelate", false },          //
-    { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
-    { GL_FLOAT_VEC2, "in_position", false },            //
-    { GL_FLOAT_VEC2, "in_atlas_position", false },      //
-    { GL_FLOAT_VEC4, "in_atlas_rect", false },          //
-    { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //
-    { GL_FLOAT_VEC4, "in_stencil_key_color", false },   //
-    { GL_FLOAT_VEC4, "in_fixed_color", false },         //
-    { GL_FLOAT, "in_alpha_multiplier", false },         //
-    { GL_FLOAT, "in_scaling", false },                  //
-    { GL_FLOAT_VEC2, "in_translation", false },         //
+  { GL_INT, "in_type", true },                        //
+  { GL_UNSIGNED_INT, "in_flags", true },              //
+  { GL_INT, "in_aux_idx", true },                     //
+  { GL_FLOAT_VEC4, "in_depixelate", false },          //
+  { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
+  { GL_FLOAT_VEC2, "in_position", false },            //
+  { GL_FLOAT_VEC2, "in_atlas_position", false },      //
+  { GL_FLOAT_VEC4, "in_atlas_rect", false },          //
+  { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //
+  { GL_FLOAT_VEC4, "in_stencil_key_color", false },   //
+  { GL_FLOAT_VEC4, "in_fixed_color", false },         //
+  { GL_FLOAT, "in_alpha_multiplier", false },         //
+  { GL_FLOAT, "in_scaling", false },                  //
+  { GL_FLOAT_VEC2, "in_translation", false },         //
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {
@@ -368,24 +368,23 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // *** The test.
 
   vector<SpriteSheetConfig> sprite_config{
-      {
-          .img_path =
-              testing::data_dir() / "images/64w_x_32h.png",
-          .sprite_size = gfx::size{ .w = 32, .h = 32 },
-          .sprites =
-              {
-                  { "water", gfx::point{ .x = 0, .y = 0 } },
-                  { "grass", gfx::point{ .x = 1, .y = 0 } },
-              },
-      },
+    {
+      .img_path = testing::data_dir() / "images/64w_x_32h.png",
+      .sprite_size = gfx::size{ .w = 32, .h = 32 },
+      .sprites =
+          {
+            { "water", gfx::point{ .x = 0, .y = 0 } },
+            { "grass", gfx::point{ .x = 1, .y = 0 } },
+          },
+    },
   };
   vector<AsciiFontSheetConfig> font_config;
 
   RendererConfig config{
-      .logical_screen_size = gfx::size{ .w = 500, .h = 400 },
-      .max_atlas_size      = gfx::size{ .w = 64, .h = 32 },
-      .sprite_sheets       = sprite_config,
-      .font_sheets         = font_config,
+    .logical_screen_size = gfx::size{ .w = 500, .h = 400 },
+    .max_atlas_size      = gfx::size{ .w = 64, .h = 32 },
+    .sprite_sheets       = sprite_config,
+    .font_sheets         = font_config,
   };
   unique_ptr<Renderer> renderer =
       Renderer::create( config, [] {} );
@@ -393,9 +392,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // Try zapping.
   {
     VertexRange vertex_range{
-        .buffer = e_render_buffer::landscape_annex,
-        .start  = 6, // zap the second rect.
-        .finish = 12 };
+      .buffer = e_render_buffer::landscape_annex,
+      .start  = 6, // zap the second rect.
+      .finish = 12 };
     auto popper = renderer->push_mods( []( RendererMods& mods ) {
       mods.buffer_mods.buffer = e_render_buffer::landscape_annex;
     } );

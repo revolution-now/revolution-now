@@ -399,8 +399,8 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result expected{
-      .status   = resume_status::yield,
-      .nresults = 1,
+    .status   = resume_status::yield,
+    .nresults = 1,
   };
   REQUIRE( call_lua_resume_safe( L2, 5, "hello" ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
@@ -468,8 +468,8 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result expected{
-      .status   = resume_status::yield,
-      .nresults = 1,
+    .status   = resume_status::yield,
+    .nresults = 1,
   };
   REQUIRE( call_lua_resume_safe( L2, 5, "hello" ) == expected );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
@@ -522,28 +522,28 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result_with_value<string> expected1{
-      .status = resume_status::yield,
-      .value  = "hello5",
+    .status = resume_status::yield,
+    .value  = "hello5",
   };
   REQUIRE( call_lua_resume_safe_and_get<string>(
                L2, 5, "hello" ) == expected1 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   resume_result_with_value<string> expected2{
-      .status = resume_status::yield, .value = "hello6" };
+    .status = resume_status::yield, .value = "hello6" };
   REQUIRE( call_lua_resume_safe_and_get<string>( L2, 6 ) ==
            expected2 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   resume_result_with_value<string> expected3{
-      .status = resume_status::yield, .value = "world6" };
+    .status = resume_status::yield, .value = "world6" };
   REQUIRE( call_lua_resume_safe_and_get<string>( L2, "world" ) ==
            expected3 );
   REQUIRE( C2.coro_status() == coroutine_status::suspended );
   REQUIRE( C2.stack_size() == 0 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result_with_value<int> expected4{
-      .status = resume_status::ok, .value = 18 };
+    .status = resume_status::ok, .value = 18 };
   REQUIRE( call_lua_resume_safe_and_get<int>( L2 ) ==
            expected4 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
@@ -578,8 +578,8 @@ LUA_TEST_CASE(
   REQUIRE( C2.stack_size() == 1 );
   REQUIRE( st["f_is_closed"] == nil );
   resume_result_with_value<string> expected1{
-      .status = resume_status::yield,
-      .value  = "hello5",
+    .status = resume_status::yield,
+    .value  = "hello5",
   };
   REQUIRE( call_lua_resume_safe_and_get<string>(
                L2, 5, "hello" ) == expected1 );

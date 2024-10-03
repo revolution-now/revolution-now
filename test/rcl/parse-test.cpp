@@ -350,18 +350,18 @@ TEST_CASE( "[parse] rcl is a superset of JSON." ) {
   REQUIRE( doc );
 
   table expected = {
-      "key_1"_key       = 42,
-      "key_2"_key       = 55.6,
-      "hello"_key       = "world",
-      "boolean"_key     = true,
-      "not boolean"_key = false,
-      "null_value"_key  = null,
-      "people"_key =
-          list{ table{ "name"_key = "bob", "age"_key = 123 },
-                table{ "name"_key = "joe", "age"_key = 0 } },
-      "table_value"_key = table{
-          "another_key"_key     = 99,
-          "yet another key"_key = "with\\nnew\\nlines" } };
+    "key_1"_key       = 42,
+    "key_2"_key       = 55.6,
+    "hello"_key       = "world",
+    "boolean"_key     = true,
+    "not boolean"_key = false,
+    "null_value"_key  = null,
+    "people"_key =
+        list{ table{ "name"_key = "bob", "age"_key = 123 },
+              table{ "name"_key = "joe", "age"_key = 0 } },
+    "table_value"_key =
+        table{ "another_key"_key     = 99,
+               "yet another key"_key = "with\\nnew\\nlines" } };
   REQUIRE( doc->top_tbl() == expected );
 }
 
