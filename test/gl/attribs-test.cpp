@@ -176,7 +176,7 @@ TEST_CASE( "[attribs] gfx conversion" ) {
            ivec4{ .x = 3, .y = 4, .z = 2, .w = 3 } );
 
   REQUIRE( color::from_pixel( gfx::pixel{
-               .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
+             .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
            color{ .r = 0.0f,
                   .g = 255.0f / 255.0f,
                   .b = 3.0f / 255.0f,

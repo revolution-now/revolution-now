@@ -110,10 +110,9 @@ TEST_CASE( "[cdr/ext-std] pair" ) {
     REQUIRE( conv.from<pair<int, bool>>(
                  table{ { "fxt", 5 }, { "val", true } } ) ==
              conv.err( "key 'key' not found in table." ) );
-    REQUIRE(
-        conv.from<pair<int, bool>>( table{
-            { "key", 9 }, { "fxt", 5 }, { "val", true } } ) ==
-        conv.err( "unrecognized key 'fxt' in table." ) );
+    REQUIRE( conv.from<pair<int, bool>>( table{
+               { "key", 9 }, { "fxt", 5 }, { "val", true } } ) ==
+             conv.err( "unrecognized key 'fxt' in table." ) );
     REQUIRE( conv.from<pair<int, bool>>( 5 ) ==
              conv.err( "expected type table, instead found type "
                        "integer." ) );

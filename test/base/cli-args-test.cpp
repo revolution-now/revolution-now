@@ -31,9 +31,9 @@ TEST_CASE( "[cli-args] happy path" ) {
   auto res = cmd( "hello world", "--yoyo", "--count=444", "test",
                   "one" );
   auto expected = ProgramArguments{
-      .key_val_args    = { { "count", "444" } },
-      .flag_args       = { "yoyo" },
-      .positional_args = { "hello world", "test", "one" },
+    .key_val_args    = { { "count", "444" } },
+    .flag_args       = { "yoyo" },
+    .positional_args = { "hello world", "test", "one" },
   };
   REQUIRE( res == expected );
 }
@@ -41,9 +41,9 @@ TEST_CASE( "[cli-args] happy path" ) {
 TEST_CASE( "[cli-args] empty" ) {
   auto res      = cmd();
   auto expected = ProgramArguments{
-      .key_val_args    = {},
-      .flag_args       = {},
-      .positional_args = {},
+    .key_val_args    = {},
+    .flag_args       = {},
+    .positional_args = {},
   };
   REQUIRE( res == expected );
 }

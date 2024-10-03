@@ -222,9 +222,9 @@ TEST_CASE( "[uniform] creation/set array of ivec4" ) {
   Uniform<span<ivec4 const>> uf( 7, "some_uniform" );
 
   static ivec4 const values[3] = {
-      { .x = 5, .y = 6, .z = 7, .w = 8 },
-      { .x = 6, .y = 7, .z = 8, .w = 9 },
-      { .x = 7, .y = 8, .z = 9, .w = 10 },
+    { .x = 5, .y = 6, .z = 7, .w = 8 },
+    { .x = 6, .y = 7, .z = 8, .w = 9 },
+    { .x = 7, .y = 8, .z = 9, .w = 10 },
   };
 
   // Set ivec4 failure.

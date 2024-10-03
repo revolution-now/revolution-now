@@ -76,10 +76,10 @@ TEST_CASE( "[range-lite] non-materialized" ) {
 
 TEST_CASE( "[range-lite] long-range" ) {
   vector<int> input;
-  input.reserve( 10000 );
-  for( int s = 0; s < 10000; ++s ) input.push_back( s );
+  input.reserve( 10'000 );
+  for( int s = 0; s < 10'000; ++s ) input.push_back( s );
   auto vec = rl::all( input )
-                 .keep_if( L( _ < 100000 ) )
+                 .keep_if( L( _ < 100'000 ) )
                  .map( L( _ * 2 ) )
                  .map( L( _ / 2 ) )
                  .take_while( L( _ >= 0 ) );
@@ -422,7 +422,8 @@ TEST_CASE( "[range-lite] accumulate_monoid" ) {
 }
 
 TEST_CASE( "[range-lite] mixing" ) {
-  vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
+  vector<int> input{ 1,      22,      333,      4'444,
+                     55'555, 666'666, 7'777'777 };
 
   auto res = rl::all( input )
                  .keep_if( L( _ % 2 == 1 ) )
@@ -481,7 +482,7 @@ TEST_CASE( "[range-lite] map2val" ) {
 
     int n1 = 1, n2 = 2, n3 = 3;
     REQUIRE_THAT( res, Equals( vector<pair<int&, int>>{
-                           { n1, 1 }, { n2, 4 }, { n3, 9 } } ) );
+                         { n1, 1 }, { n2, 4 }, { n3, 9 } } ) );
   }
   SECTION( "string" ) {
     vector<int> input{ 1, 2, 3 };
@@ -490,9 +491,9 @@ TEST_CASE( "[range-lite] map2val" ) {
         rl::all( input ).map2val_L( to_string( _ ) ).to_vector();
 
     int n1 = 1, n2 = 2, n3 = 3;
-    REQUIRE_THAT(
-        res, Equals( vector<pair<int&, string>>{
-                 { n1, "1" }, { n2, "2" }, { n3, "3" } } ) );
+    REQUIRE_THAT( res,
+                  Equals( vector<pair<int&, string>>{
+                    { n1, "1" }, { n2, "2" }, { n3, "3" } } ) );
   }
 }
 
@@ -667,7 +668,7 @@ TEST_CASE( "[range-lite] zip3" ) {
   auto vec = rl::zip( input1, input2, input3 ).to_vector();
 
   auto expected = vector<tuple<int, int, int>>{
-      { 1, 4, 8 }, { 2, 5, 9 }, { 3, 6, 0 } };
+    { 1, 4, 8 }, { 2, 5, 9 }, { 3, 6, 0 } };
   REQUIRE_THAT( vec, Equals( expected ) );
 }
 
@@ -1017,17 +1018,17 @@ TEST_CASE( "[range-lite] mutation" ) {
 
 TEST_CASE( "[range-lite] keys" ) {
   vector<pair<string, int>> input{
-      { "hello", 3 },
-      { "world", 2 },
-      { "again", 1 },
+    { "hello", 3 },
+    { "world", 2 },
+    { "again", 1 },
   };
 
   auto vec =
       rl::all( input ).cycle().keys().take( 6 ).to_vector();
 
   vector<string> expected{
-      { "hello" }, { "world" }, { "again" },
-      { "hello" }, { "world" }, { "again" },
+    { "hello" }, { "world" }, { "again" },
+    { "hello" }, { "world" }, { "again" },
   };
 
   REQUIRE_THAT( vec, Equals( expected ) );
@@ -1057,9 +1058,9 @@ TEST_CASE( "[range-lite] mutable through map" ) {
 
 TEST_CASE( "[range-lite] keys mutation" ) {
   vector<pair<string, int>> input{
-      { "hello", 3 },
-      { "world", 2 },
-      { "again", 1 },
+    { "hello", 3 },
+    { "world", 2 },
+    { "again", 1 },
   };
 
   auto view =
@@ -1068,9 +1069,9 @@ TEST_CASE( "[range-lite] keys mutation" ) {
   for( auto& key : view ) key = key + key;
 
   vector<pair<string, int>> expected{
-      { "hello", 3 },
-      { "worldworld", 2 },
-      { "againagain", 1 },
+    { "hello", 3 },
+    { "worldworld", 2 },
+    { "againagain", 1 },
   };
 
   REQUIRE_THAT( input, Equals( expected ) );
@@ -1219,7 +1220,7 @@ TEST_CASE( "[range-lite] dereference maybe" ) {
   for( int& i : view ) i *= 10;
 
   auto expected = vector<maybe<int>>{
-      { 10 }, { 20 }, { 30 }, { 40 }, { 50 } };
+    { 10 }, { 20 }, { 30 }, { 40 }, { 50 } };
   REQUIRE_THAT( input, Equals( expected ) );
 
   REQUIRE_THAT( view.to_vector(),
@@ -1228,14 +1229,14 @@ TEST_CASE( "[range-lite] dereference maybe" ) {
 
 TEST_CASE( "[range-lite] cat_maybes" ) {
   vector<maybe<int>> input{
-      { 1 }, nothing, { 3 }, nothing, { 5 } };
+    { 1 }, nothing, { 3 }, nothing, { 5 } };
 
   auto view = rl::all( input ).cat_maybes();
 
   for( int& i : view ) i *= 10;
 
   auto expected = vector<maybe<int>>{
-      { 10 }, nothing, { 30 }, nothing, { 50 } };
+    { 10 }, nothing, { 30 }, nothing, { 50 } };
   REQUIRE_THAT( input, Equals( expected ) );
 
   REQUIRE_THAT( view.to_vector(),
@@ -1531,7 +1532,7 @@ TEST_CASE( "[range-lite] chunk" ) {
     REQUIRE( it == view.end() );
 
     vector<vector<int>> expected{
-        { 1, 2, 2 }, { 2, 3, 3 }, { 4, 5, 5 }, { 5, 5, 6 } };
+      { 1, 2, 2 }, { 2, 3, 3 }, { 4, 5, 5 }, { 5, 5, 6 } };
     REQUIRE_THAT(
         std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );
@@ -1560,7 +1561,7 @@ TEST_CASE( "[range-lite] chunk" ) {
     REQUIRE( it == view.end() );
 
     vector<vector<int>> expected{
-        { 1, 2, 2, 2, 3 }, { 3, 4, 5, 5, 5 }, { 5, 6 } };
+      { 1, 2, 2, 2, 3 }, { 3, 4, 5, 5, 5 }, { 5, 6 } };
     REQUIRE_THAT(
         std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );
@@ -1577,7 +1578,7 @@ TEST_CASE( "[range-lite] chunk" ) {
                                        5, 5, 6 } ) );
 
     vector<vector<int>> expected{
-        { 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 } };
+      { 1, 2, 2, 2, 3, 3, 4, 5, 5, 5, 5, 6 } };
     REQUIRE_THAT(
         std::move( view ).map_L( _.to_vector() ).to_vector(),
         Equals( expected ) );

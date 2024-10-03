@@ -117,7 +117,11 @@ TEST_CASE( "[variant] if_get" ) {
   REQUIRE( is_string );
 }
 
-enum class e_test_enum { one, two, three };
+enum class e_test_enum {
+  one,
+  two,
+  three
+};
 
 } // namespace
 

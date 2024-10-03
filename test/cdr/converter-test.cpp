@@ -81,7 +81,11 @@ static_assert( base::Show<Address> );
 /****************************************************************
 ** e_pet
 *****************************************************************/
-enum class e_pet { cat, dog, frog };
+enum class e_pet {
+  cat,
+  dog,
+  frog
+};
 
 value to_canonical( converter&, e_pet const& o, tag_t<e_pet> ) {
   switch( o ) {
@@ -215,246 +219,244 @@ static_assert( base::Show<Rolodex> );
 ** Test Data
 *****************************************************************/
 value const cdr_rolodex_1 = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+      },
+  "updated"_key = "1900-02-01",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "male"_key   = false,
+              "houses"_key = list{},
+              "pets"_key =
+                  table{
+                    "cat"_key = 7,
+                    "dog"_key = 8,
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-        },
-    "updated"_key = "1900-02-01",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "male"_key   = false,
-                    "houses"_key = list{},
-                    "pets"_key =
-                        table{
-                            "cat"_key = 7,
-                            "dog"_key = 8,
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        table{
-                            "dog"_key = 2,
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  table{
+                    "dog"_key = 2,
+                  },
+            },
+      },
 };
 
 // This one has no field values set if they assume their
 // default-constructed values.
 value const cdr_rolodex_1_no_def_fields = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+      },
+  "updated"_key = "1900-02-01",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "pets"_key =
+                  table{
+                    "cat"_key = 7,
+                    "dog"_key = 8,
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-        },
-    "updated"_key = "1900-02-01",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "pets"_key =
-                        table{
-                            "cat"_key = 7,
-                            "dog"_key = 8,
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        table{
-                            "dog"_key = 2,
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  table{
+                    "dog"_key = 2,
+                  },
+            },
+      },
 };
 
 // This one has some invalid/unrecognized fields.
 value const cdr_rolodex_1_with_unrecognized = table{
-    "self"_key =
-        table{
-            "name"_key   = "bob",
-            "height"_key = 5.5,
-            "male"_key   = true,
-            "houses"_key =
-                list{
+  "self"_key =
+      table{
+        "name"_key   = "bob",
+        "height"_key = 5.5,
+        "male"_key   = true,
+        "houses"_key =
+            list{
+              table{
+                "street_number"_key = 444,
+                "state"_key         = "CA",
+              },
+              table{
+                "street_number"_key = 555,
+                "state"_key         = "MD",
+                "xyz"_key           = 1,
+              },
+            },
+        "pets"_key =
+            table{
+              "cat"_key  = 3,
+              "frog"_key = 6,
+            },
+      },
+  "updated"_key = "1900-02-01",
+  "???"_key     = "hello",
+  "contacts"_key =
+      table{
+        "joe"_key =
+            table{
+              "name"_key   = "joe",
+              "height"_key = 7.5,
+              "male"_key   = false,
+              "houses"_key = list{},
+              "pets"_key =
+                  list{
+                    table{ { "key", "cat" },
+                           { "val", 7 },
+                           { "abc", 9 } },
+                    table{ { "key", "dog" }, { "val", 8 } },
+                  },
+            },
+        "moe"_key =
+            table{
+              "name"_key   = "moe",
+              "height"_key = 8.5,
+              "male"_key   = true,
+              "houses"_key =
+                  list{
                     table{
-                        "street_number"_key = 444,
-                        "state"_key         = "CA",
+                      "street_number"_key = 666,
+                      "state"_key         = "VA",
                     },
-                    table{
-                        "street_number"_key = 555,
-                        "state"_key         = "MD",
-                        "xyz"_key           = 1,
-                    },
-                },
-            "pets"_key =
-                table{
-                    "cat"_key  = 3,
-                    "frog"_key = 6,
-                },
-        },
-    "updated"_key = "1900-02-01",
-    "???"_key     = "hello",
-    "contacts"_key =
-        table{
-            "joe"_key =
-                table{
-                    "name"_key   = "joe",
-                    "height"_key = 7.5,
-                    "male"_key   = false,
-                    "houses"_key = list{},
-                    "pets"_key =
-                        list{
-                            table{ { "key", "cat" },
-                                   { "val", 7 },
-                                   { "abc", 9 } },
-                            table{ { "key", "dog" },
-                                   { "val", 8 } },
-                        },
-                },
-            "moe"_key =
-                table{
-                    "name"_key   = "moe",
-                    "height"_key = 8.5,
-                    "male"_key   = true,
-                    "houses"_key =
-                        list{
-                            table{
-                                "street_number"_key = 666,
-                                "state"_key         = "VA",
-                            },
-                        },
-                    "pets"_key =
-                        list{
-                            table{ { "key", "dog" },
-                                   { "val", 2 } },
-                        },
-                },
-        },
+                  },
+              "pets"_key =
+                  list{
+                    table{ { "key", "dog" }, { "val", 2 } },
+                  },
+            },
+      },
 };
 
 Rolodex const native_rolodex_1{
-    .self =
+  .self =
+      {
+        .name   = "bob",
+        .height = 5.5,
+        .male   = true,
+        .houses =
+            {
+              {
+                .street_number = 444,
+                .state         = "CA",
+              },
+              {
+                .street_number = 555,
+                .state         = "MD",
+              },
+            },
+        .pets =
+            {
+              { e_pet::cat, 3 },
+              { e_pet::frog, 6 },
+            },
+      },
+  .updated = "1900-02-01",
+  .contacts =
+      {
         {
-            .name   = "bob",
-            .height = 5.5,
+          "joe",
+          {
+            .name   = "joe",
+            .height = 7.5,
+            .male   = false,
+            .houses = {},
+            .pets =
+                {
+                  { e_pet::cat, 7 },
+                  { e_pet::dog, 8 },
+                },
+          },
+        },
+        {
+          "moe",
+          {
+            .name   = "moe",
+            .height = 8.5,
             .male   = true,
             .houses =
                 {
-                    {
-                        .street_number = 444,
-                        .state         = "CA",
-                    },
-                    {
-                        .street_number = 555,
-                        .state         = "MD",
-                    },
+                  {
+                    .street_number = 666,
+                    .state         = "VA",
+                  },
                 },
             .pets =
                 {
-                    { e_pet::cat, 3 },
-                    { e_pet::frog, 6 },
+                  { e_pet::dog, 2 },
                 },
+          },
         },
-    .updated = "1900-02-01",
-    .contacts =
-        {
-            {
-                "joe",
-                {
-                    .name   = "joe",
-                    .height = 7.5,
-                    .male   = false,
-                    .houses = {},
-                    .pets =
-                        {
-                            { e_pet::cat, 7 },
-                            { e_pet::dog, 8 },
-                        },
-                },
-            },
-            {
-                "moe",
-                {
-                    .name   = "moe",
-                    .height = 8.5,
-                    .male   = true,
-                    .houses =
-                        {
-                            {
-                                .street_number = 666,
-                                .state         = "VA",
-                            },
-                        },
-                    .pets =
-                        {
-                            { e_pet::dog, 2 },
-                        },
-                },
-            },
-        },
+      },
 };
 
 /****************************************************************
@@ -462,9 +464,9 @@ Rolodex const native_rolodex_1{
 *****************************************************************/
 TEST_CASE( "[cdr/converter] default options" ) {
   converter::options opts{
-      .write_fields_with_default_value  = true,
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false };
+    .write_fields_with_default_value  = true,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = false };
   // Sanity check to make sure the above are actually the de-
   // fault.
   REQUIRE( opts == converter::options{} );
@@ -482,9 +484,9 @@ TEST_CASE( "[cdr/converter] default options" ) {
 
 TEST_CASE( "[cdr/converter] no write def values" ) {
   converter::options opts{
-      .write_fields_with_default_value  = false,
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = false };
+    .write_fields_with_default_value  = false,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = false };
   converter conv( opts );
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
@@ -501,9 +503,9 @@ TEST_CASE(
     "[cdr/converter] no write def values & default construct "
     "missing" ) {
   converter::options opts{
-      .write_fields_with_default_value  = false,
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = true };
+    .write_fields_with_default_value  = false,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = true };
   converter conv( opts );
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
@@ -521,9 +523,9 @@ TEST_CASE(
     "[cdr/converter] write def values & default construct "
     "missing" ) {
   converter::options opts{
-      .write_fields_with_default_value  = true,
-      .allow_unrecognized_fields        = false,
-      .default_construct_missing_fields = true };
+    .write_fields_with_default_value  = true,
+    .allow_unrecognized_fields        = false,
+    .default_construct_missing_fields = true };
   converter conv( opts );
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );

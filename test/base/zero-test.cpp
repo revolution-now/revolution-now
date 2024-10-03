@@ -218,9 +218,8 @@ TEST_CASE( "[zero] copy and move" ) {
         REQUIRE( mf4.resource() == 2 );
         REQUIRE( next_key == 3 );
         REQUIRE( next_val == 2 );
-        REQUIRE( resources ==
-                 unordered_map<int, int>{
-                     { 0, 0 }, { 1, 0 }, { 2, 1 } } );
+        REQUIRE( resources == unordered_map<int, int>{
+                                { 0, 0 }, { 1, 0 }, { 2, 1 } } );
 
         {
           MockFile mf4b;
@@ -229,10 +228,9 @@ TEST_CASE( "[zero] copy and move" ) {
           REQUIRE( mf4b.resource() == 3 );
           REQUIRE( next_key == 4 );
           REQUIRE( next_val == 3 );
-          REQUIRE(
-              resources ==
-              unordered_map<int, int>{
-                  { 0, 0 }, { 1, 0 }, { 2, 1 }, { 3, 2 } } );
+          REQUIRE( resources ==
+                   unordered_map<int, int>{
+                     { 0, 0 }, { 1, 0 }, { 2, 1 }, { 3, 2 } } );
 
           MockFile mf5;
           REQUIRE( mf5.has_value() );
@@ -256,17 +254,15 @@ TEST_CASE( "[zero] copy and move" ) {
           REQUIRE( mf5.resource() == 3 );
           REQUIRE( next_key == 5 );
           REQUIRE( next_val == 4 );
-          REQUIRE(
-              resources ==
-              unordered_map<int, int>{
-                  { 0, 0 }, { 1, 0 }, { 2, 1 }, { 3, 2 } } );
+          REQUIRE( resources ==
+                   unordered_map<int, int>{
+                     { 0, 0 }, { 1, 0 }, { 2, 1 }, { 3, 2 } } );
         }
 
         REQUIRE( next_key == 5 );
         REQUIRE( next_val == 4 );
-        REQUIRE( resources ==
-                 unordered_map<int, int>{
-                     { 0, 0 }, { 1, 0 }, { 2, 1 } } );
+        REQUIRE( resources == unordered_map<int, int>{
+                                { 0, 0 }, { 1, 0 }, { 2, 1 } } );
       }
 
       REQUIRE( next_key == 5 );

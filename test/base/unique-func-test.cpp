@@ -55,7 +55,7 @@ TEST_CASE( "[unique-func] callable" ) {
 
 struct NonCopyable {
   NonCopyable( int n_ ) : n( n_ ) {}
-  NonCopyable( NonCopyable const& ) = delete;
+  NonCopyable( NonCopyable const& )            = delete;
   NonCopyable& operator=( NonCopyable const& ) = delete;
 
   int n;

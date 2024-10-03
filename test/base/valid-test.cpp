@@ -24,7 +24,11 @@ using namespace std;
 template<typename E>
 using V = ::base::valid_or<E>;
 
-enum class e_code { red, green, blue };
+enum class e_code {
+  red,
+  green,
+  blue
+};
 
 /****************************************************************
 ** [static]

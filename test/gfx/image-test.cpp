@@ -148,22 +148,22 @@ TEST_CASE( "[image] new_filled_image" ) {
   image img1 = new_filled_image( { .w = 4, .h = 4 }, O );
 
   vector<pixel> expected_img1 = {
-      O, O, O, O, //
-      O, O, O, O, //
-      O, O, O, O, //
-      O, O, O, O, //
+    O, O, O, O, //
+    O, O, O, O, //
+    O, O, O, O, //
+    O, O, O, O, //
   };
   REQUIRE( testing::image_equals( img1, expected_img1 ) );
 
   image         img2 = new_filled_image( { .w = 5, .h = 7 }, G );
   vector<pixel> expected_img2 = {
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
   };
   REQUIRE( testing::image_equals( img2, expected_img2 ) );
 }
@@ -195,13 +195,13 @@ TEST_CASE( "[image] blit_from" ) {
   src[{ .x = 4, .y = 4 }] = R;
 
   expected_src = {
-      G, G, G, G, G, //
-      G, G, R, R, R, //
-      G, G, R, R, R, //
-      G, G, R, R, R, //
-      G, G, R, R, R, //
-      G, G, G, G, G, //
-      G, G, G, G, G, //
+    G, G, G, G, G, //
+    G, G, R, R, R, //
+    G, G, R, R, R, //
+    G, G, R, R, R, //
+    G, G, R, R, R, //
+    G, G, G, G, G, //
+    G, G, G, G, G, //
   };
   REQUIRE( testing::image_equals( src, expected_src ) );
 
@@ -210,10 +210,10 @@ TEST_CASE( "[image] blit_from" ) {
                        .size   = { .w = 4, .h = 3 } },
                  point{ .x = -1, .y = 2 } );
   expected_dst = {
-      O, O, O, O, //
-      O, O, O, O, //
-      R, R, O, O, //
-      R, R, O, O, //
+    O, O, O, O, //
+    O, O, O, O, //
+    R, R, O, O, //
+    R, R, O, O, //
   };
   REQUIRE( testing::image_equals( dst, expected_dst ) );
 }

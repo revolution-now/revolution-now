@@ -510,8 +510,8 @@ Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
   DwellingId const id = natives().add_dwelling(
       tribe, where,
       Dwelling{
-          .population =
-              config_natives.tribes[tribe].max_population,
+        .population =
+            config_natives.tribes[tribe].max_population,
       } );
   set_road( map_updater(), where );
   return natives().dwelling_for( id );

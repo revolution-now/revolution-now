@@ -53,12 +53,12 @@ struct traits<gl::Vertex> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "v", &gl::Vertex::v,
-                         offsetof( type, v ) },
-      refl::StructField{ "y", &gl::Vertex::y,
-                         offsetof( type, y ) },
-      refl::StructField{ "i", &gl::Vertex::i,
-                         offsetof( type, i ) },
+    refl::StructField{ "v", &gl::Vertex::v,
+                       offsetof( type, v ) },
+    refl::StructField{ "y", &gl::Vertex::y,
+                       offsetof( type, y ) },
+    refl::StructField{ "i", &gl::Vertex::i,
+                       offsetof( type, i ) },
   };
 };
 

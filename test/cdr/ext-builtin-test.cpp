@@ -102,19 +102,19 @@ TEST_CASE( "[cdr/ext-builtin] int16_t" ) {
   REQUIRE( conv.to( n ) == 4 );
   REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv_from_bt<int16_t>( conv, value{ n } ) == n );
-  REQUIRE( conv_from_bt<int16_t>( conv, value{ -32768 } ) ==
-           -32768 );
+  REQUIRE( conv_from_bt<int16_t>( conv, value{ -32'768 } ) ==
+           -32'768 );
   REQUIRE( conv_from_bt<int16_t>( conv, value{ 0 } ) == 0 );
-  REQUIRE( conv_from_bt<int16_t>( conv, value{ 32767 } ) ==
-           32767 );
+  REQUIRE( conv_from_bt<int16_t>( conv, value{ 32'767 } ) ==
+           32'767 );
   REQUIRE(
       conv.from<bool>( value{ n } ) ==
       conv.err(
           "failed to convert value of type integer to bool." ) );
-  REQUIRE( conv.from<int16_t>( value{ -32769 } ) ==
+  REQUIRE( conv.from<int16_t>( value{ -32'769 } ) ==
            conv.err( "number out of range for conversion to "
                      "signed 16 bit integer: -32769" ) );
-  REQUIRE( conv.from<int16_t>( value{ 32768 } ) ==
+  REQUIRE( conv.from<int16_t>( value{ 32'768 } ) ==
            conv.err( "number out of range for conversion to "
                      "signed 16 bit integer: 32768" ) );
 }
@@ -126,12 +126,12 @@ TEST_CASE( "[cdr/ext-builtin] int64_t" ) {
   REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv_from_bt<int64_t>( conv, value{ n } ) == n );
   REQUIRE( conv_from_bt<int64_t>(
-               conv, value{ -9223372036854775807 - 1 } ) ==
-           -9223372036854775807 - 1 );
+               conv, value{ -9'223'372'036'854'775'807 - 1 } ) ==
+           -9'223'372'036'854'775'807 - 1 );
   REQUIRE( conv_from_bt<int64_t>( conv, value{ 0 } ) == 0 );
   REQUIRE( conv_from_bt<int64_t>(
-               conv, value{ 9223372036854775807 } ) ==
-           9223372036854775807 );
+               conv, value{ 9'223'372'036'854'775'807 } ) ==
+           9'223'372'036'854'775'807 );
   REQUIRE(
       conv.from<bool>( value{ n } ) ==
       conv.err(
@@ -165,8 +165,8 @@ TEST_CASE( "[cdr/ext-builtin] uint16_t" ) {
   REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv_from_bt<uint16_t>( conv, value{ n } ) == n );
   REQUIRE( conv_from_bt<uint16_t>( conv, value{ 0 } ) == 0 );
-  REQUIRE( conv_from_bt<uint16_t>( conv, value{ 65535 } ) ==
-           65535 );
+  REQUIRE( conv_from_bt<uint16_t>( conv, value{ 65'535 } ) ==
+           65'535 );
   REQUIRE(
       conv.from<bool>( value{ n } ) ==
       conv.err(
@@ -174,7 +174,7 @@ TEST_CASE( "[cdr/ext-builtin] uint16_t" ) {
   REQUIRE( conv.from<uint16_t>( value{ -1 } ) ==
            conv.err( "number out of range for conversion to "
                      "unsigned 16 bit integer: -1" ) );
-  REQUIRE( conv.from<uint16_t>( value{ 65536 } ) ==
+  REQUIRE( conv.from<uint16_t>( value{ 65'536 } ) ==
            conv.err( "number out of range for conversion to "
                      "unsigned 16 bit integer: 65536" ) );
 }
@@ -186,8 +186,8 @@ TEST_CASE( "[cdr/ext-builtin] uint32_t" ) {
   REQUIRE( conv.to( n ).holds<integer_type>() );
   REQUIRE( conv_from_bt<uint32_t>( conv, value{ n } ) == n );
   REQUIRE( conv_from_bt<uint32_t>( conv, value{ 0 } ) == 0u );
-  REQUIRE( conv_from_bt<uint32_t>( conv, value{ 4294967295 } ) ==
-           4294967295 );
+  REQUIRE( conv_from_bt<uint32_t>(
+               conv, value{ 4'294'967'295 } ) == 4'294'967'295 );
   REQUIRE(
       conv.from<bool>( value{ n } ) ==
       conv.err(
@@ -195,7 +195,7 @@ TEST_CASE( "[cdr/ext-builtin] uint32_t" ) {
   REQUIRE( conv.from<uint32_t>( value{ -1 } ) ==
            conv.err( "number out of range for conversion to "
                      "unsigned 32 bit integer: -1" ) );
-  REQUIRE( conv.from<uint32_t>( value{ 4294967296 } ) ==
+  REQUIRE( conv.from<uint32_t>( value{ 4'294'967'296 } ) ==
            conv.err( "number out of range for conversion to "
                      "unsigned 32 bit integer: 4294967296" ) );
 }

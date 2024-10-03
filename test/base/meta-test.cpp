@@ -515,7 +515,7 @@ TEST_CASE( "[meta] tuple_tail" ) {
 
   auto t2 = mp::tuple_tail( t1 );
   REQUIRE( t2 == std::tuple<string, double, float, int>{
-                     "hello", 4.5, 5.6f, 3 } );
+                   "hello", 4.5, 5.6f, 3 } );
 
   auto t3 = mp::tuple_tail( t2 );
   REQUIRE( t3 ==

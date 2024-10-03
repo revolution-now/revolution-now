@@ -26,10 +26,10 @@ using namespace std;
 
 TEST_CASE( "[keyval] lookup" ) {
   unordered_map<string, int> m1{
-      { "hello", 3 },
-      { "world", 7 },
-      { "happy", 8 },
-      { "birthday", 10 },
+    { "hello", 3 },
+    { "world", 7 },
+    { "happy", 8 },
+    { "birthday", 10 },
   };
 
   static_assert(
@@ -44,10 +44,10 @@ TEST_CASE( "[keyval] lookup" ) {
   REQUIRE( lookup( m1, "birthday" ) == 10 );
 
   unordered_map<string, int> m2{
-      { "hello", 3 },
-      { "world", 7 },
-      { "happy", 8 },
-      { "birthday", 10 },
+    { "hello", 3 },
+    { "world", 7 },
+    { "happy", 8 },
+    { "birthday", 10 },
   };
 
   static_assert(
@@ -64,10 +64,10 @@ TEST_CASE( "[keyval] lookup" ) {
 
 TEST_CASE( "[keyval] find" ) {
   unordered_map<string, int> m1{
-      { "hello", 3 },
-      { "world", 7 },
-      { "happy", 8 },
-      { "birthday", 10 },
+    { "hello", 3 },
+    { "world", 7 },
+    { "happy", 8 },
+    { "birthday", 10 },
   };
 
   REQUIRE( base::find( m1, "123" ) == m1.end() );
@@ -79,10 +79,10 @@ TEST_CASE( "[keyval] find" ) {
   REQUIRE( ( *::base::find( m1, "birthday" ) ).second == 10 );
 
   unordered_map<string, int> m2{
-      { "hello", 3 },
-      { "world", 7 },
-      { "happy", 8 },
-      { "birthday", 10 },
+    { "hello", 3 },
+    { "world", 7 },
+    { "happy", 8 },
+    { "birthday", 10 },
   };
 
   REQUIRE( base::find( m2, "123" ) == m2.end() );

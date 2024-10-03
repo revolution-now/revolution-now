@@ -54,10 +54,10 @@ struct traits<gl::Vertex> {
   using template_types = std::tuple<>;
 
   static constexpr std::tuple fields{
-      refl::StructField{ "some_vec3", &gl::Vertex::some_vec3,
-                         offsetof( type, some_vec3 ) },
-      refl::StructField{ "some_float", &gl::Vertex::some_float,
-                         offsetof( type, some_float ) },
+    refl::StructField{ "some_vec3", &gl::Vertex::some_vec3,
+                       offsetof( type, some_vec3 ) },
+    refl::StructField{ "some_float", &gl::Vertex::some_float,
+                       offsetof( type, some_float ) },
   };
 };
 
@@ -70,8 +70,8 @@ using ProgramAttributes = mp::list<gl::vec3, float>;
 
 struct ProgramUniforms {
   static constexpr tuple uniforms{
-      gl::UniformSpec<gl::vec2>( "some_vec2" ),
-      gl::UniformSpec<int>( "some_int" ),
+    gl::UniformSpec<gl::vec2>( "some_vec2" ),
+    gl::UniformSpec<int>( "some_int" ),
   };
 };
 

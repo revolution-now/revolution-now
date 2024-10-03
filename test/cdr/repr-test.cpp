@@ -86,8 +86,8 @@ TEST_CASE( "[cdr] value" ) {
   REQUIRE( !v.as<table>().contains( "three" ) );
 
   v = table{
-      { "one", 1_val },
-      { "two", 2_val },
+    { "one", 1_val },
+    { "two", 2_val },
   };
   REQUIRE( v.is<table>() );
   REQUIRE( type_name( v ) == "table" );
@@ -152,21 +152,21 @@ TEST_CASE( "[cdr] complex" ) {
   using namespace ::cdr::literals;
 
   table doc{
-      { "one", list{ 2, 3, "hello" } },
-      { "two",
+    { "one", list{ 2, 3, "hello" } },
+    { "two",
+      table{
+        { "three", 3.3 },
+        { "four", true },
+      } },
+    { "three",
+      list{
         table{
-            { "three", 3.3 },
-            { "four", true },
-        } },
-      { "three",
-        list{
-            table{
-                { "hello", "world" },
-                { "yes", 333 },
-            },
-            table{},
-            3,
-        } },
+          { "hello", "world" },
+          { "yes", 333 },
+        },
+        table{},
+        3,
+      } },
   };
 
   REQUIRE( doc["three"].is<list>() );
@@ -213,21 +213,21 @@ TEST_CASE( "[cdr] k=v syntax" ) {
   using namespace ::cdr::literals;
 
   table doc{
-      "one"_key = list{ 2, 3, "hello" },
-      "two"_key =
+    "one"_key = list{ 2, 3, "hello" },
+    "two"_key =
+        table{
+          "three"_key = 3.3,
+          "four"_key  = true,
+        },
+    "three"_key =
+        list{
           table{
-              "three"_key = 3.3,
-              "four"_key  = true,
+            "hello"_key = "world",
+            "yes"_key   = 333,
           },
-      "three"_key =
-          list{
-              table{
-                  "hello"_key = "world",
-                  "yes"_key   = 333,
-              },
-              table{},
-              3,
-          },
+          table{},
+          3,
+        },
   };
 
   REQUIRE( doc["three"].is<list>() );
@@ -303,21 +303,21 @@ TEST_CASE( "[cdr] to_str" ) {
   REQUIRE( base::to_str( v ) == "[5,hello,4.4]" );
 
   table doc{
-      { "one", list{ 2, 3, "hello" } },
-      { "two",
+    { "one", list{ 2, 3, "hello" } },
+    { "two",
+      table{
+        { "three", 3.3 },
+        { "four", true },
+      } },
+    { "three",
+      list{
         table{
-            { "three", 3.3 },
-            { "four", true },
-        } },
-      { "three",
-        list{
-            table{
-                { "hello", "world" },
-                { "yes", 333 },
-            },
-            table{},
-            3,
-        } },
+          { "hello", "world" },
+          { "yes", 333 },
+        },
+        table{},
+        3,
+      } },
   };
   REQUIRE( base::to_str( doc ) ==
            "{one=[2,3,hello],three=[{hello=world,yes=333},{},3],"

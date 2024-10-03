@@ -1115,15 +1115,15 @@ TEST_CASE( "[gfx/cartesian] drect::clipped_by" ) {
                     .size   = { .w = 1, .h = 1 } };
   REQUIRE( r1.clipped_by( r2 ) == expected );
 
-  r1 = drect{ .origin = { .x = -16.72272810753941,
-                          .y = 459.980374966315 },
-              .size   = { .w = 1825.4454562150786,
-                          .h = 1186.539546539801 } };
+  r1 = drect{
+    .origin = { .x = -16.72272810753941, .y = 459.980374966315 },
+    .size   = { .w = 1825.4454562150786,
+                .h = 1186.539546539801 } };
   r2 = drect{ .origin = { .x = 0, .y = 0 },
-              .size   = { .w = 1792, .h = 2240 } };
+              .size   = { .w = 1'792, .h = 2'240 } };
   expected =
       drect{ .origin = { .x = 0, .y = 459.980374966315 },
-             .size   = { .w = 1792, .h = 1186.539546539801 } };
+             .size   = { .w = 1'792, .h = 1186.539546539801 } };
   REQUIRE( r1.clipped_by( r2 ) == expected );
 }
 
