@@ -86,12 +86,12 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, L, L, L, L, //
-        L, L, L, L, L, L, L, //
-        _, L, L, L, L, L, L, //
-        _, L, L, L, L, L, L, //
-        _, L, L, L, L, L, L, //
-        _, L, L, L, L, L, L, //
+      _, L, _, L, L, L, L, //
+      L, L, L, L, L, L, L, //
+      _, L, L, L, L, L, L, //
+      _, L, L, L, L, L, L, //
+      _, L, L, L, L, L, L, //
+      _, L, L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 7 );
   }
@@ -165,32 +165,32 @@ TEST_CASE(
         W.add_unit_on_map( params.defender, W.kLandDefenderCoord,
                            W.kDefenderNation );
     CombatEuroAttackEuro const combat{
-        .winner   = params.winner,
-        .attacker = { .id      = attacker.id(),
-                      .outcome = params.attacker_outcome },
-        .defender = { .id      = defender.id(),
-                      .outcome = params.defender_outcome },
+      .winner   = params.winner,
+      .attacker = { .id      = attacker.id(),
+                    .outcome = params.attacker_outcome },
+      .defender = { .id      = defender.id(),
+                    .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "(soldier,soldier) -> (soldier,free_colonist)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::free_colonist } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
@@ -200,45 +200,45 @@ TEST_CASE(
     attacking_player.revolution_status =
         e_revolution_status::declared;
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::free_colonist } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist } };
     expected = {
-        .summaries = { .attacker = "[Rebel] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Rebel] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .attacker = "[Rebel] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Rebel] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(soldier,soldier) -> (soldier,indentured_servant)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::indentured_servant )
-                .value(),
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::indentured_servant } };
+      .attacker = e_unit_type::soldier,
+      .defender =
+          UnitType::create( e_unit_type::soldier,
+                            e_unit_type::indentured_servant )
+              .value(),
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::indentured_servant } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
@@ -246,72 +246,72 @@ TEST_CASE(
       "(soldier,veteran_colonist) -> "
       "(soldier,veteran_colonist)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::veteran_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::captured_and_demoted{
-                .to         = e_unit_type::free_colonist,
-                .new_nation = W.kAttackerNation,
-                .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::veteran_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::captured_and_demoted{
+            .to         = e_unit_type::free_colonist,
+            .new_nation = W.kAttackerNation,
+            .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_other = { "Veteran status lost upon capture." },
-             .for_both = { "[French] [Veteran Colonist] captured "
-                            "by the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_other = { "Veteran status lost upon capture." },
+         .for_both  = { "[French] [Veteran Colonist] captured "
+                          "by the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(soldier,free_colonist) -> (soldier,free_colonist)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Free Colonist] captured by "
-                            "the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Free Colonist] captured by "
+                        "the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(soldier,artillery) -> (soldier,damaged_artillery)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::artillery,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::damaged_artillery },
-        .defender_colony = e_colony::yes_and_visible_to_both };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::artillery,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::damaged_artillery },
+      .defender_colony = e_colony::yes_and_visible_to_both };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [French] "
-                           "near defender colony!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] "
-                           "near defender colony!" },
-        .defender  = {
-             .for_both = {
-                "[French] Artillery [damaged]. Further damage "
-                 "will destroy it." } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [French] "
+                         "near defender colony!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] "
+                         "near defender colony!" },
+      .defender  = {
+         .for_both = {
+          "[French] Artillery [damaged]. Further damage "
+           "will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
@@ -321,24 +321,24 @@ TEST_CASE(
     defending_player.revolution_status =
         e_revolution_status::declared;
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::artillery,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::damaged_artillery },
-        .defender_colony = e_colony::yes_and_visible_to_both };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::artillery,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::damaged_artillery },
+      .defender_colony = e_colony::yes_and_visible_to_both };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Rebels] "
-                           "near defender colony!",
-                       .defender =
-                           "[Dutch] Soldier defeats [Rebels] "
-                           "near defender colony!" },
-        .defender  = {
-             .for_both = { "[Rebel] Artillery [damaged]. Further "
-                            "damage will destroy it." } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [Rebels] "
+                         "near defender colony!",
+                     .defender =
+                         "[Dutch] Soldier defeats [Rebels] "
+                         "near defender colony!" },
+      .defender  = {
+         .for_both = { "[Rebel] Artillery [damaged]. Further "
+                        "damage will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
@@ -346,28 +346,27 @@ TEST_CASE(
       "(soldier,artillery) -> "
       "(veteran_soldier,damaged_artillery)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender = e_unit_type::artillery,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::damaged_artillery } };
+      .attacker = e_unit_type::soldier,
+      .defender = e_unit_type::artillery,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::damaged_artillery } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Soldier promoted to [Veteran "
-                    "Soldier] for victory in combat!" } },
-        .defender = {
-            .for_both = {
-                "[French] Artillery [damaged]. Further damage "
-                "will destroy it." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner =
+                         { "[Dutch] Soldier promoted to [Veteran "
+                            "Soldier] for victory in combat!" } },
+      .defender  = {
+         .for_both = {
+          "[French] Artillery [damaged]. Further damage "
+           "will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
@@ -375,104 +374,99 @@ TEST_CASE(
       "(soldier,veteran_dragoon) -> "
       "(soldier,veteran_soldier)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::veteran_dragoon,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::veteran_soldier } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::veteran_dragoon,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::veteran_soldier } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker  = { .for_owner = {} },
-        .defender  = {
-             .for_both = {
-                "[French] [Veteran Dragoon] routed! Unit "
-                 "demoted to [Veteran Soldier]." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner = {} },
+      .defender  = {
+         .for_both = { "[French] [Veteran Dragoon] routed! Unit "
+                        "demoted to [Veteran Soldier]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier,scout) -> (veteran_soldier,)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender = e_unit_type::scout,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .attacker_colony  = e_colony::yes_and_visible_to_owner };
+      .attacker = e_unit_type::soldier,
+      .defender = e_unit_type::scout,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .attacker_colony  = e_colony::yes_and_visible_to_owner };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [French] "
-                           "near attacker colony!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Soldier promoted to [Veteran "
-                    "Soldier] for victory in combat!" } },
-        .defender = {
-            .for_owner = {
-                "[French] [Scout] lost in battle." } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [French] "
+                         "near attacker colony!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner =
+                         { "[Dutch] Soldier promoted to [Veteran "
+                            "Soldier] for victory in combat!" } },
+      .defender  = {
+         .for_owner = { "[French] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier,missionary) -> (veteran_soldier,)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender = e_unit_type::missionary,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .attacker_colony  = e_colony::yes_and_visible_to_owner };
+      .attacker = e_unit_type::soldier,
+      .defender = e_unit_type::missionary,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .attacker_colony  = e_colony::yes_and_visible_to_owner };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [French] "
-                           "near attacker colony!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Soldier promoted to [Veteran "
-                    "Soldier] for victory in combat!" } },
-        .defender = {
-            .for_owner = {
-                "[French] [Missionary] lost in battle." } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [French] "
+                         "near attacker colony!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner =
+                         { "[Dutch] Soldier promoted to [Veteran "
+                            "Soldier] for victory in combat!" } },
+      .defender  = {
+         .for_owner = {
+          "[French] [Missionary] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier,hardy_pioneer) -> (veteran_soldier,)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender = e_unit_type::hardy_pioneer,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .attacker_colony  = e_colony::yes_and_visible_to_owner };
+      .attacker = e_unit_type::soldier,
+      .defender = e_unit_type::hardy_pioneer,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .attacker_colony  = e_colony::yes_and_visible_to_owner };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [French] "
-                           "near attacker colony!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Soldier promoted to [Veteran "
-                    "Soldier] for victory in combat!" } },
-        .defender = {
-            .for_owner = {
-                "[French] [Hardy Pioneer] lost in battle." } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [French] "
+                         "near attacker colony!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner =
+                         { "[Dutch] Soldier promoted to [Veteran "
+                            "Soldier] for victory in combat!" } },
+      .defender  = {
+         .for_owner = {
+          "[French] [Hardy Pioneer] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -481,74 +475,74 @@ TEST_CASE(
   SECTION(
       "(soldier,hardy_colonist) -> (soldier,free_colonist)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::hardy_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::captured_and_demoted{
-                .to         = e_unit_type::free_colonist,
-                .new_nation = W.kAttackerNation,
-                .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::hardy_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::captured_and_demoted{
+            .to         = e_unit_type::free_colonist,
+            .new_nation = W.kAttackerNation,
+            .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_other = { "Unit demoted upon capture." },
-             .for_both  = { "[French] [Hardy Colonist] captured "
-                              "by the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_other = { "Unit demoted upon capture." },
+         .for_both  = { "[French] [Hardy Colonist] captured "
+                          "by the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier,treasure) -> (soldier,treasure)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_unit_type::treasure,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_unit_type::treasure,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = {
-                "[French] [Treasure Train] worth [1000\x7f] "
-                 "captured by the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = {
+          "[French] [Treasure Train] worth [1000\x7f] "
+           "captured by the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(soldier,treasure) -> (expert_ore_miner,treasure)" ) {
     params = {
-        .attacker =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::expert_ore_miner )
-                .value(),
-        .defender = e_unit_type::treasure,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::expert_ore_miner },
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker =
+          UnitType::create( e_unit_type::soldier,
+                            e_unit_type::expert_ore_miner )
+              .value(),
+      .defender = e_unit_type::treasure,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::expert_ore_miner },
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Treasure Train defeats "
-                           "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Treasure Train defeats "
-                           "[Dutch] in the wilderness!" },
-        .attacker =
-            { .for_both = { "[Dutch] [Soldier] routed! Unit "
-                            "demoted to colonist status." } },
-        .defender = {} };
+      .summaries = { .attacker =
+                         "[French] Treasure Train defeats "
+                         "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Treasure Train defeats "
+                         "[Dutch] in the wilderness!" },
+      .attacker =
+          { .for_both = { "[Dutch] [Soldier] routed! Unit "
+                          "demoted to colonist status." } },
+      .defender = {} };
     REQUIRE( run() == expected );
   }
 
@@ -556,47 +550,47 @@ TEST_CASE(
       "(veteran_soldier,veteran_colonist) -> "
       "(veteran_colonist,veteran_colonist)" ) {
     params = {
-        .attacker = e_unit_type::veteran_soldier,
-        .defender = e_unit_type::veteran_colonist,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::veteran_colonist },
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker = e_unit_type::veteran_soldier,
+      .defender = e_unit_type::veteran_colonist,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::veteran_colonist },
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Veteran Colonist defeats "
-                           "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Veteran Colonist defeats "
-                           "[Dutch] in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Dutch] [Veteran Soldier] routed! Unit "
-                    "demoted to colonist status." } },
-        .defender = {} };
+      .summaries = { .attacker =
+                         "[French] Veteran Colonist defeats "
+                         "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Veteran Colonist defeats "
+                         "[Dutch] in the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Dutch] [Veteran Soldier] routed! Unit "
+                  "demoted to colonist status." } },
+      .defender = {} };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(regular,free_colonist) -> (regular,free_colonist)" ) {
     params = {
-        .attacker         = e_unit_type::regular,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::regular,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Regular defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Regular defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Free Colonist] captured by "
-                            "the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Regular defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Regular defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Free Colonist] captured by "
+                        "the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
@@ -606,44 +600,44 @@ TEST_CASE(
     defending_player.revolution_status =
         e_revolution_status::declared;
     params = {
-        .attacker         = e_unit_type::regular,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::regular,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Regular defeats "
-                                   "[Rebels] in the wilderness!",
-                       .defender =
-                           "[Dutch] Regular defeats [Rebels] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[Rebel] [Free Colonist] captured by "
-                            "the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Regular defeats "
+                                 "[Rebels] in the wilderness!",
+                     .defender =
+                         "[Dutch] Regular defeats [Rebels] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[Rebel] [Free Colonist] captured by "
+                        "the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(dragoon,native_convert) -> (dragoon,native_convert)" ) {
     params = {
-        .attacker         = e_unit_type::dragoon,
-        .defender         = e_unit_type::native_convert,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker         = e_unit_type::dragoon,
+      .defender         = e_unit_type::native_convert,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Dragoon defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Dragoon defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Native Convert] captured "
-                            "by the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Dragoon defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Dragoon defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Native Convert] captured "
+                        "by the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
@@ -651,47 +645,46 @@ TEST_CASE(
       "(artillery,artillery) -> "
       "(damaged_artillery,artillery)" ) {
     params = {
-        .attacker = e_unit_type::artillery,
-        .defender = e_unit_type::artillery,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::damaged_artillery },
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker = e_unit_type::artillery,
+      .defender = e_unit_type::artillery,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::damaged_artillery },
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker = "[French] Artillery defeats "
-                                   "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Artillery defeats [Dutch] "
-                           "in the wilderness!" },
-        .attacker  = {
-             .for_both = { "[Dutch] Artillery [damaged]. Further "
-                            "damage will destroy it." } } };
+      .summaries = { .attacker = "[French] Artillery defeats "
+                                 "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Artillery defeats [Dutch] "
+                         "in the wilderness!" },
+      .attacker  = {
+         .for_both = { "[Dutch] Artillery [damaged]. Further "
+                        "damage will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(soldier,artillery) -> (petty_criminal,artillery)" ) {
     params = {
-        .attacker =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::petty_criminal )
-                .value(),
-        .defender = e_unit_type::artillery,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::petty_criminal },
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker = UnitType::create( e_unit_type::soldier,
+                                    e_unit_type::petty_criminal )
+                      .value(),
+      .defender = e_unit_type::artillery,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::petty_criminal },
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker = "[French] Artillery defeats "
-                                   "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Artillery defeats [Dutch] "
-                           "in the wilderness!" },
-        .attacker  = {
-             .for_both = { "[Dutch] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .attacker = "[French] Artillery defeats "
+                                 "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Artillery defeats [Dutch] "
+                         "in the wilderness!" },
+      .attacker  = {
+         .for_both = { "[Dutch] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
@@ -699,73 +692,72 @@ TEST_CASE(
       "(continental_cavalry,soldier) -> "
       "(continental_army,veteran_soldier)" ) {
     params = {
-        .attacker = e_unit_type::continental_cavalry,
-        .defender = e_unit_type::soldier,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::continental_army },
-        .defender_outcome = EuroUnitCombatOutcome::promoted{
-            .to = e_unit_type::veteran_soldier } };
+      .attacker = e_unit_type::continental_cavalry,
+      .defender = e_unit_type::soldier,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::continental_army },
+      .defender_outcome = EuroUnitCombatOutcome::promoted{
+        .to = e_unit_type::veteran_soldier } };
     expected = {
-        .summaries = { .attacker = "[French] Soldier defeats "
-                                   "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Soldier defeats [Dutch] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Dutch] [Continental Cavalry] routed! Unit "
-                    "demoted to [Continental Army]." } },
-        .defender = {
-            .for_owner = {
-                "[French] Soldier promoted to [Veteran Soldier] "
-                "for victory in combat!" } } };
+      .summaries = { .attacker = "[French] Soldier defeats "
+                                 "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Soldier defeats [Dutch] in "
+                         "the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Dutch] [Continental Cavalry] routed! Unit "
+                  "demoted to [Continental Army]." } },
+      .defender = {
+        .for_owner = {
+          "[French] Soldier promoted to [Veteran Soldier] "
+          "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(scout,seasoned_scout) -> (,seasoned_scout)" ) {
     params = {
-        .attacker         = e_unit_type::scout,
-        .defender         = e_unit_type::seasoned_scout,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker         = e_unit_type::scout,
+      .defender         = e_unit_type::seasoned_scout,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Seasoned Scout defeats "
-                           "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Seasoned Scout defeats "
-                           "[Dutch] in the wilderness!" },
-        .attacker  = {
-             .for_owner = {
-                "[Dutch] [Scout] lost in battle." } } };
+      .summaries = { .attacker =
+                         "[French] Seasoned Scout defeats "
+                         "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Seasoned Scout defeats "
+                         "[Dutch] in the wilderness!" },
+      .attacker  = {
+         .for_owner = { "[Dutch] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(dragoon,hardy_pioneer) -> (dragoon,hardy_pioneer)" ) {
     params = {
-        .attacker         = e_unit_type::dragoon,
-        .defender         = e_unit_type::hardy_pioneer,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::captured{
-                .new_nation = W.kAttackerNation,
-                .new_coord  = W.kLandAttackerCoord },
-        .attacker_colony = e_colony::yes_and_visible_to_owner };
+      .attacker         = e_unit_type::dragoon,
+      .defender         = e_unit_type::hardy_pioneer,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::captured{
+            .new_nation = W.kAttackerNation,
+            .new_coord  = W.kLandAttackerCoord },
+      .attacker_colony = e_colony::yes_and_visible_to_owner };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Dragoon defeats [French] "
-                           "near attacker colony!",
-                       .defender =
-                           "[Dutch] Dragoon defeats [French] in "
-                           "the wilderness!" },
-        .defender  = {
-             .for_both = { "[French] [Hardy Pioneer] captured by "
-                            "the [Dutch]!" } } };
+      .summaries = { .attacker =
+                         "[Dutch] Dragoon defeats [French] "
+                         "near attacker colony!",
+                     .defender =
+                         "[Dutch] Dragoon defeats [French] in "
+                         "the wilderness!" },
+      .defender  = {
+         .for_both = { "[French] [Hardy Pioneer] captured by "
+                        "the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
@@ -773,47 +765,47 @@ TEST_CASE(
       "(dragoon,expert_fisherman) -> "
       "(dragoon,expert_fisherman)" ) {
     params = {
-        .attacker         = e_unit_type::dragoon,
-        .defender         = e_unit_type::expert_fisherman,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::captured{
-                .new_nation = W.kAttackerNation,
-                .new_coord  = W.kLandAttackerCoord },
-        .attacker_colony = e_colony::yes_and_visible_to_both };
+      .attacker         = e_unit_type::dragoon,
+      .defender         = e_unit_type::expert_fisherman,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::captured{
+            .new_nation = W.kAttackerNation,
+            .new_coord  = W.kLandAttackerCoord },
+      .attacker_colony = e_colony::yes_and_visible_to_both };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Dragoon defeats [French] "
-                           "near attacker colony!",
-                       .defender =
-                           "[Dutch] Dragoon defeats [French] "
-                           "near attacker colony!" },
-        .defender  = {
-             .for_both = { "[French] [Expert Fisherman] captured "
-                            "by the [Dutch]!" } } };
+      .summaries = { .attacker =
+                         "[Dutch] Dragoon defeats [French] "
+                         "near attacker colony!",
+                     .defender =
+                         "[Dutch] Dragoon defeats [French] "
+                         "near attacker colony!" },
+      .defender  = {
+         .for_both = { "[French] [Expert Fisherman] captured "
+                        "by the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(damaged_artillery,expert_farmer) -> (,expert_farmer)" ) {
     params = {
-        .attacker         = e_unit_type::damaged_artillery,
-        .defender         = e_unit_type::expert_farmer,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
-        .attacker_colony  = e_colony::yes_and_visible_to_owner };
+      .attacker         = e_unit_type::damaged_artillery,
+      .defender         = e_unit_type::expert_farmer,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .attacker_colony  = e_colony::yes_and_visible_to_owner };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Expert Farmer defeats "
-                           "[Dutch] near attacker colony!",
-                       .defender =
-                           "[French] Expert Farmer defeats "
-                           "[Dutch] in the wilderness!" },
-        .attacker  = {
-             .for_both = { "Damaged [Dutch] Artillery has been "
-                            "[destroyed]." } } };
+      .summaries = { .attacker =
+                         "[French] Expert Farmer defeats "
+                         "[Dutch] near attacker colony!",
+                     .defender =
+                         "[French] Expert Farmer defeats "
+                         "[Dutch] in the wilderness!" },
+      .attacker  = {
+         .for_both = { "Damaged [Dutch] Artillery has been "
+                        "[destroyed]." } } };
     REQUIRE( run() == expected );
   }
 
@@ -821,140 +813,134 @@ TEST_CASE(
       "(dragoon,wagon_train) -> "
       "(veteran_dragoon,wagon_train)" ) {
     params = {
-        .attacker = e_unit_type::dragoon,
-        .defender = e_unit_type::wagon_train,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_dragoon },
-        .defender_outcome = EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
-            .new_coord  = W.kLandAttackerCoord } };
+      .attacker = e_unit_type::dragoon,
+      .defender = e_unit_type::wagon_train,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_dragoon },
+      .defender_outcome = EuroUnitCombatOutcome::captured{
+        .new_nation = W.kAttackerNation,
+        .new_coord  = W.kLandAttackerCoord } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Dragoon defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Dragoon defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Dragoon promoted to [Veteran "
-                    "Dragoon] for victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Wagon Train] captured by "
-                          "the [Dutch]!" } } };
+      .summaries = { .attacker = "[Dutch] Dragoon defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Dragoon defeats [French] in "
+                         "the wilderness!" },
+      .attacker  = { .for_owner =
+                         { "[Dutch] Dragoon promoted to [Veteran "
+                            "Dragoon] for victory in combat!" } },
+      .defender  = {
+         .for_both = { "[French] [Wagon Train] captured by "
+                        "the [Dutch]!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(scout,wagon_train) -> (,wagon_train)" ) {
     params = {
-        .attacker         = e_unit_type::scout,
-        .defender         = e_unit_type::wagon_train,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{} };
+      .attacker         = e_unit_type::scout,
+      .defender         = e_unit_type::wagon_train,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Wagon Train defeats "
-                           "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Wagon Train defeats "
-                           "[Dutch] in the wilderness!" },
-        .attacker  = {
-             .for_owner = {
-                "[Dutch] [Scout] lost in battle." } } };
+      .summaries = { .attacker = "[French] Wagon Train defeats "
+                                 "[Dutch] in the wilderness!",
+                     .defender = "[French] Wagon Train defeats "
+                                 "[Dutch] in the wilderness!" },
+      .attacker  = {
+         .for_owner = { "[Dutch] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(dragoon,dragoon) -> (soldier,veteran_dragoon)" ) {
     params = {
-        .attacker = e_unit_type::dragoon,
-        .defender = e_unit_type::dragoon,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::soldier },
-        .defender_outcome = EuroUnitCombatOutcome::promoted{
-            .to = e_unit_type::veteran_dragoon } };
+      .attacker = e_unit_type::dragoon,
+      .defender = e_unit_type::dragoon,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::soldier },
+      .defender_outcome = EuroUnitCombatOutcome::promoted{
+        .to = e_unit_type::veteran_dragoon } };
     expected = {
-        .summaries = { .attacker = "[French] Dragoon defeats "
-                                   "[Dutch] in the wilderness!",
-                       .defender =
-                           "[French] Dragoon defeats [Dutch] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_both = { "[Dutch] [Dragoon] routed! Unit "
-                            "demoted to [Soldier]." } },
-        .defender = {
-            .for_owner = {
-                "[French] Dragoon promoted to [Veteran Dragoon] "
-                "for victory in combat!" } } };
+      .summaries = { .attacker = "[French] Dragoon defeats "
+                                 "[Dutch] in the wilderness!",
+                     .defender =
+                         "[French] Dragoon defeats [Dutch] in "
+                         "the wilderness!" },
+      .attacker =
+          { .for_both = { "[Dutch] [Dragoon] routed! Unit "
+                          "demoted to [Soldier]." } },
+      .defender = {
+        .for_owner = {
+          "[French] Dragoon promoted to [Veteran Dragoon] "
+          "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier[pc],soldier) -> (soldier[is],soldier)" ) {
     params = {
-        .attacker =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::petty_criminal )
-                .value(),
-        .defender = e_unit_type::soldier,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = UnitType::create(
-                          e_unit_type::soldier,
-                          e_unit_type::indentured_servant )
-                          .value() },
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::free_colonist } };
+      .attacker = UnitType::create( e_unit_type::soldier,
+                                    e_unit_type::petty_criminal )
+                      .value(),
+      .defender = e_unit_type::soldier,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = UnitType::create(
+                      e_unit_type::soldier,
+                      e_unit_type::indentured_servant )
+                      .value() },
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Petty Criminal, acting as Soldier, "
-                    "has been promoted to [Indentured Servant] "
-                    "for victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Soldier] routed! Unit "
-                          "demoted to colonist status." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker =
+          { .for_owner =
+                { "[Dutch] Petty Criminal, acting as Soldier, "
+                  "has been promoted to [Indentured Servant] "
+                  "for victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Soldier] routed! Unit "
+                      "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier[is],soldier) -> (soldier[fc],soldier)" ) {
     params = {
-        .attacker =
-            UnitType::create( e_unit_type::soldier,
-                              e_unit_type::indentured_servant )
-                .value(),
-        .defender = e_unit_type::soldier,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = UnitType::create(
-                          e_unit_type::soldier,
-                          e_unit_type::free_colonist )
-                          .value() },
-        .defender_outcome = EuroUnitCombatOutcome::demoted{
-            .to = e_unit_type::free_colonist } };
+      .attacker =
+          UnitType::create( e_unit_type::soldier,
+                            e_unit_type::indentured_servant )
+              .value(),
+      .defender = e_unit_type::soldier,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = UnitType::create( e_unit_type::soldier,
+                                    e_unit_type::free_colonist )
+                      .value() },
+      .defender_outcome = EuroUnitCombatOutcome::demoted{
+        .to = e_unit_type::free_colonist } };
     expected = {
-        .summaries = { .attacker = "[Dutch] Soldier defeats "
-                                   "[French] in the wilderness!",
-                       .defender =
-                           "[Dutch] Soldier defeats [French] in "
-                           "the wilderness!" },
-        .attacker =
-            { .for_owner =
-                  { "[Dutch] Indentured Servant, acting as "
-                    "Soldier, has been promoted to [Free "
-                    "Colonist] for victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Soldier] routed! Unit "
-                          "demoted to colonist status." } } };
+      .summaries = { .attacker = "[Dutch] Soldier defeats "
+                                 "[French] in the wilderness!",
+                     .defender =
+                         "[Dutch] Soldier defeats [French] in "
+                         "the wilderness!" },
+      .attacker =
+          { .for_owner =
+                { "[Dutch] Indentured Servant, acting as "
+                  "Soldier, has been promoted to [Free "
+                  "Colonist] for victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Soldier] routed! Unit "
+                      "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 }
@@ -1006,92 +992,92 @@ TEST_CASE(
         W.add_unit_on_map( params.defender, W.kLandDefenderCoord,
                            W.kDefenderNation );
     CombatBraveAttackEuro const combat{
-        .winner   = params.winner,
-        .attacker = { .id      = attacker.id,
-                      .outcome = params.attacker_outcome },
-        .defender = { .id      = defender.id(),
-                      .outcome = params.defender_outcome },
+      .winner   = params.winner,
+      .attacker = { .id      = attacker.id,
+                    .outcome = params.attacker_outcome },
+      .defender = { .id      = defender.id(),
+                    .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "(brave,free_colonist) -> (brave,)" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .attacker         = e_native_unit_type::brave,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Free "
-                           "Colonist] in the wilderness!" },
-        .defender  = {
-             .for_owner = {
-                "[French] [Free Colonist] lost in battle." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Free "
+                         "Colonist] in the wilderness!" },
+      .defender  = {
+         .for_owner = {
+          "[French] [Free Colonist] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(brave,treasure) -> (brave,)" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender         = e_unit_type::treasure,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .defender_colony  = e_colony::yes_and_visible,
+      .attacker         = e_native_unit_type::brave,
+      .defender         = e_unit_type::treasure,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .defender_colony  = e_colony::yes_and_visible,
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Treasure "
-                           "Train] near defender colony!" },
-        .defender = { .for_owner = { "[French] [Treasure Train] "
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Treasure "
+                         "Train] near defender colony!" },
+      .defender  = { .for_owner = { "[French] [Treasure Train] "
                                      "lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(brave,wagon_train) -> (brave,)" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender         = e_unit_type::wagon_train,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .attacker         = e_native_unit_type::brave,
+      .defender         = e_unit_type::wagon_train,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Wagon "
-                           "Train] in the wilderness!" },
-        .defender  = {
-             .for_owner = {
-                "[French] [Wagon Train] lost in battle." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Wagon "
+                         "Train] in the wilderness!" },
+      .defender  = {
+         .for_owner = {
+          "[French] [Wagon Train] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(brave,dragoon) -> (mounted_brave,soldier)" ) {
     params = {
-        .attacker = e_native_unit_type::brave,
-        .defender = e_unit_type::dragoon,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            NativeUnitCombatOutcome::promoted{
-                .to = e_native_unit_type::mounted_brave },
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::soldier },
+      .attacker = e_native_unit_type::brave,
+      .defender = e_unit_type::dragoon,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          NativeUnitCombatOutcome::promoted{
+            .to = e_native_unit_type::mounted_brave },
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::soldier },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Dragoon] "
-                           "in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Sioux] Braves have acquired [horses] upon "
-                    "victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Dragoon] routed! Unit "
-                          "demoted to [Soldier]." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Dragoon] "
+                         "in the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Sioux] Braves have acquired [horses] upon "
+                  "victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Dragoon] routed! Unit "
+                      "demoted to [Soldier]." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1099,28 +1085,27 @@ TEST_CASE(
       "(brave,veteran_soldier) -> "
       "(armed_brave,veteran_colonist)" ) {
     params = {
-        .attacker = e_native_unit_type::brave,
-        .defender = e_unit_type::veteran_soldier,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            NativeUnitCombatOutcome::promoted{
-                .to = e_native_unit_type::armed_brave },
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::veteran_colonist },
+      .attacker = e_native_unit_type::brave,
+      .defender = e_unit_type::veteran_soldier,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          NativeUnitCombatOutcome::promoted{
+            .to = e_native_unit_type::armed_brave },
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::veteran_colonist },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Veteran "
-                           "Soldier] in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Sioux] Braves have acquired [muskets] "
-                    "upon victory in combat!" } },
-        .defender = {
-            .for_both = {
-                "[French] [Veteran Soldier] routed! Unit "
-                "demoted to colonist status." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Veteran "
+                         "Soldier] in the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Sioux] Braves have acquired [muskets] "
+                  "upon victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Veteran Soldier] routed! Unit "
+                      "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1128,54 +1113,53 @@ TEST_CASE(
       "(mounted_brave,soldier) -> "
       "(mounted_warrior,free_colonist)" ) {
     params = {
-        .attacker = e_native_unit_type::mounted_brave,
-        .defender = e_unit_type::soldier,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            NativeUnitCombatOutcome::promoted{
-                .to = e_native_unit_type::mounted_warrior },
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::free_colonist },
+      .attacker = e_native_unit_type::mounted_brave,
+      .defender = e_unit_type::soldier,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          NativeUnitCombatOutcome::promoted{
+            .to = e_native_unit_type::mounted_warrior },
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Soldier] "
-                           "in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Sioux] Mounted Braves have acquired "
-                    "[muskets] upon victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Soldier] routed! Unit "
-                          "demoted to colonist status." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Soldier] "
+                         "in the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Sioux] Mounted Braves have acquired "
+                  "[muskets] upon victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Soldier] routed! Unit "
+                      "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(armed_brave,dragoon) -> (mounted_warrior,soldier)" ) {
     params = {
-        .attacker = e_native_unit_type::armed_brave,
-        .defender = e_unit_type::dragoon,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            NativeUnitCombatOutcome::promoted{
-                .to = e_native_unit_type::mounted_warrior },
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::soldier },
+      .attacker = e_native_unit_type::armed_brave,
+      .defender = e_unit_type::dragoon,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          NativeUnitCombatOutcome::promoted{
+            .to = e_native_unit_type::mounted_warrior },
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::soldier },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Dragoon] "
-                           "in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Sioux] Armed Braves have acquired "
-                    "[horses] upon victory in combat!" } },
-        .defender = {
-            .for_both = { "[French] [Dragoon] routed! Unit "
-                          "demoted to [Soldier]." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Dragoon] "
+                         "in the wilderness!" },
+      .attacker =
+          { .for_both = { "[Sioux] Armed Braves have acquired "
+                          "[horses] upon victory in combat!" } },
+      .defender = {
+        .for_both = { "[French] [Dragoon] routed! Unit "
+                      "demoted to [Soldier]." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1183,35 +1167,35 @@ TEST_CASE(
       "(mounted_brave,artillery) -> "
       "(mounted_brave,damaged_artillery)" ) {
     params = {
-        .attacker         = e_native_unit_type::mounted_brave,
-        .defender         = e_unit_type::artillery,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::damaged_artillery },
+      .attacker         = e_native_unit_type::mounted_brave,
+      .defender         = e_unit_type::artillery,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::damaged_artillery },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Artillery] "
-                           "in the wilderness!" },
-        .defender  = {
-             .for_both = {
-                "[French] Artillery [damaged]. Further damage "
-                 "will destroy it." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Artillery] "
+                         "in the wilderness!" },
+      .defender  = {
+         .for_both = {
+          "[French] Artillery [damaged]. Further damage "
+           "will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(brave,free_colonist) -> (,free_colonist)" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .attacker         = e_native_unit_type::brave,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
     };
-    expected = { .summaries = {
-                     .defender =
+    expected = {
+      .summaries = { .defender =
                          "[French] Free Colonist defeats "
                          "[Sioux] Brave in the wilderness!" } };
     REQUIRE( run() == expected );
@@ -1219,29 +1203,29 @@ TEST_CASE(
 
   SECTION( "(armed_brave,soldier) -> (,soldier)" ) {
     params = {
-        .attacker         = e_native_unit_type::armed_brave,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .attacker         = e_native_unit_type::armed_brave,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
     };
     expected = {
-        .summaries = { .defender =
-                           "[French] Soldier defeats [Sioux] "
-                           "Armed Brave in the wilderness!" } };
+      .summaries = { .defender =
+                         "[French] Soldier defeats [Sioux] "
+                         "Armed Brave in the wilderness!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(mounted_brave,soldier) -> (,soldier)" ) {
     params = {
-        .attacker         = e_native_unit_type::mounted_brave,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .attacker         = e_native_unit_type::mounted_brave,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
     };
-    expected = { .summaries = {
-                     .defender =
+    expected = {
+      .summaries = { .defender =
                          "[French] Soldier defeats [Sioux] "
                          "Mounted Brave in the wilderness!" } };
     REQUIRE( run() == expected );
@@ -1249,22 +1233,22 @@ TEST_CASE(
 
   SECTION( "(mounted_warrior,soldier) -> (,veteran_soldier)" ) {
     params = {
-        .attacker         = e_native_unit_type::mounted_brave,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
+      .attacker         = e_native_unit_type::mounted_brave,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
     };
     expected = {
-        .summaries = { .defender =
-                           "[French] Soldier defeats [Sioux] "
-                           "Mounted Brave in the wilderness!" },
-        .defender  = {
-             .for_owner = {
-                "[French] Soldier promoted to [Veteran Soldier] "
-                 "for victory in combat!" } } };
+      .summaries = { .defender =
+                         "[French] Soldier defeats [Sioux] "
+                         "Mounted Brave in the wilderness!" },
+      .defender  = {
+         .for_owner = {
+          "[French] Soldier promoted to [Veteran Soldier] "
+           "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
@@ -1274,22 +1258,22 @@ TEST_CASE(
     defending_player.revolution_status =
         e_revolution_status::declared;
     params = {
-        .attacker         = e_native_unit_type::mounted_brave,
-        .defender         = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
+      .attacker         = e_native_unit_type::mounted_brave,
+      .defender         = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
     };
     expected = {
-        .summaries = { .defender =
-                           "[Rebel] Soldier defeats [Sioux] "
-                           "Mounted Brave in the wilderness!" },
-        .defender  = {
-             .for_owner = {
-                "[Rebel] Soldier promoted to [Veteran Soldier] "
-                 "for victory in combat!" } } };
+      .summaries = { .defender =
+                         "[Rebel] Soldier defeats [Sioux] "
+                         "Mounted Brave in the wilderness!" },
+      .defender  = {
+         .for_owner = {
+          "[Rebel] Soldier promoted to [Veteran Soldier] "
+           "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 }
@@ -1379,60 +1363,58 @@ TEST_CASE(
       W.add_unit_in_cargo( e_unit_type::free_colonist,
                            defender.id() );
     CombatShipAttackShip const combat{
-        .winner                  = params.winner,
-        .attacker                = { .id      = attacker.id(),
-                                     .outcome = params.attacker_outcome },
-        .defender                = { .id      = defender.id(),
-                                     .outcome = params.defender_outcome },
-        .affected_defender_units = std::move( affected ) };
+      .winner                  = params.winner,
+      .attacker                = { .id      = attacker.id(),
+                                   .outcome = params.attacker_outcome },
+      .defender                = { .id      = defender.id(),
+                                   .outcome = params.defender_outcome },
+      .affected_defender_units = std::move( affected ) };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "(privateer,caravel) -> (privateer,[damaged])" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_outcome = EuroNavalUnitCombatOutcome::damaged{
-            .port = ShipRepairPort::european_harbor{} } };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::caravel,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .defender_outcome = EuroNavalUnitCombatOutcome::damaged{
+        .port = ShipRepairPort::european_harbor{} } };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] Privateer defeats [French] at sea!",
-              .defender =
-                  "[Dutch] Privateer defeats [French] at sea!" },
-        .defender = {
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs." } } };
+      .summaries =
+          { .attacker =
+                "[Dutch] Privateer defeats [French] at sea!",
+            .defender =
+                "[Dutch] Privateer defeats [French] at sea!" },
+      .defender = {
+        .for_both = {
+          "[French] [Caravel] damaged in battle! Ship "
+          "sent to [La Rochelle] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(privateer,caravel[2]) -> (privateer,[damaged])" ) {
-    params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .units_on_defender = 2 };
+    params   = { .attacker = e_unit_type::privateer,
+                 .defender = e_unit_type::caravel,
+                 .winner   = e_combat_winner::attacker,
+                 .attacker_outcome =
+                     EuroNavalUnitCombatOutcome::no_change{},
+                 .defender_outcome =
+                     EuroNavalUnitCombatOutcome::damaged{
+                       .port = ShipRepairPort::european_harbor{} },
+                 .units_on_defender = 2 };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] Privateer defeats [French] at sea!",
-              .defender =
-                  "[Dutch] Privateer defeats [French] at sea!" },
-        .defender = {
-            .for_owner =
-                { "[Two] units onboard have been lost." },
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs." } } };
+      .summaries =
+          { .attacker =
+                "[Dutch] Privateer defeats [French] at sea!",
+            .defender =
+                "[Dutch] Privateer defeats [French] at sea!" },
+      .defender = {
+        .for_owner = { "[Two] units onboard have been lost." },
+        .for_both  = {
+          "[French] [Caravel] damaged in battle! Ship "
+           "sent to [La Rochelle] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1445,160 +1427,155 @@ TEST_CASE(
                  .defender_outcome =
                      EuroNavalUnitCombatOutcome::no_change{} };
     expected = {
-        .defender = { .for_both = { "[French] [Caravel] evades "
-                                    "[Dutch] [Privateer]." } } };
+      .defender = { .for_both = { "[French] [Caravel] evades "
+                                  "[Dutch] [Privateer]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(privateer,frigate) -> (privateer,[sunk])" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::frigate,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::moved{
-                .to = W.kSeaDefenderCoord },
-        .defender_outcome = EuroNavalUnitCombatOutcome::sunk{} };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::frigate,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::moved{
+            .to = W.kSeaDefenderCoord },
+      .defender_outcome = EuroNavalUnitCombatOutcome::sunk{} };
     expected = {
-        .summaries = { .attacker = { "[Dutch] Privateer defeats "
-                                     "[French] at sea!" },
-                       .defender = { "[Dutch] Privateer defeats "
-                                     "[French] at sea!" } },
-        .defender = { .for_both = { "[French] [Frigate] sunk by "
+      .summaries = { .attacker = { "[Dutch] Privateer defeats "
+                                   "[French] at sea!" },
+                     .defender = { "[Dutch] Privateer defeats "
+                                   "[French] at sea!" } },
+      .defender  = { .for_both = { "[French] [Frigate] sunk by "
                                     "[Dutch] [Privateer]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(privateer,frigate[1]) -> (privateer,[sunk])" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::frigate,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::moved{
-                .to = W.kSeaDefenderCoord },
-        .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
-        .units_on_defender = 1 };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::frigate,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::moved{
+            .to = W.kSeaDefenderCoord },
+      .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
+      .units_on_defender = 1 };
     expected = {
-        .summaries = { .attacker = { "[Dutch] Privateer defeats "
-                                     "[French] at sea!" },
-                       .defender = { "[Dutch] Privateer defeats "
-                                     "[French] at sea!" } },
-        .defender  = {
-             .for_owner = { "[One] unit onboard has been lost." },
-             .for_both  = { "[French] [Frigate] sunk by "
-                              "[Dutch] [Privateer]." } } };
+      .summaries = { .attacker = { "[Dutch] Privateer defeats "
+                                   "[French] at sea!" },
+                     .defender = { "[Dutch] Privateer defeats "
+                                   "[French] at sea!" } },
+      .defender  = {
+         .for_owner = { "[One] unit onboard has been lost." },
+         .for_both  = { "[French] [Frigate] sunk by "
+                          "[Dutch] [Privateer]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(privateer[2],caravel) -> ([damaged],caravel)" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_colony   = e_colony::yes_and_visible_to_owner,
-        .units_on_attacker = 2 };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::caravel,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} },
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .defender_colony   = e_colony::yes_and_visible_to_owner,
+      .units_on_attacker = 2 };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[French] Caravel defeats [Dutch] at sea!",
-              .defender = "[French] Caravel defeats [Dutch] "
-                          "near defender colony!" },
-        .attacker = {
-            .for_owner =
-                { "[Two] units onboard have been lost." },
-            .for_both = {
-                "[Dutch] [Privateer] damaged in battle! Ship "
-                "sent to [Amsterdam] for repairs." } } };
+      .summaries =
+          { .attacker =
+                "[French] Caravel defeats [Dutch] at sea!",
+            .defender = "[French] Caravel defeats [Dutch] "
+                        "near defender colony!" },
+      .attacker = {
+        .for_owner = { "[Two] units onboard have been lost." },
+        .for_both  = {
+          "[Dutch] [Privateer] damaged in battle! Ship "
+           "sent to [Amsterdam] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(privateer[2],caravel) -> ([damaged/drydock],caravel)" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port =
-                    ShipRepairPort::colony{
-                        .id = ColonyId{ 1 } } },
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_colony   = e_colony::yes_and_visible_to_owner,
-        .units_on_attacker = 2 };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::caravel,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::damaged{
+            .port =
+                ShipRepairPort::colony{ .id = ColonyId{ 1 } } },
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .defender_colony   = e_colony::yes_and_visible_to_owner,
+      .units_on_attacker = 2 };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[French] Caravel defeats [Dutch] at sea!",
-              .defender = "[French] Caravel defeats [Dutch] "
-                          "near defender colony!" },
-        .attacker = {
-            .for_owner =
-                { "[Two] units onboard have been lost." },
-            .for_both = {
-                "[Dutch] [Privateer] damaged in battle! Ship "
-                "sent to [defender colony] for repairs." } } };
+      .summaries =
+          { .attacker =
+                "[French] Caravel defeats [Dutch] at sea!",
+            .defender = "[French] Caravel defeats [Dutch] "
+                        "near defender colony!" },
+      .attacker = {
+        .for_owner = { "[Two] units onboard have been lost." },
+        .for_both  = {
+          "[Dutch] [Privateer] damaged in battle! Ship "
+           "sent to [defender colony] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(privateer[1],frigate) -> ([sunk],frigate)" ) {
     params = {
-        .attacker         = e_unit_type::privateer,
-        .defender         = e_unit_type::frigate,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = EuroNavalUnitCombatOutcome::sunk{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .attacker_colony   = e_colony::yes_and_visible_to_both,
-        .units_on_attacker = 2 };
+      .attacker         = e_unit_type::privateer,
+      .defender         = e_unit_type::frigate,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = EuroNavalUnitCombatOutcome::sunk{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .attacker_colony   = e_colony::yes_and_visible_to_both,
+      .units_on_attacker = 2 };
     expected = {
-        .summaries =
-            { .attacker = { "[French] Frigate defeats [Dutch] "
-                            "near attacker colony!" },
-              .defender = { "[French] Frigate defeats [Dutch] "
-                            "near attacker colony!" } },
-        .attacker = {
-            .for_owner =
-                { "[Two] units onboard have been lost." },
-            .for_both = { "[Dutch] [Privateer] sunk by [French] "
-                          "[Frigate]." } } };
+      .summaries =
+          { .attacker = { "[French] Frigate defeats [Dutch] "
+                          "near attacker colony!" },
+            .defender = { "[French] Frigate defeats [Dutch] "
+                          "near attacker colony!" } },
+      .attacker = {
+        .for_owner = { "[Two] units onboard have been lost." },
+        .for_both  = { "[Dutch] [Privateer] sunk by [French] "
+                        "[Frigate]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "(privateer,caravel+merchantman) -> "
       "(privateer,[damaged])" ) {
-    params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .affected_defenders = {
-            { e_unit_type::merchantman,
-              EuroNavalUnitCombatOutcome::sunk{} } } };
+    params   = { .attacker = e_unit_type::privateer,
+                 .defender = e_unit_type::caravel,
+                 .winner   = e_combat_winner::attacker,
+                 .attacker_outcome =
+                     EuroNavalUnitCombatOutcome::no_change{},
+                 .defender_outcome =
+                     EuroNavalUnitCombatOutcome::damaged{
+                       .port = ShipRepairPort::european_harbor{} },
+                 .affected_defenders = {
+                 { e_unit_type::merchantman,
+                     EuroNavalUnitCombatOutcome::sunk{} } } };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] Privateer defeats [French] at sea!",
-              .defender =
-                  "[Dutch] Privateer defeats [French] at sea!" },
-        .defender = {
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs.",
-                "[French] [Merchantman] sunk by [Dutch] "
-                "[Privateer]." } } };
+      .summaries =
+          { .attacker =
+                "[Dutch] Privateer defeats [French] at sea!",
+            .defender =
+                "[Dutch] Privateer defeats [French] at sea!" },
+      .defender = {
+        .for_both = {
+          "[French] [Caravel] damaged in battle! Ship "
+          "sent to [La Rochelle] for repairs.",
+          "[French] [Merchantman] sunk by [Dutch] "
+          "[Privateer]." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1606,35 +1583,34 @@ TEST_CASE(
       "(privateer,caravel+merchantman+frigate) -> "
       "(privateer,[sunk])" ) {
     params = {
-        .attacker = e_unit_type::privateer,
-        .defender = e_unit_type::caravel,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .affected_defenders = {
-            { e_unit_type::merchantman,
-              EuroNavalUnitCombatOutcome::sunk{} },
-            { e_unit_type::frigate,
-              EuroNavalUnitCombatOutcome::damaged{
-                  .port =
-                      ShipRepairPort::european_harbor{} } } } };
+      .attacker = e_unit_type::privateer,
+      .defender = e_unit_type::caravel,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} },
+      .affected_defenders = {
+        { e_unit_type::merchantman,
+          EuroNavalUnitCombatOutcome::sunk{} },
+        { e_unit_type::frigate,
+          EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} } } } };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] Privateer defeats [French] at sea!",
-              .defender =
-                  "[Dutch] Privateer defeats [French] at sea!" },
-        .defender = {
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs.",
-                "[French] [Merchantman] sunk by [Dutch] "
-                "[Privateer].",
-                "[French] [Frigate] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs." } } };
+      .summaries =
+          { .attacker =
+                "[Dutch] Privateer defeats [French] at sea!",
+            .defender =
+                "[Dutch] Privateer defeats [French] at sea!" },
+      .defender = {
+        .for_both = {
+          "[French] [Caravel] damaged in battle! Ship "
+          "sent to [La Rochelle] for repairs.",
+          "[French] [Merchantman] sunk by [Dutch] "
+          "[Privateer].",
+          "[French] [Frigate] damaged in battle! Ship "
+          "sent to [La Rochelle] for repairs." } } };
     REQUIRE( run() == expected );
   }
 }
@@ -1680,143 +1656,138 @@ TEST_CASE(
       W.add_unit_in_cargo( e_unit_type::free_colonist,
                            defender.id() );
     CombatColonyArtilleryAttackShip const combat{
-        .winner   = params.winner,
-        .attacker = { .id      = colony.id,
-                      .outcome = params.attacker_outcome },
-        .defender = { .id      = defender.id(),
-                      .outcome = params.defender_outcome },
+      .winner   = params.winner,
+      .attacker = { .id      = colony.id,
+                    .outcome = params.attacker_outcome },
+      .defender = { .id      = defender.id(),
+                    .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "(fort,caravel) -> (fort,[damaged])" ) {
     params = {
-        .defender         = e_unit_type::caravel,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .building = e_colony_building::fort };
+      .defender         = e_unit_type::caravel,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} },
+      .building = e_colony_building::fort };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!",
-              .defender =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!" },
-        .defender = {
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs." } } };
+      .summaries = { .attacker =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!",
+                     .defender =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!" },
+      .defender  = {
+         .for_both = {
+          "[French] [Caravel] damaged in battle! Ship "
+           "sent to [La Rochelle] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(fortress,caravel[2]) -> (fortress,[damaged])" ) {
     params = {
-        .defender         = e_unit_type::caravel,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} },
-        .units_on_defender = 2,
-        .building          = e_colony_building::fortress };
+      .defender         = e_unit_type::caravel,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::damaged{
+            .port = ShipRepairPort::european_harbor{} },
+      .units_on_defender = 2,
+      .building          = e_colony_building::fortress };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!",
-              .defender =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!" },
-        .defender = {
-            .for_owner =
-                { "[Two] units onboard have been lost." },
-            .for_both = {
-                "[French] [Caravel] damaged in battle! Ship "
-                "sent to [La Rochelle] for repairs." } } };
+      .summaries = { .attacker =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!",
+                     .defender =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!" },
+      .defender  = {
+         .for_owner = { "[Two] units onboard have been lost." },
+         .for_both  = {
+          "[French] [Caravel] damaged in battle! Ship "
+            "sent to [La Rochelle] for repairs." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(fort,frigate) -> (fort,[sunk])" ) {
     params = {
-        .defender         = e_unit_type::frigate,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
-        .defender_outcome = EuroNavalUnitCombatOutcome::sunk{},
-        .building         = e_colony_building::fort };
+      .defender         = e_unit_type::frigate,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = ColonyArtilleryCombatOutcome::win{},
+      .defender_outcome = EuroNavalUnitCombatOutcome::sunk{},
+      .building         = e_colony_building::fort };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!",
-              .defender =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!" },
-        .defender = { .for_both = { "[French] [Frigate] sunk by "
+      .summaries = { .attacker =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!",
+                     .defender =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!" },
+      .defender  = { .for_both = { "[French] [Frigate] sunk by "
                                     "[Dutch] [Fort]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(fortress,frigate[1]) -> (fortress,[sunk])" ) {
     params = {
-        .defender          = e_unit_type::frigate,
-        .winner            = e_combat_winner::attacker,
-        .attacker_outcome  = ColonyArtilleryCombatOutcome::win{},
-        .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
-        .units_on_defender = 1,
-        .building          = e_colony_building::fortress };
+      .defender          = e_unit_type::frigate,
+      .winner            = e_combat_winner::attacker,
+      .attacker_outcome  = ColonyArtilleryCombatOutcome::win{},
+      .defender_outcome  = EuroNavalUnitCombatOutcome::sunk{},
+      .units_on_defender = 1,
+      .building          = e_colony_building::fortress };
     expected = {
-        .summaries =
-            { .attacker =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!",
-              .defender =
-                  "[Dutch] coastal fortification defeats "
-                  "[French] in colony-with-guns!" },
-        .defender = {
-            .for_owner = { "[One] unit onboard has been lost." },
-            .for_both  = { "[French] [Frigate] sunk by [Dutch] "
-                            "[Fortress]." } } };
+      .summaries = { .attacker =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!",
+                     .defender =
+                         "[Dutch] coastal fortification defeats "
+                         "[French] in colony-with-guns!" },
+      .defender  = {
+         .for_owner = { "[One] unit onboard has been lost." },
+         .for_both  = { "[French] [Frigate] sunk by [Dutch] "
+                          "[Fortress]." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(fort,caravel) -> (fort,caravel)" ) {
     params = {
-        .defender         = e_unit_type::caravel,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .building = e_colony_building::fort };
+      .defender         = e_unit_type::caravel,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .building = e_colony_building::fort };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Caravel defeats [Dutch] in "
-                           "colony-with-guns!",
-                       .defender =
-                           "[French] Caravel defeats [Dutch] in "
-                           "colony-with-guns!" },
+      .summaries = { .attacker =
+                         "[French] Caravel defeats [Dutch] in "
+                         "colony-with-guns!",
+                     .defender =
+                         "[French] Caravel defeats [Dutch] in "
+                         "colony-with-guns!" },
     };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(fortress,privateer) -> (fortress,privateer)" ) {
     params = {
-        .defender         = e_unit_type::privateer,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
-        .defender_outcome =
-            EuroNavalUnitCombatOutcome::no_change{},
-        .building = e_colony_building::fortress };
+      .defender         = e_unit_type::privateer,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = ColonyArtilleryCombatOutcome::lose{},
+      .defender_outcome =
+          EuroNavalUnitCombatOutcome::no_change{},
+      .building = e_colony_building::fortress };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Privateer defeats [Dutch] "
-                           "in colony-with-guns!",
-                       .defender =
-                           "[French] Privateer defeats [Dutch] "
-                           "in colony-with-guns!" },
+      .summaries = { .attacker =
+                         "[French] Privateer defeats [Dutch] "
+                         "in colony-with-guns!",
+                     .defender =
+                         "[French] Privateer defeats [Dutch] "
+                         "in colony-with-guns!" },
     };
     REQUIRE( run() == expected );
   }
@@ -1858,123 +1829,119 @@ TEST_CASE(
                                  W.kDefenderNation )
             : founder;
     CombatBraveAttackColony const combat{
-        .winner           = params.winner,
-        .colony_id        = colony.id,
-        .colony_destroyed = params.burned,
-        .attacker         = { .id      = attacker.id,
-                              .outcome = params.attacker_outcome },
-        .defender         = { .id      = defender.id(),
-                              .outcome = params.defender_outcome },
+      .winner           = params.winner,
+      .colony_id        = colony.id,
+      .colony_destroyed = params.burned,
+      .attacker         = { .id      = attacker.id,
+                            .outcome = params.attacker_outcome },
+      .defender         = { .id      = defender.id(),
+                            .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "no units at gate, not burned" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = nothing,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
-        .burned           = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = nothing,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .burned           = false };
     expected = {
-        .summaries = {
-            .defender =
-                "[Sioux] raiding party wiped out in "
-                "[raided-colony]! Colonists celebrate!" } };
+      .summaries = {
+        .defender = "[Sioux] raiding party wiped out in "
+                    "[raided-colony]! Colonists celebrate!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "non-military unit at gate, not burned" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::expert_farmer,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
-        .burned           = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::expert_farmer,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .burned           = false };
     expected = {
-        .summaries = {
-            .defender =
-                "[Sioux] raiding party wiped out in "
-                "[raided-colony]! Colonists celebrate!" } };
+      .summaries = {
+        .defender = "[Sioux] raiding party wiped out in "
+                    "[raided-colony]! Colonists celebrate!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "military unit at gate, defender wins" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::no_change{},
-        .burned           = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::no_change{},
+      .burned           = false };
     expected = {
-        .summaries = {
-            .defender =
-                "[Sioux] raiding party wiped out in "
-                "[raided-colony]! Colonists celebrate!" } };
+      .summaries = {
+        .defender = "[Sioux] raiding party wiped out in "
+                    "[raided-colony]! Colonists celebrate!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION(
       "military unit at gate, defender wins w/ promotion" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::soldier,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .burned = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::soldier,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .burned = false };
     expected = {
-        .summaries =
-            { .defender =
-                  "[Sioux] raiding party wiped out in "
-                  "[raided-colony]! Colonists celebrate!" },
-        .defender = {
-            .for_owner = {
-                "[French] Soldier promoted to [Veteran Soldier] "
-                "for victory in combat!" } } };
+      .summaries =
+          { .defender =
+                "[Sioux] raiding party wiped out in "
+                "[raided-colony]! Colonists celebrate!" },
+      .defender = {
+        .for_owner = {
+          "[French] Soldier promoted to [Veteran Soldier] "
+          "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "military unit at gate, defender loses" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::free_colonist },
-        .burned = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist },
+      .burned = false };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Soldier] "
-                           "in [raided-colony]!" },
-        .defender  = {
-             .for_both = { "[French] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Soldier] "
+                         "in [raided-colony]!" },
+      .defender  = {
+         .for_both = { "[French] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "military unit (scout) at gate, defender loses" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::scout,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .burned           = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::scout,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .burned           = false };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [French] [Scout] in "
-                           "[raided-colony]!" },
-        .defender  = {
-             .for_owner = {
-                "[French] [Scout] lost in battle." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [French] [Scout] in "
+                         "[raided-colony]!" },
+      .defender  = {
+         .for_owner = { "[French] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
@@ -1984,32 +1951,31 @@ TEST_CASE(
     defending_player.revolution_status =
         e_revolution_status::declared;
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::scout,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .burned           = false };
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::scout,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .burned           = false };
     expected = {
-        .summaries = { .defender =
-                           "[Sioux] ambush [Rebel] [Scout] in "
-                           "[raided-colony]!" },
-        .defender  = {
-             .for_owner = {
-                "[Rebel] [Scout] lost in battle." } } };
+      .summaries = { .defender =
+                         "[Sioux] ambush [Rebel] [Scout] in "
+                         "[raided-colony]!" },
+      .defender  = {
+         .for_owner = { "[Rebel] [Scout] lost in battle." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "no units at gate, burned" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = nothing,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .burned           = true };
-    expected = { .summaries = {
-                     .defender =
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = nothing,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .burned           = true };
+    expected = {
+      .summaries = { .defender =
                          "[Sioux] massacre [French] population "
                          "in [raided-colony]! Colony set ablaze "
                          "and decimated! The King demands "
@@ -2019,14 +1985,14 @@ TEST_CASE(
 
   SECTION( "non-military unit at gate, burned" ) {
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = e_unit_type::expert_farmer,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .burned           = true };
-    expected = { .summaries = {
-                     .defender =
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = e_unit_type::expert_farmer,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .burned           = true };
+    expected = {
+      .summaries = { .defender =
                          "[Sioux] massacre [French] population "
                          "in [raided-colony]! Colony set ablaze "
                          "and decimated! The King demands "
@@ -2038,14 +2004,14 @@ TEST_CASE(
     W.french().revolution_status = e_revolution_status::declared;
 
     params = {
-        .attacker         = e_native_unit_type::brave,
-        .defender_at_gate = nothing,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
-        .defender_outcome = EuroUnitCombatOutcome::destroyed{},
-        .burned           = true };
-    expected = { .summaries = {
-                     .defender =
+      .attacker         = e_native_unit_type::brave,
+      .defender_at_gate = nothing,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = NativeUnitCombatOutcome::destroyed{},
+      .defender_outcome = EuroUnitCombatOutcome::destroyed{},
+      .burned           = true };
+    expected = {
+      .summaries = { .defender =
                          "[Sioux] massacre [Rebel] population "
                          "in [raided-colony]! Colony set ablaze "
                          "and decimated! The King laughs at "
@@ -2099,48 +2065,47 @@ TEST_CASE(
         W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
                            W.kAttackerNation );
     CombatEuroAttackBrave const combat{
-        .winner   = params.winner,
-        .attacker = { .id      = attacker.id(),
-                      .outcome = params.attacker_outcome },
-        .defender = { .id      = defender.id,
-                      .outcome = params.defender_outcome },
+      .winner   = params.winner,
+      .attacker = { .id      = attacker.id(),
+                    .outcome = params.attacker_outcome },
+      .defender = { .id      = defender.id,
+                    .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "(soldier,brave) -> (soldier,)" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .defender         = e_native_unit_type::brave,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome = NativeUnitCombatOutcome::destroyed{},
+      .attacker         = e_unit_type::soldier,
+      .defender         = e_native_unit_type::brave,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome = NativeUnitCombatOutcome::destroyed{},
     };
-    expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Sioux] "
-                           "Brave in the wilderness!" } };
+    expected = { .summaries = {
+                   .attacker = "[Dutch] Soldier defeats [Sioux] "
+                               "Brave in the wilderness!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(soldier,mounted_brave) -> (veteran_soldier,)" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .defender = e_native_unit_type::mounted_brave,
-        .winner   = e_combat_winner::attacker,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier },
-        .defender_outcome = NativeUnitCombatOutcome::destroyed{},
+      .attacker = e_unit_type::soldier,
+      .defender = e_native_unit_type::mounted_brave,
+      .winner   = e_combat_winner::attacker,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::promoted{
+            .to = e_unit_type::veteran_soldier },
+      .defender_outcome = NativeUnitCombatOutcome::destroyed{},
     };
     expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Sioux] "
-                           "Mounted Brave in the wilderness!" },
-        .attacker  = {
-             .for_owner = {
-                "[Dutch] Soldier promoted to [Veteran Soldier] "
-                 "for victory in combat!" } } };
+      .summaries = { .attacker =
+                         "[Dutch] Soldier defeats [Sioux] "
+                         "Mounted Brave in the wilderness!" },
+      .attacker  = {
+         .for_owner = {
+          "[Dutch] Soldier promoted to [Veteran Soldier] "
+           "for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
@@ -2150,22 +2115,22 @@ TEST_CASE(
                  .winner   = e_combat_winner::defender,
                  .attacker_outcome =
                      EuroUnitCombatOutcome::demoted{
-                         .to = e_unit_type::free_colonist },
+                       .to = e_unit_type::free_colonist },
                  .defender_outcome =
                      NativeUnitCombatOutcome::promoted{
-                         .to = e_native_unit_type::armed_brave },
+                       .to = e_native_unit_type::armed_brave },
                  .attacker_colony = e_colony::yes_and_visible };
     expected = {
-        .summaries = { .attacker =
-                           "[Sioux] defeat [Dutch] [Soldier] "
-                           "near attacker colony!" },
-        .attacker =
-            { .for_both = { "[Dutch] [Soldier] routed! Unit "
-                            "demoted to colonist status." } },
-        .defender =
-            { .for_both =
-                  { "[Sioux] Braves have acquired [muskets] "
-                    "upon victory in combat!" } },
+      .summaries = { .attacker =
+                         "[Sioux] defeat [Dutch] [Soldier] "
+                         "near attacker colony!" },
+      .attacker =
+          { .for_both = { "[Dutch] [Soldier] routed! Unit "
+                          "demoted to colonist status." } },
+      .defender =
+          { .for_both =
+                { "[Sioux] Braves have acquired [muskets] "
+                  "upon victory in combat!" } },
     };
     REQUIRE( run() == expected );
   }
@@ -2174,26 +2139,25 @@ TEST_CASE(
       "(continental_cavalry,armed_brave) -> "
       "(continental_army,mounted_warrior)" ) {
     params = {
-        .attacker = e_unit_type::continental_cavalry,
-        .defender = e_native_unit_type::armed_brave,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::continental_army },
-        .defender_outcome = NativeUnitCombatOutcome::promoted{
-            .to = e_native_unit_type::mounted_warrior } };
+      .attacker = e_unit_type::continental_cavalry,
+      .defender = e_native_unit_type::armed_brave,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::continental_army },
+      .defender_outcome = NativeUnitCombatOutcome::promoted{
+        .to = e_native_unit_type::mounted_warrior } };
     expected = {
-        .summaries = { .attacker =
-                           "[Sioux] defeat [Dutch] [Continental "
-                           "Cavalry] in the wilderness!" },
-        .attacker =
-            { .for_both =
-                  { "[Dutch] [Continental Cavalry] routed! Unit "
-                    "demoted to [Continental Army]." } },
-        .defender =
-            { .for_both =
-                  { "[Sioux] Armed Braves have acquired "
-                    "[horses] upon victory in combat!" } },
+      .summaries = { .attacker =
+                         "[Sioux] defeat [Dutch] [Continental "
+                         "Cavalry] in the wilderness!" },
+      .attacker =
+          { .for_both =
+                { "[Dutch] [Continental Cavalry] routed! Unit "
+                  "demoted to [Continental Army]." } },
+      .defender =
+          { .for_both = { "[Sioux] Armed Braves have acquired "
+                          "[horses] upon victory in combat!" } },
     };
     REQUIRE( run() == expected );
   }
@@ -2202,22 +2166,22 @@ TEST_CASE(
   // defeating a scout.
   SECTION( "(seasoned_scout,brave) -> (,mounted_brave)" ) {
     params = {
-        .attacker         = e_unit_type::seasoned_scout,
-        .defender         = e_native_unit_type::brave,
-        .winner           = e_combat_winner::defender,
-        .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
-        .defender_outcome = NativeUnitCombatOutcome::promoted{
-            .to = e_native_unit_type::mounted_brave } };
+      .attacker         = e_unit_type::seasoned_scout,
+      .defender         = e_native_unit_type::brave,
+      .winner           = e_combat_winner::defender,
+      .attacker_outcome = EuroUnitCombatOutcome::destroyed{},
+      .defender_outcome = NativeUnitCombatOutcome::promoted{
+        .to = e_native_unit_type::mounted_brave } };
     expected = {
-        .summaries = { .attacker =
-                           "[Sioux] defeat [Dutch] [Seasoned "
-                           "Scout] in the wilderness!" },
-        .attacker  = { .for_owner = { "[Dutch] [Seasoned Scout] "
-                                       "lost in battle." } },
-        .defender =
-            { .for_both =
-                  { "[Sioux] Braves have acquired [horses] upon "
-                    "victory in combat!" } },
+      .summaries = { .attacker =
+                         "[Sioux] defeat [Dutch] [Seasoned "
+                         "Scout] in the wilderness!" },
+      .attacker  = { .for_owner = { "[Dutch] [Seasoned Scout] "
+                                     "lost in battle." } },
+      .defender =
+          { .for_both =
+                { "[Sioux] Braves have acquired [horses] upon "
+                  "victory in combat!" } },
     };
     REQUIRE( run() == expected );
   }
@@ -2265,81 +2229,78 @@ TEST_CASE(
         W.add_unit_on_map( params.attacker, W.kLandAttackerCoord,
                            W.kAttackerNation );
     CombatEuroAttackDwelling const combat{
-        // Here we ignore the other fields because messages asso-
-        // ciated with those are generated in another module.
-        .winner   = params.winner,
-        .attacker = { .id      = attacker.id(),
-                      .outcome = params.attacker_outcome },
-        .defender = { .id      = dwelling.id,
-                      .outcome = params.defender_outcome },
+      // Here we ignore the other fields because messages asso-
+      // ciated with those are generated in another module.
+      .winner   = params.winner,
+      .attacker = { .id      = attacker.id(),
+                    .outcome = params.attacker_outcome },
+      .defender = { .id      = dwelling.id,
+                    .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
 
   SECTION( "soldier, loses" ) {
     params = {
-        .attacker = e_unit_type::soldier,
-        .winner   = e_combat_winner::defender,
-        .attacker_outcome =
-            EuroUnitCombatOutcome::demoted{
-                .to = e_unit_type::free_colonist },
-        .defender_outcome = DwellingCombatOutcome::no_change{},
+      .attacker = e_unit_type::soldier,
+      .winner   = e_combat_winner::defender,
+      .attacker_outcome =
+          EuroUnitCombatOutcome::demoted{
+            .to = e_unit_type::free_colonist },
+      .defender_outcome = DwellingCombatOutcome::no_change{},
     };
     expected = {
-        .summaries = { .attacker =
-                           "[Sioux] defeat [Dutch] [Soldier] "
-                           "near a Sioux camp!" },
-        .attacker  = {
-             .for_both = { "[Dutch] [Soldier] routed! Unit "
-                            "demoted to colonist status." } } };
+      .summaries = { .attacker =
+                         "[Sioux] defeat [Dutch] [Soldier] "
+                         "near a Sioux camp!" },
+      .attacker  = {
+         .for_both = { "[Dutch] [Soldier] routed! Unit "
+                        "demoted to colonist status." } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "soldier, wins, populated decrease" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            DwellingCombatOutcome::population_decrease{},
+      .attacker         = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          DwellingCombatOutcome::population_decrease{},
     };
-    expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Sioux] "
-                           "Brave near a Sioux camp!" } };
+    expected = { .summaries = {
+                   .attacker = "[Dutch] Soldier defeats [Sioux] "
+                               "Brave near a Sioux camp!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "soldier, wins, populated decrease" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            DwellingCombatOutcome::population_decrease{},
-        .attacker_colony = e_colony::yes_and_visible };
-    expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Sioux] "
-                           "Brave near attacker colony!" } };
+      .attacker         = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          DwellingCombatOutcome::population_decrease{},
+      .attacker_colony = e_colony::yes_and_visible };
+    expected = { .summaries = {
+                   .attacker = "[Dutch] Soldier defeats [Sioux] "
+                               "Brave near attacker colony!" } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "soldier, wins, burn" ) {
     params = {
-        .attacker         = e_unit_type::soldier,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            DwellingCombatOutcome::destruction{
-                // Test that these don't add to the messages.
-                .treasure_amount  = 1000,
-                .convert_produced = true },
+      .attacker         = e_unit_type::soldier,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          DwellingCombatOutcome::destruction{
+            // Test that these don't add to the messages.
+            .treasure_amount  = 1'000,
+            .convert_produced = true },
     };
-    expected = {
-        .summaries = { .attacker =
-                           "[Dutch] Soldier defeats [Sioux] "
-                           "Brave near a Sioux camp!" } };
+    expected = { .summaries = {
+                   .attacker = "[Dutch] Soldier defeats [Sioux] "
+                               "Brave near a Sioux camp!" } };
     REQUIRE( run() == expected );
   }
 }
@@ -2397,12 +2358,12 @@ TEST_CASE(
         params.attacker, W.kEuroColonyAttackerCoord,
         W.kAttackerNation );
     CombatEuroAttackUndefendedColony const combat{
-        .winner    = params.winner,
-        .colony_id = defender_colony.id,
-        .attacker  = { .id      = attacker.id(),
-                       .outcome = params.attacker_outcome },
-        .defender  = { .id      = defender.id(),
-                       .outcome = params.defender_outcome },
+      .winner    = params.winner,
+      .colony_id = defender_colony.id,
+      .attacker  = { .id      = attacker.id(),
+                     .outcome = params.attacker_outcome },
+      .defender  = { .id      = defender.id(),
+                     .outcome = params.defender_outcome },
     };
     return combat_effects_msg( W.ss(), combat );
   };
@@ -2415,19 +2376,19 @@ TEST_CASE(
                  .winner   = e_combat_winner::defender,
                  .attacker_outcome =
                      EuroUnitCombatOutcome::demoted{
-                         .to = e_unit_type::damaged_artillery },
+                       .to = e_unit_type::damaged_artillery },
                  .defender_outcome =
                      EuroColonyWorkerCombatOutcome::no_change{} };
     expected = {
-        .summaries = { .attacker =
-                           "[French] Free Colonist defeats "
-                           "[Dutch] in defender colony!",
-                       .defender =
-                           "[French] Free Colonist defeats "
-                           "[Dutch] in defender colony!" },
-        .attacker  = {
-             .for_both = { "[Dutch] Artillery [damaged]. Further "
-                            "damage will destroy it." } } };
+      .summaries = { .attacker =
+                         "[French] Free Colonist defeats "
+                         "[Dutch] in defender colony!",
+                     .defender =
+                         "[French] Free Colonist defeats "
+                         "[Dutch] in defender colony!" },
+      .attacker  = {
+         .for_both = { "[Dutch] Artillery [damaged]. Further "
+                        "damage will destroy it." } } };
     REQUIRE( run() == expected );
   }
 
@@ -2438,24 +2399,24 @@ TEST_CASE(
                  .winner   = e_combat_winner::attacker,
                  .attacker_outcome =
                      EuroUnitCombatOutcome::promoted{
-                         .to = e_unit_type::veteran_soldier },
+                       .to = e_unit_type::veteran_soldier },
                  .defender_outcome =
                      EuroColonyWorkerCombatOutcome::defeated{} };
-    expected = { .attacker = {
-                     .for_owner = {
-                         "[Dutch] Soldier promoted to [Veteran "
-                         "Soldier] for victory in combat!" } } };
+    expected = {
+      .attacker = {
+        .for_owner = { "[Dutch] Soldier promoted to [Veteran "
+                       "Soldier] for victory in combat!" } } };
     REQUIRE( run() == expected );
   }
 
   SECTION( "(artillery,free_colonist) -> captured" ) {
     params = {
-        .attacker         = e_unit_type::artillery,
-        .defender         = e_unit_type::free_colonist,
-        .winner           = e_combat_winner::attacker,
-        .attacker_outcome = EuroUnitCombatOutcome::no_change{},
-        .defender_outcome =
-            EuroColonyWorkerCombatOutcome::defeated{} };
+      .attacker         = e_unit_type::artillery,
+      .defender         = e_unit_type::free_colonist,
+      .winner           = e_combat_winner::attacker,
+      .attacker_outcome = EuroUnitCombatOutcome::no_change{},
+      .defender_outcome =
+          EuroColonyWorkerCombatOutcome::defeated{} };
     expected = {};
     REQUIRE( run() == expected );
   }
@@ -2505,8 +2466,8 @@ TEST_CASE(
     unit.sentry();
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = e_nation::french,
-        .new_coord  = { .x = 0, .y = 1 } };
+      .new_nation = e_nation::french,
+      .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -2523,9 +2484,9 @@ TEST_CASE(
     unit.fortify();
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured_and_demoted{
-        .to         = e_unit_type::free_colonist,
-        .new_nation = e_nation::french,
-        .new_coord  = { .x = 0, .y = 1 } };
+      .to         = e_unit_type::free_colonist,
+      .new_nation = e_nation::french,
+      .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -2544,9 +2505,9 @@ TEST_CASE(
     unit.fortify();
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured_and_demoted{
-        .to         = e_unit_type::free_colonist,
-        .new_nation = e_nation::french,
-        .new_coord  = { .x = 0, .y = 1 } };
+      .to         = e_unit_type::free_colonist,
+      .new_nation = e_nation::french,
+      .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -2564,7 +2525,7 @@ TEST_CASE(
     unit.new_turn( W.default_player() );
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::demoted{
-        .to = e_unit_type::veteran_colonist };
+      .to = e_unit_type::veteran_colonist };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::veteran_colonist );
@@ -2582,7 +2543,7 @@ TEST_CASE(
     unit.new_turn( W.default_player() );
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::promoted{
-        .to = e_unit_type::veteran_soldier };
+      .to = e_unit_type::veteran_soldier };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::veteran_soldier );
@@ -2647,8 +2608,8 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses  = false,
-        .tribe_retains_muskets = false };
+      .tribe_retains_horses  = false,
+      .tribe_retains_muskets = false };
     f();
     REQUIRE( !W.units().exists( unit_id ) );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
@@ -2662,8 +2623,8 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses  = false,
-        .tribe_retains_muskets = true };
+      .tribe_retains_horses  = false,
+      .tribe_retains_muskets = true };
     f();
     REQUIRE( !W.units().exists( unit_id ) );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 0 );
@@ -2678,8 +2639,8 @@ TEST_CASE(
     unit_id                                  = unit.id;
     W.tribe( e_tribe::cherokee ).horse_herds = 1;
     outcome = NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses  = true,
-        .tribe_retains_muskets = false };
+      .tribe_retains_horses  = true,
+      .tribe_retains_muskets = false };
     f();
     REQUIRE( !W.units().exists( unit_id ) );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 1 );
@@ -2695,8 +2656,8 @@ TEST_CASE(
     W.tribe( e_tribe::cherokee ).horse_herds = 2;
     W.tribe( e_tribe::cherokee ).muskets     = 2;
     outcome = NativeUnitCombatOutcome::destroyed{
-        .tribe_retains_horses  = true,
-        .tribe_retains_muskets = true };
+      .tribe_retains_horses  = true,
+      .tribe_retains_muskets = true };
     f();
     REQUIRE( !W.units().exists( unit_id ) );
     REQUIRE( W.tribe( e_tribe::cherokee ).horse_herds == 2 );
@@ -2710,7 +2671,7 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::armed_brave };
+      .to = e_native_unit_type::armed_brave };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::armed_brave );
@@ -2731,8 +2692,8 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_brave,
-        .tribe_gains_horse_herd = true };
+      .to = e_native_unit_type::mounted_brave,
+      .tribe_gains_horse_herd = true };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_brave );
@@ -2754,7 +2715,7 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_warrior };
+      .to = e_native_unit_type::mounted_warrior };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_warrior );
@@ -2774,8 +2735,8 @@ TEST_CASE(
         dwelling.id );
     unit_id = unit.id;
     outcome = NativeUnitCombatOutcome::promoted{
-        .to = e_native_unit_type::mounted_warrior,
-        .tribe_gains_horse_herd = true };
+      .to = e_native_unit_type::mounted_warrior,
+      .tribe_gains_horse_herd = true };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type == e_native_unit_type::mounted_warrior );
@@ -2849,7 +2810,7 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::moved{
-                 .to = { .x = 0, .y = 2 } };
+               .to = { .x = 0, .y = 2 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
@@ -2876,15 +2837,15 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
-                 .port = ShipRepairPort::european_harbor{} };
+               .port = ShipRepairPort::european_harbor{} };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
     REQUIRE( unit.nation() == e_nation::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{},
-                 .sailed_from = nothing } );
+               .port_status = PortStatus::in_port{},
+               .sailed_from = nothing } );
     REQUIRE( unit.movement_points() == 8 );
     REQUIRE( unit.orders() ==
              unit_orders::damaged{ .turns_until_repair = 8 } );
@@ -2905,7 +2866,7 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
-                 .port = ShipRepairPort::colony{ .id = colony.id } };
+               .port = ShipRepairPort::colony{ .id = colony.id } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
@@ -2935,7 +2896,7 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
-                 .port = ShipRepairPort::colony{ .id = colony.id } };
+               .port = ShipRepairPort::colony{ .id = colony.id } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
@@ -3021,18 +2982,17 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
 
-    affected = {
-        .id      = unit.id(),
-        .outcome = EuroNavalUnitCombatOutcome::damaged{
-            .port = ShipRepairPort::european_harbor{} } };
+    affected = { .id      = unit.id(),
+                 .outcome = EuroNavalUnitCombatOutcome::damaged{
+                   .port = ShipRepairPort::european_harbor{} } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
     REQUIRE( unit.nation() == e_nation::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::harbor{
-                 .port_status = PortStatus::in_port{},
-                 .sailed_from = nothing } );
+               .port_status = PortStatus::in_port{},
+               .sailed_from = nothing } );
     REQUIRE( unit.movement_points() == 8 );
     REQUIRE( unit.orders() ==
              unit_orders::damaged{ .turns_until_repair = 8 } );
@@ -3053,10 +3013,10 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
 
-    affected = { .id      = unit.id(),
-                 .outcome = EuroNavalUnitCombatOutcome::damaged{
-                     .port = ShipRepairPort::colony{
-                         .id = colony.id } } };
+    affected = {
+      .id      = unit.id(),
+      .outcome = EuroNavalUnitCombatOutcome::damaged{
+        .port = ShipRepairPort::colony{ .id = colony.id } } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
@@ -3086,10 +3046,10 @@ TEST_CASE(
         e_nation::french );
     opponent_unit_id = opponent_unit.id();
 
-    affected = { .id      = unit.id(),
-                 .outcome = EuroNavalUnitCombatOutcome::damaged{
-                     .port = ShipRepairPort::colony{
-                         .id = colony.id } } };
+    affected = {
+      .id      = unit.id(),
+      .outcome = EuroNavalUnitCombatOutcome::damaged{
+        .port = ShipRepairPort::colony{ .id = colony.id } } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
@@ -3158,8 +3118,8 @@ TEST_CASE( "[combat-effects] mix_combat_effects_msgs" ) {
   auto f = [&] { return mix_combat_effects_msgs( msgs ); };
 
   msgs.summaries = {
-      .attacker = "xxx xxx",
-      .defender = "yyy yyy",
+    .attacker = "xxx xxx",
+    .defender = "yyy yyy",
   };
 
   msgs.attacker = { .for_owner = { "111 111", "222 222" },
@@ -3171,12 +3131,12 @@ TEST_CASE( "[combat-effects] mix_combat_effects_msgs" ) {
                     .for_both  = { "bbb bbb", "ccc ccc" } };
 
   expected = {
-      .summaries = { .attacker = "xxx xxx",
-                     .defender = "yyy yyy" },
-      .attacker  = { "555 555", "666 666", "111 111", "222 222",
-                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
-      .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
-                     "555 555", "666 666", "333 333", "444 444" },
+    .summaries = { .attacker = "xxx xxx",
+                   .defender = "yyy yyy" },
+    .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                   "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+    .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                   "555 555", "666 666", "333 333", "444 444" },
   };
   REQUIRE( f() == expected );
 }
@@ -3188,30 +3148,30 @@ TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
   auto f = [&] { return filter_combat_effects_msgs( msgs ); };
 
   msgs = {
-      .summaries = { .attacker = "xxx xxx",
-                     .defender = "yyy yyy" },
-      .attacker  = { "555 555", "666 666", "111 111", "222 222",
-                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
-      .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
-                     "555 555", "666 666", "333 333", "444 444" },
+    .summaries = { .attacker = "xxx xxx",
+                   .defender = "yyy yyy" },
+    .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                   "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+    .defender  = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                   "555 555", "666 666", "333 333", "444 444" },
   };
   expected = {
-      .attacker = { "555 555", "666 666", "111 111", "222 222",
-                    "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
-      .defender = { "bbb bbb", "ccc ccc", "777 777", "888 888",
-                    "555 555", "666 666", "333 333", "444 444" },
+    .attacker = { "555 555", "666 666", "111 111", "222 222",
+                  "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+    .defender = { "bbb bbb", "ccc ccc", "777 777", "888 888",
+                  "555 555", "666 666", "333 333", "444 444" },
   };
   REQUIRE( f() == expected );
 
   msgs = {
-      .summaries = { .defender = "yyy yyy" },
-      .attacker  = { "555 555", "666 666", "111 111", "222 222",
-                     "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+    .summaries = { .defender = "yyy yyy" },
+    .attacker  = { "555 555", "666 666", "111 111", "222 222",
+                   "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
   };
   expected = {
-      .attacker = { "555 555", "666 666", "111 111", "222 222",
-                    "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
-      .defender = { "yyy yyy" },
+    .attacker = { "555 555", "666 666", "111 111", "222 222",
+                  "bbb bbb", "ccc ccc", "999 999", "aaa aaa" },
+    .defender = { "yyy yyy" },
   };
   REQUIRE( f() == expected );
 

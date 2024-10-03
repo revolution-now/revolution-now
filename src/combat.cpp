@@ -99,7 +99,7 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
             should_promote_euro_unit( ss, rand, unit );
         promoted_type.has_value() )
       return EuroUnitCombatOutcome::promoted{
-          .to = *promoted_type };
+        .to = *promoted_type };
     return EuroUnitCombatOutcome::no_change{};
   }
 
@@ -115,8 +115,8 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
           euro_society,
           society_of_opponent.get_if<Society::european>() );
       return EuroUnitCombatOutcome::captured{
-          .new_nation = euro_society.nation,
-          .new_coord  = opponent_coord };
+        .new_nation = euro_society.nation,
+        .new_coord  = opponent_coord };
     }
     case e::capture_and_demote: {
       if( society_of_opponent.holds<Society::native>() )
@@ -128,9 +128,9 @@ EuroUnitCombatOutcome euro_unit_combat_outcome(
       UNWRAP_CHECK( capture_demoted,
                     on_capture_demoted_type( unit.type_obj() ) );
       return EuroUnitCombatOutcome::captured_and_demoted{
-          .to         = capture_demoted,
-          .new_nation = euro_society.nation,
-          .new_coord  = opponent_coord };
+        .to         = capture_demoted,
+        .new_nation = euro_society.nation,
+        .new_coord  = opponent_coord };
     }
     case e::destroy:
       return EuroUnitCombatOutcome::destroyed{};
@@ -163,10 +163,9 @@ NativeUnitCombatOutcome native_unit_lost_combat_outcome(
                    .probability );
   };
   return NativeUnitCombatOutcome::destroyed{
-      .tribe_retains_horses =
-          retains( e_brave_equipment::horses ),
-      .tribe_retains_muskets =
-          retains( e_brave_equipment::muskets ) };
+    .tribe_retains_horses = retains( e_brave_equipment::horses ),
+    .tribe_retains_muskets =
+        retains( e_brave_equipment::muskets ) };
 }
 
 // In the OG braves will take muskets/horses only when they are
@@ -213,8 +212,7 @@ NativeUnitCombatOutcome native_unit_won_attacking_combat_outcome(
                   [e_brave_equipment::horses] &&
         equipment[new_type][e_brave_equipment::horses];
     return NativeUnitCombatOutcome::promoted{
-        .to                     = new_type,
-        .tribe_gains_horse_herd = gained_horses };
+      .to = new_type, .tribe_gains_horse_herd = gained_horses };
   }
   return NativeUnitCombatOutcome::no_change{};
 }
@@ -289,7 +287,7 @@ DwellingCombatOutcome dwelling_combat_outcome(
   // Check for simple population decrease.
   if( dwelling.population > 1 )
     return DwellingCombatOutcome::population_decrease{
-        .convert_produced = convert_produced };
+      .convert_produced = convert_produced };
 
   // The dwelling has been destroyed.
   DwellingCombatOutcome::destruction destruction =
@@ -323,17 +321,17 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
           Society::european{ .nation = attacker.nation() },
           attacker_coord, winner == e_combat_winner::defender );
   return CombatEuroAttackEuro{
-      .winner   = winner,
-      .attacker = { .id              = attacker.id(),
-                    .modifiers       = {},
-                    .base_weight     = attack_points,
-                    .modified_weight = attack_points,
-                    .outcome         = attacker_outcome },
-      .defender = { .id              = defender.id(),
-                    .modifiers       = {},
-                    .base_weight     = defense_points,
-                    .modified_weight = defense_points,
-                    .outcome         = defender_outcome } };
+    .winner   = winner,
+    .attacker = { .id              = attacker.id(),
+                  .modifiers       = {},
+                  .base_weight     = attack_points,
+                  .modified_weight = attack_points,
+                  .outcome         = attacker_outcome },
+    .defender = { .id              = defender.id(),
+                  .modifiers       = {},
+                  .base_weight     = defense_points,
+                  .modified_weight = defense_points,
+                  .outcome         = defender_outcome } };
 }
 
 void RealCombat::set_sunk_or_damaged(
@@ -451,20 +449,20 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   CHECK( defender_evade.atoms() % 3 == 0 );
   // Fill out what we can so far.
   CombatShipAttackShip res{
-      .winner       = nothing,
-      .sink_weights = nothing,
-      .attacker     = { .id           = attacker.id(),
-                        .modifiers    = {},
-                        .evade_weight = attacker_evade.atoms() / 3,
-                        .base_combat_weight     = attacker_combat,
-                        .modified_combat_weight = attacker_combat,
-                        .outcome                = {} },
-      .defender     = { .id           = defender.id(),
-                        .modifiers    = {},
-                        .evade_weight = defender_evade.atoms() / 3,
-                        .base_combat_weight     = defender_combat,
-                        .modified_combat_weight = defender_combat,
-                        .outcome                = {} } };
+    .winner       = nothing,
+    .sink_weights = nothing,
+    .attacker     = { .id           = attacker.id(),
+                      .modifiers    = {},
+                      .evade_weight = attacker_evade.atoms() / 3,
+                      .base_combat_weight     = attacker_combat,
+                      .modified_combat_weight = attacker_combat,
+                      .outcome                = {} },
+    .defender     = { .id           = defender.id(),
+                      .modifiers    = {},
+                      .evade_weight = defender_evade.atoms() / 3,
+                      .base_combat_weight     = defender_combat,
+                      .modified_combat_weight = defender_combat,
+                      .outcome                = {} } };
 
   if( evaded ) {
     res.winner = nothing;
@@ -495,7 +493,7 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
   // Set the outcome of the winner.
   if( winner_unit.id() == attacker.id() )
     winner_stats.outcome = EuroNavalUnitCombatOutcome::moved{
-        .to = defender_coord };
+      .to = defender_coord };
   else
     winner_stats.outcome =
         EuroNavalUnitCombatOutcome::no_change{};
@@ -584,18 +582,18 @@ RealCombat::euro_attack_undefended_colony(
       return EuroColonyWorkerCombatOutcome::no_change{};
   }();
   return CombatEuroAttackUndefendedColony{
-      .winner    = winner,
-      .colony_id = colony.id,
-      .attacker  = { .id              = attacker.id(),
-                     .modifiers       = {},
-                     .base_weight     = attack_points,
-                     .modified_weight = attack_points,
-                     .outcome         = attacker_outcome },
-      .defender  = { .id              = defender.id(),
-                     .modifiers       = {},
-                     .base_weight     = defense_points,
-                     .modified_weight = defense_points,
-                     .outcome         = defender_outcome } };
+    .winner    = winner,
+    .colony_id = colony.id,
+    .attacker  = { .id              = attacker.id(),
+                   .modifiers       = {},
+                   .base_weight     = attack_points,
+                   .modified_weight = attack_points,
+                   .outcome         = attacker_outcome },
+    .defender  = { .id              = defender.id(),
+                   .modifiers       = {},
+                   .base_weight     = defense_points,
+                   .modified_weight = defense_points,
+                   .outcome         = defender_outcome } };
 }
 
 CombatEuroAttackBrave RealCombat::euro_attack_brave(
@@ -611,24 +609,24 @@ CombatEuroAttackBrave RealCombat::euro_attack_brave(
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::native{
-              .tribe = tribe_type_for_unit( ss_, defender ) },
+            .tribe = tribe_type_for_unit( ss_, defender ) },
           defender_coord, winner == e_combat_winner::attacker );
   NativeUnitCombatOutcome const defender_outcome =
       ( winner == e_combat_winner::defender )
           ? native_unit_won_defending_combat_outcome()
           : native_unit_lost_combat_outcome( rand_, defender );
   return CombatEuroAttackBrave{
-      .winner   = winner,
-      .attacker = { .id              = attacker.id(),
-                    .modifiers       = {},
-                    .base_weight     = attack_points,
-                    .modified_weight = attack_points,
-                    .outcome         = attacker_outcome },
-      .defender = { .id              = defender.id,
-                    .modifiers       = {},
-                    .base_weight     = defense_points,
-                    .modified_weight = defense_points,
-                    .outcome         = defender_outcome } };
+    .winner   = winner,
+    .attacker = { .id              = attacker.id(),
+                  .modifiers       = {},
+                  .base_weight     = attack_points,
+                  .modified_weight = attack_points,
+                  .outcome         = attacker_outcome },
+    .defender = { .id              = defender.id,
+                  .modifiers       = {},
+                  .base_weight     = defense_points,
+                  .modified_weight = defense_points,
+                  .outcome         = defender_outcome } };
 }
 
 CombatBraveAttackEuro RealCombat::brave_attack_euro(
@@ -643,7 +641,7 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
       euro_unit_combat_outcome(
           ss_, rand_, defender,
           Society::native{
-              .tribe = tribe_type_for_unit( ss_, attacker ) },
+            .tribe = tribe_type_for_unit( ss_, attacker ) },
           attacker_coord, winner == e_combat_winner::defender );
   NativeUnitCombatOutcome const attacker_outcome =
       ( winner == e_combat_winner::attacker )
@@ -651,17 +649,17 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
                 attacker, defender, defender_outcome )
           : native_unit_lost_combat_outcome( rand_, attacker );
   return CombatBraveAttackEuro{
-      .winner   = winner,
-      .attacker = { .id              = attacker.id,
-                    .modifiers       = {},
-                    .base_weight     = attack_points,
-                    .modified_weight = attack_points,
-                    .outcome         = attacker_outcome },
-      .defender = { .id              = defender.id(),
-                    .modifiers       = {},
-                    .base_weight     = defense_points,
-                    .modified_weight = defense_points,
-                    .outcome         = defender_outcome } };
+    .winner   = winner,
+    .attacker = { .id              = attacker.id,
+                  .modifiers       = {},
+                  .base_weight     = attack_points,
+                  .modified_weight = attack_points,
+                  .outcome         = attacker_outcome },
+    .defender = { .id              = defender.id(),
+                  .modifiers       = {},
+                  .base_weight     = defense_points,
+                  .modified_weight = defense_points,
+                  .outcome         = defender_outcome } };
 }
 
 // The mechanics for a brave attacking a colony in the OG (which
@@ -739,7 +737,7 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
       euro_unit_combat_outcome(
           ss_, rand_, defender,
           Society::native{
-              .tribe = tribe_type_for_unit( ss_, attacker ) },
+            .tribe = tribe_type_for_unit( ss_, attacker ) },
           attacker_coord, /*won=*/true );
   return { .winner           = e_combat_winner::defender,
            .colony_id        = colony.id,
@@ -777,8 +775,7 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
       euro_unit_combat_outcome(
           ss_, rand_, attacker,
           Society::native{
-              .tribe =
-                  ss_.natives.tribe_for( dwelling.id ).type },
+            .tribe = ss_.natives.tribe_for( dwelling.id ).type },
           defender_coord, winner == e_combat_winner::attacker );
 
   // The tribe can decide to burn the mission whether or not the
@@ -797,18 +794,18 @@ CombatEuroAttackDwelling RealCombat::euro_attack_dwelling(
           winner == e_combat_winner::defender, missions_burned );
 
   return CombatEuroAttackDwelling{
-      .winner          = winner,
-      .missions_burned = missions_burned,
-      .attacker        = { .id              = attacker.id(),
-                           .modifiers       = {},
-                           .base_weight     = attack_points,
-                           .modified_weight = attack_points,
-                           .outcome         = attacker_outcome },
-      .defender        = { .id              = dwelling.id,
-                           .modifiers       = {},
-                           .base_weight     = defense_points,
-                           .modified_weight = defense_points,
-                           .outcome         = defender_outcome } };
+    .winner          = winner,
+    .missions_burned = missions_burned,
+    .attacker        = { .id              = attacker.id(),
+                         .modifiers       = {},
+                         .base_weight     = attack_points,
+                         .modified_weight = attack_points,
+                         .outcome         = attacker_outcome },
+    .defender        = { .id              = dwelling.id,
+                         .modifiers       = {},
+                         .base_weight     = defense_points,
+                         .modified_weight = defense_points,
+                         .outcome         = defender_outcome } };
 }
 
 } // namespace rn

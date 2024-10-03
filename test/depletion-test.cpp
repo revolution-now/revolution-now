@@ -58,12 +58,12 @@ struct World : testing::World {
   void create_default_map() {
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
-        L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
+      L, L, L, L, L, //
     };
     build_map( std::move( tiles ), 5 );
   }
@@ -156,7 +156,7 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .75 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 2 },
+                           { { .x = 3, .y = 1 }, 2 },
                          } };
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -164,7 +164,7 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .75 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 4 },
+                           { { .x = 3, .y = 1 }, 4 },
                          } };
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -174,7 +174,7 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .75 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 5 },
+                           { { .x = 3, .y = 1 }, 5 },
                          } };
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -185,8 +185,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .75 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 1 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 1 },
                          } };
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -200,8 +200,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .75 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
                          } };
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -217,8 +217,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   // T = tobacco             L, L, L, L, L,
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -249,10 +249,10 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 3, .y = 2 }, 1 },
-                             { { .x = 1, .y = 3 }, 1 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 2 }, 1 },
+                           { { .x = 1, .y = 3 }, 1 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -267,10 +267,10 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 3, .y = 2 }, 48 },
-                             { { .x = 1, .y = 3 }, 49 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 2 }, 48 },
+                           { { .x = 1, .y = 3 }, 49 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -281,13 +281,13 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   expected           = { DepletionEvent{
-                .tile          = { .x = 1, .y = 3 },
-                .resource_from = e_natural_resource::minerals,
-                .resource_to   = nothing } };
+              .tile          = { .x = 1, .y = 3 },
+              .resource_from = e_natural_resource::minerals,
+              .resource_to   = nothing } };
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 3, .y = 2 }, 49 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 2 }, 49 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -299,13 +299,13 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   expected           = { DepletionEvent{
-                .tile          = { .x = 3, .y = 2 },
-                .resource_from = e_natural_resource::silver,
-                .resource_to   = e_natural_resource::silver_depleted } };
+              .tile          = { .x = 3, .y = 2 },
+              .resource_from = e_natural_resource::silver,
+              .resource_to   = e_natural_resource::silver_depleted } };
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 1, .y = 3 }, 1 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 1, .y = 3 }, 1 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -326,10 +326,10 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
       .returns( true );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 3, .y = 2 }, 49 },
-                             { { .x = 1, .y = 3 }, 49 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 2 }, 49 },
+                           { { .x = 1, .y = 3 }, 49 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -342,10 +342,10 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
       .returns( false );
   expected           = {};
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
-                             { { .x = 3, .y = 2 }, 49 },
-                             { { .x = 1, .y = 3 }, 49 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 2 }, 49 },
+                           { { .x = 1, .y = 3 }, 49 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -358,16 +358,16 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
       .EXPECT__bernoulli( Approx( .833333, .00001 ) )
       .returns( true );
   expected = {
-      { .tile          = { .x = 3, .y = 2 },
-        .resource_from = e_natural_resource::silver,
-        .resource_to   = e_natural_resource::silver_depleted },
-      { .tile          = { .x = 1, .y = 3 },
-        .resource_from = e_natural_resource::minerals,
-        .resource_to   = nothing },
+    { .tile          = { .x = 3, .y = 2 },
+      .resource_from = e_natural_resource::silver,
+      .resource_to   = e_natural_resource::silver_depleted },
+    { .tile          = { .x = 1, .y = 3 },
+      .resource_from = e_natural_resource::minerals,
+      .resource_to   = nothing },
   };
   expected_depletion = { .counters = {
-                             { { .x = 3, .y = 1 }, 6 },
-                             { { .x = 4, .y = 1 }, 2 },
+                           { { .x = 3, .y = 1 }, 6 },
+                           { { .x = 4, .y = 1 }, 2 },
                          } };
   REQUIRE( f1() == expected );
   REQUIRE( depletion == expected_depletion );
@@ -427,12 +427,12 @@ TEST_CASE( "[depletion] update_depleted_tiles" ) {
            R::minerals );
 
   events = {
-      DepletionEvent{ .tile          = { .x = 3, .y = 2 },
-                      .resource_from = R::silver,
-                      .resource_to   = R::silver_depleted },
-      DepletionEvent{ .tile          = { .x = 2, .y = 4 },
-                      .resource_from = R::minerals,
-                      .resource_to   = nothing },
+    DepletionEvent{ .tile          = { .x = 3, .y = 2 },
+                    .resource_from = R::silver,
+                    .resource_to   = R::silver_depleted },
+    DepletionEvent{ .tile          = { .x = 2, .y = 4 },
+                    .resource_from = R::minerals,
+                    .resource_to   = nothing },
   };
   f();
   REQUIRE( W.square( { .x = 3, .y = 2 } ).ground_resource ==

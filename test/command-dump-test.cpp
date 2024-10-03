@@ -92,46 +92,46 @@ TEST_CASE( "[command-dump] galleon" ) {
   // Sanity check.
   REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
            Cargo::commodity{
-               .obj = Commodity{ .type     = e_commodity::cotton,
-                                 .quantity = 23 } } );
+             .obj = Commodity{ .type     = e_commodity::cotton,
+                               .quantity = 23 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
   REQUIRE( cargo.cargo_starting_at_slot( 2 ) ==
            Cargo::commodity{
-               .obj = Commodity{ .type     = e_commodity::tools,
-                                 .quantity = 100 } } );
+             .obj = Commodity{ .type     = e_commodity::tools,
+                               .quantity = 100 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
   REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
            Cargo::commodity{
-               .obj = Commodity{ .type     = e_commodity::horses,
-                                 .quantity = 50 } } );
+             .obj = Commodity{ .type     = e_commodity::horses,
+                               .quantity = 50 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
            Cargo::commodity{
-               .obj = Commodity{ .type = e_commodity::muskets,
-                                 .quantity = 1 } } );
+             .obj = Commodity{ .type     = e_commodity::muskets,
+                               .quantity = 1 } } );
 
   // Dump #1, slot 4.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "0",
-                    .display_name = "23 cotton",
-                },
-                ChoiceConfigOption{
-                    .key          = "2",
-                    .display_name = "100 tools",
-                },
-                ChoiceConfigOption{
-                    .key          = "4",
-                    .display_name = "50 horses",
-                },
-                ChoiceConfigOption{
-                    .key          = "5",
-                    .display_name = "1 muskets",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "0",
+              .display_name = "23 cotton",
             },
+            ChoiceConfigOption{
+              .key          = "2",
+              .display_name = "100 tools",
+            },
+            ChoiceConfigOption{
+              .key          = "4",
+              .display_name = "50 horses",
+            },
+            ChoiceConfigOption{
+              .key          = "5",
+              .display_name = "1 muskets",
+            },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "2" ) );
@@ -142,48 +142,48 @@ TEST_CASE( "[command-dump] galleon" ) {
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::tools,
-                                   .quantity = 100 } } );
+               .obj = Commodity{ .type     = e_commodity::tools,
+                                 .quantity = 100 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } );
+               .obj = Commodity{ .type     = e_commodity::cotton,
+                                 .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } );
+               .obj = Commodity{ .type     = e_commodity::horses,
+                                 .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::muskets,
-                                   .quantity = 1 } } );
+               .obj = Commodity{ .type = e_commodity::muskets,
+                                 .quantity = 1 } } );
   }
 
   // Dump #2, slot 5.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "0",
-                    .display_name = "23 cotton",
-                },
-                ChoiceConfigOption{
-                    .key          = "4",
-                    .display_name = "50 horses",
-                },
-                ChoiceConfigOption{
-                    .key          = "5",
-                    .display_name = "1 muskets",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "0",
+              .display_name = "23 cotton",
             },
+            ChoiceConfigOption{
+              .key          = "4",
+              .display_name = "50 horses",
+            },
+            ChoiceConfigOption{
+              .key          = "5",
+              .display_name = "1 muskets",
+            },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "5" ) );
@@ -194,41 +194,41 @@ TEST_CASE( "[command-dump] galleon" ) {
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::muskets,
-                                   .quantity = 1 } } );
+               .obj = Commodity{ .type = e_commodity::muskets,
+                                 .quantity = 1 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
     REQUIRE( w_perform.ready() );
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } );
+               .obj = Commodity{ .type     = e_commodity::cotton,
+                                 .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } );
+               .obj = Commodity{ .type     = e_commodity::horses,
+                                 .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
   // Dump #3, escape.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "0",
-                    .display_name = "23 cotton",
-                },
-                ChoiceConfigOption{
-                    .key          = "4",
-                    .display_name = "50 horses",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "0",
+              .display_name = "23 cotton",
             },
+            ChoiceConfigOption{
+              .key          = "4",
+              .display_name = "50 horses",
+            },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( nothing ) );
@@ -240,33 +240,33 @@ TEST_CASE( "[command-dump] galleon" ) {
     // here.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } );
+               .obj = Commodity{ .type     = e_commodity::cotton,
+                                 .quantity = 23 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 2 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } );
+               .obj = Commodity{ .type     = e_commodity::horses,
+                                 .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
   // Dump #4, slot 0.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "0",
-                    .display_name = "23 cotton",
-                },
-                ChoiceConfigOption{
-                    .key          = "4",
-                    .display_name = "50 horses",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "0",
+              .display_name = "23 cotton",
             },
+            ChoiceConfigOption{
+              .key          = "4",
+              .display_name = "50 horses",
+            },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "0" ) );
@@ -277,8 +277,8 @@ TEST_CASE( "[command-dump] galleon" ) {
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } );
+               .obj = Commodity{ .type     = e_commodity::cotton,
+                                 .quantity = 23 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
@@ -289,22 +289,22 @@ TEST_CASE( "[command-dump] galleon" ) {
     REQUIRE( cargo.cargo_starting_at_slot( 3 ) == nothing );
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } );
+               .obj = Commodity{ .type     = e_commodity::horses,
+                                 .quantity = 50 } } );
     REQUIRE( cargo.cargo_starting_at_slot( 5 ) == nothing );
   }
 
   // Dump #5, slot 4.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "4",
-                    .display_name = "50 horses",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "4",
+              .display_name = "50 horses",
             },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "4" ) );
@@ -315,8 +315,8 @@ TEST_CASE( "[command-dump] galleon" ) {
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 4 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::horses,
-                                   .quantity = 50 } } );
+               .obj = Commodity{ .type     = e_commodity::horses,
+                                 .quantity = 50 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );
@@ -370,21 +370,21 @@ TEST_CASE( "[command-dump] wagon train" ) {
   // Sanity check.
   REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
            Cargo::commodity{
-               .obj = Commodity{ .type     = e_commodity::cotton,
-                                 .quantity = 23 } } );
+             .obj = Commodity{ .type     = e_commodity::cotton,
+                               .quantity = 23 } } );
   REQUIRE( cargo.cargo_starting_at_slot( 1 ) == nothing );
 
   // Dump #1, slot 0.
   {
     ChoiceConfig config{
-        .msg = "What cargo would you like to dump overboard?",
-        .options =
-            {
-                ChoiceConfigOption{
-                    .key          = "0",
-                    .display_name = "23 cotton",
-                },
+      .msg = "What cargo would you like to dump overboard?",
+      .options =
+          {
+            ChoiceConfigOption{
+              .key          = "0",
+              .display_name = "23 cotton",
             },
+          },
     };
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "0" ) );
@@ -395,8 +395,8 @@ TEST_CASE( "[command-dump] wagon train" ) {
     // Not yet removed.
     REQUIRE( cargo.cargo_starting_at_slot( 0 ) ==
              Cargo::commodity{
-                 .obj = Commodity{ .type = e_commodity::cotton,
-                                   .quantity = 23 } } );
+               .obj = Commodity{ .type     = e_commodity::cotton,
+                                 .quantity = 23 } } );
 
     wait<> w_perform = handler->perform();
     REQUIRE( !w_perform.exception() );

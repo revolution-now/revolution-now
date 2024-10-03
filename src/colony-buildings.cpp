@@ -131,11 +131,11 @@ maybe<e_indoor_job> indoor_job_for_slot(
       return nothing;
     case e_colony_building_slot::schools:
       return e_indoor_job::teacher;
-    case e_colony_building_slot::offshore:   //
+    case e_colony_building_slot::offshore: //
       return nothing;
-    case e_colony_building_slot::horses:     //
+    case e_colony_building_slot::horses: //
       return nothing;
-    case e_colony_building_slot::wall:       //
+    case e_colony_building_slot::wall: //
       return nothing;
     case e_colony_building_slot::warehouses: //
       return nothing;
@@ -186,119 +186,119 @@ vector<e_colony_building> const& buildings_for_slot(
   switch( slot ) {
     case e_colony_building_slot::muskets: {
       static vector<e_colony_building> const bs{
-          e_colony_building::arsenal,
-          e_colony_building::magazine,
-          e_colony_building::armory,
+        e_colony_building::arsenal,
+        e_colony_building::magazine,
+        e_colony_building::armory,
       };
       return bs;
     }
     case e_colony_building_slot::tools: {
       static vector<e_colony_building> const bs{
-          e_colony_building::iron_works,
-          e_colony_building::blacksmiths_shop,
-          e_colony_building::blacksmiths_house,
+        e_colony_building::iron_works,
+        e_colony_building::blacksmiths_shop,
+        e_colony_building::blacksmiths_house,
       };
       return bs;
     }
     case e_colony_building_slot::rum: {
       static vector<e_colony_building> const bs{
-          e_colony_building::rum_factory,
-          e_colony_building::rum_distillery,
-          e_colony_building::rum_distillers_house,
+        e_colony_building::rum_factory,
+        e_colony_building::rum_distillery,
+        e_colony_building::rum_distillers_house,
       };
       return bs;
     }
     case e_colony_building_slot::cloth: {
       static vector<e_colony_building> const bs{
-          e_colony_building::textile_mill,
-          e_colony_building::weavers_shop,
-          e_colony_building::weavers_house,
+        e_colony_building::textile_mill,
+        e_colony_building::weavers_shop,
+        e_colony_building::weavers_house,
       };
       return bs;
     }
     case e_colony_building_slot::coats: {
       static vector<e_colony_building> const bs{
-          e_colony_building::fur_factory,
-          e_colony_building::fur_trading_post,
-          e_colony_building::fur_traders_house,
+        e_colony_building::fur_factory,
+        e_colony_building::fur_trading_post,
+        e_colony_building::fur_traders_house,
       };
       return bs;
     }
     case e_colony_building_slot::cigars: {
       static vector<e_colony_building> const bs{
-          e_colony_building::cigar_factory,
-          e_colony_building::tobacconists_shop,
-          e_colony_building::tobacconists_house,
+        e_colony_building::cigar_factory,
+        e_colony_building::tobacconists_shop,
+        e_colony_building::tobacconists_house,
       };
       return bs;
     }
     case e_colony_building_slot::hammers: {
       static vector<e_colony_building> const bs{
-          e_colony_building::lumber_mill,
-          e_colony_building::carpenters_shop,
+        e_colony_building::lumber_mill,
+        e_colony_building::carpenters_shop,
       };
       return bs;
     }
     case e_colony_building_slot::town_hall: {
       static vector<e_colony_building> const bs{
-          e_colony_building::town_hall,
+        e_colony_building::town_hall,
       };
       return bs;
     }
     case e_colony_building_slot::newspapers: {
       static vector<e_colony_building> const bs{
-          e_colony_building::newspaper,
-          e_colony_building::printing_press,
+        e_colony_building::newspaper,
+        e_colony_building::printing_press,
       };
       return bs;
     }
     case e_colony_building_slot::schools: {
       static vector<e_colony_building> const bs{
-          e_colony_building::university,
-          e_colony_building::college,
-          e_colony_building::schoolhouse,
+        e_colony_building::university,
+        e_colony_building::college,
+        e_colony_building::schoolhouse,
       };
       return bs;
     }
     case e_colony_building_slot::offshore: {
       static vector<e_colony_building> const bs{
-          e_colony_building::shipyard,
-          e_colony_building::drydock,
-          e_colony_building::docks,
+        e_colony_building::shipyard,
+        e_colony_building::drydock,
+        e_colony_building::docks,
       };
       return bs;
     }
     case e_colony_building_slot::horses: {
       static vector<e_colony_building> const bs{
-          e_colony_building::stable,
+        e_colony_building::stable,
       };
       return bs;
     }
     case e_colony_building_slot::wall: {
       static vector<e_colony_building> const bs{
-          e_colony_building::fortress,
-          e_colony_building::fort,
-          e_colony_building::stockade,
+        e_colony_building::fortress,
+        e_colony_building::fort,
+        e_colony_building::stockade,
       };
       return bs;
     }
     case e_colony_building_slot::warehouses: {
       static vector<e_colony_building> const bs{
-          e_colony_building::warehouse_expansion,
-          e_colony_building::warehouse,
+        e_colony_building::warehouse_expansion,
+        e_colony_building::warehouse,
       };
       return bs;
     }
     case e_colony_building_slot::crosses: {
       static vector<e_colony_building> const bs{
-          e_colony_building::cathedral,
-          e_colony_building::church,
+        e_colony_building::cathedral,
+        e_colony_building::church,
       };
       return bs;
     }
     case e_colony_building_slot::custom_house: {
       static vector<e_colony_building> const bs{
-          e_colony_building::custom_house,
+        e_colony_building::custom_house,
       };
       return bs;
     }

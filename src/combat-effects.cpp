@@ -357,12 +357,12 @@ CombatEffectsSummaries summarize_combat_outcome(
   static constexpr string_view kNearDefault =
       " in the wilderness";
   return {
-      .attacker = summarize_for_euro_unit(
-          ss, combat.winner == e_combat_winner::attacker,
-          combat.attacker, combat.defender, kNearDefault ),
-      .defender = summarize_for_euro_unit(
-          ss, combat.winner == e_combat_winner::defender,
-          combat.defender, combat.attacker, kNearDefault ),
+    .attacker = summarize_for_euro_unit(
+        ss, combat.winner == e_combat_winner::attacker,
+        combat.attacker, combat.defender, kNearDefault ),
+    .defender = summarize_for_euro_unit(
+        ss, combat.winner == e_combat_winner::defender,
+        combat.defender, combat.attacker, kNearDefault ),
   };
 }
 
@@ -535,12 +535,12 @@ CombatEffectsSummaries summarize_combat_outcome(
     return {};
   static constexpr string_view kNearDefault = " at sea";
   return {
-      .attacker = summarize_for_euro_unit(
-          ss, combat.winner == e_combat_winner::attacker,
-          combat.attacker, combat.defender, kNearDefault ),
-      .defender = summarize_for_euro_unit(
-          ss, combat.winner == e_combat_winner::defender,
-          combat.defender, combat.attacker, kNearDefault ),
+    .attacker = summarize_for_euro_unit(
+        ss, combat.winner == e_combat_winner::attacker,
+        combat.attacker, combat.defender, kNearDefault ),
+    .defender = summarize_for_euro_unit(
+        ss, combat.winner == e_combat_winner::defender,
+        combat.defender, combat.attacker, kNearDefault ),
   };
 }
 
@@ -628,13 +628,13 @@ CombatEffectsSummaries summarize_combat_outcome(
   // Colony not taken over, so it's basically just a normal
   // battle outcome message.
   return summarize_combat_outcome(
-      ss, CombatEuroAttackEuro{
-              .winner   = combat.winner,
-              .attacker = combat.attacker,
-              .defender = {
-                  .id = combat.defender.id,
-                  .outcome =
-                      EuroUnitCombatOutcome::no_change{} } } );
+      ss,
+      CombatEuroAttackEuro{
+        .winner   = combat.winner,
+        .attacker = combat.attacker,
+        .defender = {
+          .id      = combat.defender.id,
+          .outcome = EuroUnitCombatOutcome::no_change{} } } );
 }
 
 } // namespace
@@ -679,15 +679,15 @@ CombatEffectsMessages combat_effects_msg(
              .defender  = { .for_both = { evade_msg } } };
   }
   CombatEffectsMessages res{
-      .summaries = summarize_combat_outcome( ss, combat ),
-      .attacker  = naval_unit_combat_effects_msg(
-          ss, attacker,
-          NavalBattleOpponent::unit{ .id = defender.id() },
-          combat.attacker.outcome ),
-      .defender = naval_unit_combat_effects_msg(
-          ss, defender,
-          NavalBattleOpponent::unit{ .id = attacker.id() },
-          combat.defender.outcome ) };
+    .summaries = summarize_combat_outcome( ss, combat ),
+    .attacker  = naval_unit_combat_effects_msg(
+        ss, attacker,
+        NavalBattleOpponent::unit{ .id = defender.id() },
+        combat.attacker.outcome ),
+    .defender = naval_unit_combat_effects_msg(
+        ss, defender,
+        NavalBattleOpponent::unit{ .id = attacker.id() },
+        combat.defender.outcome ) };
   for( auto const& [unit_id, affected_info] :
        combat.affected_defender_units ) {
     Unit const& affected_unit = ss.units.unit_for( unit_id );
@@ -771,17 +771,17 @@ CombatEffectsMessages combat_effects_msg(
       player_for_nation_or_die( ss.players, defender.nation() );
   if( !combat.colony_destroyed )
     return {
-        .summaries =
-            summarize_non_destroying_combat_outcome_in_colony(
-                ss, combat,
-                ss.colonies.colony_for( combat.colony_id ) ),
-        // There is no attacker message here because, as in the
-        // OG, the brave always gets destroyed when attacking a
-        // colony (whether it wins or loses), and there is no
-        // message displayed for that specifically.
-        .defender = euro_unit_combat_effects_msg(
-            ss, defending_player, defender,
-            combat.defender.outcome ) };
+      .summaries =
+          summarize_non_destroying_combat_outcome_in_colony(
+              ss, combat,
+              ss.colonies.colony_for( combat.colony_id ) ),
+      // There is no attacker message here because, as in the
+      // OG, the brave always gets destroyed when attacking a
+      // colony (whether it wins or loses), and there is no
+      // message displayed for that specifically.
+      .defender = euro_unit_combat_effects_msg(
+          ss, defending_player, defender,
+          combat.defender.outcome ) };
 
   // Colony burned. In this case there is no attacker message for
   // the same reason as above, but also no defender message since
@@ -818,13 +818,13 @@ MixedCombatEffectsMessages mix_combat_effects_msgs(
     return res;
   };
   return {
-      .summaries = msg.summaries,
-      .attacker  = flatten(
-          { msg.attacker.for_both, msg.attacker.for_owner,
-             msg.defender.for_both, msg.defender.for_other } ),
-      .defender = flatten(
-          { msg.defender.for_both, msg.defender.for_owner,
-            msg.attacker.for_both, msg.attacker.for_other } ) };
+    .summaries = msg.summaries,
+    .attacker  = flatten(
+        { msg.attacker.for_both, msg.attacker.for_owner,
+           msg.defender.for_both, msg.defender.for_other } ),
+    .defender = flatten(
+        { msg.defender.for_both, msg.defender.for_owner,
+          msg.attacker.for_both, msg.attacker.for_other } ) };
 }
 
 FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(

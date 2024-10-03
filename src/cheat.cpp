@@ -369,9 +369,9 @@ wait<> kill_natives( SS& ss, TS& ts ) {
   refl::enum_map<e_tribe, CheckBoxInfo> info_map;
   for( e_tribe const tribe : tribes )
     info_map[tribe] = {
-        .name     = config_natives.tribes[tribe].name_singular,
-        .on       = false,
-        .disabled = !ss.natives.tribe_exists( tribe ),
+      .name     = config_natives.tribes[tribe].name_singular,
+      .on       = false,
+      .disabled = !ss.natives.tribe_exists( tribe ),
     };
   // Note that if the user cancels this box then the values will
   // be unchanged, so effectively nothing will happen.
@@ -476,13 +476,13 @@ void cheat_decrease_tax_rate( Player& player ) {
 void cheat_increase_gold( Player& player ) {
   RETURN_IF_NO_CHEAT;
   int& gold = player.money;
-  gold      = gold + 1000;
+  gold      = gold + 1'000;
 }
 
 void cheat_decrease_gold( Player& player ) {
   RETURN_IF_NO_CHEAT;
   int& gold = player.money;
-  gold      = std::max( gold - 1000, 0 );
+  gold      = std::max( gold - 1'000, 0 );
 }
 
 wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
@@ -737,74 +737,74 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
   CO_RETURN_IF_NO_CHEAT;
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
-      { e_cheat_unit_creation_categories::basic_colonists,
-        {
-            e_unit_type::free_colonist,
-            e_unit_type::indentured_servant,
-            e_unit_type::petty_criminal,
-            e_unit_type::native_convert,
-        } },
-      { e_cheat_unit_creation_categories::modified_colonists,
-        {
-            e_unit_type::pioneer,
-            e_unit_type::hardy_pioneer,
-            e_unit_type::missionary,
-            e_unit_type::jesuit_missionary,
-            e_unit_type::scout,
-            e_unit_type::seasoned_scout,
-        } },
-      { e_cheat_unit_creation_categories::expert_colonists,
-        {
-            e_unit_type::expert_farmer,
-            e_unit_type::expert_fisherman,
-            e_unit_type::expert_sugar_planter,
-            e_unit_type::expert_tobacco_planter,
-            e_unit_type::expert_cotton_planter,
-            e_unit_type::expert_fur_trapper,
-            e_unit_type::expert_lumberjack,
-            e_unit_type::expert_ore_miner,
-            e_unit_type::expert_silver_miner,
-            e_unit_type::master_carpenter,
-            e_unit_type::master_distiller,
-            e_unit_type::master_tobacconist,
-            e_unit_type::master_weaver,
-            e_unit_type::master_fur_trader,
-            e_unit_type::master_blacksmith,
-            e_unit_type::master_gunsmith,
-            e_unit_type::elder_statesman,
-            e_unit_type::firebrand_preacher,
-            e_unit_type::hardy_colonist,
-            e_unit_type::jesuit_colonist,
-            e_unit_type::seasoned_colonist,
-            e_unit_type::veteran_colonist,
-        } },
-      { e_cheat_unit_creation_categories::armies,
-        {
-            e_unit_type::soldier,
-            e_unit_type::dragoon,
-            e_unit_type::veteran_soldier,
-            e_unit_type::veteran_dragoon,
-            e_unit_type::continental_army,
-            e_unit_type::continental_cavalry,
-            e_unit_type::regular,
-            e_unit_type::cavalry,
-            e_unit_type::artillery,
-            e_unit_type::damaged_artillery,
-        } },
-      { e_cheat_unit_creation_categories::ships,
-        {
-            e_unit_type::caravel,
-            e_unit_type::merchantman,
-            e_unit_type::galleon,
-            e_unit_type::privateer,
-            e_unit_type::frigate,
-            e_unit_type::man_o_war,
-        } },
-      { e_cheat_unit_creation_categories::miscellaneous,
-        {
-            e_unit_type::wagon_train,
-            e_unit_type::treasure,
-        } },
+    { e_cheat_unit_creation_categories::basic_colonists,
+      {
+        e_unit_type::free_colonist,
+        e_unit_type::indentured_servant,
+        e_unit_type::petty_criminal,
+        e_unit_type::native_convert,
+      } },
+    { e_cheat_unit_creation_categories::modified_colonists,
+      {
+        e_unit_type::pioneer,
+        e_unit_type::hardy_pioneer,
+        e_unit_type::missionary,
+        e_unit_type::jesuit_missionary,
+        e_unit_type::scout,
+        e_unit_type::seasoned_scout,
+      } },
+    { e_cheat_unit_creation_categories::expert_colonists,
+      {
+        e_unit_type::expert_farmer,
+        e_unit_type::expert_fisherman,
+        e_unit_type::expert_sugar_planter,
+        e_unit_type::expert_tobacco_planter,
+        e_unit_type::expert_cotton_planter,
+        e_unit_type::expert_fur_trapper,
+        e_unit_type::expert_lumberjack,
+        e_unit_type::expert_ore_miner,
+        e_unit_type::expert_silver_miner,
+        e_unit_type::master_carpenter,
+        e_unit_type::master_distiller,
+        e_unit_type::master_tobacconist,
+        e_unit_type::master_weaver,
+        e_unit_type::master_fur_trader,
+        e_unit_type::master_blacksmith,
+        e_unit_type::master_gunsmith,
+        e_unit_type::elder_statesman,
+        e_unit_type::firebrand_preacher,
+        e_unit_type::hardy_colonist,
+        e_unit_type::jesuit_colonist,
+        e_unit_type::seasoned_colonist,
+        e_unit_type::veteran_colonist,
+      } },
+    { e_cheat_unit_creation_categories::armies,
+      {
+        e_unit_type::soldier,
+        e_unit_type::dragoon,
+        e_unit_type::veteran_soldier,
+        e_unit_type::veteran_dragoon,
+        e_unit_type::continental_army,
+        e_unit_type::continental_cavalry,
+        e_unit_type::regular,
+        e_unit_type::cavalry,
+        e_unit_type::artillery,
+        e_unit_type::damaged_artillery,
+      } },
+    { e_cheat_unit_creation_categories::ships,
+      {
+        e_unit_type::caravel,
+        e_unit_type::merchantman,
+        e_unit_type::galleon,
+        e_unit_type::privateer,
+        e_unit_type::frigate,
+        e_unit_type::man_o_war,
+      } },
+    { e_cheat_unit_creation_categories::miscellaneous,
+      {
+        e_unit_type::wagon_train,
+        e_unit_type::treasure,
+      } },
   };
   maybe<e_cheat_unit_creation_categories> category =
       co_await ts.gui.optional_enum_choice<

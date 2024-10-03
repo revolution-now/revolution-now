@@ -65,7 +65,7 @@ void check_ran_out_of_raw_materials( ColonyEvolution& ev ) {
           // warehouse.
           ev.notifications.push_back(
               ColonyNotification::run_out_of_raw_material{
-                  .what = what, .job = job } );
+                .what = what, .job = job } );
       };
 
   check( e_commodity::sugar, e_indoor_job::rum,
@@ -110,7 +110,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
 
   if( spoiled.empty() ) return nothing;
   return ColonyNotification::spoilage{
-      .spoiled = std::move( spoiled ) };
+    .spoiled = std::move( spoiled ) };
 }
 
 config::colony::construction_requirements materials_needed(
@@ -215,7 +215,7 @@ void check_construction( SS& ss, TS& ts, Player const& player,
       if( !colony.indoor_jobs[e_indoor_job::hammers].empty() )
         ev.notifications.emplace_back(
             ColonyNotification::construction_already_finished{
-                .what = construction } );
+              .what = construction } );
       return;
     }
   }
@@ -226,9 +226,9 @@ void check_construction( SS& ss, TS& ts, Player const& player,
       requirements.minimum_population ) {
     ev.notifications.emplace_back(
         ColonyNotification::construction_lacking_population{
-            .what = construction,
-            .required_population =
-                requirements.minimum_population } );
+          .what = construction,
+          .required_population =
+              requirements.minimum_population } );
     return;
   }
 
@@ -237,9 +237,9 @@ void check_construction( SS& ss, TS& ts, Player const& player,
           colony, *requirements.required_building ) ) {
     ev.notifications.emplace_back(
         ColonyNotification::construction_lacking_building{
-            .what = construction,
-            .required_building =
-                *requirements.required_building } );
+          .what = construction,
+          .required_building =
+              *requirements.required_building } );
     return;
   }
 
@@ -251,9 +251,9 @@ void check_construction( SS& ss, TS& ts, Player const& player,
       requirements.tools ) {
     ev.notifications.emplace_back(
         ColonyNotification::construction_missing_tools{
-            .what       = construction,
-            .have_tools = have_tools,
-            .need_tools = requirements.tools } );
+          .what       = construction,
+          .have_tools = have_tools,
+          .need_tools = requirements.tools } );
     return;
   }
 
@@ -273,7 +273,7 @@ void check_construction( SS& ss, TS& ts, Player const& player,
 
   ev.notifications.emplace_back(
       ColonyNotification::construction_complete{
-          .what = construction } );
+        .what = construction } );
 
   switch( construction.to_enum() ) {
     using e = Construction::e;
@@ -372,16 +372,16 @@ void evolve_sons_of_liberty(
         new_sons_of_liberty_integral_percent >= threshold ) {
       notifications.push_back(
           ColonyNotification::sons_of_liberty_increased{
-              .from = sol.last_sons_of_liberty_integral_percent,
-              .to   = new_sons_of_liberty_integral_percent } );
+            .from = sol.last_sons_of_liberty_integral_percent,
+            .to   = new_sons_of_liberty_integral_percent } );
       break;
     }
     if( sol.last_sons_of_liberty_integral_percent >= threshold &&
         new_sons_of_liberty_integral_percent < threshold ) {
       notifications.push_back(
           ColonyNotification::sons_of_liberty_decreased{
-              .from = sol.last_sons_of_liberty_integral_percent,
-              .to   = new_sons_of_liberty_integral_percent } );
+            .from = sol.last_sons_of_liberty_integral_percent,
+            .to   = new_sons_of_liberty_integral_percent } );
       break;
     }
   }
@@ -459,7 +459,7 @@ void check_colonist_on_the_job_training(
       Unit& unit = ss.units.unit_for( unit_id );
       change_unit_type( ss, ts, unit, promoted_to );
       notifications.push_back( ColonyNotification::unit_promoted{
-          .promoted_to = promoted_to } );
+        .promoted_to = promoted_to } );
     }
   }
 }
@@ -479,7 +479,7 @@ void check_colonists_teaching(
       case TeacherAction::e::taught_unit: {
         auto& o = tev.action.get<TeacherAction::taught_unit>();
         notifications.push_back( ColonyNotification::unit_taught{
-            .from = o.from_type, .to = o.to_type } );
+          .from = o.from_type, .to = o.to_type } );
         break;
       }
       case TeacherAction::e::taught_no_one: {
@@ -488,9 +488,9 @@ void check_colonists_teaching(
         // i.e. it won't appear each turn.
         notifications.push_back(
             ColonyNotification::teacher_but_no_students{
-                .teacher_type =
-                    ss.units.unit_for( tev.teacher_unit_id )
-                        .type() } );
+              .teacher_type =
+                  ss.units.unit_for( tev.teacher_unit_id )
+                      .type() } );
         break;
       }
     }
@@ -509,13 +509,13 @@ void process_custom_house( SS& ss, Player& player,
     apply_custom_house_sales( ss, player, colony, sales );
     ev.notifications.push_back(
         ColonyNotification::custom_house_sales{
-            .what = std::move( sales.invoices ) } );
+          .what = std::move( sales.invoices ) } );
   }
 
   if( !sales.boycotted.empty() ) {
     ev.notifications.push_back(
         ColonyNotification::custom_house_selling_boycotted_good{
-            .what = std::move( sales.boycotted ) } );
+          .what = std::move( sales.boycotted ) } );
   }
 }
 
@@ -528,9 +528,8 @@ void check_prime_resource_depletion(
   for( DepletionEvent const& event : events )
     notifications.push_back(
         ColonyNotification::prime_resource_depleted{
-            .what = event.resource_from,
-            .partial_depletion =
-                event.resource_to.has_value() } );
+          .what              = event.resource_from,
+          .partial_depletion = event.resource_to.has_value() } );
 }
 
 } // namespace
@@ -542,10 +541,10 @@ ColonyNotificationMessage generate_colony_notification_message(
     Colony const&             colony,
     ColonyNotification const& notification ) {
   ColonyNotificationMessage res{
-      // We shouldn't ever use this, but give a fallback to help
-      // debugging if we miss something.
-      .msg       = base::to_str( notification ),
-      .transient = false };
+    // We shouldn't ever use this, but give a fallback to help
+    // debugging if we miss something.
+    .msg       = base::to_str( notification ),
+    .transient = false };
 
   switch( notification.to_enum() ) {
     case ColonyNotification::e::new_colonist: {
@@ -637,7 +636,7 @@ ColonyNotificationMessage generate_colony_notification_message(
           "cannot be completed.",
           colony.name, construction_name( o.what ),
           construction_name( Construction::building{
-              .what = o.required_building } ) );
+            .what = o.required_building } ) );
       break;
     }
       // clang-format off

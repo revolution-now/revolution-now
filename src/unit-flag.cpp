@@ -87,8 +87,8 @@ char char_value_for_orders( unit_orders const& orders ) {
 UnitFlagContents flag_char_info_from_orders(
     unit_orders const& orders ) {
   return UnitFlagContents::character{
-      .value = char_value_for_orders( orders ),
-      .color = char_color_for_orders( orders ),
+    .value = char_value_for_orders( orders ),
+    .color = char_color_for_orders( orders ),
   };
 }
 
@@ -99,9 +99,8 @@ UnitFlagContents flag_char_info_for_privateer() {
 UnitFlagContents flag_char_info_for_strategy() {
   // TODO
   return UnitFlagContents::character{
-      .value = '?',
-      .color =
-          config_gfx.unit_flag_colors.unit_flag_text_color };
+    .value = '?',
+    .color = config_gfx.unit_flag_colors.unit_flag_text_color };
 }
 
 gfx::pixel outline_color_from_background_color(
@@ -185,13 +184,13 @@ UnitFlagRenderInfo euro_unit_type_flag_info(
   bool const in_front = unit_attr( unit_type ).nat_icon_front;
   bool const stacked  = false;
   return UnitFlagRenderInfo{
-      .stacked          = stacked,
-      .size             = kFlagIconSize,
-      .offsets          = offsets,
-      .outline_color    = outline_color,
-      .background_color = background_color,
-      .contents         = flag_contents,
-      .in_front         = in_front };
+    .stacked          = stacked,
+    .size             = kFlagIconSize,
+    .offsets          = offsets,
+    .outline_color    = outline_color,
+    .background_color = background_color,
+    .contents         = flag_contents,
+    .in_front         = in_front };
 }
 
 UnitFlagRenderInfo euro_unit_flag_render_info(
@@ -222,13 +221,13 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
   bool const stacked =
       ( options.flag_count == e_flag_count::multiple );
   return UnitFlagRenderInfo{
-      .stacked          = stacked,
-      .size             = kFlagIconSize,
-      .offsets          = offsets,
-      .outline_color    = outline_color,
-      .background_color = background_color,
-      .contents         = flag_contents,
-      .in_front         = in_front };
+    .stacked          = stacked,
+    .size             = kFlagIconSize,
+    .offsets          = offsets,
+    .outline_color    = outline_color,
+    .background_color = background_color,
+    .contents         = flag_contents,
+    .in_front         = in_front };
 }
 
 UnitFlagRenderInfo native_unit_flag_render_info(
@@ -253,13 +252,13 @@ UnitFlagRenderInfo native_unit_flag_render_info(
   bool const stacked =
       ( options.flag_count == e_flag_count::multiple );
   return UnitFlagRenderInfo{
-      .stacked          = stacked,
-      .size             = kFlagIconSize,
-      .offsets          = offsets,
-      .outline_color    = outline_color,
-      .background_color = background_color,
-      .contents         = flag_contents,
-      .in_front         = in_front };
+    .stacked          = stacked,
+    .size             = kFlagIconSize,
+    .offsets          = offsets,
+    .outline_color    = outline_color,
+    .background_color = background_color,
+    .contents         = flag_contents,
+    .in_front         = in_front };
 }
 
 UnitFlagRenderInfo native_unit_type_flag_info(
@@ -283,13 +282,13 @@ UnitFlagRenderInfo native_unit_type_flag_info(
   bool const stacked =
       ( options.flag_count == e_flag_count::multiple );
   return UnitFlagRenderInfo{
-      .stacked          = stacked,
-      .size             = kFlagIconSize,
-      .offsets          = offsets,
-      .outline_color    = outline_color,
-      .background_color = background_color,
-      .contents         = flag_contents,
-      .in_front         = in_front };
+    .stacked          = stacked,
+    .size             = kFlagIconSize,
+    .offsets          = offsets,
+    .outline_color    = outline_color,
+    .background_color = background_color,
+    .contents         = flag_contents,
+    .in_front         = in_front };
 }
 
 } // namespace rn

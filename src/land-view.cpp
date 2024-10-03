@@ -232,7 +232,7 @@ struct LandViewPlane::Impl : public IPlane {
       if( units.size() == 1 ) {
         auto          id = *units.begin();
         UnitSelection selection{
-            id, e_unit_selection::clear_orders };
+          id, e_unit_selection::clear_orders };
         if( !ss_.units.unit_for( id ).has_orders() )
           selection.what = e_unit_selection::activate;
         selections = vector{ selection };
@@ -315,9 +315,8 @@ struct LandViewPlane::Impl : public IPlane {
       case e::cmd: {
         translated_input_stream_.push( PlayerInput(
             LandViewPlayerInput::give_command{
-                .cmd =
-                    raw_input.input.get<LandViewRawInput::cmd>()
-                        .what },
+              .cmd = raw_input.input.get<LandViewRawInput::cmd>()
+                         .what },
             raw_input.when ) );
         break;
       }
@@ -556,7 +555,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .what = command::sentry{} } ) );
+                .what = command::sentry{} } ) );
         };
         return handler;
       }
@@ -565,7 +564,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .what = command::fortify{} } ) );
+                .what = command::fortify{} } ) );
         };
         return handler;
       }
@@ -582,7 +581,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .what = command::dump{} } ) );
+                .what = command::dump{} } ) );
         };
         return handler;
       }
@@ -591,7 +590,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .what = command::plow{} } ) );
+                .what = command::plow{} } ) );
         };
         return handler;
       }
@@ -600,7 +599,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::cmd{
-                  .what = command::road{} } ) );
+                .what = command::road{} } ) );
         };
         return handler;
       }
@@ -697,32 +696,32 @@ struct LandViewPlane::Impl : public IPlane {
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::wait{} } ) );
+                  .what = command::wait{} } ) );
             break;
           case ::SDLK_s:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::sentry{} } ) );
+                  .what = command::sentry{} } ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::fortify{} } ) );
+                  .what = command::fortify{} } ) );
             break;
           case ::SDLK_o:
             // Capital O.
             if( !key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::dump{} } ) );
+                  .what = command::dump{} } ) );
             break;
           case ::SDLK_b:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::build{} } ) );
+                  .what = command::build{} } ) );
             break;
           case ::SDLK_c:
             if( key_event.mod.shf_down ) break;
@@ -734,7 +733,7 @@ struct LandViewPlane::Impl : public IPlane {
             // Note: shift key down.
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
-                    .what = command::disband{} } ) );
+                  .what = command::disband{} } ) );
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
@@ -766,7 +765,7 @@ struct LandViewPlane::Impl : public IPlane {
               if( key_event.mod.shf_down ) break;
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
-                      .what = command::forfeight{} } ) );
+                    .what = command::forfeight{} } ) );
             } else if( mode_.holds<
                            LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
@@ -779,8 +778,8 @@ struct LandViewPlane::Impl : public IPlane {
             if( key_event.direction ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::cmd{
-                      .what = command::move{
-                          *key_event.direction } } ) );
+                    .what = command::move{
+                      *key_event.direction } } ) );
               handled = e_input_handled::yes;
             }
             break;
@@ -820,7 +819,7 @@ struct LandViewPlane::Impl : public IPlane {
         lg.debug( "clicked on tile: {}.", world_tile );
         raw_input_stream_.send(
             RawInput( LandViewRawInput::tile_click{
-                .coord = world_tile, .mods = val.mod } ) );
+              .coord = world_tile, .mods = val.mod } ) );
         break;
       }
       default: //
@@ -949,7 +948,7 @@ struct LandViewPlane::Impl : public IPlane {
       // eat this command and display an indicator to signal that
       // inputs are getting eaten.
       input_overrun_indicator_ = InputOverrunIndicator{
-          .unit_id = id, .start_time = raw_input.when };
+        .unit_id = id, .start_time = raw_input.when };
     }
     reset_input_buffers();
   }
@@ -1138,9 +1137,9 @@ struct LandViewPlane::Impl : public IPlane {
               visible_initially );
 
     last_unit_input_ = LastUnitInput{
-        .unit_id                  = id,
-        .need_input_buffer_shield = true,
-        .window_count = ts_.gui.total_windows_created() };
+      .unit_id                  = id,
+      .need_input_buffer_shield = true,
+      .window_count = ts_.gui.total_windows_created() };
 
     // Run the blinker while waiting for user input. The question
     // is, do we want the blinking to start "on" or "off"? The

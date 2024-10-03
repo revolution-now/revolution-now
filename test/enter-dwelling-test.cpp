@@ -124,7 +124,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   unit_type                = e_unit_type::free_colonist;
   expected.reaction = e_enter_dwelling_reaction::wave_happily;
   expected.options  = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -135,8 +135,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::live_among_the_natives,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::live_among_the_natives,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -146,7 +146,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -157,8 +157,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::live_among_the_natives,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::live_among_the_natives,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -168,7 +168,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -179,8 +179,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::live_among_the_natives,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::live_among_the_natives,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -190,7 +190,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -200,10 +200,10 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::speak_with_chief,
-      e_enter_dwelling_option::attack_village,
-      // e_enter_dwelling_option::demand_tribute,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::speak_with_chief,
+    e_enter_dwelling_option::attack_village,
+    // e_enter_dwelling_option::demand_tribute,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -213,9 +213,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::speak_with_chief,
-      e_enter_dwelling_option::attack_village,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::speak_with_chief,
+    e_enter_dwelling_option::attack_village,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -225,9 +225,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::attack_village,
-      // e_enter_dwelling_option::demand_tribute,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::attack_village,
+    // e_enter_dwelling_option::demand_tribute,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -237,8 +237,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::attack_village,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::attack_village,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -252,8 +252,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      // e_enter_dwelling_option::incite_indians,
-      e_enter_dwelling_option::cancel,
+    // e_enter_dwelling_option::incite_indians,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -265,9 +265,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::establish_mission,
-      // e_enter_dwelling_option::incite_indians,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::establish_mission,
+    // e_enter_dwelling_option::incite_indians,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -281,9 +281,9 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      // e_enter_dwelling_option::denounce_foreign_mission,
-      // e_enter_dwelling_option::incite_indians,
-      e_enter_dwelling_option::cancel,
+    // e_enter_dwelling_option::denounce_foreign_mission,
+    // e_enter_dwelling_option::incite_indians,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
   UnitOwnershipChanger( W.ss(), foreign_missionary.id() )
@@ -297,7 +297,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -307,8 +307,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::trade,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::trade,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -318,8 +318,8 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::scalps_and_war_drums;
   expected.options = {
-      e_enter_dwelling_option::trade,
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::trade,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 
@@ -329,7 +329,7 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
   expected.reaction =
       e_enter_dwelling_reaction::frowning_archers;
   expected.options = {
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   REQUIRE( f() == expected );
 }
@@ -351,11 +351,11 @@ TEST_CASE( "[enter-dwelling] dwelling entry not encountered" ) {
   };
 
   options = {
-      .dwelling_id = dwelling.id,
-      .reaction    = e_enter_dwelling_reaction::wave_happily,
-      .options     = {
-          e_enter_dwelling_option::attack_village,
-          e_enter_dwelling_option::live_among_the_natives } };
+    .dwelling_id = dwelling.id,
+    .reaction    = e_enter_dwelling_reaction::wave_happily,
+    .options     = {
+      e_enter_dwelling_option::attack_village,
+      e_enter_dwelling_option::live_among_the_natives } };
 
   W.gui().EXPECT__message_box( StrContains( "on land first" ) );
   expected = e_enter_dwelling_option::cancel;
@@ -381,11 +381,11 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
   };
 
   options = {
-      .dwelling_id = dwelling.id,
-      .reaction    = e_enter_dwelling_reaction::wave_happily,
-      .options     = {
-          e_enter_dwelling_option::attack_village,
-          e_enter_dwelling_option::live_among_the_natives } };
+    .dwelling_id = dwelling.id,
+    .reaction    = e_enter_dwelling_reaction::wave_happily,
+    .options     = {
+      e_enter_dwelling_option::attack_village,
+      e_enter_dwelling_option::live_among_the_natives } };
 
   W.euro_mind().EXPECT__show_woodcut(
       e_woodcut::entering_native_village );
@@ -472,36 +472,36 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
 
   // has_expertise.
   expected = LiveAmongTheNatives::has_expertise{
-      .in_what = e_unit_activity::fishing };
+    .in_what = e_unit_activity::fishing };
   comp = e_unit_type::expert_fisherman;
   REQUIRE( f() == expected );
 
   // has_expertise.
   expected = LiveAmongTheNatives::has_expertise{
-      .in_what = e_unit_activity::pioneering };
+    .in_what = e_unit_activity::pioneering };
   comp = e_unit_type::hardy_pioneer;
   REQUIRE( f() == expected );
 
   // promoted (servant).
   expected = LiveAmongTheNatives::promoted{
-      .to = e_unit_type::expert_ore_miner };
+    .to = e_unit_type::expert_ore_miner };
   comp = e_unit_type::indentured_servant;
   REQUIRE( f() == expected );
 
   // promoted (free colonist).
   expected = LiveAmongTheNatives::promoted{
-      .to = e_unit_type::expert_ore_miner };
+    .to = e_unit_type::expert_ore_miner };
   comp = e_unit_type::free_colonist;
   REQUIRE( f() == expected );
 
   // promoted (pioneer 80 tools).
   expected = LiveAmongTheNatives::promoted{
-      .to = UnitComposition::create(
-                UnitType::create( e_unit_type::pioneer,
-                                  e_unit_type::expert_ore_miner )
-                    .value(),
-                { { e_unit_inventory::tools, 80 } } )
-                .value() };
+    .to = UnitComposition::create(
+              UnitType::create( e_unit_type::pioneer,
+                                e_unit_type::expert_ore_miner )
+                  .value(),
+              { { e_unit_inventory::tools, 80 } } )
+              .value() };
   comp = UnitComposition::create(
              UnitType::create( e_unit_type::pioneer,
                                e_unit_type::indentured_servant )
@@ -540,7 +540,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   // Eligible buy decline.
   outcome = LiveAmongTheNatives::promoted{
-      .to = e_unit_type::expert_cotton_planter };
+    .to = e_unit_type::expert_cotton_planter };
   W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
   f();
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -548,7 +548,7 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 
   // Eligible and accept.
   outcome = LiveAmongTheNatives::promoted{
-      .to = e_unit_type::expert_cotton_planter };
+    .to = e_unit_type::expert_cotton_planter };
   W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
 
   W.gui()
@@ -603,10 +603,10 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   Dwelling* dwelling                = &dwelling_tupi;
 
   SpeakWithChiefResult expected{
-      .expertise         = e_native_skill::cotton_planting,
-      .primary_trade     = e_commodity::trade_goods,
-      .secondary_trade_1 = e_commodity::ore,
-      .secondary_trade_2 = e_commodity::horses };
+    .expertise         = e_native_skill::cotton_planting,
+    .primary_trade     = e_commodity::trade_goods,
+    .secondary_trade_1 = e_commodity::ore,
+    .secondary_trade_2 = e_commodity::horses };
 
   auto f = [&] {
     CHECK( p_unit != nullptr );
@@ -698,8 +698,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   p_unit           = &scout_seasoned;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
   W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 20 );
-  W.rand().EXPECT__between_ints( 166, 2000 ).returns( 1111 );
-  expected.action = ChiefAction::gift_money{ .quantity = 1111 };
+  W.rand().EXPECT__between_ints( 166, 2'000 ).returns( 1'111 );
+  expected.action = ChiefAction::gift_money{ .quantity = 1'111 };
   REQUIRE( f() == expected );
   dwelling = &dwelling_tupi;
 
@@ -729,14 +729,14 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       // Remove squares in the radius of the scout, which are al-
       // ready visible.
       static Rect const scout_visible{
-          .x = 1, .y = 1, .w = 5, .h = 5 };
+        .x = 1, .y = 1, .w = 5, .h = 5 };
       if( c.is_inside( scout_visible ) ) continue;
       expected_tiles.push_back( c );
     }
   }
   REQUIRE_FALSE( expected_tiles.empty() );
   expected.action = ChiefAction::tales_of_nearby_lands{
-      .tiles = expected_tiles };
+    .tiles = expected_tiles };
   REQUIRE( f() == expected );
 
   // outcome: tales of nearby land seasoned.
@@ -752,14 +752,14 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
       // Remove squares in the radius of the scout, which are al-
       // ready visible.
       static Rect const scout_visible{
-          .x = 1, .y = 1, .w = 5, .h = 5 };
+        .x = 1, .y = 1, .w = 5, .h = 5 };
       if( c.is_inside( scout_visible ) ) continue;
       expected_tiles.push_back( c );
     }
   }
   REQUIRE_FALSE( expected_tiles.empty() );
   expected.action = ChiefAction::tales_of_nearby_lands{
-      .tiles = expected_tiles };
+    .tiles = expected_tiles };
   REQUIRE( f() == expected );
 }
 
@@ -846,7 +846,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
     using namespace std::literals::chrono_literals;
     p_unit         = &scout_petty;
     outcome.action = ChiefAction::tales_of_nearby_lands{
-        .tiles = { { .x = 0, .y = 6 }, { .x = 1, .y = 6 } } };
+      .tiles = { { .x = 0, .y = 6 }, { .x = 1, .y = 6 } } };
 
     W.gui().EXPECT__message_box(
         StrContains( "Greetings traveler" ) );
@@ -857,9 +857,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         StrContains( "sit around the campfire" ) );
     mock_land_view.EXPECT__center_on_tile(
         Coord{ .x = 4, .y = 4 } );
-    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
-    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
-    W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20'000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20'000us );
+    W.gui().EXPECT__wait_for( 600ms ).returns( 600'000us );
     VisibilityForNation const viz( W.ss(), W.default_nation() );
     W.map_updater().make_squares_visible(
         W.default_nation(), { { .x = 3, .y = 6 } } );
@@ -960,7 +960,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   Unit& missionary = W.add_unit_on_map( e_unit_type::missionary,
                                         { .x = 1, .y = 0 } );
-  W.turn().time_point.year = 1501;
+  W.turn().time_point.year = 1'501;
   string msg;
 
   auto f = [&] {
@@ -988,7 +988,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
   REQUIRE(
       as_const( W.units() ).ownership_of( missionary.id() ) ==
       UnitOwnership{
-          UnitOwnership::dwelling{ .id = dwelling.id } } );
+        UnitOwnership::dwelling{ .id = dwelling.id } } );
 
   // Post-declaration.
   W.default_player().revolution_status =

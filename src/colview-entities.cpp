@@ -109,7 +109,7 @@ Cargo to_cargo( ColViewObject const& o ) {
       return Cargo::unit{ o.get<ColViewObject::unit>().id };
     case e::commodity:
       return Cargo::commodity{
-          o.get<ColViewObject::commodity>().comm };
+        o.get<ColViewObject::commodity>().comm };
   }
 }
 
@@ -139,10 +139,10 @@ bool check_stockade_3( Colony const& colony ) {
 wait<bool> check_abandon( Colony const& colony, IGui& gui ) {
   if( colony_population( colony ) > 1 ) co_return false;
   YesNoConfig const config{
-      .msg = "Shall we abandon this colony, Your Excellency?",
-      .yes_label      = "Yes, it is God's will.",
-      .no_label       = "Never!  That would be folly.",
-      .no_comes_first = true,
+    .msg = "Shall we abandon this colony, Your Excellency?",
+    .yes_label      = "Yes, it is God's will.",
+    .no_label       = "Never!  That would be folly.",
+    .no_comes_first = true,
   };
   maybe<ui::e_confirm> res =
       co_await gui.optional_yes_no( config );
@@ -174,13 +174,13 @@ wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
     TS& ts, Colony const& colony, Unit const& unit ) {
   if( colony_population( colony ) > 1 ) co_return nothing;
   ChoiceConfig config{
-      .msg = fmt::format(
-          "As this action would abandon the colony and discard "
-          "all of its contents, shall we equip this [{}] "
-          "before proceeding?",
-          unit.desc().name ),
-      .options = {},
-      .sort    = false,
+    .msg = fmt::format(
+        "As this action would abandon the colony and discard "
+        "all of its contents, shall we equip this [{}] "
+        "before proceeding?",
+        unit.desc().name ),
+    .options = {},
+    .sort    = false,
   };
   vector<ColonyEquipOption> const equip_opts =
       colony_equip_options( colony, unit.composition() );
@@ -203,8 +203,8 @@ wait<maybe<ColonyEquipOption>> ask_transorm_unit_on_leave(
     ColonyEquipOption const& equip_opt = equip_opts[idx];
     if( equip_opt.new_comp == unit.composition() ) continue;
     ChoiceConfigOption option{
-        .key          = fmt::to_string( idx ),
-        .display_name = colony_equip_description( equip_opt ) };
+      .key          = fmt::to_string( idx ),
+      .display_name = colony_equip_description( equip_opt ) };
     config.options.push_back( std::move( option ) );
   }
   maybe<string> const choice =
@@ -360,8 +360,8 @@ class MarketCommodities
 
   Delta delta() const override {
     return Delta{
-        block_width_ * SX{ refl::enum_count<e_commodity> },
-        1 * 32 };
+      block_width_ * SX{ refl::enum_count<e_commodity> },
+      1 * 32 };
   }
 
   // Implement IDraggableObjectsView.
@@ -401,7 +401,7 @@ class MarketCommodities
       // FIXME: this color should be deduped with the one in the
       // harbor view.
       static gfx::pixel const bg_color = gfx::pixel{
-          .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
+        .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
       painter.draw_solid_rect( rect, bg_color );
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
@@ -471,11 +471,11 @@ class MarketCommodities
     // still recognize what is under the cursor even if there is
     // zero quantity of it.
     return DraggableObjectWithBounds<ColViewObject>{
-        .obj    = ColViewObject::commodity{ Commodity{
-               .type = type, .quantity = quantity } },
-        .bounds = Rect::from(
-            box_upper_left + rendered_commodity_offset(),
-            Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
+      .obj    = ColViewObject::commodity{ Commodity{
+           .type = type, .quantity = quantity } },
+      .bounds = Rect::from(
+          box_upper_left + rendered_commodity_offset(),
+          Delta{ .w = 1, .h = 1 } * kCommodityTileSize ) };
   }
 
   bool try_drag( ColViewObject const& o,
@@ -513,7 +513,7 @@ class MarketCommodities
     CHECK( where.is_inside( rect( {} ) ) );
     if( o.holds<ColViewObject::commodity>() )
       return CanReceiveDraggable<ColViewObject>::yes{
-          .draggable = o };
+        .draggable = o };
     return nothing;
   }
 
@@ -696,7 +696,7 @@ class CargoView : public ui::View,
       // there always will be, because the cargo originated from
       // within this same cargo.
       return CanReceiveDraggable<ColViewObject>::yes{
-          .draggable = o };
+        .draggable = o };
     }
     // We are dragging from another source, so we must check to
     // see if we have room for what is being dragged.
@@ -709,9 +709,9 @@ class CargoView : public ui::View,
           // It may not be obvious to the player why this is
           // being rejected, so give this one a message.
           return CanReceiveDraggable<ColViewObject>::no_with_msg{
-              .msg = fmt::format(
-                  "[{}] cannot hold units as cargo.",
-                  holder.desc().name_plural ) };
+            .msg =
+                fmt::format( "[{}] cannot hold units as cargo.",
+                             holder.desc().name_plural ) };
         // Note that we allow wagon trains to recieve units at
         // this stage as long as they theoretically fit. In the
         // next stage we will reject that and present a message
@@ -720,7 +720,7 @@ class CargoView : public ui::View,
                 ss_.units, Cargo::unit{ unit.id } ) )
           return nothing;
         return CanReceiveDraggable<ColViewObject>::yes{
-            .draggable = o };
+          .draggable = o };
       }
       CASE( commodity ) {
         Commodity comm = commodity.comm;
@@ -730,8 +730,8 @@ class CargoView : public ui::View,
         comm.quantity = clamp( comm.quantity, 0, max_quantity );
         if( comm.quantity == 0 ) return nothing;
         return CanReceiveDraggable<ColViewObject>::yes{
-            .draggable =
-                ColViewObject::commodity{ .comm = comm } };
+          .draggable =
+              ColViewObject::commodity{ .comm = comm } };
       }
     }
   }
@@ -792,7 +792,7 @@ class CargoView : public ui::View,
       case e_colview_entity::buildings: //
         if( check_stockade_3( colony_ ) )
           co_return DragRejection{
-              .reason = string( kReduceStockadeThreeMsg ) };
+            .reason = string( kReduceStockadeThreeMsg ) };
         if( co_await check_abandon( colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
@@ -870,16 +870,16 @@ class CargoView : public ui::View,
     auto const& [cargo, same_slot] = *maybe_cargo;
     CHECK( slot == same_slot );
     return pair{
-        cargo,
-        overload_visit<Rect>(
-            cargo, //
-            [rect = rect]( Cargo::unit ) { return rect; },
-            [rect = rect]( Cargo::commodity const& ) {
-              return Rect::from(
-                  rect.upper_left() +
-                      kCommodityInCargoHoldRenderingOffset,
-                  kCommodityTileSize );
-            } ) };
+      cargo,
+      overload_visit<Rect>(
+          cargo, //
+          [rect = rect]( Cargo::unit ) { return rect; },
+          [rect = rect]( Cargo::commodity const& ) {
+            return Rect::from(
+                rect.upper_left() +
+                    kCommodityInCargoHoldRenderingOffset,
+                kCommodityTileSize );
+          } ) };
   }
 
   maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
@@ -894,8 +894,8 @@ class CargoView : public ui::View,
         cargo_item_with_rect( slot_idx );
     if( !cargo_with_rect ) return nothing;
     return DraggableObjectWithBounds<ColViewObject>{
-        .obj    = from_cargo( cargo_with_rect->first ),
-        .bounds = cargo_with_rect->second };
+      .obj    = from_cargo( cargo_with_rect->first ),
+      .bounds = cargo_with_rect->second };
   }
 
   // For this one it happens that we need the coordinate instead
@@ -1050,10 +1050,10 @@ class UnitsAtGateColonyView
       render_unit(
           renderer, draw_pos, unit,
           UnitRenderOptions{
-              .flag   = flag_info,
-              .shadow = UnitShadow{
-                  .color = config_colony.colors
-                               .unit_shadow_color_light } } );
+            .flag   = flag_info,
+            .shadow = UnitShadow{
+              .color = config_colony.colors
+                           .unit_shadow_color_light } } );
       if( selected_ == unit_id )
         painter.draw_empty_rect(
             Rect::from( draw_pos, g_tile_delta ) -
@@ -1090,8 +1090,8 @@ class UnitsAtGateColonyView
       auto rect = Rect::from( pu.pos, g_tile_delta );
       if( where.is_inside( rect ) )
         return DraggableObjectWithBounds<ColViewObject>{
-            .obj    = ColViewObject::unit{ .id = pu.id },
-            .bounds = rect };
+          .obj    = ColViewObject::unit{ .id = pu.id },
+          .bounds = rect };
     }
     return nothing;
   }
@@ -1116,7 +1116,7 @@ class UnitsAtGateColonyView
       // three, but that will be checked in the confirmation
       // stage.
       return CanReceiveDraggable<ColViewObject>::yes{
-          .draggable = ColViewObject::unit{ .id = dragged } };
+        .draggable = ColViewObject::unit{ .id = dragged } };
     }
     Unit const& target_unit =
         ss_.units.unit_for( *over_unit_id );
@@ -1127,8 +1127,8 @@ class UnitsAtGateColonyView
       // It may not be obvious to the player why this is being
       // rejected, so give this one a message.
       return CanReceiveDraggable<ColViewObject>::no_with_msg{
-          .msg = fmt::format( "[{}] cannot hold units as cargo.",
-                              target_unit.desc().name_plural ) };
+        .msg = fmt::format( "[{}] cannot hold units as cargo.",
+                            target_unit.desc().name_plural ) };
     // Check if the target_unit is already holding the dragged
     // unit.
     maybe<UnitId> maybe_holder_of_dragged =
@@ -1145,7 +1145,7 @@ class UnitsAtGateColonyView
             ss_.units, Cargo::unit{ dragged } ) )
       return nothing;
     return CanReceiveDraggable<ColViewObject>::yes{
-        .draggable = ColViewObject::unit{ .id = dragged } };
+      .draggable = ColViewObject::unit{ .id = dragged } };
   }
 
   // Implement IDragSinkUserEdit.
@@ -1197,7 +1197,7 @@ class UnitsAtGateColonyView
       case e_colview_entity::buildings: //
         if( check_stockade_3( colony_ ) )
           co_return DragRejection{
-              .reason = string( kReduceStockadeThreeMsg ) };
+            .reason = string( kReduceStockadeThreeMsg ) };
         if( co_await check_abandon( colony_, ts_.gui ) )
           // If we're rejecting then that means that the player
           // has opted not to abandon the colony, so there is no
@@ -1244,8 +1244,8 @@ class UnitsAtGateColonyView
     new_comm.quantity  = std::min( new_comm.quantity, max_q );
     CHECK( new_comm.quantity > 0 );
     return CanReceiveDraggable<ColViewObject>::yes{
-        .draggable =
-            ColViewObject::commodity{ .comm = new_comm } };
+      .draggable =
+          ColViewObject::commodity{ .comm = new_comm } };
   }
 
   static maybe<UnitTransformationFromCommodity>
@@ -1284,9 +1284,9 @@ class UnitsAtGateColonyView
                    transformed_unit_composition_from_commodity(
                        ss_.units.unit_for( id ), comm ) );
     return CanReceiveDraggable<ColViewObject>::yes{
-        .draggable = ColViewObject::commodity{
-            .comm = with_quantity( comm,
-                                   xform_res.quantity_used ) } };
+      .draggable = ColViewObject::commodity{
+        .comm =
+            with_quantity( comm, xform_res.quantity_used ) } };
   }
 
   maybe<CanReceiveDraggable<ColViewObject>>
@@ -1456,10 +1456,10 @@ class UnitsAtGateColonyView
     // FIXME: need to replace the two below calls with a more
     // robust (non-string-based) approach.
     ChoiceConfig config{
-        .msg     = "What would you like to do?",
-        .options = {
-            { .key = "orders", .display_name = "Change Orders" },
-        } };
+      .msg     = "What would you like to do?",
+      .options = {
+        { .key = "orders", .display_name = "Change Orders" },
+      } };
     if( unit.cargo().slots_total() == 0 )
       // If we try to strip a unit that can carry cargo then we
       // might crash.
@@ -1474,12 +1474,11 @@ class UnitsAtGateColonyView
         co_await ts_.gui.optional_choice( config );
     if( mode == "orders" ) {
       ChoiceConfig config{
-          .msg     = "Change unit orders to:",
-          .options = {
-              { .key = "clear", .display_name = "Clear Orders" },
-              { .key = "sentry", .display_name = "Sentry" },
-              { .key          = "fortify",
-                .display_name = "Fortify" } } };
+        .msg     = "Change unit orders to:",
+        .options = {
+          { .key = "clear", .display_name = "Clear Orders" },
+          { .key = "sentry", .display_name = "Sentry" },
+          { .key = "fortify", .display_name = "Fortify" } } };
       maybe<string> const new_orders =
           co_await ts_.gui.optional_choice( config );
       if( new_orders == "clear" )
@@ -1683,7 +1682,7 @@ struct CompositeColSubView : public ui::InvisibleView,
     }
     if( coord.is_inside( rect( {} ) ) )
       return PositionedDraggableSubView<ColViewObject>{
-          this, Coord{} };
+        this, Coord{} };
     return nothing;
   }
 
@@ -1739,7 +1738,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
   Y const title_bar_bottom =
       title_bar->rect( pos ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( title_bar ), .coord = pos } );
+    .view = std::move( title_bar ), .coord = pos } );
 
   // [MarketCommodities] ----------------------------------------
   W comm_block_width =
@@ -1755,7 +1754,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       Rect::from( Coord{}, canvas_size ) ) );
   auto const market_commodities_top = pos.y;
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( market_commodities ), .coord = pos } );
+    .view = std::move( market_commodities ), .coord = pos } );
 
   // [Middle Strip] ---------------------------------------------
   Delta   middle_strip_size{ canvas_size.w, 32 + 32 + 16 };
@@ -1772,7 +1771,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
   X const population_right_edge =
       population_view->rect( pos ).right_edge();
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( population_view ), .coord = pos } );
+    .view = std::move( population_view ), .coord = pos } );
 
   // [Cargo] ----------------------------------------------------
   auto cargo_view = CargoView::create(
@@ -1787,7 +1786,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       cargo_view->rect( pos ).right_edge();
   auto* p_cargo_view = cargo_view.get();
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( cargo_view ), .coord = pos } );
+    .view = std::move( cargo_view ), .coord = pos } );
 
   // [Units at Gate outside colony] -----------------------------
   auto units_at_gate_view = UnitsAtGateColonyView::create(
@@ -1799,7 +1798,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
   pos =
       Coord{ .x = population_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( units_at_gate_view ), .coord = pos } );
+    .view = std::move( units_at_gate_view ), .coord = pos } );
 
   // [Production] -----------------------------------------------
   auto production_view = ProductionView::create(
@@ -1809,7 +1808,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       production_view.get();
   pos = Coord{ .x = cargo_right_edge, .y = middle_strip_top };
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( production_view ), .coord = pos } );
+    .view = std::move( production_view ), .coord = pos } );
 
   // [ColonyLandView] -------------------------------------------
   available = Delta{ canvas_size.w,
@@ -1836,19 +1835,19 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
         Delta{ .w = land_view->delta().w };
   X const land_view_left_edge = pos.x;
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( land_view ), .coord = pos } );
+    .view = std::move( land_view ), .coord = pos } );
 
   // [Buildings] ------------------------------------------------
   Delta buildings_size{
-      .w = land_view_left_edge - 0,
-      .h = middle_strip_top - title_bar_bottom };
+    .w = land_view_left_edge - 0,
+    .h = middle_strip_top - title_bar_bottom };
   auto buildings = ColViewBuildings::create(
       ss, ts, player, colony, buildings_size );
   g_composition.entities[e_colview_entity::buildings] =
       buildings.get();
   pos = Coord{ .x = 0, .y = title_bar_bottom };
   views.push_back( ui::OwningPositionedView{
-      .view = std::move( buildings ), .coord = pos } );
+    .view = std::move( buildings ), .coord = pos } );
 
   // [Finish] ---------------------------------------------------
   auto invisible_view = std::make_unique<CompositeColSubView>(

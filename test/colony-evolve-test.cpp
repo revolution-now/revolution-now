@@ -121,25 +121,24 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   // In practice, for a new empty colony, there should not be any
   // other notifications.
   vector<ColonyNotification> expected{
-      ColonyNotification::spoilage{
-          .spoiled = {
-              { .type = e_commodity::sugar, .quantity = 1 },
-              { .type = e_commodity::tobacco, .quantity = 1 },
-              { .type = e_commodity::cotton, .quantity = 1 },
-              { .type = e_commodity::furs, .quantity = 1 },
-              { .type = e_commodity::lumber, .quantity = 1 },
-              { .type = e_commodity::ore, .quantity = 1 },
-              { .type = e_commodity::silver, .quantity = 1 },
-              { .type = e_commodity::horses, .quantity = 1 },
-              { .type = e_commodity::rum, .quantity = 1 },
-              { .type = e_commodity::cigars, .quantity = 1 },
-              { .type = e_commodity::cloth, .quantity = 1 },
-              { .type = e_commodity::coats, .quantity = 1 },
-              { .type     = e_commodity::trade_goods,
-                .quantity = 1 },
-              { .type = e_commodity::tools, .quantity = 1 },
-              { .type = e_commodity::muskets, .quantity = 1 },
-          } } };
+    ColonyNotification::spoilage{
+      .spoiled = {
+        { .type = e_commodity::sugar, .quantity = 1 },
+        { .type = e_commodity::tobacco, .quantity = 1 },
+        { .type = e_commodity::cotton, .quantity = 1 },
+        { .type = e_commodity::furs, .quantity = 1 },
+        { .type = e_commodity::lumber, .quantity = 1 },
+        { .type = e_commodity::ore, .quantity = 1 },
+        { .type = e_commodity::silver, .quantity = 1 },
+        { .type = e_commodity::horses, .quantity = 1 },
+        { .type = e_commodity::rum, .quantity = 1 },
+        { .type = e_commodity::cigars, .quantity = 1 },
+        { .type = e_commodity::cloth, .quantity = 1 },
+        { .type = e_commodity::coats, .quantity = 1 },
+        { .type = e_commodity::trade_goods, .quantity = 1 },
+        { .type = e_commodity::tools, .quantity = 1 },
+        { .type = e_commodity::muskets, .quantity = 1 },
+      } } };
 
   REQUIRE( ev.notifications == expected );
 
@@ -176,26 +175,25 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
   // In practice, for a new empty colony, there should not be any
   // other notifications.
   expected = {
-      ColonyNotification::new_colonist{ .id = UnitId{ 1 } },
-      ColonyNotification::spoilage{
-          .spoiled = {
-              { .type = e_commodity::sugar, .quantity = 1 },
-              { .type = e_commodity::tobacco, .quantity = 1 },
-              { .type = e_commodity::cotton, .quantity = 1 },
-              { .type = e_commodity::furs, .quantity = 1 },
-              { .type = e_commodity::lumber, .quantity = 1 },
-              { .type = e_commodity::ore, .quantity = 1 },
-              { .type = e_commodity::silver, .quantity = 1 },
-              { .type = e_commodity::horses, .quantity = 1 },
-              { .type = e_commodity::rum, .quantity = 1 },
-              { .type = e_commodity::cigars, .quantity = 1 },
-              { .type = e_commodity::cloth, .quantity = 1 },
-              { .type = e_commodity::coats, .quantity = 1 },
-              { .type     = e_commodity::trade_goods,
-                .quantity = 1 },
-              { .type = e_commodity::tools, .quantity = 1 },
-              { .type = e_commodity::muskets, .quantity = 1 },
-          } } };
+    ColonyNotification::new_colonist{ .id = UnitId{ 1 } },
+    ColonyNotification::spoilage{
+      .spoiled = {
+        { .type = e_commodity::sugar, .quantity = 1 },
+        { .type = e_commodity::tobacco, .quantity = 1 },
+        { .type = e_commodity::cotton, .quantity = 1 },
+        { .type = e_commodity::furs, .quantity = 1 },
+        { .type = e_commodity::lumber, .quantity = 1 },
+        { .type = e_commodity::ore, .quantity = 1 },
+        { .type = e_commodity::silver, .quantity = 1 },
+        { .type = e_commodity::horses, .quantity = 1 },
+        { .type = e_commodity::rum, .quantity = 1 },
+        { .type = e_commodity::cigars, .quantity = 1 },
+        { .type = e_commodity::cloth, .quantity = 1 },
+        { .type = e_commodity::coats, .quantity = 1 },
+        { .type = e_commodity::trade_goods, .quantity = 1 },
+        { .type = e_commodity::tools, .quantity = 1 },
+        { .type = e_commodity::muskets, .quantity = 1 },
+      } } };
 
   REQUIRE( ev.notifications == expected );
 }
@@ -218,14 +216,13 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
       evolve_colony_one_turn( W.ss(), W.ts(), colony );
 
   vector<ColonyNotification> const expected = {
-      ColonyNotification::run_out_of_raw_material{
-          .what = e_commodity::lumber,
-          .job  = e_indoor_job::hammers },
-      ColonyNotification::run_out_of_raw_material{
-          .what = e_commodity::ore, .job = e_indoor_job::tools },
-      ColonyNotification::run_out_of_raw_material{
-          .what = e_commodity::tools,
-          .job  = e_indoor_job::muskets },
+    ColonyNotification::run_out_of_raw_material{
+      .what = e_commodity::lumber,
+      .job  = e_indoor_job::hammers },
+    ColonyNotification::run_out_of_raw_material{
+      .what = e_commodity::ore, .job = e_indoor_job::tools },
+    ColonyNotification::run_out_of_raw_material{
+      .what = e_commodity::tools, .job = e_indoor_job::muskets },
   };
 
   REQUIRE( ev.notifications == expected );
@@ -318,7 +315,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 12;
   expected_food          = 9;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -334,7 +331,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 11;
   expected_food          = 8;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -350,7 +347,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 10;
   expected_food          = 7;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -366,7 +363,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 9;
   expected_food          = 6;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -382,7 +379,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 8;
   expected_food          = 5;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -398,7 +395,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 5;
   expected_food          = 2;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -414,7 +411,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 3;
   expected_food          = 0;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -430,8 +427,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 2;
   expected_food          = 0;
   expected_notifications = {
-      ColonyNotification::colonist_starved{
-          .type = e_unit_type::free_colonist } };
+    ColonyNotification::colonist_starved{
+      .type = e_unit_type::free_colonist } };
   W.rand().EXPECT__between_ints( 0, 3 - 1 ).returns( 0 );
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
@@ -448,7 +445,7 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 1;
   expected_food          = 0;
   expected_notifications = {
-      ColonyNotification::colony_starving{} };
+    ColonyNotification::colony_starving{} };
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
   REQUIRE( ev.production.food_horses.food_produced == 3 );
@@ -464,8 +461,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   food                   = 0;
   expected_food          = 0;
   expected_notifications = {
-      ColonyNotification::colonist_starved{
-          .type = e_unit_type::free_colonist } };
+    ColonyNotification::colonist_starved{
+      .type = e_unit_type::free_colonist } };
   W.rand().EXPECT__between_ints( 0, 2 - 1 ).returns( 0 );
 
   ev = evolve_colony_one_turn( W.ss(), W.ts(), colony );
@@ -672,10 +669,10 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
                                 .quantity = 3 } } } );
 
   vector<ColonyNotification> const expected = {
-      ColonyNotification::unit_promoted{
-          .promoted_to = e_unit_type::expert_sugar_planter },
-      ColonyNotification::unit_promoted{
-          .promoted_to = e_unit_type::expert_cotton_planter },
+    ColonyNotification::unit_promoted{
+      .promoted_to = e_unit_type::expert_sugar_planter },
+    ColonyNotification::unit_promoted{
+      .promoted_to = e_unit_type::expert_cotton_planter },
   };
 
   REQUIRE( ev.notifications == expected );
@@ -762,8 +759,8 @@ TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
 
   W.rand().EXPECT__bernoulli( .5 ).returns( true );
   expected = { ColonyNotification::prime_resource_depleted{
-      .what              = e_natural_resource::silver,
-      .partial_depletion = true } };
+    .what              = e_natural_resource::silver,
+    .partial_depletion = true } };
   expected_counters = {};
   REQUIRE( f().notifications == expected );
   REQUIRE( W.map().depletion.counters == expected_counters );

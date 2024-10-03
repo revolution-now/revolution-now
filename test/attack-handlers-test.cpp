@@ -129,20 +129,20 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        // The upper-left 2x2 squares in this map are specially
-        // setup so that we will automatically place attackers
-        // and defenders on the following squares depending on
-        // whether they are ships or non-ships:
-        //
-        //                  0               1
-        //   0  AttackingShip   DefendingShip
-        //   1  AttackingLand   DefendingLand
-        //
-        // This way, each attacker can attack either of the de-
-        // fenders in order to test various possible scenarios.
-        _, _, L, //
-        L, L, L, //
-        L, L, L, //
+      // The upper-left 2x2 squares in this map are specially
+      // setup so that we will automatically place attackers
+      // and defenders on the following squares depending on
+      // whether they are ships or non-ships:
+      //
+      //                  0               1
+      //   0  AttackingShip   DefendingShip
+      //   1  AttackingLand   DefendingLand
+      //
+      // This way, each attacker can attack either of the de-
+      // fenders in order to test various possible scenarios.
+      _, _, L, //
+      L, L, L, //
+      L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -357,13 +357,12 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   SECTION( "soldier->soldier, attacker loses" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
-        .defender = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+      .defender = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -394,14 +393,12 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   SECTION(
       "soldier->soldier, attacker loses, defender promoted" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
-        .defender = {
-            .outcome = EuroUnitCombatOutcome::promoted{
-                .to = e_unit_type::veteran_soldier } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+      .defender = { .outcome = EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -429,11 +426,11 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   SECTION(
       "soldier->soldier, attacker wins with no promotion" ) {
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -460,13 +457,12 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   SECTION( "soldier->soldier, attacker wins with promotion" ) {
     combat = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = { .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_soldier } },
+      .defender = { .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier, e_unit_type::soldier );
     expect_combat();
@@ -493,12 +489,12 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   SECTION(
       "soldier->free_colonist, attacker wins with capture" ) {
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .outcome = EuroUnitCombatOutcome::captured{
-                          .new_nation = W.kAttackingNation,
-                          .new_coord  = W.kLandAttack } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome = EuroUnitCombatOutcome::captured{
+                      .new_nation = W.kAttackingNation,
+                      .new_coord  = W.kLandAttack } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
@@ -525,15 +521,14 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
       "soldier->veteran_colonist, attacker wins with "
       "capture-and-demote" ) {
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome =
-                EuroUnitCombatOutcome::captured_and_demoted{
-                    .to         = e_unit_type::free_colonist,
-                    .new_nation = W.kAttackingNation,
-                    .new_coord  = W.kLandAttack } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .outcome = EuroUnitCombatOutcome::captured_and_demoted{
+          .to         = e_unit_type::free_colonist,
+          .new_nation = W.kAttackingNation,
+          .new_coord  = W.kLandAttack } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_unit_type::veteran_colonist );
     expect_combat();
@@ -560,11 +555,11 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
   SECTION( "soldier->missionary, attacker wins with destroy" ) {
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .outcome =
-                          EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome =
+                        EuroUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_unit_type::free_colonist );
     expect_combat();
@@ -613,11 +608,11 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     relationship.nation_has_attacked_tribe = false;
 
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome = NativeUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome =
+                        NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
@@ -640,11 +635,11 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     relationship.nation_has_attacked_tribe = false;
 
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome = NativeUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome =
+                        NativeUnitCombatOutcome::destroyed{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
     W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "yes" );
@@ -664,13 +659,13 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   SECTION( "soldier->brave, attacker wins" ) {
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_horses  = true,
-                .tribe_retains_muskets = true } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .outcome =
+                        NativeUnitCombatOutcome::destroyed{
+                          .tribe_retains_horses  = true,
+                          .tribe_retains_muskets = true } } };
     tie( combat.attacker.id, combat.defender.id ) =
         W.add_pair( e_unit_type::soldier,
                     e_native_unit_type::mounted_warrior );
@@ -696,13 +691,12 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   SECTION( "soldier->brave, attacker loses, no brave change" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
-        .defender = {
-            .outcome = NativeUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+      .defender = { .outcome =
+                        NativeUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
     expect_combat();
@@ -729,14 +723,13 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
   SECTION( "soldier->brave, attacker loses" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
-        .defender = {
-            .outcome = NativeUnitCombatOutcome::promoted{
-                .to = e_native_unit_type::armed_brave } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+      .defender = {
+        .outcome = NativeUnitCombatOutcome::promoted{
+          .to = e_native_unit_type::armed_brave } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_native_unit_type::brave );
     expect_combat();
@@ -806,17 +799,16 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = false,
+      .winner          = e_combat_winner::defender,
+      .missions_burned = false,
 
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
 
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+      .defender = {
+        .id      = dwelling.id,
+        .outcome = DwellingCombatOutcome::no_change{} } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -856,17 +848,16 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = true,
+      .winner          = e_combat_winner::defender,
+      .missions_burned = true,
 
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
 
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+      .defender = {
+        .id      = dwelling.id,
+        .outcome = DwellingCombatOutcome::no_change{} } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -909,17 +900,16 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = true,
+      .winner          = e_combat_winner::defender,
+      .missions_burned = true,
 
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
 
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+      .defender = {
+        .id      = dwelling.id,
+        .outcome = DwellingCombatOutcome::no_change{} } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -961,17 +951,16 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       W.kDefendingNation )
             .id();
     combat = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = true,
+      .winner          = e_combat_winner::defender,
+      .missions_burned = true,
 
-        .attacker = { .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
+      .attacker = { .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
 
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::no_change{} } };
+      .defender = {
+        .id      = dwelling.id,
+        .outcome = DwellingCombatOutcome::no_change{} } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1014,15 +1003,14 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker        = { .outcome =
-                                 EuroUnitCombatOutcome::no_change{} },
-        .defender        = {
-                   .id = dwelling.id,
-                   .outcome =
-                DwellingCombatOutcome::population_decrease{
-                           .convert_produced = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::no_change{} },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::population_decrease{
+                 .convert_produced = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1058,15 +1046,14 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker        = { .outcome =
-                                 EuroUnitCombatOutcome::no_change{} },
-        .defender        = {
-                   .id = dwelling.id,
-                   .outcome =
-                DwellingCombatOutcome::population_decrease{
-                           .convert_produced = true } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::no_change{} },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::population_decrease{
+                 .convert_produced = true } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1074,8 +1061,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     UnitId const expected_convert_id = UnitId{ 5 };
 
     expected = {
-        .order_was_run       = true,
-        .units_to_prioritize = { expected_convert_id } };
+      .order_was_run       = true,
+      .units_to_prioritize = { expected_convert_id } };
     REQUIRE( f() == expected );
 
     Unit const& attacker =
@@ -1111,20 +1098,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population = 1;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = {},
-                .treasure_amount       = {},
-                .tribe_destroyed       = e_tribe::apache,
-                .convert_produced      = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = {},
+                 .treasure_amount       = {},
+                 .tribe_destroyed       = e_tribe::apache,
+                 .convert_produced      = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1157,20 +1143,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population      = 1;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = {},
-                .treasure_amount       = {},
-                .tribe_destroyed       = e_tribe::apache,
-                .convert_produced      = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = {},
+                 .treasure_amount       = {},
+                 .tribe_destroyed       = e_tribe::apache,
+                 .convert_produced      = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1205,20 +1190,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.is_capital = true;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = {},
-                .treasure_amount       = {},
-                .tribe_destroyed       = {},
-                .convert_produced      = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = {},
+                 .treasure_amount       = {},
+                 .tribe_destroyed       = {},
+                 .convert_produced      = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1256,20 +1240,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     player.revolution_status = e_revolution_status::declared;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = {},
-                .treasure_amount       = {},
-                .tribe_destroyed       = {},
-                .convert_produced      = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = {},
+                 .treasure_amount       = {},
+                 .tribe_destroyed       = {},
+                 .convert_produced      = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1309,20 +1292,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.population = 1;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = missionary_id,
-                .treasure_amount       = 123,
-                .tribe_destroyed       = e_tribe::apache,
-                .convert_produced      = true } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = missionary_id,
+                 .treasure_amount       = 123,
+                 .tribe_destroyed       = e_tribe::apache,
+                 .convert_produced      = true } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1340,10 +1322,9 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     UnitId const expected_convert_id  = UnitId{ 5 };
     UnitId const expected_treasure_id = UnitId{ 6 };
 
-    expected = {
-        .order_was_run       = true,
-        .units_to_prioritize = { expected_convert_id,
-                                 expected_treasure_id } };
+    expected = { .order_was_run       = true,
+                 .units_to_prioritize = {
+                   expected_convert_id, expected_treasure_id } };
     REQUIRE( f() == expected );
 
     Unit const& attacker =
@@ -1390,20 +1371,19 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     dwelling.is_capital = true;
 
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker =
-            { .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id      = dwelling.id,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::apache,
-                .convert_produced      = false } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::promoted{
+                                 .to = e_unit_type::veteran_soldier } },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::destruction{
+                 .braves_to_kill        = {},
+                 .missionary_to_release = nothing,
+                 .treasure_amount       = nothing,
+                 .tribe_destroyed       = e_tribe::apache,
+                 .convert_produced      = false } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1444,15 +1424,14 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
                                       dwelling_id )
             .id();
     combat = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
-        .attacker        = { .outcome =
-                                 EuroUnitCombatOutcome::no_change{} },
-        .defender        = {
-                   .id = dwelling.id,
-                   .outcome =
-                DwellingCombatOutcome::population_decrease{
-                           .convert_produced = true } } };
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
+      .attacker        = { .outcome =
+                               EuroUnitCombatOutcome::no_change{} },
+      .defender        = {
+               .id      = dwelling.id,
+               .outcome = DwellingCombatOutcome::population_decrease{
+                 .convert_produced = true } } };
     combat.attacker.id = W.add_attacker( e_unit_type::soldier );
     expect_combat();
     W.expect_some_animation();
@@ -1460,8 +1439,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     UnitId const expected_convert_id = UnitId{ 5 };
 
     expected = {
-        .order_was_run       = true,
-        .units_to_prioritize = { expected_convert_id } };
+      .order_was_run       = true,
+      .units_to_prioritize = { expected_convert_id } };
     REQUIRE( f() == expected );
 
     Unit const& attacker =
@@ -1517,13 +1496,11 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "evade" ) {
     combat = {
-        .winner = nothing,
-        .attacker =
-            { .outcome =
-                  EuroNavalUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner = nothing,
+      .attacker =
+          { .outcome = EuroNavalUnitCombatOutcome::no_change{} },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
@@ -1554,13 +1531,12 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "defender damaged, sent to harbor" ) {
     combat = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .outcome =
-                  EuroNavalUnitCombatOutcome::no_change{} },
-        .defender = {
-            .outcome = EuroNavalUnitCombatOutcome::damaged{
-                .port = ShipRepairPort::european_harbor{} } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .outcome = EuroNavalUnitCombatOutcome::no_change{} },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::damaged{
+          .port = ShipRepairPort::european_harbor{} } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
@@ -1582,8 +1558,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( defender.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
@@ -1591,7 +1567,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
              unit_orders{ unit_orders::damaged{
-                 .turns_until_repair = 6 } } );
+               .turns_until_repair = 6 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1603,14 +1579,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroNavalUnitCombatOutcome::moved{
-                              .to = W.kWaterDefend } },
-        .defender = { .outcome =
-                          EuroNavalUnitCombatOutcome::damaged{
-                              .port = ShipRepairPort::colony{
-                                  .id = colony.id } } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroNavalUnitCombatOutcome::moved{
+                          .to = W.kWaterDefend } },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::damaged{
+          .port =
+              ShipRepairPort::colony{ .id = colony.id } } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
@@ -1639,7 +1615,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.orders() ==
              unit_orders{ unit_orders::damaged{
-                 .turns_until_repair = 2 } } );
+               .turns_until_repair = 2 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );
   }
@@ -1650,14 +1626,14 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     Colony& colony =
         W.add_colony( { .x = 2, .y = 2 }, W.kDefendingNation );
     combat = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .outcome =
-                          EuroNavalUnitCombatOutcome::moved{
-                              .to = W.kWaterDefend } },
-        .defender = { .outcome =
-                          EuroNavalUnitCombatOutcome::damaged{
-                              .port = ShipRepairPort::colony{
-                                  .id = colony.id } } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .outcome =
+                        EuroNavalUnitCombatOutcome::moved{
+                          .to = W.kWaterDefend } },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::damaged{
+          .port =
+              ShipRepairPort::colony{ .id = colony.id } } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::caravel );
     expect_combat();
@@ -1702,30 +1678,28 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         W.units().unit_for( galleon_id ).cargo().count_items() ==
         1 );
     combat = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .outcome =
-                  EuroNavalUnitCombatOutcome::no_change{} },
-        .defender                = { .outcome =
-                                         EuroNavalUnitCombatOutcome::sunk{} },
-        .affected_defender_units = {
-            { merchantman_id,
-              AffectedNavalDefender{
-                  .id = merchantman_id,
-                  .outcome =
-                      EuroNavalUnitCombatOutcome::sunk{} } },
-            { galleon_id,
-              AffectedNavalDefender{
-                  .id = galleon_id,
-                  .outcome =
-                      EuroNavalUnitCombatOutcome::damaged{
-                          .port = ShipRepairPort::
-                              european_harbor{} } } },
-            { privateer_id,
-              AffectedNavalDefender{
-                  .id = privateer_id,
-                  .outcome =
-                      EuroNavalUnitCombatOutcome::sunk{} } } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .outcome = EuroNavalUnitCombatOutcome::no_change{} },
+      .defender                = { .outcome =
+                                       EuroNavalUnitCombatOutcome::sunk{} },
+      .affected_defender_units = {
+        { merchantman_id,
+          AffectedNavalDefender{
+            .id      = merchantman_id,
+            .outcome = EuroNavalUnitCombatOutcome::sunk{} } },
+        { galleon_id,
+          AffectedNavalDefender{
+            .id = galleon_id,
+            .outcome =
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port =
+                      ShipRepairPort::european_harbor{} } } },
+        { privateer_id,
+          AffectedNavalDefender{
+            .id = privateer_id,
+            .outcome =
+                EuroNavalUnitCombatOutcome::sunk{} } } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
@@ -1758,8 +1732,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( galleon.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE( attacker.nation() == W.kAttackingNation );
     REQUIRE( galleon.nation() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
@@ -1767,19 +1741,18 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
     REQUIRE( galleon.orders() ==
              unit_orders{ unit_orders::damaged{
-                 .turns_until_repair = 10 } } );
+               .turns_until_repair = 10 } } );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( galleon.cargo().count_items() == 0 );
   }
 
   SECTION( "attacker sunk" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroNavalUnitCombatOutcome::sunk{} },
-        .defender = {
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroNavalUnitCombatOutcome::sunk{} },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
@@ -1803,12 +1776,11 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "attacker sunk containing units" ) {
     combat = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .outcome =
-                          EuroNavalUnitCombatOutcome::sunk{} },
-        .defender = {
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .outcome =
+                        EuroNavalUnitCombatOutcome::sunk{} },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     Unit const& attacker =
@@ -1853,15 +1825,13 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   // which allows the winner to capture the loser's commodities.
   SECTION( "attacker damaged with commodity cargo" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner = e_combat_winner::defender,
+      .attacker =
+          { .outcome =
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     Unit const& attacker =
@@ -1900,8 +1870,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
@@ -1910,7 +1880,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
              unit_orders{ unit_orders::damaged{
-                 .turns_until_repair = 8 } } );
+               .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 1 );
@@ -1918,15 +1888,13 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 
   SECTION( "attacker damaged with unit cargo" ) {
     combat = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner = e_combat_winner::defender,
+      .attacker =
+          { .outcome =
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     Unit const& attacker =
@@ -1962,8 +1930,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( attacker.id() ) ==
         UnitOwnership::harbor{
-            .port_status = PortStatus::in_port{},
-            .sailed_from = nothing } );
+          .port_status = PortStatus::in_port{},
+          .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
     REQUIRE( attacker.nation() == W.kAttackingNation );
@@ -1972,7 +1940,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
              unit_orders{ unit_orders::damaged{
-                 .turns_until_repair = 8 } } );
+               .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
     REQUIRE( defender.cargo().count_items() == 0 );

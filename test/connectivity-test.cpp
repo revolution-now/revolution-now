@@ -72,11 +72,11 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "1x1" ) {
     W.set_width( 1 );
     W.create_map( {
-        _, //
+      _, //
     } );
     expected.x_size  = 1;
     expected.indices = {
-        1, //
+      1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
@@ -86,11 +86,11 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "5x1 all connected" ) {
     W.set_width( 5 );
     W.create_map( {
-        L, L, L, L, L, //
+      L, L, L, L, L, //
     } );
     expected.x_size  = 5;
     expected.indices = {
-        1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
@@ -100,19 +100,19 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "1x5 all connected" ) {
     W.set_width( 1 );
     W.create_map( {
-        _, //
-        _, //
-        _, //
-        _, //
-        _, //
+      _, //
+      _, //
+      _, //
+      _, //
+      _, //
     } );
     expected.x_size  = 1;
     expected.indices = {
-        1, //
-        1, //
-        1, //
-        1, //
-        1, //
+      1, //
+      1, //
+      1, //
+      1, //
+      1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
@@ -122,11 +122,11 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "5x1 alternating" ) {
     W.set_width( 5 );
     W.create_map( {
-        L, _, L, _, L, //
+      L, _, L, _, L, //
     } );
     expected.x_size  = 5;
     expected.indices = {
-        1, 2, 3, 4, 5, //
+      1, 2, 3, 4, 5, //
     };
     expected.indices_with_right_edge_access = { 5 };
     expected.indices_with_left_edge_access  = { 1 };
@@ -136,13 +136,13 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "5x2 checkers" ) {
     W.set_width( 5 );
     W.create_map( {
-        L, _, L, _, L, //
-        _, L, _, L, _, //
+      L, _, L, _, L, //
+      _, L, _, L, _, //
     } );
     expected.x_size  = 5;
     expected.indices = {
-        1, 2, 1, 2, 1, //
-        2, 1, 2, 1, 2, //
+      1, 2, 1, 2, 1, //
+      2, 1, 2, 1, 2, //
     };
     expected.indices_with_right_edge_access = { 1, 2 };
     expected.indices_with_left_edge_access  = { 1, 2 };
@@ -152,15 +152,15 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "3x3" ) {
     W.set_width( 3 );
     W.create_map( {
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
     } );
     expected.x_size  = 3;
     expected.indices = {
-        1, 2, 3, //
-        2, 2, 2, //
-        4, 2, 2, //
+      1, 2, 3, //
+      2, 2, 2, //
+      4, 2, 2, //
     };
     expected.indices_with_right_edge_access = { 2, 3 };
     expected.indices_with_left_edge_access  = { 1, 2, 4 };
@@ -170,15 +170,15 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "6x3" ) {
     W.set_width( 6 );
     W.create_map( {
-        _, L, _, L, L, L, //
-        L, L, L, L, L, L, //
-        _, L, L, L, L, L, //
+      _, L, _, L, L, L, //
+      L, L, L, L, L, L, //
+      _, L, L, L, L, L, //
     } );
     expected.x_size  = 6;
     expected.indices = {
-        1, 2, 3, 2, 2, 2, //
-        2, 2, 2, 2, 2, 2, //
-        4, 2, 2, 2, 2, 2, //
+      1, 2, 3, 2, 2, 2, //
+      2, 2, 2, 2, 2, 2, //
+      4, 2, 2, 2, 2, 2, //
     };
     expected.indices_with_right_edge_access = { 2 };
     expected.indices_with_left_edge_access  = { 1, 2, 4 };
@@ -188,19 +188,19 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "5x5 all connected" ) {
     W.set_width( 5 );
     W.create_map( {
-        _, _, _, _, _, //
-        _, _, _, _, _, //
-        _, _, _, _, _, //
-        _, _, _, _, _, //
-        _, _, _, _, _, //
+      _, _, _, _, _, //
+      _, _, _, _, _, //
+      _, _, _, _, _, //
+      _, _, _, _, _, //
+      _, _, _, _, _, //
     } );
     expected.x_size  = 5;
     expected.indices = {
-        1, 1, 1, 1, 1, //
-        1, 1, 1, 1, 1, //
-        1, 1, 1, 1, 1, //
-        1, 1, 1, 1, 1, //
-        1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
+      1, 1, 1, 1, 1, //
     };
     expected.indices_with_right_edge_access = { 1 };
     expected.indices_with_left_edge_access  = { 1 };
@@ -210,19 +210,19 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "5x5 split" ) {
     W.set_width( 5 );
     W.create_map( {
-        _, _, _, _, _, //
-        _, _, _, L, _, //
-        _, _, L, L, L, //
-        _, L, L, _, _, //
-        L, L, _, _, L, //
+      _, _, _, _, _, //
+      _, _, _, L, _, //
+      _, _, L, L, L, //
+      _, L, L, _, _, //
+      L, L, _, _, L, //
     } );
     expected.x_size  = 5;
     expected.indices = {
-        1, 1, 1, 1, 1, //
-        1, 1, 1, 2, 1, //
-        1, 1, 2, 2, 2, //
-        1, 2, 2, 3, 3, //
-        2, 2, 3, 3, 4, //
+      1, 1, 1, 1, 1, //
+      1, 1, 1, 2, 1, //
+      1, 1, 2, 2, 2, //
+      1, 2, 2, 3, 3, //
+      2, 2, 3, 3, 4, //
     };
     expected.indices_with_right_edge_access = { 1, 2, 3, 4 };
     expected.indices_with_left_edge_access  = { 1, 2 };
@@ -232,26 +232,26 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
   SECTION( "large" ) {
     W.set_width( 18 );
     W.create_map( {
-        L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, //
-        _, _, _, _, _, L, _, _, _, _, L, L, L, _, _, _, L, L, //
-        _, L, L, _, _, L, _, _, _, _, _, L, _, _, _, _, _, _, //
-        _, L, L, _, L, L, L, L, _, _, _, L, _, _, _, _, _, _, //
-        _, _, _, _, L, _, _, L, _, _, L, _, _, _, _, _, L, L, //
-        _, _, _, _, L, _, L, L, _, L, _, _, _, _, _, L, L, _, //
-        _, _, _, _, L, L, L, L, _, L, _, _, _, _, _, L, _, _, //
-        _, _, _, _, L, L, _, _, _, L, L, L, L, _, _, L, _, _, //
-        _, _, _, _, _, L, _, _, _, L, L, L, L, L, _, L, L, _, //
-        L, L, L, _, _, L, _, _, _, _, _, L, L, _, _, _, L, L, //
-        L, _, _, _, _, L, L, _, _, _, _, _, _, _, _, _, _, _, //
-        _, _, _, _, _, L, L, L, _, _, _, _, L, L, _, _, _, _, //
-        _, _, _, _, _, L, _, L, L, _, _, L, _, _, L, _, _, _, //
-        _, _, _, _, L, L, _, _, L, _, _, _, L, L, _, _, _, _, //
-        _, _, _, _, L, _, _, _, L, _, _, _, _, L, _, _, _, _, //
-        _, _, _, _, L, L, L, L, L, L, _, _, _, _, _, _, _, _, //
-        _, L, L, _, _, _, _, _, _, L, L, L, L, _, L, L, L, _, //
-        _, L, L, L, _, _, _, _, _, _, _, L, L, L, L, _, L, L, //
-        _, L, _, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
-        _, L, L, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
+      L, _, _, _, _, L, _, _, _, _, _, L, _, _, _, _, L, _, //
+      _, _, _, _, _, L, _, _, _, _, L, L, L, _, _, _, L, L, //
+      _, L, L, _, _, L, _, _, _, _, _, L, _, _, _, _, _, _, //
+      _, L, L, _, L, L, L, L, _, _, _, L, _, _, _, _, _, _, //
+      _, _, _, _, L, _, _, L, _, _, L, _, _, _, _, _, L, L, //
+      _, _, _, _, L, _, L, L, _, L, _, _, _, _, _, L, L, _, //
+      _, _, _, _, L, L, L, L, _, L, _, _, _, _, _, L, _, _, //
+      _, _, _, _, L, L, _, _, _, L, L, L, L, _, _, L, _, _, //
+      _, _, _, _, _, L, _, _, _, L, L, L, L, L, _, L, L, _, //
+      L, L, L, _, _, L, _, _, _, _, _, L, L, _, _, _, L, L, //
+      L, _, _, _, _, L, L, _, _, _, _, _, _, _, _, _, _, _, //
+      _, _, _, _, _, L, L, L, _, _, _, _, L, L, _, _, _, _, //
+      _, _, _, _, _, L, _, L, L, _, _, L, _, _, L, _, _, _, //
+      _, _, _, _, L, L, _, _, L, _, _, _, L, L, _, _, _, _, //
+      _, _, _, _, L, _, _, _, L, _, _, _, _, L, _, _, _, _, //
+      _, _, _, _, L, L, L, L, L, L, _, _, _, _, _, _, _, _, //
+      _, L, L, _, _, _, _, _, _, L, L, L, L, _, L, L, L, _, //
+      _, L, L, L, _, _, _, _, _, _, _, L, L, L, L, _, L, L, //
+      _, L, _, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
+      _, L, L, L, _, _, _, _, _, _, _, _, _, _, L, _, _, _, //
     } );
     expected.x_size = 18;
     // clang-format off
@@ -287,19 +287,19 @@ TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
 
 TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
   TerrainConnectivity const connectivity{
-      .x_size = 5,
-      // NOTE: this map of indices is not internally consistent,
-      // but that's ok for this test.
-      .indices =
-          {
-              1, 2, 5, 2, 2, //
-              2, 2, 2, 2, 2, //
-              2, 6, 6, 2, 4, //
-              2, 6, 6, 2, 3, //
-              2, 2, 2, 2, 3, //
-          },
-      .indices_with_right_edge_access = { 2, 3, 4 },
-      .indices_with_left_edge_access  = { 1, 2 } };
+    .x_size = 5,
+    // NOTE: this map of indices is not internally consistent,
+    // but that's ok for this test.
+    .indices =
+        {
+          1, 2, 5, 2, 2, //
+          2, 2, 2, 2, 2, //
+          2, 6, 6, 2, 4, //
+          2, 6, 6, 2, 3, //
+          2, 2, 2, 2, 3, //
+        },
+    .indices_with_right_edge_access = { 2, 3, 4 },
+    .indices_with_left_edge_access  = { 1, 2 } };
 
   SECTION( "left or right" ) {
     auto f = [&]( Coord coord ) {
@@ -437,11 +437,11 @@ TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
   MapSquare const L = W.make_grassland();
   W.set_width( 5 );
   W.create_map( {
-      _, L, _, L, L, //
-      L, L, L, L, L, //
-      L, _, _, L, _, //
-      L, _, L, L, _, //
-      L, _, L, _, _, //
+    _, L, _, L, L, //
+    L, L, L, L, L, //
+    L, _, _, L, _, //
+    L, _, L, L, _, //
+    L, _, L, _, _, //
   } );
   W.update_terrain_connectivity();
 

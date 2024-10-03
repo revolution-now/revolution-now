@@ -71,77 +71,68 @@ TEST_CASE( "[anim-builder] builders" ) {
 
   using P = AnimationPrimitive;
   AnimationSequence const expected{
-      .sequence =
-          { /*phase 0*/ {
-                { .primitive =
-                      P::delay{ .duration =
-                                    chrono::seconds{ 1 } } },
-                { .primitive =
-                      P::play_sound{ .what =
-                                         e_sfx::attacker_won } },
-                { .primitive =
-                      P::hide_unit{ .unit_id =
-                                        GenericUnitId{ 1 } } },
-                { .primitive =
-                      P::front_unit{ .unit_id =
-                                         GenericUnitId{ 2 } } },
-                { .primitive =
-                      P::slide_unit{
-                          .unit_id   = GenericUnitId{ 3 },
-                          .direction = e_direction::sw } },
-                { .primitive =
-                      P::talk_unit{
-                          .unit_id   = GenericUnitId{ 6 },
-                          .direction = e_direction::sw } },
-            },
-            /*phase 1*/
-            { { .primitive =
-                    P::depixelate_euro_unit{ .unit_id =
-                                                 UnitId{ 4 } } },
-              { .primitive =
-                    P::enpixelate_unit{
-                        .unit_id = GenericUnitId{ 5 } } },
-              { .primitive =
-                    P::pixelate_euro_unit_to_target{
-                        .unit_id = UnitId{ 6 },
-                        .target  = e_unit_type::cavalry } } },
-            /*phase 2*/
-            {
-                { .primitive =
-                      P::pixelate_native_unit_to_target{
-                          .unit_id = NativeUnitId{ 7 },
-                          .target  = e_native_unit_type::
-                              mounted_brave } },
-                { .primitive =
-                      P::depixelate_colony{
-                          .tile = Coord{ .x = 7, .y = 8 } } },
-                { .primitive =
-                      P::depixelate_dwelling{
-                          .tile = Coord{ .x = 9, .y = 10 } } },
-                { .primitive =
-                      P::ensure_tile_visible{
-                          .tile = { .x = 1, .y = 3 } } },
-                { .primitive =
-                      P::depixelate_native_unit{
-                          .unit_id = NativeUnitId{ 10 } } },
-                { .primitive =
-                      P::landscape_anim_enpixelate{
-                          .overrides =
-                              { .squares =
-                                    {
-                                        { Coord{ .x = 3, .y = 5 },
-                                          MapSquare{} },
-                                        { Coord{ .x = 4, .y = 6 },
-                                          MapSquare{
-                                              .road = true } },
-                                    } } } },
-                { .primitive =
-                      P::hide_colony{
-                          .tile = { .x = 111, .y = 222 } } },
-                { .primitive =
-                      P::hide_dwelling{
-                          .tile = { .x = 222, .y = 333 } } },
-            } } };
+    .sequence = {
+      /*phase 0*/ {
+        { .primitive =
+              P::delay{ .duration = chrono::seconds{ 1 } } },
+        { .primitive =
+              P::play_sound{ .what = e_sfx::attacker_won } },
+        { .primitive =
+              P::hide_unit{ .unit_id = GenericUnitId{ 1 } } },
+        { .primitive =
+              P::front_unit{ .unit_id = GenericUnitId{ 2 } } },
+        { .primitive =
+              P::slide_unit{ .unit_id   = GenericUnitId{ 3 },
+                             .direction = e_direction::sw } },
+        { .primitive =
+              P::talk_unit{ .unit_id   = GenericUnitId{ 6 },
+                            .direction = e_direction::sw } },
+      },
+      /*phase 1*/
+      { { .primitive =
+              P::depixelate_euro_unit{ .unit_id =
+                                           UnitId{ 4 } } },
+        { .primitive =
+              P::enpixelate_unit{ .unit_id =
+                                      GenericUnitId{ 5 } } },
+        { .primitive =
+              P::pixelate_euro_unit_to_target{
+                .unit_id = UnitId{ 6 },
+                .target  = e_unit_type::cavalry } } },
+      /*phase 2*/
+      {
+        { .primitive =
+              P::pixelate_native_unit_to_target{
+                .unit_id = NativeUnitId{ 7 },
+                .target  = e_native_unit_type::mounted_brave } },
+        { .primitive =
+              P::depixelate_colony{
+                .tile = Coord{ .x = 7, .y = 8 } } },
+        { .primitive =
+              P::depixelate_dwelling{
+                .tile = Coord{ .x = 9, .y = 10 } } },
+        { .primitive =
+              P::ensure_tile_visible{
+                .tile = { .x = 1, .y = 3 } } },
+        { .primitive =
+              P::depixelate_native_unit{
+                .unit_id = NativeUnitId{ 10 } } },
+        { .primitive =
+              P::landscape_anim_enpixelate{
+                .overrides = { .squares =
+                                   {
+                                     { Coord{ .x = 3, .y = 5 },
+                                       MapSquare{} },
+                                     { Coord{ .x = 4, .y = 6 },
+                                       MapSquare{ .road =
+                                                      true } },
+                                   } } } },
+        { .primitive =
+              P::hide_colony{ .tile = { .x = 111, .y = 222 } } },
+        { .primitive =
+              P::hide_dwelling{
+                .tile = { .x = 222, .y = 333 } } },
+      } } };
 
   REQUIRE( res == expected );
 }
@@ -203,85 +194,79 @@ TEST_CASE( "[anim-builder] landview_replace_set_tile" ) {
 
   builder.delay( chrono::milliseconds{ 5 } );
   expected = {
-      .sequence = { { { .primitive = AnimationPrimitive::delay{
-                            .duration = chrono::milliseconds{
-                                5 } } } } } };
+    .sequence = {
+      { { .primitive = AnimationPrimitive::delay{
+            .duration = chrono::milliseconds{ 5 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_replace_set_tile( { .x = 1, .y = 2 },
                                      { .road = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides = {
-                          .squares = {
-                              { { .x = 1, .y = 2 },
-                                { .road = true } } } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides = {
+                  .squares = {
+                    { { .x = 1, .y = 2 },
+                      { .road = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_replace_set_tile( { .x = 2, .y = 3 },
                                      { .irrigation = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides = {
-                          .squares = {
-                              { { .x = 1, .y = 2 },
-                                { .road = true } },
-                              { { .x = 2, .y = 3 },
-                                { .irrigation =
-                                      true } } } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides = {
+                  .squares = {
+                    { { .x = 1, .y = 2 }, { .road = true } },
+                    { { .x = 2, .y = 3 },
+                      { .irrigation = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.ensure_tile_visible( { .x = 7, .y = 8 } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides =
-                          { .squares =
-                                { { { .x = 1, .y = 2 },
-                                    { .road = true } },
-                                  { { .x = 2, .y = 3 },
-                                    { .irrigation =
-                                          true } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides =
+                    { .squares = { { { .x = 1, .y = 2 },
+                                     { .road = true } },
+                                   { { .x = 2, .y = 3 },
+                                     { .irrigation =
+                                           true } } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_replace_set_tile(
       { .x = 3, .y = 4 }, { .lost_city_rumor = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides =
-                          { .squares =
-                                { { { .x = 1, .y = 2 },
-                                    { .road = true } },
-                                  { { .x = 2, .y = 3 },
-                                    { .irrigation = true } },
-                                  { { .x = 3, .y = 4 },
-                                    { .lost_city_rumor =
-                                          true } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides =
+                    { .squares = { { { .x = 1, .y = 2 },
+                                     { .road = true } },
+                                   { { .x = 2, .y = 3 },
+                                     { .irrigation = true } },
+                                   { { .x = 3, .y = 4 },
+                                     { .lost_city_rumor =
+                                           true } } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.clear();
@@ -292,28 +277,26 @@ TEST_CASE( "[anim-builder] landview_replace_set_tile" ) {
   builder.landview_replace_set_tile( { .x = 1, .y = 2 },
                                      { .road = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides = {
-                          .squares = {
-                              { { .x = 1, .y = 2 },
-                                { .road = true } } } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides = {
+                  .squares = {
+                    { { .x = 1, .y = 2 },
+                      { .road = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_replace_set_tile( { .x = 2, .y = 3 },
                                      { .irrigation = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::landscape_anim_replace{
-                      .overrides = {
-                          .squares = {
-                              { { .x = 1, .y = 2 },
-                                { .road = true } },
-                              { { .x = 2, .y = 3 },
-                                { .irrigation =
-                                      true } } } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::landscape_anim_replace{
+                .overrides = {
+                  .squares = {
+                    { { .x = 1, .y = 2 }, { .road = true } },
+                    { { .x = 2, .y = 3 },
+                      { .irrigation = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 }
 
@@ -325,44 +308,42 @@ TEST_CASE( "[anim-builder] landview_enpixelate_edit_tile" ) {
 
   builder.delay( chrono::milliseconds{ 5 } );
   expected = {
-      .sequence = { { { .primitive = AnimationPrimitive::delay{
-                            .duration = chrono::milliseconds{
-                                5 } } } } } };
+    .sequence = {
+      { { .primitive = AnimationPrimitive::delay{
+            .duration = chrono::milliseconds{ 5 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_enpixelate_edit_tile(
       { .x = 1, .y = 2 }, MapSquare{ .irrigation = true },
       []( MapSquare& square ) { square.road = true; } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides = {
-                          .squares = {
-                              { { .x = 1, .y = 2 },
-                                { .irrigation = true,
-                                  .road = true } } } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides = {
+                  .squares = {
+                    { { .x = 1, .y = 2 },
+                      { .irrigation = true,
+                        .road       = true } } } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.ensure_tile_visible( { .x = 7, .y = 8 } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides =
-                          { .squares =
-                                { { { .x = 1, .y = 2 },
-                                    { .irrigation = true,
-                                      .road = true } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides =
+                    { .squares = { { { .x = 1, .y = 2 },
+                                     { .irrigation = true,
+                                       .road = true } } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_enpixelate_edit_tile(
@@ -370,22 +351,20 @@ TEST_CASE( "[anim-builder] landview_enpixelate_edit_tile" ) {
         square.overlay = e_land_overlay::hills;
       } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides =
-                          { .squares =
-                                { { { .x = 1, .y = 2 },
-                                    { .overlay =
-                                          e_land_overlay::hills,
-                                      .irrigation = true,
-                                      .road = true } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides =
+                    { .squares = { { { .x = 1, .y = 2 },
+                                     { .overlay =
+                                           e_land_overlay::hills,
+                                       .irrigation = true,
+                                       .road = true } } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_enpixelate_edit_tile(
@@ -393,25 +372,23 @@ TEST_CASE( "[anim-builder] landview_enpixelate_edit_tile" ) {
         square.overlay = e_land_overlay::hills;
       } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides =
-                          { .squares =
-                                { { { .x = 1, .y = 2 },
-                                    { .overlay =
-                                          e_land_overlay::hills,
-                                      .irrigation = true,
-                                      .road       = true } },
-                                  { { .x = 2, .y = 2 },
-                                    { .overlay = e_land_overlay::
-                                          hills } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides =
+                    { .squares =
+                          { { { .x = 1, .y = 2 },
+                              { .overlay = e_land_overlay::hills,
+                                .irrigation = true,
+                                .road       = true } },
+                            { { .x = 2, .y = 2 },
+                              { .overlay = e_land_overlay::
+                                    hills } } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 }
 
@@ -424,62 +401,57 @@ TEST_CASE(
 
   builder.delay( chrono::milliseconds{ 5 } );
   expected = {
-      .sequence = { { { .primitive = AnimationPrimitive::delay{
-                            .duration = chrono::milliseconds{
-                                5 } } } } } };
+    .sequence = {
+      { { .primitive = AnimationPrimitive::delay{
+            .duration = chrono::milliseconds{ 5 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_enpixelate_dwelling_context(
       { .x = 1, .y = 2 }, nothing );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides = {
-                          .dwellings = {
-                              { { .x = 1, .y = 2 }, nothing },
-                          } } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides = { .dwellings = {
+                                 { { .x = 1, .y = 2 }, nothing },
+                               } } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.ensure_tile_visible( { .x = 7, .y = 8 } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides =
-                          { .dwellings = { { { .x = 1, .y = 2 },
-                                             nothing } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides =
+                    { .dwellings = { { { .x = 1, .y = 2 },
+                                       nothing } } } } },
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 
   builder.landview_enpixelate_dwelling_context(
       { .x = 2, .y = 2 }, Dwelling{ .is_capital = true } );
   expected = {
-      .sequence = {
-          { { .primitive =
-                  AnimationPrimitive::delay{
-                      .duration = chrono::milliseconds{ 5 } } },
-            { .primitive =
-                  AnimationPrimitive::landscape_anim_enpixelate{
-                      .overrides =
-                          { .dwellings =
-                                { { { .x = 1, .y = 2 },
-                                    nothing },
-                                  { { .x = 2, .y = 2 },
-                                    Dwelling{
-                                        .is_capital =
+    .sequence = {
+      { { .primitive =
+              AnimationPrimitive::delay{
+                .duration = chrono::milliseconds{ 5 } } },
+        { .primitive =
+              AnimationPrimitive::landscape_anim_enpixelate{
+                .overrides =
+                    { .dwellings =
+                          { { { .x = 1, .y = 2 }, nothing },
+                            { { .x = 2, .y = 2 },
+                              Dwelling{ .is_capital =
                                             true } } } } } },
-            { .primitive =
-                  AnimationPrimitive::ensure_tile_visible{
-                      .tile = { .x = 7, .y = 8 } } } } } };
+        { .primitive = AnimationPrimitive::ensure_tile_visible{
+            .tile = { .x = 7, .y = 8 } } } } } };
   REQUIRE( builder.result() == expected );
 }
 

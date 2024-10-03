@@ -136,7 +136,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     SSConst const& ss, Player const& player, Tribe const& tribe,
     Dwelling const& dwelling, e_unit_type unit_type ) {
   static vector<e_enter_dwelling_option> const options_cancel{
-      e_enter_dwelling_option::cancel,
+    e_enter_dwelling_option::cancel,
   };
   if( !tribe.relationship[player.nation].encountered ) {
     // The tribe has not yet made contact with us. This should
@@ -157,56 +157,56 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   switch( category ) {
     case e_dwelling_interaction_category::scout: {
       static vector<e_enter_dwelling_option> const options{
-          e_enter_dwelling_option::speak_with_chief,
-          e_enter_dwelling_option::attack_village,
-          // e_enter_dwelling_option::demand_tribute,
-          e_enter_dwelling_option::cancel,
+        e_enter_dwelling_option::speak_with_chief,
+        e_enter_dwelling_option::attack_village,
+        // e_enter_dwelling_option::demand_tribute,
+        e_enter_dwelling_option::cancel,
       };
       static vector<e_enter_dwelling_option> const
           options_at_war{
-              e_enter_dwelling_option::speak_with_chief,
-              e_enter_dwelling_option::attack_village,
-              e_enter_dwelling_option::cancel,
+            e_enter_dwelling_option::speak_with_chief,
+            e_enter_dwelling_option::attack_village,
+            e_enter_dwelling_option::cancel,
           };
       return switch_war( options, options_at_war );
     }
     case e_dwelling_interaction_category::military: {
       static vector<e_enter_dwelling_option> const options{
-          e_enter_dwelling_option::attack_village,
-          // e_enter_dwelling_option::demand_tribute,
-          e_enter_dwelling_option::cancel,
+        e_enter_dwelling_option::attack_village,
+        // e_enter_dwelling_option::demand_tribute,
+        e_enter_dwelling_option::cancel,
       };
       static vector<e_enter_dwelling_option> const
           options_at_war{
-              e_enter_dwelling_option::attack_village,
-              e_enter_dwelling_option::cancel,
+            e_enter_dwelling_option::attack_village,
+            e_enter_dwelling_option::cancel,
           };
       return switch_war( options, options_at_war );
     }
     case e_dwelling_interaction_category::colonist: {
       static vector<e_enter_dwelling_option> const options{
-          e_enter_dwelling_option::live_among_the_natives,
-          e_enter_dwelling_option::cancel,
+        e_enter_dwelling_option::live_among_the_natives,
+        e_enter_dwelling_option::cancel,
       };
       return switch_war( options, options_cancel );
     }
     case e_dwelling_interaction_category::missionary: {
       static vector<e_enter_dwelling_option> const
           options_no_mission{
-              e_enter_dwelling_option::establish_mission,
-              // e_enter_dwelling_option::incite_indians,
-              e_enter_dwelling_option::cancel,
+            e_enter_dwelling_option::establish_mission,
+            // e_enter_dwelling_option::incite_indians,
+            e_enter_dwelling_option::cancel,
           };
       static vector<e_enter_dwelling_option> const
           options_has_friendly_mission{
-              // e_enter_dwelling_option::incite_indians,
-              e_enter_dwelling_option::cancel,
+            // e_enter_dwelling_option::incite_indians,
+            e_enter_dwelling_option::cancel,
           };
       static vector<e_enter_dwelling_option> const
           options_has_foreign_mission{
-              // e_enter_dwelling_option::denounce_foreign_mission,
-              // e_enter_dwelling_option::incite_indians,
-              e_enter_dwelling_option::cancel,
+            // e_enter_dwelling_option::denounce_foreign_mission,
+            // e_enter_dwelling_option::incite_indians,
+            e_enter_dwelling_option::cancel,
           };
       maybe<UnitId> const missionary =
           ss.units.missionary_from_dwelling( dwelling.id );
@@ -220,8 +220,8 @@ vector<e_enter_dwelling_option> const& options_for_unit(
     }
     case e_dwelling_interaction_category::trade: {
       static vector<e_enter_dwelling_option> const options{
-          e_enter_dwelling_option::trade,
-          e_enter_dwelling_option::cancel,
+        e_enter_dwelling_option::trade,
+        e_enter_dwelling_option::cancel,
       };
       // In the OG, when attempting to trade with a tribe that is
       // hostile, it won't present any options to the player, it
@@ -308,11 +308,11 @@ EnterNativeDwellingOptions enter_native_dwelling_options(
     e_unit_type unit_type, Dwelling const& dwelling ) {
   Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
   return EnterNativeDwellingOptions{
-      .dwelling_id = dwelling.id,
-      .reaction =
-          reaction_for_dwelling( ss, player, tribe, dwelling ),
-      .options = options_for_unit( ss, player, tribe, dwelling,
-                                   unit_type ) };
+    .dwelling_id = dwelling.id,
+    .reaction =
+        reaction_for_dwelling( ss, player, tribe, dwelling ),
+    .options = options_for_unit( ss, player, tribe, dwelling,
+                                 unit_type ) };
 }
 
 wait<e_enter_dwelling_option> present_dwelling_entry_options(
@@ -365,7 +365,7 @@ LiveAmongTheNatives compute_live_among_the_natives(
     return LiveAmongTheNatives::generally_ineligible{};
   if( attr.expertise.has_value() )
     return LiveAmongTheNatives::has_expertise{
-        .in_what = *attr.expertise };
+      .in_what = *attr.expertise };
   if( is_military_unit( unit.type() ) )
     // This should catch scouts and other military units.
     return LiveAmongTheNatives::generally_ineligible{};
@@ -586,7 +586,7 @@ static ChiefAction compute_speak_with_chief_action(
       if( ssize( tiles ) <= conf.min_invisible_tiles_for_tales )
         return ChiefAction::none{};
       return ChiefAction::tales_of_nearby_lands{
-          .tiles = std::move( tiles ) };
+        .tiles = std::move( tiles ) };
     }
     case e_speak_with_chief_result::promotion: {
       // If the unit can't be promoted to seasoned scout then
@@ -608,12 +608,12 @@ SpeakWithChiefResult compute_speak_with_chief(
     SSConst const& ss, TS& ts, Dwelling const& dwelling,
     Unit const& unit ) {
   return SpeakWithChiefResult{
-      .expertise         = dwelling.teaches,
-      .primary_trade     = dwelling.trading.seeking_primary,
-      .secondary_trade_1 = dwelling.trading.seeking_secondary_1,
-      .secondary_trade_2 = dwelling.trading.seeking_secondary_2,
-      .action            = compute_speak_with_chief_action(
-          ss, ts, dwelling, unit ) };
+    .expertise         = dwelling.teaches,
+    .primary_trade     = dwelling.trading.seeking_primary,
+    .secondary_trade_1 = dwelling.trading.seeking_secondary_1,
+    .secondary_trade_2 = dwelling.trading.seeking_secondary_2,
+    .action = compute_speak_with_chief_action( ss, ts, dwelling,
+                                               unit ) };
 }
 
 wait<> do_speak_with_chief(
@@ -726,8 +726,8 @@ EstablishMissionResult compute_establish_mission(
   CHECK( !ss.units.missionary_from_dwelling( dwelling.id )
               .has_value() );
   return EstablishMissionResult{
-      .reaction = tribe_reaction_to_missionary(
-          player, ss.natives.tribe_for( dwelling.id ) ) };
+    .reaction = tribe_reaction_to_missionary(
+        player, ss.natives.tribe_for( dwelling.id ) ) };
 }
 
 wait<> do_establish_mission(

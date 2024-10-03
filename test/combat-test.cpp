@@ -59,10 +59,10 @@ struct World : testing::World {
     MapSquare const   _ = make_ocean();
     MapSquare const   L = make_grassland();
     vector<MapSquare> tiles{
-        _, L, _, //
-        L, L, L, //
-        _, L, L, //
-        _, _, _, //
+      _, L, _, //
+      L, L, L, //
+      _, L, L, //
+      _, _, _, //
     };
     build_map( std::move( tiles ), 3 );
   }
@@ -160,17 +160,17 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     W.expect_attacker_wins( .5 );
     W.expect_promotion( false );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -184,19 +184,18 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     W.expect_attacker_wins( .5 );
     W.expect_promotion( true );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_soldier } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -215,18 +214,18 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     english.fathers.has[e_founding_father::george_washington] =
         true;
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::promoted{
-                              .to = e_unit_type::soldier } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::soldier } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -244,22 +243,22 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     W.expect_attacker_wins( .5 );
     W.expect_promotion( true );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = UnitType::create(
-                                e_unit_type::soldier,
-                                e_unit_type::indentured_servant )
-                                .value() } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = attacker->id(),
+            .base_weight     = 2.0,
+            .modified_weight = 2.0,
+            .outcome =
+                EuroUnitCombatOutcome::promoted{
+                  .to = UnitType::create(
+                            e_unit_type::soldier,
+                            e_unit_type::indentured_servant )
+                            .value() } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -276,17 +275,17 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
                                    e_nation::french );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -301,17 +300,17 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
                                    e_nation::french );
     W.expect_attacker_wins( .666666 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 4.0,
-                      .modified_weight = 4.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 4.0,
+                    .modified_weight = 4.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -329,20 +328,20 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     english.revolution_status = e_revolution_status::declared;
 
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 4.0,
-              .modified_weight = 4.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::continental_cavalry } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome = EuroUnitCombatOutcome::captured{
-                          .new_nation = e_nation::english,
-                          .new_coord  = { .x = 1, .y = 0 } } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = attacker->id(),
+            .base_weight     = 4.0,
+            .modified_weight = 4.0,
+            .outcome =
+                EuroUnitCombatOutcome::promoted{
+                  .to = e_unit_type::continental_cavalry } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome = EuroUnitCombatOutcome::captured{
+                      .new_nation = e_nation::english,
+                      .new_coord  = { .x = 1, .y = 0 } } } };
     REQUIRE( f() == expected );
   }
 
@@ -358,21 +357,20 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome =
-                EuroUnitCombatOutcome::captured_and_demoted{
-                    .to         = e_unit_type::free_colonist,
-                    .new_nation = e_nation::english,
-                    .new_coord  = { .x = 1, .y = 0 } } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::captured_and_demoted{
+          .to         = e_unit_type::free_colonist,
+          .new_nation = e_nation::english,
+          .new_coord  = { .x = 1, .y = 0 } } } };
     REQUIRE( f() == expected );
   }
 
@@ -385,19 +383,18 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
                                    e_nation::french );
     W.expect_defender_wins( .2 );
     expected = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 4.0,
-              .modified_weight = 4.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 4.0,
+                    .modified_weight = 4.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::veteran_soldier } },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -412,20 +409,19 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
     W.expect_defender_wins( .375 );
     W.expect_promotion( true );
     expected = {
-        .winner = e_combat_winner::defender,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 5.0,
-              .modified_weight = 5.0,
-              .outcome =
-                  EuroUnitCombatOutcome::demoted{
-                      .to = e_unit_type::damaged_artillery } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 3.0,
-            .modified_weight = 3.0,
-            .outcome         = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_dragoon } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 5.0,
+                    .modified_weight = 5.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to =
+                              e_unit_type::damaged_artillery } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome = EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_dragoon } } };
     REQUIRE( f() == expected );
   }
 }
@@ -451,19 +447,18 @@ TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner    = e_combat_winner::attacker,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id(),
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           EuroUnitCombatOutcome::no_change{} },
-        .defender  = {
-             .id              = defender.id(),
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome =
-                EuroColonyWorkerCombatOutcome::defeated{} } };
+      .winner    = e_combat_winner::attacker,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id(),
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         EuroUnitCombatOutcome::no_change{} },
+      .defender  = {
+         .id              = defender.id(),
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroColonyWorkerCombatOutcome::defeated{} } };
     REQUIRE( f() == expected );
   }
 
@@ -473,21 +468,20 @@ TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
                                    e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id(),
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           EuroUnitCombatOutcome::demoted{
-                               .to =
-                                  e_unit_type::free_colonist } },
-        .defender  = {
-             .id              = defender.id(),
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome =
-                EuroColonyWorkerCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id(),
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         EuroUnitCombatOutcome::demoted{
+                           .to = e_unit_type::free_colonist } },
+      .defender  = {
+         .id              = defender.id(),
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome =
+            EuroColonyWorkerCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 }
@@ -515,17 +509,17 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = NativeUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -541,19 +535,18 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( true );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_soldier } },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = NativeUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -570,18 +563,18 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
     W.expect_promotion( false );
     W.expect_retains_muskets( true );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_muskets = true } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 2.0,
+        .modified_weight = 2.0,
+        .outcome         = NativeUnitCombatOutcome::destroyed{
+                  .tribe_retains_muskets = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -598,18 +591,18 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
     W.expect_promotion( false );
     W.expect_retains_horses( true );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_horses = true } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 2.0,
+        .modified_weight = 2.0,
+        .outcome         = NativeUnitCombatOutcome::destroyed{
+                  .tribe_retains_horses = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -627,21 +620,20 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
     W.expect_retains_horses( true );
     W.expect_retains_muskets( true );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 3.0,
-            .modified_weight = 3.0,
-            .outcome = NativeUnitCombatOutcome::destroyed{
-                .tribe_retains_horses  = true,
-                .tribe_retains_muskets = true } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_soldier } },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 3.0,
+        .modified_weight = 3.0,
+        .outcome         = NativeUnitCombatOutcome::destroyed{
+                  .tribe_retains_horses  = true,
+                  .tribe_retains_muskets = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -654,19 +646,18 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
         dwelling.id );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::demoted{
-                              .to =
-                                  e_unit_type::free_colonist } },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = NativeUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::demoted{
+                          .to = e_unit_type::free_colonist } },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = NativeUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -679,17 +670,17 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
         dwelling.id );
     W.expect_defender_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = NativeUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::destroyed{} },
+      .defender = {
+        .id              = defender->id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = NativeUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 }
@@ -716,20 +707,20 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     W.expect_defender_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{
-                              .tribe_retains_horses  = false,
-                              .tribe_retains_muskets = false,
-                          } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{
+                          .tribe_retains_horses  = false,
+                          .tribe_retains_muskets = false,
+                        } },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 2.0,
+        .modified_weight = 2.0,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -744,17 +735,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 2.0,
+        .modified_weight = 2.0,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -771,18 +762,18 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     W.expect_retains_horses( true );
     W.expect_retains_muskets( false );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{
-                              .tribe_retains_horses = true } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{
+                          .tribe_retains_horses = true } },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 2.0,
+        .modified_weight = 2.0,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -797,21 +788,20 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{
-                              .tribe_retains_horses  = false,
-                              .tribe_retains_muskets = false,
-                          } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome         = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_soldier } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{
+                          .tribe_retains_horses  = false,
+                          .tribe_retains_muskets = false,
+                        } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -828,21 +818,20 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
     W.expect_retains_horses( true );
     W.expect_retains_muskets( true );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{
-                              .tribe_retains_horses  = true,
-                              .tribe_retains_muskets = true,
-                          } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 2.0,
-            .modified_weight = 2.0,
-            .outcome         = EuroUnitCombatOutcome::promoted{
-                        .to = e_unit_type::veteran_soldier } } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{
+                          .tribe_retains_horses  = true,
+                          .tribe_retains_muskets = true,
+                        } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::promoted{
+                      .to = e_unit_type::veteran_soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -854,17 +843,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -876,17 +865,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_defender_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::defender,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 1.0,
-                      .modified_weight = 1.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::destroyed{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner   = e_combat_winner::defender,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::destroyed{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -898,19 +887,19 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .333333 );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id,
-              .base_weight     = 1.0,
-              .modified_weight = 1.0,
-              .outcome =
-                  NativeUnitCombatOutcome::promoted{
-                      .to = e_native_unit_type::armed_brave } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = attacker->id,
+            .base_weight     = 1.0,
+            .modified_weight = 1.0,
+            .outcome =
+                NativeUnitCombatOutcome::promoted{
+                  .to = e_native_unit_type::armed_brave } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -922,20 +911,20 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id,
-              .base_weight     = 1.0,
-              .modified_weight = 1.0,
-              .outcome =
-                  NativeUnitCombatOutcome::promoted{
-                      .to = e_native_unit_type::mounted_brave,
-                      .tribe_gains_horse_herd = true } },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 1.0,
+                    .modified_weight = 1.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::promoted{
+                          .to =
+                              e_native_unit_type::mounted_brave,
+                          .tribe_gains_horse_herd = true } },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -947,20 +936,20 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .4 );
     expected = {
-        .winner = e_combat_winner::attacker,
-        .attacker =
-            { .id              = attacker->id,
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  NativeUnitCombatOutcome::promoted{
-                      .to = e_native_unit_type::mounted_warrior,
-                      .tribe_gains_horse_herd = true } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::soldier } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = attacker->id,
+            .base_weight     = 2.0,
+            .modified_weight = 2.0,
+            .outcome =
+                NativeUnitCombatOutcome::promoted{
+                  .to = e_native_unit_type::mounted_warrior,
+                  .tribe_gains_horse_herd = true } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -972,17 +961,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .666666 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -994,17 +983,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -1016,17 +1005,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .4 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::soldier } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -1038,17 +1027,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .666666 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1060,19 +1049,19 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::promoted{
-                              .to = e_native_unit_type::
-                                  mounted_warrior } },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner = e_combat_winner::attacker,
+      .attacker =
+          { .id              = attacker->id,
+            .base_weight     = 2.0,
+            .modified_weight = 2.0,
+            .outcome =
+                NativeUnitCombatOutcome::promoted{
+                  .to = e_native_unit_type::mounted_warrior } },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -1084,17 +1073,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .666666 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1106,17 +1095,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::soldier } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -1128,17 +1117,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .75 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1150,17 +1139,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .6 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = { .id              = defender->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome = EuroUnitCombatOutcome::demoted{
-                          .to = e_unit_type::free_colonist } } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = { .id              = defender->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome = EuroUnitCombatOutcome::demoted{
+                      .to = e_unit_type::free_colonist } } };
     REQUIRE( f() == expected );
   }
 
@@ -1172,17 +1161,17 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
                                    { .x = 1, .y = 0 } );
     W.expect_attacker_wins( .75 );
     expected = {
-        .winner   = e_combat_winner::attacker,
-        .attacker = { .id              = attacker->id,
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          NativeUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id              = defender->id(),
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner   = e_combat_winner::attacker,
+      .attacker = { .id              = attacker->id,
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        NativeUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id              = defender->id(),
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 }
@@ -1215,20 +1204,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
         dwelling.id );
     defender = &indoor_unit;
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 0.0,
-                       .modified_weight = 0.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{} },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 0.0,
+                     .modified_weight = 0.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{} },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1240,20 +1229,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                    colony.location );
     W.expect_promotion( false );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 0.0,
-                       .modified_weight = 0.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{} },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 2.0,
-             .modified_weight = 2.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 0.0,
+                     .modified_weight = 0.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{} },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 2.0,
+         .modified_weight = 2.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1265,21 +1254,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                    colony.location );
     W.expect_promotion( true );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 0.0,
-                       .modified_weight = 0.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{} },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 2.0,
-             .modified_weight = 2.0,
-             .outcome         = EuroUnitCombatOutcome::promoted{
-                         .to = e_unit_type::veteran_soldier } } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 0.0,
+                     .modified_weight = 0.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{} },
+      .defender  = { .id              = defender->id(),
+                     .modifiers       = {},
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome = EuroUnitCombatOutcome::promoted{
+                       .to = e_unit_type::veteran_soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -1291,20 +1279,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     defender = &indoor_unit;
     W.expect_defender_wins( .5 );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 1.0,
-                       .modified_weight = 1.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{} },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 1.0,
+                     .modified_weight = 1.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{} },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1318,23 +1306,23 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{
-                               .tribe_retains_horses  = false,
-                               .tribe_retains_muskets = false,
-                          } },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{
+                           .tribe_retains_horses  = false,
+                           .tribe_retains_muskets = false,
+                        } },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1348,23 +1336,23 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( false );
     W.expect_retains_muskets( true );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{
-                               .tribe_retains_horses  = false,
-                               .tribe_retains_muskets = true,
-                          } },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{
+                           .tribe_retains_horses  = false,
+                           .tribe_retains_muskets = true,
+                        } },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1378,20 +1366,20 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( false );
     W.expect_retains_muskets( false );
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{} },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{} },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1405,22 +1393,22 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( true ); // called twice due to
     W.expect_retains_horses( true ); //  the forced of brave.
     expected = {
-        .winner    = e_combat_winner::defender,
-        .colony_id = colony.id,
-        .attacker  = { .id              = attacker->id,
-                       .modifiers       = {},
-                       .base_weight     = 2.0,
-                       .modified_weight = 2.0,
-                       .outcome =
-                           NativeUnitCombatOutcome::destroyed{
-                               .tribe_retains_horses  = true,
-                               .tribe_retains_muskets = false } },
-        .defender  = {
-             .id              = defender->id(),
-             .modifiers       = {},
-             .base_weight     = 1.0,
-             .modified_weight = 1.0,
-             .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner    = e_combat_winner::defender,
+      .colony_id = colony.id,
+      .attacker  = { .id              = attacker->id,
+                     .modifiers       = {},
+                     .base_weight     = 2.0,
+                     .modified_weight = 2.0,
+                     .outcome =
+                         NativeUnitCombatOutcome::destroyed{
+                           .tribe_retains_horses  = true,
+                           .tribe_retains_muskets = false } },
+      .defender  = {
+         .id              = defender->id(),
+         .modifiers       = {},
+         .base_weight     = 1.0,
+         .modified_weight = 1.0,
+         .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1432,21 +1420,21 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     defender = &indoor_unit;
     W.expect_attacker_wins( .5 );
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .colony_id        = colony.id,
-        .colony_destroyed = true,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 1.0,
-                              .modified_weight = 1.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 1.0,
-                    .modified_weight = 1.0,
-                    .outcome = EuroUnitCombatOutcome::destroyed{} } };
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = true,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 1.0,
+                            .modified_weight = 1.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id              = defender->id(),
+                .modifiers       = {},
+                .base_weight     = 1.0,
+                .modified_weight = 1.0,
+                .outcome = EuroUnitCombatOutcome::destroyed{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1460,21 +1448,21 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_defender_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 1.0,
-                              .modified_weight = 1.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 2.0,
-                    .modified_weight = 2.0,
-                    .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 1.0,
+                            .modified_weight = 1.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id              = defender->id(),
+                .modifiers       = {},
+                .base_weight     = 2.0,
+                .modified_weight = 2.0,
+                .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1488,22 +1476,21 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_defender_wins( .666666 );
     W.expect_promotion( true );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 1.0,
-                              .modified_weight = 1.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 2.0,
-                    .modified_weight = 2.0,
-                    .outcome         = EuroUnitCombatOutcome::promoted{
-                                .to = e_unit_type::veteran_soldier } } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 1.0,
+                            .modified_weight = 1.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = { .id              = defender->id(),
+                            .modifiers       = {},
+                            .base_weight     = 2.0,
+                            .modified_weight = 2.0,
+                            .outcome = EuroUnitCombatOutcome::promoted{
+                              .to = e_unit_type::veteran_soldier } } };
     REQUIRE( f() == expected );
   }
 
@@ -1516,21 +1503,21 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                                    colony.location );
     W.expect_defender_wins( .75 );
     expected = {
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 1.0,
-                              .modified_weight = 1.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{} },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 3.0,
-                    .modified_weight = 3.0,
-                    .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 1.0,
+                            .modified_weight = 1.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{} },
+      .defender         = {
+                .id              = defender->id(),
+                .modifiers       = {},
+                .base_weight     = 3.0,
+                .modified_weight = 3.0,
+                .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1547,23 +1534,23 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( true );  // called twice due to
     W.expect_retains_muskets( true ); // forced loss for brave.
     expected = {
-        .winner           = e_combat_winner::defender,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 3.0,
-                              .modified_weight = 3.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{
-                                      .tribe_retains_horses  = true,
-                                      .tribe_retains_muskets = true } },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 3.0,
-                    .modified_weight = 3.0,
-                    .outcome = EuroUnitCombatOutcome::no_change{} } };
+      .winner           = e_combat_winner::defender,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 3.0,
+                            .modified_weight = 3.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{
+                                  .tribe_retains_horses  = true,
+                                  .tribe_retains_muskets = true } },
+      .defender         = {
+                .id              = defender->id(),
+                .modifiers       = {},
+                .base_weight     = 3.0,
+                .modified_weight = 3.0,
+                .outcome = EuroUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1578,24 +1565,23 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
     W.expect_retains_horses( false ); // called due to forced
     W.expect_retains_muskets( true ); // loss for brave.
     expected = {
-        .winner           = e_combat_winner::attacker,
-        .colony_id        = colony.id,
-        .colony_destroyed = false,
-        .attacker         = { .id              = attacker->id,
-                              .modifiers       = {},
-                              .base_weight     = 3.0,
-                              .modified_weight = 3.0,
-                              .outcome =
-                                  NativeUnitCombatOutcome::destroyed{
-                                      .tribe_retains_horses  = false,
-                                      .tribe_retains_muskets = true } },
-        .defender         = {
-                    .id              = defender->id(),
-                    .modifiers       = {},
-                    .base_weight     = 3.0,
-                    .modified_weight = 3.0,
-                    .outcome         = EuroUnitCombatOutcome::demoted{
-                                .to = e_unit_type::veteran_colonist } } };
+      .winner           = e_combat_winner::attacker,
+      .colony_id        = colony.id,
+      .colony_destroyed = false,
+      .attacker         = { .id              = attacker->id,
+                            .modifiers       = {},
+                            .base_weight     = 3.0,
+                            .modified_weight = 3.0,
+                            .outcome =
+                                NativeUnitCombatOutcome::destroyed{
+                                  .tribe_retains_horses  = false,
+                                  .tribe_retains_muskets = true } },
+      .defender         = { .id              = defender->id(),
+                            .modifiers       = {},
+                            .base_weight     = 3.0,
+                            .modified_weight = 3.0,
+                            .outcome = EuroUnitCombatOutcome::demoted{
+                              .to = e_unit_type::veteran_colonist } } };
     REQUIRE( f() == expected );
   }
 }
@@ -1628,22 +1614,21 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome =
-                DwellingCombatOutcome::population_decrease{
-                    .convert_produced = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = DwellingCombatOutcome::population_decrease{
+          .convert_produced = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1654,20 +1639,19 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = false,
-        .attacker        = { .id              = attacker->id(),
-                             .base_weight     = 2.0,
-                             .modified_weight = 2.0,
-                             .outcome =
-                                 EuroUnitCombatOutcome::demoted{
-                                     .to =
-                                  e_unit_type::free_colonist } },
-        .defender        = {
-                   .id              = dwelling.id,
-                   .base_weight     = 1.0,
-                   .modified_weight = 1.0,
-                   .outcome = DwellingCombatOutcome::no_change{} } };
+      .winner          = e_combat_winner::defender,
+      .missions_burned = false,
+      .attacker        = { .id              = attacker->id(),
+                           .base_weight     = 2.0,
+                           .modified_weight = 2.0,
+                           .outcome =
+                               EuroUnitCombatOutcome::demoted{
+                                 .to = e_unit_type::free_colonist } },
+      .defender        = {
+               .id              = dwelling.id,
+               .base_weight     = 1.0,
+               .modified_weight = 1.0,
+               .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1678,20 +1662,19 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = false,
-        .attacker        = { .id              = attacker->id(),
-                             .base_weight     = 2.0,
-                             .modified_weight = 2.0,
-                             .outcome =
-                                 EuroUnitCombatOutcome::demoted{
-                                     .to =
-                                  e_unit_type::free_colonist } },
-        .defender        = {
-                   .id              = dwelling.id,
-                   .base_weight     = 1.0,
-                   .modified_weight = 1.0,
-                   .outcome = DwellingCombatOutcome::no_change{} } };
+      .winner          = e_combat_winner::defender,
+      .missions_burned = false,
+      .attacker        = { .id              = attacker->id(),
+                           .base_weight     = 2.0,
+                           .modified_weight = 2.0,
+                           .outcome =
+                               EuroUnitCombatOutcome::demoted{
+                                 .to = e_unit_type::free_colonist } },
+      .defender        = {
+               .id              = dwelling.id,
+               .base_weight     = 1.0,
+               .modified_weight = 1.0,
+               .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1704,20 +1687,19 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                             e_nation::english );
     W.expect_defender_wins( .333333 );
     expected = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = false,
-        .attacker        = { .id              = attacker->id(),
-                             .base_weight     = 2.0,
-                             .modified_weight = 2.0,
-                             .outcome =
-                                 EuroUnitCombatOutcome::demoted{
-                                     .to =
-                                  e_unit_type::free_colonist } },
-        .defender        = {
-                   .id              = dwelling.id,
-                   .base_weight     = 1.0,
-                   .modified_weight = 1.0,
-                   .outcome = DwellingCombatOutcome::no_change{} } };
+      .winner          = e_combat_winner::defender,
+      .missions_burned = false,
+      .attacker        = { .id              = attacker->id(),
+                           .base_weight     = 2.0,
+                           .modified_weight = 2.0,
+                           .outcome =
+                               EuroUnitCombatOutcome::demoted{
+                                 .to = e_unit_type::free_colonist } },
+      .defender        = {
+               .id              = dwelling.id,
+               .base_weight     = 1.0,
+               .modified_weight = 1.0,
+               .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1734,24 +1716,22 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( true );
     W.expect_convert( false, .66 );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 2.0,
-              .modified_weight = 2.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_soldier } },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_soldier } },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome =
-                DwellingCombatOutcome::population_decrease{
-                    .convert_produced = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = DwellingCombatOutcome::population_decrease{
+          .convert_produced = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1767,22 +1747,21 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( false );
     W.expect_convert( true, .66 );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome =
-                DwellingCombatOutcome::population_decrease{
-                    .convert_produced = true } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = DwellingCombatOutcome::population_decrease{
+          .convert_produced = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -1799,20 +1778,19 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( false );
     expected = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = false,
-        .attacker        = { .id              = attacker->id(),
-                             .base_weight     = 2.0,
-                             .modified_weight = 2.0,
-                             .outcome =
-                                 EuroUnitCombatOutcome::demoted{
-                                     .to =
-                                  e_unit_type::free_colonist } },
-        .defender        = {
-                   .id              = dwelling.id,
-                   .base_weight     = 1.0,
-                   .modified_weight = 1.0,
-                   .outcome = DwellingCombatOutcome::no_change{} } };
+      .winner          = e_combat_winner::defender,
+      .missions_burned = false,
+      .attacker        = { .id              = attacker->id(),
+                           .base_weight     = 2.0,
+                           .modified_weight = 2.0,
+                           .outcome =
+                               EuroUnitCombatOutcome::demoted{
+                                 .to = e_unit_type::free_colonist } },
+      .defender        = {
+               .id              = dwelling.id,
+               .base_weight     = 1.0,
+               .modified_weight = 1.0,
+               .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1829,20 +1807,19 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( true );
     expected = {
-        .winner          = e_combat_winner::defender,
-        .missions_burned = true,
-        .attacker        = { .id              = attacker->id(),
-                             .base_weight     = 2.0,
-                             .modified_weight = 2.0,
-                             .outcome =
-                                 EuroUnitCombatOutcome::demoted{
-                                     .to =
-                                  e_unit_type::free_colonist } },
-        .defender        = {
-                   .id              = dwelling.id,
-                   .base_weight     = 1.0,
-                   .modified_weight = 1.0,
-                   .outcome = DwellingCombatOutcome::no_change{} } };
+      .winner          = e_combat_winner::defender,
+      .missions_burned = true,
+      .attacker        = { .id              = attacker->id(),
+                           .base_weight     = 2.0,
+                           .modified_weight = 2.0,
+                           .outcome =
+                               EuroUnitCombatOutcome::demoted{
+                                 .to = e_unit_type::free_colonist } },
+      .defender        = {
+               .id              = dwelling.id,
+               .base_weight     = 1.0,
+               .modified_weight = 1.0,
+               .outcome = DwellingCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -1860,22 +1837,21 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     W.expect_promotion( false );
     W.expect_burn_mission( true );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = true,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = true,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 2.0,
-                      .modified_weight = 2.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 2.0,
+                    .modified_weight = 2.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome =
-                DwellingCombatOutcome::population_decrease{
-                    .convert_produced = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome = DwellingCombatOutcome::population_decrease{
+          .convert_produced = false } } };
     REQUIRE( f() == expected );
   }
 }
@@ -1919,25 +1895,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1950,25 +1926,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -1985,25 +1961,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // capital.
     W.expect_guaranteed_treasure_amount( 300, 800, 345 );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 600,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = 600,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -2020,25 +1996,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // cortes, then rounded down to 500.
     W.expect_guaranteed_treasure_amount( 300, 800, 345 );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 500,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = 500,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -2052,25 +2028,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     // then be rounded down to 300.
     W.expect_treasure_amount( .33, 300, 800, 345 );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = 300,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = 300,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -2087,25 +2063,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill        = {},
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = nothing,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = {},
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = nothing,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -2127,25 +2103,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_convert( true, .22 );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = missionary_id,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = true } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = missionary_id,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = true } } };
     REQUIRE( f() == expected );
   }
 
@@ -2165,25 +2141,25 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = false,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = false,
 
-        .attacker = { .id              = attacker->id(),
-                      .base_weight     = 3.0,
-                      .modified_weight = 3.0,
-                      .outcome =
-                          EuroUnitCombatOutcome::no_change{} },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::no_change{} },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 
@@ -2204,27 +2180,26 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.expect_burn_mission( true );
     W.expect_treasure_amount( .33, 300, 800, nothing );
     expected = {
-        .winner          = e_combat_winner::attacker,
-        .missions_burned = true,
+      .winner          = e_combat_winner::attacker,
+      .missions_burned = true,
 
-        .attacker =
-            { .id              = attacker->id(),
-              .base_weight     = 3.0,
-              .modified_weight = 3.0,
-              .outcome =
-                  EuroUnitCombatOutcome::promoted{
-                      .to = e_unit_type::veteran_dragoon } },
+      .attacker = { .id              = attacker->id(),
+                    .base_weight     = 3.0,
+                    .modified_weight = 3.0,
+                    .outcome =
+                        EuroUnitCombatOutcome::promoted{
+                          .to = e_unit_type::veteran_dragoon } },
 
-        .defender = {
-            .id              = dwelling.id,
-            .base_weight     = 1.0,
-            .modified_weight = 1.0,
-            .outcome = DwellingCombatOutcome::destruction{
-                .braves_to_kill = { brave1_id, brave2_id },
-                .missionary_to_release = nothing,
-                .treasure_amount       = nothing,
-                .tribe_destroyed       = e_tribe::arawak,
-                .convert_produced      = false } } };
+      .defender = {
+        .id              = dwelling.id,
+        .base_weight     = 1.0,
+        .modified_weight = 1.0,
+        .outcome         = DwellingCombatOutcome::destruction{
+                  .braves_to_kill        = { brave1_id, brave2_id },
+                  .missionary_to_release = nothing,
+                  .treasure_amount       = nothing,
+                  .tribe_destroyed       = e_tribe::arawak,
+                  .convert_produced      = false } } };
     REQUIRE( f() == expected );
   }
 }
@@ -2260,24 +2235,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                                    e_nation::french );
     W.expect_evade( .217391 );
     expected = {
-        .winner       = nothing,
-        .sink_weights = nothing,
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = nothing,
+      .sink_weights = nothing,
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 4 + 1,
-            .base_combat_weight     = 2,
-            .modified_combat_weight = 2,
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 4 + 1,
+        .base_combat_weight     = 2,
+        .modified_combat_weight = 2,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2294,26 +2267,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 4 + 1,
-            .base_combat_weight     = 2,
-            .modified_combat_weight = 2,
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 4 + 1,
+        .base_combat_weight     = 2,
+        .modified_combat_weight = 2,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2330,26 +2301,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .428571 );
     W.expect_no_sinks( 0.923077 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 1, .hull = 12 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 1, .hull = 12 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 5 + 1,
-            .base_combat_weight     = 6,
-            .modified_combat_weight = 6,
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 5 + 1,
+        .base_combat_weight     = 6,
+        .modified_combat_weight = 6,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2366,23 +2335,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .428571 );
     W.expect_sinks( 0.076923 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 1, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::sunk{} },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 5 + 1,
-                .base_combat_weight     = 6,
-                .modified_combat_weight = 6,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 1, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::sunk{} },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 5 + 1,
+            .base_combat_weight     = 6,
+            .modified_combat_weight = 6,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2398,24 +2366,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .615385 );
     W.expect_no_sinks( .625 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 6 + 1,
-                .base_combat_weight     = 10,
-                .modified_combat_weight = 10,
-                .outcome = EuroNavalUnitCombatOutcome::damaged{
-                    .port = ShipRepairPort::european_harbor{} } } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 12, .hull = 20 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 10,
+            .modified_combat_weight = 10,
+            .outcome = EuroNavalUnitCombatOutcome::damaged{
+              .port = ShipRepairPort::european_harbor{} } } };
     REQUIRE( f() == expected );
   }
 
@@ -2430,23 +2398,23 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .615385 );
     W.expect_sinks( .375 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 6 + 1,
-                .base_combat_weight     = 10,
-                .modified_combat_weight = 10,
-                .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 12, .hull = 20 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 10,
+            .modified_combat_weight = 10,
+            .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2459,24 +2427,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
                                    e_nation::french );
     W.expect_evade( .72 );
     expected = {
-        .winner       = nothing,
-        .sink_weights = nothing,
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 16,
-              .modified_combat_weight = 16,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::no_change{} },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = nothing,
+      .sink_weights = nothing,
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 8 + 1 + 8 + 1,
-            .base_combat_weight     = 8,
-            .modified_combat_weight = 8,
-            .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 8 + 1 + 8 + 1,
+        .base_combat_weight     = 8,
+        .modified_combat_weight = 8,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2492,26 +2458,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 16,
-              .modified_combat_weight = 16,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 8 + 1 + 8 + 1,
-            .base_combat_weight     = 8,
-            .modified_combat_weight = 8,
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 8 + 1 + 8 + 1,
+        .base_combat_weight     = 8,
+        .modified_combat_weight = 8,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2527,23 +2491,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::sunk{} },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 8 + 1 + 8 + 1,
-                .base_combat_weight     = 8,
-                .modified_combat_weight = 8,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::sunk{} },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2559,24 +2522,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 12, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 8 + 1 + 8 + 1,
-                .base_combat_weight     = 8,
-                .modified_combat_weight = 8,
-                .outcome = EuroNavalUnitCombatOutcome::damaged{
-                    .port = ShipRepairPort::european_harbor{} } } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 12, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
+            .outcome = EuroNavalUnitCombatOutcome::damaged{
+              .port = ShipRepairPort::european_harbor{} } } };
     REQUIRE( f() == expected );
   }
 
@@ -2591,23 +2554,23 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 12, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 8 + 1 + 8 + 1,
-                .base_combat_weight     = 8,
-                .modified_combat_weight = 8,
-                .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 12, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
+            .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2623,26 +2586,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 32, .hull = 64 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 5 + 1,
-              .base_combat_weight     = 24,
-              .modified_combat_weight = 24,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 32, .hull = 64 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
             .evade_weight           = 5 + 1,
             .base_combat_weight     = 24,
             .modified_combat_weight = 24,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 5 + 1,
+        .base_combat_weight     = 24,
+        .modified_combat_weight = 24,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2658,23 +2619,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 32, .hull = 64 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 5 + 1,
-                          .base_combat_weight     = 24,
-                          .modified_combat_weight = 24,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::sunk{} },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 5 + 1,
-                .base_combat_weight     = 24,
-                .modified_combat_weight = 24,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 32, .hull = 64 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 5 + 1,
+                        .base_combat_weight     = 24,
+                        .modified_combat_weight = 24,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::sunk{} },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 5 + 1,
+            .base_combat_weight     = 24,
+            .modified_combat_weight = 24,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2690,24 +2650,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 32, .hull = 64 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 5 + 1,
-                          .base_combat_weight     = 24,
-                          .modified_combat_weight = 24,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 5 + 1,
-                .base_combat_weight     = 24,
-                .modified_combat_weight = 24,
-                .outcome = EuroNavalUnitCombatOutcome::damaged{
-                    .port = ShipRepairPort::european_harbor{} } } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 32, .hull = 64 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 5 + 1,
+                        .base_combat_weight     = 24,
+                        .modified_combat_weight = 24,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 5 + 1,
+            .base_combat_weight     = 24,
+            .modified_combat_weight = 24,
+            .outcome = EuroNavalUnitCombatOutcome::damaged{
+              .port = ShipRepairPort::european_harbor{} } } };
     REQUIRE( f() == expected );
   }
 
@@ -2723,23 +2683,23 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 32, .hull = 64 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 5 + 1,
-                          .base_combat_weight     = 24,
-                          .modified_combat_weight = 24,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 5 + 1,
-                .base_combat_weight     = 24,
-                .modified_combat_weight = 24,
-                .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 32, .hull = 64 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 5 + 1,
+                        .base_combat_weight     = 24,
+                        .modified_combat_weight = 24,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 5 + 1,
+            .base_combat_weight     = 24,
+            .modified_combat_weight = 24,
+            .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2755,26 +2715,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 12, .hull = 12 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 12, .hull = 12 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 6 + 1,
-            .base_combat_weight     = 16,
-            .modified_combat_weight = 16,
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 6 + 1,
+        .base_combat_weight     = 16,
+        .modified_combat_weight = 16,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2790,23 +2748,22 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 12, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::sunk{} },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 6 + 1,
-                .base_combat_weight     = 16,
-                .modified_combat_weight = 16,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 12, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::sunk{} },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2822,24 +2779,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 6 + 1,
-                .base_combat_weight     = 16,
-                .modified_combat_weight = 16,
-                .outcome = EuroNavalUnitCombatOutcome::damaged{
-                    .port = ShipRepairPort::european_harbor{} } } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
+            .outcome = EuroNavalUnitCombatOutcome::damaged{
+              .port = ShipRepairPort::european_harbor{} } } };
     REQUIRE( f() == expected );
   }
 
@@ -2855,23 +2812,23 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_attacker_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 6 + 1,
-                .base_combat_weight     = 16,
-                .modified_combat_weight = 16,
-                .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
+            .outcome = EuroNavalUnitCombatOutcome::sunk{} } };
     REQUIRE( f() == expected );
   }
 
@@ -2899,41 +2856,40 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_no_sinks( .5 ); // privateer
     W.expect_sinks( .6 );    // galleon
     expected = {
-        .winner       = e_combat_winner::attacker,
-        .sink_weights = Sinking{ .guns = 12, .hull = 20 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 6 + 1,
-                          .base_combat_weight     = 16,
-                          .modified_combat_weight = 16,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::moved{
-                                  .to = { .x = 1, .y = 3 } } },
-        .defender =
-            { .id                     = defender->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 10,
-              .modified_combat_weight = 10,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .affected_defender_units =
-            { { privateer.id(),
-                AffectedNavalDefender{
-                    .id           = privateer.id(),
-                    .sink_weights = { .guns = 12, .hull = 12 },
-                    .outcome =
-                        EuroNavalUnitCombatOutcome::damaged{
-                            .port = ShipRepairPort::
-                                european_harbor{} } } },
-              { merchantman.id(),
-                AffectedNavalDefender{
-                    .id           = merchantman.id(),
-                    .sink_weights = { .guns = 12, .hull = 8 },
-                    .outcome =
-                        EuroNavalUnitCombatOutcome::sunk{} } } }
+      .winner       = e_combat_winner::attacker,
+      .sink_weights = Sinking{ .guns = 12, .hull = 20 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 6 + 1,
+                        .base_combat_weight     = 16,
+                        .modified_combat_weight = 16,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::moved{
+                              .to = { .x = 1, .y = 3 } } },
+      .defender =
+          { .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 10,
+            .modified_combat_weight = 10,
+            .outcome =
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .affected_defender_units =
+          { { privateer.id(),
+              AffectedNavalDefender{
+                .id           = privateer.id(),
+                .sink_weights = { .guns = 12, .hull = 12 },
+                .outcome =
+                    EuroNavalUnitCombatOutcome::damaged{
+                      .port = ShipRepairPort::
+                          european_harbor{} } } },
+            { merchantman.id(),
+              AffectedNavalDefender{
+                .id           = merchantman.id(),
+                .sink_weights = { .guns = 12, .hull = 8 },
+                .outcome =
+                    EuroNavalUnitCombatOutcome::sunk{} } } }
 
     };
     REQUIRE( f() == expected );
@@ -2959,26 +2915,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .384615 );
     W.expect_no_sinks( .888888888888888888 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 16,
-              .modified_combat_weight = 16,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
             .evade_weight           = 6 + 1,
-            .base_combat_weight     = 10,
-            .modified_combat_weight = 10,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 6 + 1,
+        .base_combat_weight     = 10,
+        .modified_combat_weight = 10,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3002,26 +2956,24 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
     W.expect_defender_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 4, .hull = 32 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 16,
-              .modified_combat_weight = 16,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 4, .hull = 32 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 8 + 1 + 8 + 1,
-            .base_combat_weight     = 8,
-            .modified_combat_weight = 8,
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 8 + 1 + 8 + 1,
+        .base_combat_weight     = 8,
+        .modified_combat_weight = 8,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 }
@@ -3049,26 +3001,24 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 4 + 1,
-            .base_combat_weight     = 2,
-            .modified_combat_weight = 2,
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 4 + 1,
+        .base_combat_weight     = 2,
+        .modified_combat_weight = 2,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3084,23 +3034,22 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::sunk{} },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 4 + 1,
-                .base_combat_weight     = 2,
-                .modified_combat_weight = 2,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::sunk{} },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 4 + 1,
+            .base_combat_weight     = 2,
+            .modified_combat_weight = 2,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3118,26 +3067,24 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 8 + 1 + 8 + 1,
-              .base_combat_weight     = 8,
-              .modified_combat_weight = 8,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 4 + 1,
-            .base_combat_weight     = 2,
-            .modified_combat_weight = 2,
+            .evade_weight           = 8 + 1 + 8 + 1,
+            .base_combat_weight     = 8,
+            .modified_combat_weight = 8,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 4 + 1,
+        .base_combat_weight     = 2,
+        .modified_combat_weight = 2,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3155,26 +3102,25 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::damaged{
-                                  .port =
-                                  ShipRepairPort::colony{
-                                      colony.id } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 4 + 1,
-                .base_combat_weight     = 2,
-                .modified_combat_weight = 2,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::damaged{
+                              .port =
+                              ShipRepairPort::colony{
+                                colony.id } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 4 + 1,
+            .base_combat_weight     = 2,
+            .modified_combat_weight = 2,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3195,26 +3141,25 @@ TEST_CASE(
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 12 },
-        .attacker     = { .id                     = attacker->id(),
-                          .modifiers              = {},
-                          .evade_weight           = 8 + 1 + 8 + 1,
-                          .base_combat_weight     = 8,
-                          .modified_combat_weight = 8,
-                          .outcome =
-                              EuroNavalUnitCombatOutcome::damaged{
-                                  .port =
-                                  ShipRepairPort::colony{
-                                      colony.id } } },
-        .defender     = {
-                .id                     = defender->id(),
-                .modifiers              = {},
-                .evade_weight           = 4 + 1,
-                .base_combat_weight     = 2,
-                .modified_combat_weight = 2,
-                .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 12 },
+      .attacker     = { .id                     = attacker->id(),
+                        .modifiers              = {},
+                        .evade_weight           = 8 + 1 + 8 + 1,
+                        .base_combat_weight     = 8,
+                        .modified_combat_weight = 8,
+                        .outcome =
+                            EuroNavalUnitCombatOutcome::damaged{
+                              .port =
+                              ShipRepairPort::colony{
+                                colony.id } } },
+      .defender     = {
+            .id                     = defender->id(),
+            .modifiers              = {},
+            .evade_weight           = 4 + 1,
+            .base_combat_weight     = 2,
+            .modified_combat_weight = 2,
+            .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 
@@ -3230,26 +3175,24 @@ TEST_CASE(
     W.expect_defender_wins( .111111 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
     expected = {
-        .winner       = e_combat_winner::defender,
-        .sink_weights = Sinking{ .guns = 0, .hull = 32 },
-        .attacker =
-            { .id                     = attacker->id(),
-              .modifiers              = {},
-              .evade_weight           = 6 + 1,
-              .base_combat_weight     = 16,
-              .modified_combat_weight = 16,
-              .outcome =
-                  EuroNavalUnitCombatOutcome::damaged{
-                      .port =
-                          ShipRepairPort::european_harbor{} } },
-        .defender = {
-            .id                     = defender->id(),
+      .winner       = e_combat_winner::defender,
+      .sink_weights = Sinking{ .guns = 0, .hull = 32 },
+      .attacker =
+          { .id                     = attacker->id(),
             .modifiers              = {},
-            .evade_weight           = 4 + 1,
-            .base_combat_weight     = 2,
-            .modified_combat_weight = 2,
+            .evade_weight           = 6 + 1,
+            .base_combat_weight     = 16,
+            .modified_combat_weight = 16,
             .outcome =
-                EuroNavalUnitCombatOutcome::no_change{} } };
+                EuroNavalUnitCombatOutcome::damaged{
+                  .port = ShipRepairPort::european_harbor{} } },
+      .defender = {
+        .id                     = defender->id(),
+        .modifiers              = {},
+        .evade_weight           = 4 + 1,
+        .base_combat_weight     = 2,
+        .modified_combat_weight = 2,
+        .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     REQUIRE( f() == expected );
   }
 }

@@ -77,11 +77,11 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
 
   SECTION( "population=0, fathers=0" ) {
     ChoiceConfig const config{
-        .msg               = "Select One",
-        .options           = { ChoiceConfigOption{
-                      .key = "none", .display_name = "(no production)" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg               = "Select One",
+      .options           = { ChoiceConfigOption{
+                  .key = "none", .display_name = "(no production)" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "none" ) );
@@ -98,43 +98,41 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction::building{
-            .what = e_colony_building::tobacconists_shop } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+               .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION(
@@ -146,45 +144,43 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     colony.construction = Construction::building{
-        .what = e_colony_building::rum_distillery };
+      .what = e_colony_building::rum_distillery };
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = 3 };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = 3 };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction::building{
-            .what = e_colony_building::tobacconists_shop } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+               .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION( "population=8, fathers=0, some buildings" ) {
@@ -201,51 +197,50 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key = "lumber_mill",
-                .display_name =
-                    "Lumber Mill             52 hammers" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key          = "newspaper",
-                .display_name = "Newspaper              120 "
-                                "hammers,  50 tools" },
-              { .key = "schoolhouse",
-                .display_name =
-                    "Schoolhouse             64 hammers" },
-              { .key          = "drydock",
-                .display_name = "Drydock                 80 "
-                                "hammers,  50 tools" },
-              { .key = "stockade",
-                .display_name =
-                    "Stockade                64 hammers" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "church",
-                .display_name =
-                    "Church                  64 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key = "lumber_mill",
+              .display_name =
+                  "Lumber Mill             52 hammers" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key          = "newspaper",
+              .display_name = "Newspaper              120 "
+                              "hammers,  50 tools" },
+            { .key = "schoolhouse",
+              .display_name =
+                  "Schoolhouse             64 hammers" },
+            { .key          = "drydock",
+              .display_name = "Drydock                 80 "
+                              "hammers,  50 tools" },
+            { .key = "stockade",
+              .display_name =
+                  "Stockade                64 hammers" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "church",
+              .display_name =
+                  "Church                  64 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "fur_trading_post" ) );
@@ -254,7 +249,7 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
     REQUIRE( w.ready() );
     REQUIRE( colony.construction ==
              Construction::building{
-                 .what = e_colony_building::fur_trading_post } );
+               .what = e_colony_building::fur_trading_post } );
   }
 
   SECTION( "population=8, fathers=all, some buildings" ) {
@@ -274,57 +269,56 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
          refl::enum_values<e_founding_father> )
       W.default_player().fathers.has[father] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key = "lumber_mill",
-                .display_name =
-                    "Lumber Mill             52 hammers" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key          = "iron_works",
-                .display_name = "Iron Works             240 "
-                                "hammers, 100 tools" },
-              { .key          = "newspaper",
-                .display_name = "Newspaper              120 "
-                                "hammers,  50 tools" },
-              { .key = "schoolhouse",
-                .display_name =
-                    "Schoolhouse             64 hammers" },
-              { .key          = "drydock",
-                .display_name = "Drydock                 80 "
-                                "hammers,  50 tools" },
-              { .key = "stockade",
-                .display_name =
-                    "Stockade                64 hammers" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "church",
-                .display_name =
-                    "Church                  64 hammers" },
-              { .key          = "custom_house",
-                .display_name = "Custom House           150 "
-                                "hammers,  50 tools" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key = "lumber_mill",
+              .display_name =
+                  "Lumber Mill             52 hammers" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key          = "iron_works",
+              .display_name = "Iron Works             240 "
+                              "hammers, 100 tools" },
+            { .key          = "newspaper",
+              .display_name = "Newspaper              120 "
+                              "hammers,  50 tools" },
+            { .key = "schoolhouse",
+              .display_name =
+                  "Schoolhouse             64 hammers" },
+            { .key          = "drydock",
+              .display_name = "Drydock                 80 "
+                              "hammers,  50 tools" },
+            { .key = "stockade",
+              .display_name =
+                  "Stockade                64 hammers" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "church",
+              .display_name =
+                  "Church                  64 hammers" },
+            { .key          = "custom_house",
+              .display_name = "Custom House           150 "
+                              "hammers,  50 tools" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "none" ) );
@@ -354,11 +348,11 @@ TEST_CASE(
 
   SECTION( "population=0, fathers=0" ) {
     ChoiceConfig const config{
-        .msg               = "Select One",
-        .options           = { ChoiceConfigOption{
-                      .key = "none", .display_name = "(no production)" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg               = "Select One",
+      .options           = { ChoiceConfigOption{
+                  .key = "none", .display_name = "(no production)" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "none" ) );
@@ -374,46 +368,44 @@ TEST_CASE(
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key = "docks",
-                .display_name =
-                    "Docks                   52 hammers" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key = "docks",
+              .display_name =
+                  "Docks                   52 hammers" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction::building{
-            .what = e_colony_building::tobacconists_shop } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+               .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION(
@@ -425,45 +417,43 @@ TEST_CASE(
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     colony.construction = Construction::building{
-        .what = e_colony_building::rum_distillery };
+      .what = e_colony_building::rum_distillery };
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = 3 };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = 3 };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction::building{
-            .what = e_colony_building::tobacconists_shop } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+               .what = e_colony_building::tobacconists_shop } );
   }
 
   SECTION( "population=8, fathers=0, some buildings" ) {
@@ -480,48 +470,47 @@ TEST_CASE(
     colony.buildings[e_colony_building::stable]           = true;
     colony.buildings[e_colony_building::blacksmiths_shop] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key = "lumber_mill",
-                .display_name =
-                    "Lumber Mill             52 hammers" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key          = "newspaper",
-                .display_name = "Newspaper              120 "
-                                "hammers,  50 tools" },
-              { .key = "schoolhouse",
-                .display_name =
-                    "Schoolhouse             64 hammers" },
-              { .key = "stockade",
-                .display_name =
-                    "Stockade                64 hammers" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "church",
-                .display_name =
-                    "Church                  64 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key = "lumber_mill",
+              .display_name =
+                  "Lumber Mill             52 hammers" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key          = "newspaper",
+              .display_name = "Newspaper              120 "
+                              "hammers,  50 tools" },
+            { .key = "schoolhouse",
+              .display_name =
+                  "Schoolhouse             64 hammers" },
+            { .key = "stockade",
+              .display_name =
+                  "Stockade                64 hammers" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "church",
+              .display_name =
+                  "Church                  64 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "fur_trading_post" ) );
@@ -530,7 +519,7 @@ TEST_CASE(
     REQUIRE( w.ready() );
     REQUIRE( colony.construction ==
              Construction::building{
-                 .what = e_colony_building::fur_trading_post } );
+               .what = e_colony_building::fur_trading_post } );
   }
 
   SECTION( "population=8, fathers=all, some buildings" ) {
@@ -555,54 +544,53 @@ TEST_CASE(
          refl::enum_values<e_founding_father> )
       W.default_player().fathers.has[father] = true;
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key = "lumber_mill",
-                .display_name =
-                    "Lumber Mill             52 hammers" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key          = "iron_works",
-                .display_name = "Iron Works             240 "
-                                "hammers, 100 tools" },
-              { .key          = "newspaper",
-                .display_name = "Newspaper              120 "
-                                "hammers,  50 tools" },
-              { .key = "schoolhouse",
-                .display_name =
-                    "Schoolhouse             64 hammers" },
-              { .key = "stockade",
-                .display_name =
-                    "Stockade                64 hammers" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "church",
-                .display_name =
-                    "Church                  64 hammers" },
-              { .key          = "custom_house",
-                .display_name = "Custom House           150 "
-                                "hammers,  50 tools" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key = "lumber_mill",
+              .display_name =
+                  "Lumber Mill             52 hammers" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key          = "iron_works",
+              .display_name = "Iron Works             240 "
+                              "hammers, 100 tools" },
+            { .key          = "newspaper",
+              .display_name = "Newspaper              120 "
+                              "hammers,  50 tools" },
+            { .key = "schoolhouse",
+              .display_name =
+                  "Schoolhouse             64 hammers" },
+            { .key = "stockade",
+              .display_name =
+                  "Stockade                64 hammers" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "church",
+              .display_name =
+                  "Church                  64 hammers" },
+            { .key          = "custom_house",
+              .display_name = "Custom House           150 "
+                              "hammers,  50 tools" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "none" ) );
@@ -636,43 +624,41 @@ TEST_CASE(
     // have them.
     REQUIRE_FALSE( colony.buildings[e_colony_building::docks] );
     ChoiceConfig const config{
-        .msg = "Select One",
-        .options =
-            { { .key          = "none",
-                .display_name = "(no production)" },
-              { .key = "armory",
-                .display_name =
-                    "Armory                  52 hammers" },
-              { .key          = "fur_trading_post",
-                .display_name = "Fur Trading Post        56 "
-                                "hammers,  20 tools" },
-              { .key          = "rum_distillery",
-                .display_name = "Rum Distillery          64 "
-                                "hammers,  20 tools" },
-              { .key          = "tobacconists_shop",
-                .display_name = "Tobacconist's Shop      64 "
-                                "hammers,  20 tools" },
-              { .key          = "weavers_shop",
-                .display_name = "Weaver's Shop           64 "
-                                "hammers,  20 tools" },
-              { .key = "warehouse",
-                .display_name =
-                    "Warehouse               80 hammers" },
-              { .key = "wagon_train",
-                .display_name =
-                    "Wagon Train             40 hammers" } },
-        .sort              = false,
-        .initial_selection = nothing };
+      .msg = "Select One",
+      .options =
+          { { .key = "none", .display_name = "(no production)" },
+            { .key = "armory",
+              .display_name =
+                  "Armory                  52 hammers" },
+            { .key          = "fur_trading_post",
+              .display_name = "Fur Trading Post        56 "
+                              "hammers,  20 tools" },
+            { .key          = "rum_distillery",
+              .display_name = "Rum Distillery          64 "
+                              "hammers,  20 tools" },
+            { .key          = "tobacconists_shop",
+              .display_name = "Tobacconist's Shop      64 "
+                              "hammers,  20 tools" },
+            { .key          = "weavers_shop",
+              .display_name = "Weaver's Shop           64 "
+                              "hammers,  20 tools" },
+            { .key = "warehouse",
+              .display_name =
+                  "Warehouse               80 hammers" },
+            { .key = "wagon_train",
+              .display_name =
+                  "Wagon Train             40 hammers" } },
+      .sort              = false,
+      .initial_selection = nothing };
 
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "tobacconists_shop" ) );
     w = f();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
-    REQUIRE(
-        colony.construction ==
-        Construction::building{
-            .what = e_colony_building::tobacconists_shop } );
+    REQUIRE( colony.construction ==
+             Construction::building{
+               .what = e_colony_building::tobacconists_shop } );
   }
 }
 
@@ -703,7 +689,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
 
   SECTION( "already has building" ) {
     colony.construction = Construction::building{
-        .what = e_colony_building::docks };
+      .what = e_colony_building::docks };
     colony.buildings[e_colony_building::docks] = true;
     expected                                   = nothing;
     REQUIRE( f() == expected );
@@ -711,7 +697,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
 
   SECTION( "docks" ) {
     colony.construction = Construction::building{
-        .what = e_colony_building::docks };
+      .what = e_colony_building::docks };
 
     colony.hammers = 0;
     expected =
@@ -984,12 +970,12 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   player.money = 110;
   msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Never mind." },
-          ChoiceConfigOption{
-              .key = "yes", .display_name = "Complete it." } } };
+    .msg     = msg,
+    .options = {
+      ChoiceConfigOption{ .key          = "no",
+                          .display_name = "Never mind." },
+      ChoiceConfigOption{ .key          = "yes",
+                          .display_name = "Complete it." } } };
   W.gui().EXPECT__choice( config ).returns(
       make_wait<maybe<string>>( nothing ) );
   {
@@ -1014,12 +1000,12 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   player.money = 110;
   msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Never mind." },
-          ChoiceConfigOption{
-              .key = "yes", .display_name = "Complete it." } } };
+    .msg     = msg,
+    .options = {
+      ChoiceConfigOption{ .key          = "no",
+                          .display_name = "Never mind." },
+      ChoiceConfigOption{ .key          = "yes",
+                          .display_name = "Complete it." } } };
   W.gui().EXPECT__choice( config ).returns(
       make_wait<maybe<string>>( "no" ) );
   {
@@ -1046,12 +1032,12 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
   player.money                           = 110;
   msg    = "Cost to complete [Frigate]: 100.  Treasury: 110.";
   config = ChoiceConfig{
-      .msg     = msg,
-      .options = {
-          ChoiceConfigOption{ .key          = "no",
-                              .display_name = "Never mind." },
-          ChoiceConfigOption{
-              .key = "yes", .display_name = "Complete it." } } };
+    .msg     = msg,
+    .options = {
+      ChoiceConfigOption{ .key          = "no",
+                          .display_name = "Never mind." },
+      ChoiceConfigOption{ .key          = "yes",
+                          .display_name = "Complete it." } } };
   W.gui().EXPECT__choice( config ).returns(
       make_wait<maybe<string>>( "yes" ) );
   {

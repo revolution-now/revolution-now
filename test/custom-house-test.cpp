@@ -104,7 +104,7 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
     apply_custom_house_sales( W.ss(), player, colony, sales );
   };
 
-  player.money = 1000;
+  player.money = 1'000;
 
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     colony.commodities[comm]                            = 150;
@@ -121,38 +121,38 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
       .boycott = true;
 
   sales.invoices = {
-      Invoice{
-          .what = Commodity{ .type     = e_commodity::sugar,
-                             .quantity = 100 },
-          .money_delta_before_taxes = 100,
-          .tax_rate                 = 7,
-          .tax_amount               = 7,
-          .money_delta_final        = 93,
-          .player_volume_delta      = 100,
-          .intrinsic_volume_delta   = { { e_nation::dutch, 1 },
-                                        { e_nation::french, 1 } },
-          .global_intrinsic_volume_deltas =
-              { { e_commodity::sugar, 2 } },
-          .price_change = create_price_change(
-              W.default_player(), e_commodity::sugar,
-              /*price_change=*/0 ) },
-      Invoice{
-          .what = Commodity{ .type     = e_commodity::rum,
-                             .quantity = 200 },
-          .money_delta_before_taxes = 200,
-          .tax_rate                 = 14,
-          .tax_amount               = 14,
-          .money_delta_final        = 186,
-          .player_volume_delta      = 200,
-          .intrinsic_volume_delta   = { { e_nation::dutch, 2 },
-                                        { e_nation::french, 2 } },
-          .global_intrinsic_volume_deltas = { { e_commodity::rum,
-                                                4 } },
-          .price_change                   = create_price_change(
-              W.default_player(), e_commodity::sugar,
-              /*price_change=*/0 ) } };
+    Invoice{
+      .what = Commodity{ .type     = e_commodity::sugar,
+                         .quantity = 100 },
+      .money_delta_before_taxes       = 100,
+      .tax_rate                       = 7,
+      .tax_amount                     = 7,
+      .money_delta_final              = 93,
+      .player_volume_delta            = 100,
+      .intrinsic_volume_delta         = { { e_nation::dutch, 1 },
+                                          { e_nation::french, 1 } },
+      .global_intrinsic_volume_deltas = { { e_commodity::sugar,
+                                            2 } },
+      .price_change                   = create_price_change(
+          W.default_player(), e_commodity::sugar,
+          /*price_change=*/0 ) },
+    Invoice{
+      .what =
+          Commodity{ .type = e_commodity::rum, .quantity = 200 },
+      .money_delta_before_taxes       = 200,
+      .tax_rate                       = 14,
+      .tax_amount                     = 14,
+      .money_delta_final              = 186,
+      .player_volume_delta            = 200,
+      .intrinsic_volume_delta         = { { e_nation::dutch, 2 },
+                                          { e_nation::french, 2 } },
+      .global_intrinsic_volume_deltas = { { e_commodity::rum,
+                                            4 } },
+      .price_change                   = create_price_change(
+          W.default_player(), e_commodity::sugar,
+          /*price_change=*/0 ) } };
   f();
-  REQUIRE( player.money == 1000 + 186 + 93 );
+  REQUIRE( player.money == 1'000 + 186 + 93 );
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     INFO( fmt::format( "comm: {}", comm ) );
     if( comm == e_commodity::sugar ) {
@@ -221,7 +221,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
 
   W.players()
       .global_market_state.commodities[e_commodity::cloth]
-      .intrinsic_volume = 1000;
+      .intrinsic_volume = 1'000;
 
   SECTION( "independence not declared" ) {
     colony.custom_house[e_commodity::furs]    = true;
@@ -300,26 +300,26 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected = {
-        .invoices =
-            {
-                Invoice{
-                    .what = Commodity{ .type = e_commodity::furs,
-                                       .quantity = 150 },
-                    .money_delta_before_taxes = 150 * 5,
-                    .tax_rate                 = 50,
-                    .tax_amount               = 375,
-                    .money_delta_final        = 150 * 5 - 375,
-                    .player_volume_delta      = 150,
-                    .intrinsic_volume_delta =
-                        { { e_nation::dutch, 199 },
-                          { e_nation::french, 300 } },
-                    .global_intrinsic_volume_deltas = {
-                        /*only processed goods*/ },
-                    .price_change = create_price_change(
-                        dutch, e_commodity::furs,
-                        /*price_change=*/0 ) },
-            },
-        .boycotted = {},
+      .invoices =
+          {
+            Invoice{
+              .what = Commodity{ .type     = e_commodity::furs,
+                                 .quantity = 150 },
+              .money_delta_before_taxes = 150 * 5,
+              .tax_rate                 = 50,
+              .tax_amount               = 375,
+              .money_delta_final        = 150 * 5 - 375,
+              .player_volume_delta      = 150,
+              .intrinsic_volume_delta =
+                  { { e_nation::dutch, 199 },
+                    { e_nation::french, 300 } },
+              .global_intrinsic_volume_deltas = {
+                /*only processed goods*/ },
+              .price_change =
+                  create_price_change( dutch, e_commodity::furs,
+                                       /*price_change=*/0 ) },
+          },
+      .boycotted = {},
     };
     REQUIRE( res == expected );
   }
@@ -413,24 +413,23 @@ TEST_CASE(
   CustomHouseSales const res =
       compute_custom_house_sales( W.ss(), french, colony );
   expected = {
-      .invoices = {
-          Invoice{
-              .what = Commodity{ .type     = e_commodity::silver,
-                                 .quantity = 100 },
-              .money_delta_before_taxes = 100 * 19,
-              .tax_rate                 = 0,
-              .tax_amount               = 0,
-              .money_delta_final        = 1900,
-              .player_volume_delta      = 100,
-              .intrinsic_volume_delta =
-                  { { e_nation::dutch, 266 },
-                    { e_nation::french, 400 } },
-              .global_intrinsic_volume_deltas = {
-                  /*only processed goods*/ },
-              .price_change = create_price_change(
-                  french, e_commodity::silver,
-                  /*price_change=*/0 ) },
-      } };
+    .invoices = {
+      Invoice{
+        .what = Commodity{ .type     = e_commodity::silver,
+                           .quantity = 100 },
+        .money_delta_before_taxes = 100 * 19,
+        .tax_rate                 = 0,
+        .tax_amount               = 0,
+        .money_delta_final        = 1'900,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
+                                      { e_nation::french, 400 } },
+        .global_intrinsic_volume_deltas = {
+          /*only processed goods*/ },
+        .price_change =
+            create_price_change( french, e_commodity::silver,
+                                 /*price_change=*/0 ) },
+    } };
   REQUIRE( res == expected );
 
   // Now apply the changes so that the price will start falling.
@@ -498,24 +497,23 @@ TEST_CASE(
   CustomHouseSales const res =
       compute_custom_house_sales( W.ss(), dutch, colony );
   expected = {
-      .invoices = {
-          Invoice{
-              .what = Commodity{ .type     = e_commodity::silver,
-                                 .quantity = 100 },
-              .money_delta_before_taxes = 100 * 19,
-              .tax_rate                 = 0,
-              .tax_amount               = 0,
-              .money_delta_final        = 1900,
-              .player_volume_delta      = 100,
-              .intrinsic_volume_delta =
-                  { { e_nation::dutch, 266 },
-                    { e_nation::french, 400 } },
-              .global_intrinsic_volume_deltas = {
-                  /*only processed goods*/ },
-              .price_change = create_price_change(
-                  dutch, e_commodity::silver,
-                  /*price_change=*/0 ) },
-      } };
+    .invoices = {
+      Invoice{
+        .what = Commodity{ .type     = e_commodity::silver,
+                           .quantity = 100 },
+        .money_delta_before_taxes = 100 * 19,
+        .tax_rate                 = 0,
+        .tax_amount               = 0,
+        .money_delta_final        = 1'900,
+        .player_volume_delta      = 100,
+        .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
+                                      { e_nation::french, 400 } },
+        .global_intrinsic_volume_deltas = {
+          /*only processed goods*/ },
+        .price_change =
+            create_price_change( dutch, e_commodity::silver,
+                                 /*price_change=*/0 ) },
+    } };
   REQUIRE( res == expected );
 
   // Now apply the changes so that the price will start falling.
