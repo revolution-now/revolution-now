@@ -125,7 +125,11 @@ void seek( double pos );
 // must satisfy some invariants).
 void playlist_generate( IRand& rand );
 
-enum class e_request_probability { always, sometimes, rarely };
+enum class e_request_probability {
+  always,
+  sometimes,
+  rarely
+};
 
 void play_request( IRand& rand, e_request request,
                    e_request_probability probability );

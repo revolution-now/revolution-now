@@ -243,12 +243,13 @@ struct MenuPlane::Impl : public IPlane {
     // At this point, res holds the width of the largest rendered
     // text texture in this menu.  Now add padding on each side:
     res += config_ui.menus.padding_x * 2;
-    res = clamp( res, config_ui.menus.body_min_width, 1000000 );
+    res =
+        clamp( res, config_ui.menus.body_min_width, 1'000'000 );
     // round up to nearest multiple of 4, since that is the menu
     // tile width.
     if( res % 4 != 0 ) res += ( 4 - ( res % 4 ) );
     // Sanity check
-    CHECK( res > 0 && res < 2000 );
+    CHECK( res > 0 && res < 2'000 );
     return res;
   }
 
@@ -434,7 +435,7 @@ struct MenuPlane::Impl : public IPlane {
                                         Coord         pos,
                                         e_menu menu ) const {
     gfx::rect background = gfx::rect{
-        .origin = pos, .size = menu_item_delta( menu ) };
+      .origin = pos, .size = menu_item_delta( menu ) };
     renderer.painter().draw_solid_rect(
         background, config_ui.dialog_text.selected_background );
   }
@@ -577,8 +578,8 @@ struct MenuPlane::Impl : public IPlane {
       Coord foreground_upper_left =
           menu_header_text_rect( menu ).upper_left();
       MenuBarRendererVisitor matcher{
-          this, menu, background_upper_left,
-          foreground_upper_left, renderer };
+        this, menu, background_upper_left, foreground_upper_left,
+        renderer };
       base::visit( matcher, menu_state_.as_base() );
     }
   }
@@ -607,7 +608,7 @@ struct MenuPlane::Impl : public IPlane {
     res_t operator()( MenuState::item_click const& ic ) const {
       // Just forward this to the MenuState::menu_open.
       return ( *this )( MenuState::menu_open{
-          impl.item_to_menu_[ic.item], /*hover=*/{} } );
+        impl.item_to_menu_[ic.item], /*hover=*/{} } );
     }
     res_t operator()( MenuState::menu_open const& o ) const {
       auto closed = ( *this )( MenuState::menus_closed{} );
@@ -770,7 +771,7 @@ struct MenuPlane::Impl : public IPlane {
                 rl::all( refl::enum_values<e_menu> ).head();
             if( maybe_first_menu.has_value() ) {
               menu_state_ = MenuState::menus_closed{
-                  /*hover=*/*maybe_first_menu };
+                /*hover=*/*maybe_first_menu };
               return e_input_handled::yes;
             }
           }
@@ -943,7 +944,7 @@ struct MenuPlane::Impl : public IPlane {
                                               /*hover=*/{} };
                   else
                     menu_state_ = MenuState::menus_closed{
-                        /*hover=*/header.menu };
+                      /*hover=*/header.menu };
                   log_menu_state();
                   return e_input_handled::yes;
                 },

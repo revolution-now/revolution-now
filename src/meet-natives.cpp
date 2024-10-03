@@ -93,10 +93,10 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 
   int const num_dwellings = dwellings.size();
   return MeetTribe{
-      .nation        = player.nation,
-      .tribe         = tribe,
-      .num_dwellings = num_dwellings,
-      .land_awarded  = std::move( sorted_land_awarded ) };
+    .nation        = player.nation,
+    .tribe         = tribe,
+    .num_dwellings = num_dwellings,
+    .land_awarded  = std::move( sorted_land_awarded ) };
 }
 
 } // namespace
@@ -185,24 +185,22 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
       config_natives.tribes[meet_tribe.tribe];
   ui::e_confirm accept_peace =
       co_await gui.required_yes_no( YesNoConfig{
-          .msg = fmt::format(
-              "The [{}] tribe is a celebrated nation of "
-              "[{} {}].  In honor of our glorious future "
-              "together we will generously give you all of the "
-              "land that your colonies now occupy. Will you "
-              "accept our peace treaty and agree to live in "
-              "harmony with us?",
-              tribe_conf.name_singular, meet_tribe.num_dwellings,
-              meet_tribe.num_dwellings > 1
-                  ? config_natives
-                        .dwelling_types[tribe_conf.level]
-                        .name_plural
-                  : config_natives
-                        .dwelling_types[tribe_conf.level]
-                        .name_singular ),
-          .yes_label      = "Yes",
-          .no_label       = "No",
-          .no_comes_first = false } );
+        .msg = fmt::format(
+            "The [{}] tribe is a celebrated nation of "
+            "[{} {}].  In honor of our glorious future "
+            "together we will generously give you all of the "
+            "land that your colonies now occupy. Will you "
+            "accept our peace treaty and agree to live in "
+            "harmony with us?",
+            tribe_conf.name_singular, meet_tribe.num_dwellings,
+            meet_tribe.num_dwellings > 1
+                ? config_natives.dwelling_types[tribe_conf.level]
+                      .name_plural
+                : config_natives.dwelling_types[tribe_conf.level]
+                      .name_singular ),
+        .yes_label      = "Yes",
+        .no_label       = "No",
+        .no_comes_first = false } );
   switch( accept_peace ) {
     case ui::e_confirm::no: {
       co_await gui.message_box(
@@ -235,11 +233,11 @@ void perform_meet_tribe( SS& ss, Player const& player,
   // Create the relationship object.
   CHECK( !tribe.relationship[player.nation].encountered );
   tribe.relationship[player.nation] = TribeRelationship{
-      .encountered = true,
-      .at_war = ( declare_war == e_declare_war_on_natives::yes ),
-      .tribal_alarm =
-          config_natives.alarm
-              .starting_tribal_alarm[meet_tribe.tribe] };
+    .encountered = true,
+    .at_war = ( declare_war == e_declare_war_on_natives::yes ),
+    .tribal_alarm =
+        config_natives.alarm
+            .starting_tribal_alarm[meet_tribe.tribe] };
 
   // Award player any land they "occupy" that is owned by this
   // tribe. Note that if the player has Peter Minuit then this

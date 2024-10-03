@@ -167,7 +167,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
     }
     if( coord.is_inside( rect( {} ) ) )
       return PositionedDraggableSubView<HarborDraggableObject>{
-          this, Coord{} };
+        this, Coord{} };
     return nothing;
   }
 
@@ -223,8 +223,8 @@ HarborViewComposited recomposite_harbor_view(
   Y const status_bar_bottom =
       status_bar->rect( available.upper_left() ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
-      .view  = std::move( status_bar ),
-      .coord = available.upper_left() } );
+    .view  = std::move( status_bar ),
+    .coord = available.upper_left() } );
   available = available.with_new_top_edge( status_bar_bottom );
 
   // [HarborMarketCommodities] ----------------------------------

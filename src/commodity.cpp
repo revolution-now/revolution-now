@@ -92,17 +92,17 @@ void render_commodity_label(
   switch( colors ) {
     case e_commodity_label_render_colors::standard:
       info = { /*normal=*/gfx::pixel{
-                   .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
+                 .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
                /*highlight=*/gfx::pixel::green() };
       break;
     case e_commodity_label_render_colors::over_limit:
       info = { /*normal=*/gfx::pixel{
-                   .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
+                 .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
                /*highlight=*/gfx::pixel::red() };
       break;
     case e_commodity_label_render_colors::custom_house_selling:
       info = { /*normal=*/gfx::pixel{
-                   .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
+                 .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
                /*highlight=*/gfx::pixel::yellow() };
       break;
   }
@@ -320,10 +320,10 @@ void render_commodity_annotated( rr::Renderer&    renderer,
   render_commodity_annotated(
       renderer, where, comm.type,
       CommodityRenderStyle{
-          .label =
-              CommodityLabel::quantity{ .value  = comm.quantity,
-                                        .colors = {} },
-          .dulled = dulled } );
+        .label =
+            CommodityLabel::quantity{ .value  = comm.quantity,
+                                      .colors = {} },
+        .dulled = dulled } );
 }
 
 } // namespace rn

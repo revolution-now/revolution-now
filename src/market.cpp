@@ -162,10 +162,10 @@ Invoice transaction_invoice_default_model(
   // change in volume from the perspective of europe, since that
   // makes the below calculations easier.
   Commodity const transacted{
-      .type     = orig_transacted.type,
-      .quantity = ( transaction_type == e_transaction::buy )
-                      ? -orig_transacted.quantity
-                      : orig_transacted.quantity };
+    .type     = orig_transacted.type,
+    .quantity = ( transaction_type == e_transaction::buy )
+                    ? -orig_transacted.quantity
+                    : orig_transacted.quantity };
 
   CHECK( !is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
@@ -437,12 +437,12 @@ PriceChange create_price_change( Player const& player,
       player.old_world.market.commodities[comm].bid_price;
   int const current_ask = ask_from_bid( comm, current_bid );
   return PriceChange{
-      .type  = comm,
-      .from  = CommodityPrice{ .bid = current_bid,
-                               .ask = current_ask },
-      .to    = CommodityPrice{ .bid = current_bid + price_change,
-                               .ask = current_ask + price_change },
-      .delta = price_change };
+    .type = comm,
+    .from =
+        CommodityPrice{ .bid = current_bid, .ask = current_ask },
+    .to    = CommodityPrice{ .bid = current_bid + price_change,
+                             .ask = current_ask + price_change },
+    .delta = price_change };
 }
 
 CommodityPrice market_price( Player const& player,

@@ -94,8 +94,8 @@ HarborInboundShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
-      .obj    = HarborDraggableObject::unit{ .id = unit->id },
-      .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
+    .obj    = HarborDraggableObject::unit{ .id = unit->id },
+    .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
 vector<HarborInboundShips::UnitWithPosition>
@@ -118,10 +118,10 @@ wait<> HarborInboundShips::click_on_unit( UnitId unit_id ) {
   if( get_active_unit() == unit_id ) {
     Unit const&  unit = ss_.units.unit_for( unit_id );
     ChoiceConfig config{
-        .msg = fmt::format( "European harbor options for [{}]:",
-                            unit.desc().name ),
-        .options = {},
-        .sort    = false,
+      .msg = fmt::format( "European harbor options for [{}]:",
+                          unit.desc().name ),
+      .options = {},
+      .sort    = false,
     };
     config.options.push_back(
         { .key          = "sail to new world",
@@ -179,7 +179,7 @@ HarborInboundShips::can_receive( HarborDraggableObject const& a,
   CONVERT_ENTITY( entity_enum, from_entity );
   if( entity_enum == e_harbor_view_entity::outbound )
     return CanReceiveDraggable<HarborDraggableObject>::yes{
-        .draggable = a };
+      .draggable = a };
   return nothing;
 }
 
@@ -238,9 +238,9 @@ HarborInboundShips::create(
   harbor_sub_view              = view.get();
   HarborInboundShips* p_actual = view.get();
   return PositionedHarborSubView<HarborInboundShips>{
-      .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = pos },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborInboundShips::HarborInboundShips( SS& ss, TS& ts,

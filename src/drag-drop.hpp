@@ -44,7 +44,11 @@ struct SS;
 /****************************************************************
 ** Dragging State
 *****************************************************************/
-enum class e_drag_status_indicator { none, bad, good };
+enum class e_drag_status_indicator {
+  none,
+  bad,
+  good
+};
 
 // FIXME: needed?
 struct DragStep {
@@ -363,11 +367,11 @@ wait<> drag_drop_routine(
             source_object_bounds );
 
   drag_state = DragState<Draggable>{
-      .object               = source_object,
-      .indicator            = e_drag_status_indicator::none,
-      .source_requests_edit = event.mod.shf_down,
-      .where                = origin,
-      .click_offset = origin - source_object_bounds.upper_left(),
+    .object               = source_object,
+    .indicator            = e_drag_status_indicator::none,
+    .source_requests_edit = event.mod.shf_down,
+    .where                = origin,
+    .click_offset = origin - source_object_bounds.upper_left(),
   };
   SCOPE_EXIT { drag_state = nothing; };
 

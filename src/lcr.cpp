@@ -240,7 +240,7 @@ wait<LostCityRumorUnitChange> run_rumor_result(
           .animate( anim_seq_for_treasure_enpixelation(
               ss, unit_id ) );
       co_return LostCityRumorUnitChange::unit_created{
-          .id = unit_id };
+        .id = unit_id };
     }
     CASE( fountain_of_youth ) {
       co_await run_fountain_of_youth( ss, ts, player,
@@ -260,7 +260,7 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       UnitId const unit_id = create_unit_on_map_non_interactive(
           ss, ts, player, e_unit_type::free_colonist, tile );
       co_return LostCityRumorUnitChange::unit_created{
-          .id = unit_id };
+        .id = unit_id };
     }
     CASE( holy_shrines ) {
       e_tribe const tribe_type = holy_shrines.tribe;
@@ -429,7 +429,7 @@ LostCityRumor compute_rumor_type(
         return nothing;
       }();
       return LostCityRumor::burial_mounds{
-          .mounds = mounds, .burial_grounds = burial_grounds };
+        .mounds = mounds, .burial_grounds = burial_grounds };
     }
     case e_rumor_type::chief_gift: {
       int const gold = random_gift(
@@ -463,8 +463,8 @@ LostCityRumor compute_rumor_type(
         int const alarm_increase =
             rand.between_ints( range.min, range.max );
         return LostCityRumor::holy_shrines{
-            .tribe          = *close_encountered_tribe,
-            .alarm_increase = alarm_increase };
+          .tribe          = *close_encountered_tribe,
+          .alarm_increase = alarm_increase };
       } else {
         return LostCityRumor::none{};
       }

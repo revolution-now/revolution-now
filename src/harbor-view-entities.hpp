@@ -87,7 +87,7 @@ class HarborSubView
       PositionedDraggableSubView<HarborDraggableObject>>
   view_here( Coord ) override {
     return PositionedDraggableSubView<HarborDraggableObject>{
-        this, Coord{} };
+      this, Coord{} };
   }
 
   // Implement IDraggableObjectsView.

@@ -162,12 +162,12 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
       continue;
     if( requirements.requires_water > water_access ) continue;
     config.options.push_back( ChoiceConfigOption{
-        .key          = fmt::to_string( building ),
-        .display_name = fmt_building( colony, building ) } );
+      .key          = fmt::to_string( building ),
+      .display_name = fmt_building( colony, building ) } );
     if( colony.construction.has_value() &&
         colony.construction ==
             Construction{
-                Construction::building{ .what = building } } )
+              Construction::building{ .what = building } } )
       initial_selection = config.options.size() - 1;
   }
   for( e_unit_type type : refl::enum_values<e_unit_type> ) {
@@ -185,8 +185,8 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
       continue;
     if( requirements.requires_water > water_access ) continue;
     config.options.push_back( ChoiceConfigOption{
-        .key          = fmt::to_string( type ),
-        .display_name = fmt_unit( colony, type ) } );
+      .key          = fmt::to_string( type ),
+      .display_name = fmt_unit( colony, type ) } );
     if( colony.construction.has_value() &&
         colony.construction ==
             Construction{ Construction::unit{ .type = type } } )
@@ -256,13 +256,13 @@ maybe<RushConstruction> rush_construction_cost(
             .boycott &&
         needed_requirements.tools > 0 );
   return RushConstruction{
-      .project                  = project,
-      .cost                     = hammers_cost + tools_cost,
-      .total_hammers            = total_requirements.hammers,
-      .total_tools              = total_requirements.tools,
-      .needed_hammers           = needed_requirements.hammers,
-      .needed_tools             = needed_requirements.tools,
-      .blocked_by_tools_boycott = boycott_block };
+    .project                  = project,
+    .cost                     = hammers_cost + tools_cost,
+    .total_hammers            = total_requirements.hammers,
+    .total_tools              = total_requirements.tools,
+    .needed_hammers           = needed_requirements.hammers,
+    .needed_tools             = needed_requirements.tools,
+    .blocked_by_tools_boycott = boycott_block };
 }
 
 wait<> rush_construction_prompt(

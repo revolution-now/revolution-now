@@ -214,7 +214,7 @@ maybe<Coord> find_new_world_arrival_square(
     maybe<Society> society = society_on_square( ss, c );
     if( !society.has_value() ||
         society == Society{ Society::european{
-                       .nation = player.nation } } )
+                     .nation = player.nation } } )
       return c;
   }
 

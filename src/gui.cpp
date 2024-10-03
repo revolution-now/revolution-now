@@ -124,11 +124,11 @@ wait<maybe<string>> RealGui::string_input(
 wait<maybe<int>> RealGui::int_input(
     IntInputConfig const& config ) {
   maybe<int> const res = co_await window_plane().int_input_box( {
-      .msg            = config.msg,
-      .min            = config.min,
-      .max            = config.max,
-      .cancel_actions = config.cancel_actions,
-      .initial        = config.initial_value,
+    .msg            = config.msg,
+    .min            = config.min,
+    .max            = config.max,
+    .cancel_actions = config.cancel_actions,
+    .initial        = config.initial_value,
   } );
   if( !res.has_value() ) {
     // User cancelled.

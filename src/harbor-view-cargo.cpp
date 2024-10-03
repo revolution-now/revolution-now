@@ -86,7 +86,7 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
           Commodity const comm =
               draggable.get<Cargo::commodity>().obj;
           return HarborDraggableObject::cargo_commodity{
-              .comm = comm, .slot = slot };
+            .comm = comm, .slot = slot };
         }
         case Cargo::e::unit: {
           UnitId const unit_id = draggable.get<Cargo::unit>().id;
@@ -123,7 +123,7 @@ HarborCargo::object_here( Coord const& where ) const {
   }
   Rect const box = Rect::from( box_origin, scale );
   return DraggableObjectWithBounds<HarborDraggableObject>{
-      .obj = *draggable, .bounds = box };
+    .obj = *draggable, .bounds = box };
 }
 
 bool HarborCargo::try_drag( HarborDraggableObject const& o,
@@ -200,7 +200,7 @@ HarborCargo::user_edit_object() const {
   new_comm.quantity  = *quantity;
   CHECK( new_comm.quantity > 0 );
   co_return HarborDraggableObject::cargo_commodity{
-      .comm = new_comm, .slot = slot };
+    .comm = new_comm, .slot = slot };
 }
 
 wait<> HarborCargo::disown_dragged_object() {
@@ -273,7 +273,7 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
           return nothing;
       }
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = alt };
+        .draggable = alt };
     }
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =
@@ -286,8 +286,8 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = HarborDraggableObject::market_commodity{
-              .comm = corrected } };
+        .draggable = HarborDraggableObject::market_commodity{
+          .comm = corrected } };
     }
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
@@ -300,8 +300,8 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = HarborDraggableObject::cargo_commodity{
-              .comm = corrected, .slot = alt.slot } };
+        .draggable = HarborDraggableObject::cargo_commodity{
+          .comm = corrected, .slot = alt.slot } };
     }
   }
 }
@@ -413,9 +413,9 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
   harbor_sub_view = view.get();
   HarborCargo* p_actual = view.get();
   return PositionedHarborSubView<HarborCargo>{
-      .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = pos },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player )

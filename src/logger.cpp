@@ -44,21 +44,21 @@ string const& to_colored_level_name( e_log_level level ) {
   using namespace base::ansi;
   CHECK( level != e_log_level::off );
   static unordered_map<e_log_level, string> const colored{
-      { e_log_level::trace,
-        fmt::format( "{}TRCE{}", magenta, reset ) },
-      { e_log_level::debug,
-        fmt::format( "{}DEBG{}", cyan, reset ) },
-      { e_log_level::info,
-        fmt::format( "{}INFO{}", green, reset ) },
-      { e_log_level::warn,
-        fmt::format( "{}{}WARN{}", yellow, bold, reset ) },
-      { e_log_level::error,
-        fmt::format( "{}{}ERRO{}", red, bold, reset ) },
-      { e_log_level::critical,
-        fmt::format( "{}{}{}CRIT{}", white, on_red, bold,
-                     reset ) },
-      // Should not be used.
-      { e_log_level::off, fmt::format( "OFF" ) },
+    { e_log_level::trace,
+      fmt::format( "{}TRCE{}", magenta, reset ) },
+    { e_log_level::debug,
+      fmt::format( "{}DEBG{}", cyan, reset ) },
+    { e_log_level::info,
+      fmt::format( "{}INFO{}", green, reset ) },
+    { e_log_level::warn,
+      fmt::format( "{}{}WARN{}", yellow, bold, reset ) },
+    { e_log_level::error,
+      fmt::format( "{}{}ERRO{}", red, bold, reset ) },
+    { e_log_level::critical,
+      fmt::format( "{}{}{}CRIT{}", white, on_red, bold,
+                   reset ) },
+    // Should not be used.
+    { e_log_level::off, fmt::format( "OFF" ) },
   };
   return colored.find( level )->second;
 }

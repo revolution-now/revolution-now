@@ -97,8 +97,8 @@ HarborInPortShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
-      .obj    = HarborDraggableObject::unit{ .id = unit->id },
-      .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
+    .obj    = HarborDraggableObject::unit{ .id = unit->id },
+    .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
 vector<HarborInPortShips::UnitWithPosition>
@@ -128,10 +128,10 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
       co_return;
     }
     ChoiceConfig config{
-        .msg = fmt::format( "European harbor options for [{}]:",
-                            unit.desc().name ),
-        .options = {},
-        .sort    = false,
+      .msg = fmt::format( "European harbor options for [{}]:",
+                          unit.desc().name ),
+      .options = {},
+      .sort    = false,
     };
     config.options.push_back(
         { .key          = "set sail",
@@ -182,8 +182,8 @@ HarborInPortShips::source_check( HarborDraggableObject const&,
     // that it will be displayed after the rubberbanding, which
     // looks a bit more natural.
     co_return DragRejection{
-        .reason = ship_still_damaged_message(
-            damaged->turns_until_repair ) };
+      .reason = ship_still_damaged_message(
+          damaged->turns_until_repair ) };
   co_return base::valid;
 }
 
@@ -227,7 +227,7 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
       if( entity_enum == e_harbor_view_entity::inbound )
         return nothing;
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = o };
+        .draggable = o };
     }
   }
   // At this point we're either not dragging a unit or we are but
@@ -262,7 +262,7 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
           return nothing;
       }
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = alt };
+        .draggable = alt };
     }
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =
@@ -275,8 +275,8 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = HarborDraggableObject::market_commodity{
-              .comm = corrected } };
+        .draggable = HarborDraggableObject::market_commodity{
+          .comm = corrected } };
     }
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
@@ -289,8 +289,8 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
               comm.type ) );
       if( corrected.quantity == 0 ) return nothing;
       return CanReceiveDraggable<HarborDraggableObject>::yes{
-          .draggable = HarborDraggableObject::cargo_commodity{
-              .comm = corrected, .slot = alt.slot } };
+        .draggable = HarborDraggableObject::cargo_commodity{
+          .comm = corrected, .slot = alt.slot } };
     }
   }
 }
@@ -384,9 +384,9 @@ HarborInPortShips::create(
   harbor_sub_view             = view.get();
   HarborInPortShips* p_actual = view.get();
   return PositionedHarborSubView<HarborInPortShips>{
-      .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = pos },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborInPortShips::HarborInPortShips( SS& ss, TS& ts,

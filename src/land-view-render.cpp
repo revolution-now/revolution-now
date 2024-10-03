@@ -227,8 +227,7 @@ void LandViewRenderer::render_single_unit_depixelate_to(
                                          ? e_flag_count::multiple
                                          : e_flag_count::single;
   UnitFlagOptions const flag_options{
-      .flag_count = flag_count,
-      .type       = e_flag_char_type::normal };
+    .flag_count = flag_count, .type = e_flag_char_type::normal };
   Unit const&              unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
       euro_unit_flag_render_info( unit, viz_->nation(),
@@ -254,8 +253,7 @@ void LandViewRenderer::render_single_native_unit_depixelate_to(
                                          ? e_flag_count::multiple
                                          : e_flag_count::single;
   UnitFlagOptions const flag_options{
-      .flag_count = flag_count,
-      .type       = e_flag_char_type::normal };
+    .flag_count = flag_count, .type = e_flag_char_type::normal };
   NativeUnit const&        unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
       native_unit_flag_render_info( ss_, unit, flag_options );
@@ -390,8 +388,8 @@ void LandViewRenderer::render_units_impl() const {
                                            ? e_flag_count::multiple
                                            : e_flag_count::single;
     UnitFlagOptions const flag_options{
-        .flag_count = flag_count,
-        .type       = e_flag_char_type::normal };
+      .flag_count = flag_count,
+      .type       = e_flag_char_type::normal };
     f( where, flag_options );
   };
 
@@ -612,9 +610,9 @@ Coord LandViewRenderer::colony_pixel_coord_from_tile(
 }
 
 static ColonyRenderOptions const kDefaultColonyRenderOptions{
-    .render_name       = true,
-    .render_population = true,
-    .render_flag       = true };
+  .render_name       = true,
+  .render_population = true,
+  .render_flag       = true };
 
 void LandViewRenderer::render_colony(
     Colony const& colony ) const {
@@ -918,10 +916,10 @@ void LandViewRenderer::render_non_entities() const {
       corner.x += shadow_offset;
       corner.y += shadow_offset;
       Rect const shadow_rect{
-          .x = int( corner.x ),
-          .y = int( corner.y ),
-          .w = int( viewport_.world_size_pixels().w * zoom ),
-          .h = int( viewport_.world_size_pixels().h * zoom ),
+        .x = int( corner.x ),
+        .y = int( corner.y ),
+        .w = int( viewport_.world_size_pixels().w * zoom ),
+        .h = int( viewport_.world_size_pixels().h * zoom ),
       };
       rr::Painter painter = renderer.painter();
       painter.draw_solid_rect(

@@ -65,7 +65,7 @@ wait<int> IGui::required_int_input(
 wait<maybe<ui::e_confirm>> IGui::optional_yes_no(
     YesNoConfig const& config ) {
   vector<ChoiceConfigOption> options{
-      { "yes", config.yes_label }, { "no", config.no_label } };
+    { "yes", config.yes_label }, { "no", config.no_label } };
   if( config.no_comes_first )
     reverse( options.begin(), options.end() );
   maybe<string> const str_res = co_await optional_choice(
@@ -82,7 +82,7 @@ wait<maybe<ui::e_confirm>> IGui::optional_yes_no(
 wait<ui::e_confirm> IGui::required_yes_no(
     YesNoConfig const& config ) {
   vector<ChoiceConfigOption> options{
-      { "yes", config.yes_label }, { "no", config.no_label } };
+    { "yes", config.yes_label }, { "no", config.no_label } };
   if( config.no_comes_first )
     reverse( options.begin(), options.end() );
   string const str_res = co_await required_choice(

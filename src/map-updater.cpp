@@ -45,8 +45,8 @@ using unexplored = PlayerSquare::unexplored;
 TerrainRenderOptions make_terrain_options(
     MapUpdaterOptions const& our_options ) {
   return TerrainRenderOptions{
-      .grid              = our_options.grid,
-      .render_fog_of_war = our_options.render_fog_of_war };
+    .grid              = our_options.grid,
+    .render_fog_of_war = our_options.render_fog_of_war };
 }
 
 } // namespace
@@ -70,11 +70,11 @@ BuffersUpdated NonRenderingMapUpdater::modify_map_square(
   remove_depletion_counter_if_needed( ss_, tile );
   // Check if the rendered map needs its buffer updated.
   return BuffersUpdated{
-      .tile      = tile,
-      .landscape = ( new_square != old_square ) &&
-                   ( !options().nation.has_value() ||
-                     does_nation_have_fog_removed_on_square(
-                         ss_, *options().nation, tile ) ) };
+    .tile      = tile,
+    .landscape = ( new_square != old_square ) &&
+                 ( !options().nation.has_value() ||
+                   does_nation_have_fog_removed_on_square(
+                       ss_, *options().nation, tile ) ) };
 }
 
 vector<BuffersUpdated>
@@ -260,7 +260,7 @@ void RenderingMapUpdater::redraw_square_single_buffer(
   // Around 20k total tiles redrawn seems to be a good number,
   // but we have two buffers (landscape and obfuscation) and so
   // we'll give them about 10k each.
-  static int constexpr kRedrawThreshold = 10000;
+  static int constexpr kRedrawThreshold = 10'000;
   // The > is defensive.
   if( buffer_tracking.tiles_redrawn >= kRedrawThreshold )
     redraw_buffer();

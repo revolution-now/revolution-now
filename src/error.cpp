@@ -73,7 +73,7 @@ void abort_with_backtrace_here( source_location /*loc*/ ) {
   rn::run_all_cleanup_routines();
   print_stack_trace(
       here, ::rn::StackTraceOptions{
-                .skip_frames = 3,
-                .frames      = rn::e_stack_trace_frames::all } );
+              .skip_frames = 3,
+              .frames      = rn::e_stack_trace_frames::all } );
   std::abort();
 }

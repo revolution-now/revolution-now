@@ -240,10 +240,9 @@ struct CenteredTyper {
     gfx::size const text_box_size =
         rr::rendered_text_line_size_pixels( line );
     if( cur_box_.size.h < text_box_size.h ) return;
-    gfx::rect const text_box =
-        gfx::rect{ .origin = gfx::centered_at_top( text_box_size,
-                                                   cur_box_ ),
-                   .size   = text_box_size };
+    gfx::rect const text_box = gfx::rect{
+      .origin = gfx::centered_at_top( text_box_size, cur_box_ ),
+      .size   = text_box_size };
     gfx::pixel const shadow_color = gfx::pixel::black();
     { // shadow
       renderer_

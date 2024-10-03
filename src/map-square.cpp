@@ -43,8 +43,10 @@ e_terrain effective_terrain( MapSquare const& square ) {
   if( !square.overlay.has_value() )
     return from_ground_terrain( square.ground );
   switch( *square.overlay ) {
-    case e_land_overlay::hills: return e_terrain::hills;
-    case e_land_overlay::mountains: return e_terrain::mountains;
+    case e_land_overlay::hills:
+      return e_terrain::hills;
+    case e_land_overlay::mountains:
+      return e_terrain::mountains;
     case e_land_overlay::forest: {
       maybe<e_terrain> forested =
           config_terrain

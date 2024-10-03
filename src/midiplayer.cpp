@@ -67,14 +67,14 @@ MidiSeqMusicPlayer::player() {
   auto how_it_works = "There must be a synth available.";
 
   auto desc = MusicPlayerDesc{
-      /*name=*/name,
-      /*description=*/description,
-      /*how_it_works=*/how_it_works,
+    /*name=*/name,
+    /*description=*/description,
+    /*how_it_works=*/how_it_works,
   };
 
   return {
-      desc,
-      g_midiseq_player,
+    desc,
+    g_midiseq_player,
   };
 }
 
@@ -137,11 +137,11 @@ MusicPlayerState MidiSeqMusicPlayer::state() const {
 MusicPlayerCapabilities MidiSeqMusicPlayer::capabilities()
     const {
   return {
-      /*can_pause=*/true,
-      /*has_volume=*/true,
-      /*has_progress=*/true,
-      /*has_tune_duration=*/true,
-      /*can_seek=*/false,
+    /*can_pause=*/true,
+    /*has_volume=*/true,
+    /*has_progress=*/true,
+    /*has_tune_duration=*/true,
+    /*can_seek=*/false,
   };
 }
 

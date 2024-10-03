@@ -58,14 +58,14 @@ FrozenDwelling dwelling_to_frozen_dwelling(
     Unit const& unit = ss.units.unit_for( *missionary_id );
     UNWRAP_CHECK( level, missionary_type( unit.type() ) );
     mission = FrozenMission{
-        .nation = unit.nation(),
-        .level  = level,
+      .nation = unit.nation(),
+      .level  = level,
     };
   }
   return FrozenDwelling{
-      .tribe    = ss.natives.tribe_for( dwelling.id ).type,
-      .location = location,
-      .mission  = mission };
+    .tribe    = ss.natives.tribe_for( dwelling.id ).type,
+    .location = location,
+    .mission  = mission };
 }
 
 FrozenColony colony_to_frozen_colony( SSConst const& ss,

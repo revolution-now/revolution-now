@@ -131,10 +131,10 @@ wait<> open_game_options_box( SS& ss, TS& ts ) {
   for( e_game_flag_option option :
        refl::enum_values<e_game_flag_option> )
     boxes[option] = CheckBoxInfo{
-        .name = IGui::identifier_to_display_name(
-            refl::enum_value_name( option ) ),
-        .on       = flags[option],
-        .disabled = !is_checkbox_enabled( option ) };
+      .name = IGui::identifier_to_display_name(
+          refl::enum_value_name( option ) ),
+      .on       = flags[option],
+      .disabled = !is_checkbox_enabled( option ) };
 
   co_await ts.gui.enum_check_boxes(
       "Select or unselect game options:", boxes );

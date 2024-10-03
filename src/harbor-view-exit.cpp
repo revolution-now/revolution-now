@@ -83,9 +83,9 @@ HarborExitButton::create( SS& ss, TS& ts, Player& player,
   harbor_sub_view            = view.get();
   HarborExitButton* p_actual = view.get();
   return PositionedHarborSubView<HarborExitButton>{
-      .owned  = { .view = std::move( view ), .coord = origin },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = origin },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborExitButton::HarborExitButton( SS& ss, TS& ts,

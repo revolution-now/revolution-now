@@ -98,13 +98,13 @@ wait<maybe<int>> ask_player_to_choose_immigrant(
   array<e_unit_type, 3> const& pool =
       immigration.immigrants_pool;
   vector<ChoiceConfigOption> options{
-      { .key = "0", .display_name = unit_attr( pool[0] ).name },
-      { .key = "1", .display_name = unit_attr( pool[1] ).name },
-      { .key = "2", .display_name = unit_attr( pool[2] ).name },
+    { .key = "0", .display_name = unit_attr( pool[0] ).name },
+    { .key = "1", .display_name = unit_attr( pool[1] ).name },
+    { .key = "2", .display_name = unit_attr( pool[2] ).name },
   };
   ChoiceConfig config{
-      .msg     = std::move( msg ),
-      .options = options,
+    .msg     = std::move( msg ),
+    .options = options,
   };
 
   maybe<string> const res =
@@ -214,8 +214,8 @@ CrossesCalculation compute_crosses(
                                    .crosses_needed_multiplier );
 
   return CrossesCalculation{
-      .dock_crosses_bonus = dock_crosses_bonus,
-      .crosses_needed     = crosses_needed };
+    .dock_crosses_bonus = dock_crosses_bonus,
+    .crosses_needed     = crosses_needed };
 }
 
 void add_player_crosses( Player& player,

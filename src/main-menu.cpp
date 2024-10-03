@@ -83,9 +83,9 @@ struct MainMenuPlane : public IPlane {
 
   wait<maybe<e_main_menu_item>> show_menu() {
     EnumChoiceConfig const config{
-        .msg = "[REVOLUTION*NOW] Version 1.0 -- 4-Apr-24",
-        .cancel_actions = { .disallow_clicking_outside = true,
-                            .disallow_escape_key       = false },
+      .msg = "[REVOLUTION*NOW] Version 1.0 -- 4-Apr-24",
+      .cancel_actions = { .disallow_clicking_outside = true,
+                          .disallow_escape_key       = false },
     };
     refl::enum_map<e_main_menu_item, std::string> names;
     refl::enum_map<e_main_menu_item, bool>        disabled;

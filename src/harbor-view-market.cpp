@@ -105,11 +105,11 @@ HarborMarketCommodities::object_here(
       Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
                                   Delta{ .w = 16, .h = 16 } );
   return DraggableObjectWithBounds<HarborDraggableObject>{
-      .obj =
-          HarborDraggableObject::market_commodity{
-              .comm = Commodity{ .type     = comm_type,
-                                 .quantity = 100 } },
-      .bounds = box };
+    .obj =
+        HarborDraggableObject::market_commodity{
+          .comm =
+              Commodity{ .type = comm_type, .quantity = 100 } },
+    .bounds = box };
 }
 
 bool HarborMarketCommodities::try_drag(
@@ -152,7 +152,7 @@ HarborMarketCommodities::user_edit_object() const {
   new_comm.quantity  = *quantity;
   CHECK( new_comm.quantity > 0 );
   co_return HarborDraggableObject::market_commodity{
-      .comm = new_comm };
+    .comm = new_comm };
 }
 
 wait<base::NoDiscard<bool>>
@@ -183,12 +183,12 @@ HarborMarketCommodities::source_check(
   CHECK_LE( invoice.money_delta_final, 0 );
   if( -invoice.money_delta_final > player_.money )
     co_return DragRejection{
-        .reason = fmt::format(
-            "We do not have enough in our treasury to purchase "
-            "[{} {}]. Try holding down the [shift] key to "
-            "reduce the quantity of your purchase.",
-            comm.quantity,
-            lowercase_commodity_display_name( comm.type ) ) };
+      .reason = fmt::format(
+          "We do not have enough in our treasury to purchase "
+          "[{} {}]. Try holding down the [shift] key to "
+          "reduce the quantity of your purchase.",
+          comm.quantity,
+          lowercase_commodity_display_name( comm.type ) ) };
   co_return base::valid;
 }
 
@@ -218,7 +218,7 @@ HarborMarketCommodities::can_receive(
     Coord const& /*where*/ ) const {
   if( o.holds<HarborDraggableObject::cargo_commodity>() )
     return CanReceiveDraggable<HarborDraggableObject>::yes{
-        .draggable = o };
+      .draggable = o };
   return nothing;
 }
 
@@ -310,26 +310,26 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
       size.h >= HarborMarketCommodities::single_layer_height ) {
     stacked = false;
     pos     = Coord{
-            .x = canvas.center().x -
-             HarborMarketCommodities::single_layer_width / 2,
-            .y = canvas.bottom_edge() -
-             HarborMarketCommodities::single_layer_height - 1 };
+          .x = canvas.center().x -
+           HarborMarketCommodities::single_layer_width / 2,
+          .y = canvas.bottom_edge() -
+           HarborMarketCommodities::single_layer_height - 1 };
   } else {
     stacked = true;
     pos     = Coord{
-            .x = canvas.center().x -
-             HarborMarketCommodities::double_layer_width / 2,
-            .y = canvas.bottom_edge() -
-             HarborMarketCommodities::double_layer_height - 1 };
+          .x = canvas.center().x -
+           HarborMarketCommodities::double_layer_width / 2,
+          .y = canvas.bottom_edge() -
+           HarborMarketCommodities::double_layer_height - 1 };
   };
   view = make_unique<HarborMarketCommodities>( ss, ts, player,
                                                stacked );
   harbor_sub_view                   = view.get();
   HarborMarketCommodities* p_actual = view.get();
   return PositionedHarborSubView<HarborMarketCommodities>{
-      .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = pos },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborMarketCommodities::HarborMarketCommodities( SS& ss, TS& ts,

@@ -109,7 +109,10 @@ struct mouse_drag_event_t : public mouse_move_event_t {
 /****************************************************************
 ** Keyboard
 *****************************************************************/
-enum class e_key_change { up, down };
+enum class e_key_change {
+  up,
+  down
+};
 
 struct key_event_t : public event_base_t {
   e_key_change   change;
@@ -125,7 +128,10 @@ struct key_event_t : public event_base_t {
 /****************************************************************
 ** Window
 *****************************************************************/
-enum class e_win_event_type { resized, other };
+enum class e_win_event_type {
+  resized,
+  other
+};
 
 struct win_event_t : public event_base_t {
   e_win_event_type type;

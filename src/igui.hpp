@@ -278,14 +278,14 @@ wait<maybe<E>> IGui::optional_enum_choice(
     refl::enum_map<E, std::string> const& names,
     refl::enum_map<E, bool> const&        disabled ) {
   ChoiceConfig config{
-      .msg            = enum_config.msg,
-      .cancel_actions = enum_config.cancel_actions,
-      .sort           = enum_config.sort };
+    .msg            = enum_config.msg,
+    .cancel_actions = enum_config.cancel_actions,
+    .sort           = enum_config.sort };
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
-        .key = std::string( refl::enum_value_name( item ) ),
-        .display_name = names[item],
-        .disabled     = disabled[item] } );
+      .key = std::string( refl::enum_value_name( item ) ),
+      .display_name = names[item],
+      .disabled     = disabled[item] } );
   maybe<std::string> str_res =
       co_await optional_choice( config );
   if( !str_res.has_value() ) co_return nothing;
@@ -299,14 +299,14 @@ wait<E> IGui::required_enum_choice(
     refl::enum_map<E, std::string> const& names,
     refl::enum_map<E, bool> const&        disabled ) {
   ChoiceConfig config{
-      .msg            = enum_config.msg,
-      .cancel_actions = enum_config.cancel_actions,
-      .sort           = enum_config.sort };
+    .msg            = enum_config.msg,
+    .cancel_actions = enum_config.cancel_actions,
+    .sort           = enum_config.sort };
   for( E item : refl::enum_values<E> )
     config.options.push_back( ChoiceConfigOption{
-        .key = std::string( refl::enum_value_name( item ) ),
-        .display_name = names[item],
-        .disabled     = disabled[item] } );
+      .key = std::string( refl::enum_value_name( item ) ),
+      .display_name = names[item],
+      .disabled     = disabled[item] } );
   std::string const str_res = co_await required_choice( config );
   UNWRAP_CHECK( res, refl::enum_from_string<E>( str_res ) );
   co_return res;
@@ -402,8 +402,8 @@ wait<maybe<E>> IGui::partial_optional_enum_choice(
   for( E item : options ) {
     auto key = std::string( refl::enum_value_name( item ) );
     config.options.push_back( ChoiceConfigOption{
-        .key          = key,
-        .display_name = identifier_to_display_name( key ) } );
+      .key          = key,
+      .display_name = identifier_to_display_name( key ) } );
   }
   maybe<std::string> str_res =
       co_await optional_choice( config );

@@ -43,7 +43,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
 
   // 1. Draw sky.
   gfx::pixel const sky_color{
-      .r = 0xa0, .g = 0xa0, .b = 0xc0, .a = 0xff };
+    .r = 0xa0, .g = 0xa0, .b = 0xc0, .a = 0xff };
   painter.draw_solid_rect( Rect::from( coord, size_ ),
                            sky_color );
 
@@ -124,14 +124,13 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
 HarborBackdrop::DockUnitsLayout
 HarborBackdrop::dock_units_layout() const {
   return DockUnitsLayout{
-      .units_start_floor =
-          layout_.dock_lower_right -
-          Delta{ .w = kDockEdgeThickness } -
-          Delta{ .w = layout_.num_dock_segments *
-                      kDockSegmentWidth } -
-          Delta{ .h = 20 },
-      .dock_length =
-          layout_.num_dock_segments * kDockSegmentWidth };
+    .units_start_floor = layout_.dock_lower_right -
+                         Delta{ .w = kDockEdgeThickness } -
+                         Delta{ .w = layout_.num_dock_segments *
+                                     kDockSegmentWidth } -
+                         Delta{ .h = 20 },
+    .dock_length =
+        layout_.num_dock_segments * kDockSegmentWidth };
 }
 
 H HarborBackdrop::top_of_houses() const {
@@ -181,9 +180,9 @@ PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
   harbor_sub_view = view.get();
   HarborBackdrop* p_actual = view.get();
   return PositionedHarborSubView<HarborBackdrop>{
-      .owned  = { .view = std::move( view ), .coord = origin },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = origin },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,

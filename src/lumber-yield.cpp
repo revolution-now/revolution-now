@@ -65,10 +65,10 @@ LumberYield yield_for_colony( SSConst const& ss,
                     colony.commodities[e_commodity::lumber],
                 0 );
   auto res = LumberYield{
-      .colony_id   = colony_id,
-      .total_yield = total_yield,
-      .yield_to_add_to_colony =
-          std::min( total_yield, amount_that_can_fit ),
+    .colony_id   = colony_id,
+    .total_yield = total_yield,
+    .yield_to_add_to_colony =
+        std::min( total_yield, amount_that_can_fit ),
   };
   return res;
 }

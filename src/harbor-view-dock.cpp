@@ -80,8 +80,8 @@ HarborDockUnits::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
-      .obj    = HarborDraggableObject::unit{ .id = unit->id },
-      .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
+    .obj    = HarborDraggableObject::unit{ .id = unit->id },
+    .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
 }
 
 vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
@@ -105,19 +105,19 @@ vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   Unit const&  unit = ss_.units.unit_for( unit_id );
   ChoiceConfig config{
-      .msg     = fmt::format( "European dock options for [{}]:",
-                              unit.desc().name ),
-      .options = {},
-      .sort    = false,
+    .msg     = fmt::format( "European dock options for [{}]:",
+                            unit.desc().name ),
+    .options = {},
+    .sort    = false,
   };
   vector<HarborEquipOption> const equip_opts =
       harbor_equip_options( ss_, player_, unit.composition() );
   for( int idx = 0; idx < int( equip_opts.size() ); ++idx ) {
     HarborEquipOption const& equip_opt = equip_opts[idx];
     ChoiceConfigOption       option{
-              .key = fmt::to_string( idx ),
-              .display_name = harbor_equip_description( equip_opt ),
-              .disabled = !equip_opt.can_afford };
+            .key = fmt::to_string( idx ),
+            .display_name = harbor_equip_description( equip_opt ),
+            .disabled = !equip_opt.can_afford };
     config.options.push_back( std::move( option ) );
   }
   static string const kNoChangesKey = "no changes";
@@ -179,7 +179,7 @@ HarborDockUnits::can_receive( HarborDraggableObject const& o,
   if( ss_.units.unit_for( unit->id ).desc().ship )
     return nothing;
   return CanReceiveDraggable<HarborDraggableObject>::yes{
-      .draggable = o };
+    .draggable = o };
 }
 
 wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
@@ -227,17 +227,17 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
       dock_layout.units_start_floor -
       Delta{ .h = max_vertical_units * g_tile_delta.h };
   Delta const size_blocks{
-      .w = dock_layout.dock_length / g_tile_delta.w,
-      .h = max_vertical_units };
+    .w = dock_layout.dock_length / g_tile_delta.w,
+    .h = max_vertical_units };
 
   view            = make_unique<HarborDockUnits>( ss, ts, player,
                                                   size_blocks );
   harbor_sub_view = view.get();
   HarborDockUnits* p_actual = view.get();
   return PositionedHarborSubView<HarborDockUnits>{
-      .owned  = { .view = std::move( view ), .coord = pos },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = pos },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,

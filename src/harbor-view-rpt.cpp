@@ -158,13 +158,13 @@ void HarborRptButtons::draw( rr::Renderer& renderer,
     TextMarkupInfo markup_info;
     if( mouse_inside )
       markup_info = {
-          .normal    = gfx::pixel::banana(),
-          .highlight = gfx::pixel::banana().shaded( 2 ),
+        .normal    = gfx::pixel::banana(),
+        .highlight = gfx::pixel::banana().shaded( 2 ),
       };
     else
       markup_info = {
-          .normal    = gfx::pixel::wood(),
-          .highlight = gfx::pixel::wood().highlighted( 2 ),
+        .normal    = gfx::pixel::wood(),
+        .highlight = gfx::pixel::wood().highlighted( 2 ),
       };
     render_text_markup( renderer, text_upper_left, {},
                         markup_info, text_markup );
@@ -180,18 +180,17 @@ HarborRptButtons::create( SS& ss, TS& ts, Player& player,
   HarborSubView*               harbor_sub_view = nullptr;
 
   Coord const lower_right{
-      .x = canvas.right_edge() - 1 - 4,
-      .y = canvas.bottom_edge() - backdrop.top_of_houses() - 8 };
+    .x = canvas.right_edge() - 1 - 4,
+    .y = canvas.bottom_edge() - backdrop.top_of_houses() - 8 };
   Coord const upper_left = lower_right - total_size();
 
   view = make_unique<HarborRptButtons>( ss, ts, player );
   harbor_sub_view            = view.get();
   HarborRptButtons* p_actual = view.get();
   return PositionedHarborSubView<HarborRptButtons>{
-      .owned  = { .view  = std::move( view ),
-                  .coord = upper_left },
-      .harbor = harbor_sub_view,
-      .actual = p_actual };
+    .owned  = { .view = std::move( view ), .coord = upper_left },
+    .harbor = harbor_sub_view,
+    .actual = p_actual };
 }
 
 HarborRptButtons::HarborRptButtons( SS& ss, TS& ts,

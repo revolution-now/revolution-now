@@ -137,9 +137,9 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed(),
       MapUpdaterOptions{
-          .render_fog_of_war =
-              ss.settings.game_options.flags
-                  [e_game_flag_option::show_fog_of_war] } );
+        .render_fog_of_war =
+            ss.settings.game_options
+                .flags[e_game_flag_option::show_fog_of_war] } );
 
   auto _4 = ts.set_map_updater( map_updater );
 

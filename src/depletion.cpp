@@ -86,9 +86,9 @@ maybe<DepletionEvent> advance_tile_depletion_state(
   if( counter < conf.counter_limit ) co_await nothing;
   depletion.counters.erase( tile );
   co_return DepletionEvent{
-      .tile          = tile,
-      .resource_from = resource,
-      .resource_to   = depleted( resource ) };
+    .tile          = tile,
+    .resource_from = resource,
+    .resource_to   = depleted( resource ) };
 }
 
 bool square_allows_depletion_counter( MapSquare const& square ) {

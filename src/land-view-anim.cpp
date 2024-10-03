@@ -317,15 +317,15 @@ wait<> LandViewAnimator::slide_throttler_impl(
           : .07;
 
   slide = {
-      .direction   = d,
-      .percent     = 0.0,
-      .percent_vel = DissipativeVelocity{
-          /*min_velocity=*/0,            //
-          /*max_velocity=*/kMaxVelocity, //
-          /*initial_velocity=*/.1,       //
-          /*mag_acceleration=*/1,        //
-          /*mag_drag_acceleration=*/.002 //
-      } //
+    .direction   = d,
+    .percent     = 0.0,
+    .percent_vel = DissipativeVelocity{
+      /*min_velocity=*/0,            //
+      /*max_velocity=*/kMaxVelocity, //
+      /*initial_velocity=*/.1,       //
+      /*mag_acceleration=*/1,        //
+      /*mag_drag_acceleration=*/.002 //
+    } //
   };
   AnimThrottler throttle( kAlmostStandardFrame );
   while( slide.percent < 1.0 ) {

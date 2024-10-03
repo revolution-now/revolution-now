@@ -55,9 +55,9 @@ maybe<e_founding_father> pick_next_father_for_type(
   int const year   = ss.turn.time_point.year;
   auto      weight = [&]( e_founding_father father ) {
     auto& conf = config_fathers.fathers[father];
-    if( year < 1600 )
+    if( year < 1'600 )
       return conf.weight_1492_1600;
-    else if( year < 1700 )
+    else if( year < 1'700 )
       return conf.weight_1600_1700;
     else
       return conf.weight_1700_plus;
@@ -344,9 +344,9 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
   // make sure the pool is filled (if possible).
   fill_father_selection( ss, ts, player );
   ChoiceConfig config{
-      .msg =
-          "Which Founding Father shall we appoint as the next "
-          "member of the Continental Congress?" };
+    .msg =
+        "Which Founding Father shall we appoint as the next "
+        "member of the Continental Congress?" };
   for( auto& [type, father] : player.fathers.pool ) {
     if( !father.has_value() ) continue;
     if( player.fathers.has[*father] )

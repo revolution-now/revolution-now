@@ -35,7 +35,11 @@ struct IPlaneGroup : public IPlane {
 
  private:
   // Drag state.
-  enum class e_drag_send_mode { normal, raw, motion };
+  enum class e_drag_send_mode {
+    normal,
+    raw,
+    motion
+  };
   struct DragState {
     IPlane*          plane;
     e_drag_send_mode mode = e_drag_send_mode::normal;

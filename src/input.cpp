@@ -55,18 +55,18 @@ drag_phase l_drag{ drag_phase::none{} };
 drag_phase r_drag{ drag_phase::none{} };
 
 unordered_map<::SDL_Keycode, e_direction> nav_keys{
-    { ::SDLK_LEFT, e_direction::w },
-    { ::SDLK_RIGHT, e_direction::e },
-    { ::SDLK_DOWN, e_direction::s },
-    { ::SDLK_UP, e_direction::n },
-    { ::SDLK_KP_4, e_direction::w },
-    { ::SDLK_KP_6, e_direction::e },
-    { ::SDLK_KP_2, e_direction::s },
-    { ::SDLK_KP_8, e_direction::n },
-    { ::SDLK_KP_7, e_direction::nw },
-    { ::SDLK_KP_9, e_direction::ne },
-    { ::SDLK_KP_1, e_direction::sw },
-    { ::SDLK_KP_3, e_direction::se },
+  { ::SDLK_LEFT, e_direction::w },
+  { ::SDLK_RIGHT, e_direction::e },
+  { ::SDLK_DOWN, e_direction::s },
+  { ::SDLK_UP, e_direction::n },
+  { ::SDLK_KP_4, e_direction::w },
+  { ::SDLK_KP_6, e_direction::e },
+  { ::SDLK_KP_2, e_direction::s },
+  { ::SDLK_KP_8, e_direction::n },
+  { ::SDLK_KP_7, e_direction::nw },
+  { ::SDLK_KP_9, e_direction::ne },
+  { ::SDLK_KP_1, e_direction::sw },
+  { ::SDLK_KP_3, e_direction::se },
 };
 
 bool is_in_drag_zone( Coord current, Coord origin ) {
@@ -193,15 +193,15 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           switch( drag.to_enum() ) {
             case drag_phase::e::none: {
               drag = drag_phase::maybe{
-                  /*origin=*/g_prev_mouse_pos };
+                /*origin=*/g_prev_mouse_pos };
               break;
             }
             case drag_phase::e::maybe: {
               if_get( drag, drag_phase::maybe, val ) {
                 if( is_in_drag_zone( val.origin, mouse ) ) {
                   drag = drag_phase::dragging{
-                      /*origin=*/val.origin,
-                      /*phase=*/e_drag_phase::begin };
+                    /*origin=*/val.origin,
+                    /*phase=*/e_drag_phase::begin };
                 }
               }
               break;
@@ -451,7 +451,7 @@ maybe<event_t> next_event() {
   return nothing;
 }
 
-constexpr int       kMaxEventQueueSize = 10000;
+constexpr int       kMaxEventQueueSize = 10'000;
 std::queue<event_t> g_event_queue;
 
 } // namespace
@@ -469,18 +469,18 @@ std::queue<event_t>& event_queue() { return g_event_queue; }
 *****************************************************************/
 maybe<char> ascii_char_for_event( key_event_t const& event ) {
   static unordered_map<char, char> shift_map{
-      { '`', '~' },  { '1', '!' },  { '2', '@' }, { '3', '#' },
-      { '4', '$' },  { '5', '%' },  { '6', '^' }, { '7', '&' },
-      { '8', '*' },  { '9', '(' },  { '0', ')' }, { '-', '_' },
-      { '=', '+' },  { 'q', 'Q' },  { 'w', 'W' }, { 'e', 'E' },
-      { 'r', 'R' },  { 't', 'T' },  { 'y', 'Y' }, { 'u', 'U' },
-      { 'i', 'I' },  { 'o', 'O' },  { 'p', 'P' }, { '[', '{' },
-      { ']', '}' },  { '\\', '|' }, { 'a', 'A' }, { 's', 'S' },
-      { 'd', 'D' },  { 'f', 'F' },  { 'g', 'G' }, { 'h', 'H' },
-      { 'j', 'J' },  { 'k', 'K' },  { 'l', 'L' }, { ';', ':' },
-      { '\'', '"' }, { 'z', 'Z' },  { 'x', 'X' }, { 'c', 'C' },
-      { 'v', 'V' },  { 'b', 'B' },  { 'n', 'N' }, { 'm', 'M' },
-      { ',', '<' },  { '.', '>' },  { '/', '?' } };
+    { '`', '~' },  { '1', '!' },  { '2', '@' }, { '3', '#' },
+    { '4', '$' },  { '5', '%' },  { '6', '^' }, { '7', '&' },
+    { '8', '*' },  { '9', '(' },  { '0', ')' }, { '-', '_' },
+    { '=', '+' },  { 'q', 'Q' },  { 'w', 'W' }, { 'e', 'E' },
+    { 'r', 'R' },  { 't', 'T' },  { 'y', 'Y' }, { 'u', 'U' },
+    { 'i', 'I' },  { 'o', 'O' },  { 'p', 'P' }, { '[', '{' },
+    { ']', '}' },  { '\\', '|' }, { 'a', 'A' }, { 's', 'S' },
+    { 'd', 'D' },  { 'f', 'F' },  { 'g', 'G' }, { 'h', 'H' },
+    { 'j', 'J' },  { 'k', 'K' },  { 'l', 'L' }, { ';', ':' },
+    { '\'', '"' }, { 'z', 'Z' },  { 'x', 'X' }, { 'c', 'C' },
+    { 'v', 'V' },  { 'b', 'B' },  { 'n', 'N' }, { 'm', 'M' },
+    { ',', '<' },  { '.', '>' },  { '/', '?' } };
   maybe<char> res;
   if( event.keycode < 128 ) {
     char keychar = char( event.keycode );

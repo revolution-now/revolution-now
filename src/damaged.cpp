@@ -137,7 +137,7 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
     // automatically removes the unit from any sentry/fortified
     // status that it had, which is what we want.
     ship.orders() = unit_orders::damaged{
-        .turns_until_repair = turns_until_repair };
+      .turns_until_repair = turns_until_repair };
   else
     // In the OG a Caravel that is sent to the drydock will
     // have a repair turn requirement of 0, and so it is im-

@@ -173,8 +173,8 @@ dimensions_for_request() {
 }
 
 #define DIM( name, _, ... ) \
-  dims.name = { EVAL(       \
-      PP_MAP_PREPEND_NS( e_tune_##name, __VA_ARGS__ ) ) };
+  dims.name = {             \
+    EVAL( PP_MAP_PREPEND_NS( e_tune_##name, __VA_ARGS__ ) ) };
 
 #define REQUEST( name, ... )                          \
   {                                                   \
@@ -264,10 +264,10 @@ void init_conductor() {
                g_mplayer_descs[mplayer].name, reason );
     }
     MusicPlayerInfo info{
-        /*enabled=*/enabled,
-        g_mplayer_descs[mplayer].name,
-        g_mplayer_descs[mplayer].description,
-        g_mplayer_descs[mplayer].how_it_works,
+      /*enabled=*/enabled,
+      g_mplayer_descs[mplayer].name,
+      g_mplayer_descs[mplayer].description,
+      g_mplayer_descs[mplayer].how_it_works,
     };
     g_mplayer_infos[mplayer] = info;
   }
@@ -440,11 +440,11 @@ maybe<ConductorInfo> state() {
       st = e_music_state::playing;
   }
   return ConductorInfo{
-      /*mplayer=*/*g_active_mplayer,
-      /*music_state=*/st,
-      /*playing_now=*/mp_state.tune_info,
-      /*volume=*/g_master_volume,
-      /*autoplay=*/g_autoplay,
+    /*mplayer=*/*g_active_mplayer,
+    /*music_state=*/st,
+    /*playing_now=*/mp_state.tune_info,
+    /*volume=*/g_master_volume,
+    /*autoplay=*/g_autoplay,
   };
 }
 
@@ -690,7 +690,7 @@ void playlist_generate( IRand& rand ) {
   auto   num_tunes = config_music.tunes.size();
   size_t no_overlap_size =
       ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
-  CHECK( no_overlap_size < 100000 ); // sanity check
+  CHECK( no_overlap_size < 100'000 ); // sanity check
   vector<TuneId> last_n;
   for( auto id : rl::all( all_tunes() ).take( no_overlap_size ) )
     last_n.push_back( id );
