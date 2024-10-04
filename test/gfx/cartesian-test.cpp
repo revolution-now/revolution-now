@@ -892,6 +892,14 @@ TEST_CASE( "[gfx/cartesian] rect::with_origin" ) {
            expected );
 }
 
+TEST_CASE( "[gfx/cartesian] rect::with_size" ) {
+  rect r{ .origin = { .x = 4, .y = 2 },
+          .size   = { .w = 2, .h = 4 } };
+  rect expected{ .origin = { .x = 4, .y = 2 },
+                 .size   = { .w = 3, .h = 1 } };
+  REQUIRE( r.with_size( size{ .w = 3, .h = 1 } ) == expected );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::center" ) {
   rect  r{ .origin = { .x = 4, .y = 2 },
            .size   = { .w = 3, .h = 4 } };

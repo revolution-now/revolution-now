@@ -201,9 +201,11 @@ struct rect {
   // Is inside or touching border.
   [[nodiscard]] bool contains( point const p ) const;
 
-  // Returns a new rect with the same size but with origin given
-  // by `p`.
+  // New rect with the same size but with origin given by `p`.
   [[nodiscard]] rect with_origin( point const p ) const;
+
+  // Same origin, different size.
+  [[nodiscard]] rect with_size( struct size const s ) const;
 
   // Returns the center rounded toward 0.
   [[nodiscard]] point center() const;

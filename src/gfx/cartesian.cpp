@@ -392,6 +392,12 @@ rect rect::with_origin( point const p ) const {
   return res;
 }
 
+rect rect::with_size( struct size const s ) const {
+  rect res = *this;
+  res.size = s;
+  return res;
+}
+
 point rect::center() const {
   return point{
     .x = origin.x + size.w / 2,
