@@ -46,6 +46,34 @@ namespace {
 
 constexpr double g_tile_overlap_width_percent = .2;
 
+// This is for sprites that need to be rendered based on a given
+// true/false property of a tile in such a way that the sprite is
+// pixelated at the boundaries (with tiles that do not have the
+// same value of the property) for smooth transitions.
+struct SurroundingsInfo {
+  refl::enum_map<e_cdirection, bool> surroundings;
+  bool                               fully_surrounded = false;
+};
+
+SurroundingsInfo surroundings_test( Coord const tile,
+                                    auto&&      is_on ) {
+  SurroundingsInfo info;
+  info.fully_surrounded = true;
+  for( e_cdirection const d : refl::enum_values<e_cdirection> ) {
+    bool const on         = is_on( tile.moved( d ) );
+    info.surroundings[d]  = on;
+    info.fully_surrounded = info.fully_surrounded && on;
+  }
+  return info;
+}
+
+// Forward decl.
+void render_pixelated_overlay_transitions(
+    rr::Renderer& renderer, Coord where,
+    Coord const world_square, IVisibility const& viz,
+    refl::enum_map<e_cdirection, bool> const& has_overlay,
+    e_tile                                    overlay_tile );
+
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
     case e_ground_terrain::arctic:
@@ -1117,6 +1145,59 @@ void render_land_overlay( IVisibility const& viz,
   }
 }
 
+// This is used whenever we need to render a sprite that repre-
+// sents a water tile, whether it be land-adjacent or not. The
+// point of it is that it will ensure automatically that sea lane
+// is rendered properly on the tile if it is present.
+struct WaterRendererWithSeaLane {
+  rr::Renderer&      renderer;
+  Coord const        where;
+  Coord const        world_square;
+  IVisibility const& viz;
+
+  void render() const {
+    render_ocean( terrain_ocean );
+    render_sea_lane( terrain_ocean_sea_lane );
+  }
+
+  void render_stenciled( e_tile const stencil_tile ) const {
+    SCOPED_RENDERER_MOD_SET( painter_mods.stencil,
+                             stenciled_to( terrain_ocean ) );
+    render_ocean( stencil_tile );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.stencil,
+        stenciled_to( terrain_ocean_sea_lane ) );
+    render_sea_lane( stencil_tile );
+  }
+
+ private:
+  using enum e_tile;
+
+  static rr::StencilPlan stenciled_to( e_tile const tile ) {
+    return stencil_plan_for( tile, gfx::pixel::black() );
+  };
+
+  void render_ocean( e_tile const water_tile ) const {
+    render_sprite( renderer, where, water_tile );
+  }
+
+  void render_sea_lane( e_tile const sea_lane_tile ) const {
+    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
+                             rr::e_color_cycle_plan::sea_lane );
+    SurroundingsInfo const sea_lanes = surroundings_test(
+        world_square, [&]( Coord const tile ) {
+          return viz.square_at( tile ).sea_lane;
+        } );
+    if( sea_lanes.fully_surrounded ) {
+      render_sprite( renderer, where, sea_lane_tile );
+    } else {
+      render_pixelated_overlay_transitions(
+          renderer, where, world_square, viz,
+          sea_lanes.surroundings, sea_lane_tile );
+    }
+  }
+};
+
 void render_terrain_ocean_square( rr::Renderer&      renderer,
                                   Coord              where,
                                   IVisibility const& viz,
@@ -1153,21 +1234,15 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
              ( water_down ? ( 1 << 1 ) : 0 ) |
              ( water_left ? ( 1 << 0 ) : 0 );
 
-  auto render_maybe_with_sea_lane = [&]( auto&& f ) {
-    f( e_tile::terrain_ocean );
-    if( square.sea_lane ) {
-      SCOPED_RENDERER_MOD_SET(
-          painter_mods.cycling.plan,
-          rr::e_color_cycle_plan::sea_lane );
-      f( e_tile::terrain_ocean_sea_lane );
-    }
-  };
+  WaterRendererWithSeaLane const render_with_sea_lane{
+    .renderer     = renderer,
+    .where        = where,
+    .world_square = world_square,
+    .viz          = viz };
 
   if( mask == 0b1111 ) {
     // All surrounding water.
-    render_maybe_with_sea_lane( [&]( e_tile const tile ) {
-      render_sprite( renderer, where, tile );
-    } );
+    render_with_sea_lane.render();
     render_beach_corners( renderer, where, up, right, down, left,
                           up_left, up_right, down_right,
                           down_left );
@@ -1835,16 +1910,13 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   render_terrain_ground( viz, renderer, where, world_square,
                          ground );
 
-  render_maybe_with_sea_lane( [&]( e_tile const tile ) {
-    render_sprite_stencil( renderer, where, water_tile, tile,
-                           gfx::pixel::black() );
-  } );
-  if( second_water_tile.has_value() ) {
-    render_maybe_with_sea_lane( [&]( e_tile const tile ) {
-      render_sprite_stencil( renderer, where, *second_water_tile,
-                             tile, gfx::pixel::black() );
-    } );
-  }
+  auto stencil_with_sea_lane = [&]( e_tile const stencil ) {
+    render_with_sea_lane.render_stenciled( stencil );
+  };
+
+  stencil_with_sea_lane( water_tile );
+  if( second_water_tile.has_value() )
+    stencil_with_sea_lane( *second_water_tile );
   render_sprite( renderer, where, beach_tile );
   render_sprite( renderer, where, border_tile );
   if( second_beach_tile.has_value() )
@@ -2315,30 +2387,6 @@ void render_visible_terrain_square( rr::Renderer& renderer,
   render_lost_city_rumor( renderer, where, square );
 }
 
-// An "overlay" can represent some kind of sprite that is over-
-// layed on top of land. This could be the sprite that hides un-
-// explored tiles or could be the sprite that partially covers
-// fog-of-war tiles. These sprites need to be rendered on top of
-// land tiles and pixelated at the boundaries (with tiles that do
-// not have the overlay) for smooth transitions.
-struct OverlayInfo {
-  refl::enum_map<e_cdirection, bool> surroundings;
-  bool                               fully_surrounded = false;
-};
-
-OverlayInfo surrounding_overlays(
-    IVisibility const& viz, Coord tile,
-    refl::enum_map<e_tile_visibility, bool> const& targets ) {
-  OverlayInfo info;
-  info.fully_surrounded = true;
-  for( e_cdirection d : refl::enum_values<e_cdirection> ) {
-    bool const overlay = targets[viz.visible( tile.moved( d ) )];
-    info.surroundings[d]  = overlay;
-    info.fully_surrounded = info.fully_surrounded && overlay;
-  }
-  return info;
-}
-
 } // namespace
 
 void render_landscape_square_if_not_fully_hidden(
@@ -2346,10 +2394,10 @@ void render_landscape_square_if_not_fully_hidden(
     Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   bool const fully_hidden =
-      surrounding_overlays(
-          viz, world_square,
-          { { e_tile_visibility::hidden, true } } )
-          .fully_surrounded;
+      surroundings_test( world_square, [&]( Coord const tile ) {
+        e_tile_visibility const visibility = viz.visible( tile );
+        return visibility == e_tile_visibility::hidden;
+      } ).fully_surrounded;
   if( fully_hidden ) return;
   render_visible_terrain_square( renderer, where, world_square,
                                  viz );
@@ -2367,9 +2415,12 @@ void render_obfuscation_overlay(
     Coord const world_square, IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   { // Unexplored.
-    OverlayInfo const hidden = surrounding_overlays(
-        viz, world_square,
-        { { e_tile_visibility::hidden, true } } );
+    SurroundingsInfo const hidden = surroundings_test(
+        world_square, [&]( Coord const tile ) {
+          e_tile_visibility const visibility =
+              viz.visible( tile );
+          return visibility == e_tile_visibility::hidden;
+        } );
     if( hidden.fully_surrounded ) {
       render_sprite( renderer, where, e_tile::terrain_hidden );
     } else {
@@ -2381,10 +2432,13 @@ void render_obfuscation_overlay(
 
   // Fog of war.
   if( options.render_fog_of_war ) {
-    OverlayInfo const fogged = surrounding_overlays(
-        viz, world_square,
-        { { e_tile_visibility::fogged, true },
-          { e_tile_visibility::hidden, true } } );
+    SurroundingsInfo const fogged = surroundings_test(
+        world_square, [&]( Coord const tile ) {
+          e_tile_visibility const visibility =
+              viz.visible( tile );
+          return visibility == e_tile_visibility::fogged ||
+                 visibility == e_tile_visibility::hidden;
+        } );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
                              config_gfx.fog_of_war_alpha );
     if( fogged.fully_surrounded ) {

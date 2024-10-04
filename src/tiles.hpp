@@ -79,6 +79,9 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
 /****************************************************************
 ** Stencils
 *****************************************************************/
+rr::StencilPlan stencil_plan_for( e_tile     replacement_tile,
+                                  gfx::pixel key_color );
+
 void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color );

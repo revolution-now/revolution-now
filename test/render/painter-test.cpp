@@ -630,7 +630,12 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   vector<GenericVertex> v, expected;
 
   Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  PainterMods const mods{
+    .stencil = StencilPlan{ .replacement_atlas_id = 3,
+                            .key_color            = R } };
+  Painter painter = unmodded_painter.with_mods( mods );
 
   point p;
   // This is the offset between the origins of the point and re-
@@ -645,9 +650,8 @@ TEST_CASE( "[render/painter] draw_stencil" ) {
   };
 
   p                  = { .x = 20, .y = 30 };
-  int atlas_id       = 2;
-  int replacement_id = 3;
-  painter.draw_stencil( atlas_id, replacement_id, p, R );
+  int const atlas_id = 2;
+  painter.draw_sprite( atlas_id, p );
   // atlas: { .origin = { .x = 3, .y = 4 },
   //          .size   = { .w = 5, .h = 6 } },
   // replacement:

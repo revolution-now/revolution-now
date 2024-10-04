@@ -139,12 +139,20 @@ void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
   }
 }
 
+rr::StencilPlan stencil_plan_for( e_tile     replacement_tile,
+                                  gfx::pixel key_color ) {
+  return {
+    .replacement_atlas_id = atlas_lookup( replacement_tile ),
+    .key_color            = key_color };
+}
+
 void render_sprite_stencil( rr::Renderer& renderer, Coord where,
                             e_tile tile, e_tile replacement_tile,
                             gfx::pixel key_color ) {
-  renderer.painter().draw_stencil(
-      atlas_lookup( tile ), atlas_lookup( replacement_tile ),
-      where, key_color );
+  SCOPED_RENDERER_MOD_SET(
+      painter_mods.stencil,
+      stencil_plan_for( replacement_tile, key_color ) );
+  renderer.painter().draw_sprite( atlas_lookup( tile ), where );
 }
 
 void tile_sprite( rr::Renderer& renderer, e_tile tile,

@@ -85,14 +85,20 @@ struct ColorCyclingInfo {
   base::maybe<e_color_cycle_plan> plan = {};
 };
 
+struct StencilPlan {
+  int        replacement_atlas_id = {};
+  gfx::pixel key_color            = {};
+};
+
 struct PainterMods {
-  DepixelateInfo          depixelate           = {};
-  base::maybe<double>     alpha                = {};
-  RepositionInfo          repos                = {};
-  ColorCyclingInfo        cycling              = {};
-  base::maybe<bool>       desaturate           = {};
-  base::maybe<gfx::pixel> fixed_color          = {};
-  base::maybe<bool>       uniform_depixelation = {};
+  DepixelateInfo           depixelate           = {};
+  base::maybe<double>      alpha                = {};
+  RepositionInfo           repos                = {};
+  ColorCyclingInfo         cycling              = {};
+  base::maybe<bool>        desaturate           = {};
+  base::maybe<gfx::pixel>  fixed_color          = {};
+  base::maybe<bool>        uniform_depixelation = {};
+  base::maybe<StencilPlan> stencil              = {};
 };
 
 /****************************************************************
@@ -110,9 +116,9 @@ struct Painter {
       PainterMods const& mods ATTR_LIFETIMEBOUND );
   Painter without_mods();
 
-  AtlasMap const& atlas() const { return atlas_; }
-  Emitter&        emitter() const { return emitter_; }
-  base::maybe<PainterMods const&> mods() const;
+  AtlasMap const&    atlas() const { return atlas_; }
+  Emitter&           emitter() const { return emitter_; }
+  PainterMods const& mods() const;
 
   // .......................[[ Points ]]...................... //
 
@@ -162,14 +168,11 @@ struct Painter {
 
   // FIXME: Ideally we should get rid of silhouettes, but that
   // will require a bit of refactoring of rr::Typer.
-  Painter& draw_silhouette( int atlas_id, gfx::point where,
-                            gfx::pixel color );
-  Painter& draw_silhouette_scale( int atlas_id, gfx::rect dst,
-                                  gfx::pixel color );
-
-  Painter& draw_stencil( int atlas_id, int replacement_atlas_id,
-                         gfx::point where,
-                         gfx::pixel key_color );
+  [[deprecated]] Painter& draw_silhouette( int        atlas_id,
+                                           gfx::point where,
+                                           gfx::pixel color );
+  [[deprecated]] Painter& draw_silhouette_scale(
+      int atlas_id, gfx::rect dst, gfx::pixel color );
 
  private:
   // Should always use this one to emit, that way we never forget
@@ -184,16 +187,16 @@ struct Painter {
   // and east faces.
   void draw_empty_box( gfx::rect r, gfx::pixel color );
 
-  void draw_sprite_impl( gfx::rect src, gfx::rect dst );
+  Painter& draw_sprite_impl( gfx::rect              total_src,
+                             gfx::point             dst_origin,
+                             base::maybe<gfx::size> dst_size,
+                             base::maybe<gfx::rect> section );
 
   // FIXME: Ideally we should get rid of silhouettes, but that
   // will require a bit of refactoring of rr::Typer.
-  void draw_silhouette_impl( gfx::rect src, gfx::rect dst,
-                             gfx::pixel color );
-
-  void draw_stencil_impl( gfx::rect src, gfx::rect dst,
-                          gfx::size  replacement_atlas_offset,
-                          gfx::pixel key_color );
+  [[deprecated]] void draw_silhouette_impl( gfx::rect  src,
+                                            gfx::rect  dst,
+                                            gfx::pixel color );
 
   AtlasMap const&    atlas_;
   Emitter&           emitter_;
