@@ -112,7 +112,7 @@ bool is_checkbox_enabled( e_game_flag_option option ) {
     case e_game_flag_option::combat_analysis:
       return false;
     case e_game_flag_option::water_color_cycling:
-      return false;
+      return true;
     case e_game_flag_option::tutorial_hints:
       return false;
     case e_game_flag_option::show_fog_of_war:
