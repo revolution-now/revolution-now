@@ -63,6 +63,12 @@ using TextureBinder =
     decltype( std::declval<gl::Texture>().bind() );
 
 /****************************************************************
+** Constants.
+*****************************************************************/
+// This needs to match the corresponding value in the shader.
+size_t constexpr CYCLE_PLAN_SPAN = 10;
+
+/****************************************************************
 ** Shader Program Spec.
 *****************************************************************/
 using ProgramAttributes =
@@ -201,10 +207,6 @@ struct Renderer::Impl {
     // Color cycling.
     {
       gl::ivec4 const kNoColor = gl::ivec4{}; // clear.
-
-      // This needs to match the corresponding value in the
-      // shader.
-      size_t constexpr CYCLE_PLAN_SPAN = 10;
 
       using CycleTargets = vector<gl::ivec4>;
 
@@ -604,6 +606,10 @@ void Renderer::render_pass(
 
 void Renderer::set_color_cycle_stage( int stage ) {
   impl_->program["u_color_cycle_stage"_t] = stage;
+}
+
+int Renderer::get_color_cycle_span() const {
+  return CYCLE_PLAN_SPAN;
 }
 
 void Renderer::set_uniform_depixelation_stage( double stage ) {
