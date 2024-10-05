@@ -64,18 +64,20 @@ struct.UnitFlagColors {
   privateer_flag_color 'gfx::pixel',
 }
 
-struct.ColorCyclePlan {
+struct.ColorCyclePixels {
   # The number of elements here needs to match the corresponding
   # value in the shader (CYCLE_PLAN_SPAN).
   # TODO: make 10 into an rds constant.
-  slots 'std::array<gfx::pixel, 10>',
+  pixels 'std::array<gfx::pixel, 10>',
 }
 
 struct.ColorCycling {
   plans [[refl::enum_map<
     e_color_cycle_plan,
-    config::graphics::ColorCyclePlan
+    config::graphics::ColorCyclePixels
   >]],
+
+  keys 'ColorCyclePixels',
 }
 
 namespace "rn"

@@ -206,6 +206,11 @@ LOG_AND_CALL_GL_METHOD( gl_Uniform2f, void,
                         ( ( GLint, location ), ( GLfloat, v0 ),
                           ( GLfloat, v1 ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_Uniform3iv, void,
+                        ( ( GLint, location ),
+                          ( GLsizei, count ),
+                          ( GLint const*, values ) ) );
+
 LOG_AND_CALL_GL_METHOD( gl_Uniform4iv, void,
                         ( ( GLint, location ),
                           ( GLsizei, count ),

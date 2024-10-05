@@ -160,7 +160,7 @@ void expect_create_vertex_array( gl::MockOpenGL& mock ) {
 TEST_CASE( "[render/renderer] workflows" ) {
   gl::MockOpenGL mock;
 
-  int const num_get_errors = 59;
+  int const num_get_errors = 64;
 
   mock.EXPECT__gl_GetError()
       .times( num_get_errors )
@@ -244,6 +244,9 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_GetUniformLocation(
           9, Eq<string>( "u_color_cycle_targets" ) )
       .returns( 95 );
+  mock.EXPECT__gl_GetUniformLocation(
+          9, Eq<string>( "u_color_cycle_keys" ) )
+      .returns( 96 );
 
   // Validate the program.
   mock.EXPECT__gl_GetProgramiv( 9, GL_ACTIVE_ATTRIBUTES,
@@ -291,8 +294,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   mock.EXPECT__gl_Uniform1f( 94, 0.0 ); // u_depixelation_stage
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform4iv(
-      95, 0,
-      /*values=*/_ ); // u_color_cycle_targets
+      95, 0, /*values=*/_ ); // u_color_cycle_targets
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform3iv(
+      96, 0, /*values=*/_ ); // u_color_cycle_keys
 
   // Unbind dummy vertex array.
   expect_unbind_vertex_array( mock );
@@ -307,6 +312,10 @@ TEST_CASE( "[render/renderer] workflows" ) {
   // Set the u_color_cycle_targets uniform.
   mock.EXPECT__gl_UseProgram( 9 );
   mock.EXPECT__gl_Uniform4iv( 95, 0, /*values=*/_ );
+
+  // Set the u_color_cycle_keys uniform.
+  mock.EXPECT__gl_UseProgram( 9 );
+  mock.EXPECT__gl_Uniform3iv( 96, 0, /*values=*/_ );
 
   // Set the u_screen_size texture.
   mock.EXPECT__gl_UseProgram( 9 );

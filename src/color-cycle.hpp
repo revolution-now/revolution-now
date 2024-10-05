@@ -37,6 +37,8 @@ struct IGui;
 *****************************************************************/
 void set_color_cycle_plans( rr::IRenderer& renderer );
 
+void set_color_cycle_keys( rr::IRenderer& renderer );
+
 int cycle_plan_idx( e_color_cycle_plan plan );
 
 // A background coro thread that monitors game settings and

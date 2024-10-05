@@ -79,6 +79,8 @@ struct ProgramUniforms {
     gl::UniformSpec<float>( "u_depixelation_stage" ),
     gl::UniformSpec<span<gl::ivec4 const>>(
         "u_color_cycle_targets" ),
+    gl::UniformSpec<span<gl::ivec3 const>>(
+        "u_color_cycle_keys" ),
   };
 };
 
@@ -198,11 +200,12 @@ struct Renderer::Impl {
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
 
-    // Color cycling. This is just a no-op setting to make sure
-    // that the thing has a well-defined value, and also just to
-    // trigger it once for the unit tests. But, in reality, this
-    // will be set separately later.
+    // Color cycling. These are just no-op settings to make sure
+    // that they have well-defined values, and also just to
+    // trigger them once for the unit tests. But, in reality,
+    // they will be set separately later.
     set_color_cycle_plans( pgrm, vector<pixel>{} );
+    set_color_cycle_keys( pgrm, vector<pixel>{} );
 
     gfx::size logical_screen_size = config.logical_screen_size;
     pgrm["u_screen_size"_t] =
@@ -407,6 +410,16 @@ struct Renderer::Impl {
     pgrm["u_color_cycle_targets"_t] = gl_plans;
   }
 
+  static void set_color_cycle_keys(
+      ProgramType& pgrm, span<pixel const> const plans ) {
+    vector<gl::ivec3> gl_plans;
+    gl_plans.resize( plans.size() );
+    transform( plans.begin(), plans.end(), gl_plans.begin(),
+               gl::ivec3::from_pixel );
+    CHECK( gl_plans.size() == plans.size() ); // sanity check.
+    pgrm["u_color_cycle_keys"_t] = gl_plans;
+  }
+
   void zap( VertexRange const& rng ) {
     CHECK_GE( rng.finish, rng.start );
     if( rng.finish == rng.start ) return;
@@ -557,6 +570,11 @@ void Renderer::set_color_cycle_stage( int stage ) {
 void Renderer::set_color_cycle_plans(
     vector<pixel> const& plans ) {
   impl_->set_color_cycle_plans( impl_->program, plans );
+}
+
+void Renderer::set_color_cycle_keys(
+    span<pixel const> const plans ) {
+  impl_->set_color_cycle_keys( impl_->program, plans );
 }
 
 void Renderer::set_uniform_depixelation_stage( double stage ) {

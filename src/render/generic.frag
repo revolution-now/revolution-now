@@ -45,11 +45,12 @@ uniform vec2 u_screen_size;
 uniform float u_depixelation_stage;
 
 // Color cycling.
-uniform int u_color_cycle_stage;
-const int CYCLE_PLAN_SPAN = 10; // Must match C++.
-const int NUM_CYCLE_PLANS = 3;  // Must match C++.
+const int CYCLE_PLAN_SPAN = 10; // Must match config/gfx.
+const int NUM_CYCLE_PLANS = 3;  // Must match config/gfx.
 const int CYCLE_ARR_SIZE = NUM_CYCLE_PLANS*CYCLE_PLAN_SPAN;
+uniform int u_color_cycle_stage;
 uniform ivec4 u_color_cycle_targets[CYCLE_ARR_SIZE];
+uniform ivec3 u_color_cycle_keys[CYCLE_PLAN_SPAN];
 
 out vec4 final_color;
 
@@ -282,24 +283,7 @@ vec4 alpha( in vec4 color ) {
 // in the source array. If not present then the color will be
 // emitted as is. If it is present then the color will be re-
 // placed with a color in the destination array, at an index de-
-// termined by the current color cycling stage. Should probably
-// replace these with uniforms.
-const vec3 color_cycle_src[CYCLE_PLAN_SPAN] = vec3[](
-  // Grey ramp.
-  vec3(  50,  50,  50 ),
-  vec3( 100, 100, 100 ),
-  vec3( 150, 150, 150 ),
-  vec3( 200, 200, 200 ),
-  vec3( 250, 250, 250 ),
-
-  // Red ramp.
-  vec3(  50,   0,   0 ),
-  vec3( 100,   0,   0 ),
-  vec3( 150,   0,   0 ),
-  vec3( 200,   0,   0 ),
-  vec3( 250,   0,   0 )
-);
-
+// termined by the current color cycling stage.
 vec4 color_cycle( in vec4 color ) {
   // We have a color in the range [0,1] but the src and dst
   // colors are specified as [0,255]. So to make the comparison
@@ -307,8 +291,8 @@ vec4 color_cycle( in vec4 color ) {
   // the [0,1] color to [0,255] with rounding.
   vec3 rgb_ubyte = round( color.rgb*255.0 );
   int plan_start = frag_aux_idx*CYCLE_PLAN_SPAN;
-  for( int i = 0; i < color_cycle_src.length(); ++i ) {
-    if( color_cycle_src[i] == rgb_ubyte ) {
+  for( int i = 0; i < u_color_cycle_keys.length(); ++i ) {
+    if( u_color_cycle_keys[i] == rgb_ubyte ) {
       int dst_idx = (i + u_color_cycle_stage) % CYCLE_PLAN_SPAN;
       vec4 dst = u_color_cycle_targets[plan_start+dst_idx]/255.0;
       // This next line serves no purpose but seems to be needed

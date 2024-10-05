@@ -49,6 +49,7 @@ struct UniformNonTyped {
   set_valid_t set( base::safe::integer<long> val ) const;
   set_valid_t set( base::safe::boolean val ) const;
   set_valid_t set( vec2 val ) const;
+  set_valid_t set( std::span<ivec3 const> vals ) const;
   set_valid_t set( std::span<ivec4 const> vals ) const;
 
  private:

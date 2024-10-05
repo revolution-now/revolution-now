@@ -74,6 +74,9 @@ int to_GL( e_attrib_compound_type type ) {
     case e_attrib_compound_type::vec4:
       res = GL_FLOAT_VEC4;
       break;
+    case e_attrib_compound_type::ivec3:
+      res = GL_INT_VEC3;
+      break;
     case e_attrib_compound_type::ivec4:
       res = GL_INT_VEC4;
       break;
@@ -95,6 +98,8 @@ string_view to_GL_str( e_attrib_compound_type type ) {
       return "GL_FLOAT_VEC3";
     case e_attrib_compound_type::vec4:
       return "GL_FLOAT_VEC4";
+    case e_attrib_compound_type::ivec3:
+      return "GL_INT_VEC3";
     case e_attrib_compound_type::ivec4:
       return "GL_INT_VEC4";
   }
@@ -114,6 +119,8 @@ e_attrib_compound_type from_GL( int type ) {
       return e_attrib_compound_type::vec3;
     case GL_FLOAT_VEC4:
       return e_attrib_compound_type::vec4;
+    case GL_INT_VEC3:
+      return e_attrib_compound_type::ivec3;
     case GL_INT_VEC4:
       return e_attrib_compound_type::ivec4;
     default:
@@ -161,6 +168,17 @@ vec4 vec4::with_alpha( float a ) const {
   auto copy = *this;
   copy.w    = a;
   return copy;
+}
+
+/****************************************************************
+** ivec3
+*****************************************************************/
+ivec3 ivec3::from_pixel( gfx::pixel const p ) {
+  return ivec3{
+    .x = p.r,
+    .y = p.g,
+    .z = p.b,
+  };
 }
 
 /****************************************************************

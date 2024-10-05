@@ -210,6 +210,55 @@ TEST_CASE( "[uniform] creation/set vec2" ) {
   REQUIRE( uf.try_set( vec2{ .x = 6.7, .y = 7.8 } ) == valid );
 }
 
+TEST_CASE( "[uniform] creation/set array of ivec3" ) {
+  gl::MockOpenGL mock;
+
+  // Construct UniformNonTyped.
+  mock.EXPECT__gl_GetError().returns( GL_NO_ERROR );
+  mock.EXPECT__gl_GetUniformLocation(
+          7, Eq<string>( "some_uniform" ) )
+      .returns( 88 );
+
+  Uniform<span<ivec3 const>> uf( 7, "some_uniform" );
+
+  static ivec3 const values[3] = {
+    { .x = 5, .y = 6, .z = 7 },
+    { .x = 6, .y = 7, .z = 8 },
+    { .x = 7, .y = 8, .z = 9 },
+  };
+
+  // Set ivec3 failure.
+  {
+    gl::MockOpenGL mock2;
+    mock2.EXPECT__gl_UseProgram( 7 );
+    mock2.EXPECT__gl_GetError().returns( GL_NO_ERROR );
+    mock2.EXPECT__gl_Uniform3iv( 88, 3, &values[0].x );
+    mock2.EXPECT__gl_GetError().returns( GL_INVALID_OPERATION );
+    mock2.EXPECT__gl_GetError().returns( GL_NO_ERROR );
+    REQUIRE( uf.try_set( values ) ==
+             invalid<string>(
+                 "failed to set uniform as array of ivec3" ) );
+  }
+
+  // Set ivec3 success (empty).
+  mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
+  mock.EXPECT__gl_UseProgram( 7 );
+  mock.EXPECT__gl_Uniform3iv( 88, 0, _ );
+  REQUIRE( uf.try_set( span<ivec3 const>{} ) == valid );
+
+  // Set ivec3 success.
+  mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
+  mock.EXPECT__gl_UseProgram( 7 );
+  mock.EXPECT__gl_Uniform3iv( 88, 3, &values[0].x );
+  REQUIRE( uf.try_set( values ) == valid );
+
+  // Set ivec3 again (cache not used for this type).
+  mock.EXPECT__gl_GetError().times( 2 ).returns( GL_NO_ERROR );
+  mock.EXPECT__gl_UseProgram( 7 );
+  mock.EXPECT__gl_Uniform3iv( 88, 3, &values[0].x );
+  REQUIRE( uf.try_set( values ) == valid );
+}
+
 TEST_CASE( "[uniform] creation/set array of ivec4" ) {
   gl::MockOpenGL mock;
 

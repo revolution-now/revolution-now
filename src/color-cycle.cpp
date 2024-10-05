@@ -38,7 +38,7 @@ namespace {
 ** Constants.
 *****************************************************************/
 size_t constexpr kCyclePlanSpan = std::tuple_size_v<
-    decltype( config::graphics::ColorCyclePlan::slots )>;
+    decltype( config::graphics::ColorCyclePixels::pixels )>;
 
 static_assert( kCyclePlanSpan > 0 );
 
@@ -75,11 +75,16 @@ void set_color_cycle_plans( rr::IRenderer& renderer ) {
   for( auto const& [mode, plan] :
        config_gfx.color_cycle_plans.plans ) {
     lg.debug( "installing color cycling plan: {}", mode );
-    flattened.insert( flattened.end(), plan.slots.begin(),
-                      plan.slots.end() );
+    flattened.insert( flattened.end(), plan.pixels.begin(),
+                      plan.pixels.end() );
   }
   CHECK_EQ( flattened.size(), kTotalElems ); // Sanity check.
   renderer.set_color_cycle_plans( flattened );
+}
+
+void set_color_cycle_keys( rr::IRenderer& renderer ) {
+  renderer.set_color_cycle_keys(
+      config_gfx.color_cycle_plans.keys.pixels );
 }
 
 int cycle_plan_idx( e_color_cycle_plan const plan ) {

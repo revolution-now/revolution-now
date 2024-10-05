@@ -86,6 +86,7 @@ void init_renderer() {
   // shader to create color cycling effects for e.g. sea lane,
   // rivers, etc.
   set_color_cycle_plans( *g_renderer );
+  set_color_cycle_keys( *g_renderer );
 
   lg.info( "texture atlas size: {}.",
            g_renderer->atlas_img_size() );

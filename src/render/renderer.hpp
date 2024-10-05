@@ -159,6 +159,9 @@ struct Renderer : IRenderer {
   void set_color_cycle_plans(
       std::vector<gfx::pixel> const& plans ) override;
 
+  void set_color_cycle_keys(
+      std::span<gfx::pixel const> plans ) override;
+
   void set_uniform_depixelation_stage( double stage );
 
   void set_camera( gfx::dsize translation, double zoom );

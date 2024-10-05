@@ -128,6 +128,9 @@ struct IOpenGL {
   virtual void gl_Uniform2f( GLint location, GLfloat v0,
                              GLfloat v1 ) = 0;
 
+  virtual void gl_Uniform3iv( GLint location, GLsizei count,
+                              GLint const* values ) = 0;
+
   virtual void gl_Uniform4iv( GLint location, GLsizei count,
                               GLint const* values ) = 0;
 

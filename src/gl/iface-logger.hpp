@@ -111,6 +111,9 @@ struct OpenGLWithLogger : IOpenGL {
   void gl_Uniform2f( GLint location, GLfloat v0,
                      GLfloat v1 ) override;
 
+  void gl_Uniform3iv( GLint location, GLsizei count,
+                      GLint const* values ) override;
+
   void gl_Uniform4iv( GLint location, GLsizei count,
                       GLint const* values ) override;
 

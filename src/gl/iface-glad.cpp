@@ -128,6 +128,10 @@ GLAD_GL_METHOD( Uniform2f, void,
                 ( ( GLint, location ), ( GLfloat, v0 ),
                   ( GLfloat, v1 ) ) );
 
+GLAD_GL_METHOD( Uniform3iv, void,
+                ( ( GLint, location ), ( GLsizei, count ),
+                  ( GLint const*, values ) ) );
+
 GLAD_GL_METHOD( Uniform4iv, void,
                 ( ( GLint, location ), ( GLsizei, count ),
                   ( GLint const*, values ) ) );

@@ -14,6 +14,7 @@
 #include "gfx/pixel.hpp"
 
 // C++ standard library
+#include <span>
 #include <vector>
 
 namespace rr {
@@ -30,6 +31,9 @@ struct IRenderer {
 
   virtual void set_color_cycle_plans(
       std::vector<gfx::pixel> const& plans ) = 0;
+
+  virtual void set_color_cycle_keys(
+      std::span<gfx::pixel const> plans ) = 0;
 };
 
 } // namespace rr

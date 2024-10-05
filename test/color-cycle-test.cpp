@@ -119,5 +119,11 @@ TEST_CASE( "[color-cycle] set_color_cycle_plans" ) {
   set_color_cycle_plans( renderer );
 }
 
+TEST_CASE( "[color-cycle] set_color_cycle_keys" ) {
+  rr::MockRenderer renderer;
+  renderer.EXPECT__set_color_cycle_keys( HasSize( 10 ) );
+  set_color_cycle_keys( renderer );
+}
+
 } // namespace
 } // namespace rn

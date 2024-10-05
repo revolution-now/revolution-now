@@ -44,12 +44,14 @@ unit_flag_colors {
   privateer_flag_color: "#222222"
 }
 
-# Color cycling is implemented as a sequence of colors over which
-# a "window" is slid (wrapping around), replacing colors in the
-# window with those in the lists below.
+# Color cycling is implemented as a sequence of "target" colors
+# over which a "window" of "key" colors is slid (wrapping
+# around), replacing key colors in the sprite with the color
+# under that key at the moment. The window is then slid by one
+# position every so often.
 color_cycle_plans {
   plans {
-    surf.slots [
+    surf.pixels [
       '#618099E6'
       '#61809973'
       '#61809932'
@@ -62,7 +64,7 @@ color_cycle_plans {
       '#00000000'
     ]
 
-    sea_lane.slots [
+    sea_lane.pixels [
       '#618099E6'
       '#61809973'
       '#61809932'
@@ -75,7 +77,7 @@ color_cycle_plans {
       '#00000000'
     ]
 
-    river.slots [
+    river.pixels [
       '#618099E6'
       '#61809973'
       '#61809932'
@@ -88,4 +90,20 @@ color_cycle_plans {
       '#00000000'
     ]
   },
+
+  keys.pixels [
+    # Grey ramp.
+    '#323232'
+    '#646464'
+    '#969696'
+    '#C8C8C8'
+    '#FAFAFA'
+
+    # Red ramp.
+    '#320000'
+    '#640000'
+    '#960000'
+    '#C80000'
+    '#FA0000'
+  ]
 }
