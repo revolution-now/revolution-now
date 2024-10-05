@@ -14,6 +14,7 @@
 #include "co-combinator.hpp"
 #include "co-wait.hpp"
 #include "colony-view.hpp"
+#include "color-cycle.hpp"
 #include "combat.hpp"
 #include "conductor.hpp"
 #include "connectivity.hpp"
@@ -134,14 +135,28 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   connectivity = compute_terrain_connectivity( ss );
   CHECK( !connectivity.indices.empty() );
 
+  rr::Renderer& renderer =
+      global_renderer_use_only_when_needed();
+
   RenderingMapUpdater map_updater(
-      ss, global_renderer_use_only_when_needed(),
+      ss, renderer,
       MapUpdaterOptions{
         .render_fog_of_war =
             ss.settings.game_options
                 .flags[e_game_flag_option::show_fog_of_war] } );
 
   auto _4 = ts.set_map_updater( map_updater );
+
+  // Start the background coroutine that runs the color-cycling
+  // animations on the map. Note that the enabled flag can change
+  // as the game progresses (it can be changed by the user in the
+  // game options UI). Thus it 1) must be a reference, and 2)
+  // must refer to a boolean that will be stationary in memory.
+  bool const& cycling_enabled =
+      ss.settings.game_options
+          .flags[e_game_flag_option::water_color_cycling];
+  wait<> const cycling_thread =
+      cycle_map_colors_thread( renderer, gui, cycling_enabled );
 
   ensure_human_player( ss.players );
 
