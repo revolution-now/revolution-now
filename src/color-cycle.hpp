@@ -35,10 +35,16 @@ struct IGui;
 /****************************************************************
 ** Public API.
 *****************************************************************/
+// Should be called once upon initialization of the game's ren-
+// derer to set the color cycle plans.
 void set_color_cycle_plans( rr::IRenderer& renderer );
 
+// Should be called once upon initialization of the game's ren-
+// derer to set the color cycle key colors.
 void set_color_cycle_keys( rr::IRenderer& renderer );
 
+// Should always use this to convert a color cycle plan enum to
+// an integral index (don't manually cast).
 int cycle_plan_idx( e_color_cycle_plan plan );
 
 // A background coro thread that monitors game settings and
