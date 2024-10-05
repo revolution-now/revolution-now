@@ -67,7 +67,6 @@ struct.UnitFlagColors {
 struct.ColorCyclePixels {
   # The number of elements here needs to match the corresponding
   # value in the shader (CYCLE_PLAN_SPAN).
-  # TODO: make 10 into an rds constant.
   pixels 'std::array<gfx::pixel, 10>',
 }
 
