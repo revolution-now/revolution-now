@@ -292,16 +292,15 @@ vec4 color_cycle( in vec4 color ) {
   vec3 rgb_ubyte = round( color.rgb*255.0 );
   int plan_start = frag_aux_idx*CYCLE_PLAN_SPAN;
   for( int i = 0; i < u_color_cycle_keys.length(); ++i ) {
-    if( u_color_cycle_keys[i] == rgb_ubyte ) {
-      int dst_idx = (i + u_color_cycle_stage) % CYCLE_PLAN_SPAN;
-      vec4 dst = u_color_cycle_targets[plan_start+dst_idx]/255.0;
-      // This next line serves no purpose but seems to be needed
-      // to work around a strange issue (driver bug?) on Mac OS
-      // causing strange visual artifacts to appear.
-      (dst.a != 0 ? dst.a : dst.a);
-      // Overwrite the color but with alpha mixing.
-      return vec4( dst.rgb, dst.a*color.a );
-    }
+    if( u_color_cycle_keys[i] != rgb_ubyte ) continue;
+    int dst_idx = (i + u_color_cycle_stage) % CYCLE_PLAN_SPAN;
+    vec4 dst = u_color_cycle_targets[plan_start+dst_idx]/255.0;
+    // This next line serves no purpose but seems to be needed
+    // to work around a strange issue (driver bug?) on Mac OS
+    // causing strange visual artifacts to appear.
+    (dst.a != 0 ? dst.a : dst.a);
+    // Overwrite the color but with alpha mixing.
+    return vec4( dst.rgb, dst.a*color.a );
   }
   return color;
 }
