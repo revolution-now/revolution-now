@@ -166,12 +166,21 @@ vec4 vec4::with_alpha( float a ) const {
 /****************************************************************
 ** ivec4
 *****************************************************************/
-ivec4 ivec4::from_rect( gfx::rect r ) {
+ivec4 ivec4::from_rect( gfx::rect const r ) {
   return ivec4{
     .x = r.origin.x,
     .y = r.origin.y,
     .z = r.size.w,
     .w = r.size.h,
+  };
+}
+
+ivec4 ivec4::from_pixel( gfx::pixel const p ) {
+  return ivec4{
+    .x = p.r,
+    .y = p.g,
+    .z = p.b,
+    .w = p.a,
   };
 }
 

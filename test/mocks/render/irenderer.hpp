@@ -20,7 +20,8 @@ namespace rr {
 
 struct MockRenderer : IRenderer {
   MOCK_METHOD( void, set_color_cycle_stage, (int), () );
-  MOCK_METHOD( int, get_color_cycle_span, (), ( const ) );
+  MOCK_METHOD( void, set_color_cycle_plans,
+               (std::vector<gfx::pixel> const&), () );
 };
 
 static_assert( !std::is_abstract_v<MockRenderer> );

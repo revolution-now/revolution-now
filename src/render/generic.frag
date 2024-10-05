@@ -46,8 +46,8 @@ uniform float u_depixelation_stage;
 
 // Color cycling.
 uniform int u_color_cycle_stage;
-const int CYCLE_PLAN_SPAN = 10;
-const int NUM_CYCLE_PLANS = 3;
+const int CYCLE_PLAN_SPAN = 10; // Must match C++.
+const int NUM_CYCLE_PLANS = 3;  // Must match C++.
 const int CYCLE_ARR_SIZE = NUM_CYCLE_PLANS*CYCLE_PLAN_SPAN;
 uniform ivec4 u_color_cycle_targets[CYCLE_ARR_SIZE];
 

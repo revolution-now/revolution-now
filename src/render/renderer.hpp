@@ -156,7 +156,8 @@ struct Renderer : IRenderer {
 
   void set_color_cycle_stage( int stage ) override;
 
-  int get_color_cycle_span() const override;
+  void set_color_cycle_plans(
+      std::vector<gfx::pixel> const& plans ) override;
 
   void set_uniform_depixelation_stage( double stage );
 

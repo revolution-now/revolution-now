@@ -27,6 +27,14 @@ enum.e_pixelation_curve {
   linear,
 }
 
+# The number of elements here needs to match the corresponding
+# value in the shader (NUM_CYCLE_PLANS).
+enum.e_color_cycle_plan {
+  surf,
+  sea_lane,
+  river,
+}
+
 # Use "graphics" instead of "gfx" in order to avoid namespace
 # clashing with the gfx namespace, which is used in the gfx li-
 # brary in this code base.
@@ -56,6 +64,20 @@ struct.UnitFlagColors {
   privateer_flag_color 'gfx::pixel',
 }
 
+struct.ColorCyclePlan {
+  # The number of elements here needs to match the corresponding
+  # value in the shader (CYCLE_PLAN_SPAN).
+  # TODO: make 10 into an rds constant.
+  slots 'std::array<gfx::pixel, 10>',
+}
+
+struct.ColorCycling {
+  plans [[refl::enum_map<
+    e_color_cycle_plan,
+    config::graphics::ColorCyclePlan
+  >]],
+}
+
 namespace "rn"
 
 struct.config_gfx_t {
@@ -75,6 +97,8 @@ struct.config_gfx_t {
   # gree of transparency); this will be an additional alpha
   # scaling of it.
   fog_of_war_alpha 'double',
+
+  color_cycle_plans 'config::graphics::ColorCycling',
 }
 
 config.gfx {}

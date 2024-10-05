@@ -306,7 +306,7 @@ TEST_CASE( "[render/renderer] workflows" ) {
 
   // Set the u_color_cycle_targets uniform.
   mock.EXPECT__gl_UseProgram( 9 );
-  mock.EXPECT__gl_Uniform4iv( 95, 10 * 3, /*values=*/_ );
+  mock.EXPECT__gl_Uniform4iv( 95, 0, /*values=*/_ );
 
   // Set the u_screen_size texture.
   mock.EXPECT__gl_UseProgram( 9 );

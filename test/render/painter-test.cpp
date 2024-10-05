@@ -866,7 +866,7 @@ TEST_CASE( "[render/painter] mod cycling.plan" ) {
   Painter unmodded_painter( atlas_map(), emitter );
 
   PainterMods mods;
-  mods.cycling.plan = e_color_cycle_plan::sea_lane;
+  mods.cycling.plan = 555;
   Painter painter   = unmodded_painter.with_mods( mods );
 
   rect r;
@@ -874,7 +874,7 @@ TEST_CASE( "[render/painter] mod cycling.plan" ) {
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_color_cycle( true );
-    vert.set_aux_idx( 1 );
+    vert.set_aux_idx( 555 );
     return vert.generic();
   };
 

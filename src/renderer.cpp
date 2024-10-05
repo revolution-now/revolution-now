@@ -11,6 +11,7 @@
 #include "renderer.hpp"
 
 // Revolution Now
+#include "color-cycle.hpp"
 #include "init.hpp"
 #include "logger.hpp"
 #include "maybe.hpp"
@@ -80,6 +81,11 @@ void init_renderer() {
   // cleaned up.
   g_renderer = rr::Renderer::create(
       renderer_config, [] { sdl_gl_swap_window( g_window ); } );
+
+  // This sends some uniform data to the GPU that is used by the
+  // shader to create color cycling effects for e.g. sea lane,
+  // rivers, etc.
+  set_color_cycle_plans( *g_renderer );
 
   lg.info( "texture atlas size: {}.",
            g_renderer->atlas_img_size() );

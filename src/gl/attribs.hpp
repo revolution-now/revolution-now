@@ -176,6 +176,8 @@ struct ivec4 {
 
   static ivec4 from_rect( gfx::rect r );
 
+  static ivec4 from_pixel( gfx::pixel p );
+
   // When interpreted as rgba.
   ivec4 with_alpha( int32_t a ) const;
 

@@ -175,6 +175,10 @@ TEST_CASE( "[attribs] gfx conversion" ) {
                           .size   = { .w = 2, .h = 3 } } ) ==
            ivec4{ .x = 3, .y = 4, .z = 2, .w = 3 } );
 
+  REQUIRE( ivec4::from_pixel(
+               gfx::pixel{ .r = 3, .g = 4, .b = 2, .a = 3 } ) ==
+           ivec4{ .x = 3, .y = 4, .z = 2, .w = 3 } );
+
   REQUIRE( color::from_pixel( gfx::pixel{
              .r = 0, .g = 255, .b = 3, .a = 4 } ) ==
            color{ .r = 0.0f,

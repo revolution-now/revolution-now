@@ -11,6 +11,7 @@
 #include "render-terrain.hpp"
 
 // Revolution Now
+#include "color-cycle.hpp"
 #include "error.hpp"
 #include "imap-updater.hpp"
 #include "logger.hpp"
@@ -1040,8 +1041,9 @@ void render_river_on_land( IVisibility const& viz,
 
   render_river_water_tile( renderer, where, water, square );
   {
-    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
-                             rr::e_color_cycle_plan::river );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.cycling.plan,
+        cycle_plan_idx( e_color_cycle_plan::river ) );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
     render_river_water_tile( renderer, where, cycle, square );
   }
@@ -1182,8 +1184,9 @@ struct WaterRendererWithSeaLane {
   }
 
   void render_sea_lane( e_tile const sea_lane_tile ) const {
-    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
-                             rr::e_color_cycle_plan::sea_lane );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.cycling.plan,
+        cycle_plan_idx( e_color_cycle_plan::sea_lane ) );
     SurroundingsInfo const sea_lanes = surroundings_test(
         world_square, [&]( Coord const tile ) {
           return viz.square_at( tile ).sea_lane;
@@ -1924,8 +1927,9 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
   if( second_border_tile.has_value() )
     render_sprite( renderer, where, *second_border_tile );
   if( surf_tile.has_value() && !square.river.has_value() ) {
-    SCOPED_RENDERER_MOD_SET( painter_mods.cycling.plan,
-                             rr::e_color_cycle_plan::surf );
+    SCOPED_RENDERER_MOD_SET(
+        painter_mods.cycling.plan,
+        cycle_plan_idx( e_color_cycle_plan::surf ) );
     render_sprite( renderer, where, *surf_tile );
   }
 

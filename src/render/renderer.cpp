@@ -63,12 +63,6 @@ using TextureBinder =
     decltype( std::declval<gl::Texture>().bind() );
 
 /****************************************************************
-** Constants.
-*****************************************************************/
-// This needs to match the corresponding value in the shader.
-size_t constexpr CYCLE_PLAN_SPAN = 10;
-
-/****************************************************************
 ** Shader Program Spec.
 *****************************************************************/
 using ProgramAttributes =
@@ -204,69 +198,11 @@ struct Renderer::Impl {
 
     pgrm["u_atlas"_t] = 0; // GL_TEXTURE0
 
-    // Color cycling.
-    {
-      gl::ivec4 const kNoColor = gl::ivec4{}; // clear.
-
-      using CycleTargets = vector<gl::ivec4>;
-
-      vector<gl::ivec4> color_cycle_targets;
-
-      auto append = [&]( auto const& what ) {
-        CHECK( what.size() == CYCLE_PLAN_SPAN );
-        color_cycle_targets.insert( color_cycle_targets.end(),
-                                    what.begin(), what.end() );
-      };
-
-      auto constexpr kOceanSurfColor =
-          gl::ivec4{ .x = 97, .y = 128, .z = 153, .w = 230 };
-
-      CycleTargets const surf_color_cycle_targets{
-        kOceanSurfColor.with_alpha( 230 ),
-        kOceanSurfColor.with_alpha( 115 ),
-        kOceanSurfColor.with_alpha( 50 ),
-        kOceanSurfColor.with_alpha( 50 ),
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-      };
-      append( surf_color_cycle_targets );
-
-      CycleTargets const sea_lane_color_cycle_targets{
-        kOceanSurfColor.with_alpha( 230 ),
-        kOceanSurfColor.with_alpha( 115 ),
-        kOceanSurfColor.with_alpha( 50 ),
-        kOceanSurfColor.with_alpha( 28 ),
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-        kNoColor,
-      };
-      append( sea_lane_color_cycle_targets );
-
-      CycleTargets const river_color_cycle_targets{
-        kOceanSurfColor.with_alpha( 230 ),
-        kOceanSurfColor.with_alpha( 115 ),
-        kOceanSurfColor.with_alpha( 50 ),
-        kNoColor,
-        kNoColor,
-        kOceanSurfColor.with_alpha( 230 ),
-        kOceanSurfColor.with_alpha( 115 ),
-        kOceanSurfColor.with_alpha( 50 ),
-        kNoColor,
-        kNoColor,
-      };
-      append( river_color_cycle_targets );
-
-      // TODO: check that each enum plan value has a vector.
-
-      pgrm["u_color_cycle_targets"_t] = color_cycle_targets;
-    }
+    // Color cycling. This is just a no-op setting to make sure
+    // that the thing has a well-defined value, and also just to
+    // trigger it once for the unit tests. But, in reality, this
+    // will be set separately later.
+    set_color_cycle_plans( pgrm, vector<pixel>{} );
 
     gfx::size logical_screen_size = config.logical_screen_size;
     pgrm["u_screen_size"_t] =
@@ -461,6 +397,16 @@ struct Renderer::Impl {
     return buffers[buffer]->dirty;
   }
 
+  static void set_color_cycle_plans(
+      ProgramType& pgrm, vector<pixel> const& plans ) {
+    vector<gl::ivec4> gl_plans;
+    gl_plans.resize( plans.size() );
+    transform( plans.begin(), plans.end(), gl_plans.begin(),
+               gl::ivec4::from_pixel );
+    CHECK( gl_plans.size() == plans.size() ); // sanity check.
+    pgrm["u_color_cycle_targets"_t] = gl_plans;
+  }
+
   void zap( VertexRange const& rng ) {
     CHECK_GE( rng.finish, rng.start );
     if( rng.finish == rng.start ) return;
@@ -608,8 +554,9 @@ void Renderer::set_color_cycle_stage( int stage ) {
   impl_->program["u_color_cycle_stage"_t] = stage;
 }
 
-int Renderer::get_color_cycle_span() const {
-  return CYCLE_PLAN_SPAN;
+void Renderer::set_color_cycle_plans(
+    vector<pixel> const& plans ) {
+  impl_->set_color_cycle_plans( impl_->program, plans );
 }
 
 void Renderer::set_uniform_depixelation_stage( double stage ) {

@@ -75,14 +75,8 @@ struct RepositionInfo {
   bool                    use_camera  = false;
 };
 
-enum class e_color_cycle_plan {
-  surf     = 0,
-  sea_lane = 1,
-  river    = 2,
-};
-
 struct ColorCyclingInfo {
-  base::maybe<e_color_cycle_plan> plan = {};
+  base::maybe<int> plan = {};
 };
 
 struct StencilPlan {
