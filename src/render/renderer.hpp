@@ -15,6 +15,7 @@
 #include "renderer.rds.hpp"
 
 // render
+#include "irenderer.hpp"
 #include "painter.hpp"
 #include "sprite-sheet.hpp"
 #include "typer.hpp"
@@ -126,7 +127,7 @@ concept ModEditFunc =
 *****************************************************************/
 // The video driver must have been fully initialized before using
 // this.
-struct Renderer {
+struct Renderer : IRenderer {
   // The renderer must take ownership of this function.
   using PresentFn = std::function<void()>;
 
@@ -135,7 +136,7 @@ struct Renderer {
   static std::unique_ptr<Renderer> create(
       RendererConfig const& config, PresentFn present_fn );
 
-  ~Renderer() noexcept;
+  ~Renderer() noexcept override;
 
   // Must be called each time the logical screen size changes.
   void set_logical_screen_size( gfx::size new_size );
@@ -153,7 +154,9 @@ struct Renderer {
 
   void clear_screen( gfx::pixel color = gfx::pixel::black() );
 
-  void set_color_cycle_stage( int stage );
+  void set_color_cycle_stage( int stage ) override;
+
+  int get_color_cycle_span() const override;
 
   void set_uniform_depixelation_stage( double stage );
 
