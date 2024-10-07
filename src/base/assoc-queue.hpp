@@ -64,11 +64,14 @@ struct AssociativeQueue {
     return *elems_.begin();
   }
 
-  void erase( T const& elem ) {
+  // Returns true if the element was in the container (and hence
+  // erased).
+  bool erase( T const& elem ) {
     auto it = iters_.find( elem );
-    if( it == iters_.end() ) return;
+    if( it == iters_.end() ) return false;
     elems_.erase( it->second );
     iters_.erase( it );
+    return true;
   }
 
   bool contains( T const& elem ) const {

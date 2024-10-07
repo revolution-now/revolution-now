@@ -81,17 +81,17 @@ TEST_CASE( "[base/assoc-queue] erase" ) {
   REQUIRE( q.size() == 2 );
   REQUIRE( q.front() == 5 );
 
-  q.erase( 9 );
+  REQUIRE_FALSE( q.erase( 9 ) );
   REQUIRE_FALSE( q.empty() );
   REQUIRE( q.size() == 2 );
   REQUIRE( q.front() == 5 );
 
-  q.erase( 5 );
+  REQUIRE( q.erase( 5 ) );
   REQUIRE_FALSE( q.empty() );
   REQUIRE( q.size() == 1 );
   REQUIRE( q.front() == 7 );
 
-  q.erase( 7 );
+  REQUIRE( q.erase( 7 ) );
   REQUIRE( q.empty() );
   REQUIRE( q.size() == 0 );
 }
