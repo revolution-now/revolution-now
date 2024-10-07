@@ -39,11 +39,14 @@ namespace base {
 // seems to prevent us from using this type with a forward de-
 // clared T, which we want to be able to do. Though there are a
 // few exceptions that seem to be fine for our use cases.
-// clang-format off
+//
+// TODO: compare this with the `indirect` type from here:
+//       https://github.com/jbcoe/value_types which appears to
+//       aim to do the same thing.
+//
 template<typename T>
 requires( !std::is_reference_v<T> )
 struct heap_value : zero<heap_value<T>, T*> {
-  // clang-format on
   using base_t = base::zero<heap_value, T*>;
 
   // Since this object has value semantics, it must be initial-
@@ -75,29 +78,23 @@ struct heap_value : zero<heap_value<T>, T*> {
 
   // Since this object has value semantics, assignment will as-
   // sign through to the underlying object.
-  // clang-format off
   template<typename U>
-  heap_value& operator=( U&& rhs )
-    noexcept( std::is_nothrow_assignable_v<T, U> ) {
-    // clang-format on
+  heap_value& operator=( U&& rhs ) noexcept(
+      std::is_nothrow_assignable_v<T, U> ) {
     **this = std::forward<U>( rhs );
     return *this;
   }
 
-  // clang-format off
   template<typename U>
-  heap_value& operator=( heap_value<U> const& rhs )
-    noexcept( std::is_nothrow_assignable_v<T, U> ) {
-    // clang-format on
+  heap_value& operator=( heap_value<U> const& rhs ) noexcept(
+      std::is_nothrow_assignable_v<T, U> ) {
     **this = *rhs;
     return *this;
   }
 
-  // clang-format off
   template<typename U>
-  heap_value& operator=( heap_value<U>&& rhs )
-    noexcept( std::is_nothrow_assignable_v<T, U> ) {
-    // clang-format on
+  heap_value& operator=( heap_value<U>&& rhs ) noexcept(
+      std::is_nothrow_assignable_v<T, U> ) {
     **this = std::move( *rhs );
     return *this;
   }
