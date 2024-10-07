@@ -76,9 +76,13 @@ template.enable()
 -----------------------------------------------------------------
 -- Auto-format on save.
 -----------------------------------------------------------------
--- Return whether we should auto-format-on-save depending on the
--- file path. E.g., we don't want to auto-format files in extern.
+-- Controls format on save.
+local FORMAT_ON_SAVE = false
+
 fmt.enable_autoformat_on_save( function( path )
+  if not FORMAT_ON_SAVE then return end
+  -- We should auto-format-on-save but only depending on the file
+  -- path. E.g., we don't want to auto-format files in extern.
   local is_src = path:match( 'revolution.now/src' )
   local is_exe = path:match( 'revolution.now/exe' )
   local is_test = path:match( 'revolution.now/test' )
