@@ -244,8 +244,9 @@ result<T> run_conversion_from_canonical(
     value const& v, converter::options opts = {} ) {
   converter conv( std::move( opts ) );
   result<T> res = conv.from<T>( v );
-  if( res.has_value() ) return res;
-  return conv.from_canonical_readable_error( res.error() );
+  if( !res.has_value() )
+    res = conv.from_canonical_readable_error( res.error() );
+  return res;
 }
 
 template<typename T>
