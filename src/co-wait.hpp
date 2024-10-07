@@ -84,6 +84,16 @@ struct promise_type_base : public promise_type_base_base {
     wait_promise_.set_exception( std::current_exception() );
   }
 
+  static void unschedule_coro(
+      std::coroutine_handle<> const h ) {
+    bool const is_at_final_suspend_point = h.done();
+    bool const was_removed = remove_cpp_coroutine_if_queued( h );
+    // Make sure that if the coroutine is at its final suspend
+    // point that it wasn't also queued for resumption, since
+    // that indicates a bug somewhere.
+    DCHECK( !is_at_final_suspend_point || !was_removed );
+  }
+
   rn::wait_promise<T> wait_promise_{};
 };
 
@@ -101,9 +111,10 @@ struct promise_type final : public promise_type_base<T> {
   }
 
   ~promise_type() noexcept {
-    auto h = std::coroutine_handle<promise_type>::from_promise(
-        *this );
-    remove_cpp_coroutine_if_queued( h );
+    auto const h =
+        std::coroutine_handle<promise_type>::from_promise(
+            *this );
+    Base::unschedule_coro( h );
   }
 
   void return_value( T const& val ) {
@@ -139,9 +150,10 @@ struct promise_type<std::monostate> final
   }
 
   ~promise_type() noexcept {
-    auto h = std::coroutine_handle<promise_type>::from_promise(
-        *this );
-    remove_cpp_coroutine_if_queued( h );
+    auto const h =
+        std::coroutine_handle<promise_type>::from_promise(
+            *this );
+    Base::unschedule_coro( h );
   }
 
   void return_void() {
