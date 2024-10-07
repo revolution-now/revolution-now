@@ -97,6 +97,11 @@ struct Typer {
   void newline();
 
  private:
+  // Writes the character to the current position and advances
+  // the cursor. When c is '\n' then this is equivalent to
+  // calling newline().
+  void write_char_impl( Painter& painter, char c );
+
   Painter          painter_;
   AsciiFont const& ascii_font_;
   // Pixel position of the upper-left of the start of the current

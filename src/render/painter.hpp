@@ -160,14 +160,6 @@ struct Painter {
   Painter& draw_sprite_section( int atlas_id, gfx::point where,
                                 gfx::rect section );
 
-  // FIXME: Ideally we should get rid of silhouettes, but that
-  // will require a bit of refactoring of rr::Typer.
-  [[deprecated]] Painter& draw_silhouette( int        atlas_id,
-                                           gfx::point where,
-                                           gfx::pixel color );
-  [[deprecated]] Painter& draw_silhouette_scale(
-      int atlas_id, gfx::rect dst, gfx::pixel color );
-
  private:
   // Should always use this one to emit, that way we never forget
   // the mods.
@@ -185,12 +177,6 @@ struct Painter {
                              gfx::point             dst_origin,
                              base::maybe<gfx::size> dst_size,
                              base::maybe<gfx::rect> section );
-
-  // FIXME: Ideally we should get rid of silhouettes, but that
-  // will require a bit of refactoring of rr::Typer.
-  [[deprecated]] void draw_silhouette_impl( gfx::rect  src,
-                                            gfx::rect  dst,
-                                            gfx::pixel color );
 
   AtlasMap const&    atlas_;
   Emitter&           emitter_;

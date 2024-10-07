@@ -257,19 +257,6 @@ Painter& Painter::draw_sprite_impl( rect        total_src,
   return *this;
 }
 
-void Painter::draw_silhouette_impl( rect src, rect dst,
-                                    gfx::pixel color ) {
-  emit_texture_quad(
-      src, dst, [&, this]( point pos, point atlas_pos ) {
-        // FIXME: this is a bit hacky. Ideally we should get rid
-        // of silhouettes, but that will require a bit of refac-
-        // toring of rr::Typer.
-        auto vert = SpriteVertex( pos, atlas_pos, src );
-        vert.set_fixed_color( color );
-        emit( std::move( vert ) );
-      } );
-}
-
 Painter& Painter::draw_sprite( int const   atlas_id,
                                point const where ) {
   return draw_sprite_impl( atlas_.lookup( atlas_id ), where,
@@ -289,20 +276,6 @@ Painter& Painter::draw_sprite_section(
     gfx::rect const section ) {
   return draw_sprite_impl( atlas_.lookup( atlas_id ), where,
                            /*dst_size=*/nothing, section );
-}
-
-Painter& Painter::draw_silhouette( int atlas_id, point where,
-                                   pixel color ) {
-  rect const src = atlas_.lookup( atlas_id );
-  draw_silhouette_impl(
-      src, rect{ .origin = where, .size = src.size }, color );
-  return *this;
-}
-
-Painter& Painter::draw_silhouette_scale( int atlas_id, rect dst,
-                                         pixel color ) {
-  draw_silhouette_impl( atlas_.lookup( atlas_id ), dst, color );
-  return *this;
 }
 
 } // namespace rr
