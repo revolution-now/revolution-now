@@ -722,9 +722,8 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
   // ever lost or damaged, and the colony is never lost. Note
   // that this is a bit different from the case of multiple
   // colonies above, even though the brave is always destroyed in
-  // both cases (the difference is that in the case of a single
-  // colony, the brave can never win the battle, e.g. it can
-  // never demote a soldier).
+  // both cases; the difference is that in the case of a single
+  // colony the brave can destroy the colony or demote a soldier.
   double const attack_points  = 0; // OG has this zero.
   double const defense_points = defender.desc().combat;
   Coord const  attacker_coord =
