@@ -68,8 +68,8 @@ void run_all_cpp_coroutines() {
   }
 }
 
-void remove_cpp_coroutine_if_queued( coroutine_handle<> h ) {
-  g_coros_to_resume.erase( h );
+bool remove_cpp_coroutine_if_queued( coroutine_handle<> h ) {
+  return g_coros_to_resume.erase( h );
 }
 
 int number_of_queued_cpp_coroutines() {

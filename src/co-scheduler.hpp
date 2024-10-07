@@ -26,7 +26,8 @@ void run_all_cpp_coroutines();
 int number_of_queued_cpp_coroutines();
 
 // This is to be called when a coroutine that has already been
-// queued for running needs to be cancelled.
-void remove_cpp_coroutine_if_queued( std::coroutine_handle<> h );
+// queued for running needs to be cancelled. Returns true if the
+// coroutine was in fact queued (and hence removed).
+bool remove_cpp_coroutine_if_queued( std::coroutine_handle<> h );
 
 } // namespace rn
