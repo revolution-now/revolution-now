@@ -91,7 +91,7 @@ struct promise_type_base : public promise_type_base_base {
     // Make sure that if the coroutine is at its final suspend
     // point that it wasn't also queued for resumption, since
     // that indicates a bug somewhere.
-    DCHECK( !is_at_final_suspend_point || !was_removed );
+    CHECK( !is_at_final_suspend_point || !was_removed );
   }
 
   rn::wait_promise<T> wait_promise_{};
