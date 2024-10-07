@@ -15,12 +15,12 @@
 #include "co-wait.hpp"
 #include "logger.hpp"
 #include "lua-wait.hpp"
+#include "lua.hpp"
+#include "plane-stack.hpp"
+#include "window.hpp"
 
 // luapp
-#include "luapp/ext-base.hpp"
-#include "luapp/ext-monostate.hpp"
 #include "luapp/register.hpp"
-#include "luapp/rtable.hpp"
 #include "luapp/state.hpp"
 
 // refl
@@ -43,17 +43,25 @@ namespace {
 //   co_return fmt::to_string( res );
 // }
 
+// This is to ensure the module gets registered; TODO: remove
+// once some other methods are registered again above.
+LUA_FN( dummy, void ) {}
+
 } // namespace
 
-wait<> lua_ui_test() {
-  NOT_IMPLEMENTED;
-  // ScopedPlanePush pusher( e_plane_config::black );
-  // lua::state&     st = lua_global_state();
-  //
-  // auto n = co_await lua_wait<maybe<int>>(
-  //     st["test"]["some_ui_routine"], 42 );
-  //
-  // lg.info( "received {} from some_ui_routine.", n );
+wait<> lua_ui_test( Planes& planes ) {
+  auto        owner     = planes.push();
+  PlaneGroup& new_group = owner.group;
+  WindowPlane window_plane;
+  new_group.window = window_plane;
+
+  lua::state st;
+  lua_init( st ); // expensive.
+
+  auto n = co_await lua_wait<maybe<int>>(
+      st["test"]["some_ui_routine"], 42 );
+
+  lg.info( "received {} from some_ui_routine.", n );
 }
 
 } // namespace rn

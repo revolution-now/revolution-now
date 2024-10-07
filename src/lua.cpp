@@ -115,10 +115,7 @@ void add_some_members( lua::state& st ) {
 
 void load_lua_modules( lua::state& st ) {
   for( auto const& path : util::wildcard( "src/lua/*.lua" ) )
-    // FIXME FIXME
-    // Need to implement the lua methods in the lua-ui module.
-    if( !base::str_contains( path.string(), "test.lua" ) )
-      require( st, path.stem() );
+    require( st, path.stem() );
 }
 
 } // namespace

@@ -205,16 +205,4 @@ using ValidatorFunc = std::function<bool( std::string const& )>;
 ValidatorFunc make_int_validator( maybe<int> min,
                                   maybe<int> max );
 
-/****************************************************************
-** Windows
-*****************************************************************/
-wait<e_ok_cancel> ok_cancel( std::string_view msg );
-
-template<base::Show... Args>
-wait<e_ok_cancel> ok_cancel( std::string_view fmt_str,
-                             Args&&... args ) {
-  return ok_cancel( fmt::format(
-      fmt::runtime( fmt_str ), std::forward<Args>( args )... ) );
-}
-
 } // namespace rn::ui

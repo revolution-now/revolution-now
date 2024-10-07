@@ -32,7 +32,9 @@ namespace rn {
 namespace {
 
 wait<> test_ui() { return make_wait<>(); }
-wait<> test_lua_ui() { return rn::lua_ui_test(); }
+wait<> test_lua_ui( Planes& planes ) {
+  return rn::lua_ui_test( planes );
+}
 
 rr::Renderer& renderer() {
   // This should be the only place where this function is called,
@@ -73,7 +75,8 @@ void run( e_mode mode ) {
     }
     case e_mode::test_lua_ui: {
       full_init();
-      frame_loop( planes, rn::test_lua_ui(), renderer() );
+      frame_loop( planes, rn::test_lua_ui( planes ),
+                  renderer() );
       break;
     }
     case e_mode::gl_test: {
