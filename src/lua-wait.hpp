@@ -24,6 +24,9 @@
 #include "luapp/state.hpp"
 #include "luapp/usertype.hpp"
 
+// base
+#include "base/odr.hpp"
+
 namespace lua {
 
 namespace detail {
@@ -68,24 +71,11 @@ struct type_traits<::rn::wait<T>>
     return 0;
   }();
 
-  // The purpose of this static_assert is to force `registration`
-  // to be ODR-used, otherwise it will not be instantiated (since
-  // this is a template class) and then the usertype won't be
-  // registered. This trick was taken from:
-  //
-  //   stackoverflow.com/questions/6420985/
-  //       how-to-force-a-static-member-to-be-initialized
-  //
-  // The following also seems to work:
-  //
-  //   static constexpr auto const force_register =
-  //           &registration;
-  //
-  // As well as (https://youtu.be/0a3wjaeP6eQ):
-  //
-  //   type_traits() { (void)registration; }
-  //
-  static_assert( &registration == &registration );
+  // The purpose of the below statement is to force `registra-
+  // tion` to be ODR-used, otherwise it will not be instantiated
+  // (since this is a template class) and then the usertype won't
+  // be registered.
+  ODR_USE_MEMBER_METHOD( registration );
 };
 
 } // namespace lua
