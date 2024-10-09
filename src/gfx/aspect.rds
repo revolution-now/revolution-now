@@ -1,0 +1,19 @@
+# ===============================================================
+# aspect.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-10-09.
+#
+# Description: Rds definitions for the gfx/aspect module.
+#
+# ===============================================================
+namespace "gfx"
+
+enum.e_named_aspect_ratio {
+  _16x9,
+  _16x10,
+  _4x3,
+  _21x9,
+  _1x1,
+}
