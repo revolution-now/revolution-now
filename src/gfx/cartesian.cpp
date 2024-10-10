@@ -171,6 +171,11 @@ void point::operator+=( size const s ) {
   y += s.h;
 }
 
+void point::operator-=( size const s ) {
+  x -= s.w;
+  y -= s.h;
+}
+
 size point::operator-( point rhs ) const {
   return size{ .w = x - rhs.x, .h = y - rhs.y };
 }

@@ -209,6 +209,13 @@ TEST_CASE( "[gfx/cartesian] operator+=( size )" ) {
   REQUIRE( p == point{ .x = 9, .y = 3 } );
 }
 
+TEST_CASE( "[gfx/cartesian] operator-=( size )" ) {
+  point      p{ .x = 4, .y = 2 };
+  size const s{ .w = 5, .h = 1 };
+  p -= s;
+  REQUIRE( p == point{ .x = -1, .y = 1 } );
+}
+
 TEST_CASE( "[gfx/cartesian] operator-( point )" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 5, .y = 1 };
