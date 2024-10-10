@@ -15,6 +15,7 @@
 #include "input.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 
 // config
@@ -43,19 +44,15 @@ struct OmniPlane::Impl : public IPlane {
   Impl() = default;
 
   void render_framerate( rr::Renderer& renderer ) const {
-    rr::Painter painter    = renderer.painter();
-    Coord       info_start = Coord::from_gfx(
-        gfx::point{} + renderer.logical_screen_size() );
-    // Render frame rate.
-    string frame_rate =
-        fmt::format( "fps: {:.1f}", avg_frame_rate() );
-    // TODO: this needs to be cached in a proper way (it's static
-    // because it is expensive to shade).
+    gfx::point const framerate_se_corner =
+        gfx::point{} + renderer.logical_screen_size();
+    vector<string> const lines = {
+      fmt::format( "fps: {:.1f}", avg_frame_rate() ) };
     static gfx::pixel shaded_wood =
         gfx::pixel::wood().shaded( 2 );
-    auto delta_for = []( string_view text ) {
-      return Delta::from_gfx(
-          rr::rendered_text_line_size_pixels( text ) );
+    render_text_overlay_with_anchor(
+        renderer, lines, framerate_se_corner, e_cdirection::se,
+        gfx::pixel::banana(), shaded_wood );
     };
     Delta frame_rate_size = delta_for( frame_rate );
     painter.draw_solid_rect(

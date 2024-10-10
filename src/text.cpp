@@ -291,4 +291,73 @@ Delta rendered_text_size_no_reflow( string_view text ) {
   return res;
 }
 
+void render_text_overlay_with_anchor(
+    rr::Renderer& renderer, vector<string> const& lines,
+    gfx::point const anchor, e_cdirection const cdirection,
+    gfx::pixel const fg_color, gfx::pixel const bg_color ) {
+  gfx::rect const info_region = [&] {
+    gfx::size const info_region_size = [&] {
+      auto delta_for = []( string_view const text ) {
+        return rr::rendered_text_line_size_pixels( text );
+      };
+      gfx::size res;
+      for( auto const& line : lines ) {
+        gfx::size const delta = delta_for( line );
+        res.w                 = std::max( res.w, delta.w );
+        res.h += delta.h;
+        ++res.h; // space between lines.
+      }
+      return res;
+    }();
+
+    gfx::point const info_region_start = [&] {
+      gfx::point res = anchor;
+      switch( cdirection ) {
+        case e_cdirection::c:
+          res -= info_region_size / 2;
+          break;
+        case e_cdirection::e:
+          res.x -= info_region_size.w;
+          res.y -= info_region_size.h / 2;
+          break;
+        case e_cdirection::n:
+          res.x -= info_region_size.w / 2;
+          break;
+        case e_cdirection::ne:
+          res.x -= info_region_size.w;
+          break;
+        case e_cdirection::nw:
+          break;
+        case e_cdirection::s:
+          res.x -= info_region_size.w / 2;
+          res.y -= info_region_size.h;
+          break;
+        case e_cdirection::se:
+          res.x -= info_region_size.w;
+          res.y -= info_region_size.h;
+          break;
+        case e_cdirection::sw:
+          res.y -= info_region_size.h;
+          break;
+        case e_cdirection::w:
+          res.y -= info_region_size.h / 2;
+          break;
+      }
+      return res;
+    }();
+
+    return gfx::rect{ .origin = info_region_start,
+                      .size   = info_region_size };
+  }();
+
+  rr::Painter painter = renderer.painter();
+  painter.draw_solid_rect( info_region, bg_color );
+  rr::Typer typer =
+      renderer.typer( info_region.origin, fg_color );
+  for( auto const& line : lines ) {
+    typer.write( line );
+    typer.newline();
+  }
+}
+
 } // namespace rn
