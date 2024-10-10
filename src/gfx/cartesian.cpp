@@ -97,6 +97,15 @@ size size::operator/( int scale ) const {
   return res;
 }
 
+bool size::fits_inside( size const rhs ) const {
+  static auto opposite_signs = []( int const l, int const r ) {
+    return ( l < 0 && r > 0 ) || ( l > 0 && r < 0 );
+  };
+  if( opposite_signs( w, rhs.w ) || opposite_signs( h, rhs.h ) )
+    return false;
+  return abs( w ) <= abs( rhs.w ) && abs( h ) <= abs( rhs.h );
+}
+
 /****************************************************************
 ** dsize
 *****************************************************************/

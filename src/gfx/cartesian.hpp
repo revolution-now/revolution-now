@@ -34,6 +34,8 @@ struct size {
 
   [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
+  [[nodiscard]] bool fits_inside( size rhs ) const;
+
   [[nodiscard]] int area() const { return w * h; }
 
   [[nodiscard]] size max_with( size const rhs ) const;

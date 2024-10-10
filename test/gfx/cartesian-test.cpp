@@ -76,6 +76,76 @@ TEST_CASE( "[gfx/cartesian] size::to_double" ) {
   REQUIRE( s.to_double() == dsize{ .w = 4, .h = 2 } );
 }
 
+TEST_CASE( "[gfx/cartesian] size::fits_inside" ) {
+  size const s0{ .w = 4, .h = 2 };
+  size const s1{ .w = 2, .h = 2 };
+  size const s2{ .w = 3, .h = 3 };
+  size const s3{ .w = 0, .h = 0 };
+  size const s4{ .w = -1, .h = 0 };
+  size const s5{ .w = 4, .h = -2 };
+  size const s6{ .w = -2, .h = -1 };
+  size const s7{ .w = -1, .h = 0 };
+  size const s8{ .w = -4, .h = 2 };
+  size const s9{ .w = -2, .h = 1 };
+
+  auto f = []( size const l, size const r ) {
+    return l.fits_inside( r );
+  };
+
+  // clang-format off
+  REQUIRE( f( s0, s0 ) == true  ); REQUIRE( f( s0, s1 ) == false );
+  REQUIRE( f( s0, s2 ) == false ); REQUIRE( f( s0, s3 ) == false );
+  REQUIRE( f( s0, s4 ) == false ); REQUIRE( f( s0, s5 ) == false );
+  REQUIRE( f( s0, s6 ) == false ); REQUIRE( f( s0, s7 ) == false );
+  REQUIRE( f( s0, s8 ) == false ); REQUIRE( f( s0, s9 ) == false );
+  REQUIRE( f( s1, s0 ) == true  ); REQUIRE( f( s2, s0 ) == false );
+  REQUIRE( f( s3, s0 ) == true  ); REQUIRE( f( s4, s0 ) == false );
+  REQUIRE( f( s5, s0 ) == false ); REQUIRE( f( s6, s0 ) == false );
+  REQUIRE( f( s7, s0 ) == false ); REQUIRE( f( s8, s0 ) == false );
+  REQUIRE( f( s9, s0 ) == false ); REQUIRE( f( s1, s1 ) == true  );
+  REQUIRE( f( s1, s2 ) == true  ); REQUIRE( f( s1, s3 ) == false );
+  REQUIRE( f( s1, s4 ) == false ); REQUIRE( f( s1, s5 ) == false );
+  REQUIRE( f( s1, s6 ) == false ); REQUIRE( f( s1, s7 ) == false );
+  REQUIRE( f( s1, s8 ) == false ); REQUIRE( f( s1, s9 ) == false );
+  REQUIRE( f( s2, s1 ) == false ); REQUIRE( f( s3, s1 ) == true  );
+  REQUIRE( f( s4, s1 ) == false ); REQUIRE( f( s5, s1 ) == false );
+  REQUIRE( f( s6, s1 ) == false ); REQUIRE( f( s7, s1 ) == false );
+  REQUIRE( f( s8, s1 ) == false ); REQUIRE( f( s9, s1 ) == false );
+  REQUIRE( f( s2, s2 ) == true  ); REQUIRE( f( s2, s3 ) == false );
+  REQUIRE( f( s2, s4 ) == false ); REQUIRE( f( s2, s5 ) == false );
+  REQUIRE( f( s2, s6 ) == false ); REQUIRE( f( s2, s7 ) == false );
+  REQUIRE( f( s2, s8 ) == false ); REQUIRE( f( s2, s9 ) == false );
+  REQUIRE( f( s3, s2 ) == true  ); REQUIRE( f( s4, s2 ) == false );
+  REQUIRE( f( s5, s2 ) == false ); REQUIRE( f( s6, s2 ) == false );
+  REQUIRE( f( s7, s2 ) == false ); REQUIRE( f( s8, s2 ) == false );
+  REQUIRE( f( s9, s2 ) == false ); REQUIRE( f( s3, s3 ) == true  );
+  REQUIRE( f( s3, s4 ) == true  ); REQUIRE( f( s3, s5 ) == true  );
+  REQUIRE( f( s3, s6 ) == true  ); REQUIRE( f( s3, s7 ) == true  );
+  REQUIRE( f( s3, s8 ) == true  ); REQUIRE( f( s3, s9 ) == true  );
+  REQUIRE( f( s4, s3 ) == false ); REQUIRE( f( s5, s3 ) == false );
+  REQUIRE( f( s6, s3 ) == false ); REQUIRE( f( s7, s3 ) == false );
+  REQUIRE( f( s8, s3 ) == false ); REQUIRE( f( s9, s3 ) == false );
+  REQUIRE( f( s4, s4 ) == true  ); REQUIRE( f( s4, s5 ) == false );
+  REQUIRE( f( s4, s6 ) == true  ); REQUIRE( f( s4, s7 ) == true  );
+  REQUIRE( f( s4, s8 ) == true  ); REQUIRE( f( s4, s9 ) == true  );
+  REQUIRE( f( s5, s4 ) == false ); REQUIRE( f( s6, s4 ) == false );
+  REQUIRE( f( s7, s4 ) == true  ); REQUIRE( f( s8, s4 ) == false );
+  REQUIRE( f( s9, s4 ) == false ); REQUIRE( f( s5, s5 ) == true  );
+  REQUIRE( f( s5, s6 ) == false ); REQUIRE( f( s5, s7 ) == false );
+  REQUIRE( f( s5, s8 ) == false ); REQUIRE( f( s5, s9 ) == false );
+  REQUIRE( f( s6, s5 ) == false ); REQUIRE( f( s7, s5 ) == false );
+  REQUIRE( f( s8, s5 ) == false ); REQUIRE( f( s9, s5 ) == false );
+  REQUIRE( f( s6, s6 ) == true  ); REQUIRE( f( s6, s7 ) == false );
+  REQUIRE( f( s6, s8 ) == false ); REQUIRE( f( s6, s9 ) == false );
+  REQUIRE( f( s7, s6 ) == true  ); REQUIRE( f( s8, s6 ) == false );
+  REQUIRE( f( s9, s6 ) == false ); REQUIRE( f( s7, s7 ) == true  );
+  REQUIRE( f( s7, s8 ) == true  ); REQUIRE( f( s7, s9 ) == true  );
+  REQUIRE( f( s8, s7 ) == false ); REQUIRE( f( s9, s7 ) == false );
+  REQUIRE( f( s8, s8 ) == true  ); REQUIRE( f( s8, s9 ) == false );
+  REQUIRE( f( s9, s8 ) == true  ); REQUIRE( f( s9, s9 ) == true  );
+  // clang-format on
+}
+
 /****************************************************************
 ** dsize
 *****************************************************************/
