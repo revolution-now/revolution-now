@@ -156,7 +156,11 @@ vector<size> supported_logical_resolutions(
 string named_ratio_canonical_name(
     e_named_aspect_ratio const r ) {
   string_view const name = refl::enum_value_name( r );
-  string            res( name.begin() + 1, name.end() );
+  // Should never be empty because this is an enum value identi-
+  // fier name.
+  CHECK( !name.empty() );
+
+  string res( name.begin() + 1, name.end() );
   std::replace( res.begin(), res.end(), 'x', ':' );
   return res;
 }
