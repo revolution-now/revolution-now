@@ -8,6 +8,8 @@
 # Description: Rds definitions for the gfx/aspect module.
 #
 # ===============================================================
+include "cartesian.hpp"
+
 namespace "gfx"
 
 enum.e_named_aspect_ratio {
@@ -16,4 +18,9 @@ enum.e_named_aspect_ratio {
   _4x3,
   _21x9,
   _1x1,
+}
+
+struct.LogicalResolution {
+  resolution 'size',
+  scale 'int',
 }

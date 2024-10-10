@@ -27,20 +27,22 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-bool is_close( double const l, double const r,
-               double const tolerance ) {
+maybe<double> is_close( double const l, double const r,
+                        double const tolerance ) {
   // Since the ratio involves two numbers, then in the worst case
   // they could both be off by `tolerance` but in different di-
   // rections, which means that the tolerance for the ratio is
   // 2*tolerance.
   double const ratio_tolerance = tolerance * 2;
   double const ratio           = l / r;
-  return ( ratio >= 1.0 / ( 1.0 + ratio_tolerance ) &&
-           ratio <= 1.0 + ratio_tolerance );
+  if( ratio >= 1.0 / ( 1.0 + ratio_tolerance ) &&
+      ratio <= 1.0 + ratio_tolerance )
+    return abs( ratio - 1.0 );
+  return nothing;
 }
 
-bool is_close( AspectRatio const l, AspectRatio const r,
-               double const tolerance ) {
+maybe<double> is_close( AspectRatio const l, AspectRatio const r,
+                        double const tolerance ) {
   double const l_ratio = l.scalar();
   double const r_ratio = r.scalar();
   return is_close( l_ratio, r_ratio, tolerance );
@@ -125,31 +127,46 @@ maybe<AspectRatio> find_closest_aspect_ratio(
     span<AspectRatio const> const ratios_all,
     AspectRatio const target, double const tolerance ) {
   CHECK_LE( tolerance, 1.0 );
+  struct Closest {
+    double      delta = {};
+    AspectRatio aspect_ratio;
+  };
+  maybe<Closest> closest;
   for( AspectRatio const ratio : ratios_all )
-    if( is_close( ratio, target, tolerance ) ) //
-      return ratio;
-  return nothing;
+    if( auto const delta = is_close( ratio, target, tolerance );
+        delta )
+      if( !closest.has_value() || *delta < closest->delta )
+        closest = { .delta = *delta, .aspect_ratio = ratio };
+  return closest.member( &Closest::aspect_ratio );
 }
 
 base::maybe<e_named_aspect_ratio>
 find_closest_named_aspect_ratio( AspectRatio const target,
                                  double const      tolerance ) {
+  struct Closest {
+    double               delta        = {};
+    e_named_aspect_ratio aspect_ratio = {};
+  };
+  maybe<Closest> closest;
   for( auto const e : refl::enum_values<e_named_aspect_ratio> ) {
     AspectRatio const ratio = AspectRatio::from_named( e );
-    if( is_close( ratio, target, tolerance ) ) //
-      return e;
+    if( auto const delta = is_close( ratio, target, tolerance );
+        delta )
+      if( !closest.has_value() || *delta < closest->delta )
+        closest = { .delta = *delta, .aspect_ratio = e };
   }
-  return nothing;
+  return closest.member( &Closest::aspect_ratio );
 }
 
-vector<size> supported_logical_resolutions(
+vector<LogicalResolution> supported_logical_resolutions(
     size const max_resolution ) {
-  vector<size> resolutions;
-  auto const   min_dimension =
+  vector<LogicalResolution> resolutions;
+  auto const                min_dimension =
       std::min( max_resolution.w, max_resolution.h );
   for( int i = 1; i <= min_dimension; ++i )
     if( max_resolution.w % i == 0 && max_resolution.h % i == 0 )
-      resolutions.push_back( max_resolution / i );
+      resolutions.push_back( LogicalResolution{
+        .resolution = max_resolution / i, .scale = i } );
   return resolutions;
 }
 

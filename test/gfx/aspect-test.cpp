@@ -299,8 +299,8 @@ TEST_CASE( "[gfx/aspect] steam numbers" ) {
 }
 
 TEST_CASE( "[gfx/aspect] supported_logical_resolutions" ) {
-  vector<size> expected;
-  size         resolution;
+  vector<LogicalResolution> expected;
+  size                      resolution;
 
   auto f = [&] {
     return supported_logical_resolutions( resolution );
@@ -308,48 +308,58 @@ TEST_CASE( "[gfx/aspect] supported_logical_resolutions" ) {
 
   resolution = { .w = 1, .h = 1 };
   expected   = {
-    { .w = 1, .h = 1 },
+    { .resolution = { .w = 1, .h = 1 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 1, .h = 2 };
   expected   = {
-    { .w = 1, .h = 2 },
+    { .resolution = { .w = 1, .h = 2 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 2, .h = 2 };
   expected   = {
-    { .w = 2, .h = 2 },
-    { .w = 1, .h = 1 },
+    { .resolution = { .w = 2, .h = 2 }, .scale = 1 },
+    { .resolution = { .w = 1, .h = 1 }, .scale = 2 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 3, .h = 2 };
   expected   = {
-    { .w = 3, .h = 2 },
+    { .resolution = { .w = 3, .h = 2 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 4, .h = 2 };
   expected   = {
-    { .w = 4, .h = 2 },
-    { .w = 2, .h = 1 },
+    { .resolution = { .w = 4, .h = 2 }, .scale = 1 },
+    { .resolution = { .w = 2, .h = 1 }, .scale = 2 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 3'840, .h = 2'160 };
   expected   = {
-    { .w = 3'840, .h = 2'160 }, { .w = 1'920, .h = 1'080 },
-    { .w = 1'280, .h = 720 },   { .w = 960, .h = 540 },
-    { .w = 768, .h = 432 },     { .w = 640, .h = 360 },
-    { .w = 480, .h = 270 },     { .w = 384, .h = 216 },
-    { .w = 320, .h = 180 },     { .w = 256, .h = 144 },
-    { .w = 240, .h = 135 },     { .w = 192, .h = 108 },
-    { .w = 160, .h = 90 },      { .w = 128, .h = 72 },
-    { .w = 96, .h = 54 },       { .w = 80, .h = 45 },
-    { .w = 64, .h = 36 },       { .w = 48, .h = 27 },
-    { .w = 32, .h = 18 },       { .w = 16, .h = 9 },
+    { .resolution = { .w = 3'840, .h = 2'160 }, .scale = 1 },
+    { .resolution = { .w = 1'920, .h = 1'080 }, .scale = 2 },
+    { .resolution = { .w = 1'280, .h = 720 }, .scale = 3 },
+    { .resolution = { .w = 960, .h = 540 }, .scale = 4 },
+    { .resolution = { .w = 768, .h = 432 }, .scale = 5 },
+    { .resolution = { .w = 640, .h = 360 }, .scale = 6 },
+    { .resolution = { .w = 480, .h = 270 }, .scale = 8 },
+    { .resolution = { .w = 384, .h = 216 }, .scale = 10 },
+    { .resolution = { .w = 320, .h = 180 }, .scale = 12 },
+    { .resolution = { .w = 256, .h = 144 }, .scale = 15 },
+    { .resolution = { .w = 240, .h = 135 }, .scale = 16 },
+    { .resolution = { .w = 192, .h = 108 }, .scale = 20 },
+    { .resolution = { .w = 160, .h = 90 }, .scale = 24 },
+    { .resolution = { .w = 128, .h = 72 }, .scale = 30 },
+    { .resolution = { .w = 96, .h = 54 }, .scale = 40 },
+    { .resolution = { .w = 80, .h = 45 }, .scale = 48 },
+    { .resolution = { .w = 64, .h = 36 }, .scale = 60 },
+    { .resolution = { .w = 48, .h = 27 }, .scale = 80 },
+    { .resolution = { .w = 32, .h = 18 }, .scale = 120 },
+    { .resolution = { .w = 16, .h = 9 }, .scale = 240 },
   };
   REQUIRE( f() == expected );
 }
