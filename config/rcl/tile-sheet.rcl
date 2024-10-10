@@ -893,6 +893,7 @@ sheets {
         mouse_planks: { y: 0, x: 0  }
         mouse_musket: { y: 0, x: 1  }
         mouse_arrow1: { y: 0, x: 2  }
+        mouse_arrow2: { y: 0, x: 3  }
       }
     }
     {

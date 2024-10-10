@@ -763,6 +763,7 @@ enum.e_tile {
   mouse_planks,
   mouse_musket,
   mouse_arrow1,
+  mouse_arrow2,
 
   # =============================================================
   # General UX
