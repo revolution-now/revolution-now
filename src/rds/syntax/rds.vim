@@ -55,7 +55,7 @@ syn match    rdsEnumFeaturesListItemErr '[^{} ,]\+' contained
 syn match    rdsEnumFeaturesListItem '\(nodiscard\)' contained
 
 hi def link  rdsEnumKeyword      Keyword
-hi def link  rdsEnumName         None
+hi def link  rdsEnumName         Type
 hi def link  rdsEnumItem         Identifier
 hi def link  rdsEnumItemComma    Comment
 hi def link  rdsEnumListBlockErr Error
@@ -104,7 +104,7 @@ hi def link  rdsSumtypeTemplateListBlockComma Comment
 hi def link  rdsSumtypeFeaturesListBlockComma Comment
 
 hi def link  rdsSumtypeKeyword               Keyword
-hi def link  rdsSumtypeName                  None
+hi def link  rdsSumtypeName                  Type
 
 hi def link  rdsSumtypeAlternative                      Identifier
 hi def link  rdsSumtypeAlternativeVar                   None
@@ -155,7 +155,7 @@ hi def link  rdsInterfaceMethodBlockComma       Comment
 hi def link  rdsInterfaceFeaturesListBlockComma Comment
 
 hi def link  rdsInterfaceKeyword Keyword
-hi def link  rdsInterfaceName    None
+hi def link  rdsInterfaceName    Type
 
 hi def link  rdsInterfaceMethod                      Identifier
 hi def link  rdsInterfaceMethodVar                   None
@@ -207,9 +207,9 @@ hi def link  rdsStructFeaturesListBlockComma Comment
 
 hi def link  rdsStructKeyword                Keyword
 hi def link  rdsStructDot                    Comment
-hi def link  rdsStructName                   None
+hi def link  rdsStructName                   Type
 
-hi def link  rdsStructVar                   None
+hi def link  rdsStructVar                   Identifier
 hi def link  rdsStructVarTypeQuoted         Comment
 hi def link  rdsStructVarTypeQuotedContents String
 hi def link  rdsStructVarTypeMultiLine      String
