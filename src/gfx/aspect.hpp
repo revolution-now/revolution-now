@@ -57,11 +57,20 @@ struct AspectRatio {
 ** Public API.
 *****************************************************************/
 base::maybe<AspectRatio> find_closest_aspect_ratio(
-    std::span<AspectRatio const> ratios_all,
-    AspectRatio target_ratio, double tolerance );
+    std::span<AspectRatio const> ratios_all, AspectRatio target,
+    double tolerance );
+
+base::maybe<e_named_aspect_ratio>
+find_closest_named_aspect_ratio( AspectRatio target,
+                                 double      tolerance );
 
 // Returns the default tolerance used for bucketing of aspect ra-
 // tios. This is a small positive number < 1.
-double default_ratio_tolerance();
+double default_aspect_ratio_tolerance();
+
+std::vector<size> supported_logical_resolutions(
+    size max_resolution );
+
+std::string named_ratio_canonical_name( e_named_aspect_ratio r );
 
 } // namespace gfx
