@@ -53,16 +53,6 @@ struct OmniPlane::Impl : public IPlane {
     render_text_overlay_with_anchor(
         renderer, lines, framerate_se_corner, e_cdirection::se,
         gfx::pixel::banana(), shaded_wood );
-    };
-    Delta frame_rate_size = delta_for( frame_rate );
-    painter.draw_solid_rect(
-        gfx::rect{ .origin = info_start - frame_rate_size,
-                   .size   = frame_rate_size },
-        shaded_wood );
-    renderer
-        .typer( "simple", info_start - frame_rate_size,
-                gfx::pixel::banana() )
-        .write( frame_rate );
   }
 
   void draw( rr::Renderer& renderer ) const override {
