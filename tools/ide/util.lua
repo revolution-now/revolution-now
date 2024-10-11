@@ -69,7 +69,8 @@ end
 -- splits.
 function M.is_wide()
   local columns = vim.o.columns
-  local text_columns_per_split = 65
+  -- Add 4 for dividers and number column line.
+  local text_columns_per_split = 65 + 4
   local desired_columns_per_split = text_columns_per_split + 1
   if columns >= 4 * desired_columns_per_split then return true end
   return false
