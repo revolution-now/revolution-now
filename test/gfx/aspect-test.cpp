@@ -376,5 +376,11 @@ TEST_CASE( "[gfx/aspect] named_ratio_canonical_name" ) {
   REQUIRE( f( e_named_aspect_ratio::_1x1 ) == "1:1" );
 }
 
+TEST_CASE( "[gfx/aspect] resolution_analysis" ) {
+}
+
+TEST_CASE( "[gfx/aspect] recommended_resolution" ) {
+}
+
 } // namespace
 } // namespace gfx

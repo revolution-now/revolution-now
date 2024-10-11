@@ -73,4 +73,11 @@ std::vector<LogicalResolution> supported_logical_resolutions(
 
 std::string named_ratio_canonical_name( e_named_aspect_ratio r );
 
+ResolutionAnalysis resolution_analysis(
+    std::span<size const> target_logical_resolutions,
+    size                  physical_resolution );
+
+base::maybe<RecommendedResolution> recommended_resolution(
+    ResolutionAnalysis const& analysis, double tolerance );
+
 } // namespace gfx

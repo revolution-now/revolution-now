@@ -24,3 +24,27 @@ struct.LogicalResolution {
   resolution 'size',
   scale 'int',
 }
+
+struct.InexactLogicalResolution {
+  target_logical 'size',
+  scale 'int',
+  clipped_logical 'rect',
+  buffer 'size',
+  score 'double',
+}
+
+struct.ResolutionAnalysis {
+  physical 'size',
+  exact_fits 'std::vector<LogicalResolution>',
+  inexact_fits 'std::vector<InexactLogicalResolution>',
+}
+
+struct.RecommendedResolution {
+  physical 'size',
+  exact 'bool',
+  target_logical 'size',
+  scale 'int',
+  clipped_logical 'rect',
+  buffer 'size',
+  score 'double',
+}

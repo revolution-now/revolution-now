@@ -100,7 +100,7 @@ AspectRatio AspectRatio::from_named(
   }
 }
 
-std::span<AspectRatio const> AspectRatio::named_all() {
+span<AspectRatio const> AspectRatio::named_all() {
   static auto const all = [] {
     vector<AspectRatio> res;
     res.reserve( refl::enum_count<e_named_aspect_ratio> );
@@ -111,7 +111,7 @@ std::span<AspectRatio const> AspectRatio::named_all() {
   return all;
 }
 
-void to_str( AspectRatio const& o, std::string& out,
+void to_str( AspectRatio const& o, string& out,
              base::ADL_t adl ) {
   to_str( o.ratio_.w, out, adl );
   to_str( ':', out, adl );
@@ -140,9 +140,8 @@ maybe<AspectRatio> find_closest_aspect_ratio(
   return closest.member( &Closest::aspect_ratio );
 }
 
-base::maybe<e_named_aspect_ratio>
-find_closest_named_aspect_ratio( AspectRatio const target,
-                                 double const      tolerance ) {
+maybe<e_named_aspect_ratio> find_closest_named_aspect_ratio(
+    AspectRatio const target, double const tolerance ) {
   struct Closest {
     double               delta        = {};
     e_named_aspect_ratio aspect_ratio = {};
@@ -179,6 +178,123 @@ string named_ratio_canonical_name(
 
   string res( name.begin() + 1, name.end() );
   std::replace( res.begin(), res.end(), 'x', ':' );
+  return res;
+}
+
+ResolutionAnalysis resolution_analysis(
+    span<size const> const target_logical_resolutions,
+    size const             physical ) {
+  rect const physical_rect{ .origin = {}, .size = physical };
+  vector<LogicalResolution> const choices =
+      supported_logical_resolutions( physical );
+  ResolutionAnalysis res;
+  res.physical = physical;
+  for( size const target : target_logical_resolutions ) {
+    LogicalResolution scaled{ .resolution = target, .scale = 1 };
+    maybe<LogicalResolution> largest_that_fits;
+    while( scaled.resolution.fits_inside( physical ) ) {
+      largest_that_fits = scaled;
+      ++scaled.scale;
+      scaled.resolution = target * scaled.scale;
+    }
+    LogicalResolution const smallest_that_does_not_fit = scaled;
+    if( largest_that_fits.has_value() &&
+        largest_that_fits->resolution == physical ) {
+      res.exact_fits.push_back( *largest_that_fits );
+      continue;
+    }
+    auto score_for = [&]( size const l ) {
+      CHECK_GT( l.area(), 0 );
+      return ( l - physical ).pythagorean() /
+             physical.pythagorean();
+    };
+
+    // Did not exactly fit, so we'll add the one that is just
+    // smaller and just larger, since at least one of those is
+    // always better than any of the others.
+    auto add_inexact = [&]( LogicalResolution const inexact ) {
+      double const score = score_for( inexact.resolution );
+      CHECK_GT( score, 0.0 );
+      point const virtual_ne_physical =
+          centered_in( inexact.resolution, physical_rect );
+      rect const virtual_rect_physical{
+        .origin = virtual_ne_physical,
+        .size   = inexact.resolution };
+      UNWRAP_CHECK_T(
+          auto const clipped_physical,
+          virtual_rect_physical.clipped_by( physical_rect ) );
+      auto const clipped_logical =
+          clipped_physical / inexact.scale;
+      auto const virtual_ne_logical =
+          virtual_ne_physical / inexact.scale;
+      auto const buffer_logical =
+          virtual_ne_logical.distance_from_origin();
+      res.inexact_fits.push_back( InexactLogicalResolution{
+        .target_logical  = target,
+        .scale           = inexact.scale,
+        .clipped_logical = clipped_logical,
+        .buffer          = buffer_logical,
+        .score           = score } );
+    };
+
+    add_inexact( smallest_that_does_not_fit );
+    if( largest_that_fits.has_value() )
+      add_inexact( *largest_that_fits );
+  }
+  return res;
+}
+
+maybe<RecommendedResolution> recommended_resolution(
+    ResolutionAnalysis const& analysis,
+    double const              tolerance ) {
+  maybe<RecommendedResolution> res;
+  if( !analysis.exact_fits.empty() ) {
+    auto sorted = analysis.exact_fits;
+    sort( sorted.begin(), sorted.end(),
+          []( LogicalResolution const& l,
+              LogicalResolution const& r ) {
+            // TODO: find a better heuristic.
+            return l.resolution.area() > r.resolution.area();
+          } );
+    CHECK_GT( sorted.size(), 0u );
+    LogicalResolution const& chosen = sorted[0];
+
+    size const target_logical = chosen.resolution / chosen.scale;
+    rect const target_logical_rect{
+      .origin = {}, .size = chosen.resolution / chosen.scale };
+    res = RecommendedResolution{
+      .physical        = analysis.physical,
+      .exact           = true,
+      .target_logical  = target_logical,
+      .scale           = chosen.scale,
+      .clipped_logical = target_logical_rect,
+      .buffer          = {},
+      .score           = 0 };
+  } else if( !analysis.inexact_fits.empty() ) {
+    auto sorted = analysis.inexact_fits;
+    sort( sorted.begin(), sorted.end(),
+          []( InexactLogicalResolution const& l,
+              InexactLogicalResolution const& r ) {
+            return l.score < r.score;
+          } );
+    CHECK_GT( sorted.size(), 0u );
+    while( !sorted.empty() ) {
+      InexactLogicalResolution const& chosen = sorted[0];
+      if( !chosen.buffer.negative() ||
+          chosen.score <= tolerance ) {
+        res = RecommendedResolution{
+          .physical        = analysis.physical,
+          .exact           = false,
+          .target_logical  = chosen.target_logical,
+          .scale           = chosen.scale,
+          .clipped_logical = chosen.clipped_logical,
+          .buffer          = chosen.buffer,
+          .score           = chosen.score };
+        break;
+      }
+      sorted.erase( sorted.begin() );
+    }
+  }
   return res;
 }
 
