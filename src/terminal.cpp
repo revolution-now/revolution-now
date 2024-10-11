@@ -180,7 +180,8 @@ maybe<string const&> Terminal::history( int idx ) {
 }
 
 vector<string> Terminal::autocomplete( string_view fragment ) {
-  auto is_autocomplete_char = []( char c ) {
+  vector<string> res;
+  auto           is_autocomplete_char = []( char c ) {
     return std::isalnum( c ) || ( c == ':' ) || ( c == '.' ) ||
            ( c == '_' );
   };
@@ -196,7 +197,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   reverse( prefix.begin(), prefix.end() );
   lg.trace( "prefix: {}", prefix );
   // Stop here otherwise we'll be looking through all globals.
-  if( to_autocomplete.empty() ) return {};
+  if( to_autocomplete.empty() ) return res;
   // range-v3 split doesn't do the right thing here if the string
   // ends in a dot.
   vector<string> segments =
@@ -277,20 +278,19 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
 
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
-    if( piece.empty() ) return {};
+    if( piece.empty() ) return res;
     auto maybe_table = table_for_object( curr_obj[piece] );
     // lg.trace( "maybe_table: {}", maybe_table.has_value() );
-    if( !maybe_table ) return {};
+    if( !maybe_table ) return res;
     auto size = table_size_non_meta( *maybe_table );
     lg.trace( "table_size_non_meta: {}", size );
-    if( size == 0 ) return {};
+    if( size == 0 ) return res;
     curr_obj   = curr_obj[piece];
     curr_table = *maybe_table;
   }
   auto last = segments.back();
   lg.trace( "last: {}", last );
   string initial = base::str_join( initial_segments, "." );
-  vector<string> res;
 
   auto add_keys = [&]( lua::any parent, auto kv ) {
     lua::any o = kv.first;

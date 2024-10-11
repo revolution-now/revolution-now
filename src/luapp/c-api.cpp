@@ -119,7 +119,7 @@ lua_valid c_api::loadstring( char const* script ) noexcept {
     // Pushes a function onto the stack.
     enforce_stack_size_ge( 1 );
   else
-    return pop_and_return_error();
+    res = pop_and_return_error();
   return res;
 }
 

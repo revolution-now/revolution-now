@@ -103,11 +103,11 @@ bool is_forbidden_leading_unquoted_str_char( char c ) {
 }
 
 string escape_and_quote_table_key( string const& k ) {
-  if( k.empty() ) return k;
+  string res;
+  if( k.empty() ) return res;
   bool need_quotes = false;
   // We have a stronger requirement for the first character.
   if( !is_leading_identifier_char( k[0] ) ) need_quotes = true;
-  string res;
   for( char c : k ) {
     if( !is_identifier_char( c ) ) need_quotes = true;
     if( c == '"' ) res += '\\';
@@ -119,7 +119,8 @@ string escape_and_quote_table_key( string const& k ) {
 };
 
 string escape_and_quote_string_val( string const& k ) {
-  if( k.empty() ) return k;
+  string res;
+  if( k.empty() ) return res;
   bool need_quotes = false;
   // We have a stronger requirement for the first character.
   if( is_forbidden_leading_unquoted_str_char( k[0] ) )
@@ -129,7 +130,6 @@ string escape_and_quote_string_val( string const& k ) {
   if( k.starts_with( "true" ) || k.starts_with( "false" ) )
     need_quotes = true;
   if( k == "null" ) need_quotes = true;
-  string res;
   for( char c : k ) {
     if( is_forbidden_unquoted_str_char( c ) ) need_quotes = true;
     if( c == '"' ) res += '\\';

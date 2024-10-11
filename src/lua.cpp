@@ -51,10 +51,13 @@ lua::table require( lua::state& st, string const& required ) {
   lg.debug( "requiring lua module \"{}\".", key );
   lua::table modules =
       lua::table::create_or_get( st["__modules"] );
+  lua::table const dummy        = st.table.create();
+  lua::table       module_table = dummy;
   if( modules[key] != lua::nil ) {
     LUA_CHECK( st, modules[key] != "loading",
                "cyclic dependency detected." )
-    return modules[key].as<lua::table>();
+    module_table = modules[key].as<lua::table>();
+    return module_table;
   }
   // The module has not already been loaded.
   lg.info( "loading lua module \"{}\".", key );
@@ -65,7 +68,7 @@ lua::table require( lua::state& st, string const& required ) {
   // Set the module to something while we're loading in order to
   // detect and break cyclic dependencies.
   modules[key] = "loading";
-  lua::table const module_table =
+  module_table =
       st.script.run_file<lua::table>( file_name.string() );
   modules[key] = module_table;
   // Create nested tables to hold the module.

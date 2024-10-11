@@ -49,14 +49,15 @@ auto max_of( Range&& rng, Projection&& proj, Default value )
 
 string template_params( vector<expr::TemplateParam> const& tmpls,
                         bool put_typename, bool space = true ) {
-  if( tmpls.empty() ) return "";
+  string res;
+  if( tmpls.empty() ) return res;
   vector<string> names;
   string         tp_name = put_typename ? "typename " : "";
   for( expr::TemplateParam const& param : tmpls )
     names.push_back( tp_name + param.param );
   string sep = ",";
   if( space ) sep += ' ';
-  string res = "<";
+  res = "<";
   res += base::str_join( names, sep );
   res += ">";
   return res;

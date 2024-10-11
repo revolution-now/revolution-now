@@ -667,6 +667,7 @@ CombatEffectsMessages combat_effects_msg(
       player_for_nation_or_die( ss.players, attacker.nation() );
   Player const& defending_player =
       player_for_nation_or_die( ss.players, defender.nation() );
+  CombatEffectsMessages res;
   if( !combat.winner.has_value() ) {
     // Defender evaded.
     string const evade_msg =
@@ -675,19 +676,19 @@ CombatEffectsMessages combat_effects_msg(
                      defender.desc().name,
                      nation_possessive( attacking_player ),
                      attacker.desc().name );
-    return { .summaries = summarize_combat_outcome( ss, combat ),
-             .defender  = { .for_both = { evade_msg } } };
+    res = { .summaries = summarize_combat_outcome( ss, combat ),
+            .defender  = { .for_both = { evade_msg } } };
+    return res;
   }
-  CombatEffectsMessages res{
-    .summaries = summarize_combat_outcome( ss, combat ),
-    .attacker  = naval_unit_combat_effects_msg(
-        ss, attacker,
-        NavalBattleOpponent::unit{ .id = defender.id() },
-        combat.attacker.outcome ),
-    .defender = naval_unit_combat_effects_msg(
-        ss, defender,
-        NavalBattleOpponent::unit{ .id = attacker.id() },
-        combat.defender.outcome ) };
+  res = { .summaries = summarize_combat_outcome( ss, combat ),
+          .attacker  = naval_unit_combat_effects_msg(
+              ss, attacker,
+              NavalBattleOpponent::unit{ .id = defender.id() },
+              combat.attacker.outcome ),
+          .defender = naval_unit_combat_effects_msg(
+              ss, defender,
+              NavalBattleOpponent::unit{ .id = attacker.id() },
+              combat.defender.outcome ) };
   for( auto const& [unit_id, affected_info] :
        combat.affected_defender_units ) {
     Unit const& affected_unit = ss.units.unit_for( unit_id );

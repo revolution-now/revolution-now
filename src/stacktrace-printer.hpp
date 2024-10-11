@@ -16,7 +16,16 @@
 #  pragma clang diagnostic push
 #  pragma clang diagnostic ignored "-Weverything"
 #endif
+#ifdef __GNUG__
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wnrvo"
+#endif
+
 #include "backward.hpp"
+
+#ifdef __GNUG__
+#  pragma GCC diagnostic pop
+#endif
 #ifdef __clang__
 #  pragma clang diagnostic pop
 #endif

@@ -168,6 +168,7 @@ PlowResult perform_plow_work( SS& ss, TS& ts,
               unit.composition()[e_unit_inventory::tools] );
   };
 
+  PlowResult res;
   // First check if there is already irrigation on this square.
   // This could happen if there are two units plowing on the same
   // square and the other unit finished first. In that case, we
@@ -176,7 +177,8 @@ PlowResult perform_plow_work( SS& ss, TS& ts,
   if( has_irrigation( ss.terrain, location ) ) {
     log( "cancelled" );
     unit.clear_orders();
-    return PlowResult::cancelled{};
+    res = PlowResult::cancelled{};
+    return res;
   }
   // The unit is still plowing.
   int const turns_worked = plow_orders.turns_worked;
@@ -185,7 +187,7 @@ PlowResult perform_plow_work( SS& ss, TS& ts,
       effective_terrain( ss.terrain.square_at( location ) ) );
   CHECK_LE( turns_worked, plow_turns );
   if( turns_worked == plow_turns ) {
-    PlowResult res = PlowResult::irrigated{};
+    res = PlowResult::irrigated{};
     if( has_forest( ss.terrain.square_at( location ) ) ) {
       maybe<LumberYield> const yield = best_lumber_yield(
           lumber_yields( ss, player, location, unit.type() ) );
@@ -203,7 +205,8 @@ PlowResult perform_plow_work( SS& ss, TS& ts,
   log( "ongoing" );
   unit.forfeight_mv_points();
   ++plow_orders.turns_worked;
-  return PlowResult::ongoing{};
+  res = PlowResult::ongoing{};
+  return res;
 }
 
 bool can_plow( Unit const& unit ) {
