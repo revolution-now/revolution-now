@@ -78,6 +78,10 @@ size size::operator+( size const term ) const {
   return size{ .w = w + term.w, .h = h + term.h };
 };
 
+size size::operator-( size const term ) const {
+  return size{ .w = w - term.w, .h = h - term.h };
+};
+
 void size::operator+=( size term ) {
   w += term.w;
   h += term.h;
