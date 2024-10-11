@@ -39,7 +39,8 @@ enum class e_shader_type {
   fragment
 };
 
-void to_str( e_shader_type type, std::string& out, base::ADL_t );
+void to_str( e_shader_type type, std::string& out,
+             base::tag<e_shader_type> );
 
 /****************************************************************
 ** Vertex/Fragment Shader

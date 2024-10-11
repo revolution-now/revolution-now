@@ -223,7 +223,7 @@ class [[nodiscard]] wait {
   }
 
   friend void to_str( wait const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<wait> ) {
     out += o.ready() ? "<ready>" : "<waiting>";
   }
 
@@ -341,7 +341,7 @@ class wait_promise {
   }
 
   friend void to_str( wait_promise const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<wait_promise> ) {
     out += o.has_value() ? "<ready>" : "<empty>";
   }
 

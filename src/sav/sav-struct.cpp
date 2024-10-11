@@ -43,7 +43,7 @@ namespace sav {
 /****************************************************************
 ** cargo_4bit_type
 *****************************************************************/
-void to_str( cargo_4bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( cargo_4bit_type const& o, std::string& out, base::tag<cargo_4bit_type> ) {
   switch( o ) {
     case cargo_4bit_type::food: out += "food"; return;
     case cargo_4bit_type::sugar: out += "sugar"; return;
@@ -121,7 +121,7 @@ cdr::result<cargo_4bit_type> from_canonical(
 /****************************************************************
 ** control_type
 *****************************************************************/
-void to_str( control_type const& o, std::string& out, base::ADL_t ) {
+void to_str( control_type const& o, std::string& out, base::tag<control_type> ) {
   switch( o ) {
     case control_type::player: out += "PLAYER"; return;
     case control_type::ai: out += "AI"; return;
@@ -160,7 +160,7 @@ cdr::result<control_type> from_canonical(
 /****************************************************************
 ** difficulty_type
 *****************************************************************/
-void to_str( difficulty_type const& o, std::string& out, base::ADL_t ) {
+void to_str( difficulty_type const& o, std::string& out, base::tag<difficulty_type> ) {
   switch( o ) {
     case difficulty_type::discoverer: out += "Discoverer"; return;
     case difficulty_type::explorer: out += "Explorer"; return;
@@ -205,7 +205,7 @@ cdr::result<difficulty_type> from_canonical(
 /****************************************************************
 ** end_of_turn_sign_type
 *****************************************************************/
-void to_str( end_of_turn_sign_type const& o, std::string& out, base::ADL_t ) {
+void to_str( end_of_turn_sign_type const& o, std::string& out, base::tag<end_of_turn_sign_type> ) {
   switch( o ) {
     case end_of_turn_sign_type::not_shown: out += "Not shown"; return;
     case end_of_turn_sign_type::flashing: out += "Flashing"; return;
@@ -241,7 +241,7 @@ cdr::result<end_of_turn_sign_type> from_canonical(
 /****************************************************************
 ** fortification_level_type
 *****************************************************************/
-void to_str( fortification_level_type const& o, std::string& out, base::ADL_t ) {
+void to_str( fortification_level_type const& o, std::string& out, base::tag<fortification_level_type> ) {
   switch( o ) {
     case fortification_level_type::none: out += "none"; return;
     case fortification_level_type::stockade: out += "stockade"; return;
@@ -283,7 +283,7 @@ cdr::result<fortification_level_type> from_canonical(
 /****************************************************************
 ** has_city_1bit_type
 *****************************************************************/
-void to_str( has_city_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( has_city_1bit_type const& o, std::string& out, base::tag<has_city_1bit_type> ) {
   switch( o ) {
     case has_city_1bit_type::empty: out += " "; return;
     case has_city_1bit_type::c: out += "C"; return;
@@ -319,7 +319,7 @@ cdr::result<has_city_1bit_type> from_canonical(
 /****************************************************************
 ** has_unit_1bit_type
 *****************************************************************/
-void to_str( has_unit_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( has_unit_1bit_type const& o, std::string& out, base::tag<has_unit_1bit_type> ) {
   switch( o ) {
     case has_unit_1bit_type::empty: out += " "; return;
     case has_unit_1bit_type::u: out += "U"; return;
@@ -355,7 +355,7 @@ cdr::result<has_unit_1bit_type> from_canonical(
 /****************************************************************
 ** hills_river_3bit_type
 *****************************************************************/
-void to_str( hills_river_3bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( hills_river_3bit_type const& o, std::string& out, base::tag<hills_river_3bit_type> ) {
   switch( o ) {
     case hills_river_3bit_type::empty: out += "  "; return;
     case hills_river_3bit_type::c: out += "^ "; return;
@@ -406,7 +406,7 @@ cdr::result<hills_river_3bit_type> from_canonical(
 /****************************************************************
 ** level_2bit_type
 *****************************************************************/
-void to_str( level_2bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( level_2bit_type const& o, std::string& out, base::tag<level_2bit_type> ) {
   switch( o ) {
     case level_2bit_type::_0: out += "0"; return;
     case level_2bit_type::_1: out += "1"; return;
@@ -445,7 +445,7 @@ cdr::result<level_2bit_type> from_canonical(
 /****************************************************************
 ** level_3bit_type
 *****************************************************************/
-void to_str( level_3bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( level_3bit_type const& o, std::string& out, base::tag<level_3bit_type> ) {
   switch( o ) {
     case level_3bit_type::_0: out += "0"; return;
     case level_3bit_type::_1: out += "1"; return;
@@ -487,7 +487,7 @@ cdr::result<level_3bit_type> from_canonical(
 /****************************************************************
 ** nation_2byte_type
 *****************************************************************/
-void to_str( nation_2byte_type const& o, std::string& out, base::ADL_t ) {
+void to_str( nation_2byte_type const& o, std::string& out, base::tag<nation_2byte_type> ) {
   switch( o ) {
     case nation_2byte_type::england: out += "England"; return;
     case nation_2byte_type::france: out += "France"; return;
@@ -556,7 +556,7 @@ cdr::result<nation_2byte_type> from_canonical(
 /****************************************************************
 ** nation_4bit_short_type
 *****************************************************************/
-void to_str( nation_4bit_short_type const& o, std::string& out, base::ADL_t ) {
+void to_str( nation_4bit_short_type const& o, std::string& out, base::tag<nation_4bit_short_type> ) {
   switch( o ) {
     case nation_4bit_short_type::en: out += "EN"; return;
     case nation_4bit_short_type::fr: out += "FR"; return;
@@ -625,7 +625,7 @@ cdr::result<nation_4bit_short_type> from_canonical(
 /****************************************************************
 ** nation_4bit_type
 *****************************************************************/
-void to_str( nation_4bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( nation_4bit_type const& o, std::string& out, base::tag<nation_4bit_type> ) {
   switch( o ) {
     case nation_4bit_type::england: out += "England"; return;
     case nation_4bit_type::france: out += "France"; return;
@@ -694,7 +694,7 @@ cdr::result<nation_4bit_type> from_canonical(
 /****************************************************************
 ** nation_type
 *****************************************************************/
-void to_str( nation_type const& o, std::string& out, base::ADL_t ) {
+void to_str( nation_type const& o, std::string& out, base::tag<nation_type> ) {
   switch( o ) {
     case nation_type::england: out += "England"; return;
     case nation_type::france: out += "France"; return;
@@ -763,7 +763,7 @@ cdr::result<nation_type> from_canonical(
 /****************************************************************
 ** occupation_type
 *****************************************************************/
-void to_str( occupation_type const& o, std::string& out, base::ADL_t ) {
+void to_str( occupation_type const& o, std::string& out, base::tag<occupation_type> ) {
   switch( o ) {
     case occupation_type::farmer: out += "Farmer"; return;
     case occupation_type::sugar_planter: out += "Sugar planter"; return;
@@ -853,7 +853,7 @@ cdr::result<occupation_type> from_canonical(
 /****************************************************************
 ** orders_type
 *****************************************************************/
-void to_str( orders_type const& o, std::string& out, base::ADL_t ) {
+void to_str( orders_type const& o, std::string& out, base::tag<orders_type> ) {
   switch( o ) {
     case orders_type::none: out += "none"; return;
     case orders_type::sentry: out += "sentry"; return;
@@ -916,7 +916,7 @@ cdr::result<orders_type> from_canonical(
 /****************************************************************
 ** pacific_1bit_type
 *****************************************************************/
-void to_str( pacific_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( pacific_1bit_type const& o, std::string& out, base::tag<pacific_1bit_type> ) {
   switch( o ) {
     case pacific_1bit_type::empty: out += " "; return;
     case pacific_1bit_type::t: out += "~"; return;
@@ -952,7 +952,7 @@ cdr::result<pacific_1bit_type> from_canonical(
 /****************************************************************
 ** plowed_1bit_type
 *****************************************************************/
-void to_str( plowed_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( plowed_1bit_type const& o, std::string& out, base::tag<plowed_1bit_type> ) {
   switch( o ) {
     case plowed_1bit_type::empty: out += " "; return;
     case plowed_1bit_type::h: out += "#"; return;
@@ -988,7 +988,7 @@ cdr::result<plowed_1bit_type> from_canonical(
 /****************************************************************
 ** profession_type
 *****************************************************************/
-void to_str( profession_type const& o, std::string& out, base::ADL_t ) {
+void to_str( profession_type const& o, std::string& out, base::tag<profession_type> ) {
   switch( o ) {
     case profession_type::expert_farmer: out += "Expert farmer"; return;
     case profession_type::master_sugar_planter: out += "Master sugar planter"; return;
@@ -1105,7 +1105,7 @@ cdr::result<profession_type> from_canonical(
 /****************************************************************
 ** purchased_1bit_type
 *****************************************************************/
-void to_str( purchased_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( purchased_1bit_type const& o, std::string& out, base::tag<purchased_1bit_type> ) {
   switch( o ) {
     case purchased_1bit_type::empty: out += " "; return;
     case purchased_1bit_type::a: out += "*"; return;
@@ -1141,7 +1141,7 @@ cdr::result<purchased_1bit_type> from_canonical(
 /****************************************************************
 ** region_id_4bit_type
 *****************************************************************/
-void to_str( region_id_4bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( region_id_4bit_type const& o, std::string& out, base::tag<region_id_4bit_type> ) {
   switch( o ) {
     case region_id_4bit_type::_0: out += " 0"; return;
     case region_id_4bit_type::_1: out += " 1"; return;
@@ -1219,7 +1219,7 @@ cdr::result<region_id_4bit_type> from_canonical(
 /****************************************************************
 ** relation_3bit_type
 *****************************************************************/
-void to_str( relation_3bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( relation_3bit_type const& o, std::string& out, base::tag<relation_3bit_type> ) {
   switch( o ) {
     case relation_3bit_type::self_vanished_not_met: out += "self/vanished/not met"; return;
     case relation_3bit_type::war: out += "war"; return;
@@ -1258,7 +1258,7 @@ cdr::result<relation_3bit_type> from_canonical(
 /****************************************************************
 ** road_1bit_type
 *****************************************************************/
-void to_str( road_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( road_1bit_type const& o, std::string& out, base::tag<road_1bit_type> ) {
   switch( o ) {
     case road_1bit_type::empty: out += " "; return;
     case road_1bit_type::e: out += "="; return;
@@ -1294,7 +1294,7 @@ cdr::result<road_1bit_type> from_canonical(
 /****************************************************************
 ** season_type
 *****************************************************************/
-void to_str( season_type const& o, std::string& out, base::ADL_t ) {
+void to_str( season_type const& o, std::string& out, base::tag<season_type> ) {
   switch( o ) {
     case season_type::spring: out += "spring"; return;
     case season_type::autumn: out += "autumn"; return;
@@ -1330,7 +1330,7 @@ cdr::result<season_type> from_canonical(
 /****************************************************************
 ** suppress_1bit_type
 *****************************************************************/
-void to_str( suppress_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( suppress_1bit_type const& o, std::string& out, base::tag<suppress_1bit_type> ) {
   switch( o ) {
     case suppress_1bit_type::empty: out += " "; return;
     case suppress_1bit_type::_: out += "_"; return;
@@ -1366,7 +1366,7 @@ cdr::result<suppress_1bit_type> from_canonical(
 /****************************************************************
 ** tech_type
 *****************************************************************/
-void to_str( tech_type const& o, std::string& out, base::ADL_t ) {
+void to_str( tech_type const& o, std::string& out, base::tag<tech_type> ) {
   switch( o ) {
     case tech_type::semi_nomadic: out += "Semi-Nomadic"; return;
     case tech_type::agrarian: out += "Agrarian"; return;
@@ -1408,7 +1408,7 @@ cdr::result<tech_type> from_canonical(
 /****************************************************************
 ** terrain_5bit_type
 *****************************************************************/
-void to_str( terrain_5bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( terrain_5bit_type const& o, std::string& out, base::tag<terrain_5bit_type> ) {
   switch( o ) {
     case terrain_5bit_type::tu: out += "tu "; return;
     case terrain_5bit_type::de: out += "de "; return;
@@ -1519,7 +1519,7 @@ cdr::result<terrain_5bit_type> from_canonical(
 /****************************************************************
 ** trade_route_type
 *****************************************************************/
-void to_str( trade_route_type const& o, std::string& out, base::ADL_t ) {
+void to_str( trade_route_type const& o, std::string& out, base::tag<trade_route_type> ) {
   switch( o ) {
     case trade_route_type::land: out += "land"; return;
     case trade_route_type::sea: out += "sea"; return;
@@ -1555,7 +1555,7 @@ cdr::result<trade_route_type> from_canonical(
 /****************************************************************
 ** unit_type
 *****************************************************************/
-void to_str( unit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( unit_type const& o, std::string& out, base::tag<unit_type> ) {
   switch( o ) {
     case unit_type::colonist: out += "Colonist"; return;
     case unit_type::soldier: out += "Soldier"; return;
@@ -1654,7 +1654,7 @@ cdr::result<unit_type> from_canonical(
 /****************************************************************
 ** visible_to_dutch_1bit_type
 *****************************************************************/
-void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::tag<visible_to_dutch_1bit_type> ) {
   switch( o ) {
     case visible_to_dutch_1bit_type::empty: out += " "; return;
     case visible_to_dutch_1bit_type::d: out += "D"; return;
@@ -1690,7 +1690,7 @@ cdr::result<visible_to_dutch_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_english_1bit_type
 *****************************************************************/
-void to_str( visible_to_english_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( visible_to_english_1bit_type const& o, std::string& out, base::tag<visible_to_english_1bit_type> ) {
   switch( o ) {
     case visible_to_english_1bit_type::empty: out += " "; return;
     case visible_to_english_1bit_type::e: out += "E"; return;
@@ -1726,7 +1726,7 @@ cdr::result<visible_to_english_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_french_1bit_type
 *****************************************************************/
-void to_str( visible_to_french_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( visible_to_french_1bit_type const& o, std::string& out, base::tag<visible_to_french_1bit_type> ) {
   switch( o ) {
     case visible_to_french_1bit_type::empty: out += " "; return;
     case visible_to_french_1bit_type::f: out += "F"; return;
@@ -1762,7 +1762,7 @@ cdr::result<visible_to_french_1bit_type> from_canonical(
 /****************************************************************
 ** visible_to_spanish_1bit_type
 *****************************************************************/
-void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::ADL_t ) {
+void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::tag<visible_to_spanish_1bit_type> ) {
   switch( o ) {
     case visible_to_spanish_1bit_type::empty: out += " "; return;
     case visible_to_spanish_1bit_type::s: out += "S"; return;
@@ -1798,7 +1798,7 @@ cdr::result<visible_to_spanish_1bit_type> from_canonical(
 /****************************************************************
 ** yes_no_byte
 *****************************************************************/
-void to_str( yes_no_byte const& o, std::string& out, base::ADL_t ) {
+void to_str( yes_no_byte const& o, std::string& out, base::tag<yes_no_byte> ) {
   switch( o ) {
     case yes_no_byte::no: out += "no"; return;
     case yes_no_byte::yes: out += "yes"; return;
@@ -1834,16 +1834,16 @@ cdr::result<yes_no_byte> from_canonical(
 /****************************************************************
 ** TutorialHelp
 *****************************************************************/
-void to_str( TutorialHelp const& o, std::string& out, base::ADL_t t ) {
+void to_str( TutorialHelp const& o, std::string& out, base::tag<TutorialHelp> ) {
   out += "TutorialHelp{";
-  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
-  out += "unknown01="; to_str( o.unknown01, out, t ); out += ',';
-  out += "unknown02="; to_str( o.unknown02, out, t ); out += ',';
-  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
-  out += "unknown04="; to_str( o.unknown04, out, t ); out += ',';
-  out += "unknown05="; to_str( o.unknown05, out, t ); out += ',';
-  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
-  out += "unknown07="; to_str( o.unknown07, out, t );
+  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
+  out += "unknown01="; base::to_str( o.unknown01, out ); out += ',';
+  out += "unknown02="; base::to_str( o.unknown02, out ); out += ',';
+  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
+  out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
+  out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
+  out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
+  out += "unknown07="; base::to_str( o.unknown07, out );
   out += '}';
 }
 
@@ -1922,18 +1922,18 @@ cdr::result<TutorialHelp> from_canonical(
 /****************************************************************
 ** GameOptions
 *****************************************************************/
-void to_str( GameOptions const& o, std::string& out, base::ADL_t t ) {
+void to_str( GameOptions const& o, std::string& out, base::tag<GameOptions> ) {
   out += "GameOptions{";
-  out += "unused01="; to_str( bits<7>{ o.unused01 }, out, t ); out += ',';
-  out += "tutorial_hints="; to_str( o.tutorial_hints, out, t ); out += ',';
-  out += "disable_water_color_cycling="; to_str( o.disable_water_color_cycling, out, t ); out += ',';
-  out += "combat_analysis="; to_str( o.combat_analysis, out, t ); out += ',';
-  out += "autosave="; to_str( o.autosave, out, t ); out += ',';
-  out += "end_of_turn="; to_str( o.end_of_turn, out, t ); out += ',';
-  out += "fast_piece_slide="; to_str( o.fast_piece_slide, out, t ); out += ',';
-  out += "cheats_enabled="; to_str( o.cheats_enabled, out, t ); out += ',';
-  out += "show_foreign_moves="; to_str( o.show_foreign_moves, out, t ); out += ',';
-  out += "show_indian_moves="; to_str( o.show_indian_moves, out, t );
+  out += "unused01="; base::to_str( bits<7>{ o.unused01 }, out ); out += ',';
+  out += "tutorial_hints="; base::to_str( o.tutorial_hints, out ); out += ',';
+  out += "disable_water_color_cycling="; base::to_str( o.disable_water_color_cycling, out ); out += ',';
+  out += "combat_analysis="; base::to_str( o.combat_analysis, out ); out += ',';
+  out += "autosave="; base::to_str( o.autosave, out ); out += ',';
+  out += "end_of_turn="; base::to_str( o.end_of_turn, out ); out += ',';
+  out += "fast_piece_slide="; base::to_str( o.fast_piece_slide, out ); out += ',';
+  out += "cheats_enabled="; base::to_str( o.cheats_enabled, out ); out += ',';
+  out += "show_foreign_moves="; base::to_str( o.show_foreign_moves, out ); out += ',';
+  out += "show_indian_moves="; base::to_str( o.show_indian_moves, out );
   out += '}';
 }
 
@@ -2022,19 +2022,19 @@ cdr::result<GameOptions> from_canonical(
 /****************************************************************
 ** ColonyReportOptionsToDisable
 *****************************************************************/
-void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::ADL_t t ) {
+void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::tag<ColonyReportOptionsToDisable> ) {
   out += "ColonyReportOptionsToDisable{";
-  out += "labels_on_cargo_and_terrain="; to_str( o.labels_on_cargo_and_terrain, out, t ); out += ',';
-  out += "labels_on_buildings="; to_str( o.labels_on_buildings, out, t ); out += ',';
-  out += "report_new_cargos_available="; to_str( o.report_new_cargos_available, out, t ); out += ',';
-  out += "report_inefficient_government="; to_str( o.report_inefficient_government, out, t ); out += ',';
-  out += "report_tools_needed_for_production="; to_str( o.report_tools_needed_for_production, out, t ); out += ',';
-  out += "report_raw_materials_shortages="; to_str( o.report_raw_materials_shortages, out, t ); out += ',';
-  out += "report_food_shortages="; to_str( o.report_food_shortages, out, t ); out += ',';
-  out += "report_when_colonists_trained="; to_str( o.report_when_colonists_trained, out, t ); out += ',';
-  out += "report_sons_of_liberty_membership="; to_str( o.report_sons_of_liberty_membership, out, t ); out += ',';
-  out += "report_rebel_majorities="; to_str( o.report_rebel_majorities, out, t ); out += ',';
-  out += "unused03="; to_str( bits<6>{ o.unused03 }, out, t );
+  out += "labels_on_cargo_and_terrain="; base::to_str( o.labels_on_cargo_and_terrain, out ); out += ',';
+  out += "labels_on_buildings="; base::to_str( o.labels_on_buildings, out ); out += ',';
+  out += "report_new_cargos_available="; base::to_str( o.report_new_cargos_available, out ); out += ',';
+  out += "report_inefficient_government="; base::to_str( o.report_inefficient_government, out ); out += ',';
+  out += "report_tools_needed_for_production="; base::to_str( o.report_tools_needed_for_production, out ); out += ',';
+  out += "report_raw_materials_shortages="; base::to_str( o.report_raw_materials_shortages, out ); out += ',';
+  out += "report_food_shortages="; base::to_str( o.report_food_shortages, out ); out += ',';
+  out += "report_when_colonists_trained="; base::to_str( o.report_when_colonists_trained, out ); out += ',';
+  out += "report_sons_of_liberty_membership="; base::to_str( o.report_sons_of_liberty_membership, out ); out += ',';
+  out += "report_rebel_majorities="; base::to_str( o.report_rebel_majorities, out ); out += ',';
+  out += "unused03="; base::to_str( bits<6>{ o.unused03 }, out );
   out += '}';
 }
 
@@ -2128,24 +2128,24 @@ cdr::result<ColonyReportOptionsToDisable> from_canonical(
 /****************************************************************
 ** Flags
 *****************************************************************/
-void to_str( Flags const& o, std::string& out, base::ADL_t t ) {
+void to_str( Flags const& o, std::string& out, base::tag<Flags> ) {
   out += "Flags{";
-  out += "how_to_win="; to_str( o.how_to_win, out, t ); out += ',';
-  out += "background_music="; to_str( o.background_music, out, t ); out += ',';
-  out += "event_music="; to_str( o.event_music, out, t ); out += ',';
-  out += "sound_effects="; to_str( o.sound_effects, out, t ); out += ',';
-  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
-  out += "unknown01="; to_str( o.unknown01, out, t ); out += ',';
-  out += "unknown02="; to_str( o.unknown02, out, t ); out += ',';
-  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
-  out += "unknown04="; to_str( o.unknown04, out, t ); out += ',';
-  out += "unknown05="; to_str( o.unknown05, out, t ); out += ',';
-  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
-  out += "unknown07="; to_str( o.unknown07, out, t ); out += ',';
-  out += "unknown08="; to_str( o.unknown08, out, t ); out += ',';
-  out += "unknown09="; to_str( o.unknown09, out, t ); out += ',';
-  out += "unknown10="; to_str( o.unknown10, out, t ); out += ',';
-  out += "unknown11="; to_str( o.unknown11, out, t );
+  out += "how_to_win="; base::to_str( o.how_to_win, out ); out += ',';
+  out += "background_music="; base::to_str( o.background_music, out ); out += ',';
+  out += "event_music="; base::to_str( o.event_music, out ); out += ',';
+  out += "sound_effects="; base::to_str( o.sound_effects, out ); out += ',';
+  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
+  out += "unknown01="; base::to_str( o.unknown01, out ); out += ',';
+  out += "unknown02="; base::to_str( o.unknown02, out ); out += ',';
+  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
+  out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
+  out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
+  out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
+  out += "unknown07="; base::to_str( o.unknown07, out ); out += ',';
+  out += "unknown08="; base::to_str( o.unknown08, out ); out += ',';
+  out += "unknown09="; base::to_str( o.unknown09, out ); out += ',';
+  out += "unknown10="; base::to_str( o.unknown10, out ); out += ',';
+  out += "unknown11="; base::to_str( o.unknown11, out );
   out += '}';
 }
 
@@ -2264,24 +2264,24 @@ cdr::result<Flags> from_canonical(
 /****************************************************************
 ** Event
 *****************************************************************/
-void to_str( Event const& o, std::string& out, base::ADL_t t ) {
+void to_str( Event const& o, std::string& out, base::tag<Event> ) {
   out += "Event{";
-  out += "discovery_of_the_new_world="; to_str( o.discovery_of_the_new_world, out, t ); out += ',';
-  out += "building_a_colony="; to_str( o.building_a_colony, out, t ); out += ',';
-  out += "meeting_the_natives="; to_str( o.meeting_the_natives, out, t ); out += ',';
-  out += "the_aztec_empire="; to_str( o.the_aztec_empire, out, t ); out += ',';
-  out += "the_inca_nation="; to_str( o.the_inca_nation, out, t ); out += ',';
-  out += "discovery_of_the_pacific_ocean="; to_str( o.discovery_of_the_pacific_ocean, out, t ); out += ',';
-  out += "entering_indian_village="; to_str( o.entering_indian_village, out, t ); out += ',';
-  out += "the_fountain_of_youth="; to_str( o.the_fountain_of_youth, out, t ); out += ',';
-  out += "cargo_from_the_new_world="; to_str( o.cargo_from_the_new_world, out, t ); out += ',';
-  out += "meeting_fellow_europeans="; to_str( o.meeting_fellow_europeans, out, t ); out += ',';
-  out += "colony_burning="; to_str( o.colony_burning, out, t ); out += ',';
-  out += "colony_destroyed="; to_str( o.colony_destroyed, out, t ); out += ',';
-  out += "indian_raid="; to_str( o.indian_raid, out, t ); out += ',';
-  out += "woodcut14="; to_str( o.woodcut14, out, t ); out += ',';
-  out += "woodcut15="; to_str( o.woodcut15, out, t ); out += ',';
-  out += "woodcut16="; to_str( o.woodcut16, out, t );
+  out += "discovery_of_the_new_world="; base::to_str( o.discovery_of_the_new_world, out ); out += ',';
+  out += "building_a_colony="; base::to_str( o.building_a_colony, out ); out += ',';
+  out += "meeting_the_natives="; base::to_str( o.meeting_the_natives, out ); out += ',';
+  out += "the_aztec_empire="; base::to_str( o.the_aztec_empire, out ); out += ',';
+  out += "the_inca_nation="; base::to_str( o.the_inca_nation, out ); out += ',';
+  out += "discovery_of_the_pacific_ocean="; base::to_str( o.discovery_of_the_pacific_ocean, out ); out += ',';
+  out += "entering_indian_village="; base::to_str( o.entering_indian_village, out ); out += ',';
+  out += "the_fountain_of_youth="; base::to_str( o.the_fountain_of_youth, out ); out += ',';
+  out += "cargo_from_the_new_world="; base::to_str( o.cargo_from_the_new_world, out ); out += ',';
+  out += "meeting_fellow_europeans="; base::to_str( o.meeting_fellow_europeans, out ); out += ',';
+  out += "colony_burning="; base::to_str( o.colony_burning, out ); out += ',';
+  out += "colony_destroyed="; base::to_str( o.colony_destroyed, out ); out += ',';
+  out += "indian_raid="; base::to_str( o.indian_raid, out ); out += ',';
+  out += "woodcut14="; base::to_str( o.woodcut14, out ); out += ',';
+  out += "woodcut15="; base::to_str( o.woodcut15, out ); out += ',';
+  out += "woodcut16="; base::to_str( o.woodcut16, out );
   out += '}';
 }
 
@@ -2400,10 +2400,10 @@ cdr::result<Event> from_canonical(
 /****************************************************************
 ** PlayerFlags
 *****************************************************************/
-void to_str( PlayerFlags const& o, std::string& out, base::ADL_t t ) {
+void to_str( PlayerFlags const& o, std::string& out, base::tag<PlayerFlags> ) {
   out += "PlayerFlags{";
-  out += "unknown06a="; to_str( bits<7>{ o.unknown06a }, out, t ); out += ',';
-  out += "named_new_world="; to_str( o.named_new_world, out, t );
+  out += "unknown06a="; base::to_str( bits<7>{ o.unknown06a }, out ); out += ',';
+  out += "named_new_world="; base::to_str( o.named_new_world, out );
   out += '}';
 }
 
@@ -2452,16 +2452,16 @@ cdr::result<PlayerFlags> from_canonical(
 /****************************************************************
 ** ColonyFlags
 *****************************************************************/
-void to_str( ColonyFlags const& o, std::string& out, base::ADL_t t ) {
+void to_str( ColonyFlags const& o, std::string& out, base::tag<ColonyFlags> ) {
   out += "ColonyFlags{";
-  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
-  out += "level2_sol_bonus="; to_str( o.level2_sol_bonus, out, t ); out += ',';
-  out += "level1_sol_bonus="; to_str( o.level1_sol_bonus, out, t ); out += ',';
-  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
-  out += "unknown04="; to_str( o.unknown04, out, t ); out += ',';
-  out += "unknown05="; to_str( o.unknown05, out, t ); out += ',';
-  out += "unknown06="; to_str( o.unknown06, out, t ); out += ',';
-  out += "construction_complete_blinking="; to_str( o.construction_complete_blinking, out, t );
+  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
+  out += "level2_sol_bonus="; base::to_str( o.level2_sol_bonus, out ); out += ',';
+  out += "level1_sol_bonus="; base::to_str( o.level1_sol_bonus, out ); out += ',';
+  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
+  out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
+  out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
+  out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
+  out += "construction_complete_blinking="; base::to_str( o.construction_complete_blinking, out );
   out += '}';
 }
 
@@ -2540,10 +2540,10 @@ cdr::result<ColonyFlags> from_canonical(
 /****************************************************************
 ** Duration
 *****************************************************************/
-void to_str( Duration const& o, std::string& out, base::ADL_t t ) {
+void to_str( Duration const& o, std::string& out, base::tag<Duration> ) {
   out += "Duration{";
-  out += "dur_1="; to_str( o.dur_1, out, t ); out += ',';
-  out += "dur_2="; to_str( o.dur_2, out, t );
+  out += "dur_1="; base::to_str( o.dur_1, out ); out += ',';
+  out += "dur_2="; base::to_str( o.dur_2, out );
   out += '}';
 }
 
@@ -2592,27 +2592,27 @@ cdr::result<Duration> from_canonical(
 /****************************************************************
 ** Buildings
 *****************************************************************/
-void to_str( Buildings const& o, std::string& out, base::ADL_t t ) {
+void to_str( Buildings const& o, std::string& out, base::tag<Buildings> ) {
   out += "Buildings{";
-  out += "fortification="; to_str( o.fortification, out, t ); out += ',';
-  out += "armory="; to_str( o.armory, out, t ); out += ',';
-  out += "docks="; to_str( o.docks, out, t ); out += ',';
-  out += "town_hall="; to_str( o.town_hall, out, t ); out += ',';
-  out += "schoolhouse="; to_str( o.schoolhouse, out, t ); out += ',';
-  out += "warehouse="; to_str( o.warehouse, out, t ); out += ',';
-  out += "unused05a="; to_str( o.unused05a, out, t ); out += ',';
-  out += "stables="; to_str( o.stables, out, t ); out += ',';
-  out += "custom_house="; to_str( o.custom_house, out, t ); out += ',';
-  out += "printing_press="; to_str( o.printing_press, out, t ); out += ',';
-  out += "weavers_house="; to_str( o.weavers_house, out, t ); out += ',';
-  out += "tobacconists_house="; to_str( o.tobacconists_house, out, t ); out += ',';
-  out += "rum_distillers_house="; to_str( o.rum_distillers_house, out, t ); out += ',';
-  out += "capitol_unused="; to_str( o.capitol_unused, out, t ); out += ',';
-  out += "fur_traders_house="; to_str( o.fur_traders_house, out, t ); out += ',';
-  out += "carpenters_shop="; to_str( o.carpenters_shop, out, t ); out += ',';
-  out += "church="; to_str( o.church, out, t ); out += ',';
-  out += "blacksmiths_house="; to_str( o.blacksmiths_house, out, t ); out += ',';
-  out += "unused05b="; to_str( bits<6>{ o.unused05b }, out, t );
+  out += "fortification="; base::to_str( o.fortification, out ); out += ',';
+  out += "armory="; base::to_str( o.armory, out ); out += ',';
+  out += "docks="; base::to_str( o.docks, out ); out += ',';
+  out += "town_hall="; base::to_str( o.town_hall, out ); out += ',';
+  out += "schoolhouse="; base::to_str( o.schoolhouse, out ); out += ',';
+  out += "warehouse="; base::to_str( o.warehouse, out ); out += ',';
+  out += "unused05a="; base::to_str( o.unused05a, out ); out += ',';
+  out += "stables="; base::to_str( o.stables, out ); out += ',';
+  out += "custom_house="; base::to_str( o.custom_house, out ); out += ',';
+  out += "printing_press="; base::to_str( o.printing_press, out ); out += ',';
+  out += "weavers_house="; base::to_str( o.weavers_house, out ); out += ',';
+  out += "tobacconists_house="; base::to_str( o.tobacconists_house, out ); out += ',';
+  out += "rum_distillers_house="; base::to_str( o.rum_distillers_house, out ); out += ',';
+  out += "capitol_unused="; base::to_str( o.capitol_unused, out ); out += ',';
+  out += "fur_traders_house="; base::to_str( o.fur_traders_house, out ); out += ',';
+  out += "carpenters_shop="; base::to_str( o.carpenters_shop, out ); out += ',';
+  out += "church="; base::to_str( o.church, out ); out += ',';
+  out += "blacksmiths_house="; base::to_str( o.blacksmiths_house, out ); out += ',';
+  out += "unused05b="; base::to_str( bits<6>{ o.unused05b }, out );
   out += '}';
 }
 
@@ -2746,24 +2746,24 @@ cdr::result<Buildings> from_canonical(
 /****************************************************************
 ** CustomHouseFlags
 *****************************************************************/
-void to_str( CustomHouseFlags const& o, std::string& out, base::ADL_t t ) {
+void to_str( CustomHouseFlags const& o, std::string& out, base::tag<CustomHouseFlags> ) {
   out += "CustomHouseFlags{";
-  out += "food="; to_str( o.food, out, t ); out += ',';
-  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
-  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
-  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
-  out += "furs="; to_str( o.furs, out, t ); out += ',';
-  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
-  out += "ore="; to_str( o.ore, out, t ); out += ',';
-  out += "silver="; to_str( o.silver, out, t ); out += ',';
-  out += "horses="; to_str( o.horses, out, t ); out += ',';
-  out += "rum="; to_str( o.rum, out, t ); out += ',';
-  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
-  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
-  out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
-  out += "tools="; to_str( o.tools, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t );
+  out += "food="; base::to_str( o.food, out ); out += ',';
+  out += "sugar="; base::to_str( o.sugar, out ); out += ',';
+  out += "tobacco="; base::to_str( o.tobacco, out ); out += ',';
+  out += "cotton="; base::to_str( o.cotton, out ); out += ',';
+  out += "furs="; base::to_str( o.furs, out ); out += ',';
+  out += "lumber="; base::to_str( o.lumber, out ); out += ',';
+  out += "ore="; base::to_str( o.ore, out ); out += ',';
+  out += "silver="; base::to_str( o.silver, out ); out += ',';
+  out += "horses="; base::to_str( o.horses, out ); out += ',';
+  out += "rum="; base::to_str( o.rum, out ); out += ',';
+  out += "cigars="; base::to_str( o.cigars, out ); out += ',';
+  out += "cloth="; base::to_str( o.cloth, out ); out += ',';
+  out += "coats="; base::to_str( o.coats, out ); out += ',';
+  out += "trade_goods="; base::to_str( o.trade_goods, out ); out += ',';
+  out += "tools="; base::to_str( o.tools, out ); out += ',';
+  out += "muskets="; base::to_str( o.muskets, out );
   out += '}';
 }
 
@@ -2882,13 +2882,13 @@ cdr::result<CustomHouseFlags> from_canonical(
 /****************************************************************
 ** NationInfo
 *****************************************************************/
-void to_str( NationInfo const& o, std::string& out, base::ADL_t t ) {
+void to_str( NationInfo const& o, std::string& out, base::tag<NationInfo> ) {
   out += "NationInfo{";
-  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
-  out += "vis_to_english="; to_str( o.vis_to_english, out, t ); out += ',';
-  out += "vis_to_french="; to_str( o.vis_to_french, out, t ); out += ',';
-  out += "vis_to_spanish="; to_str( o.vis_to_spanish, out, t ); out += ',';
-  out += "vis_to_dutch="; to_str( o.vis_to_dutch, out, t );
+  out += "nation_id="; base::to_str( o.nation_id, out ); out += ',';
+  out += "vis_to_english="; base::to_str( o.vis_to_english, out ); out += ',';
+  out += "vis_to_french="; base::to_str( o.vis_to_french, out ); out += ',';
+  out += "vis_to_spanish="; base::to_str( o.vis_to_spanish, out ); out += ',';
+  out += "vis_to_dutch="; base::to_str( o.vis_to_dutch, out );
   out += '}';
 }
 
@@ -2952,10 +2952,10 @@ cdr::result<NationInfo> from_canonical(
 /****************************************************************
 ** Unknown15
 *****************************************************************/
-void to_str( Unknown15 const& o, std::string& out, base::ADL_t t ) {
+void to_str( Unknown15 const& o, std::string& out, base::tag<Unknown15> ) {
   out += "Unknown15{";
-  out += "unknown15a="; to_str( bits<7>{ o.unknown15a }, out, t ); out += ',';
-  out += "damaged="; to_str( o.damaged, out, t );
+  out += "unknown15a="; base::to_str( bits<7>{ o.unknown15a }, out ); out += ',';
+  out += "damaged="; base::to_str( o.damaged, out );
   out += '}';
 }
 
@@ -3004,10 +3004,10 @@ cdr::result<Unknown15> from_canonical(
 /****************************************************************
 ** CargoItems
 *****************************************************************/
-void to_str( CargoItems const& o, std::string& out, base::ADL_t t ) {
+void to_str( CargoItems const& o, std::string& out, base::tag<CargoItems> ) {
   out += "CargoItems{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out );
   out += '}';
 }
 
@@ -3056,34 +3056,34 @@ cdr::result<CargoItems> from_canonical(
 /****************************************************************
 ** FoundingFathers
 *****************************************************************/
-void to_str( FoundingFathers const& o, std::string& out, base::ADL_t t ) {
+void to_str( FoundingFathers const& o, std::string& out, base::tag<FoundingFathers> ) {
   out += "FoundingFathers{";
-  out += "adam_smith="; to_str( o.adam_smith, out, t ); out += ',';
-  out += "jakob_fugger="; to_str( o.jakob_fugger, out, t ); out += ',';
-  out += "peter_minuit="; to_str( o.peter_minuit, out, t ); out += ',';
-  out += "peter_stuyvesant="; to_str( o.peter_stuyvesant, out, t ); out += ',';
-  out += "jan_de_witt="; to_str( o.jan_de_witt, out, t ); out += ',';
-  out += "ferdinand_magellan="; to_str( o.ferdinand_magellan, out, t ); out += ',';
-  out += "francisco_coronado="; to_str( o.francisco_coronado, out, t ); out += ',';
-  out += "hernando_de_soto="; to_str( o.hernando_de_soto, out, t ); out += ',';
-  out += "henry_hudson="; to_str( o.henry_hudson, out, t ); out += ',';
-  out += "sieur_de_la_salle="; to_str( o.sieur_de_la_salle, out, t ); out += ',';
-  out += "hernan_cortes="; to_str( o.hernan_cortes, out, t ); out += ',';
-  out += "george_washington="; to_str( o.george_washington, out, t ); out += ',';
-  out += "paul_revere="; to_str( o.paul_revere, out, t ); out += ',';
-  out += "francis_drake="; to_str( o.francis_drake, out, t ); out += ',';
-  out += "john_paul_jones="; to_str( o.john_paul_jones, out, t ); out += ',';
-  out += "thomas_jefferson="; to_str( o.thomas_jefferson, out, t ); out += ',';
-  out += "pocahontas="; to_str( o.pocahontas, out, t ); out += ',';
-  out += "thomas_paine="; to_str( o.thomas_paine, out, t ); out += ',';
-  out += "simon_bolivar="; to_str( o.simon_bolivar, out, t ); out += ',';
-  out += "benjamin_franklin="; to_str( o.benjamin_franklin, out, t ); out += ',';
-  out += "william_brewster="; to_str( o.william_brewster, out, t ); out += ',';
-  out += "william_penn="; to_str( o.william_penn, out, t ); out += ',';
-  out += "jean_de_brebeuf="; to_str( o.jean_de_brebeuf, out, t ); out += ',';
-  out += "juan_de_sepulveda="; to_str( o.juan_de_sepulveda, out, t ); out += ',';
-  out += "bartolme_de_las_casas="; to_str( o.bartolme_de_las_casas, out, t ); out += ',';
-  out += "unknown00="; to_str( bits<7>{ o.unknown00 }, out, t );
+  out += "adam_smith="; base::to_str( o.adam_smith, out ); out += ',';
+  out += "jakob_fugger="; base::to_str( o.jakob_fugger, out ); out += ',';
+  out += "peter_minuit="; base::to_str( o.peter_minuit, out ); out += ',';
+  out += "peter_stuyvesant="; base::to_str( o.peter_stuyvesant, out ); out += ',';
+  out += "jan_de_witt="; base::to_str( o.jan_de_witt, out ); out += ',';
+  out += "ferdinand_magellan="; base::to_str( o.ferdinand_magellan, out ); out += ',';
+  out += "francisco_coronado="; base::to_str( o.francisco_coronado, out ); out += ',';
+  out += "hernando_de_soto="; base::to_str( o.hernando_de_soto, out ); out += ',';
+  out += "henry_hudson="; base::to_str( o.henry_hudson, out ); out += ',';
+  out += "sieur_de_la_salle="; base::to_str( o.sieur_de_la_salle, out ); out += ',';
+  out += "hernan_cortes="; base::to_str( o.hernan_cortes, out ); out += ',';
+  out += "george_washington="; base::to_str( o.george_washington, out ); out += ',';
+  out += "paul_revere="; base::to_str( o.paul_revere, out ); out += ',';
+  out += "francis_drake="; base::to_str( o.francis_drake, out ); out += ',';
+  out += "john_paul_jones="; base::to_str( o.john_paul_jones, out ); out += ',';
+  out += "thomas_jefferson="; base::to_str( o.thomas_jefferson, out ); out += ',';
+  out += "pocahontas="; base::to_str( o.pocahontas, out ); out += ',';
+  out += "thomas_paine="; base::to_str( o.thomas_paine, out ); out += ',';
+  out += "simon_bolivar="; base::to_str( o.simon_bolivar, out ); out += ',';
+  out += "benjamin_franklin="; base::to_str( o.benjamin_franklin, out ); out += ',';
+  out += "william_brewster="; base::to_str( o.william_brewster, out ); out += ',';
+  out += "william_penn="; base::to_str( o.william_penn, out ); out += ',';
+  out += "jean_de_brebeuf="; base::to_str( o.jean_de_brebeuf, out ); out += ',';
+  out += "juan_de_sepulveda="; base::to_str( o.juan_de_sepulveda, out ); out += ',';
+  out += "bartolme_de_las_casas="; base::to_str( o.bartolme_de_las_casas, out ); out += ',';
+  out += "unknown00="; base::to_str( bits<7>{ o.unknown00 }, out );
   out += '}';
 }
 
@@ -3252,24 +3252,24 @@ cdr::result<FoundingFathers> from_canonical(
 /****************************************************************
 ** BoycottBitmap
 *****************************************************************/
-void to_str( BoycottBitmap const& o, std::string& out, base::ADL_t t ) {
+void to_str( BoycottBitmap const& o, std::string& out, base::tag<BoycottBitmap> ) {
   out += "BoycottBitmap{";
-  out += "food="; to_str( o.food, out, t ); out += ',';
-  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
-  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
-  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
-  out += "furs="; to_str( o.furs, out, t ); out += ',';
-  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
-  out += "ore="; to_str( o.ore, out, t ); out += ',';
-  out += "silver="; to_str( o.silver, out, t ); out += ',';
-  out += "horses="; to_str( o.horses, out, t ); out += ',';
-  out += "rum="; to_str( o.rum, out, t ); out += ',';
-  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
-  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
-  out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
-  out += "tools="; to_str( o.tools, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t );
+  out += "food="; base::to_str( o.food, out ); out += ',';
+  out += "sugar="; base::to_str( o.sugar, out ); out += ',';
+  out += "tobacco="; base::to_str( o.tobacco, out ); out += ',';
+  out += "cotton="; base::to_str( o.cotton, out ); out += ',';
+  out += "furs="; base::to_str( o.furs, out ); out += ',';
+  out += "lumber="; base::to_str( o.lumber, out ); out += ',';
+  out += "ore="; base::to_str( o.ore, out ); out += ',';
+  out += "silver="; base::to_str( o.silver, out ); out += ',';
+  out += "horses="; base::to_str( o.horses, out ); out += ',';
+  out += "rum="; base::to_str( o.rum, out ); out += ',';
+  out += "cigars="; base::to_str( o.cigars, out ); out += ',';
+  out += "cloth="; base::to_str( o.cloth, out ); out += ',';
+  out += "coats="; base::to_str( o.coats, out ); out += ',';
+  out += "trade_goods="; base::to_str( o.trade_goods, out ); out += ',';
+  out += "tools="; base::to_str( o.tools, out ); out += ',';
+  out += "muskets="; base::to_str( o.muskets, out );
   out += '}';
 }
 
@@ -3388,11 +3388,11 @@ cdr::result<BoycottBitmap> from_canonical(
 /****************************************************************
 ** RelationByNations
 *****************************************************************/
-void to_str( RelationByNations const& o, std::string& out, base::ADL_t t ) {
+void to_str( RelationByNations const& o, std::string& out, base::tag<RelationByNations> ) {
   out += "RelationByNations{";
-  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
-  out += "status="; to_str( o.status, out, t ); out += ',';
-  out += "irritated_by_piracy="; to_str( o.irritated_by_piracy, out, t );
+  out += "attitudeq="; base::to_str( o.attitudeq, out ); out += ',';
+  out += "status="; base::to_str( o.status, out ); out += ',';
+  out += "irritated_by_piracy="; base::to_str( o.irritated_by_piracy, out );
   out += '}';
 }
 
@@ -3446,11 +3446,11 @@ cdr::result<RelationByNations> from_canonical(
 /****************************************************************
 ** RelationByIndian
 *****************************************************************/
-void to_str( RelationByIndian const& o, std::string& out, base::ADL_t t ) {
+void to_str( RelationByIndian const& o, std::string& out, base::tag<RelationByIndian> ) {
   out += "RelationByIndian{";
-  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
-  out += "status="; to_str( o.status, out, t ); out += ',';
-  out += "unused="; to_str( o.unused, out, t );
+  out += "attitudeq="; base::to_str( o.attitudeq, out ); out += ',';
+  out += "status="; base::to_str( o.status, out ); out += ',';
+  out += "unused="; base::to_str( o.unused, out );
   out += '}';
 }
 
@@ -3504,13 +3504,13 @@ cdr::result<RelationByIndian> from_canonical(
 /****************************************************************
 ** BLCS
 *****************************************************************/
-void to_str( BLCS const& o, std::string& out, base::ADL_t t ) {
+void to_str( BLCS const& o, std::string& out, base::tag<BLCS> ) {
   out += "BLCS{";
-  out += "brave_missing="; to_str( o.brave_missing, out, t ); out += ',';
-  out += "learned="; to_str( o.learned, out, t ); out += ',';
-  out += "capital="; to_str( o.capital, out, t ); out += ',';
-  out += "scouted="; to_str( o.scouted, out, t ); out += ',';
-  out += "unused09="; to_str( bits<4>{ o.unused09 }, out, t );
+  out += "brave_missing="; base::to_str( o.brave_missing, out ); out += ',';
+  out += "learned="; base::to_str( o.learned, out ); out += ',';
+  out += "capital="; base::to_str( o.capital, out ); out += ',';
+  out += "scouted="; base::to_str( o.scouted, out ); out += ',';
+  out += "unused09="; base::to_str( bits<4>{ o.unused09 }, out );
   out += '}';
 }
 
@@ -3574,10 +3574,10 @@ cdr::result<BLCS> from_canonical(
 /****************************************************************
 ** TribeFlags
 *****************************************************************/
-void to_str( TribeFlags const& o, std::string& out, base::ADL_t t ) {
+void to_str( TribeFlags const& o, std::string& out, base::tag<TribeFlags> ) {
   out += "TribeFlags{";
-  out += "unknown01="; to_str( bits<7>{ o.unknown01 }, out, t ); out += ',';
-  out += "extinct="; to_str( o.extinct, out, t );
+  out += "unknown01="; base::to_str( bits<7>{ o.unknown01 }, out ); out += ',';
+  out += "extinct="; base::to_str( o.extinct, out );
   out += '}';
 }
 
@@ -3626,11 +3626,11 @@ cdr::result<TribeFlags> from_canonical(
 /****************************************************************
 ** RelationByNations2
 *****************************************************************/
-void to_str( RelationByNations2 const& o, std::string& out, base::ADL_t t ) {
+void to_str( RelationByNations2 const& o, std::string& out, base::tag<RelationByNations2> ) {
   out += "RelationByNations2{";
-  out += "attitudeq="; to_str( o.attitudeq, out, t ); out += ',';
-  out += "status="; to_str( o.status, out, t ); out += ',';
-  out += "unused="; to_str( o.unused, out, t );
+  out += "attitudeq="; base::to_str( o.attitudeq, out ); out += ',';
+  out += "status="; base::to_str( o.status, out ); out += ',';
+  out += "unused="; base::to_str( o.unused, out );
   out += '}';
 }
 
@@ -3684,10 +3684,10 @@ cdr::result<RelationByNations2> from_canonical(
 /****************************************************************
 ** TILE
 *****************************************************************/
-void to_str( TILE const& o, std::string& out, base::ADL_t t ) {
+void to_str( TILE const& o, std::string& out, base::tag<TILE> ) {
   out += "TILE{";
-  out += "tile="; to_str( o.tile, out, t ); out += ',';
-  out += "hill_river="; to_str( o.hill_river, out, t );
+  out += "tile="; base::to_str( o.tile, out ); out += ',';
+  out += "hill_river="; base::to_str( o.hill_river, out );
   out += '}';
 }
 
@@ -3736,16 +3736,16 @@ cdr::result<TILE> from_canonical(
 /****************************************************************
 ** MASK
 *****************************************************************/
-void to_str( MASK const& o, std::string& out, base::ADL_t t ) {
+void to_str( MASK const& o, std::string& out, base::tag<MASK> ) {
   out += "MASK{";
-  out += "has_unit="; to_str( o.has_unit, out, t ); out += ',';
-  out += "has_city="; to_str( o.has_city, out, t ); out += ',';
-  out += "suppress="; to_str( o.suppress, out, t ); out += ',';
-  out += "road="; to_str( o.road, out, t ); out += ',';
-  out += "purchased="; to_str( o.purchased, out, t ); out += ',';
-  out += "pacific="; to_str( o.pacific, out, t ); out += ',';
-  out += "plowed="; to_str( o.plowed, out, t ); out += ',';
-  out += "unused="; to_str( o.unused, out, t );
+  out += "has_unit="; base::to_str( o.has_unit, out ); out += ',';
+  out += "has_city="; base::to_str( o.has_city, out ); out += ',';
+  out += "suppress="; base::to_str( o.suppress, out ); out += ',';
+  out += "road="; base::to_str( o.road, out ); out += ',';
+  out += "purchased="; base::to_str( o.purchased, out ); out += ',';
+  out += "pacific="; base::to_str( o.pacific, out ); out += ',';
+  out += "plowed="; base::to_str( o.plowed, out ); out += ',';
+  out += "unused="; base::to_str( o.unused, out );
   out += '}';
 }
 
@@ -3824,10 +3824,10 @@ cdr::result<MASK> from_canonical(
 /****************************************************************
 ** PATH
 *****************************************************************/
-void to_str( PATH const& o, std::string& out, base::ADL_t t ) {
+void to_str( PATH const& o, std::string& out, base::tag<PATH> ) {
   out += "PATH{";
-  out += "region_id="; to_str( o.region_id, out, t ); out += ',';
-  out += "visitor_nation="; to_str( o.visitor_nation, out, t );
+  out += "region_id="; base::to_str( o.region_id, out ); out += ',';
+  out += "visitor_nation="; base::to_str( o.visitor_nation, out );
   out += '}';
 }
 
@@ -3876,13 +3876,13 @@ cdr::result<PATH> from_canonical(
 /****************************************************************
 ** SEEN
 *****************************************************************/
-void to_str( SEEN const& o, std::string& out, base::ADL_t t ) {
+void to_str( SEEN const& o, std::string& out, base::tag<SEEN> ) {
   out += "SEEN{";
-  out += "score="; to_str( o.score, out, t ); out += ',';
-  out += "vis2en="; to_str( o.vis2en, out, t ); out += ',';
-  out += "vis2fr="; to_str( o.vis2fr, out, t ); out += ',';
-  out += "vis2sp="; to_str( o.vis2sp, out, t ); out += ',';
-  out += "vis2du="; to_str( o.vis2du, out, t );
+  out += "score="; base::to_str( o.score, out ); out += ',';
+  out += "vis2en="; base::to_str( o.vis2en, out ); out += ',';
+  out += "vis2fr="; base::to_str( o.vis2fr, out ); out += ',';
+  out += "vis2sp="; base::to_str( o.vis2sp, out ); out += ',';
+  out += "vis2du="; base::to_str( o.vis2du, out );
   out += '}';
 }
 
@@ -3946,16 +3946,16 @@ cdr::result<SEEN> from_canonical(
 /****************************************************************
 ** SeaLaneConnectivity
 *****************************************************************/
-void to_str( SeaLaneConnectivity const& o, std::string& out, base::ADL_t t ) {
+void to_str( SeaLaneConnectivity const& o, std::string& out, base::tag<SeaLaneConnectivity> ) {
   out += "SeaLaneConnectivity{";
-  out += "north="; to_str( o.north, out, t ); out += ',';
-  out += "neast="; to_str( o.neast, out, t ); out += ',';
-  out += "east="; to_str( o.east, out, t ); out += ',';
-  out += "seast="; to_str( o.seast, out, t ); out += ',';
-  out += "south="; to_str( o.south, out, t ); out += ',';
-  out += "swest="; to_str( o.swest, out, t ); out += ',';
-  out += "west="; to_str( o.west, out, t ); out += ',';
-  out += "nwest="; to_str( o.nwest, out, t );
+  out += "north="; base::to_str( o.north, out ); out += ',';
+  out += "neast="; base::to_str( o.neast, out ); out += ',';
+  out += "east="; base::to_str( o.east, out ); out += ',';
+  out += "seast="; base::to_str( o.seast, out ); out += ',';
+  out += "south="; base::to_str( o.south, out ); out += ',';
+  out += "swest="; base::to_str( o.swest, out ); out += ',';
+  out += "west="; base::to_str( o.west, out ); out += ',';
+  out += "nwest="; base::to_str( o.nwest, out );
   out += '}';
 }
 
@@ -4034,16 +4034,16 @@ cdr::result<SeaLaneConnectivity> from_canonical(
 /****************************************************************
 ** LandConnectivity
 *****************************************************************/
-void to_str( LandConnectivity const& o, std::string& out, base::ADL_t t ) {
+void to_str( LandConnectivity const& o, std::string& out, base::tag<LandConnectivity> ) {
   out += "LandConnectivity{";
-  out += "north="; to_str( o.north, out, t ); out += ',';
-  out += "neast="; to_str( o.neast, out, t ); out += ',';
-  out += "east="; to_str( o.east, out, t ); out += ',';
-  out += "seast="; to_str( o.seast, out, t ); out += ',';
-  out += "south="; to_str( o.south, out, t ); out += ',';
-  out += "swest="; to_str( o.swest, out, t ); out += ',';
-  out += "west="; to_str( o.west, out, t ); out += ',';
-  out += "nwest="; to_str( o.nwest, out, t );
+  out += "north="; base::to_str( o.north, out ); out += ',';
+  out += "neast="; base::to_str( o.neast, out ); out += ',';
+  out += "east="; base::to_str( o.east, out ); out += ',';
+  out += "seast="; base::to_str( o.seast, out ); out += ',';
+  out += "south="; base::to_str( o.south, out ); out += ',';
+  out += "swest="; base::to_str( o.swest, out ); out += ',';
+  out += "west="; base::to_str( o.west, out ); out += ',';
+  out += "nwest="; base::to_str( o.nwest, out );
   out += '}';
 }
 
@@ -4122,10 +4122,10 @@ cdr::result<LandConnectivity> from_canonical(
 /****************************************************************
 ** Stop1LoadsAndUnloadsCount
 *****************************************************************/
-void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop1LoadsAndUnloadsCount> ) {
   out += "Stop1LoadsAndUnloadsCount{";
-  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
-  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
+  out += "loads_count="; base::to_str( o.loads_count, out );
   out += '}';
 }
 
@@ -4174,14 +4174,14 @@ cdr::result<Stop1LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop1LoadsCargo
 *****************************************************************/
-void to_str( Stop1LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop1LoadsCargo const& o, std::string& out, base::tag<Stop1LoadsCargo> ) {
   out += "Stop1LoadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4250,14 +4250,14 @@ cdr::result<Stop1LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop1UnloadsCargo
 *****************************************************************/
-void to_str( Stop1UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop1UnloadsCargo const& o, std::string& out, base::tag<Stop1UnloadsCargo> ) {
   out += "Stop1UnloadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4326,10 +4326,10 @@ cdr::result<Stop1UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop2LoadsAndUnloadsCount
 *****************************************************************/
-void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop2LoadsAndUnloadsCount> ) {
   out += "Stop2LoadsAndUnloadsCount{";
-  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
-  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
+  out += "loads_count="; base::to_str( o.loads_count, out );
   out += '}';
 }
 
@@ -4378,14 +4378,14 @@ cdr::result<Stop2LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop2LoadsCargo
 *****************************************************************/
-void to_str( Stop2LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop2LoadsCargo const& o, std::string& out, base::tag<Stop2LoadsCargo> ) {
   out += "Stop2LoadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4454,14 +4454,14 @@ cdr::result<Stop2LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop2UnloadsCargo
 *****************************************************************/
-void to_str( Stop2UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop2UnloadsCargo const& o, std::string& out, base::tag<Stop2UnloadsCargo> ) {
   out += "Stop2UnloadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4530,10 +4530,10 @@ cdr::result<Stop2UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop3LoadsAndUnloadsCount
 *****************************************************************/
-void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop3LoadsAndUnloadsCount> ) {
   out += "Stop3LoadsAndUnloadsCount{";
-  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
-  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
+  out += "loads_count="; base::to_str( o.loads_count, out );
   out += '}';
 }
 
@@ -4582,14 +4582,14 @@ cdr::result<Stop3LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop3LoadsCargo
 *****************************************************************/
-void to_str( Stop3LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop3LoadsCargo const& o, std::string& out, base::tag<Stop3LoadsCargo> ) {
   out += "Stop3LoadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4658,14 +4658,14 @@ cdr::result<Stop3LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop3UnloadsCargo
 *****************************************************************/
-void to_str( Stop3UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop3UnloadsCargo const& o, std::string& out, base::tag<Stop3UnloadsCargo> ) {
   out += "Stop3UnloadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4734,10 +4734,10 @@ cdr::result<Stop3UnloadsCargo> from_canonical(
 /****************************************************************
 ** Stop4LoadsAndUnloadsCount
 *****************************************************************/
-void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop4LoadsAndUnloadsCount> ) {
   out += "Stop4LoadsAndUnloadsCount{";
-  out += "unloads_count="; to_str( o.unloads_count, out, t ); out += ',';
-  out += "loads_count="; to_str( o.loads_count, out, t );
+  out += "unloads_count="; base::to_str( o.unloads_count, out ); out += ',';
+  out += "loads_count="; base::to_str( o.loads_count, out );
   out += '}';
 }
 
@@ -4786,14 +4786,14 @@ cdr::result<Stop4LoadsAndUnloadsCount> from_canonical(
 /****************************************************************
 ** Stop4LoadsCargo
 *****************************************************************/
-void to_str( Stop4LoadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop4LoadsCargo const& o, std::string& out, base::tag<Stop4LoadsCargo> ) {
   out += "Stop4LoadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4862,14 +4862,14 @@ cdr::result<Stop4LoadsCargo> from_canonical(
 /****************************************************************
 ** Stop4UnloadsCargo
 *****************************************************************/
-void to_str( Stop4UnloadsCargo const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stop4UnloadsCargo const& o, std::string& out, base::tag<Stop4UnloadsCargo> ) {
   out += "Stop4UnloadsCargo{";
-  out += "cargo_1="; to_str( o.cargo_1, out, t ); out += ',';
-  out += "cargo_2="; to_str( o.cargo_2, out, t ); out += ',';
-  out += "cargo_3="; to_str( o.cargo_3, out, t ); out += ',';
-  out += "cargo_4="; to_str( o.cargo_4, out, t ); out += ',';
-  out += "cargo_5="; to_str( o.cargo_5, out, t ); out += ',';
-  out += "cargo_6="; to_str( o.cargo_6, out, t );
+  out += "cargo_1="; base::to_str( o.cargo_1, out ); out += ',';
+  out += "cargo_2="; base::to_str( o.cargo_2, out ); out += ',';
+  out += "cargo_3="; base::to_str( o.cargo_3, out ); out += ',';
+  out += "cargo_4="; base::to_str( o.cargo_4, out ); out += ',';
+  out += "cargo_5="; base::to_str( o.cargo_5, out ); out += ',';
+  out += "cargo_6="; base::to_str( o.cargo_6, out );
   out += '}';
 }
 
@@ -4938,12 +4938,12 @@ cdr::result<Stop4UnloadsCargo> from_canonical(
 /****************************************************************
 ** ExpeditionaryForce
 *****************************************************************/
-void to_str( ExpeditionaryForce const& o, std::string& out, base::ADL_t t ) {
+void to_str( ExpeditionaryForce const& o, std::string& out, base::tag<ExpeditionaryForce> ) {
   out += "ExpeditionaryForce{";
-  out += "regulars="; to_str( o.regulars, out, t ); out += ',';
-  out += "dragoons="; to_str( o.dragoons, out, t ); out += ',';
-  out += "man_o_wars="; to_str( o.man_o_wars, out, t ); out += ',';
-  out += "artillery="; to_str( o.artillery, out, t );
+  out += "regulars="; base::to_str( o.regulars, out ); out += ',';
+  out += "dragoons="; base::to_str( o.dragoons, out ); out += ',';
+  out += "man_o_wars="; base::to_str( o.man_o_wars, out ); out += ',';
+  out += "artillery="; base::to_str( o.artillery, out );
   out += '}';
 }
 
@@ -5001,12 +5001,12 @@ cdr::result<ExpeditionaryForce> from_canonical(
 /****************************************************************
 ** BackupForce
 *****************************************************************/
-void to_str( BackupForce const& o, std::string& out, base::ADL_t t ) {
+void to_str( BackupForce const& o, std::string& out, base::tag<BackupForce> ) {
   out += "BackupForce{";
-  out += "regulars="; to_str( o.regulars, out, t ); out += ',';
-  out += "dragoons="; to_str( o.dragoons, out, t ); out += ',';
-  out += "man_o_wars="; to_str( o.man_o_wars, out, t ); out += ',';
-  out += "artillery="; to_str( o.artillery, out, t );
+  out += "regulars="; base::to_str( o.regulars, out ); out += ',';
+  out += "dragoons="; base::to_str( o.dragoons, out ); out += ',';
+  out += "man_o_wars="; base::to_str( o.man_o_wars, out ); out += ',';
+  out += "artillery="; base::to_str( o.artillery, out );
   out += '}';
 }
 
@@ -5064,14 +5064,14 @@ cdr::result<BackupForce> from_canonical(
 /****************************************************************
 ** PriceGroupState
 *****************************************************************/
-void to_str( PriceGroupState const& o, std::string& out, base::ADL_t t ) {
+void to_str( PriceGroupState const& o, std::string& out, base::tag<PriceGroupState> ) {
   out += "PriceGroupState{";
-  out += "unused1="; to_str( o.unused1, out, t ); out += ',';
-  out += "rum="; to_str( o.rum, out, t ); out += ',';
-  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
-  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
-  out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "unused2="; to_str( o.unused2, out, t );
+  out += "unused1="; base::to_str( o.unused1, out ); out += ',';
+  out += "rum="; base::to_str( o.rum, out ); out += ',';
+  out += "cigars="; base::to_str( o.cigars, out ); out += ',';
+  out += "cloth="; base::to_str( o.cloth, out ); out += ',';
+  out += "coats="; base::to_str( o.coats, out ); out += ',';
+  out += "unused2="; base::to_str( o.unused2, out );
   out += '}';
 }
 
@@ -5139,47 +5139,47 @@ cdr::result<PriceGroupState> from_canonical(
 /****************************************************************
 ** HEADER
 *****************************************************************/
-void to_str( HEADER const& o, std::string& out, base::ADL_t t ) {
+void to_str( HEADER const& o, std::string& out, base::tag<HEADER> ) {
   out += "HEADER{";
-  out += "colonize="; to_str( o.colonize, out, t ); out += ',';
-  out += "unknown00="; to_str( o.unknown00, out, t ); out += ',';
-  out += "map_size_x="; to_str( o.map_size_x, out, t ); out += ',';
-  out += "map_size_y="; to_str( o.map_size_y, out, t ); out += ',';
-  out += "tutorial_help="; to_str( o.tutorial_help, out, t ); out += ',';
-  out += "unknown03="; to_str( o.unknown03, out, t ); out += ',';
-  out += "game_options="; to_str( o.game_options, out, t ); out += ',';
-  out += "colony_report_options_to_disable="; to_str( o.colony_report_options_to_disable, out, t ); out += ',';
-  out += "flags="; to_str( o.flags, out, t ); out += ',';
-  out += "unknown39="; to_str( o.unknown39, out, t ); out += ',';
-  out += "year="; to_str( o.year, out, t ); out += ',';
-  out += "season="; to_str( o.season, out, t ); out += ',';
-  out += "turn="; to_str( o.turn, out, t ); out += ',';
-  out += "tile_selection_mode="; to_str( o.tile_selection_mode, out, t ); out += ',';
-  out += "unknown40="; to_str( o.unknown40, out, t ); out += ',';
-  out += "active_unit="; to_str( o.active_unit, out, t ); out += ',';
-  out += "nation_turn="; to_str( o.nation_turn, out, t ); out += ',';
-  out += "curr_nation_map_view="; to_str( o.curr_nation_map_view, out, t ); out += ',';
-  out += "human_player="; to_str( o.human_player, out, t ); out += ',';
-  out += "dwelling_count="; to_str( o.dwelling_count, out, t ); out += ',';
-  out += "unit_count="; to_str( o.unit_count, out, t ); out += ',';
-  out += "colony_count="; to_str( o.colony_count, out, t ); out += ',';
-  out += "trade_route_count="; to_str( o.trade_route_count, out, t ); out += ',';
-  out += "show_entire_map="; to_str( o.show_entire_map, out, t ); out += ',';
-  out += "fixed_nation_map_view="; to_str( o.fixed_nation_map_view, out, t ); out += ',';
-  out += "difficulty="; to_str( o.difficulty, out, t ); out += ',';
-  out += "unknown43a="; to_str( o.unknown43a, out, t ); out += ',';
-  out += "unknown43b="; to_str( o.unknown43b, out, t ); out += ',';
-  out += "founding_father="; to_str( o.founding_father, out, t ); out += ',';
-  out += "unknown44a="; to_str( o.unknown44a, out, t ); out += ',';
-  out += "end_of_turn_sign="; to_str( o.end_of_turn_sign, out, t ); out += ',';
-  out += "nation_relation="; to_str( o.nation_relation, out, t ); out += ',';
-  out += "rebel_sentiment_report="; to_str( o.rebel_sentiment_report, out, t ); out += ',';
-  out += "unknown45a="; to_str( o.unknown45a, out, t ); out += ',';
-  out += "expeditionary_force="; to_str( o.expeditionary_force, out, t ); out += ',';
-  out += "backup_force="; to_str( o.backup_force, out, t ); out += ',';
-  out += "price_group_state="; to_str( o.price_group_state, out, t ); out += ',';
-  out += "event="; to_str( o.event, out, t ); out += ',';
-  out += "unknown05="; to_str( o.unknown05, out, t );
+  out += "colonize="; base::to_str( o.colonize, out ); out += ',';
+  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
+  out += "map_size_x="; base::to_str( o.map_size_x, out ); out += ',';
+  out += "map_size_y="; base::to_str( o.map_size_y, out ); out += ',';
+  out += "tutorial_help="; base::to_str( o.tutorial_help, out ); out += ',';
+  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
+  out += "game_options="; base::to_str( o.game_options, out ); out += ',';
+  out += "colony_report_options_to_disable="; base::to_str( o.colony_report_options_to_disable, out ); out += ',';
+  out += "flags="; base::to_str( o.flags, out ); out += ',';
+  out += "unknown39="; base::to_str( o.unknown39, out ); out += ',';
+  out += "year="; base::to_str( o.year, out ); out += ',';
+  out += "season="; base::to_str( o.season, out ); out += ',';
+  out += "turn="; base::to_str( o.turn, out ); out += ',';
+  out += "tile_selection_mode="; base::to_str( o.tile_selection_mode, out ); out += ',';
+  out += "unknown40="; base::to_str( o.unknown40, out ); out += ',';
+  out += "active_unit="; base::to_str( o.active_unit, out ); out += ',';
+  out += "nation_turn="; base::to_str( o.nation_turn, out ); out += ',';
+  out += "curr_nation_map_view="; base::to_str( o.curr_nation_map_view, out ); out += ',';
+  out += "human_player="; base::to_str( o.human_player, out ); out += ',';
+  out += "dwelling_count="; base::to_str( o.dwelling_count, out ); out += ',';
+  out += "unit_count="; base::to_str( o.unit_count, out ); out += ',';
+  out += "colony_count="; base::to_str( o.colony_count, out ); out += ',';
+  out += "trade_route_count="; base::to_str( o.trade_route_count, out ); out += ',';
+  out += "show_entire_map="; base::to_str( o.show_entire_map, out ); out += ',';
+  out += "fixed_nation_map_view="; base::to_str( o.fixed_nation_map_view, out ); out += ',';
+  out += "difficulty="; base::to_str( o.difficulty, out ); out += ',';
+  out += "unknown43a="; base::to_str( o.unknown43a, out ); out += ',';
+  out += "unknown43b="; base::to_str( o.unknown43b, out ); out += ',';
+  out += "founding_father="; base::to_str( o.founding_father, out ); out += ',';
+  out += "unknown44a="; base::to_str( o.unknown44a, out ); out += ',';
+  out += "end_of_turn_sign="; base::to_str( o.end_of_turn_sign, out ); out += ',';
+  out += "nation_relation="; base::to_str( o.nation_relation, out ); out += ',';
+  out += "rebel_sentiment_report="; base::to_str( o.rebel_sentiment_report, out ); out += ',';
+  out += "unknown45a="; base::to_str( o.unknown45a, out ); out += ',';
+  out += "expeditionary_force="; base::to_str( o.expeditionary_force, out ); out += ',';
+  out += "backup_force="; base::to_str( o.backup_force, out ); out += ',';
+  out += "price_group_state="; base::to_str( o.price_group_state, out ); out += ',';
+  out += "event="; base::to_str( o.event, out ); out += ',';
+  out += "unknown05="; base::to_str( o.unknown05, out );
   out += '}';
 }
 
@@ -5412,14 +5412,14 @@ cdr::result<HEADER> from_canonical(
 /****************************************************************
 ** PLAYER
 *****************************************************************/
-void to_str( PLAYER const& o, std::string& out, base::ADL_t t ) {
+void to_str( PLAYER const& o, std::string& out, base::tag<PLAYER> ) {
   out += "PLAYER{";
-  out += "name="; to_str( o.name, out, t ); out += ',';
-  out += "country_name="; to_str( o.country_name, out, t ); out += ',';
-  out += "player_flags="; to_str( o.player_flags, out, t ); out += ',';
-  out += "control="; to_str( o.control, out, t ); out += ',';
-  out += "founded_colonies="; to_str( o.founded_colonies, out, t ); out += ',';
-  out += "diplomacy="; to_str( o.diplomacy, out, t );
+  out += "name="; base::to_str( o.name, out ); out += ',';
+  out += "country_name="; base::to_str( o.country_name, out ); out += ',';
+  out += "player_flags="; base::to_str( o.player_flags, out ); out += ',';
+  out += "control="; base::to_str( o.control, out ); out += ',';
+  out += "founded_colonies="; base::to_str( o.founded_colonies, out ); out += ',';
+  out += "diplomacy="; base::to_str( o.diplomacy, out );
   out += '}';
 }
 
@@ -5487,11 +5487,11 @@ cdr::result<PLAYER> from_canonical(
 /****************************************************************
 ** OTHER
 *****************************************************************/
-void to_str( OTHER const& o, std::string& out, base::ADL_t t ) {
+void to_str( OTHER const& o, std::string& out, base::tag<OTHER> ) {
   out += "OTHER{";
-  out += "unknown51a="; to_str( o.unknown51a, out, t ); out += ',';
-  out += "click_before_open_colony_x_y="; to_str( o.click_before_open_colony_x_y, out, t ); out += ',';
-  out += "unknown51b="; to_str( o.unknown51b, out, t );
+  out += "unknown51a="; base::to_str( o.unknown51a, out ); out += ',';
+  out += "click_before_open_colony_x_y="; base::to_str( o.click_before_open_colony_x_y, out ); out += ',';
+  out += "unknown51b="; base::to_str( o.unknown51b, out );
   out += '}';
 }
 
@@ -5544,16 +5544,16 @@ cdr::result<OTHER> from_canonical(
 /****************************************************************
 ** Tiles
 *****************************************************************/
-void to_str( Tiles const& o, std::string& out, base::ADL_t t ) {
+void to_str( Tiles const& o, std::string& out, base::tag<Tiles> ) {
   out += "Tiles{";
-  out += "tile_n="; to_str( o.tile_n, out, t ); out += ',';
-  out += "tile_e="; to_str( o.tile_e, out, t ); out += ',';
-  out += "tile_s="; to_str( o.tile_s, out, t ); out += ',';
-  out += "tile_w="; to_str( o.tile_w, out, t ); out += ',';
-  out += "tile_nw="; to_str( o.tile_nw, out, t ); out += ',';
-  out += "tile_ne="; to_str( o.tile_ne, out, t ); out += ',';
-  out += "tile_se="; to_str( o.tile_se, out, t ); out += ',';
-  out += "tile_sw="; to_str( o.tile_sw, out, t );
+  out += "tile_n="; base::to_str( o.tile_n, out ); out += ',';
+  out += "tile_e="; base::to_str( o.tile_e, out ); out += ',';
+  out += "tile_s="; base::to_str( o.tile_s, out ); out += ',';
+  out += "tile_w="; base::to_str( o.tile_w, out ); out += ',';
+  out += "tile_nw="; base::to_str( o.tile_nw, out ); out += ',';
+  out += "tile_ne="; base::to_str( o.tile_ne, out ); out += ',';
+  out += "tile_se="; base::to_str( o.tile_se, out ); out += ',';
+  out += "tile_sw="; base::to_str( o.tile_sw, out );
   out += '}';
 }
 
@@ -5631,24 +5631,24 @@ cdr::result<Tiles> from_canonical(
 /****************************************************************
 ** Stock
 *****************************************************************/
-void to_str( Stock const& o, std::string& out, base::ADL_t t ) {
+void to_str( Stock const& o, std::string& out, base::tag<Stock> ) {
   out += "Stock{";
-  out += "food="; to_str( o.food, out, t ); out += ',';
-  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
-  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
-  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
-  out += "furs="; to_str( o.furs, out, t ); out += ',';
-  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
-  out += "ore="; to_str( o.ore, out, t ); out += ',';
-  out += "silver="; to_str( o.silver, out, t ); out += ',';
-  out += "horses="; to_str( o.horses, out, t ); out += ',';
-  out += "rum="; to_str( o.rum, out, t ); out += ',';
-  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
-  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
-  out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
-  out += "tools="; to_str( o.tools, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t );
+  out += "food="; base::to_str( o.food, out ); out += ',';
+  out += "sugar="; base::to_str( o.sugar, out ); out += ',';
+  out += "tobacco="; base::to_str( o.tobacco, out ); out += ',';
+  out += "cotton="; base::to_str( o.cotton, out ); out += ',';
+  out += "furs="; base::to_str( o.furs, out ); out += ',';
+  out += "lumber="; base::to_str( o.lumber, out ); out += ',';
+  out += "ore="; base::to_str( o.ore, out ); out += ',';
+  out += "silver="; base::to_str( o.silver, out ); out += ',';
+  out += "horses="; base::to_str( o.horses, out ); out += ',';
+  out += "rum="; base::to_str( o.rum, out ); out += ',';
+  out += "cigars="; base::to_str( o.cigars, out ); out += ',';
+  out += "cloth="; base::to_str( o.cloth, out ); out += ',';
+  out += "coats="; base::to_str( o.coats, out ); out += ',';
+  out += "trade_goods="; base::to_str( o.trade_goods, out ); out += ',';
+  out += "tools="; base::to_str( o.tools, out ); out += ',';
+  out += "muskets="; base::to_str( o.muskets, out );
   out += '}';
 }
 
@@ -5766,12 +5766,12 @@ cdr::result<Stock> from_canonical(
 /****************************************************************
 ** PopulationOnMap
 *****************************************************************/
-void to_str( PopulationOnMap const& o, std::string& out, base::ADL_t t ) {
+void to_str( PopulationOnMap const& o, std::string& out, base::tag<PopulationOnMap> ) {
   out += "PopulationOnMap{";
-  out += "for_english="; to_str( o.for_english, out, t ); out += ',';
-  out += "for_french="; to_str( o.for_french, out, t ); out += ',';
-  out += "for_spanish="; to_str( o.for_spanish, out, t ); out += ',';
-  out += "for_dutch="; to_str( o.for_dutch, out, t );
+  out += "for_english="; base::to_str( o.for_english, out ); out += ',';
+  out += "for_french="; base::to_str( o.for_french, out ); out += ',';
+  out += "for_spanish="; base::to_str( o.for_spanish, out ); out += ',';
+  out += "for_dutch="; base::to_str( o.for_dutch, out );
   out += '}';
 }
 
@@ -5829,12 +5829,12 @@ cdr::result<PopulationOnMap> from_canonical(
 /****************************************************************
 ** FortificationOnMap
 *****************************************************************/
-void to_str( FortificationOnMap const& o, std::string& out, base::ADL_t t ) {
+void to_str( FortificationOnMap const& o, std::string& out, base::tag<FortificationOnMap> ) {
   out += "FortificationOnMap{";
-  out += "for_english="; to_str( o.for_english, out, t ); out += ',';
-  out += "for_french="; to_str( o.for_french, out, t ); out += ',';
-  out += "for_spanish="; to_str( o.for_spanish, out, t ); out += ',';
-  out += "for_dutch="; to_str( o.for_dutch, out, t );
+  out += "for_english="; base::to_str( o.for_english, out ); out += ',';
+  out += "for_french="; base::to_str( o.for_french, out ); out += ',';
+  out += "for_spanish="; base::to_str( o.for_spanish, out ); out += ',';
+  out += "for_dutch="; base::to_str( o.for_dutch, out );
   out += '}';
 }
 
@@ -5892,34 +5892,34 @@ cdr::result<FortificationOnMap> from_canonical(
 /****************************************************************
 ** COLONY
 *****************************************************************/
-void to_str( COLONY const& o, std::string& out, base::ADL_t t ) {
+void to_str( COLONY const& o, std::string& out, base::tag<COLONY> ) {
   out += "COLONY{";
-  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
-  out += "name="; to_str( o.name, out, t ); out += ',';
-  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
-  out += "unknown08a="; to_str( o.unknown08a, out, t ); out += ',';
-  out += "colony_flags="; to_str( o.colony_flags, out, t ); out += ',';
-  out += "unknown08b="; to_str( o.unknown08b, out, t ); out += ',';
-  out += "population="; to_str( o.population, out, t ); out += ',';
-  out += "occupation="; to_str( o.occupation, out, t ); out += ',';
-  out += "profession="; to_str( o.profession, out, t ); out += ',';
-  out += "duration="; to_str( o.duration, out, t ); out += ',';
-  out += "tiles="; to_str( o.tiles, out, t ); out += ',';
-  out += "unknown10="; to_str( o.unknown10, out, t ); out += ',';
-  out += "buildings="; to_str( o.buildings, out, t ); out += ',';
-  out += "custom_house_flags="; to_str( o.custom_house_flags, out, t ); out += ',';
-  out += "unknown11="; to_str( o.unknown11, out, t ); out += ',';
-  out += "hammers="; to_str( o.hammers, out, t ); out += ',';
-  out += "building_in_production="; to_str( o.building_in_production, out, t ); out += ',';
-  out += "warehouse_level="; to_str( o.warehouse_level, out, t ); out += ',';
-  out += "unknown12a="; to_str( o.unknown12a, out, t ); out += ',';
-  out += "depletion_counter="; to_str( o.depletion_counter, out, t ); out += ',';
-  out += "hammers_purchased="; to_str( o.hammers_purchased, out, t ); out += ',';
-  out += "stock="; to_str( o.stock, out, t ); out += ',';
-  out += "population_on_map="; to_str( o.population_on_map, out, t ); out += ',';
-  out += "fortification_on_map="; to_str( o.fortification_on_map, out, t ); out += ',';
-  out += "rebel_dividend="; to_str( o.rebel_dividend, out, t ); out += ',';
-  out += "rebel_divisor="; to_str( o.rebel_divisor, out, t );
+  out += "x_y="; base::to_str( o.x_y, out ); out += ',';
+  out += "name="; base::to_str( o.name, out ); out += ',';
+  out += "nation_id="; base::to_str( o.nation_id, out ); out += ',';
+  out += "unknown08a="; base::to_str( o.unknown08a, out ); out += ',';
+  out += "colony_flags="; base::to_str( o.colony_flags, out ); out += ',';
+  out += "unknown08b="; base::to_str( o.unknown08b, out ); out += ',';
+  out += "population="; base::to_str( o.population, out ); out += ',';
+  out += "occupation="; base::to_str( o.occupation, out ); out += ',';
+  out += "profession="; base::to_str( o.profession, out ); out += ',';
+  out += "duration="; base::to_str( o.duration, out ); out += ',';
+  out += "tiles="; base::to_str( o.tiles, out ); out += ',';
+  out += "unknown10="; base::to_str( o.unknown10, out ); out += ',';
+  out += "buildings="; base::to_str( o.buildings, out ); out += ',';
+  out += "custom_house_flags="; base::to_str( o.custom_house_flags, out ); out += ',';
+  out += "unknown11="; base::to_str( o.unknown11, out ); out += ',';
+  out += "hammers="; base::to_str( o.hammers, out ); out += ',';
+  out += "building_in_production="; base::to_str( o.building_in_production, out ); out += ',';
+  out += "warehouse_level="; base::to_str( o.warehouse_level, out ); out += ',';
+  out += "unknown12a="; base::to_str( o.unknown12a, out ); out += ',';
+  out += "depletion_counter="; base::to_str( o.depletion_counter, out ); out += ',';
+  out += "hammers_purchased="; base::to_str( o.hammers_purchased, out ); out += ',';
+  out += "stock="; base::to_str( o.stock, out ); out += ',';
+  out += "population_on_map="; base::to_str( o.population_on_map, out ); out += ',';
+  out += "fortification_on_map="; base::to_str( o.fortification_on_map, out ); out += ',';
+  out += "rebel_dividend="; base::to_str( o.rebel_dividend, out ); out += ',';
+  out += "rebel_divisor="; base::to_str( o.rebel_divisor, out );
   out += '}';
 }
 
@@ -6087,10 +6087,10 @@ cdr::result<COLONY> from_canonical(
 /****************************************************************
 ** TransportChain
 *****************************************************************/
-void to_str( TransportChain const& o, std::string& out, base::ADL_t t ) {
+void to_str( TransportChain const& o, std::string& out, base::tag<TransportChain> ) {
   out += "TransportChain{";
-  out += "next_unit_idx="; to_str( o.next_unit_idx, out, t ); out += ',';
-  out += "prev_unit_idx="; to_str( o.prev_unit_idx, out, t );
+  out += "next_unit_idx="; base::to_str( o.next_unit_idx, out ); out += ',';
+  out += "prev_unit_idx="; base::to_str( o.prev_unit_idx, out );
   out += '}';
 }
 
@@ -6138,25 +6138,25 @@ cdr::result<TransportChain> from_canonical(
 /****************************************************************
 ** UNIT
 *****************************************************************/
-void to_str( UNIT const& o, std::string& out, base::ADL_t t ) {
+void to_str( UNIT const& o, std::string& out, base::tag<UNIT> ) {
   out += "UNIT{";
-  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
-  out += "type="; to_str( o.type, out, t ); out += ',';
-  out += "nation_info="; to_str( o.nation_info, out, t ); out += ',';
-  out += "unknown15="; to_str( o.unknown15, out, t ); out += ',';
-  out += "moves="; to_str( o.moves, out, t ); out += ',';
-  out += "origin_settlement="; to_str( o.origin_settlement, out, t ); out += ',';
-  out += "unknown16b="; to_str( o.unknown16b, out, t ); out += ',';
-  out += "orders="; to_str( o.orders, out, t ); out += ',';
-  out += "goto_x="; to_str( o.goto_x, out, t ); out += ',';
-  out += "goto_y="; to_str( o.goto_y, out, t ); out += ',';
-  out += "unknown18="; to_str( o.unknown18, out, t ); out += ',';
-  out += "holds_occupied="; to_str( o.holds_occupied, out, t ); out += ',';
-  out += "cargo_items="; to_str( o.cargo_items, out, t ); out += ',';
-  out += "cargo_hold="; to_str( o.cargo_hold, out, t ); out += ',';
-  out += "turns_worked="; to_str( o.turns_worked, out, t ); out += ',';
-  out += "profession_or_treasure_amount="; to_str( o.profession_or_treasure_amount, out, t ); out += ',';
-  out += "transport_chain="; to_str( o.transport_chain, out, t );
+  out += "x_y="; base::to_str( o.x_y, out ); out += ',';
+  out += "type="; base::to_str( o.type, out ); out += ',';
+  out += "nation_info="; base::to_str( o.nation_info, out ); out += ',';
+  out += "unknown15="; base::to_str( o.unknown15, out ); out += ',';
+  out += "moves="; base::to_str( o.moves, out ); out += ',';
+  out += "origin_settlement="; base::to_str( o.origin_settlement, out ); out += ',';
+  out += "unknown16b="; base::to_str( o.unknown16b, out ); out += ',';
+  out += "orders="; base::to_str( o.orders, out ); out += ',';
+  out += "goto_x="; base::to_str( o.goto_x, out ); out += ',';
+  out += "goto_y="; base::to_str( o.goto_y, out ); out += ',';
+  out += "unknown18="; base::to_str( o.unknown18, out ); out += ',';
+  out += "holds_occupied="; base::to_str( o.holds_occupied, out ); out += ',';
+  out += "cargo_items="; base::to_str( o.cargo_items, out ); out += ',';
+  out += "cargo_hold="; base::to_str( o.cargo_hold, out ); out += ',';
+  out += "turns_worked="; base::to_str( o.turns_worked, out ); out += ',';
+  out += "profession_or_treasure_amount="; base::to_str( o.profession_or_treasure_amount, out ); out += ',';
+  out += "transport_chain="; base::to_str( o.transport_chain, out );
   out += '}';
 }
 
@@ -6279,24 +6279,24 @@ cdr::result<UNIT> from_canonical(
 /****************************************************************
 ** IntrinsicVolume
 *****************************************************************/
-void to_str( IntrinsicVolume const& o, std::string& out, base::ADL_t t ) {
+void to_str( IntrinsicVolume const& o, std::string& out, base::tag<IntrinsicVolume> ) {
   out += "IntrinsicVolume{";
-  out += "food="; to_str( o.food, out, t ); out += ',';
-  out += "sugar="; to_str( o.sugar, out, t ); out += ',';
-  out += "tobacco="; to_str( o.tobacco, out, t ); out += ',';
-  out += "cotton="; to_str( o.cotton, out, t ); out += ',';
-  out += "furs="; to_str( o.furs, out, t ); out += ',';
-  out += "lumber="; to_str( o.lumber, out, t ); out += ',';
-  out += "ore="; to_str( o.ore, out, t ); out += ',';
-  out += "silver="; to_str( o.silver, out, t ); out += ',';
-  out += "horses="; to_str( o.horses, out, t ); out += ',';
-  out += "rum="; to_str( o.rum, out, t ); out += ',';
-  out += "cigars="; to_str( o.cigars, out, t ); out += ',';
-  out += "cloth="; to_str( o.cloth, out, t ); out += ',';
-  out += "coats="; to_str( o.coats, out, t ); out += ',';
-  out += "trade_goods="; to_str( o.trade_goods, out, t ); out += ',';
-  out += "tools="; to_str( o.tools, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t );
+  out += "food="; base::to_str( o.food, out ); out += ',';
+  out += "sugar="; base::to_str( o.sugar, out ); out += ',';
+  out += "tobacco="; base::to_str( o.tobacco, out ); out += ',';
+  out += "cotton="; base::to_str( o.cotton, out ); out += ',';
+  out += "furs="; base::to_str( o.furs, out ); out += ',';
+  out += "lumber="; base::to_str( o.lumber, out ); out += ',';
+  out += "ore="; base::to_str( o.ore, out ); out += ',';
+  out += "silver="; base::to_str( o.silver, out ); out += ',';
+  out += "horses="; base::to_str( o.horses, out ); out += ',';
+  out += "rum="; base::to_str( o.rum, out ); out += ',';
+  out += "cigars="; base::to_str( o.cigars, out ); out += ',';
+  out += "cloth="; base::to_str( o.cloth, out ); out += ',';
+  out += "coats="; base::to_str( o.coats, out ); out += ',';
+  out += "trade_goods="; base::to_str( o.trade_goods, out ); out += ',';
+  out += "tools="; base::to_str( o.tools, out ); out += ',';
+  out += "muskets="; base::to_str( o.muskets, out );
   out += '}';
 }
 
@@ -6414,13 +6414,13 @@ cdr::result<IntrinsicVolume> from_canonical(
 /****************************************************************
 ** Trade
 *****************************************************************/
-void to_str( Trade const& o, std::string& out, base::ADL_t t ) {
+void to_str( Trade const& o, std::string& out, base::tag<Trade> ) {
   out += "Trade{";
-  out += "euro_price="; to_str( o.euro_price, out, t ); out += ',';
-  out += "intrinsic_volume="; to_str( o.intrinsic_volume, out, t ); out += ',';
-  out += "gold="; to_str( o.gold, out, t ); out += ',';
-  out += "tons_traded="; to_str( o.tons_traded, out, t ); out += ',';
-  out += "tons_traded2="; to_str( o.tons_traded2, out, t );
+  out += "euro_price="; base::to_str( o.euro_price, out ); out += ',';
+  out += "intrinsic_volume="; base::to_str( o.intrinsic_volume, out ); out += ',';
+  out += "gold="; base::to_str( o.gold, out ); out += ',';
+  out += "tons_traded="; base::to_str( o.tons_traded, out ); out += ',';
+  out += "tons_traded2="; base::to_str( o.tons_traded2, out );
   out += '}';
 }
 
@@ -6483,38 +6483,38 @@ cdr::result<Trade> from_canonical(
 /****************************************************************
 ** NATION
 *****************************************************************/
-void to_str( NATION const& o, std::string& out, base::ADL_t t ) {
+void to_str( NATION const& o, std::string& out, base::tag<NATION> ) {
   out += "NATION{";
-  out += "unknown19="; to_str( o.unknown19, out, t ); out += ',';
-  out += "tax_rate="; to_str( o.tax_rate, out, t ); out += ',';
-  out += "recruit="; to_str( o.recruit, out, t ); out += ',';
-  out += "unused07="; to_str( o.unused07, out, t ); out += ',';
-  out += "recruit_count="; to_str( o.recruit_count, out, t ); out += ',';
-  out += "founding_fathers="; to_str( o.founding_fathers, out, t ); out += ',';
-  out += "unknown21="; to_str( o.unknown21, out, t ); out += ',';
-  out += "liberty_bells_total="; to_str( o.liberty_bells_total, out, t ); out += ',';
-  out += "liberty_bells_last_turn="; to_str( o.liberty_bells_last_turn, out, t ); out += ',';
-  out += "unknown22="; to_str( o.unknown22, out, t ); out += ',';
-  out += "next_founding_father="; to_str( o.next_founding_father, out, t ); out += ',';
-  out += "founding_father_count="; to_str( o.founding_father_count, out, t ); out += ',';
-  out += "prob_founding_father_count_end="; to_str( o.prob_founding_father_count_end, out, t ); out += ',';
-  out += "villages_burned="; to_str( o.villages_burned, out, t ); out += ',';
-  out += "rebel_sentiment="; to_str( o.rebel_sentiment, out, t ); out += ',';
-  out += "unknown23="; to_str( o.unknown23, out, t ); out += ',';
-  out += "artillery_bought_count="; to_str( o.artillery_bought_count, out, t ); out += ',';
-  out += "boycott_bitmap="; to_str( o.boycott_bitmap, out, t ); out += ',';
-  out += "royal_money="; to_str( o.royal_money, out, t ); out += ',';
-  out += "unknown24b="; to_str( o.unknown24b, out, t ); out += ',';
-  out += "gold="; to_str( o.gold, out, t ); out += ',';
-  out += "current_crosses="; to_str( o.current_crosses, out, t ); out += ',';
-  out += "needed_crosses="; to_str( o.needed_crosses, out, t ); out += ',';
-  out += "point_return_from_europe="; to_str( o.point_return_from_europe, out, t ); out += ',';
-  out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
-  out += "relation_by_indian="; to_str( o.relation_by_indian, out, t ); out += ',';
-  out += "unknown26a="; to_str( o.unknown26a, out, t ); out += ',';
-  out += "unknown26b="; to_str( o.unknown26b, out, t ); out += ',';
-  out += "unknown26c="; to_str( o.unknown26c, out, t ); out += ',';
-  out += "trade="; to_str( o.trade, out, t );
+  out += "unknown19="; base::to_str( o.unknown19, out ); out += ',';
+  out += "tax_rate="; base::to_str( o.tax_rate, out ); out += ',';
+  out += "recruit="; base::to_str( o.recruit, out ); out += ',';
+  out += "unused07="; base::to_str( o.unused07, out ); out += ',';
+  out += "recruit_count="; base::to_str( o.recruit_count, out ); out += ',';
+  out += "founding_fathers="; base::to_str( o.founding_fathers, out ); out += ',';
+  out += "unknown21="; base::to_str( o.unknown21, out ); out += ',';
+  out += "liberty_bells_total="; base::to_str( o.liberty_bells_total, out ); out += ',';
+  out += "liberty_bells_last_turn="; base::to_str( o.liberty_bells_last_turn, out ); out += ',';
+  out += "unknown22="; base::to_str( o.unknown22, out ); out += ',';
+  out += "next_founding_father="; base::to_str( o.next_founding_father, out ); out += ',';
+  out += "founding_father_count="; base::to_str( o.founding_father_count, out ); out += ',';
+  out += "prob_founding_father_count_end="; base::to_str( o.prob_founding_father_count_end, out ); out += ',';
+  out += "villages_burned="; base::to_str( o.villages_burned, out ); out += ',';
+  out += "rebel_sentiment="; base::to_str( o.rebel_sentiment, out ); out += ',';
+  out += "unknown23="; base::to_str( o.unknown23, out ); out += ',';
+  out += "artillery_bought_count="; base::to_str( o.artillery_bought_count, out ); out += ',';
+  out += "boycott_bitmap="; base::to_str( o.boycott_bitmap, out ); out += ',';
+  out += "royal_money="; base::to_str( o.royal_money, out ); out += ',';
+  out += "unknown24b="; base::to_str( o.unknown24b, out ); out += ',';
+  out += "gold="; base::to_str( o.gold, out ); out += ',';
+  out += "current_crosses="; base::to_str( o.current_crosses, out ); out += ',';
+  out += "needed_crosses="; base::to_str( o.needed_crosses, out ); out += ',';
+  out += "point_return_from_europe="; base::to_str( o.point_return_from_europe, out ); out += ',';
+  out += "relation_by_nations="; base::to_str( o.relation_by_nations, out ); out += ',';
+  out += "relation_by_indian="; base::to_str( o.relation_by_indian, out ); out += ',';
+  out += "unknown26a="; base::to_str( o.unknown26a, out ); out += ',';
+  out += "unknown26b="; base::to_str( o.unknown26b, out ); out += ',';
+  out += "unknown26c="; base::to_str( o.unknown26c, out ); out += ',';
+  out += "trade="; base::to_str( o.trade, out );
   out += '}';
 }
 
@@ -6702,10 +6702,10 @@ cdr::result<NATION> from_canonical(
 /****************************************************************
 ** Alarm
 *****************************************************************/
-void to_str( Alarm const& o, std::string& out, base::ADL_t t ) {
+void to_str( Alarm const& o, std::string& out, base::tag<Alarm> ) {
   out += "Alarm{";
-  out += "friction="; to_str( o.friction, out, t ); out += ',';
-  out += "attacks="; to_str( o.attacks, out, t );
+  out += "friction="; base::to_str( o.friction, out ); out += ',';
+  out += "attacks="; base::to_str( o.attacks, out );
   out += '}';
 }
 
@@ -6753,18 +6753,18 @@ cdr::result<Alarm> from_canonical(
 /****************************************************************
 ** DWELLING
 *****************************************************************/
-void to_str( DWELLING const& o, std::string& out, base::ADL_t t ) {
+void to_str( DWELLING const& o, std::string& out, base::tag<DWELLING> ) {
   out += "DWELLING{";
-  out += "x_y="; to_str( o.x_y, out, t ); out += ',';
-  out += "nation_id="; to_str( o.nation_id, out, t ); out += ',';
-  out += "blcs="; to_str( o.blcs, out, t ); out += ',';
-  out += "population="; to_str( o.population, out, t ); out += ',';
-  out += "mission="; to_str( o.mission, out, t ); out += ',';
-  out += "growth_counter="; to_str( o.growth_counter, out, t ); out += ',';
-  out += "unknown28a="; to_str( o.unknown28a, out, t ); out += ',';
-  out += "last_bought="; to_str( o.last_bought, out, t ); out += ',';
-  out += "last_sold="; to_str( o.last_sold, out, t ); out += ',';
-  out += "alarm="; to_str( o.alarm, out, t );
+  out += "x_y="; base::to_str( o.x_y, out ); out += ',';
+  out += "nation_id="; base::to_str( o.nation_id, out ); out += ',';
+  out += "blcs="; base::to_str( o.blcs, out ); out += ',';
+  out += "population="; base::to_str( o.population, out ); out += ',';
+  out += "mission="; base::to_str( o.mission, out ); out += ',';
+  out += "growth_counter="; base::to_str( o.growth_counter, out ); out += ',';
+  out += "unknown28a="; base::to_str( o.unknown28a, out ); out += ',';
+  out += "last_bought="; base::to_str( o.last_bought, out ); out += ',';
+  out += "last_sold="; base::to_str( o.last_sold, out ); out += ',';
+  out += "alarm="; base::to_str( o.alarm, out );
   out += '}';
 }
 
@@ -6852,22 +6852,22 @@ cdr::result<DWELLING> from_canonical(
 /****************************************************************
 ** TRIBE
 *****************************************************************/
-void to_str( TRIBE const& o, std::string& out, base::ADL_t t ) {
+void to_str( TRIBE const& o, std::string& out, base::tag<TRIBE> ) {
   out += "TRIBE{";
-  out += "capitol_x_y="; to_str( o.capitol_x_y, out, t ); out += ',';
-  out += "tech="; to_str( o.tech, out, t ); out += ',';
-  out += "tribe_flags="; to_str( o.tribe_flags, out, t ); out += ',';
-  out += "unknown31b="; to_str( o.unknown31b, out, t ); out += ',';
-  out += "muskets="; to_str( o.muskets, out, t ); out += ',';
-  out += "horse_herds="; to_str( o.horse_herds, out, t ); out += ',';
-  out += "unknown31c="; to_str( o.unknown31c, out, t ); out += ',';
-  out += "horse_breeding="; to_str( o.horse_breeding, out, t ); out += ',';
-  out += "unknown31d="; to_str( o.unknown31d, out, t ); out += ',';
-  out += "stock="; to_str( o.stock, out, t ); out += ',';
-  out += "unknown32="; to_str( o.unknown32, out, t ); out += ',';
-  out += "relation_by_nations="; to_str( o.relation_by_nations, out, t ); out += ',';
-  out += "zeros33="; to_str( o.zeros33, out, t ); out += ',';
-  out += "alarm_by_player="; to_str( o.alarm_by_player, out, t );
+  out += "capitol_x_y="; base::to_str( o.capitol_x_y, out ); out += ',';
+  out += "tech="; base::to_str( o.tech, out ); out += ',';
+  out += "tribe_flags="; base::to_str( o.tribe_flags, out ); out += ',';
+  out += "unknown31b="; base::to_str( o.unknown31b, out ); out += ',';
+  out += "muskets="; base::to_str( o.muskets, out ); out += ',';
+  out += "horse_herds="; base::to_str( o.horse_herds, out ); out += ',';
+  out += "unknown31c="; base::to_str( o.unknown31c, out ); out += ',';
+  out += "horse_breeding="; base::to_str( o.horse_breeding, out ); out += ',';
+  out += "unknown31d="; base::to_str( o.unknown31d, out ); out += ',';
+  out += "stock="; base::to_str( o.stock, out ); out += ',';
+  out += "unknown32="; base::to_str( o.unknown32, out ); out += ',';
+  out += "relation_by_nations="; base::to_str( o.relation_by_nations, out ); out += ',';
+  out += "zeros33="; base::to_str( o.zeros33, out ); out += ',';
+  out += "alarm_by_player="; base::to_str( o.alarm_by_player, out );
   out += '}';
 }
 
@@ -6975,12 +6975,12 @@ cdr::result<TRIBE> from_canonical(
 /****************************************************************
 ** ForeignAffairsReport
 *****************************************************************/
-void to_str( ForeignAffairsReport const& o, std::string& out, base::ADL_t t ) {
+void to_str( ForeignAffairsReport const& o, std::string& out, base::tag<ForeignAffairsReport> ) {
   out += "ForeignAffairsReport{";
-  out += "populations="; to_str( o.populations, out, t ); out += ',';
-  out += "unknown36ab="; to_str( o.unknown36ab, out, t ); out += ',';
-  out += "merchant_marine="; to_str( o.merchant_marine, out, t ); out += ',';
-  out += "ship_counts="; to_str( o.ship_counts, out, t );
+  out += "populations="; base::to_str( o.populations, out ); out += ',';
+  out += "unknown36ab="; base::to_str( o.unknown36ab, out ); out += ',';
+  out += "merchant_marine="; base::to_str( o.merchant_marine, out ); out += ',';
+  out += "ship_counts="; base::to_str( o.ship_counts, out );
   out += '}';
 }
 
@@ -7038,16 +7038,16 @@ cdr::result<ForeignAffairsReport> from_canonical(
 /****************************************************************
 ** UnknownTribeData1
 *****************************************************************/
-void to_str( UnknownTribeData1 const& o, std::string& out, base::ADL_t t ) {
+void to_str( UnknownTribeData1 const& o, std::string& out, base::tag<UnknownTribeData1> ) {
   out += "UnknownTribeData1{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7125,16 +7125,16 @@ cdr::result<UnknownTribeData1> from_canonical(
 /****************************************************************
 ** UnknownTribeData2
 *****************************************************************/
-void to_str( UnknownTribeData2 const& o, std::string& out, base::ADL_t t ) {
+void to_str( UnknownTribeData2 const& o, std::string& out, base::tag<UnknownTribeData2> ) {
   out += "UnknownTribeData2{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7212,16 +7212,16 @@ cdr::result<UnknownTribeData2> from_canonical(
 /****************************************************************
 ** TribeDwellingCount
 *****************************************************************/
-void to_str( TribeDwellingCount const& o, std::string& out, base::ADL_t t ) {
+void to_str( TribeDwellingCount const& o, std::string& out, base::tag<TribeDwellingCount> ) {
   out += "TribeDwellingCount{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7299,16 +7299,16 @@ cdr::result<TribeDwellingCount> from_canonical(
 /****************************************************************
 ** UnknownTribeData4
 *****************************************************************/
-void to_str( UnknownTribeData4 const& o, std::string& out, base::ADL_t t ) {
+void to_str( UnknownTribeData4 const& o, std::string& out, base::tag<UnknownTribeData4> ) {
   out += "UnknownTribeData4{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7386,16 +7386,16 @@ cdr::result<UnknownTribeData4> from_canonical(
 /****************************************************************
 ** UnknownTribeData5
 *****************************************************************/
-void to_str( UnknownTribeData5 const& o, std::string& out, base::ADL_t t ) {
+void to_str( UnknownTribeData5 const& o, std::string& out, base::tag<UnknownTribeData5> ) {
   out += "UnknownTribeData5{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7473,16 +7473,16 @@ cdr::result<UnknownTribeData5> from_canonical(
 /****************************************************************
 ** UnknownTribeData6
 *****************************************************************/
-void to_str( UnknownTribeData6 const& o, std::string& out, base::ADL_t t ) {
+void to_str( UnknownTribeData6 const& o, std::string& out, base::tag<UnknownTribeData6> ) {
   out += "UnknownTribeData6{";
-  out += "inca="; to_str( o.inca, out, t ); out += ',';
-  out += "aztec="; to_str( o.aztec, out, t ); out += ',';
-  out += "arawak="; to_str( o.arawak, out, t ); out += ',';
-  out += "iroquois="; to_str( o.iroquois, out, t ); out += ',';
-  out += "cherokee="; to_str( o.cherokee, out, t ); out += ',';
-  out += "apache="; to_str( o.apache, out, t ); out += ',';
-  out += "sioux="; to_str( o.sioux, out, t ); out += ',';
-  out += "tupi="; to_str( o.tupi, out, t );
+  out += "inca="; base::to_str( o.inca, out ); out += ',';
+  out += "aztec="; base::to_str( o.aztec, out ); out += ',';
+  out += "arawak="; base::to_str( o.arawak, out ); out += ',';
+  out += "iroquois="; base::to_str( o.iroquois, out ); out += ',';
+  out += "cherokee="; base::to_str( o.cherokee, out ); out += ',';
+  out += "apache="; base::to_str( o.apache, out ); out += ',';
+  out += "sioux="; base::to_str( o.sioux, out ); out += ',';
+  out += "tupi="; base::to_str( o.tupi, out );
   out += '}';
 }
 
@@ -7560,30 +7560,30 @@ cdr::result<UnknownTribeData6> from_canonical(
 /****************************************************************
 ** STUFF
 *****************************************************************/
-void to_str( STUFF const& o, std::string& out, base::ADL_t t ) {
+void to_str( STUFF const& o, std::string& out, base::tag<STUFF> ) {
   out += "STUFF{";
-  out += "unknown34="; to_str( o.unknown34, out, t ); out += ',';
-  out += "unknown34a="; to_str( o.unknown34a, out, t ); out += ',';
-  out += "unknown35="; to_str( o.unknown35, out, t ); out += ',';
-  out += "unknown35a="; to_str( o.unknown35a, out, t ); out += ',';
-  out += "unknown36aa="; to_str( o.unknown36aa, out, t ); out += ',';
-  out += "foreign_affairs_report="; to_str( o.foreign_affairs_report, out, t ); out += ',';
-  out += "unknown36ac="; to_str( o.unknown36ac, out, t ); out += ',';
-  out += "unknown36ad="; to_str( o.unknown36ad, out, t ); out += ',';
-  out += "show_colony_prod_quantities="; to_str( o.show_colony_prod_quantities, out, t ); out += ',';
-  out += "unknown_tribe_data_1="; to_str( o.unknown_tribe_data_1, out, t ); out += ',';
-  out += "unknown_tribe_data_2="; to_str( o.unknown_tribe_data_2, out, t ); out += ',';
-  out += "tribe_dwelling_count="; to_str( o.tribe_dwelling_count, out, t ); out += ',';
-  out += "unknown_tribe_data_4="; to_str( o.unknown_tribe_data_4, out, t ); out += ',';
-  out += "unknown_tribe_data_5="; to_str( o.unknown_tribe_data_5, out, t ); out += ',';
-  out += "unknown_tribe_data_6="; to_str( o.unknown_tribe_data_6, out, t ); out += ',';
-  out += "unknown36b="; to_str( o.unknown36b, out, t ); out += ',';
-  out += "x="; to_str( o.x, out, t ); out += ',';
-  out += "y="; to_str( o.y, out, t ); out += ',';
-  out += "zoom_level="; to_str( o.zoom_level, out, t ); out += ',';
-  out += "unknown37="; to_str( o.unknown37, out, t ); out += ',';
-  out += "viewport_x="; to_str( o.viewport_x, out, t ); out += ',';
-  out += "viewport_y="; to_str( o.viewport_y, out, t );
+  out += "unknown34="; base::to_str( o.unknown34, out ); out += ',';
+  out += "unknown34a="; base::to_str( o.unknown34a, out ); out += ',';
+  out += "unknown35="; base::to_str( o.unknown35, out ); out += ',';
+  out += "unknown35a="; base::to_str( o.unknown35a, out ); out += ',';
+  out += "unknown36aa="; base::to_str( o.unknown36aa, out ); out += ',';
+  out += "foreign_affairs_report="; base::to_str( o.foreign_affairs_report, out ); out += ',';
+  out += "unknown36ac="; base::to_str( o.unknown36ac, out ); out += ',';
+  out += "unknown36ad="; base::to_str( o.unknown36ad, out ); out += ',';
+  out += "show_colony_prod_quantities="; base::to_str( o.show_colony_prod_quantities, out ); out += ',';
+  out += "unknown_tribe_data_1="; base::to_str( o.unknown_tribe_data_1, out ); out += ',';
+  out += "unknown_tribe_data_2="; base::to_str( o.unknown_tribe_data_2, out ); out += ',';
+  out += "tribe_dwelling_count="; base::to_str( o.tribe_dwelling_count, out ); out += ',';
+  out += "unknown_tribe_data_4="; base::to_str( o.unknown_tribe_data_4, out ); out += ',';
+  out += "unknown_tribe_data_5="; base::to_str( o.unknown_tribe_data_5, out ); out += ',';
+  out += "unknown_tribe_data_6="; base::to_str( o.unknown_tribe_data_6, out ); out += ',';
+  out += "unknown36b="; base::to_str( o.unknown36b, out ); out += ',';
+  out += "x="; base::to_str( o.x, out ); out += ',';
+  out += "y="; base::to_str( o.y, out ); out += ',';
+  out += "zoom_level="; base::to_str( o.zoom_level, out ); out += ',';
+  out += "unknown37="; base::to_str( o.unknown37, out ); out += ',';
+  out += "viewport_x="; base::to_str( o.viewport_x, out ); out += ',';
+  out += "viewport_y="; base::to_str( o.viewport_y, out );
   out += '}';
 }
 
@@ -7731,10 +7731,10 @@ cdr::result<STUFF> from_canonical(
 /****************************************************************
 ** CONNECTIVITY
 *****************************************************************/
-void to_str( CONNECTIVITY const& o, std::string& out, base::ADL_t t ) {
+void to_str( CONNECTIVITY const& o, std::string& out, base::tag<CONNECTIVITY> ) {
   out += "CONNECTIVITY{";
-  out += "sea_lane_connectivity="; to_str( o.sea_lane_connectivity, out, t ); out += ',';
-  out += "land_connectivity="; to_str( o.land_connectivity, out, t );
+  out += "sea_lane_connectivity="; base::to_str( o.sea_lane_connectivity, out ); out += ',';
+  out += "land_connectivity="; base::to_str( o.land_connectivity, out );
   out += '}';
 }
 
@@ -7782,31 +7782,31 @@ cdr::result<CONNECTIVITY> from_canonical(
 /****************************************************************
 ** TRADEROUTE
 *****************************************************************/
-void to_str( TRADEROUTE const& o, std::string& out, base::ADL_t t ) {
+void to_str( TRADEROUTE const& o, std::string& out, base::tag<TRADEROUTE> ) {
   out += "TRADEROUTE{";
-  out += "name="; to_str( o.name, out, t ); out += ',';
-  out += "land_or_sea="; to_str( o.land_or_sea, out, t ); out += ',';
-  out += "stops_count="; to_str( o.stops_count, out, t ); out += ',';
-  out += "stop_1_colony_index="; to_str( o.stop_1_colony_index, out, t ); out += ',';
-  out += "stop_1_loads_and_unloads_count="; to_str( o.stop_1_loads_and_unloads_count, out, t ); out += ',';
-  out += "stop_1_loads_cargo="; to_str( o.stop_1_loads_cargo, out, t ); out += ',';
-  out += "stop_1_unloads_cargo="; to_str( o.stop_1_unloads_cargo, out, t ); out += ',';
-  out += "unknown47="; to_str( o.unknown47, out, t ); out += ',';
-  out += "stop_2_colony_index="; to_str( o.stop_2_colony_index, out, t ); out += ',';
-  out += "stop_2_loads_and_unloads_count="; to_str( o.stop_2_loads_and_unloads_count, out, t ); out += ',';
-  out += "stop_2_loads_cargo="; to_str( o.stop_2_loads_cargo, out, t ); out += ',';
-  out += "stop_2_unloads_cargo="; to_str( o.stop_2_unloads_cargo, out, t ); out += ',';
-  out += "unknown48="; to_str( o.unknown48, out, t ); out += ',';
-  out += "stop_3_colony_index="; to_str( o.stop_3_colony_index, out, t ); out += ',';
-  out += "stop_3_loads_and_unloads_count="; to_str( o.stop_3_loads_and_unloads_count, out, t ); out += ',';
-  out += "stop_3_loads_cargo="; to_str( o.stop_3_loads_cargo, out, t ); out += ',';
-  out += "stop_3_unloads_cargo="; to_str( o.stop_3_unloads_cargo, out, t ); out += ',';
-  out += "unknown49="; to_str( o.unknown49, out, t ); out += ',';
-  out += "stop_4_colony_index="; to_str( o.stop_4_colony_index, out, t ); out += ',';
-  out += "stop_4_loads_and_unloads_count="; to_str( o.stop_4_loads_and_unloads_count, out, t ); out += ',';
-  out += "stop_4_loads_cargo="; to_str( o.stop_4_loads_cargo, out, t ); out += ',';
-  out += "stop_4_unloads_cargo="; to_str( o.stop_4_unloads_cargo, out, t ); out += ',';
-  out += "unknown50="; to_str( o.unknown50, out, t );
+  out += "name="; base::to_str( o.name, out ); out += ',';
+  out += "land_or_sea="; base::to_str( o.land_or_sea, out ); out += ',';
+  out += "stops_count="; base::to_str( o.stops_count, out ); out += ',';
+  out += "stop_1_colony_index="; base::to_str( o.stop_1_colony_index, out ); out += ',';
+  out += "stop_1_loads_and_unloads_count="; base::to_str( o.stop_1_loads_and_unloads_count, out ); out += ',';
+  out += "stop_1_loads_cargo="; base::to_str( o.stop_1_loads_cargo, out ); out += ',';
+  out += "stop_1_unloads_cargo="; base::to_str( o.stop_1_unloads_cargo, out ); out += ',';
+  out += "unknown47="; base::to_str( o.unknown47, out ); out += ',';
+  out += "stop_2_colony_index="; base::to_str( o.stop_2_colony_index, out ); out += ',';
+  out += "stop_2_loads_and_unloads_count="; base::to_str( o.stop_2_loads_and_unloads_count, out ); out += ',';
+  out += "stop_2_loads_cargo="; base::to_str( o.stop_2_loads_cargo, out ); out += ',';
+  out += "stop_2_unloads_cargo="; base::to_str( o.stop_2_unloads_cargo, out ); out += ',';
+  out += "unknown48="; base::to_str( o.unknown48, out ); out += ',';
+  out += "stop_3_colony_index="; base::to_str( o.stop_3_colony_index, out ); out += ',';
+  out += "stop_3_loads_and_unloads_count="; base::to_str( o.stop_3_loads_and_unloads_count, out ); out += ',';
+  out += "stop_3_loads_cargo="; base::to_str( o.stop_3_loads_cargo, out ); out += ',';
+  out += "stop_3_unloads_cargo="; base::to_str( o.stop_3_unloads_cargo, out ); out += ',';
+  out += "unknown49="; base::to_str( o.unknown49, out ); out += ',';
+  out += "stop_4_colony_index="; base::to_str( o.stop_4_colony_index, out ); out += ',';
+  out += "stop_4_loads_and_unloads_count="; base::to_str( o.stop_4_loads_and_unloads_count, out ); out += ',';
+  out += "stop_4_loads_cargo="; base::to_str( o.stop_4_loads_cargo, out ); out += ',';
+  out += "stop_4_unloads_cargo="; base::to_str( o.stop_4_unloads_cargo, out ); out += ',';
+  out += "unknown50="; base::to_str( o.unknown50, out );
   out += '}';
 }
 
@@ -7959,29 +7959,29 @@ cdr::result<TRADEROUTE> from_canonical(
 /****************************************************************
 ** ColonySAV
 *****************************************************************/
-void to_str( ColonySAV const& o, std::string& out, base::ADL_t t ) {
+void to_str( ColonySAV const& o, std::string& out, base::tag<ColonySAV> ) {
   out += "ColonySAV{";
-  out += "header="; to_str( o.header, out, t ); out += ',';
-  out += "player="; to_str( o.player, out, t ); out += ',';
-  out += "other="; to_str( o.other, out, t ); out += ',';
-  out += "colony="; to_str( o.colony, out, t ); out += ',';
-  out += "unit="; to_str( o.unit, out, t ); out += ',';
-  out += "nation="; to_str( o.nation, out, t ); out += ',';
-  out += "dwelling="; to_str( o.dwelling, out, t ); out += ',';
-  out += "tribe="; to_str( o.tribe, out, t ); out += ',';
-  out += "stuff="; to_str( o.stuff, out, t ); out += ',';
-  out += "tile="; to_str( o.tile, out, t ); out += ',';
-  out += "mask="; to_str( o.mask, out, t ); out += ',';
-  out += "path="; to_str( o.path, out, t ); out += ',';
-  out += "seen="; to_str( o.seen, out, t ); out += ',';
-  out += "connectivity="; to_str( o.connectivity, out, t ); out += ',';
-  out += "unknown_map38c2="; to_str( o.unknown_map38c2, out, t ); out += ',';
-  out += "unknown_map38c3="; to_str( o.unknown_map38c3, out, t ); out += ',';
-  out += "strategy="; to_str( o.strategy, out, t ); out += ',';
-  out += "unknown_map38d="; to_str( o.unknown_map38d, out, t ); out += ',';
-  out += "prime_resource_seed="; to_str( o.prime_resource_seed, out, t ); out += ',';
-  out += "unknown39d="; to_str( o.unknown39d, out, t ); out += ',';
-  out += "trade_route="; to_str( o.trade_route, out, t );
+  out += "header="; base::to_str( o.header, out ); out += ',';
+  out += "player="; base::to_str( o.player, out ); out += ',';
+  out += "other="; base::to_str( o.other, out ); out += ',';
+  out += "colony="; base::to_str( o.colony, out ); out += ',';
+  out += "unit="; base::to_str( o.unit, out ); out += ',';
+  out += "nation="; base::to_str( o.nation, out ); out += ',';
+  out += "dwelling="; base::to_str( o.dwelling, out ); out += ',';
+  out += "tribe="; base::to_str( o.tribe, out ); out += ',';
+  out += "stuff="; base::to_str( o.stuff, out ); out += ',';
+  out += "tile="; base::to_str( o.tile, out ); out += ',';
+  out += "mask="; base::to_str( o.mask, out ); out += ',';
+  out += "path="; base::to_str( o.path, out ); out += ',';
+  out += "seen="; base::to_str( o.seen, out ); out += ',';
+  out += "connectivity="; base::to_str( o.connectivity, out ); out += ',';
+  out += "unknown_map38c2="; base::to_str( o.unknown_map38c2, out ); out += ',';
+  out += "unknown_map38c3="; base::to_str( o.unknown_map38c3, out ); out += ',';
+  out += "strategy="; base::to_str( o.strategy, out ); out += ',';
+  out += "unknown_map38d="; base::to_str( o.unknown_map38d, out ); out += ',';
+  out += "prime_resource_seed="; base::to_str( o.prime_resource_seed, out ); out += ',';
+  out += "unknown39d="; base::to_str( o.unknown39d, out ); out += ',';
+  out += "trade_route="; base::to_str( o.trade_route, out );
   out += '}';
 }
 

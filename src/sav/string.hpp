@@ -39,7 +39,7 @@ struct array_string {
 // to_str
 template<size_t N>
 void to_str( array_string<N> const& o, std::string& out,
-             base::ADL_t ) {
+             base::tag<array_string<N>> ) {
   for( unsigned char const c : o.a ) {
     if( c == 0 ) break;
     out += c;

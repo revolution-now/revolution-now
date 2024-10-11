@@ -73,7 +73,8 @@ struct IRand {
       std::vector<std::pair<T, double>> const& weights );
 };
 
-void to_str( IRand const& o, std::string& out, base::ADL_t );
+void to_str( IRand const& o, std::string& out,
+             base::tag<IRand> );
 
 template<typename T>
 void IRand::shuffle( std::vector<T>& vec ) {

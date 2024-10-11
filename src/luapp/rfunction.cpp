@@ -28,4 +28,9 @@ base::maybe<rfunction> lua_get( cthread L, int idx,
   return rfunction( L, C.ref_registry() );
 }
 
+void to_str( rfunction const& o, std::string& out,
+             base::tag<rfunction> ) {
+  to_str( o, out, base::tag<any>{} );
+}
+
 } // namespace lua

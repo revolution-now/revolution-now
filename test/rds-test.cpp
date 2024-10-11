@@ -41,8 +41,8 @@ struct my_optional {
   T t;
 
   friend void to_str( my_optional const& o, std::string& out,
-                      base::ADL_t ) {
-    to_str( o.t, out, base::ADL );
+                      base::tag<my_optional> ) {
+    base::to_str( o.t, out );
   }
 };
 
@@ -50,7 +50,7 @@ struct String {
   String( char const* s ) : s_( s ) {}
 
   friend void to_str( String const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<String> ) {
     out += o.s_;
   }
 
@@ -241,7 +241,7 @@ TEST_CASE( "[rds] CompositeTemplateTwo" ) {
   using V =
       inner::CompositeTemplateTwo<rn::my_optional<int>, short>;
   string out;
-  base::to_str( V{}, out, base::ADL_t{} );
+  base::to_str( V{}, out );
   // static_assert( base::Show<V> );
   V v = inner::CompositeTemplateTwo<rn::my_optional<int>,
                                     short>::first{

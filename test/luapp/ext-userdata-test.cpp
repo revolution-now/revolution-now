@@ -34,9 +34,9 @@ struct CppOwned {
   int n = 5;
 
   friend void to_str( CppOwned const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<CppOwned> ) {
     out += "CppOwned{n=";
-    to_str( o.n, out, base::ADL );
+    base::to_str( o.n, out );
     out += '}';
   }
 };
@@ -58,7 +58,7 @@ struct CppOwnedNonCopyable {
       default;
 };
 static void to_str( CppOwnedNonCopyable const&, string& out,
-                    base::ADL_t ) {
+                    base::tag<CppOwnedNonCopyable> ) {
   out += "zzz";
 }
 
@@ -73,9 +73,9 @@ struct LuaOwned {
   int n = 5;
 
   friend void to_str( LuaOwned const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<LuaOwned> ) {
     out += "LuaOwned{n=";
-    to_str( o.n, out, base::ADL );
+    base::to_str( o.n, out );
     out += '}';
   }
 };
@@ -97,7 +97,7 @@ struct LuaOwnedNonCopyable {
       default;
 };
 static void to_str( LuaOwnedNonCopyable const&, string& out,
-                    base::ADL_t ) {
+                    base::tag<LuaOwnedNonCopyable> ) {
   out += "zzz";
 }
 

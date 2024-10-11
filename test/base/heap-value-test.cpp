@@ -123,8 +123,6 @@ TEST_CASE( "[heap-value] copying" ) {
 
 TEST_CASE( "[heap-value] to_str" ) {
   HV<int> hv;
-
-  // Should implicitly convert to the contained type.
   REQUIRE( base::to_str( hv ) == "0" );
 }
 

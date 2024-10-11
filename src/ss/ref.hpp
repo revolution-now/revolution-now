@@ -117,7 +117,7 @@ struct SS {
   SSConst const as_const;
 };
 
-void to_str( SS const& o, std::string& out, base::ADL_t );
+void to_str( SS const& o, std::string& out, base::tag<SS> );
 
 /****************************************************************
 ** Root reference helpers.

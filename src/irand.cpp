@@ -20,7 +20,7 @@ namespace rn {
 /****************************************************************
 ** IRand
 *****************************************************************/
-void to_str( IRand const& o, string& out, base::ADL_t ) {
+void to_str( IRand const& o, string& out, base::tag<IRand> ) {
   out += "IRand@";
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
 }

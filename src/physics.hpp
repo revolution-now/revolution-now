@@ -63,7 +63,8 @@ class ND DissipativeVelocity {
       default;
 
   friend void to_str( DissipativeVelocity const& o,
-                      std::string& out, base::ADL_t ) {
+                      std::string&               out,
+                      base::tag<DissipativeVelocity> ) {
     out += fmt::format( "DissipativeVelocity{{velocity={}}}",
                         o.to_double() );
   }

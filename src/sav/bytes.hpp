@@ -53,7 +53,7 @@ struct bytes {
   // ADL conversion methods.
 
   friend void to_str( bytes const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<bytes> ) {
     for( uint8_t const c : o.a )
       out += fmt::format( "{:02x} ", c );
     if( !out.empty() ) out.resize( out.size() - 1 );

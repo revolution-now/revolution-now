@@ -1705,12 +1705,13 @@ template<typename T, std::equality_comparable E>
 ** to_str
 *****************************************************************/
 template<Show T, Show E>
-void to_str( expect<T, E> const& e, std::string& out, ADL_t ) {
+void to_str( expect<T, E> const& e, std::string& out,
+             tag<expect<T, E>> ) {
   if( e.has_value() )
-    to_str( *e, out, ADL );
+    to_str( *e, out );
   else {
     out += "unexpected{";
-    to_str( e.error(), out, ADL );
+    to_str( e.error(), out );
     out += "}";
   }
 }

@@ -75,7 +75,7 @@ struct bits : private bits_base {
   auto operator<=>( bits const& ) const = default;
 
   friend void to_str( bits const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<bits> ) {
     o.to_string( out );
   }
 

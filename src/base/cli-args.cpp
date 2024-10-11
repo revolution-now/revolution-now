@@ -51,7 +51,7 @@ expect<ProgramArguments> parse_args( span<string const> args ) {
 }
 
 void to_str( ProgramArguments const& pa, string& out,
-             base::ADL_t ) {
+             base::tag<ProgramArguments> ) {
   if( !pa.key_val_args.empty() ) {
     out += "Key/Val:\n";
     for( auto const& [k, v] : pa.key_val_args )

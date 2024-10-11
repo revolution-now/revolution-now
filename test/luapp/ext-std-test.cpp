@@ -40,7 +40,7 @@ struct MyUserdata {
   bool operator==( MyUserdata const& ) const = default;
 
   friend void to_str( MyUserdata const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<MyUserdata> ) {
     out += fmt::format( "MyUserdata{{n={}}}", o.n );
   }
 };

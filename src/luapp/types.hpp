@@ -40,7 +40,7 @@ enum class type {
   thread        = 8
 };
 
-void to_str( type t, std::string& out, base::ADL_t );
+void to_str( type t, std::string& out, base::tag<type> );
 
 inline constexpr int kNumLuaTypes = 9;
 
@@ -77,7 +77,7 @@ struct nil_t {
 
 inline constexpr nil_t nil;
 
-void to_str( nil_t, std::string& out, base::ADL_t );
+void to_str( nil_t, std::string& out, base::tag<nil_t> );
 
 void lua_push( cthread L, nil_t );
 void lua_get( cthread L, int idx, tag<nil_t> ) = delete;
@@ -120,7 +120,7 @@ bool operator!=( lightuserdata const& l,
                  lightuserdata const& r );
 
 void to_str( lightuserdata const& lud, std::string& out,
-             base::ADL_t );
+             base::tag<lightuserdata> );
 
 bool operator==( nil_t const& l, boolean const& r );
 bool operator==( nil_t const& l, lightuserdata const& r );

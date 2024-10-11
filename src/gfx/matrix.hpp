@@ -103,7 +103,7 @@ struct Matrix {
   std::vector<T> const& data() const { return data_; }
 
   friend void to_str( Matrix const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<Matrix> ) {
     out += fmt::format( "Matrix{{size={}}}", o.size() );
   }
 };

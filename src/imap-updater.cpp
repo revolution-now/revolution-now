@@ -66,7 +66,8 @@ void IMapUpdater::mutate_options_and_redraw(
   if( options_.top() != old_options ) redraw();
 }
 
-void to_str( IMapUpdater const&, string& out, base::ADL_t ) {
+void to_str( IMapUpdater const&, string& out,
+             base::tag<IMapUpdater> ) {
   out += "IMapUpdater";
 }
 

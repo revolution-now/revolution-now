@@ -67,7 +67,7 @@ struct null_t {
   bool operator==( null_t const& ) const = default;
 
   friend void to_str( null_t const& o, std::string& out,
-                      base::ADL_t );
+                      base::tag<null_t> );
 };
 
 inline constexpr null_t null;
@@ -165,7 +165,7 @@ struct table {
   auto end();
 
   friend void to_str( table const& o, std::string& out,
-                      ::base::ADL_t );
+                      ::base::tag<table> );
 
  private:
   // This will inherit from MapTo<value>. We do this in order to
@@ -241,7 +241,8 @@ struct list {
   std::vector<value> o_;
 };
 
-void to_str( list const& o, std::string& out, ::base::ADL_t );
+void to_str( list const& o, std::string& out,
+             ::base::tag<list> );
 
 /****************************************************************
 ** value
@@ -272,7 +273,8 @@ struct value : public value_base {
   value_base const& as_base() const { return *this; }
 };
 
-void to_str( value const& o, std::string& out, ::base::ADL_t );
+void to_str( value const& o, std::string& out,
+             base::tag<value> );
 
 std::string_view type_name( value const& v );
 

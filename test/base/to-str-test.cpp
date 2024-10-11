@@ -22,63 +22,113 @@ namespace {
 
 using namespace std;
 
-template<typename T>
-string call_to_str( T const& o ) {
-  string out;
-  to_str( o, out, ADL );
-  return out;
+TEST_CASE( "[to-str] char" ) {
+  REQUIRE( to_str( 'a' ) == "a" );
+  REQUIRE( to_str( 'A' ) == "A" );
+  REQUIRE( to_str( '\0' ) == string( 1, 0 ) );
+  REQUIRE( to_str( '\1' ) == "\x01" );
+  REQUIRE( to_str( ' ' ) == " " );
+}
+
+TEST_CASE( "[to-str] int8_t" ) {
+  REQUIRE( to_str( int8_t{ -1 } ) == "-1" );
+  REQUIRE( to_str( int8_t{ 0 } ) == "0" );
+  REQUIRE( to_str( int8_t{ 5 } ) == "5" );
+  REQUIRE( to_str( int8_t{ 127 } ) == "127" );
+  REQUIRE( to_str( int8_t{ -128 } ) == "-128" );
+}
+
+TEST_CASE( "[to-str] uint8_t" ) {
+  REQUIRE( to_str( uint8_t{ 1 } ) == "1" );
+  REQUIRE( to_str( uint8_t{ 0 } ) == "0" );
+  REQUIRE( to_str( uint8_t{ 5 } ) == "5" );
+  REQUIRE( to_str( uint8_t{ 255 } ) == "255" );
+}
+
+TEST_CASE( "[to-str] int16_t" ) {
+  REQUIRE( to_str( int16_t{ -1 } ) == "-1" );
+  REQUIRE( to_str( int16_t{ 0 } ) == "0" );
+  REQUIRE( to_str( int16_t{ 5 } ) == "5" );
+  REQUIRE( to_str( int16_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( int16_t{ 32'767 } ) == "32767" );
+  REQUIRE( to_str( int16_t{ -32'768 } ) == "-32768" );
+}
+
+TEST_CASE( "[to-str] uint16_t" ) {
+  REQUIRE( to_str( uint16_t{ 1 } ) == "1" );
+  REQUIRE( to_str( uint16_t{ 0 } ) == "0" );
+  REQUIRE( to_str( uint16_t{ 5 } ) == "5" );
+  REQUIRE( to_str( uint16_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( uint16_t{ 65'535 } ) == "65535" );
 }
 
 TEST_CASE( "[to-str] int" ) {
-  REQUIRE( call_to_str( -1 ) == "-1" );
-  REQUIRE( call_to_str( 0 ) == "0" );
-  REQUIRE( call_to_str( 5 ) == "5" );
-  REQUIRE( call_to_str( 1'234 ) == "1234" );
+  REQUIRE( to_str( -1 ) == "-1" );
+  REQUIRE( to_str( 0 ) == "0" );
+  REQUIRE( to_str( 5 ) == "5" );
+  REQUIRE( to_str( 1'234 ) == "1234" );
 }
 
 TEST_CASE( "[to-str] uint32_t" ) {
-  REQUIRE( call_to_str( uint32_t{ 0 } ) == "0" );
-  REQUIRE( call_to_str( uint32_t{ 5 } ) == "5" );
-  REQUIRE( call_to_str( uint32_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( uint32_t{ 0 } ) == "0" );
+  REQUIRE( to_str( uint32_t{ 5 } ) == "5" );
+  REQUIRE( to_str( uint32_t{ 1'234 } ) == "1234" );
 }
 
 TEST_CASE( "[to-str] size_t" ) {
-  REQUIRE( call_to_str( size_t{ 0 } ) == "0" );
-  REQUIRE( call_to_str( size_t{ 5 } ) == "5" );
-  REQUIRE( call_to_str( size_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( size_t{ 0 } ) == "0" );
+  REQUIRE( to_str( size_t{ 5 } ) == "5" );
+  REQUIRE( to_str( size_t{ 1'234 } ) == "1234" );
 }
 
 TEST_CASE( "[to-str] long" ) {
-  REQUIRE( call_to_str( -1L ) == "-1" );
-  REQUIRE( call_to_str( 0L ) == "0" );
-  REQUIRE( call_to_str( 5L ) == "5" );
-  REQUIRE( call_to_str( 1'234L ) == "1234" );
+  REQUIRE( to_str( -1L ) == "-1" );
+  REQUIRE( to_str( 0L ) == "0" );
+  REQUIRE( to_str( 5L ) == "5" );
+  REQUIRE( to_str( 1'234L ) == "1234" );
+}
+
+TEST_CASE( "[to-str] float" ) {
+  REQUIRE( to_str( -1.0 ) == "-1" );
+  REQUIRE( to_str( 0.0 ) == "0" );
+  REQUIRE( to_str( 5.0 ) == "5" );
+  REQUIRE( to_str( 1234.0 ) == "1234" );
+  REQUIRE( to_str( -1.3 ) == "-1.3" );
+  REQUIRE( to_str( 0.3 ) == "0.3" );
+  REQUIRE( to_str( 5.3 ) == "5.3" );
+  REQUIRE( to_str( 1234.3 ) == "1234.3" );
 }
 
 TEST_CASE( "[to-str] double" ) {
-  REQUIRE( call_to_str( -1.0 ) == "-1" );
-  REQUIRE( call_to_str( 0.0 ) == "0" );
-  REQUIRE( call_to_str( 5.0 ) == "5" );
-  REQUIRE( call_to_str( 1234.0 ) == "1234" );
-  REQUIRE( call_to_str( -1.3 ) == "-1.3" );
-  REQUIRE( call_to_str( 0.3 ) == "0.3" );
-  REQUIRE( call_to_str( 5.3 ) == "5.3" );
-  REQUIRE( call_to_str( 1234.3 ) == "1234.3" );
+  REQUIRE( to_str( -1.0 ) == "-1" );
+  REQUIRE( to_str( 0.0 ) == "0" );
+  REQUIRE( to_str( 5.0 ) == "5" );
+  REQUIRE( to_str( 1234.0 ) == "1234" );
+  REQUIRE( to_str( -1.3 ) == "-1.3" );
+  REQUIRE( to_str( 0.3 ) == "0.3" );
+  REQUIRE( to_str( 5.3 ) == "5.3" );
+  REQUIRE( to_str( 1234.3 ) == "1234.3" );
 }
 
 TEST_CASE( "[to-str] bool" ) {
-  REQUIRE( call_to_str( true ) == "true" );
-  REQUIRE( call_to_str( false ) == "false" );
+  REQUIRE( to_str( true ) == "true" );
+  REQUIRE( to_str( false ) == "false" );
 }
 
 TEST_CASE( "[to-str] string" ) {
-  REQUIRE( call_to_str( "" ) == "" );
-  REQUIRE( call_to_str( "x" ) == "x" );
-  REQUIRE( call_to_str( "hello world" ) == "hello world" );
+  REQUIRE( to_str( "" ) == "" );
+  REQUIRE( to_str( "x" ) == "x" );
+  REQUIRE( to_str( "hello world" ) == "hello world" );
 }
 
 TEST_CASE( "[to-str] nullptr_t" ) {
-  REQUIRE( call_to_str( nullptr ) == "nullptr" );
+  REQUIRE( to_str( nullptr ) == "nullptr" );
+}
+
+TEST_CASE( "[to-str] char const[N]" ) {
+  REQUIRE( to_str( "hello" ) == "hello" );
+  char const arr[7]{ 'a', 'b', 0, 'c', 'd', 0 };
+  REQUIRE( to_str( arr ) == "ab" );
 }
 
 } // namespace

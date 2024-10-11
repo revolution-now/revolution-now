@@ -59,7 +59,7 @@ struct pointer {
   }
 
   friend void to_str( pointer const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<pointer> ) {
     if constexpr( std::is_same_v<T, void> ||
                   std::is_same_v<T, void const> )
       out += fmt::to_string( o.value_ );
@@ -88,7 +88,7 @@ struct boolean {
   auto get() const noexcept { return value_; }
 
   friend void to_str( boolean const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<boolean> ) {
     out += fmt::to_string( o.value_ );
   }
 
@@ -121,7 +121,7 @@ struct integer {
   auto get() const noexcept { return value_; }
 
   friend void to_str( integer const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<integer> ) {
     out += fmt::to_string( o.value_ );
   }
 
@@ -156,7 +156,7 @@ struct floating {
   auto get() const noexcept { return value_; }
 
   friend void to_str( floating const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<floating> ) {
     out += fmt::to_string( o.value_ );
   }
 

@@ -49,7 +49,7 @@ struct error {
 };
 
 inline void to_str( error const& o, std::string& out,
-                    base::ADL_t ) {
+                    base::tag<error> ) {
   out += o.what();
 }
 

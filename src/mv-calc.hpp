@@ -85,7 +85,7 @@ struct [[nodiscard]] MovementPointsAnalysis {
 };
 
 void to_str( MovementPointsAnalysis const& o, std::string& out,
-             base::ADL_t );
+             base::tag<MovementPointsAnalysis> );
 
 /****************************************************************
 ** Public API

@@ -35,6 +35,9 @@ struct rstring : public any {
 
   friend base::maybe<rstring> lua_get( cthread L, int idx,
                                        tag<rstring> );
+
+  friend void to_str( rstring const& o, std::string& out,
+                      base::tag<rstring> );
 };
 
 } // namespace lua

@@ -140,10 +140,10 @@ struct RetHolder {
   }
 
   friend void to_str( RetHolder const& o, std::string& out,
-                      base::ADL_t adl ) {
+                      base::tag<RetHolder> ) {
     if constexpr( base::Show<T> ) {
       out += "RetHolder{.o=";
-      to_str( o.o, out, adl );
+      to_str( o.o, out );
       out += '}';
     } else {
       out += "<unformattable>";

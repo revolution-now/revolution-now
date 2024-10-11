@@ -52,15 +52,15 @@ struct standard_emitter {
   void emit( null_t, string& out, int ) { out += "null"; }
 
   void emit( double o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( cdr::integer_type o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( bool o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( string const& o, string& out, int ) {
@@ -183,15 +183,15 @@ struct json_emitter {
   void emit( null_t, string& out, int ) { out += "null"; }
 
   void emit( double o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( cdr::integer_type o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( bool o, string& out, int ) {
-    to_str( o, out, base::ADL );
+    base::to_str( o, out );
   }
 
   void emit( string const& o, string& out, int ) {

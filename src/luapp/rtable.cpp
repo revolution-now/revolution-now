@@ -47,4 +47,9 @@ table table::pop_or_create_table( cthread L ) {
   }
 }
 
+void to_str( table const& o, std::string& out,
+             base::tag<table> ) {
+  to_str( o, out, base::tag<any>{} );
+}
+
 } // namespace lua

@@ -40,7 +40,7 @@ string error_read_text_file_msg( string_view            filename,
 }
 
 void to_str( e_error_read_text_file val, std::string& out,
-             ADL_t ) {
+             tag<e_error_read_text_file> ) {
   switch( val ) {
     case e_error_read_text_file::file_does_not_exist:
       out += "file_does_not_exist";

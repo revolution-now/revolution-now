@@ -851,7 +851,7 @@ TEST_CASE( "[co-lua] scenario 3" ) {
 }
 
 struct MyType {};
-void to_str( MyType const&, string&, base::ADL_t ) {}
+void to_str( MyType const&, string&, base::tag<MyType> ) {}
 
 } // namespace
 } // namespace rn

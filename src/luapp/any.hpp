@@ -104,6 +104,6 @@ bool operator==( any const& r, T const& rhs ) {
   return internal::compare_top_two_and_pop( L );
 }
 
-void to_str( any const& r, std::string& out, base::ADL_t );
+void to_str( any const& r, std::string& out, base::tag<any> );
 
 } // namespace lua

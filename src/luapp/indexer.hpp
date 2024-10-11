@@ -257,8 +257,8 @@ struct indexer<metatable_key_t const&, Predecessor>
 *****************************************************************/
 template<typename I, typename P>
 void to_str( indexer<I, P> const& o, std::string& out,
-             base::ADL_t ) {
-  to_str( any( o ), out, base::ADL );
+             base::tag<indexer<I, P>> ) {
+  to_str( any( o ), out );
 }
 
 /****************************************************************

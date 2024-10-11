@@ -1508,14 +1508,16 @@ template<typename T, typename U> /* clang-format off */
 ** to_str
 *****************************************************************/
 template<Show T>
-void to_str( maybe<T> const& m, std::string& out, ADL_t ) {
+void to_str( maybe<T> const& m, std::string& out,
+             tag<maybe<T>> ) {
   if( m.has_value() )
-    to_str( *m, out, ADL );
+    to_str( *m, out );
   else
     out += "nothing";
 }
 
-inline void to_str( nothing_t const&, std::string& out, ADL_t ) {
+inline void to_str( nothing_t const&, std::string& out,
+                    tag<nothing_t> ) {
   out += "nothing";
 }
 

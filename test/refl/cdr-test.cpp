@@ -63,7 +63,7 @@ struct Address {
   string state         = {};
 
   friend void to_str( Address const& o, string& out,
-                      base::ADL_t ) {
+                      base::tag<Address> ) {
     out += fmt::format( "Address{{street_number={},state={}}}",
                         o.street_number, o.state );
   }
@@ -118,7 +118,7 @@ enum class e_pet {
   frog
 };
 
-void to_str( e_pet const& o, string& out, base::ADL_t ) {
+void to_str( e_pet const& o, string& out, base::tag<e_pet> ) {
   switch( o ) {
     case e_pet::cat:
       out += "cat";
@@ -168,7 +168,7 @@ struct Person {
   unordered_map<e_pet, int> pets   = {};
 
   friend void to_str( Person const& o, string& out,
-                      base::ADL_t ) {
+                      base::tag<Person> ) {
     out += fmt::format(
         "Person{{name={},height={},male={},houses={},pets={}}}",
         o.name, o.height, o.male, o.houses, o.pets );
@@ -228,8 +228,8 @@ struct PersonWrapper {
 
   // Implement base::Show.
   friend void to_str( PersonWrapper const& o, string& out,
-                      base::ADL_t ) {
-    to_str( o.wrapped, out, base::ADL_t{} );
+                      base::tag<PersonWrapper> ) {
+    base::to_str( o.wrapped, out );
   }
 
   bool operator==( PersonWrapper const& ) const = default;
@@ -256,7 +256,7 @@ struct Rolodex {
   unordered_map<string, Person> contacts = {};
 
   friend void to_str( Rolodex const& o, string& out,
-                      base::ADL_t ) {
+                      base::tag<Rolodex> ) {
     out +=
         fmt::format( "Rolodex{{self={},updated={},contacts={}}}",
                      o.self, o.updated, o.contacts );

@@ -210,16 +210,15 @@ inline constexpr bool is_base_variant_v =
 ** to_str
 *****************************************************************/
 template<base::Show... Ts>
-void to_str( std::variant<Ts...> const& o, std::string& out,
-             ADL_t ) {
-  return std::visit(
-      [&]( auto const& _ ) { to_str( _, out, ADL ); }, o );
+void to_str( ::base::variant<Ts...> const& o, std::string& out,
+             tag<::base::variant<Ts...>> ) {
+  return std::visit( [&]( auto const& _ ) { to_str( _, out ); }, o );
 };
 
 template<typename T>
 requires requires { typename T::i_am_rds_variant; }
-void to_str( T const& o, std::string& out, ADL_t ) {
-  to_str( o.as_base(), out, ADL_t{} );
+void to_str( T const& o, std::string& out, tag<T> ) {
+  to_str( o.as_base(), out );
 }
 
 } // namespace base

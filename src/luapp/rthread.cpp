@@ -61,4 +61,9 @@ coroutine_status rthread::coro_status() const noexcept {
   return C.coro_status();
 }
 
+void to_str( rthread const& o, std::string& out,
+             base::tag<rthread> ) {
+  to_str( o, out, base::tag<any>{} );
+}
+
 } // namespace lua

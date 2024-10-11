@@ -98,7 +98,7 @@ struct TS {
   std::unique_ptr<LuaRefSetAndRestore> pimpl_;
 };
 
-void to_str( TS const& o, std::string& out, base::ADL_t );
+void to_str( TS const& o, std::string& out, base::tag<TS> );
 
 } // namespace rn
 

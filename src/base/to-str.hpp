@@ -21,49 +21,66 @@
 #include <string>
 #include <string_view>
 
+namespace std {
+void to_str( string const& o, string& out, base::tag<string> );
+}
+
 namespace base {
 
-void to_str( int const& o, std::string& out, ADL_t );
-void to_str( uint32_t const& o, std::string& out, ADL_t );
-void to_str( size_t const& o, std::string& out, ADL_t );
-void to_str( long const& o, std::string& out, ADL_t );
-void to_str( char o, std::string& out, ADL_t );
-void to_str( double o, std::string& out, ADL_t );
-void to_str( std::string_view o, std::string& out, ADL_t );
-void to_str( std::nullptr_t o, std::string& out, ADL_t );
+/****************************************************************
+** Primitive Types.
+*****************************************************************/
+void to_str( bool o, std::string& out, tag<bool> );
+void to_str( char o, std::string& out, tag<char> );
+void to_str( int8_t o, std::string& out, tag<int8_t> );
+void to_str( uint8_t o, std::string& out, tag<uint8_t> );
+void to_str( int o, std::string& out, tag<int> );
+void to_str( int16_t o, std::string& out, tag<int16_t> );
+void to_str( uint16_t o, std::string& out, tag<uint16_t> );
+void to_str( uint32_t o, std::string& out, tag<uint32_t> );
+void to_str( size_t o, std::string& out, tag<size_t> );
+void to_str( long o, std::string& out, tag<long> );
+void to_str( float o, std::string& out, tag<float> );
+void to_str( double o, std::string& out, tag<double> );
 
-// Use a template for bool to prevent implicit conversions.
-template<std::same_as<bool> B>
-inline void to_str( B o, std::string& out, ADL_t ) {
-  if( o )
-    out += "true";
-  else
-    out += "false";
+template<size_t N> void to_str( char const ( &o )[N],
+                                std::string& out,
+                                tag<char[N]> ) {
+  for( char const c : o ) {
+    if( !c ) break;
+    to_str( c, out, tag<char>{} );
+  }
 }
 
-template<size_t N>
-void to_str( char const ( &o )[N], std::string& out, ADL_t ) {
-  to_str( std::string_view( o ), out, ADL );
-}
-
-template<size_t N>
-void to_str( char ( &o )[N], std::string& out, ADL_t ) {
-  to_str( std::string_view( o ), out, ADL );
-}
-
+/****************************************************************
+** Concept.
+*****************************************************************/
 template<typename T>
 concept Show = requires( T const& o, std::string s ) {
-  { to_str( o, s, ADL ) } -> std::same_as<void>;
+  {
+    to_str( o, s, ::base::tag<std::remove_cvref_t<T>>{} )
+  } -> std::same_as<void>;
 };
+
+/****************************************************************
+** API methods.
+*****************************************************************/
+// This version is faster since it reuses an existing string ob-
+// ject and appends to it. This one should be used when imple-
+// menting to_str methods in terms of other to_str methods.
+template<Show T>
+void to_str( T const& o, std::string& out ) {
+  to_str( o, out, tag<T>{} );
+}
 
 // Only use this one when you know that you're only converting a
 // single value to a string. Otherwise, prefer the to_str variant
 // with an output argument because it reuses the same string ob-
 // ject for efficiency.
 template<Show T>
-std::string to_str( T&& o ) {
+std::string to_str( T const& o ) {
   std::string res;
-  to_str( o, res, ADL );
+  to_str( o, res );
   return res;
 }
 

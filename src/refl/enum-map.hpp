@@ -46,21 +46,26 @@ namespace refl {
 template<refl::ReflectedEnum Enum, typename ValT>
 struct enum_map : public std::vector<std::pair<Enum, ValT>> {
   static_assert( std::is_default_constructible_v<ValT> );
-  using base = std::vector<std::pair<Enum, ValT>>;
+  using Base = std::vector<std::pair<Enum, ValT>>;
 
   static constexpr int kSize = refl::enum_count<Enum>;
 
-  base&       as_base() { return *this; }
-  base const& as_base() const { return *this; }
+  Base&       as_base() { return *this; }
+  Base const& as_base() const { return *this; }
+
+  friend void to_str( enum_map const& o, std::string& out,
+                      base::template tag<enum_map> ) {
+    to_str( o.as_base(), out, base::template tag<Base>{} );
+  }
 
  public:
-  using key_type   = typename base::value_type::first_type;
-  using value_type = typename base::value_type::second_type;
+  using key_type   = typename Base::value_type::first_type;
+  using value_type = typename Base::value_type::second_type;
 
   // All other constructors should ultimately call this one,
   // since this is the one that ensures that all keys have a
   // value.
-  enum_map( base&& b ) : base( kSize ) {
+  enum_map( Base&& b ) : Base( kSize ) {
     // At this point the backing container has the correct size
     // and all of its values are default constructed, but we
     // still need to initialize the keys.
@@ -75,13 +80,13 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     for( auto& [e, val] : b ) ( *this )[e] = std::move( val );
   }
 
-  enum_map( base const& b ) : enum_map( base{ b } ) {}
+  enum_map( Base const& b ) : enum_map( Base{ b } ) {}
 
-  enum_map() : enum_map( base{} ) {}
+  enum_map() : enum_map( Base{} ) {}
 
   enum_map(
       std::initializer_list<std::pair<Enum const, ValT>> il )
-    : enum_map( base( il.begin(), il.end() ) ) {}
+    : enum_map( Base( il.begin(), il.end() ) ) {}
 
   consteval size_t size() const { return kSize; }
   consteval int    ssize() const { return kSize; }

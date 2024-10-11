@@ -38,6 +38,9 @@ struct userdata : public any {
   }
 
   std::string name() const;
+
+  friend void to_str( userdata const& o, std::string& out,
+                      base::tag<userdata> );
 };
 
 } // namespace lua

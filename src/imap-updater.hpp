@@ -166,7 +166,7 @@ struct IMapUpdater {
   void mutate_options_and_redraw( OptionsUpdateFunc mutator );
 
   friend void to_str( IMapUpdater const& o, std::string& out,
-                      base::ADL_t );
+                      base::tag<IMapUpdater> );
 
  private:
   friend struct detail::MapUpdaterOptionsPopper;

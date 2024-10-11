@@ -68,7 +68,7 @@ struct IMatcher {
   virtual std::string format_expected() const = 0;
 
   friend void to_str( IMatcher const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<IMatcher> ) {
     out += o.format_expected();
   }
 };

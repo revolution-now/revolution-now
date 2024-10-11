@@ -109,17 +109,19 @@ inline constexpr valid_or<std::remove_cvref_t<E>> invalid(
 ** to_str
 *****************************************************************/
 template<Show E>
-void to_str( valid_or<E> const& vo, std::string& out, ADL_t ) {
+void to_str( valid_or<E> const& vo, std::string& out,
+             tag<valid_or<E>> ) {
   if( vo.valid() )
     out += "valid";
   else {
     out += "invalid{";
-    to_str( vo.error(), out, ADL );
+    to_str( vo.error(), out );
     out += "}";
   }
 }
 
-inline void to_str( valid_t const&, std::string& out, ADL_t ) {
+inline void to_str( valid_t const&, std::string& out,
+                    tag<valid_t> ) {
   out += "valid";
 }
 

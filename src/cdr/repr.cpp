@@ -23,7 +23,8 @@ namespace cdr {
 /****************************************************************
 ** null_t
 *****************************************************************/
-void to_str( null_t const&, std::string& out, base::ADL_t ) {
+void to_str( null_t const&, std::string& out,
+             base::tag<null_t> ) {
   out += "null";
 }
 
@@ -59,7 +60,8 @@ bool table::contains( string const& key ) const {
   return ( *this )[key].has_value();
 }
 
-void to_str( table const& o, std::string& out, base::ADL_t ) {
+void to_str( table const& o, std::string& out,
+             base::tag<table> ) {
   out += '{';
   bool remove_comma = false;
 
@@ -70,9 +72,9 @@ void to_str( table const& o, std::string& out, base::ADL_t ) {
              } );
 
   for( auto const& [k, v] : pairs ) {
-    to_str( k, out, base::ADL_t{} );
+    base::to_str( k, out );
     out += '=';
-    to_str( v, out, base::ADL_t{} );
+    base::to_str( v, out );
     out += ',';
     remove_comma = true;
   }
@@ -107,11 +109,11 @@ void list::push_back( value&& v ) {
 
 void list::push_back( value const& v ) { o_.push_back( v ); }
 
-void to_str( list const& o, std::string& out, base::ADL_t ) {
+void to_str( list const& o, std::string& out, base::tag<list> ) {
   out += '[';
   bool remove_comma = false;
   for( auto const& elem : o ) {
-    to_str( elem, out, base::ADL_t{} );
+    to_str( elem, out );
     out += ',';
     remove_comma = true;
   }
@@ -137,11 +139,10 @@ string_view type_name( value const& v ) {
   return base::visit( visitor{}, v.as_base() );
 }
 
-void to_str( value const& o, std::string& out, base::ADL_t ) {
+void to_str( value const& o, std::string& out,
+             base::tag<value> ) {
   base::visit(
-      [&]( auto const& alt ) {
-        to_str( alt, out, base::ADL_t{} );
-      },
+      [&]( auto const& alt ) { base::to_str( alt, out ); },
       o.as_base() );
 }
 

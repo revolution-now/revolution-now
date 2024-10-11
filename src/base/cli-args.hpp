@@ -37,7 +37,8 @@ struct ProgramArguments {
   bool operator==( ProgramArguments const& ) const = default;
 
   friend void to_str( ProgramArguments const& pa,
-                      std::string&            out, base::ADL_t );
+                      std::string&            out,
+                      base::tag<ProgramArguments> );
 };
 
 expect<ProgramArguments> parse_args(

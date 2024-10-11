@@ -31,7 +31,7 @@ enum class e_error_read_text_file {
 };
 
 void to_str( e_error_read_text_file val, std::string& out,
-             ADL_t );
+             tag<e_error_read_text_file> );
 
 // For convenience; take an error code and return a human read-
 // able message describing it. Supplying the filename that was

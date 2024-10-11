@@ -203,9 +203,7 @@ LUA_TEST_CASE( "[lua-c-api] fmt type" ) {
 
 LUA_TEST_CASE( "[lua-c-api] to_str type" ) {
   auto to_str_ = []( type type ) {
-    string res;
-    to_str( type, res, base::ADL );
-    return res;
+    return base::to_str( type );
   };
   REQUIRE( to_str_( type::nil ) == "nil" );
   REQUIRE( to_str_( type::boolean ) == "boolean" );

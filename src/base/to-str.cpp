@@ -14,30 +14,55 @@ using namespace std;
 
 namespace base {
 
-void to_str( int const& o, string& out, ADL_t ) {
+void to_str( bool const o, std::string& out, tag<bool> ) {
+  if( o )
+    out += "true";
+  else
+    out += "false";
+}
+
+void to_str( char const o, string& out, tag<char> ) { out += o; }
+
+void to_str( int8_t const o, string& out, tag<int8_t> ) {
   out += to_string( o );
 }
 
-void to_str( uint32_t const& o, string& out, ADL_t ) {
+void to_str( uint8_t const o, string& out, tag<uint8_t> ) {
   out += to_string( o );
 }
 
-void to_str( size_t const& o, string& out, ADL_t ) {
+void to_str( int const o, string& out, tag<int> ) {
   out += to_string( o );
 }
 
-void to_str( long const& o, string& out, ADL_t ) {
+void to_str( int16_t const o, string& out, tag<int16_t> ) {
   out += to_string( o );
 }
 
-void to_str( char o, string& out, ADL_t ) { out += o; }
+void to_str( uint16_t const o, string& out, tag<uint16_t> ) {
+  out += to_string( o );
+}
 
-void to_str( double o, std::string& out, ADL_t ) {
+void to_str( uint32_t const o, string& out, tag<uint32_t> ) {
+  out += to_string( o );
+}
+
+void to_str( size_t const o, string& out, tag<size_t> ) {
+  out += to_string( o );
+}
+
+void to_str( long const o, string& out, tag<long> ) {
+  out += to_string( o );
+}
+
+void to_str( float const o, std::string& out, tag<float> ) {
+  // Using the fmt one suppresses extra decimal places.
   out += fmt::to_string( o );
 }
 
-void to_str( std::nullptr_t, std::string& out, ADL_t ) {
-  out += "nullptr";
+void to_str( double const o, std::string& out, tag<double> ) {
+  // Using the fmt one suppresses extra decimal places.
+  out += fmt::to_string( o );
 }
 
 } // namespace base

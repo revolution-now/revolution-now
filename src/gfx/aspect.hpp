@@ -44,7 +44,7 @@ struct AspectRatio {
   double scalar() const;
 
   friend void to_str( AspectRatio const& o, std::string& out,
-                      base::ADL_t );
+                      base::tag<AspectRatio> );
 
   bool operator==( AspectRatio const& ) const = default;
 

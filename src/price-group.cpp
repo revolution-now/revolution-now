@@ -101,7 +101,7 @@ default_processed_goods_price_group_config() {
 ** ProcessedGoodsPriceGroup
 *****************************************************************/
 void to_str( ProcessedGoodsPriceGroup const& o, string& out,
-             base::ADL_t ) {
+             base::tag<ProcessedGoodsPriceGroup> ) {
   out += fmt::format(
       "ProcessedGoodsPriceGroup{{config={},intrinsic_volumes={},"
       "traded_volumes={}}}",

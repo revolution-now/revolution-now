@@ -23,7 +23,7 @@ namespace lua {
 
 struct MyLuaOwned {};
 static void to_str( MyLuaOwned const&, std::string&,
-                    base::ADL_t ) {}
+                    base::tag<MyLuaOwned> ) {}
 LUA_USERDATA_TRAITS( MyLuaOwned, owned_by_lua ){};
 
 namespace {

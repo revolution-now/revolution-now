@@ -18,7 +18,7 @@ using namespace std;
 namespace lua {
 
 void to_str( resume_status status, std::string& out,
-             base::ADL_t ) {
+             base::tag<resume_status> ) {
   switch( status ) {
     case resume_status::ok:
       out += "ok";
@@ -30,7 +30,7 @@ void to_str( resume_status status, std::string& out,
 }
 
 void to_str( coroutine_status status, std::string& out,
-             base::ADL_t ) {
+             base::tag<coroutine_status> ) {
   switch( status ) {
     case coroutine_status::suspended:
       out += "suspended";
@@ -45,7 +45,7 @@ void to_str( coroutine_status status, std::string& out,
 }
 
 void to_str( resume_result result, std::string& out,
-             base::ADL_t ) {
+             base::tag<resume_result> ) {
   out += fmt::format( "resume_result{{status={}, nresults={}}}",
                       result.status, result.nresults );
 }

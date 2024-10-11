@@ -37,7 +37,8 @@ std::string format_duration( std::chrono::nanoseconds ns );
 *****************************************************************/
 template<typename... Ts>
 void to_str( std::chrono::time_point<Ts...> const& o,
-             std::string&                          out, ADL_t ) {
+             std::string&                          out,
+             tag<std::chrono::time_point<Ts...>> ) {
   out += "\"";
   out += util::to_string( o );
   out += "\"";
@@ -46,7 +47,8 @@ void to_str( std::chrono::time_point<Ts...> const& o,
 // {fmt} formatter for formatting duration.
 template<class Rep, class Period>
 void to_str( std::chrono::duration<Rep, Period> const& o,
-             std::string& out, ADL_t ) {
+             std::string&                              out,
+             tag<std::chrono::duration<Rep, Period>> ) {
   out += format_duration( o );
 };
 

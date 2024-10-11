@@ -44,7 +44,7 @@ struct CppOwnedType {
   }
 
   friend void to_str( CppOwnedType const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<CppOwnedType> ) {
     out += fmt::format( "CppOwnedType{{n={},d={},s={}}}", o.n,
                         o.d, o.s );
   }
@@ -68,7 +68,7 @@ struct LuaOwnedType {
   }
 
   friend void to_str( LuaOwnedType const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<LuaOwnedType> ) {
     out += fmt::format( "LuaOwnedType{{n={},d={},s={}}}", o.n,
                         o.d, o.s );
   }
@@ -95,8 +95,9 @@ struct HasMemberFunctionsWithCppTypesAsArgs {
     return o;
   }
 };
-static void to_str( HasMemberFunctionsWithCppTypesAsArgs const&,
-                    string&, base::ADL_t ) {}
+static void to_str(
+    HasMemberFunctionsWithCppTypesAsArgs const&, string&,
+    base::tag<HasMemberFunctionsWithCppTypesAsArgs> ) {}
 
 LUA_USERDATA_TRAITS( HasMemberFunctionsWithCppTypesAsArgs,
                      owned_by_cpp ){};
@@ -104,7 +105,7 @@ static_assert( HasUserdataOwnershipModel<
                HasMemberFunctionsWithCppTypesAsArgs> );
 
 struct NotValid {};
-void to_str( NotValid const&, string&, base::ADL_t );
+void to_str( NotValid const&, string&, base::tag<NotValid> );
 
 namespace {
 

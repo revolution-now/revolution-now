@@ -74,7 +74,7 @@ MovementPoints MovementPointsAnalysis::points_to_subtract()
 }
 
 void to_str( MovementPointsAnalysis const& o, std::string& out,
-             base::ADL_t ) {
+             base::tag<MovementPointsAnalysis> ) {
   out += fmt::format(
       "MovementPointsAnalysis{{has={},needed={},using_start_of_"
       "turn_exemption={},using_overdraw_allowance={}}}",

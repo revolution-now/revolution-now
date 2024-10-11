@@ -16,6 +16,9 @@
 // Testing
 #include "test/monitoring-types.hpp"
 
+// base
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 

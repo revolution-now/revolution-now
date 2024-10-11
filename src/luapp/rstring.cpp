@@ -61,4 +61,9 @@ base::maybe<rstring> lua_get( cthread L, int idx,
   return rstring( L, C.ref_registry() );
 }
 
+void to_str( rstring const& o, std::string& out,
+             base::tag<rstring> ) {
+  to_str( o, out, base::tag<any>{} );
+}
+
 } // namespace lua

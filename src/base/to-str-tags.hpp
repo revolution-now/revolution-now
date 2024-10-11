@@ -49,7 +49,7 @@ struct FmtJsonStyleList {
   R const& rng;
 
   friend void to_str( FmtJsonStyleList const& o,
-                      std::string&            out, ADL_t ) {
+                      std::string& out, tag<FmtJsonStyleList> ) {
     std::vector<std::string> items;
     if constexpr( std::ranges::sized_range<R> )
       items.reserve( o.rng.size() );
@@ -83,7 +83,8 @@ struct FmtVerticalJsonList {
   }
 
   friend void to_str( FmtVerticalJsonList const& o,
-                      std::string&               out, ADL_t ) {
+                      std::string&               out,
+                      tag<FmtVerticalJsonList> ) {
     std::vector<std::string> items;
     if constexpr( std::ranges::sized_range<R> )
       items.reserve( o.rng.size() );
@@ -118,7 +119,7 @@ struct FmtVerticalMap {
   }
 
   friend void to_str( FmtVerticalMap const& o, std::string& out,
-                      ADL_t ) {
+                      tag<FmtVerticalMap> ) {
     std::vector<std::pair<std::string, std::string>> items;
     items.reserve( o.m.size() );
     for( auto const& [k, v] : o.m )

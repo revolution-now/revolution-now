@@ -55,6 +55,9 @@ struct table : public any {
     return res;
   }
 
+  friend void to_str( table const& o, std::string& out,
+                      base::tag<table> );
+
  private:
   static table pop_or_create_table( cthread L );
 };

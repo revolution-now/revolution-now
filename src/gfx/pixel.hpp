@@ -44,7 +44,7 @@ struct pixel {
   std::string to_string( bool with_alpha = false ) const;
 
   friend void to_str( pixel const& o, std::string& out,
-                      base::ADL_t );
+                      base::tag<pixel> );
 
   // Parses a string of the form 'NNNNNN[NN]' where N is:
   // [0-9a-fA-F]. The optional two digits at the end represent

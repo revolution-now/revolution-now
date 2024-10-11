@@ -5,17 +5,21 @@
 *
 * Created by dsicilia on 2021-12-18.
 *
-* Description: Tag to be used to help ADL find things in base/.
+* Description: Tag to be used to trigger ADL find things in base/
+*              and also to avoid implicit conversions.
 *
 *****************************************************************/
 #pragma once
 
-#include "config.hpp"
+// C++ standard library
+#include <type_traits>
 
 namespace base {
 
-struct ADL_t {};
-
-inline constexpr ADL_t ADL{};
+template<typename T>
+struct tag {
+  static_assert( !std::is_reference_v<T> );
+  static_assert( !std::is_const_v<T> || std::is_array_v<T> );
+};
 
 } // namespace base

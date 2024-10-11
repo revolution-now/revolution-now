@@ -122,7 +122,8 @@ string pixel::to_string( bool with_alpha ) const {
     return fmt::format( "#{:02X}{:02X}{:02X}", r, g, b );
 }
 
-void to_str( pixel const& o, std::string& out, base::ADL_t ) {
+void to_str( pixel const& o, std::string& out,
+             base::tag<pixel> ) {
   out += o.to_string( /*with_alpha=*/true );
 }
 

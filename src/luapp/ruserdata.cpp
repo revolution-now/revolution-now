@@ -33,4 +33,9 @@ std::string userdata::name() const {
   return ( *this )[metatable_key]["__name"].as<string>();
 }
 
+void to_str( userdata const& o, std::string& out,
+             base::tag<userdata> ) {
+  to_str( o, out, base::tag<any>{} );
+}
+
 } // namespace lua

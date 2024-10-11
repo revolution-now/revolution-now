@@ -70,6 +70,9 @@ struct rthread : public any {
     else
       return base::valid;
   }
+
+  friend void to_str( rthread const& o, std::string& out,
+                      base::tag<rthread> );
 };
 
 static_assert( Stackable<rthread> );

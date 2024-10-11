@@ -72,7 +72,7 @@ base::maybe<any> lua_get( cthread L, int idx, tag<any> ) {
   return any( L, C.ref_registry() );
 }
 
-void to_str( any const& r, string& out, base::ADL_t ) {
+void to_str( any const& r, string& out, base::tag<any> ) {
   c_api C( r.this_cthread() );
   push( C, r );
   out += C.pop_tostring();

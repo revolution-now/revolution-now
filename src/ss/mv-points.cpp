@@ -33,7 +33,7 @@ namespace rn {
 namespace {} // namespace
 
 void to_str( MovementPoints const& o, std::string& out,
-             base::ADL_t ) {
+             base::tag<MovementPoints> ) {
   if( o.atoms_ % o.factor == 0 )
     out += fmt::format( "{}", o.atoms_ / o.factor );
   else {

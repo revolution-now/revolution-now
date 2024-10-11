@@ -143,7 +143,7 @@ string escape_and_quote_string_val( string const& k ) {
 /****************************************************************
 ** doc
 *****************************************************************/
-void to_str( doc const& o, string& out, base::ADL_t ) {
+void to_str( doc const& o, string& out, base::tag<doc> ) {
   out += emit( o, EmitOptions{ .flatten_keys = false } );
 }
 

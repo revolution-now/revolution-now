@@ -586,8 +586,8 @@ end
 local function emit_to_str_conv_decl( hpp, name )
   hpp:comment( 'String conversion.' )
   hpp:line(
-      'void to_str( %s const& o, std::string& out, base::ADL_t );',
-      name )
+      'void to_str( %s const& o, std::string& out, base::tag<%s> );',
+      name, name )
 end
 
 local function emit_cdr_conv_decl( hpp, name )
@@ -605,8 +605,8 @@ end
 local function emit_metadata_to_str_conv_def(processed_elems,
                                              cpp, name )
   cpp:line(
-      'void to_str( %s const& o, std::string& out, base::ADL_t ) {',
-      name )
+      'void to_str( %s const& o, std::string& out, base::tag<%s> ) {',
+      name, name )
   cpp:indent()
   cpp:line( 'switch( o ) {' )
   cpp:indent()
@@ -669,8 +669,8 @@ end
 local function emit_bit_struct_to_str_conv_def(cpp, name,
                                                bit_struct )
   cpp:line(
-      'void to_str( %s const& o, std::string& out, base::ADL_t t ) {',
-      name )
+      'void to_str( %s const& o, std::string& out, base::tag<%s> ) {',
+      name, name )
   cpp:indent()
   cpp:line( 'out += "%s{";', name )
   for i, key in ipairs( bit_struct.__key_order ) do
@@ -687,7 +687,7 @@ local function emit_bit_struct_to_str_conv_def(cpp, name,
     end
     local comma = ' out += \',\';'
     if i == #bit_struct.__key_order then comma = '' end
-    cpp:line( 'out += "%s="; to_str( %s, out, t );%s',
+    cpp:line( 'out += "%s="; base::to_str( %s, out );%s',
               as_identifier( key ), field, comma )
     ::continue::
   end
@@ -762,15 +762,15 @@ end
 
 local function emit_struct_to_str_conv_def( cpp, name, struct )
   cpp:line(
-      'void to_str( %s const& o, std::string& out, base::ADL_t t ) {',
-      name )
+      'void to_str( %s const& o, std::string& out, base::tag<%s> ) {',
+      name, name )
   cpp:indent()
   cpp:line( 'out += "%s{";', name )
   for i, key in ipairs( struct.__key_order ) do
     if key:match( '__' ) then goto continue end
     local comma = ' out += \',\';'
     if i == #struct.__key_order then comma = '' end
-    cpp:line( 'out += "%s="; to_str( o.%s, out, t );%s',
+    cpp:line( 'out += "%s="; base::to_str( o.%s, out );%s',
               as_identifier( key ), as_identifier( key ), comma )
     ::continue::
   end

@@ -52,7 +52,7 @@ namespace base {
 *****************************************************************/
 // For types that satisfy refl::ReflectedEnum.
 template<refl::ReflectedEnum E>
-void to_str( E const& o, std::string& out, ADL_t ) {
+void to_str( E const& o, std::string& out, tag<E> ) {
   auto  idx   = static_cast<int>( o );
   auto& names = refl::traits<E>::value_names;
   DCHECK( idx >= 0 );
@@ -69,7 +69,7 @@ void to_str( E const& o, std::string& out, ADL_t ) {
 // handled inside the converter; the implementation of these
 // functions are unchanged regardless of those options.
 template<refl::ReflectedStruct S>
-void to_str( S const& o, std::string& out, ADL_t tag ) {
+void to_str( S const& o, std::string& out, tag<S> ) {
   using Tr = refl::traits<S>;
   static constexpr size_t kNumFields =
       std::tuple_size_v<decltype( Tr::fields )>;
@@ -99,7 +99,7 @@ void to_str( S const& o, std::string& out, ADL_t tag ) {
     auto& field_val  = o.*field_desc.accessor;
     out += field_desc.name;
     out += '=';
-    to_str( field_val, out, tag );
+    base::to_str( field_val, out );
     out += ',';
   };
   if constexpr( kNumFields > 0 ) out.pop_back();
@@ -111,7 +111,7 @@ void to_str( S const& o, std::string& out, ADL_t tag ) {
 *****************************************************************/
 // For types that satisfy refl::WrapsReflected.
 template<refl::WrapsReflected T>
-void to_str( T const& o, std::string& out, ADL_t tag ) {
+void to_str( T const& o, std::string& out, tag<T> ) {
   static std::string const ns =
       refl::detail::build_ns_prefix_from_refl_ns(
           T::refl_ns, /*tmpl_params=*/"" );
@@ -119,7 +119,7 @@ void to_str( T const& o, std::string& out, ADL_t tag ) {
   out += T::refl_name;
 
   std::string refl_out;
-  to_str( o.refl(), refl_out, tag );
+  base::to_str( o.refl(), refl_out );
   auto pos = refl_out.find_first_of( '{' );
   if( pos == std::string::npos ) return;
   out += std::string( refl_out.begin() + pos, refl_out.end() );

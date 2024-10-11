@@ -40,7 +40,7 @@ enum class UnitId : int {
 };
 
 // to_str
-void to_str( UnitId o, std::string& out, base::ADL_t );
+void to_str( UnitId o, std::string& out, base::tag<UnitId> );
 
 // cdr
 cdr::value to_canonical( cdr::converter& conv, UnitId o,
@@ -64,7 +64,8 @@ enum class NativeUnitId : int {
 };
 
 // to_str
-void to_str( NativeUnitId o, std::string& out, base::ADL_t );
+void to_str( NativeUnitId o, std::string& out,
+             base::tag<NativeUnitId> );
 
 // cdr
 cdr::value to_canonical( cdr::converter& conv, NativeUnitId o,
@@ -128,7 +129,8 @@ struct GenericUnitId {
 };
 
 // to_str
-void to_str( GenericUnitId o, std::string& out, base::ADL_t );
+void to_str( GenericUnitId o, std::string& out,
+             base::tag<GenericUnitId> );
 
 // cdr
 cdr::value to_canonical( cdr::converter& conv, GenericUnitId o,

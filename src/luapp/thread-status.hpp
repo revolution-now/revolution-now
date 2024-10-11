@@ -41,7 +41,7 @@ enum class [[nodiscard]] resume_status {
 };
 
 void to_str( resume_status status, std::string& out,
-             base::ADL_t );
+             base::tag<resume_status> );
 
 // This is used to communicate the results from lua_resume.
 struct [[nodiscard]] resume_result {
@@ -52,7 +52,7 @@ struct [[nodiscard]] resume_result {
 };
 
 void to_str( resume_result result, std::string& out,
-             base::ADL_t );
+             base::tag<resume_result> );
 
 template<typename R>
 struct [[nodiscard]] resume_result_with_value {
@@ -60,12 +60,13 @@ struct [[nodiscard]] resume_result_with_value {
   R             value;
 
   friend void to_str( resume_result_with_value result,
-                      std::string& out, base::ADL_t ) {
+                      std::string&             out,
+                      base::tag<resume_result_with_value> ) {
     using base::to_str; // two-step
-    to_str( "{status=", out, base::ADL );
-    to_str( result.status, out, base::ADL );
-    to_str( ", value=", out, base::ADL );
-    to_str( result.value, out, base::ADL );
+    to_str( "{status=", out );
+    to_str( result.status, out );
+    to_str( ", value=", out );
+    to_str( result.value, out );
     out += "}";
   }
 
@@ -103,6 +104,6 @@ enum class coroutine_status {
 };
 
 void to_str( coroutine_status status, std::string& out,
-             base::ADL_t );
+             base::tag<coroutine_status> );
 
 } // namespace lua

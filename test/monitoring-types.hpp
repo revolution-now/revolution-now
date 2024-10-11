@@ -15,6 +15,7 @@
 
 // base
 #include "base/fmt.hpp"
+#include "base/to-str.hpp"
 
 // C++ standard library
 #include <type_traits>
@@ -48,7 +49,7 @@ struct Tracker {
   }
 
   friend void to_str( Tracker const&, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<Tracker> ) {
     out += "Tracker";
   }
 };
@@ -88,7 +89,7 @@ struct Formattable {
   std::string s = "hello";
 
   friend void to_str( Formattable const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<Formattable> ) {
     out += fmt::format( "Formattable{{n={},d={},s={}}}", o.n,
                         o.d, o.s );
   }
@@ -115,7 +116,7 @@ struct Constexpr {
 struct Empty {};
 
 inline void to_str( Empty const&, std::string& out,
-                    base::ADL_t ) {
+                    base::tag<Empty> ) {
   out += "Empty{}";
 }
 
@@ -131,7 +132,7 @@ struct NoCopy {
   bool        operator==( NoCopy const& ) const& = default;
   char        c;
   friend void to_str( NoCopy const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<NoCopy> ) {
     out += fmt::format( "NoCopy{{c={}}}", o.c );
   }
 };
@@ -197,11 +198,11 @@ struct Trivial {
   auto operator<=>( Trivial const& ) const = default;
 
   friend void to_str( Trivial const& o, std::string& out,
-                      base::ADL_t adl ) {
+                      base::tag<Trivial> ) {
     out += "Trivial{d=";
-    to_str( o.d, out, adl );
+    base::to_str( o.d, out );
     out += ",n=";
-    to_str( o.n, out, adl );
+    base::to_str( o.n, out );
     out += '}';
   }
 

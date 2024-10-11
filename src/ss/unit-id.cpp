@@ -29,8 +29,8 @@ namespace {} // namespace
 /****************************************************************
 ** UnitId
 *****************************************************************/
-void to_str( UnitId o, std::string& out, base::ADL_t tag ) {
-  to_str( static_cast<int>( o ), out, tag );
+void to_str( UnitId o, std::string& out, base::tag<UnitId> ) {
+  base::to_str( static_cast<int>( o ), out );
 }
 
 cdr::value to_canonical( cdr::converter& conv, UnitId o,
@@ -60,8 +60,8 @@ base::maybe<UnitId> lua_get( lua::cthread L, int idx,
 ** NativeUnitId
 *****************************************************************/
 void to_str( NativeUnitId o, std::string& out,
-             base::ADL_t tag ) {
-  to_str( static_cast<int>( o ), out, tag );
+             base::tag<NativeUnitId> ) {
+  base::to_str( static_cast<int>( o ), out );
 }
 
 cdr::value to_canonical( cdr::converter& conv, NativeUnitId o,
@@ -91,8 +91,8 @@ base::maybe<NativeUnitId> lua_get( lua::cthread L, int idx,
 ** GenericUnitId
 *****************************************************************/
 void to_str( GenericUnitId o, std::string& out,
-             base::ADL_t tag ) {
-  to_str( o.id, out, tag );
+             base::tag<GenericUnitId> ) {
+  base::to_str( o.id, out );
 }
 
 cdr::value to_canonical( cdr::converter& conv, GenericUnitId o,

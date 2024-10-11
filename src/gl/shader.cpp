@@ -25,7 +25,7 @@ namespace gl {
 ** Shader Type
 *****************************************************************/
 void to_str( e_shader_type type, std::string& out,
-             base::ADL_t ) {
+             base::tag<e_shader_type> ) {
   switch( type ) {
     case e_shader_type::vertex:
       out += "vertex";

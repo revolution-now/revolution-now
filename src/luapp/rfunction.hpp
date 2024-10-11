@@ -39,6 +39,9 @@ struct rfunction : public any {
 
   template<GettableOrVoid R = void, Pushable... Args>
   error_type_for_return_type<R> pcall( Args&&... args ) const;
+
+  friend void to_str( rfunction const& o, std::string& out,
+                      base::tag<rfunction> );
 };
 
 /****************************************************************

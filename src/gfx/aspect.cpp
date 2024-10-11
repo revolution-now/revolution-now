@@ -112,10 +112,10 @@ span<AspectRatio const> AspectRatio::named_all() {
 }
 
 void to_str( AspectRatio const& o, string& out,
-             base::ADL_t adl ) {
-  to_str( o.ratio_.w, out, adl );
-  to_str( ':', out, adl );
-  to_str( o.ratio_.h, out, adl );
+             base::tag<AspectRatio> ) {
+  base::to_str( o.ratio_.w, out );
+  base::to_str( ':', out );
+  base::to_str( o.ratio_.h, out );
 }
 
 /****************************************************************

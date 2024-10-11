@@ -36,7 +36,8 @@ void abort_with_msg( string_view msg, source_location loc ) {
   abort_with_backtrace_here( loc );
 }
 
-void to_str( generic_err const& ge, std::string& out, ADL_t ) {
+void to_str( generic_err const& ge, std::string& out,
+             tag<generic_err> ) {
   if( ge == nullptr ) {
     out += "nullptr";
     return;

@@ -14,6 +14,7 @@
 #include "config.hpp"
 
 // base
+#include "adl-tag.hpp"
 #include "attributes.hpp"
 #include "zero.hpp"
 
@@ -133,6 +134,11 @@ struct heap_value : zero<heap_value<T>, T*> {
 
   T const& get() const noexcept ATTR_LIFETIMEBOUND {
     return *this->resource();
+  }
+
+  friend void to_str( heap_value const& o, std::string& out,
+                      tag<heap_value> ) {
+    to_str( *o, out, tag<T>{} );
   }
 
  private:

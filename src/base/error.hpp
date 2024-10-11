@@ -16,6 +16,7 @@
 #include "adl-tag.hpp"
 #include "fmt.hpp"
 #include "macros.hpp"
+#include "to-str.hpp"
 
 // base-util
 #include "base-util/pp.hpp"
@@ -393,7 +394,8 @@ static_assert( std::is_nothrow_move_assignable_v<GenericError> );
 
 using generic_err = std::unique_ptr<GenericError>;
 
-void to_str( generic_err const& ge, std::string& out, ADL_t );
+void to_str( generic_err const& ge, std::string& out,
+             tag<generic_err> );
 
 // This is supposed to be an exception in the std::exception hi-
 // erarchy. If it is not then it will still work, but will return
@@ -409,7 +411,7 @@ struct fmt::formatter<::base::generic_err>
   auto format( ::base::generic_err const& o,
                FormatContext&             ctx ) const {
     std::string out;
-    to_str( o, out, base::ADL );
+    to_str( o, out );
     return fmt::formatter<std::string>::format( out, ctx );
   }
 };

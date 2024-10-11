@@ -82,7 +82,8 @@ struct ProcessedGoodsPriceGroup {
   auto const& traded_volumes() const { return traded_volumes_; }
 
   friend void to_str( ProcessedGoodsPriceGroup const& o,
-                      std::string& out, base::ADL_t );
+                      std::string&                    out,
+                      base::tag<ProcessedGoodsPriceGroup> );
 
  private:
   void transaction( e_processed_good good, int quantity );

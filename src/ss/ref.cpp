@@ -52,7 +52,7 @@ SS::SS()
     root( impl_->top ),
     as_const( *this ) {}
 
-void to_str( SS const& o, string& out, base::ADL_t ) {
+void to_str( SS const& o, string& out, base::tag<SS> ) {
   out += "SS@";
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
 }

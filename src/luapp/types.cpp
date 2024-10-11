@@ -181,12 +181,12 @@ base::maybe<void*> lua_get( cthread L, int idx, tag<void*> ) {
 /******************************************************************
 ** to_str
 *******************************************************************/
-void to_str( nil_t, std::string& out, base::ADL_t ) {
+void to_str( nil_t, std::string& out, base::tag<nil_t> ) {
   out += string_view( "nil" );
 }
 
 void to_str( lightuserdata const& o, std::string& out,
-             base::ADL_t ) {
+             base::tag<lightuserdata> ) {
   out += fmt::format( "<lightuserdata:{}>", o.get() );
 }
 
@@ -195,7 +195,7 @@ void to_str( lightuserdata const& o, std::string& out,
     s = #e;            \
     break
 
-void to_str( type t, string& out, base::ADL_t ) {
+void to_str( type t, string& out, base::tag<type> ) {
   string_view s = "unknown";
   switch( t ) {
     TYPE_CASE( nil );

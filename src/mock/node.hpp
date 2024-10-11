@@ -30,18 +30,23 @@
   template<typename U>                 \
   static bool equal( held_type const& lhs, U const& rhs )
 
-#define MATCHER_DEFINE_NODE( name, lhs, rhs )                \
-  namespace detail {                                         \
-  MATCHER_NODE_STRUCT( name ) {                              \
-    MATCHER_NODE_PREAMBLE( name );                           \
-                                                             \
-    template<typename U>                                     \
-    static bool equal( held_type const& lhs, U const& rhs ); \
-  };                                                         \
-  }                                                          \
-  template<typename T>                                       \
-  template<typename U>                                       \
-  bool detail::name##Impl<T>::equal( held_type const& lhs,   \
+#define MATCHER_DEFINE_NODE( name, lhs, rhs )                  \
+  namespace detail {                                           \
+  MATCHER_NODE_STRUCT( name ) {                                \
+    MATCHER_NODE_PREAMBLE( name );                             \
+                                                               \
+    friend void to_str( name##Impl const& o, std::string& out, \
+                        base::tag<name##Impl> ) {              \
+      to_str( o, out, base::tag<Base>{} );                     \
+    }                                                          \
+                                                               \
+    template<typename U>                                       \
+    static bool equal( held_type const& lhs, U const& rhs );   \
+  };                                                           \
+  }                                                            \
+  template<typename T>                                         \
+  template<typename U>                                         \
+  bool detail::name##Impl<T>::equal( held_type const& lhs,     \
                                      U const&         rhs )
 
 namespace mock::matchers {
@@ -66,6 +71,12 @@ struct NodeMatcher : IMatcher<Target> {
     return fmt::format(
         "{}( {} )", name_,
         stringify( children_, "<unformattable>" ) );
+  }
+
+  friend void to_str( NodeMatcher const& o, std::string& out,
+                      base::tag<NodeMatcher> ) {
+    // Defer to base class implementation.
+    to_str( o, out, base::tag<IMatcher<Target>>{} );
   }
 
   std::string_view name_;
@@ -147,7 +158,7 @@ struct Node : public NodeBase {
   }
 
   friend void to_str( Node const& o, std::string& out,
-                      base::ADL_t ) {
+                      base::tag<Node> ) {
     out += fmt::format(
         "{}( {} )", o.name(),
         stringify( o.children_, "<unformattable>" ) );

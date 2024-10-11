@@ -79,7 +79,7 @@ TS::TS( Planes& planes_, lua::state& lua_, IGui& gui_,
 // These are here because we are using the pimpl idiom.
 TS::~TS() = default;
 
-void to_str( TS const& o, string& out, base::ADL_t ) {
+void to_str( TS const& o, string& out, base::tag<TS> ) {
   out += "TS@";
   out += fmt::format( "{}", static_cast<void const*>( &o ) );
 }

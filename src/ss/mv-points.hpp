@@ -140,7 +140,7 @@ class ND MovementPoints {
   }
 
   friend void to_str( MovementPoints const& o, std::string& out,
-                      base::ADL_t );
+                      base::tag<MovementPoints> );
 
   base::valid_or<std::string> validate() const;
 

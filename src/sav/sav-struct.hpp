@@ -57,7 +57,7 @@ enum class cargo_4bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( cargo_4bit_type const& o, std::string& out, base::ADL_t );
+void to_str( cargo_4bit_type const& o, std::string& out, base::tag<cargo_4bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -79,7 +79,7 @@ enum class control_type : uint8_t {
 };
 
 // String conversion.
-void to_str( control_type const& o, std::string& out, base::ADL_t );
+void to_str( control_type const& o, std::string& out, base::tag<control_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -103,7 +103,7 @@ enum class difficulty_type : uint8_t {
 };
 
 // String conversion.
-void to_str( difficulty_type const& o, std::string& out, base::ADL_t );
+void to_str( difficulty_type const& o, std::string& out, base::tag<difficulty_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -124,7 +124,7 @@ enum class end_of_turn_sign_type : uint16_t {
 };
 
 // String conversion.
-void to_str( end_of_turn_sign_type const& o, std::string& out, base::ADL_t );
+void to_str( end_of_turn_sign_type const& o, std::string& out, base::tag<end_of_turn_sign_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -147,7 +147,7 @@ enum class fortification_level_type : uint8_t {
 };
 
 // String conversion.
-void to_str( fortification_level_type const& o, std::string& out, base::ADL_t );
+void to_str( fortification_level_type const& o, std::string& out, base::tag<fortification_level_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -168,7 +168,7 @@ enum class has_city_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( has_city_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( has_city_1bit_type const& o, std::string& out, base::tag<has_city_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -189,7 +189,7 @@ enum class has_unit_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( has_unit_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( has_unit_1bit_type const& o, std::string& out, base::tag<has_unit_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -215,7 +215,7 @@ enum class hills_river_3bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( hills_river_3bit_type const& o, std::string& out, base::ADL_t );
+void to_str( hills_river_3bit_type const& o, std::string& out, base::tag<hills_river_3bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -237,7 +237,7 @@ enum class level_2bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( level_2bit_type const& o, std::string& out, base::ADL_t );
+void to_str( level_2bit_type const& o, std::string& out, base::tag<level_2bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -260,7 +260,7 @@ enum class level_3bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( level_3bit_type const& o, std::string& out, base::ADL_t );
+void to_str( level_3bit_type const& o, std::string& out, base::tag<level_3bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -292,7 +292,7 @@ enum class nation_2byte_type : uint16_t {
 };
 
 // String conversion.
-void to_str( nation_2byte_type const& o, std::string& out, base::ADL_t );
+void to_str( nation_2byte_type const& o, std::string& out, base::tag<nation_2byte_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -324,7 +324,7 @@ enum class nation_4bit_short_type : uint8_t {
 };
 
 // String conversion.
-void to_str( nation_4bit_short_type const& o, std::string& out, base::ADL_t );
+void to_str( nation_4bit_short_type const& o, std::string& out, base::tag<nation_4bit_short_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -356,7 +356,7 @@ enum class nation_4bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( nation_4bit_type const& o, std::string& out, base::ADL_t );
+void to_str( nation_4bit_type const& o, std::string& out, base::tag<nation_4bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -388,7 +388,7 @@ enum class nation_type : uint8_t {
 };
 
 // String conversion.
-void to_str( nation_type const& o, std::string& out, base::ADL_t );
+void to_str( nation_type const& o, std::string& out, base::tag<nation_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -427,7 +427,7 @@ enum class occupation_type : uint8_t {
 };
 
 // String conversion.
-void to_str( occupation_type const& o, std::string& out, base::ADL_t );
+void to_str( occupation_type const& o, std::string& out, base::tag<occupation_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -457,7 +457,7 @@ enum class orders_type : uint8_t {
 };
 
 // String conversion.
-void to_str( orders_type const& o, std::string& out, base::ADL_t );
+void to_str( orders_type const& o, std::string& out, base::tag<orders_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -478,7 +478,7 @@ enum class pacific_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( pacific_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( pacific_1bit_type const& o, std::string& out, base::tag<pacific_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -499,7 +499,7 @@ enum class plowed_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( plowed_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( plowed_1bit_type const& o, std::string& out, base::tag<plowed_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -547,7 +547,7 @@ enum class profession_type : uint8_t {
 };
 
 // String conversion.
-void to_str( profession_type const& o, std::string& out, base::ADL_t );
+void to_str( profession_type const& o, std::string& out, base::tag<profession_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -568,7 +568,7 @@ enum class purchased_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( purchased_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( purchased_1bit_type const& o, std::string& out, base::tag<purchased_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -603,7 +603,7 @@ enum class region_id_4bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( region_id_4bit_type const& o, std::string& out, base::ADL_t );
+void to_str( region_id_4bit_type const& o, std::string& out, base::tag<region_id_4bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -625,7 +625,7 @@ enum class relation_3bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( relation_3bit_type const& o, std::string& out, base::ADL_t );
+void to_str( relation_3bit_type const& o, std::string& out, base::tag<relation_3bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -646,7 +646,7 @@ enum class road_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( road_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( road_1bit_type const& o, std::string& out, base::tag<road_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -667,7 +667,7 @@ enum class season_type : uint16_t {
 };
 
 // String conversion.
-void to_str( season_type const& o, std::string& out, base::ADL_t );
+void to_str( season_type const& o, std::string& out, base::tag<season_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -688,7 +688,7 @@ enum class suppress_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( suppress_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( suppress_1bit_type const& o, std::string& out, base::tag<suppress_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -711,7 +711,7 @@ enum class tech_type : uint8_t {
 };
 
 // String conversion.
-void to_str( tech_type const& o, std::string& out, base::ADL_t );
+void to_str( tech_type const& o, std::string& out, base::tag<tech_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -757,7 +757,7 @@ enum class terrain_5bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( terrain_5bit_type const& o, std::string& out, base::ADL_t );
+void to_str( terrain_5bit_type const& o, std::string& out, base::tag<terrain_5bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -778,7 +778,7 @@ enum class trade_route_type : uint8_t {
 };
 
 // String conversion.
-void to_str( trade_route_type const& o, std::string& out, base::ADL_t );
+void to_str( trade_route_type const& o, std::string& out, base::tag<trade_route_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -820,7 +820,7 @@ enum class unit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( unit_type const& o, std::string& out, base::ADL_t );
+void to_str( unit_type const& o, std::string& out, base::tag<unit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -841,7 +841,7 @@ enum class visible_to_dutch_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( visible_to_dutch_1bit_type const& o, std::string& out, base::tag<visible_to_dutch_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -862,7 +862,7 @@ enum class visible_to_english_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( visible_to_english_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( visible_to_english_1bit_type const& o, std::string& out, base::tag<visible_to_english_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -883,7 +883,7 @@ enum class visible_to_french_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( visible_to_french_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( visible_to_french_1bit_type const& o, std::string& out, base::tag<visible_to_french_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -904,7 +904,7 @@ enum class visible_to_spanish_1bit_type : uint8_t {
 };
 
 // String conversion.
-void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::ADL_t );
+void to_str( visible_to_spanish_1bit_type const& o, std::string& out, base::tag<visible_to_spanish_1bit_type> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -925,7 +925,7 @@ enum class yes_no_byte : uint8_t {
 };
 
 // String conversion.
-void to_str( yes_no_byte const& o, std::string& out, base::ADL_t );
+void to_str( yes_no_byte const& o, std::string& out, base::tag<yes_no_byte> );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
@@ -954,7 +954,7 @@ struct TutorialHelp {
 };
 
 // String conversion.
-void to_str( TutorialHelp const& o, std::string& out, base::ADL_t );
+void to_str( TutorialHelp const& o, std::string& out, base::tag<TutorialHelp> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TutorialHelp& o );
@@ -990,7 +990,7 @@ struct GameOptions {
 };
 
 // String conversion.
-void to_str( GameOptions const& o, std::string& out, base::ADL_t );
+void to_str( GameOptions const& o, std::string& out, base::tag<GameOptions> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, GameOptions& o );
@@ -1027,7 +1027,7 @@ struct ColonyReportOptionsToDisable {
 };
 
 // String conversion.
-void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::ADL_t );
+void to_str( ColonyReportOptionsToDisable const& o, std::string& out, base::tag<ColonyReportOptionsToDisable> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonyReportOptionsToDisable& o );
@@ -1069,7 +1069,7 @@ struct Flags {
 };
 
 // String conversion.
-void to_str( Flags const& o, std::string& out, base::ADL_t );
+void to_str( Flags const& o, std::string& out, base::tag<Flags> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Flags& o );
@@ -1111,7 +1111,7 @@ struct Event {
 };
 
 // String conversion.
-void to_str( Event const& o, std::string& out, base::ADL_t );
+void to_str( Event const& o, std::string& out, base::tag<Event> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Event& o );
@@ -1139,7 +1139,7 @@ struct PlayerFlags {
 };
 
 // String conversion.
-void to_str( PlayerFlags const& o, std::string& out, base::ADL_t );
+void to_str( PlayerFlags const& o, std::string& out, base::tag<PlayerFlags> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PlayerFlags& o );
@@ -1173,7 +1173,7 @@ struct ColonyFlags {
 };
 
 // String conversion.
-void to_str( ColonyFlags const& o, std::string& out, base::ADL_t );
+void to_str( ColonyFlags const& o, std::string& out, base::tag<ColonyFlags> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonyFlags& o );
@@ -1201,7 +1201,7 @@ struct Duration {
 };
 
 // String conversion.
-void to_str( Duration const& o, std::string& out, base::ADL_t );
+void to_str( Duration const& o, std::string& out, base::tag<Duration> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Duration& o );
@@ -1246,7 +1246,7 @@ struct Buildings {
 };
 
 // String conversion.
-void to_str( Buildings const& o, std::string& out, base::ADL_t );
+void to_str( Buildings const& o, std::string& out, base::tag<Buildings> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Buildings& o );
@@ -1288,7 +1288,7 @@ struct CustomHouseFlags {
 };
 
 // String conversion.
-void to_str( CustomHouseFlags const& o, std::string& out, base::ADL_t );
+void to_str( CustomHouseFlags const& o, std::string& out, base::tag<CustomHouseFlags> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CustomHouseFlags& o );
@@ -1319,7 +1319,7 @@ struct NationInfo {
 };
 
 // String conversion.
-void to_str( NationInfo const& o, std::string& out, base::ADL_t );
+void to_str( NationInfo const& o, std::string& out, base::tag<NationInfo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NationInfo& o );
@@ -1347,7 +1347,7 @@ struct Unknown15 {
 };
 
 // String conversion.
-void to_str( Unknown15 const& o, std::string& out, base::ADL_t );
+void to_str( Unknown15 const& o, std::string& out, base::tag<Unknown15> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Unknown15& o );
@@ -1375,7 +1375,7 @@ struct CargoItems {
 };
 
 // String conversion.
-void to_str( CargoItems const& o, std::string& out, base::ADL_t );
+void to_str( CargoItems const& o, std::string& out, base::tag<CargoItems> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CargoItems& o );
@@ -1427,7 +1427,7 @@ struct FoundingFathers {
 };
 
 // String conversion.
-void to_str( FoundingFathers const& o, std::string& out, base::ADL_t );
+void to_str( FoundingFathers const& o, std::string& out, base::tag<FoundingFathers> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, FoundingFathers& o );
@@ -1469,7 +1469,7 @@ struct BoycottBitmap {
 };
 
 // String conversion.
-void to_str( BoycottBitmap const& o, std::string& out, base::ADL_t );
+void to_str( BoycottBitmap const& o, std::string& out, base::tag<BoycottBitmap> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BoycottBitmap& o );
@@ -1498,7 +1498,7 @@ struct RelationByNations {
 };
 
 // String conversion.
-void to_str( RelationByNations const& o, std::string& out, base::ADL_t );
+void to_str( RelationByNations const& o, std::string& out, base::tag<RelationByNations> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByNations& o );
@@ -1527,7 +1527,7 @@ struct RelationByIndian {
 };
 
 // String conversion.
-void to_str( RelationByIndian const& o, std::string& out, base::ADL_t );
+void to_str( RelationByIndian const& o, std::string& out, base::tag<RelationByIndian> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByIndian& o );
@@ -1558,7 +1558,7 @@ struct BLCS {
 };
 
 // String conversion.
-void to_str( BLCS const& o, std::string& out, base::ADL_t );
+void to_str( BLCS const& o, std::string& out, base::tag<BLCS> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BLCS& o );
@@ -1586,7 +1586,7 @@ struct TribeFlags {
 };
 
 // String conversion.
-void to_str( TribeFlags const& o, std::string& out, base::ADL_t );
+void to_str( TribeFlags const& o, std::string& out, base::tag<TribeFlags> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TribeFlags& o );
@@ -1615,7 +1615,7 @@ struct RelationByNations2 {
 };
 
 // String conversion.
-void to_str( RelationByNations2 const& o, std::string& out, base::ADL_t );
+void to_str( RelationByNations2 const& o, std::string& out, base::tag<RelationByNations2> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, RelationByNations2& o );
@@ -1643,7 +1643,7 @@ struct TILE {
 };
 
 // String conversion.
-void to_str( TILE const& o, std::string& out, base::ADL_t );
+void to_str( TILE const& o, std::string& out, base::tag<TILE> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TILE& o );
@@ -1677,7 +1677,7 @@ struct MASK {
 };
 
 // String conversion.
-void to_str( MASK const& o, std::string& out, base::ADL_t );
+void to_str( MASK const& o, std::string& out, base::tag<MASK> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, MASK& o );
@@ -1705,7 +1705,7 @@ struct PATH {
 };
 
 // String conversion.
-void to_str( PATH const& o, std::string& out, base::ADL_t );
+void to_str( PATH const& o, std::string& out, base::tag<PATH> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PATH& o );
@@ -1736,7 +1736,7 @@ struct SEEN {
 };
 
 // String conversion.
-void to_str( SEEN const& o, std::string& out, base::ADL_t );
+void to_str( SEEN const& o, std::string& out, base::tag<SEEN> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, SEEN& o );
@@ -1770,7 +1770,7 @@ struct SeaLaneConnectivity {
 };
 
 // String conversion.
-void to_str( SeaLaneConnectivity const& o, std::string& out, base::ADL_t );
+void to_str( SeaLaneConnectivity const& o, std::string& out, base::tag<SeaLaneConnectivity> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, SeaLaneConnectivity& o );
@@ -1804,7 +1804,7 @@ struct LandConnectivity {
 };
 
 // String conversion.
-void to_str( LandConnectivity const& o, std::string& out, base::ADL_t );
+void to_str( LandConnectivity const& o, std::string& out, base::tag<LandConnectivity> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, LandConnectivity& o );
@@ -1832,7 +1832,7 @@ struct Stop1LoadsAndUnloadsCount {
 };
 
 // String conversion.
-void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+void to_str( Stop1LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop1LoadsAndUnloadsCount> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsAndUnloadsCount& o );
@@ -1864,7 +1864,7 @@ struct Stop1LoadsCargo {
 };
 
 // String conversion.
-void to_str( Stop1LoadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop1LoadsCargo const& o, std::string& out, base::tag<Stop1LoadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1LoadsCargo& o );
@@ -1896,7 +1896,7 @@ struct Stop1UnloadsCargo {
 };
 
 // String conversion.
-void to_str( Stop1UnloadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop1UnloadsCargo const& o, std::string& out, base::tag<Stop1UnloadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop1UnloadsCargo& o );
@@ -1924,7 +1924,7 @@ struct Stop2LoadsAndUnloadsCount {
 };
 
 // String conversion.
-void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+void to_str( Stop2LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop2LoadsAndUnloadsCount> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsAndUnloadsCount& o );
@@ -1956,7 +1956,7 @@ struct Stop2LoadsCargo {
 };
 
 // String conversion.
-void to_str( Stop2LoadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop2LoadsCargo const& o, std::string& out, base::tag<Stop2LoadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2LoadsCargo& o );
@@ -1988,7 +1988,7 @@ struct Stop2UnloadsCargo {
 };
 
 // String conversion.
-void to_str( Stop2UnloadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop2UnloadsCargo const& o, std::string& out, base::tag<Stop2UnloadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop2UnloadsCargo& o );
@@ -2016,7 +2016,7 @@ struct Stop3LoadsAndUnloadsCount {
 };
 
 // String conversion.
-void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+void to_str( Stop3LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop3LoadsAndUnloadsCount> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsAndUnloadsCount& o );
@@ -2048,7 +2048,7 @@ struct Stop3LoadsCargo {
 };
 
 // String conversion.
-void to_str( Stop3LoadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop3LoadsCargo const& o, std::string& out, base::tag<Stop3LoadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3LoadsCargo& o );
@@ -2080,7 +2080,7 @@ struct Stop3UnloadsCargo {
 };
 
 // String conversion.
-void to_str( Stop3UnloadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop3UnloadsCargo const& o, std::string& out, base::tag<Stop3UnloadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop3UnloadsCargo& o );
@@ -2108,7 +2108,7 @@ struct Stop4LoadsAndUnloadsCount {
 };
 
 // String conversion.
-void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::ADL_t );
+void to_str( Stop4LoadsAndUnloadsCount const& o, std::string& out, base::tag<Stop4LoadsAndUnloadsCount> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsAndUnloadsCount& o );
@@ -2140,7 +2140,7 @@ struct Stop4LoadsCargo {
 };
 
 // String conversion.
-void to_str( Stop4LoadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop4LoadsCargo const& o, std::string& out, base::tag<Stop4LoadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4LoadsCargo& o );
@@ -2172,7 +2172,7 @@ struct Stop4UnloadsCargo {
 };
 
 // String conversion.
-void to_str( Stop4UnloadsCargo const& o, std::string& out, base::ADL_t );
+void to_str( Stop4UnloadsCargo const& o, std::string& out, base::tag<Stop4UnloadsCargo> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stop4UnloadsCargo& o );
@@ -2202,7 +2202,7 @@ struct ExpeditionaryForce {
 };
 
 // String conversion.
-void to_str( ExpeditionaryForce const& o, std::string& out, base::ADL_t );
+void to_str( ExpeditionaryForce const& o, std::string& out, base::tag<ExpeditionaryForce> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ExpeditionaryForce& o );
@@ -2232,7 +2232,7 @@ struct BackupForce {
 };
 
 // String conversion.
-void to_str( BackupForce const& o, std::string& out, base::ADL_t );
+void to_str( BackupForce const& o, std::string& out, base::tag<BackupForce> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, BackupForce& o );
@@ -2264,7 +2264,7 @@ struct PriceGroupState {
 };
 
 // String conversion.
-void to_str( PriceGroupState const& o, std::string& out, base::ADL_t );
+void to_str( PriceGroupState const& o, std::string& out, base::tag<PriceGroupState> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PriceGroupState& o );
@@ -2329,7 +2329,7 @@ struct HEADER {
 };
 
 // String conversion.
-void to_str( HEADER const& o, std::string& out, base::ADL_t );
+void to_str( HEADER const& o, std::string& out, base::tag<HEADER> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, HEADER& o );
@@ -2361,7 +2361,7 @@ struct PLAYER {
 };
 
 // String conversion.
-void to_str( PLAYER const& o, std::string& out, base::ADL_t );
+void to_str( PLAYER const& o, std::string& out, base::tag<PLAYER> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PLAYER& o );
@@ -2390,7 +2390,7 @@ struct OTHER {
 };
 
 // String conversion.
-void to_str( OTHER const& o, std::string& out, base::ADL_t );
+void to_str( OTHER const& o, std::string& out, base::tag<OTHER> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, OTHER& o );
@@ -2424,7 +2424,7 @@ struct Tiles {
 };
 
 // String conversion.
-void to_str( Tiles const& o, std::string& out, base::ADL_t );
+void to_str( Tiles const& o, std::string& out, base::tag<Tiles> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Tiles& o );
@@ -2466,7 +2466,7 @@ struct Stock {
 };
 
 // String conversion.
-void to_str( Stock const& o, std::string& out, base::ADL_t );
+void to_str( Stock const& o, std::string& out, base::tag<Stock> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Stock& o );
@@ -2496,7 +2496,7 @@ struct PopulationOnMap {
 };
 
 // String conversion.
-void to_str( PopulationOnMap const& o, std::string& out, base::ADL_t );
+void to_str( PopulationOnMap const& o, std::string& out, base::tag<PopulationOnMap> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, PopulationOnMap& o );
@@ -2526,7 +2526,7 @@ struct FortificationOnMap {
 };
 
 // String conversion.
-void to_str( FortificationOnMap const& o, std::string& out, base::ADL_t );
+void to_str( FortificationOnMap const& o, std::string& out, base::tag<FortificationOnMap> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, FortificationOnMap& o );
@@ -2578,7 +2578,7 @@ struct COLONY {
 };
 
 // String conversion.
-void to_str( COLONY const& o, std::string& out, base::ADL_t );
+void to_str( COLONY const& o, std::string& out, base::tag<COLONY> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, COLONY& o );
@@ -2606,7 +2606,7 @@ struct TransportChain {
 };
 
 // String conversion.
-void to_str( TransportChain const& o, std::string& out, base::ADL_t );
+void to_str( TransportChain const& o, std::string& out, base::tag<TransportChain> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TransportChain& o );
@@ -2649,7 +2649,7 @@ struct UNIT {
 };
 
 // String conversion.
-void to_str( UNIT const& o, std::string& out, base::ADL_t );
+void to_str( UNIT const& o, std::string& out, base::tag<UNIT> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UNIT& o );
@@ -2691,7 +2691,7 @@ struct IntrinsicVolume {
 };
 
 // String conversion.
-void to_str( IntrinsicVolume const& o, std::string& out, base::ADL_t );
+void to_str( IntrinsicVolume const& o, std::string& out, base::tag<IntrinsicVolume> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, IntrinsicVolume& o );
@@ -2722,7 +2722,7 @@ struct Trade {
 };
 
 // String conversion.
-void to_str( Trade const& o, std::string& out, base::ADL_t );
+void to_str( Trade const& o, std::string& out, base::tag<Trade> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Trade& o );
@@ -2778,7 +2778,7 @@ struct NATION {
 };
 
 // String conversion.
-void to_str( NATION const& o, std::string& out, base::ADL_t );
+void to_str( NATION const& o, std::string& out, base::tag<NATION> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NATION& o );
@@ -2806,7 +2806,7 @@ struct Alarm {
 };
 
 // String conversion.
-void to_str( Alarm const& o, std::string& out, base::ADL_t );
+void to_str( Alarm const& o, std::string& out, base::tag<Alarm> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, Alarm& o );
@@ -2842,7 +2842,7 @@ struct DWELLING {
 };
 
 // String conversion.
-void to_str( DWELLING const& o, std::string& out, base::ADL_t );
+void to_str( DWELLING const& o, std::string& out, base::tag<DWELLING> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, DWELLING& o );
@@ -2882,7 +2882,7 @@ struct TRIBE {
 };
 
 // String conversion.
-void to_str( TRIBE const& o, std::string& out, base::ADL_t );
+void to_str( TRIBE const& o, std::string& out, base::tag<TRIBE> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRIBE& o );
@@ -2912,7 +2912,7 @@ struct ForeignAffairsReport {
 };
 
 // String conversion.
-void to_str( ForeignAffairsReport const& o, std::string& out, base::ADL_t );
+void to_str( ForeignAffairsReport const& o, std::string& out, base::tag<ForeignAffairsReport> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ForeignAffairsReport& o );
@@ -2946,7 +2946,7 @@ struct UnknownTribeData1 {
 };
 
 // String conversion.
-void to_str( UnknownTribeData1 const& o, std::string& out, base::ADL_t );
+void to_str( UnknownTribeData1 const& o, std::string& out, base::tag<UnknownTribeData1> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UnknownTribeData1& o );
@@ -2980,7 +2980,7 @@ struct UnknownTribeData2 {
 };
 
 // String conversion.
-void to_str( UnknownTribeData2 const& o, std::string& out, base::ADL_t );
+void to_str( UnknownTribeData2 const& o, std::string& out, base::tag<UnknownTribeData2> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UnknownTribeData2& o );
@@ -3014,7 +3014,7 @@ struct TribeDwellingCount {
 };
 
 // String conversion.
-void to_str( TribeDwellingCount const& o, std::string& out, base::ADL_t );
+void to_str( TribeDwellingCount const& o, std::string& out, base::tag<TribeDwellingCount> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TribeDwellingCount& o );
@@ -3048,7 +3048,7 @@ struct UnknownTribeData4 {
 };
 
 // String conversion.
-void to_str( UnknownTribeData4 const& o, std::string& out, base::ADL_t );
+void to_str( UnknownTribeData4 const& o, std::string& out, base::tag<UnknownTribeData4> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UnknownTribeData4& o );
@@ -3082,7 +3082,7 @@ struct UnknownTribeData5 {
 };
 
 // String conversion.
-void to_str( UnknownTribeData5 const& o, std::string& out, base::ADL_t );
+void to_str( UnknownTribeData5 const& o, std::string& out, base::tag<UnknownTribeData5> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UnknownTribeData5& o );
@@ -3116,7 +3116,7 @@ struct UnknownTribeData6 {
 };
 
 // String conversion.
-void to_str( UnknownTribeData6 const& o, std::string& out, base::ADL_t );
+void to_str( UnknownTribeData6 const& o, std::string& out, base::tag<UnknownTribeData6> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, UnknownTribeData6& o );
@@ -3164,7 +3164,7 @@ struct STUFF {
 };
 
 // String conversion.
-void to_str( STUFF const& o, std::string& out, base::ADL_t );
+void to_str( STUFF const& o, std::string& out, base::tag<STUFF> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, STUFF& o );
@@ -3192,7 +3192,7 @@ struct CONNECTIVITY {
 };
 
 // String conversion.
-void to_str( CONNECTIVITY const& o, std::string& out, base::ADL_t );
+void to_str( CONNECTIVITY const& o, std::string& out, base::tag<CONNECTIVITY> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, CONNECTIVITY& o );
@@ -3241,7 +3241,7 @@ struct TRADEROUTE {
 };
 
 // String conversion.
-void to_str( TRADEROUTE const& o, std::string& out, base::ADL_t );
+void to_str( TRADEROUTE const& o, std::string& out, base::tag<TRADEROUTE> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, TRADEROUTE& o );
@@ -3288,7 +3288,7 @@ struct ColonySAV {
 };
 
 // String conversion.
-void to_str( ColonySAV const& o, std::string& out, base::ADL_t );
+void to_str( ColonySAV const& o, std::string& out, base::tag<ColonySAV> );
 
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, ColonySAV& o );

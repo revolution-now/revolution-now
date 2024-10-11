@@ -189,7 +189,7 @@ struct doc {
   cdr::value val_;
 };
 
-void to_str( doc const& o, std::string& out, base::ADL_t );
+void to_str( doc const& o, std::string& out, base::tag<doc> );
 
 /****************************************************************
 ** Helpers for parsing/formatting.
