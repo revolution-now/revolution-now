@@ -57,12 +57,15 @@ registration_functions();
       register_, __LINE__ )::init_fn = []( st )
 
 // `name` is supposed to be a string.
-#define LUA_AUTO_FN( name, func )              \
+#define LUA_AUTO_FN_NAMED( name, func )        \
   LUA_STARTUP( lua::state& st ) {              \
     ::lua::table::create_or_get(               \
         st[::lua::lua_module_name__] );        \
     st[::lua::lua_module_name__][name] = func; \
   };
+
+// `name` is supposed to be a string.
+#define LUA_AUTO_FN( func ) LUA_AUTO_FN_NAMED( #func, func )
 
 #define LUA_FN( ... ) PP_N_OR_MORE_ARGS_2( LUA_FN, __VA_ARGS__ )
 

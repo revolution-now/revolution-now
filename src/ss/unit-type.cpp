@@ -144,7 +144,7 @@ LUA_STARTUP( lua::state& st ) {
   // LUA_ADD_MEMBER( modifiers );
 };
 
-LUA_AUTO_FN( "movement_points", movement_points );
+LUA_AUTO_FN( movement_points );
 
 } // namespace
 

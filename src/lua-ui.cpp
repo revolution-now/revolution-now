@@ -35,8 +35,8 @@ void linker_dont_discard_module_lua_ui() {}
 
 namespace {
 
-// LUA_AUTO_FN( "message_box", ui::message_box_basic );
-// LUA_AUTO_FN( "str_input_box", ui::str_input_box );
+// LUA_AUTO_FN_NAMED( "message_box", ui::message_box_basic );
+// LUA_AUTO_FN_NAMED( "str_input_box", ui::str_input_box );
 
 // LUA_FN( ok_cancel, wait<string>, string_view msg ) {
 //   ui::e_ok_cancel res = co_await ui::ok_cancel( msg );
