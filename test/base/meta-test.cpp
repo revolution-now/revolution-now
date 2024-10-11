@@ -441,7 +441,8 @@ TEST_CASE( "[meta] for_index_seq" ) {
   SECTION( "zero" ) {
     for_index_seq<0>(
         [&]<size_t Idx>( std::integral_constant<size_t, Idx> ) {
-          static_assert( Idx != Idx, "should not be here" );
+          static_assert( Idx != ( Idx + 1 - 1 ),
+                         "should not be here" );
         } );
   }
   SECTION( "non-stop" ) {
