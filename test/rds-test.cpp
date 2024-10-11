@@ -457,7 +457,7 @@ TEST_CASE( "[rds] structs" ) {
       REQUIRE( ms.xxx == 5 );
       ( ms.*acc ) = 6;
       REQUIRE( ms.xxx == 6 );
-      REQUIRE( ( off.index() == 1 && off.get<size_t>() == 0 ) );
+      REQUIRE( off.index() == 0 );
     }
     { // field 1
       auto& [name, acc, off] = std::get<1>( Tr::fields );
@@ -465,7 +465,7 @@ TEST_CASE( "[rds] structs" ) {
       REQUIRE( ms.yyy == 2.3 );
       ( ms.*acc ) = 3.2;
       REQUIRE( ms.yyy == 3.2 );
-      REQUIRE( ( off.index() == 1 && off.get<size_t>() > 0 ) );
+      REQUIRE( off.index() == 0 );
     }
     { // field 2
       auto& [name, acc, off] = std::get<2>( Tr::fields );
@@ -477,6 +477,36 @@ TEST_CASE( "[rds] structs" ) {
           unordered_map<string, string>{ { "one", "two" } };
       REQUIRE( ms.zzz_map == unordered_map<string, string>{
                                { "one", "two" } } );
+      REQUIRE( off.index() == 0 );
+    }
+  }
+  SECTION( "MyStructWithOffsets" ) {
+    using Tr = refl::traits<MyStructWithOffsets>;
+    static_assert( is_same_v<Tr::type, MyStructWithOffsets> );
+    static_assert( Tr::kind == refl::type_kind::struct_kind );
+    static_assert( Tr::ns == "rn" );
+    static_assert( Tr::name == "MyStructWithOffsets" );
+    static_assert( is_same_v<Tr::template_types, tuple<>> );
+
+    static_assert( tuple_size_v<decltype( Tr::fields )> == 2 );
+    MyStructWithOffsets ms{
+      .xxx = 5,
+      .yyy = 2.3,
+    };
+    { // field 0
+      auto& [name, acc, off] = std::get<0>( Tr::fields );
+      static_assert( name == "xxx" );
+      REQUIRE( ms.xxx == 5 );
+      ( ms.*acc ) = 6;
+      REQUIRE( ms.xxx == 6 );
+      REQUIRE( ( off.index() == 1 && off.get<size_t>() == 0 ) );
+    }
+    { // field 1
+      auto& [name, acc, off] = std::get<1>( Tr::fields );
+      static_assert( name == "yyy" );
+      REQUIRE( ms.yyy == 2.3 );
+      ( ms.*acc ) = 3.2;
+      REQUIRE( ms.yyy == 3.2 );
       REQUIRE( ( off.index() == 1 && off.get<size_t>() > 0 ) );
     }
   }

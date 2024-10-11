@@ -219,12 +219,19 @@ struct.EmptyStruct2 {
   _features {}
 }
 
+struct.MyStructWithOffsets {
+  xxx 'int',
+  yyy 'double',
+
+  _features { equality, offsets, nodiscard }
+}
+
 struct.MyStruct {
   xxx 'int',
   yyy 'double',
   zzz_map 'std::unordered_map<std::string, std::string>',
 
-  _features { equality, offsets, nodiscard }
+  _features { equality, nodiscard }
 }
 
 struct.StructWithValidation {

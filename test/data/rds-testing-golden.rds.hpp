@@ -1623,6 +1623,42 @@ namespace refl {
 } // namespace refl
 
 /****************************************************************
+*                  Struct: MyStructWithOffsets
+*****************************************************************/
+namespace rn {
+
+  struct [[nodiscard]] MyStructWithOffsets {
+    int    xxx = {};
+    double yyy = {};
+
+    bool operator==( MyStructWithOffsets const& ) const = default;
+  };
+
+} // namespace rn
+
+namespace refl {
+
+  // Reflection info for struct MyStructWithOffsets.
+  template<>
+  struct traits<rn::MyStructWithOffsets> {
+    using type = rn::MyStructWithOffsets;
+
+    static constexpr type_kind kind        = type_kind::struct_kind;
+    static constexpr std::string_view ns   = "rn";
+    static constexpr std::string_view name = "MyStructWithOffsets";
+    static constexpr bool is_sumtype_alternative = false;
+
+    using template_types = std::tuple<>;
+
+    static constexpr std::tuple fields{
+      refl::StructField{ "xxx", &rn::MyStructWithOffsets::xxx, offsetof( type, xxx ) },
+      refl::StructField{ "yyy", &rn::MyStructWithOffsets::yyy, offsetof( type, yyy ) },
+    };
+  };
+
+} // namespace refl
+
+/****************************************************************
 *                       Struct: MyStruct
 *****************************************************************/
 namespace rn {
@@ -1652,9 +1688,9 @@ namespace refl {
     using template_types = std::tuple<>;
 
     static constexpr std::tuple fields{
-      refl::StructField{ "xxx", &rn::MyStruct::xxx, offsetof( type, xxx ) },
-      refl::StructField{ "yyy", &rn::MyStruct::yyy, offsetof( type, yyy ) },
-      refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map, offsetof( type, zzz_map ) },
+      refl::StructField{ "xxx", &rn::MyStruct::xxx, /*offset=*/base::nothing },
+      refl::StructField{ "yyy", &rn::MyStruct::yyy, /*offset=*/base::nothing },
+      refl::StructField{ "zzz_map", &rn::MyStruct::zzz_map, /*offset=*/base::nothing },
     };
   };
 
