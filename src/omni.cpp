@@ -21,14 +21,32 @@
 // config
 #include "config/tile-enum.rds.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+
 // render
 #include "render/renderer.hpp"
+
+// gfx
+#include "gfx/aspect.hpp"
+
+// refl
+#include "refl/to-str.hpp"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+bool g_debug_omni_overlay = false;
+
+string toggle_omni_overlay() {
+  g_debug_omni_overlay = !g_debug_omni_overlay;
+  return g_debug_omni_overlay ? "on" : "off";
+}
+
+} // namespace
 
 /****************************************************************
 ** OmniPlane::Impl
@@ -55,8 +73,109 @@ struct OmniPlane::Impl : public IPlane {
         gfx::pixel::banana(), shaded_wood );
   }
 
+  void render_aspect_info( rr::Renderer& renderer ) const {
+    vector<string> lines;
+
+    static auto line_logger = []( vector<string>& lines
+                                      ATTR_LIFETIMEBOUND ) {
+      return
+          [&]<typename... Args>(
+              fmt::format_string<std::type_identity_t<Args>...>
+                  fmt_str,
+              Args&&... args ) {
+            lines.push_back( fmt::format(
+                fmt_str, std::forward<Args>( args )... ) );
+          };
+    };
+
+    auto log = line_logger( lines );
+
+    auto fmt_size = []( gfx::size const s ) {
+      return fmt::format( "{}x{}", s.w, s.h );
+    };
+
+    auto fmt_point = []( gfx::point const p ) {
+      return fmt::format( "[{},{}]", p.y, p.y );
+    };
+
+    log( "Aspect Info:" );
+
+    gfx::size const physical_size = main_window_physical_size();
+    log( " physical: {}", fmt_size( physical_size ) );
+
+    gfx::size const logical_size =
+        renderer.logical_screen_size();
+    log( " logical:  {}", fmt_size( logical_size ) );
+
+    UNWRAP_CHECK_T(
+        auto const actual_ratio,
+        gfx::AspectRatio::from_size( physical_size ) );
+    log( " aspect:   {}", actual_ratio );
+
+    auto const closest_named_ratio =
+        find_closest_named_aspect_ratio(
+            actual_ratio, gfx::default_aspect_ratio_tolerance() )
+            .fmap( gfx::named_ratio_canonical_name );
+    log( " closest:  {}", closest_named_ratio );
+
+    vector<gfx::size> const target_logical_resolutions{
+      { .w = 768, .h = 432 }, // 16:9
+      { .w = 640, .h = 360 }, // 16:9
+      { .w = 640, .h = 400 }, // 16:10
+      { .w = 640, .h = 480 }, // 4:3
+    };
+
+    gfx::ResolutionAnalysis const analysis = resolution_analysis(
+        target_logical_resolutions, physical_size );
+    maybe<gfx::RecommendedResolution> const recommended =
+        recommended_resolution(
+            analysis, gfx::default_aspect_ratio_tolerance() );
+
+    if( !recommended ) {
+      rr::Painter painter = renderer.painter();
+      painter.draw_solid_rect( renderer.logical_screen_rect(),
+                               gfx::pixel::yellow() );
+      log( " recommended: {}", recommended );
+    } else {
+      log( " recommended:" );
+      log( "  scale:   {}", recommended->scale );
+      log( "  exact:   {}", recommended->exact );
+      log( "  target:  {}",
+           fmt_size( recommended->target_logical ) );
+      log( "  buffer:  {}", fmt_size( recommended->buffer ) );
+      log( "  score:   {}", recommended->score );
+      log( "  clipped:", recommended->clipped_logical );
+      log( "   origin: {}",
+           fmt_point( recommended->clipped_logical.origin ) );
+      log( "   size:   {}",
+           fmt_size( recommended->clipped_logical.size ) );
+
+      rr::Painter painter = renderer.painter();
+      painter.draw_empty_rect(
+          recommended->clipped_logical,
+          rr::Painter::e_border_mode::inside,
+          gfx::pixel::red() );
+      set_resolution_scale( recommended->scale );
+    }
+
+    gfx::point const info_region_anchor = [&] {
+      gfx::point res;
+      res = gfx::point{ .x = 50, .y = 50 };
+      return res;
+    }();
+
+    render_text_overlay_with_anchor(
+        renderer, lines, info_region_anchor, e_cdirection::nw,
+        gfx::pixel::white(), gfx::pixel::black() );
+  }
+
+  void render_debug_overlay( rr::Renderer& renderer ) const {
+    render_aspect_info( renderer );
+  }
+
   void draw( rr::Renderer& renderer ) const override {
     render_framerate( renderer );
+    if( g_debug_omni_overlay ) render_debug_overlay( renderer );
     render_sprite(
         renderer,
         input::current_mouse_position() - Delta{ .w = 16 },
@@ -125,5 +244,14 @@ IPlane& OmniPlane::impl() { return *impl_; }
 OmniPlane::~OmniPlane() = default;
 
 OmniPlane::OmniPlane() : impl_( new Impl ) {}
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace {
+
+LUA_AUTO_FN( toggle_omni_overlay );
+
+}
 
 } // namespace rn
