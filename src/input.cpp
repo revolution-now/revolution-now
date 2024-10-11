@@ -154,11 +154,13 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     //}
     case ::SDL_WINDOWEVENT: {
       win_event_t win_event;
-      win_event.type = ( sdl_event.window.event ==
-                         ::SDL_WINDOWEVENT_SIZE_CHANGED )
-                           ? e_win_event_type::resized
-                           : e_win_event_type::other;
-      event          = win_event;
+      win_event.type =
+          ( sdl_event.window.event ==
+                ::SDL_WINDOWEVENT_SIZE_CHANGED ||
+            sdl_event.window.event == ::SDL_WINDOWEVENT_RESIZED )
+              ? e_win_event_type::resized
+              : e_win_event_type::other;
+      event = win_event;
       break;
     }
     case ::SDL_KEYDOWN: {
