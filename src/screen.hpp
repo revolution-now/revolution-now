@@ -39,6 +39,7 @@ void on_main_window_resized();
 
 void inc_resolution_scale();
 void dec_resolution_scale();
+void set_resolution_scale( int new_scale );
 void set_optimal_resolution_scale();
 
 struct DisplayMode {

@@ -356,24 +356,24 @@ REGISTER_INIT_ROUTINE( screen );
 
 void* main_os_window_handle() { return (void*)g_window; }
 
-void inc_resolution_scale() {
+void set_resolution_scale( int const new_scale ) {
   int scale     = g_resolution_scale_factor.w;
   int old_scale = scale;
-  scale++;
+  scale         = new_scale;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
   g_resolution_scale_factor.w = scale;
   g_resolution_scale_factor.h = scale;
   if( old_scale != scale ) on_renderer_scale_factor_changed();
 }
 
+void inc_resolution_scale() {
+  int const curr_scale = g_resolution_scale_factor.w;
+  set_resolution_scale( curr_scale + 1 );
+}
+
 void dec_resolution_scale() {
-  int scale     = g_resolution_scale_factor.w;
-  int old_scale = scale;
-  scale--;
-  scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.w = scale;
-  g_resolution_scale_factor.h = scale;
-  if( old_scale != scale ) on_renderer_scale_factor_changed();
+  int const curr_scale = g_resolution_scale_factor.w;
+  set_resolution_scale( curr_scale - 1 );
 }
 
 void set_optimal_resolution_scale() {
