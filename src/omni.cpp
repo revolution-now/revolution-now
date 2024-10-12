@@ -39,7 +39,7 @@ namespace rn {
 
 namespace {
 
-bool g_debug_omni_overlay = false;
+bool g_debug_omni_overlay = true;
 
 string toggle_omni_overlay() {
   g_debug_omni_overlay = !g_debug_omni_overlay;
@@ -127,9 +127,13 @@ struct OmniPlane::Impl : public IPlane {
 
     gfx::ResolutionAnalysis const analysis = resolution_analysis(
         target_logical_resolutions, physical_size );
+
+    // double const tolerance =
+    // gfx::default_aspect_ratio_tolerance();
+    double const tolerance = 0;
+
     maybe<gfx::RecommendedResolution> const recommended =
-        recommended_resolution(
-            analysis, gfx::default_aspect_ratio_tolerance() );
+        recommended_resolution( analysis, tolerance );
 
     if( !recommended ) {
       rr::Painter painter = renderer.painter();
