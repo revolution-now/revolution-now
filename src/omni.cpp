@@ -30,6 +30,9 @@
 // gfx
 #include "gfx/aspect.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -188,13 +191,9 @@ struct OmniPlane::Impl : public IPlane {
 
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
-    switch( event.to_enum() ) {
-      case input::e_input_event::quit_event:
-        throw exception_exit{};
-      case input::e_input_event::win_event: //
-        break;
-      case input::e_input_event::key_event: {
-        auto& key_event = event.get<input::key_event_t>();
+    SWITCH( event ) {
+      CASE( quit_event ) { throw exception_exit{}; }
+      CASE( key_event ) {
         if( key_event.change != input::e_key_change::down )
           break;
         handled = e_input_handled::yes;
@@ -228,7 +227,7 @@ struct OmniPlane::Impl : public IPlane {
         }
         break;
       }
-      default: //
+      default:
         break;
     }
     return handled;
