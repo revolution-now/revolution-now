@@ -18,6 +18,10 @@
 // gfx
 #include "gfx/coord.hpp"
 
+namespace rr {
+struct Renderer;
+}
+
 namespace rn {
 
 extern Delta g_resolution_scale_factor;
@@ -35,12 +39,13 @@ Delta main_window_physical_size();
 Rect  main_window_logical_rect();  // !! origin at (0,0)
 Rect  main_window_physical_rect(); // !! origin at (0,0)
 
-void on_main_window_resized();
+void on_main_window_resized( rr::Renderer& renderer );
 
 void inc_resolution_scale();
 void dec_resolution_scale();
-void set_resolution_scale( int new_scale );
-void set_optimal_resolution_scale();
+void set_resolution_scale( rr::Renderer& renderer,
+                           int           new_scale );
+void set_optimal_resolution_scale( rr::Renderer& renderer );
 
 struct DisplayMode {
   Delta    size;

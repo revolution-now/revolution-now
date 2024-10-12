@@ -25,6 +25,9 @@
 #include "config/gfx.rds.hpp"
 #include "config/rn.rds.hpp"
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // luapp
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
@@ -120,7 +123,8 @@ void notify_subscribers() {
 
 using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc = base::function_ref<void(
-    rr::Renderer&, Planes&, InputReceivedFunc )>;
+    rr::Renderer&, Planes&, maybe<input::win_event_t>&,
+    InputReceivedFunc )>;
 
 void frame_loop_scheduler( wait<> const&     what,
                            rr::Renderer&     renderer,
@@ -131,6 +135,8 @@ void frame_loop_scheduler( wait<> const&     what,
   constexpr auto slow_frame_length = 1'000'000us / 5;
 
   static auto time_of_last_input = Clock_t::now();
+
+  maybe<input::win_event_t> window_resize_pending;
 
   while( !what.ready() && !what.has_exception() ) {
     microseconds normal_frame_length =
@@ -146,7 +152,7 @@ void frame_loop_scheduler( wait<> const&     what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( renderer, planes, on_input );
+    body( renderer, planes, window_resize_pending, on_input );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -160,10 +166,12 @@ void frame_loop_scheduler( wait<> const&     what,
 }
 
 // Called once per frame.
-void frame_loop_body( rr::Renderer& renderer, Planes& planes,
-                      InputReceivedFunc input_received ) {
+void frame_loop_body(
+    rr::Renderer& renderer, Planes& planes,
+    maybe<input::win_event_t>& window_resize_pending,
+    InputReceivedFunc          input_received ) {
   // ----------------------------------------------------------
-  // 1. Notify
+  // Step: Notify
 
   // This invokes (synchronous/blocking) callbacks to any sub-
   // scribers that want to be notified at regular tick or time
@@ -178,36 +186,46 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   for( auto& p : g_event_counts ) p.second.update();
 
   // ----------------------------------------------------------
-  // 1. Get Input.
-  input::pump_event_queue();
+  // Step: Process deferred window resizes.
+  if( window_resize_pending.has_value() ) {
+    on_main_window_resized( renderer );
+    planes.get().input( *window_resize_pending );
+    run_all_coroutines();
+    window_resize_pending.reset();
+  }
 
-  auto is_win_resize = []( auto const& e ) {
-    if_get( e, input::win_event_t, val ) {
-      return val.type == input::e_win_event_type::resized;
-    }
-    return false;
+  auto store_if_win_resize = [&]( input::event_t const& e ) {
+    using namespace input;
+    using enum e_win_event_type;
+    auto const win_event = e.get_if<win_event_t>();
+    auto const type = win_event.member( &win_event_t::type );
+    if( type != resized ) return false;
+    CHECK( win_event.has_value() );
+    window_resize_pending = *win_event;
+    return true;
   };
+
+  // ----------------------------------------------------------
+  // Step: Get Input.
+  input::pump_event_queue();
 
   auto& q = input::event_queue();
   while( !q.empty() ) {
     input_received();
     input::event_t const& event = q.front();
-    if( is_win_resize( event ) ) on_main_window_resized();
-    planes.get().input( event );
+    bool const resize_event     = store_if_win_resize( event );
+    if( !resize_event ) planes.get().input( event );
     q.pop();
     run_all_coroutines();
   }
 
   // ----------------------------------------------------------
-  // 2. Update State.
+  // Step: Update State.
   planes.get().advance_state();
   run_all_coroutines();
 
   // ----------------------------------------------------------
-  // 3. Draw.
-  renderer.set_logical_screen_size( main_window_logical_size() );
-  renderer.set_physical_screen_size(
-      main_window_physical_size() );
+  // Step: Draw.
   renderer.render_pass( [&]( rr::Renderer& renderer ) {
     renderer.clear_screen( gfx::pixel::black() );
     planes.get().draw( renderer );

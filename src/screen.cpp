@@ -15,12 +15,16 @@
 #include "init.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
+#include "renderer.hpp" // FIXME: remove
 #include "sdl.hpp"
 #include "tiles.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
 #include "config/rn.rds.hpp"
+
+// render
+#include "render/renderer.hpp" // TODO: replace with IRenderer
 
 // refl
 #include "refl/to-str.hpp"
@@ -54,26 +58,6 @@ constexpr int max_scale_factor = 10;
 
 // Cache is invalidated by setting to nothing.
 maybe<Delta> main_window_physical_size_cache;
-
-/*
- *::SDL_DisplayMode find_fullscreen_mode() {
- *  ::SDL_DisplayMode dm;
- *  lg.debug( "available display modes:" );
- *  auto num_display_modes = ::SDL_GetNumDisplayModes( 0 );
- *  constexpr int min_x_res{1920};
- *  constexpr int min_y_res{1080};
- *  for( int i = 0; i < num_display_modes; ++i ) {
- *    ::SDL_GetDisplayMode( 0, i, &dm );
- *    if( dm.w % g_tile_width._ == 0 &&
- *        dm.h % g_tile_height._ == 0 ) {
- *      lg.debug( "{}x{}", dm.w, dm.h );
- *      if( dm.w >= min_x_res && dm.h >= min_y_res ) return dm;
- *    }
- *  }
- *  dm.w = dm.h = 0; // means we can't find one.
- *  return dm;
- *}
- */
 
 // Do not use this from outside this module: it refers to the en-
 // tire screen, even if the game is in an unmaximized window. In
@@ -310,42 +294,7 @@ void cleanup_screen() {
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
 }
 
-// MENU_ITEM_HANDLER(
-//     scale_up, [] { inc_resolution_scale(); },
-//     L0( g_resolution_scale_factor !=
-//         Scale{ max_scale_factor } ) )
-//
-// MENU_ITEM_HANDLER(
-//     scale_down, [] { dec_resolution_scale(); },
-//     L0( g_resolution_scale_factor !=
-//         Scale{ min_scale_factor } ) )
-//
-// MENU_ITEM_HANDLER(
-//     scale_optimal, [] { set_optimal_resolution_scale(); },
-//     L0( g_resolution_scale_factor !=
-//         g_optimal_resolution_scale_factor ) )
-//
-// MENU_ITEM_HANDLER(
-//     toggle_fullscreen,
-//     [] {
-//       auto is_fullscreen = toggle_fullscreen();
-//       if( !is_fullscreen ) restore_window();
-//     },
-//     L0( true ) )
-//
-// MENU_ITEM_HANDLER(
-//     restore_window,
-//     [] {
-//       if( is_window_fullscreen() ) {
-//         toggle_fullscreen();
-//         restore_window();
-//       } else {
-//         restore_window();
-//       }
-//     },
-//     L0( true ) )
-
-void on_logical_resolution_changed() {
+void on_logical_resolution_changed( rr::Renderer& renderer ) {
   // Invalidate cache.
   main_window_physical_size_cache = nothing;
 
@@ -357,12 +306,15 @@ void on_logical_resolution_changed() {
     lg.warn(
         "main window physical resolution not commensurate with "
         "scale factor." );
+  renderer.set_logical_screen_size( main_window_logical_size() );
+  renderer.set_physical_screen_size(
+      main_window_physical_size() );
 }
 
-void on_renderer_scale_factor_changed() {
+void on_renderer_scale_factor_changed( rr::Renderer& renderer ) {
   lg.info( "scale factor changed: {}",
            g_resolution_scale_factor );
-  on_logical_resolution_changed();
+  on_logical_resolution_changed( renderer );
 }
 
 REGISTER_INIT_ROUTINE( screen );
@@ -371,32 +323,38 @@ REGISTER_INIT_ROUTINE( screen );
 
 void* main_os_window_handle() { return (void*)g_window; }
 
-void set_resolution_scale( int const new_scale ) {
+void set_resolution_scale( rr::Renderer& renderer,
+                           int const     new_scale ) {
   int scale     = g_resolution_scale_factor.w;
   int old_scale = scale;
   scale         = new_scale;
   scale = clamp( scale, min_scale_factor, max_scale_factor );
   g_resolution_scale_factor.w = scale;
   g_resolution_scale_factor.h = scale;
-  if( old_scale != scale ) on_renderer_scale_factor_changed();
+  if( old_scale != scale )
+    on_renderer_scale_factor_changed( renderer );
 }
 
 void inc_resolution_scale() {
   int const curr_scale = g_resolution_scale_factor.w;
-  set_resolution_scale( curr_scale + 1 );
+  // FIXME
+  auto& renderer = global_renderer_use_only_when_needed();
+  set_resolution_scale( renderer, curr_scale + 1 );
 }
 
 void dec_resolution_scale() {
   int const curr_scale = g_resolution_scale_factor.w;
-  set_resolution_scale( curr_scale - 1 );
+  // FIXME
+  auto& renderer = global_renderer_use_only_when_needed();
+  set_resolution_scale( renderer, curr_scale - 1 );
 }
 
-void set_optimal_resolution_scale() {
+void set_optimal_resolution_scale( rr::Renderer& renderer ) {
   if( g_resolution_scale_factor !=
       g_optimal_resolution_scale_factor ) {
     g_resolution_scale_factor =
         g_optimal_resolution_scale_factor;
-    on_renderer_scale_factor_changed();
+    on_renderer_scale_factor_changed( renderer );
   }
 }
 
@@ -466,14 +424,17 @@ void set_fullscreen( bool fullscreen ) {
 bool toggle_fullscreen() {
   auto fullscreen = is_window_fullscreen();
   set_fullscreen( !fullscreen );
+  on_main_window_resized(
+      // FIXME
+      global_renderer_use_only_when_needed() );
   return !fullscreen;
 }
 
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
-void on_main_window_resized() {
+void on_main_window_resized( rr::Renderer& renderer ) {
   lg.debug( "main window resizing." );
-  on_logical_resolution_changed();
+  on_logical_resolution_changed( renderer );
 }
 
 } // namespace rn

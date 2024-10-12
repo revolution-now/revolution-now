@@ -162,7 +162,7 @@ struct OmniPlane::Impl : public IPlane {
           recommended->clipped_logical,
           rr::Painter::e_border_mode::inside,
           gfx::pixel::red() );
-      set_resolution_scale( recommended->scale );
+      set_resolution_scale( renderer, recommended->scale );
     }
 
     gfx::point const info_region_anchor = [&] {
