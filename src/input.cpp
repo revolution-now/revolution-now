@@ -154,12 +154,17 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
     //}
     case ::SDL_WINDOWEVENT: {
       win_event_t win_event;
-      win_event.type =
-          ( sdl_event.window.event ==
-                ::SDL_WINDOWEVENT_SIZE_CHANGED ||
-            sdl_event.window.event == ::SDL_WINDOWEVENT_RESIZED )
-              ? e_win_event_type::resized
-              : e_win_event_type::other;
+      switch( sdl_event.window.event ) {
+        case ::SDL_WINDOWEVENT_MAXIMIZED:
+        case ::SDL_WINDOWEVENT_RESTORED:
+        case ::SDL_WINDOWEVENT_SIZE_CHANGED:
+        case ::SDL_WINDOWEVENT_RESIZED:
+          win_event.type = e_win_event_type::resized;
+          break;
+        default:
+          win_event.type = e_win_event_type::other;
+          break;
+      }
       event = win_event;
       break;
     }
