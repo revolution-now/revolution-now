@@ -19,6 +19,7 @@
 #include "tiles.hpp"
 
 // config
+#include "config/gfx.rds.hpp"
 #include "config/rn.rds.hpp"
 
 // refl
@@ -279,9 +280,23 @@ void init_screen() {
   query_video_stats();
   find_pixel_scale_factor();
 
-  auto flags = ::SDL_WINDOW_SHOWN | ::SDL_WINDOW_RESIZABLE |
-               ::SDL_WINDOW_FULLSCREEN_DESKTOP |
-               ::SDL_WINDOW_OPENGL;
+  int flags = {};
+
+  bool const start_in_fullscreen =
+      config_gfx.program_window.start_in_fullscreen;
+
+  flags |= ::SDL_WINDOW_SHOWN;
+  flags |= ::SDL_WINDOW_OPENGL;
+
+  if( start_in_fullscreen )
+    flags |= ::SDL_WINDOW_FULLSCREEN_DESKTOP;
+
+  // Not sure why, but this seems to be beneficial even when we
+  // are starting in fullscreen desktop mode, since if it is not
+  // set (this is on Linux) then when we leave fullscreen mode
+  // the "restore" command doesn't work and the window remains
+  // maximized.
+  flags |= ::SDL_WINDOW_RESIZABLE;
 
   auto dm = current_display_mode().size;
 
@@ -434,13 +449,18 @@ bool is_window_fullscreen() {
 }
 
 void set_fullscreen( bool fullscreen ) {
-  bool already = is_window_fullscreen();
-  if( ( fullscreen ^ already ) == 0 ) return;
+  if( fullscreen == is_window_fullscreen() ) return;
 
-  // Must only contain one of the following values.
-  ::Uint32 flags =
-      fullscreen ? ::SDL_WINDOW_FULLSCREEN_DESKTOP : 0;
-  ::SDL_SetWindowFullscreen( g_window, flags );
+  if( fullscreen ) {
+    ::SDL_SetWindowFullscreen( g_window,
+                               ::SDL_WINDOW_FULLSCREEN_DESKTOP );
+  } else {
+    ::SDL_SetWindowFullscreen( g_window, 0 );
+    // This somehow gets erased when we go to fullscreen mode, so
+    // it needs to be re-set each time.
+    ::SDL_SetWindowResizable( g_window,
+                              /*resizable=*/::SDL_TRUE );
+  }
 }
 
 bool toggle_fullscreen() {

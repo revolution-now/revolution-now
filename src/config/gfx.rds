@@ -79,6 +79,10 @@ struct.ColorCycling {
   keys 'ColorCyclePixels',
 }
 
+struct.ProgramWindow {
+  start_in_fullscreen 'bool',
+}
+
 namespace "rn"
 
 struct.config_gfx_t {
@@ -86,6 +90,8 @@ struct.config_gfx_t {
   # this value, though it could be lower if the engine or machine
   # cannot keep up.
   target_frame_rate 'int',
+
+  program_window 'config::graphics::ProgramWindow',
 
   # This will sync frame updates with the monitors update cycles.
   wait_for_vsync 'bool',

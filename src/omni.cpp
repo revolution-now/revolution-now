@@ -200,12 +200,7 @@ struct OmniPlane::Impl : public IPlane {
             //   lg.warn( "failed to take screenshot." );
             break;
           case ::SDLK_F11:
-            if( is_window_fullscreen() ) {
-              toggle_fullscreen();
-              restore_window();
-            } else {
-              toggle_fullscreen();
-            }
+            toggle_fullscreen();
             break;
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down )

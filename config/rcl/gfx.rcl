@@ -2,6 +2,10 @@ target_frame_rate: 61
 
 wait_for_vsync: true
 
+program_window {
+  start_in_fullscreen: true
+}
+
 pixelation_curve {
   # During a pixelation animation (such as e.g. when a unit gets
   # defeated in battle) this curve controls the rate at which
