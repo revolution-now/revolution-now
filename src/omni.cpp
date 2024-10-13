@@ -128,6 +128,7 @@ struct OmniPlane::Impl : public IPlane {
 
       // 16:10
       // { .w = 720, .h = 450 }, // for macbook pro.
+      // { .w = 576, .h = 360 }, // for macbook pro.
       { .w = 640, .h = 400 },
 
       // 4:3
