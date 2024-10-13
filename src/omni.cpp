@@ -122,10 +122,16 @@ struct OmniPlane::Impl : public IPlane {
     log( " closest:  {}", closest_named_ratio );
 
     vector<gfx::size> const target_logical_resolutions{
-      { .w = 768, .h = 432 }, // 16:9
-      { .w = 640, .h = 360 }, // 16:9
-      { .w = 640, .h = 400 }, // 16:10
-      { .w = 640, .h = 480 }, // 4:3
+      // 16:9
+      { .w = 768, .h = 432 }, // for 27 in. monitors.
+      { .w = 640, .h = 360 }, // for laptops.
+
+      // 16:10
+      // { .w = 720, .h = 450 }, // for macbook pro.
+      { .w = 640, .h = 400 },
+
+      // 4:3
+      { .w = 640, .h = 480 },
     };
 
     gfx::ResolutionAnalysis const analysis = resolution_analysis(

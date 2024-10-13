@@ -209,12 +209,11 @@ void frame_loop_body(
   // Step: Get Input.
   input::pump_event_queue();
 
-  auto& q = input::event_queue();
-  while( !q.empty() ) {
+  for( auto& q = input::event_queue(); !q.empty(); ) {
     input_received();
     input::event_t const& event = q.front();
-    bool const resize_event     = store_if_win_resize( event );
-    if( !resize_event ) planes.get().input( event );
+    bool const is_resize_event  = store_if_win_resize( event );
+    if( !is_resize_event ) planes.get().input( event );
     q.pop();
     run_all_coroutines();
   }
