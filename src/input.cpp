@@ -120,8 +120,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   ::SDL_GetMouseState( &mouse.x, &mouse.y );
 
   // mouse.clip( ... );
-  mouse.x /= g_resolution_scale_factor.w;
-  mouse.y /= g_resolution_scale_factor.h;
+  mouse.x /= resolution_scale_factor();
+  mouse.y /= resolution_scale_factor();
 
   if_get( l_drag, drag_phase::dragging, val ) {
     if( val.phase == e_drag_phase::begin )
@@ -400,8 +400,8 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( Coord new_pos ) {
-  new_pos.x *= g_resolution_scale_factor.w;
-  new_pos.y *= g_resolution_scale_factor.h;
+  new_pos.x *= resolution_scale_factor();
+  new_pos.y *= resolution_scale_factor();
   // Apparently we can use nullptr for the window and it will use
   // the "focused" one, which seems to work for us.
   ::SDL_WarpMouseInWindow( /*window=*/nullptr, new_pos.x,

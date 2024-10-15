@@ -29,6 +29,7 @@ struct.InexactLogicalResolution {
   target_logical 'size',
   scale 'int',
   clipped_logical 'rect',
+  logical 'size',
   buffer 'size',
   score 'double',
 }
@@ -39,12 +40,13 @@ struct.ResolutionAnalysis {
   inexact_fits 'std::vector<InexactLogicalResolution>',
 }
 
-struct.RecommendedResolution {
+struct.Resolution {
   physical 'size',
   exact 'bool',
   target_logical 'size',
   scale 'int',
   clipped_logical 'rect',
+  logical 'size',
   buffer 'size',
   score 'double',
 }

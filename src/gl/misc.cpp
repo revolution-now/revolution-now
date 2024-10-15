@@ -30,7 +30,7 @@ void clear( color floats ) {
       glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
 }
 
-void set_viewport( gfx::rect dimensions ) {
+void set_viewport( gfx::rect const dimensions ) {
   static constexpr int kViewportScale = 1;
 
   GL_CHECK( CALL_GL( gl_Viewport, dimensions.origin.x,
@@ -39,7 +39,7 @@ void set_viewport( gfx::rect dimensions ) {
                      dimensions.size.h * kViewportScale ) );
 }
 
-void set_viewport( gfx::size dimensions ) {
+void set_viewport( gfx::size const dimensions ) {
   set_viewport( gfx::rect{ .origin = {}, .size = dimensions } );
 }
 

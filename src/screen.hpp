@@ -22,9 +22,16 @@ namespace rr {
 struct Renderer;
 }
 
+namespace gfx {
+struct Resolution;
+}
+
 namespace rn {
 
-extern Delta g_resolution_scale_factor;
+// FIXME: get rid of this.
+int resolution_scale_factor();
+
+gfx::Resolution const& get_resolution();
 
 // These are cheap to call because their values are cached and
 // are only updated when either the main window is resized or if
@@ -36,16 +43,9 @@ extern Delta g_resolution_scale_factor;
 // of the game.
 Delta main_window_logical_size();
 Delta main_window_physical_size();
-Rect  main_window_logical_rect();  // !! origin at (0,0)
-Rect  main_window_physical_rect(); // !! origin at (0,0)
+Rect  main_window_logical_rect(); // !! origin at (0,0)
 
 void on_main_window_resized( rr::Renderer& renderer );
-
-void inc_resolution_scale();
-void dec_resolution_scale();
-void set_resolution_scale( rr::Renderer& renderer,
-                           int           new_scale );
-void set_optimal_resolution_scale( rr::Renderer& renderer );
 
 struct DisplayMode {
   Delta    size;

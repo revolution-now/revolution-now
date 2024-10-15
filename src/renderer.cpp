@@ -90,6 +90,10 @@ void init_renderer() {
 
   lg.info( "texture atlas size: {}.",
            g_renderer->atlas_img_size() );
+
+  // Needed to compute physical/logical resolution based on the
+  // window dimensions and then tell the renderer what they are.
+  on_main_window_resized( *g_renderer );
 }
 
 void cleanup_renderer() {

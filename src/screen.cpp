@@ -16,6 +16,7 @@
 #include "logger.hpp"
 #include "menu.hpp"
 #include "renderer.hpp" // FIXME: remove
+#include "resolution.hpp"
 #include "sdl.hpp"
 #include "tiles.hpp"
 
@@ -38,34 +39,22 @@
 
 using namespace std;
 
-namespace rn {
-
 namespace rl = ::base::rl;
 
-Delta g_resolution_scale_factor{ .w = 0, .h = 0 };
+namespace rn {
 
 namespace {
 
+gfx::Resolution g_resolution;
+
 ::SDL_Window* g_window = nullptr;
 
-Delta g_optimal_resolution_scale_factor{ .w = 0, .h = 0 };
 Delta g_screen_physical_size{};
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
-constexpr int min_scale_factor = 1;
-constexpr int max_scale_factor = 10;
-
 // Cache is invalidated by setting to nothing.
 maybe<Delta> main_window_physical_size_cache;
-
-// Do not use this from outside this module: it refers to the en-
-// tire screen, even if the game is in an unmaximized window. In
-// the vast majority of cases you want to use
-// main_window_logical_size.
-Delta screen_logical_size() {
-  return g_screen_physical_size / g_resolution_scale_factor;
-}
 
 double monitor_diagonal_length( double ddpi, DisplayMode dm ) {
   double length =
@@ -96,6 +85,7 @@ double monitor_inches() {
                                   current_display_mode() );
 }
 
+#if 0
 double const& viewer_distance_from_monitor() {
   static double distance = [] {
     // Determined empirically; viewer distance from screen seems
@@ -112,6 +102,7 @@ double const& viewer_distance_from_monitor() {
   }();
   return distance;
 };
+#endif
 
 void query_video_stats() {
   float ddpi, hdpi, vdpi;
@@ -154,6 +145,7 @@ void query_video_stats() {
   lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
 }
 
+#if 0
 struct ScaleInfo {
   int    scale;
   double tile_size_on_screen_surface_inches;
@@ -195,18 +187,18 @@ double scale_score( ScaleInfo const& info ) {
 // don't want any distortion of individual pixels which would
 // arise in that situation.
 void find_pixel_scale_factor() {
-#if 0
+#  if 0
   ScaleInfo optimal = scale_info( min_scale_factor );
   (void)&scale_score;
-#else
+#  else
   UNWRAP_CHECK(
       optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
                    .map( scale_info )
                    .min_by( scale_score ) );
-#endif
+#  endif
 
   ///////////////////////////////////////////////////////////////
-#if 0
+#  if 0
   auto table_row = []( auto possibility, auto resolution,
                        auto tile_size_screen, auto tile_size_1ft,
                        auto score ) {
@@ -232,7 +224,7 @@ void find_pixel_scale_factor() {
         fmt_dbl( scale_score( info ) ) );
   }
   lg.debug( bar );
-#endif
+#  endif
   ///////////////////////////////////////////////////////////////
 
   g_resolution_scale_factor =
@@ -259,10 +251,10 @@ void find_pixel_scale_factor() {
         "Desktop display resolution not commensurate with scale "
         "factor." );
 }
+#endif
 
 void init_screen() {
   query_video_stats();
-  find_pixel_scale_factor();
 
   int flags = {};
 
@@ -294,69 +286,35 @@ void cleanup_screen() {
   if( g_window != nullptr ) SDL_DestroyWindow( g_window );
 }
 
-void on_logical_resolution_changed( rr::Renderer& renderer ) {
-  // Invalidate cache.
-  main_window_physical_size_cache = nothing;
-
-  auto logical_size = main_window_logical_size();
-  lg.debug( "logical resolution changed to {}", logical_size );
-
-  auto physical_size = main_window_physical_size();
-  if( physical_size % g_resolution_scale_factor != Delta{} )
-    lg.warn(
-        "main window physical resolution not commensurate with "
-        "scale factor." );
-  renderer.set_logical_screen_size( main_window_logical_size() );
-  renderer.set_physical_screen_size(
-      main_window_physical_size() );
-}
-
-void on_renderer_scale_factor_changed( rr::Renderer& renderer ) {
-  lg.info( "scale factor changed: {}",
-           g_resolution_scale_factor );
-  on_logical_resolution_changed( renderer );
-}
-
 REGISTER_INIT_ROUTINE( screen );
+
+void set_resolution( rr::Renderer&          renderer,
+                     gfx::Resolution const& resolution ) {
+  g_resolution = resolution;
+
+  auto const logical_size = resolution.logical;
+  lg.info( "logical resolution changed to {}", logical_size );
+
+  gfx::size const logical_in_physical_pixels =
+      logical_size * resolution.scale;
+  gfx::rect const physical_rect{ .origin = {},
+                                 .size   = resolution.physical };
+  auto const      viewport_origin = gfx::centered_in(
+      logical_in_physical_pixels, physical_rect );
+  gfx::rect const viewport_rect{
+    .origin = viewport_origin,
+    .size   = logical_in_physical_pixels };
+  // TODO: this actually uses flipped coordinates; perhaps we
+  // should indicate that.
+  renderer.set_viewport( viewport_rect );
+  renderer.set_logical_screen_size( logical_size );
+}
 
 } // namespace
 
 void* main_os_window_handle() { return (void*)g_window; }
 
-void set_resolution_scale( rr::Renderer& renderer,
-                           int const     new_scale ) {
-  int scale     = g_resolution_scale_factor.w;
-  int old_scale = scale;
-  scale         = new_scale;
-  scale = clamp( scale, min_scale_factor, max_scale_factor );
-  g_resolution_scale_factor.w = scale;
-  g_resolution_scale_factor.h = scale;
-  if( old_scale != scale )
-    on_renderer_scale_factor_changed( renderer );
-}
-
-void inc_resolution_scale() {
-  int const curr_scale = g_resolution_scale_factor.w;
-  // FIXME
-  auto& renderer = global_renderer_use_only_when_needed();
-  set_resolution_scale( renderer, curr_scale + 1 );
-}
-
-void dec_resolution_scale() {
-  int const curr_scale = g_resolution_scale_factor.w;
-  // FIXME
-  auto& renderer = global_renderer_use_only_when_needed();
-  set_resolution_scale( renderer, curr_scale - 1 );
-}
-
-void set_optimal_resolution_scale( rr::Renderer& renderer ) {
-  if( g_resolution_scale_factor !=
-      g_optimal_resolution_scale_factor ) {
-    g_resolution_scale_factor =
-        g_optimal_resolution_scale_factor;
-    on_renderer_scale_factor_changed( renderer );
-  }
-}
+gfx::Resolution const& get_resolution() { return g_resolution; }
 
 DisplayMode current_display_mode() {
   SDL_DisplayMode dm;
@@ -371,26 +329,25 @@ Delta whole_screen_physical_size() {
 }
 
 Delta main_window_logical_size() {
-  return main_window_physical_size() / g_resolution_scale_factor;
+  return Delta::from_gfx( g_resolution.logical );
 }
 
 Rect main_window_logical_rect() {
-  return main_window_physical_rect() / g_resolution_scale_factor;
+  return Rect::from_gfx(
+      gfx::rect{ .origin = {}, .size = g_resolution.logical } );
 }
+
+int resolution_scale_factor() { return g_resolution.scale; }
 
 Delta main_window_physical_size() {
-  if( !main_window_physical_size_cache ) {
-    CHECK( g_window != nullptr );
-    int w{}, h{};
-    ::SDL_GetWindowSize( g_window, &w, &h );
-    main_window_physical_size_cache =
-        Delta{ .w = W{ w }, .h = H{ h } };
-  }
+  // if( !main_window_physical_size_cache ) {
+  CHECK( g_window != nullptr );
+  int w{}, h{};
+  ::SDL_GetWindowSize( g_window, &w, &h );
+  main_window_physical_size_cache =
+      Delta{ .w = W{ w }, .h = H{ h } };
+  // }
   return *main_window_physical_size_cache;
-}
-
-Rect main_window_physical_rect() {
-  return Rect::from( Coord{}, main_window_physical_size() );
 }
 
 void hide_window() {
@@ -434,7 +391,13 @@ void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_main_window_resized( rr::Renderer& renderer ) {
   lg.debug( "main window resizing." );
-  on_logical_resolution_changed( renderer );
+  // Invalidate cache.
+  main_window_physical_size_cache = nothing;
+  gfx::size const physical_size   = main_window_physical_size();
+  auto const      recommended =
+      recompute_best_logical_resolution( physical_size );
+  if( !recommended.has_value() ) return;
+  set_resolution( renderer, *recommended );
 }
 
 } // namespace rn

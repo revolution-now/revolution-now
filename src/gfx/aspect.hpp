@@ -77,7 +77,13 @@ ResolutionAnalysis resolution_analysis(
     std::span<size const> target_logical_resolutions,
     size                  physical_resolution );
 
-base::maybe<RecommendedResolution> recommended_resolution(
+Resolution to_available_resolution(
+    LogicalResolution const& logical );
+
+Resolution to_available_resolution(
+    InexactLogicalResolution const& inexact );
+
+base::maybe<Resolution> recommended_resolution(
     ResolutionAnalysis const& analysis, double tolerance );
 
 } // namespace gfx

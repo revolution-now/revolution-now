@@ -150,7 +150,7 @@ struct Renderer : IRenderer {
   }
 
   // Must be called each time the logical screen size changes.
-  void set_physical_screen_size( gfx::size new_size );
+  void set_viewport( gfx::rect viewport );
 
   void clear_screen( gfx::pixel color = gfx::pixel::black() );
 

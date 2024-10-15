@@ -333,8 +333,8 @@ struct Renderer::Impl {
     logical_screen_size        = new_size;
   }
 
-  void set_physical_screen_size( size new_size ) {
-    gl::set_viewport( rect{ .origin = {}, .size = new_size } );
+  void set_viewport( rect const viewport ) {
+    gl::set_viewport( viewport );
   }
 
   unordered_map<string_view, int> const& atlas_ids_fn() const {
@@ -526,8 +526,8 @@ gfx::size Renderer::logical_screen_size() const {
   return impl_->logical_screen_size;
 }
 
-void Renderer::set_physical_screen_size( gfx::size new_size ) {
-  impl_->set_physical_screen_size( new_size );
+void Renderer::set_viewport( gfx::rect const viewport ) {
+  impl_->set_viewport( viewport );
 }
 
 unordered_map<string_view, int> const& Renderer::atlas_ids()

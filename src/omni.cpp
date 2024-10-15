@@ -121,56 +121,27 @@ struct OmniPlane::Impl : public IPlane {
             .fmap( gfx::named_ratio_canonical_name );
     log( " closest:  {}", closest_named_ratio );
 
-    vector<gfx::size> const target_logical_resolutions{
-      // 16:9
-      { .w = 768, .h = 432 }, // for 27 in. monitors.
-      { .w = 640, .h = 360 }, // for laptops.
+    auto const& resolution = get_resolution();
 
-      // 16:10
-      // { .w = 720, .h = 450 }, // for macbook pro.
-      // { .w = 576, .h = 360 }, // for macbook pro.
-      { .w = 640, .h = 400 },
+    log( " resolution:" );
+    log( "  scale:   {}", resolution.scale );
+    log( "  exact:   {}", resolution.exact );
+    log( "  target:  {}",
+         fmt_size( resolution.target_logical ) );
+    log( "  buffer:  {}", fmt_size( resolution.buffer ) );
+    log( "  score:   {}", resolution.score );
+    log( "  clipped:", resolution.clipped_logical );
+    log( "   origin: {}",
+         fmt_point( resolution.clipped_logical.origin ) );
+    log( "   size:   {}",
+         fmt_size( resolution.clipped_logical.size ) );
+    log( "  logical: {}", fmt_size( resolution.logical ) );
 
-      // 4:3
-      { .w = 640, .h = 480 },
-    };
-
-    gfx::ResolutionAnalysis const analysis = resolution_analysis(
-        target_logical_resolutions, physical_size );
-
-    // double const tolerance =
-    // gfx::default_aspect_ratio_tolerance();
-    double const tolerance = 0;
-
-    maybe<gfx::RecommendedResolution> const recommended =
-        recommended_resolution( analysis, tolerance );
-
-    if( !recommended ) {
-      rr::Painter painter = renderer.painter();
-      painter.draw_solid_rect( renderer.logical_screen_rect(),
-                               gfx::pixel::yellow() );
-      log( " recommended: {}", recommended );
-    } else {
-      log( " recommended:" );
-      log( "  scale:   {}", recommended->scale );
-      log( "  exact:   {}", recommended->exact );
-      log( "  target:  {}",
-           fmt_size( recommended->target_logical ) );
-      log( "  buffer:  {}", fmt_size( recommended->buffer ) );
-      log( "  score:   {}", recommended->score );
-      log( "  clipped:", recommended->clipped_logical );
-      log( "   origin: {}",
-           fmt_point( recommended->clipped_logical.origin ) );
-      log( "   size:   {}",
-           fmt_size( recommended->clipped_logical.size ) );
-
-      rr::Painter painter = renderer.painter();
-      painter.draw_empty_rect(
-          recommended->clipped_logical,
-          rr::Painter::e_border_mode::inside,
-          gfx::pixel::red() );
-      set_resolution_scale( renderer, recommended->scale );
-    }
+    // rr::Painter painter = renderer.painter();
+    // painter.draw_empty_rect(
+    //     gfx::rect{ .origin = {}, .size = resolution.logical },
+    //     rr::Painter::e_border_mode::inside, gfx::pixel::red()
+    //     );
 
     gfx::point const info_region_anchor = [&] {
       gfx::point res;
@@ -213,16 +184,16 @@ struct OmniPlane::Impl : public IPlane {
             toggle_fullscreen();
             break;
           case ::SDLK_MINUS:
-            if( key_event.mod.ctrl_down )
-              dec_resolution_scale();
-            else
-              handled = e_input_handled::no;
+            // if( key_event.mod.ctrl_down )
+            //   dec_resolution_scale();
+            // else
+            handled = e_input_handled::no;
             break;
           case ::SDLK_EQUALS:
-            if( key_event.mod.ctrl_down )
-              inc_resolution_scale();
-            else
-              handled = e_input_handled::no;
+            // if( key_event.mod.ctrl_down )
+            //   inc_resolution_scale();
+            // else
+            handled = e_input_handled::no;
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};

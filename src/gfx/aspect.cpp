@@ -233,6 +233,7 @@ ResolutionAnalysis resolution_analysis(
         .target_logical  = target,
         .scale           = inexact.scale,
         .clipped_logical = clipped_logical,
+        .logical         = clipped_logical.size,
         .buffer          = buffer_logical,
         .score           = score } );
     };
@@ -244,10 +245,35 @@ ResolutionAnalysis resolution_analysis(
   return res;
 }
 
-maybe<RecommendedResolution> recommended_resolution(
+Resolution to_available_resolution(
+    LogicalResolution const& logical ) {
+  size const target_logical = logical.resolution / logical.scale;
+  rect const target_logical_rect{
+    .origin = {}, .size = logical.resolution / logical.scale };
+  return Resolution{ .exact           = true,
+                     .target_logical  = target_logical,
+                     .scale           = logical.scale,
+                     .clipped_logical = target_logical_rect,
+                     .logical         = target_logical_rect.size,
+                     .buffer          = {},
+                     .score           = 0 };
+}
+
+Resolution to_available_resolution(
+    InexactLogicalResolution const& inexact ) {
+  return Resolution{ .exact           = false,
+                     .target_logical  = inexact.target_logical,
+                     .scale           = inexact.scale,
+                     .clipped_logical = inexact.clipped_logical,
+                     .logical = inexact.clipped_logical.size,
+                     .buffer  = inexact.buffer,
+                     .score   = inexact.score };
+}
+
+maybe<Resolution> recommended_resolution(
     ResolutionAnalysis const& analysis,
     double const              tolerance ) {
-  maybe<RecommendedResolution> res;
+  maybe<Resolution> res;
   if( !analysis.exact_fits.empty() ) {
     auto sorted = analysis.exact_fits;
     sort( sorted.begin(), sorted.end(),
@@ -258,18 +284,7 @@ maybe<RecommendedResolution> recommended_resolution(
           } );
     CHECK_GT( sorted.size(), 0u );
     LogicalResolution const& chosen = sorted[0];
-
-    size const target_logical = chosen.resolution / chosen.scale;
-    rect const target_logical_rect{
-      .origin = {}, .size = chosen.resolution / chosen.scale };
-    res = RecommendedResolution{
-      .physical        = analysis.physical,
-      .exact           = true,
-      .target_logical  = target_logical,
-      .scale           = chosen.scale,
-      .clipped_logical = target_logical_rect,
-      .buffer          = {},
-      .score           = 0 };
+    res = to_available_resolution( chosen );
   } else if( !analysis.inexact_fits.empty() ) {
     auto sorted = analysis.inexact_fits;
     sort( sorted.begin(), sorted.end(),
@@ -282,19 +297,13 @@ maybe<RecommendedResolution> recommended_resolution(
       InexactLogicalResolution const& chosen = sorted[0];
       if( !chosen.buffer.negative() ||
           chosen.score <= tolerance ) {
-        res = RecommendedResolution{
-          .physical        = analysis.physical,
-          .exact           = false,
-          .target_logical  = chosen.target_logical,
-          .scale           = chosen.scale,
-          .clipped_logical = chosen.clipped_logical,
-          .buffer          = chosen.buffer,
-          .score           = chosen.score };
+        res = to_available_resolution( chosen );
         break;
       }
       sorted.erase( sorted.begin() );
     }
   }
+  if( res.has_value() ) res->physical = analysis.physical;
   return res;
 }
 
