@@ -8,7 +8,11 @@
 # Description: Rds definitions for the gfx/aspect module.
 #
 # ===============================================================
+# gfx
 include "cartesian.hpp"
+
+# base
+include "base/maybe.hpp"
 
 namespace "gfx"
 
@@ -32,6 +36,13 @@ struct.InexactLogicalResolution {
   logical 'size',
   buffer 'size',
   score 'double',
+}
+
+struct.ResolutionTolerance {
+  max_missing_pixels 'base::maybe<int>',
+  max_extra_pixels 'base::maybe<int>',
+  min_percent_covered 'base::maybe<double>',
+  score_cutoff 'base::maybe<double>',
 }
 
 struct.ResolutionAnalysis {

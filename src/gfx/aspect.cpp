@@ -66,9 +66,9 @@ Resolution to_resolution(
                      .target_logical  = inexact.target_logical,
                      .scale           = inexact.scale,
                      .clipped_logical = inexact.clipped_logical,
-                     .logical = inexact.clipped_logical.size,
-                     .buffer  = inexact.buffer,
-                     .score   = inexact.score };
+                     .logical         = inexact.logical,
+                     .buffer          = inexact.buffer,
+                     .score           = inexact.score };
 }
 
 } // namespace
@@ -254,11 +254,12 @@ ResolutionAnalysis resolution_analysis(
           virtual_ne_physical / inexact.scale;
       auto const buffer_logical =
           virtual_ne_logical.distance_from_origin();
+      auto const logical = inexact.resolution / inexact.scale;
       res.inexact_fits.push_back( InexactLogicalResolution{
         .target_logical  = target,
         .scale           = inexact.scale,
         .clipped_logical = clipped_logical,
-        .logical         = clipped_logical.size,
+        .logical         = logical,
         .buffer          = buffer_logical,
         .score           = score } );
     };
@@ -270,9 +271,38 @@ ResolutionAnalysis resolution_analysis(
   return res;
 }
 
+static bool meets_tolerance(
+    size const physical, InexactLogicalResolution const& inexact,
+    ResolutionTolerance const& tolerance ) {
+  if( tolerance.max_missing_pixels.has_value() ) {
+    if( -inexact.buffer.w > *tolerance.max_missing_pixels ||
+        -inexact.buffer.h > *tolerance.max_missing_pixels )
+      return false;
+  }
+
+  if( tolerance.max_extra_pixels.has_value() ) {
+    if( inexact.buffer.w > *tolerance.max_extra_pixels ||
+        inexact.buffer.h > *tolerance.max_extra_pixels )
+      return false;
+  }
+
+  if( tolerance.min_percent_covered.has_value() ) {
+    double const percent_covered =
+        inexact.clipped_logical.area() /
+        static_cast<double>( physical.area() );
+    if( percent_covered < *tolerance.min_percent_covered )
+      return false;
+  }
+
+  if( tolerance.score_cutoff.has_value() ) {
+    if( inexact.score > *tolerance.score_cutoff ) return false;
+  }
+  return true;
+}
+
 vector<Resolution> available_resolutions(
-    ResolutionAnalysis const& analysis,
-    double const              tolerance ) {
+    ResolutionAnalysis const&  analysis,
+    ResolutionTolerance const& tolerance ) {
   vector<Resolution> res;
 
   auto const ordered_exact_fits = [&] {
@@ -303,15 +333,19 @@ vector<Resolution> available_resolutions(
   // Exact fits should go first.
   for( auto const& exact_fit : ordered_exact_fits )
     res.push_back( to_resolution( exact_fit ) );
+
   for( auto const& inexact_fit : ordered_inexact_fits ) {
+    if( !meets_tolerance( analysis.physical, inexact_fit,
+                          tolerance ) )
+      continue;
     // FIXME: this additional condition of the kind of buffer
     // needs to be weighed in during sorting into the score. We
     // may also want to weigh in the angular pixel size as we
     // probably should for the scoring of exact fits.
-    if( !inexact_fit.buffer.negative() ||
-        inexact_fit.score <= tolerance ) {
-      res.push_back( to_resolution( inexact_fit ) );
-    }
+    // if( !inexact_fit.buffer.negative() ) {
+    //   res.push_back( to_resolution( inexact_fit ) );
+    // }
+    res.push_back( to_resolution( inexact_fit ) );
   }
 
   // Populate physical resolution.
@@ -322,7 +356,8 @@ vector<Resolution> available_resolutions(
 }
 
 base::maybe<Resolution> recommended_resolution(
-    ResolutionAnalysis const& analysis, double tolerance ) {
+    ResolutionAnalysis const&  analysis,
+    ResolutionTolerance const& tolerance ) {
   auto available = available_resolutions( analysis, tolerance );
   if( available.empty() ) return nothing;
   return std::move( available[0] );

@@ -98,7 +98,7 @@ struct OmniPlane::Impl : public IPlane {
     };
 
     auto fmt_point = []( gfx::point const p ) {
-      return fmt::format( "[{},{}]", p.y, p.y );
+      return fmt::format( "[{},{}]", p.x, p.y );
     };
 
     log( "Aspect Info:" );
@@ -136,6 +136,23 @@ struct OmniPlane::Impl : public IPlane {
     log( "   size:   {}",
          fmt_size( resolution.clipped_logical.size ) );
     log( "  logical: {}", fmt_size( resolution.logical ) );
+
+    gfx::size const lg_in_ph =
+        resolution.logical * resolution.scale;
+    gfx::rect const physical_rect{ .origin = {},
+                                   .size = resolution.physical };
+    auto const      ph_viewport_origin =
+        gfx::centered_in( lg_in_ph, physical_rect );
+    gfx::rect const ph_viewport_rect{
+      .origin = ph_viewport_origin, .size = lg_in_ph };
+    log( " ph_viewport:" );
+    log( "  nw:      {}", fmt_point( ph_viewport_rect.nw() ) );
+    log( "  se:      {}", fmt_point( ph_viewport_rect.se() ) );
+    auto const lg_viewport_rect =
+        ph_viewport_rect / resolution.scale;
+    log( " lg_viewport:" );
+    log( "  nw:      {}", fmt_point( lg_viewport_rect.nw() ) );
+    log( "  se:      {}", fmt_point( lg_viewport_rect.se() ) );
 
     // rr::Painter painter = renderer.painter();
     // painter.draw_empty_rect(

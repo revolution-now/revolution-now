@@ -38,8 +38,8 @@ vector<gfx::Resolution> compute_available_logical_resolutions(
     { .w = 640, .h = 360 }, // for laptops.
 
     // 16:10
-    // { .w = 720, .h = 450 }, // for macbook pro.
-    // { .w = 576, .h = 360 }, // for macbook pro.
+    { .w = 720, .h = 450 }, // for macbook pro.
+    { .w = 576, .h = 360 }, // for macbook pro.
     { .w = 640, .h = 400 },
 
     // 4:3
@@ -49,7 +49,12 @@ vector<gfx::Resolution> compute_available_logical_resolutions(
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
       target_logical_resolutions, physical_size );
 
-  double const tolerance = gfx::default_aspect_ratio_tolerance();
+  gfx::ResolutionTolerance const tolerance{
+    .max_missing_pixels  = 0,
+    .max_extra_pixels    = nothing,
+    .min_percent_covered = nothing,
+    .score_cutoff        = nothing,
+  };
 
   return available_resolutions( analysis, tolerance );
 }

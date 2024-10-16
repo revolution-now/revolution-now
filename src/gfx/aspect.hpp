@@ -78,9 +78,11 @@ ResolutionAnalysis resolution_analysis(
     size                  physical_resolution );
 
 std::vector<Resolution> available_resolutions(
-    ResolutionAnalysis const& analysis, double tolerance );
+    ResolutionAnalysis const&  analysis,
+    ResolutionTolerance const& tolerance );
 
 base::maybe<Resolution> recommended_resolution(
-    ResolutionAnalysis const& analysis, double tolerance );
+    ResolutionAnalysis const&  analysis,
+    ResolutionTolerance const& tolerance );
 
 } // namespace gfx
