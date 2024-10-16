@@ -29,7 +29,7 @@ using ::base::maybe;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-vector<gfx::Resolution> recompute_available_logical_resolutions(
+vector<gfx::Resolution> compute_available_logical_resolutions(
     gfx::size const physical_size ) {
   vector<gfx::Resolution> res;
   vector<gfx::size> const target_logical_resolutions{
@@ -51,40 +51,15 @@ vector<gfx::Resolution> recompute_available_logical_resolutions(
 
   double const tolerance = gfx::default_aspect_ratio_tolerance();
 
-  maybe<gfx::Resolution> const recommended =
-      recommended_resolution( analysis, tolerance );
-
-  // TODO
-  if( recommended.has_value() )
-    res.push_back( std::move( *recommended ) );
-  return res;
+  return available_resolutions( analysis, tolerance );
 }
 
 maybe<gfx::Resolution> recompute_best_logical_resolution(
     gfx::size const physical_size ) {
-  vector<gfx::size> const target_logical_resolutions{
-    // 16:9
-    { .w = 768, .h = 432 }, // for 27 in. monitors.
-    { .w = 640, .h = 360 }, // for laptops.
-
-    // 16:10
-    // { .w = 720, .h = 450 }, // for macbook pro.
-    // { .w = 576, .h = 360 }, // for macbook pro.
-    { .w = 640, .h = 400 },
-
-    // 4:3
-    { .w = 640, .h = 480 },
-  };
-
-  gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      target_logical_resolutions, physical_size );
-
-  double const tolerance = gfx::default_aspect_ratio_tolerance();
-
-  maybe<gfx::Resolution> const recommended =
-      recommended_resolution( analysis, tolerance );
-
-  return recommended;
+  auto recommended =
+      compute_available_logical_resolutions( physical_size );
+  if( recommended.empty() ) return nothing;
+  return std::move( recommended[0] );
 }
 
 } // namespace rn

@@ -290,13 +290,14 @@ REGISTER_INIT_ROUTINE( screen );
 
 void set_resolution( rr::Renderer&          renderer,
                      gfx::Resolution const& resolution ) {
+  if( resolution.logical != g_resolution.logical )
+    lg.info( "logical resolution changing to {}",
+             resolution.logical );
+
   g_resolution = resolution;
 
-  auto const logical_size = resolution.logical;
-  lg.info( "logical resolution changed to {}", logical_size );
-
   gfx::size const logical_in_physical_pixels =
-      logical_size * resolution.scale;
+      resolution.logical * resolution.scale;
   gfx::rect const physical_rect{ .origin = {},
                                  .size   = resolution.physical };
   auto const      viewport_origin = gfx::centered_in(
@@ -307,7 +308,7 @@ void set_resolution( rr::Renderer&          renderer,
   // TODO: this actually uses flipped coordinates; perhaps we
   // should indicate that.
   renderer.set_viewport( viewport_rect );
-  renderer.set_logical_screen_size( logical_size );
+  renderer.set_logical_screen_size( resolution.logical );
 }
 
 } // namespace
@@ -340,13 +341,13 @@ Rect main_window_logical_rect() {
 int resolution_scale_factor() { return g_resolution.scale; }
 
 Delta main_window_physical_size() {
-  // if( !main_window_physical_size_cache ) {
-  CHECK( g_window != nullptr );
-  int w{}, h{};
-  ::SDL_GetWindowSize( g_window, &w, &h );
-  main_window_physical_size_cache =
-      Delta{ .w = W{ w }, .h = H{ h } };
-  // }
+  if( !main_window_physical_size_cache ) {
+    CHECK( g_window != nullptr );
+    int w{}, h{};
+    ::SDL_GetWindowSize( g_window, &w, &h );
+    main_window_physical_size_cache =
+        Delta{ .w = W{ w }, .h = H{ h } };
+  }
   return *main_window_physical_size_cache;
 }
 
@@ -381,6 +382,10 @@ void set_fullscreen( bool fullscreen ) {
 bool toggle_fullscreen() {
   auto fullscreen = is_window_fullscreen();
   set_fullscreen( !fullscreen );
+  // FIXME: we shouldn't need to call this here because ideally
+  // when we exit full screen mode it should send an input event
+  // through SDL; not sure why that is not happening. If it is
+  // not happening then perhaps we should inject one ourselves.
   on_main_window_resized(
       // FIXME
       global_renderer_use_only_when_needed() );
@@ -390,14 +395,22 @@ bool toggle_fullscreen() {
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_main_window_resized( rr::Renderer& renderer ) {
-  lg.debug( "main window resizing." );
   // Invalidate cache.
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
-  auto const      recommended =
+  lg.debug( "main window resizing to {}", physical_size );
+  auto const recommended =
       recompute_best_logical_resolution( physical_size );
-  if( !recommended.has_value() ) return;
-  set_resolution( renderer, *recommended );
+  if( recommended.has_value() )
+    set_resolution( renderer, *recommended );
+  else {
+    // TODO: deal with this case. We should probably create a
+    // Resolution object that keeps the current logical resolu-
+    // tion but centers it properly in the current window as a
+    // best effort attempt to keep things looking decent. We may
+    // also want the omni layer to overlay a message that says
+    // "window too small".
+  }
 }
 
 } // namespace rn

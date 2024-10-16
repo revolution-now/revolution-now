@@ -77,11 +77,8 @@ ResolutionAnalysis resolution_analysis(
     std::span<size const> target_logical_resolutions,
     size                  physical_resolution );
 
-Resolution to_available_resolution(
-    LogicalResolution const& logical );
-
-Resolution to_available_resolution(
-    InexactLogicalResolution const& inexact );
+std::vector<Resolution> available_resolutions(
+    ResolutionAnalysis const& analysis, double tolerance );
 
 base::maybe<Resolution> recommended_resolution(
     ResolutionAnalysis const& analysis, double tolerance );

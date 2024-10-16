@@ -23,8 +23,7 @@
 namespace rn {
 
 std::vector<gfx::Resolution>
-recompute_available_logical_resolutions(
-    gfx::size physical_size );
+compute_available_logical_resolutions( gfx::size physical_size );
 
 maybe<gfx::Resolution> recompute_best_logical_resolution(
     gfx::size physical_size );

@@ -48,6 +48,29 @@ maybe<double> is_close( AspectRatio const l, AspectRatio const r,
   return is_close( l_ratio, r_ratio, tolerance );
 }
 
+Resolution to_resolution( LogicalResolution const& logical ) {
+  rect const target_logical_rect{ .origin = {},
+                                  .size   = logical.resolution };
+  return Resolution{ .exact           = true,
+                     .target_logical  = logical.resolution,
+                     .scale           = logical.scale,
+                     .clipped_logical = target_logical_rect,
+                     .logical         = logical.resolution,
+                     .buffer          = {},
+                     .score           = 0 };
+}
+
+Resolution to_resolution(
+    InexactLogicalResolution const& inexact ) {
+  return Resolution{ .exact           = false,
+                     .target_logical  = inexact.target_logical,
+                     .scale           = inexact.scale,
+                     .clipped_logical = inexact.clipped_logical,
+                     .logical = inexact.clipped_logical.size,
+                     .buffer  = inexact.buffer,
+                     .score   = inexact.score };
+}
+
 } // namespace
 
 /****************************************************************
@@ -200,7 +223,9 @@ ResolutionAnalysis resolution_analysis(
     LogicalResolution const smallest_that_does_not_fit = scaled;
     if( largest_that_fits.has_value() &&
         largest_that_fits->resolution == physical ) {
-      res.exact_fits.push_back( *largest_that_fits );
+      LogicalResolution unscaled = *largest_that_fits;
+      unscaled.resolution = unscaled.resolution / unscaled.scale;
+      res.exact_fits.push_back( unscaled );
       continue;
     }
     auto score_for = [&]( size const l ) {
@@ -245,66 +270,62 @@ ResolutionAnalysis resolution_analysis(
   return res;
 }
 
-Resolution to_available_resolution(
-    LogicalResolution const& logical ) {
-  size const target_logical = logical.resolution / logical.scale;
-  rect const target_logical_rect{
-    .origin = {}, .size = logical.resolution / logical.scale };
-  return Resolution{ .exact           = true,
-                     .target_logical  = target_logical,
-                     .scale           = logical.scale,
-                     .clipped_logical = target_logical_rect,
-                     .logical         = target_logical_rect.size,
-                     .buffer          = {},
-                     .score           = 0 };
-}
-
-Resolution to_available_resolution(
-    InexactLogicalResolution const& inexact ) {
-  return Resolution{ .exact           = false,
-                     .target_logical  = inexact.target_logical,
-                     .scale           = inexact.scale,
-                     .clipped_logical = inexact.clipped_logical,
-                     .logical = inexact.clipped_logical.size,
-                     .buffer  = inexact.buffer,
-                     .score   = inexact.score };
-}
-
-maybe<Resolution> recommended_resolution(
+vector<Resolution> available_resolutions(
     ResolutionAnalysis const& analysis,
     double const              tolerance ) {
-  maybe<Resolution> res;
-  if( !analysis.exact_fits.empty() ) {
+  vector<Resolution> res;
+
+  auto const ordered_exact_fits = [&] {
     auto sorted = analysis.exact_fits;
     sort( sorted.begin(), sorted.end(),
           []( LogicalResolution const& l,
               LogicalResolution const& r ) {
-            // TODO: find a better heuristic.
+            // FIXME: this needs to be improved to account for
+            // the angular size of pixels. Such angular size
+            // might also need to be weighed in to the score for
+            // inexact fits. These need to be given a `score`
+            // field like the inexact fits.
             return l.resolution.area() > r.resolution.area();
           } );
-    CHECK_GT( sorted.size(), 0u );
-    LogicalResolution const& chosen = sorted[0];
-    res = to_available_resolution( chosen );
-  } else if( !analysis.inexact_fits.empty() ) {
+    return sorted;
+  }();
+
+  auto const ordered_inexact_fits = [&] {
     auto sorted = analysis.inexact_fits;
     sort( sorted.begin(), sorted.end(),
           []( InexactLogicalResolution const& l,
               InexactLogicalResolution const& r ) {
             return l.score < r.score;
           } );
-    CHECK_GT( sorted.size(), 0u );
-    while( !sorted.empty() ) {
-      InexactLogicalResolution const& chosen = sorted[0];
-      if( !chosen.buffer.negative() ||
-          chosen.score <= tolerance ) {
-        res = to_available_resolution( chosen );
-        break;
-      }
-      sorted.erase( sorted.begin() );
+    return sorted;
+  }();
+
+  // Exact fits should go first.
+  for( auto const& exact_fit : ordered_exact_fits )
+    res.push_back( to_resolution( exact_fit ) );
+  for( auto const& inexact_fit : ordered_inexact_fits ) {
+    // FIXME: this additional condition of the kind of buffer
+    // needs to be weighed in during sorting into the score. We
+    // may also want to weigh in the angular pixel size as we
+    // probably should for the scoring of exact fits.
+    if( !inexact_fit.buffer.negative() ||
+        inexact_fit.score <= tolerance ) {
+      res.push_back( to_resolution( inexact_fit ) );
     }
   }
-  if( res.has_value() ) res->physical = analysis.physical;
+
+  // Populate physical resolution.
+  for( auto& available : res )
+    available.physical = analysis.physical;
+
   return res;
+}
+
+base::maybe<Resolution> recommended_resolution(
+    ResolutionAnalysis const& analysis, double tolerance ) {
+  auto available = available_resolutions( analysis, tolerance );
+  if( available.empty() ) return nothing;
+  return std::move( available[0] );
 }
 
 } // namespace gfx
