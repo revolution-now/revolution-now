@@ -212,7 +212,8 @@ inline constexpr bool is_base_variant_v =
 template<base::Show... Ts>
 void to_str( ::base::variant<Ts...> const& o, std::string& out,
              tag<::base::variant<Ts...>> ) {
-  return std::visit( [&]( auto const& _ ) { to_str( _, out ); }, o );
+  return std::visit( [&]( auto const& _ ) { to_str( _, out ); },
+                     o );
 };
 
 template<typename T>
