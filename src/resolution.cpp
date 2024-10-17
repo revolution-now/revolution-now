@@ -22,8 +22,6 @@ namespace {
 
 using ::base::maybe;
 
-// TODO
-
 } // namespace
 
 /****************************************************************
@@ -44,7 +42,22 @@ vector<gfx::Resolution> compute_available_logical_resolutions(
 
     // 4:3
     { .w = 640, .h = 480 },
+
+    // 21:9 (approximately)
+    //
+    // - for native: 2560x1080 (WFHD)
+    { .w = 1'280, .h = 540 },
+    { .w = 852, .h = 360 }, // not exact; w=853.333333
+    //
+    // - for native: 3440x1440 (WQHD)
+    { .w = 1'146, .h = 480 }, // not exact; w=1146.67
+    { .w = 860, .h = 360 },
+    //
+    // - for native: 3840x1600
+    { .w = 960, .h = 400 },
   };
+
+  // Common ultrawide resolutions.
 
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
       target_logical_resolutions, physical_size );

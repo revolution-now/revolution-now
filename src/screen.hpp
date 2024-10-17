@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "error.hpp"
 
@@ -33,39 +31,26 @@ int resolution_scale_factor();
 
 gfx::Resolution const& get_resolution();
 
-// These are cheap to call because their values are cached and
-// are only updated when either the main window is resized or if
-// the user changes the scale factor.
-//
 // NOTE: you should not normally call this in most game code, in-
 // stead you should go through the compositor in order to allow
-// it to control the logical size of the screen seen by the rest
-// of the game.
+// it to control the logical size of each element on the screen.
 Delta main_window_logical_size();
 Delta main_window_physical_size();
 Rect  main_window_logical_rect(); // !! origin at (0,0)
 
 void on_main_window_resized( rr::Renderer& renderer );
 
-struct DisplayMode {
-  Delta    size;
-  uint32_t format;
-  int      refresh_rate;
-};
-NOTHROW_MOVE( DisplayMode );
+void cycle_resolution( int delta );
 
-DisplayMode current_display_mode();
+// Returns true if the window is now fullscreen.
+bool toggle_fullscreen();
 
-// Should not need this often.
-Delta whole_screen_physical_size();
+void* main_os_window_handle();
 
+// FIXME: unused outside this module.
 void    hide_window();
 ND bool is_window_fullscreen();
 void    set_fullscreen( bool fullscreen );
-// Returns true if the window is now fullscreen.
-bool toggle_fullscreen();
-void restore_window();
-
-void* main_os_window_handle();
+void    restore_window();
 
 } // namespace rn

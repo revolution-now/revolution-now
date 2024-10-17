@@ -47,14 +47,20 @@ namespace {
 
 gfx::Resolution g_resolution;
 
-::SDL_Window* g_window = nullptr;
+int g_resolution_idx = 0;
 
-Delta g_screen_physical_size{};
+::SDL_Window* g_window = nullptr;
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
 // Cache is invalidated by setting to nothing.
 maybe<Delta> main_window_physical_size_cache;
+
+struct DisplayMode {
+  Delta    size;
+  uint32_t format;
+  int      refresh_rate;
+};
 
 double monitor_diagonal_length( double ddpi, DisplayMode dm ) {
   double length =
@@ -62,6 +68,14 @@ double monitor_diagonal_length( double ddpi, DisplayMode dm ) {
       ddpi;
   // Round to hearest 1/2 inch.
   return double( lround( length * 2.0 ) ) / 2.0;
+}
+
+DisplayMode current_display_mode() {
+  SDL_DisplayMode dm;
+  SDL_GetCurrentDisplayMode( 0, &dm );
+  DisplayMode res{
+    { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
+  return res;
 }
 
 // Get diagonal DPI of monitor. This seems to basically be the
@@ -317,18 +331,6 @@ void* main_os_window_handle() { return (void*)g_window; }
 
 gfx::Resolution const& get_resolution() { return g_resolution; }
 
-DisplayMode current_display_mode() {
-  SDL_DisplayMode dm;
-  SDL_GetCurrentDisplayMode( 0, &dm );
-  DisplayMode res{
-    { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
-  return res;
-}
-
-Delta whole_screen_physical_size() {
-  return g_screen_physical_size;
-}
-
 Delta main_window_logical_size() {
   return Delta::from_gfx( g_resolution.logical );
 }
@@ -380,8 +382,14 @@ void set_fullscreen( bool fullscreen ) {
 }
 
 bool toggle_fullscreen() {
-  auto fullscreen = is_window_fullscreen();
-  set_fullscreen( !fullscreen );
+  bool const old_fullscreen = is_window_fullscreen();
+  bool const new_fullscreen = !old_fullscreen;
+  set_fullscreen( new_fullscreen );
+  if( new_fullscreen )
+    // Always revert back to the "best" resolution choice when
+    // the user fullscreens, since that probably will be what
+    // they want.
+    g_resolution_idx = 0;
   // FIXME: we shouldn't need to call this here because ideally
   // when we exit full screen mode it should send an input event
   // through SDL; not sure why that is not happening. If it is
@@ -389,7 +397,7 @@ bool toggle_fullscreen() {
   on_main_window_resized(
       // FIXME
       global_renderer_use_only_when_needed() );
-  return !fullscreen;
+  return new_fullscreen;
 }
 
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
@@ -399,11 +407,20 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
+  // FIXME: sometimes it can jump when taking this approach if
+  // the user had previously changed the resolution. We should
+  // probably be getting the entire list here and just keeping
+  // the same index (after modulus, just in case it no longer ex-
+  // ists).
   auto const recommended =
       recompute_best_logical_resolution( physical_size );
-  if( recommended.has_value() )
+  if( recommended.has_value() ) {
     set_resolution( renderer, *recommended );
-  else {
+    // The "best" resolution is always first in the list when
+    // there are multiple, so this will provide continuity to the
+    // index to avoid it jumping later.
+    g_resolution_idx = 0;
+  } else {
     // TODO: deal with this case. We should probably create a
     // Resolution object that keeps the current logical resolu-
     // tion but centers it properly in the current window as a
@@ -411,6 +428,22 @@ void on_main_window_resized( rr::Renderer& renderer ) {
     // also want the omni layer to overlay a message that says
     // "window too small".
   }
+}
+
+void cycle_resolution( int const delta ) {
+  std::vector<gfx::Resolution> const available =
+      compute_available_logical_resolutions(
+          main_window_physical_size() );
+  if( available.empty() ) return;
+  g_resolution_idx += delta;
+  // Need to do this because the c++ modulus is the wrong type.
+  while( g_resolution_idx < 0 )
+    g_resolution_idx += available.size();
+  g_resolution_idx %= available.size();
+  CHECK_LT( g_resolution_idx, ssize( available ) );
+  // FIXME
+  auto& renderer = global_renderer_use_only_when_needed();
+  set_resolution( renderer, available[g_resolution_idx] );
 }
 
 } // namespace rn
