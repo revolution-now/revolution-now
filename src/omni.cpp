@@ -130,11 +130,11 @@ struct OmniPlane::Impl : public IPlane {
          fmt_size( resolution.target_logical ) );
     log( "  buffer:  {}", fmt_size( resolution.buffer ) );
     log( "  score:   {}", resolution.score );
-    log( "  clipped:", resolution.clipped_logical );
+    log( "  clipped:", resolution.lg_clipped );
     log( "   origin: {}",
-         fmt_point( resolution.clipped_logical.origin ) );
+         fmt_point( resolution.lg_clipped.origin ) );
     log( "   size:   {}",
-         fmt_size( resolution.clipped_logical.size ) );
+         fmt_size( resolution.lg_clipped.size ) );
     log( "  logical: {}", fmt_size( resolution.logical ) );
 
     gfx::size const lg_in_ph =

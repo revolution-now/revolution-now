@@ -51,24 +51,24 @@ maybe<double> is_close( AspectRatio const l, AspectRatio const r,
 Resolution to_resolution( LogicalResolution const& logical ) {
   rect const target_logical_rect{ .origin = {},
                                   .size   = logical.resolution };
-  return Resolution{ .exact           = true,
-                     .target_logical  = logical.resolution,
-                     .scale           = logical.scale,
-                     .clipped_logical = target_logical_rect,
-                     .logical         = logical.resolution,
-                     .buffer          = {},
-                     .score           = 0 };
+  return Resolution{ .exact          = true,
+                     .target_logical = logical.resolution,
+                     .scale          = logical.scale,
+                     .lg_clipped     = target_logical_rect,
+                     .logical        = logical.resolution,
+                     .buffer         = {},
+                     .score          = 0 };
 }
 
 Resolution to_resolution(
     InexactLogicalResolution const& inexact ) {
-  return Resolution{ .exact           = false,
-                     .target_logical  = inexact.target_logical,
-                     .scale           = inexact.scale,
-                     .clipped_logical = inexact.clipped_logical,
-                     .logical         = inexact.logical,
-                     .buffer          = inexact.buffer,
-                     .score           = inexact.score };
+  return Resolution{ .exact          = false,
+                     .target_logical = inexact.target_logical,
+                     .scale          = inexact.scale,
+                     .lg_clipped     = inexact.lg_clipped,
+                     .logical        = inexact.logical,
+                     .buffer         = inexact.buffer,
+                     .score          = inexact.score };
 }
 
 } // namespace
@@ -248,20 +248,19 @@ ResolutionAnalysis resolution_analysis(
       UNWRAP_CHECK_T(
           auto const clipped_physical,
           virtual_rect_physical.clipped_by( physical_rect ) );
-      auto const clipped_logical =
-          clipped_physical / inexact.scale;
+      auto const lg_clipped = clipped_physical / inexact.scale;
       auto const virtual_ne_logical =
           virtual_ne_physical / inexact.scale;
       auto const buffer_logical =
           virtual_ne_logical.distance_from_origin();
       auto const logical = inexact.resolution / inexact.scale;
-      res.inexact_fits.push_back( InexactLogicalResolution{
-        .target_logical  = target,
-        .scale           = inexact.scale,
-        .clipped_logical = clipped_logical,
-        .logical         = logical,
-        .buffer          = buffer_logical,
-        .score           = score } );
+      res.inexact_fits.push_back(
+          InexactLogicalResolution{ .target_logical = target,
+                                    .scale      = inexact.scale,
+                                    .lg_clipped = lg_clipped,
+                                    .logical    = logical,
+                                    .buffer     = buffer_logical,
+                                    .score      = score } );
     };
 
     add_inexact( smallest_that_does_not_fit );
@@ -286,9 +285,13 @@ static bool meets_tolerance(
       return false;
   }
 
-  if( tolerance.min_percent_covered.has_value() ) {
+  if( tolerance.min_percent_covered.has_value() &&
+      physical.area() > 0 ) {
+    int const scaled_clipped_area =
+        inexact.lg_clipped.area() *
+        ( inexact.scale * inexact.scale );
     double const percent_covered =
-        inexact.clipped_logical.area() /
+        scaled_clipped_area /
         static_cast<double>( physical.area() );
     if( percent_covered < *tolerance.min_percent_covered )
       return false;
@@ -300,10 +303,10 @@ static bool meets_tolerance(
   return true;
 }
 
-vector<Resolution> available_resolutions(
+ResolutionRatings resolution_ratings(
     ResolutionAnalysis const&  analysis,
     ResolutionTolerance const& tolerance ) {
-  vector<Resolution> res;
+  ResolutionRatings res;
 
   auto const ordered_exact_fits = [&] {
     auto sorted = analysis.exact_fits;
@@ -332,35 +335,31 @@ vector<Resolution> available_resolutions(
 
   // Exact fits should go first.
   for( auto const& exact_fit : ordered_exact_fits )
-    res.push_back( to_resolution( exact_fit ) );
+    res.available.push_back( to_resolution( exact_fit ) );
 
   for( auto const& inexact_fit : ordered_inexact_fits ) {
     if( !meets_tolerance( analysis.physical, inexact_fit,
-                          tolerance ) )
-      continue;
-    // FIXME: this additional condition of the kind of buffer
-    // needs to be weighed in during sorting into the score. We
-    // may also want to weigh in the angular pixel size as we
-    // probably should for the scoring of exact fits.
-    // if( !inexact_fit.buffer.negative() ) {
-    //   res.push_back( to_resolution( inexact_fit ) );
-    // }
-    res.push_back( to_resolution( inexact_fit ) );
+                          tolerance ) ) {
+      res.unavailable.push_back( to_resolution( inexact_fit ) );
+    } else {
+      // FIXME: this additional condition of the kind of buffer
+      // needs to be weighed in during sorting into the score. We
+      // may also want to weigh in the angular pixel size as we
+      // probably should for the scoring of exact fits.
+      // if( !inexact_fit.buffer.negative() ) {
+      //   res.push_back( to_resolution( inexact_fit ) );
+      // }
+      res.available.push_back( to_resolution( inexact_fit ) );
+    }
   }
 
   // Populate physical resolution.
-  for( auto& available : res )
+  for( auto& available : res.available )
     available.physical = analysis.physical;
+  for( auto& unavailable : res.unavailable )
+    unavailable.physical = analysis.physical;
 
   return res;
-}
-
-base::maybe<Resolution> recommended_resolution(
-    ResolutionAnalysis const&  analysis,
-    ResolutionTolerance const& tolerance ) {
-  auto available = available_resolutions( analysis, tolerance );
-  if( available.empty() ) return nothing;
-  return std::move( available[0] );
 }
 
 } // namespace gfx

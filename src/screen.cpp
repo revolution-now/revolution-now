@@ -407,43 +407,44 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
-  // FIXME: sometimes it can jump when taking this approach if
-  // the user had previously changed the resolution. We should
-  // probably be getting the entire list here and just keeping
-  // the same index (after modulus, just in case it no longer ex-
-  // ists).
-  auto const recommended =
-      recompute_best_logical_resolution( physical_size );
-  if( recommended.has_value() ) {
-    set_resolution( renderer, *recommended );
-    // The "best" resolution is always first in the list when
-    // there are multiple, so this will provide continuity to the
-    // index to avoid it jumping later.
-    g_resolution_idx = 0;
-  } else {
-    // TODO: deal with this case. We should probably create a
-    // Resolution object that keeps the current logical resolu-
-    // tion but centers it properly in the current window as a
-    // best effort attempt to keep things looking decent. We may
-    // also want the omni layer to overlay a message that says
-    // "window too small".
-  }
+  gfx::Resolution const resolution = [&] {
+    maybe<gfx::Resolution> res;
+    res = recompute_best_logical_resolution( physical_size );
+    if( res ) return *res;
+    res = recompute_best_unavailable_logical_resolution(
+        physical_size );
+    if( res ) return *res;
+    return g_resolution;
+  }();
+  // FIXME: the logical resolution here can jump abruptly if the
+  // user has previously cycled through the resolutions. Perhaps
+  // the way to solve this is to get all of the resolutions here
+  // and compare if the new available list is the same as the old
+  // (except for the physical size, which must be removed from
+  // the data structure before comparison) and, if it is, just
+  // keep it and the idx constant.
+  set_resolution( renderer, resolution );
+  // The "best" resolution is always first in the list when there
+  // are multiple, so this will provide continuity to the index
+  // to avoid it jumping later.
+  g_resolution_idx = 0;
 }
 
 void cycle_resolution( int const delta ) {
-  std::vector<gfx::Resolution> const available =
-      compute_available_logical_resolutions(
+  gfx::ResolutionRatings const ratings =
+      compute_logical_resolution_ratings(
           main_window_physical_size() );
-  if( available.empty() ) return;
+  if( ratings.available.empty() ) return;
   g_resolution_idx += delta;
   // Need to do this because the c++ modulus is the wrong type.
   while( g_resolution_idx < 0 )
-    g_resolution_idx += available.size();
-  g_resolution_idx %= available.size();
-  CHECK_LT( g_resolution_idx, ssize( available ) );
+    g_resolution_idx += ratings.available.size();
+  g_resolution_idx %= ratings.available.size();
+  CHECK_LT( g_resolution_idx, ssize( ratings.available ) );
   // FIXME
   auto& renderer = global_renderer_use_only_when_needed();
-  set_resolution( renderer, available[g_resolution_idx] );
+  set_resolution( renderer,
+                  ratings.available[g_resolution_idx] );
 }
 
 } // namespace rn

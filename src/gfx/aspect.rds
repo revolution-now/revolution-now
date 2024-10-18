@@ -32,7 +32,7 @@ struct.LogicalResolution {
 struct.InexactLogicalResolution {
   target_logical 'size',
   scale 'int',
-  clipped_logical 'rect',
+  lg_clipped 'rect',
   logical 'size',
   buffer 'size',
   score 'double',
@@ -56,8 +56,13 @@ struct.Resolution {
   exact 'bool',
   target_logical 'size',
   scale 'int',
-  clipped_logical 'rect',
+  lg_clipped 'rect',
   logical 'size',
   buffer 'size',
   score 'double',
+}
+
+struct.ResolutionRatings {
+  available 'std::vector<Resolution>',
+  unavailable 'std::vector<Resolution>',
 }

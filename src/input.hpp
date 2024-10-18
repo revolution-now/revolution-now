@@ -95,7 +95,7 @@ Coord current_mouse_position();
 // that it will do so by generating a mouse motion even, so the
 // mouse position won't immediately change until that event is
 // polled through the usual mechanism.
-void set_mouse_position( Coord new_pos );
+[[deprecated]] void set_mouse_position( Coord new_pos );
 
 /****************************************************************
 ** Mouse Dragging

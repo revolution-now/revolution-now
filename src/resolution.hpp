@@ -22,10 +22,16 @@
 
 namespace rn {
 
-std::vector<gfx::Resolution>
-compute_available_logical_resolutions( gfx::size physical_size );
+gfx::ResolutionRatings compute_logical_resolution_ratings(
+    gfx::size physical_size );
 
 maybe<gfx::Resolution> recompute_best_logical_resolution(
+    gfx::size physical_size );
+
+// This is only used if there are no available logical resolu-
+// tions and we're forced to put something on the screen.
+maybe<gfx::Resolution>
+recompute_best_unavailable_logical_resolution(
     gfx::size physical_size );
 
 } // namespace rn

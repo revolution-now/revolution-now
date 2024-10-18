@@ -27,13 +27,14 @@ using ::base::maybe;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-vector<gfx::Resolution> compute_available_logical_resolutions(
-    gfx::size const physical_size ) {
+gfx::ResolutionRatings compute_logical_resolution_ratings(
+    gfx::size physical_size ) {
   vector<gfx::Resolution> res;
   vector<gfx::size> const target_logical_resolutions{
     // 16:9
     { .w = 768, .h = 432 }, // for 27 in. monitors.
     { .w = 640, .h = 360 }, // for laptops.
+    // { .w = 480, .h = 270 }, // superlarge.
 
     // 16:10
     { .w = 720, .h = 450 }, // for macbook pro.
@@ -64,20 +65,29 @@ vector<gfx::Resolution> compute_available_logical_resolutions(
 
   gfx::ResolutionTolerance const tolerance{
     .max_missing_pixels  = 0,
-    .max_extra_pixels    = nothing,
-    .min_percent_covered = nothing,
+    .max_extra_pixels    = nothing, // 32,
+    .min_percent_covered = nothing, // .8,
     .score_cutoff        = nothing,
   };
 
-  return available_resolutions( analysis, tolerance );
+  return resolution_ratings( analysis, tolerance );
 }
 
 maybe<gfx::Resolution> recompute_best_logical_resolution(
     gfx::size const physical_size ) {
-  auto recommended =
-      compute_available_logical_resolutions( physical_size );
-  if( recommended.empty() ) return nothing;
-  return std::move( recommended[0] );
+  auto ratings =
+      compute_logical_resolution_ratings( physical_size );
+  if( ratings.available.empty() ) return nothing;
+  return std::move( ratings.available[0] );
+}
+
+maybe<gfx::Resolution>
+recompute_best_unavailable_logical_resolution(
+    gfx::size physical_size ) {
+  auto ratings =
+      compute_logical_resolution_ratings( physical_size );
+  if( ratings.unavailable.empty() ) return nothing;
+  return std::move( ratings.unavailable[0] );
 }
 
 } // namespace rn
