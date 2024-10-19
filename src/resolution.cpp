@@ -36,10 +36,20 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
     { .w = 640, .h = 360 }, // for laptops.
     // { .w = 480, .h = 270 }, // superlarge.
 
+    // 9:16 (rotated 16:9)
+    { .w = 432, .h = 768 }, // for 27 in. monitors.
+    { .w = 360, .h = 640 }, // for laptops.
+    // { .w = 270, .h = 480 }, // superlarge.
+
     // 16:10
     { .w = 720, .h = 450 }, // for macbook pro.
     { .w = 576, .h = 360 }, // for macbook pro.
     { .w = 640, .h = 400 },
+
+    // 10:16 (rotated 16:10)
+    { .w = 450 , .h = 720}, // for macbook pro.
+    { .w = 360 , .h = 576}, // for macbook pro.
+    { .w = 400 , .h = 640},
 
     // 4:3
     { .w = 640, .h = 480 },
