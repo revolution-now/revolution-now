@@ -129,17 +129,17 @@ struct OmniPlane::Impl : public IPlane {
 
     auto const& resolution = get_resolution();
 
-    log( " resolution:" );
-    log( "  physical: {}", resolution.physical );
-    log( "  scale:    {}", resolution.scale );
-    log( "  lg_full:  {}", resolution.lg_full );
-    log( "  is_exact: {}", resolution.is_exact );
-    log( "  buffer:   {}", resolution.buffer );
-    log( "  score:    {}", resolution.score );
-    log( "  clipped:" );
-    log( "   origin:  {}", resolution.lg_clipped.origin );
-    log( "   size:    {}", resolution.lg_clipped.size );
-    log( "  logical:  {}", resolution.logical );
+    log( "Resolution:" );
+    log( " physical: {}", resolution.physical );
+    log( " scale:    {}", resolution.scale );
+    log( " lg_full:  {}", resolution.lg_full );
+    log( " is_exact: {}", resolution.is_exact );
+    log( " buffer:   {}", resolution.buffer );
+    log( " score:    {}", resolution.score );
+    log( " clipped:" );
+    log( "  origin:  {}", resolution.lg_clipped.origin );
+    log( "  size:    {}", resolution.lg_clipped.size );
+    log( " logical:  {}", resolution.logical );
 
     gfx::size const lg_in_ph =
         resolution.logical * resolution.scale;
@@ -150,13 +150,13 @@ struct OmniPlane::Impl : public IPlane {
     gfx::rect const ph_viewport_rect{
       .origin = ph_viewport_origin, .size = lg_in_ph };
     log( " ph_viewport:" );
-    log( "  nw:       {}", ph_viewport_rect.nw() );
-    log( "  se:       {}", ph_viewport_rect.se() );
+    log( "  nw:      {}", ph_viewport_rect.nw() );
+    log( "  se:      {}", ph_viewport_rect.se() );
     auto const lg_viewport_rect =
         ph_viewport_rect / resolution.scale;
     log( " lg_viewport:" );
-    log( "  nw:       {}", lg_viewport_rect.nw() );
-    log( "  se:       {}", lg_viewport_rect.se() );
+    log( "  nw:      {}", lg_viewport_rect.nw() );
+    log( "  se:      {}", lg_viewport_rect.se() );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 50, .y = 50 };
