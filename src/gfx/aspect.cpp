@@ -51,24 +51,24 @@ maybe<double> is_close( AspectRatio const l, AspectRatio const r,
 Resolution to_resolution( LogicalResolution const& logical ) {
   rect const target_logical_rect{ .origin = {},
                                   .size   = logical.resolution };
-  return Resolution{ .exact          = true,
-                     .target_logical = logical.resolution,
-                     .scale          = logical.scale,
-                     .lg_clipped     = target_logical_rect,
-                     .logical        = logical.resolution,
-                     .buffer         = {},
-                     .score          = 0 };
+  return Resolution{ .is_exact   = true,
+                     .lg_full    = logical.resolution,
+                     .scale      = logical.scale,
+                     .lg_clipped = target_logical_rect,
+                     .logical    = logical.resolution,
+                     .buffer     = {},
+                     .score      = 0 };
 }
 
 Resolution to_resolution(
     InexactLogicalResolution const& inexact ) {
-  return Resolution{ .exact          = false,
-                     .target_logical = inexact.target_logical,
-                     .scale          = inexact.scale,
-                     .lg_clipped     = inexact.lg_clipped,
-                     .logical        = inexact.logical,
-                     .buffer         = inexact.buffer,
-                     .score          = inexact.score };
+  return Resolution{ .is_exact   = false,
+                     .lg_full    = inexact.lg_full,
+                     .scale      = inexact.scale,
+                     .lg_clipped = inexact.lg_clipped,
+                     .logical    = inexact.logical,
+                     .buffer     = inexact.buffer,
+                     .score      = inexact.score };
 }
 
 } // namespace
@@ -255,7 +255,7 @@ ResolutionAnalysis resolution_analysis(
           virtual_ne_logical.distance_from_origin();
       auto const logical = inexact.resolution / inexact.scale;
       res.inexact_fits.push_back(
-          InexactLogicalResolution{ .target_logical = target,
+          InexactLogicalResolution{ .lg_full    = target,
                                     .scale      = inexact.scale,
                                     .lg_clipped = lg_clipped,
                                     .logical    = logical,

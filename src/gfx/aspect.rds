@@ -30,7 +30,7 @@ struct.LogicalResolution {
 }
 
 struct.InexactLogicalResolution {
-  target_logical 'size',
+  lg_full 'size',
   scale 'int',
   lg_clipped 'rect',
   logical 'size',
@@ -53,8 +53,8 @@ struct.ResolutionAnalysis {
 
 struct.Resolution {
   physical 'size',
-  exact 'bool',
-  target_logical 'size',
+  is_exact 'bool',
+  lg_full 'size',
   scale 'int',
   lg_clipped 'rect',
   logical 'size',

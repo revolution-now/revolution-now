@@ -79,63 +79,67 @@ struct OmniPlane::Impl : public IPlane {
   void render_aspect_info( rr::Renderer& renderer ) const {
     vector<string> lines;
 
-    static auto line_logger = []( vector<string>& lines
-                                      ATTR_LIFETIMEBOUND ) {
+    auto line_logger = []( vector<string>& lines
+                               ATTR_LIFETIMEBOUND ) {
+      static constexpr auto fmt_type = mp::overload{
+        []( gfx::size const s ) -> string {
+          return fmt::format( "{}x{}", s.w, s.h );
+        },
+        []( gfx::point const p ) -> string {
+          return fmt::format( "[{},{}]", p.x, p.y );
+        },
+        []( auto const& o ) -> string {
+          return base::to_str( o );
+        },
+      };
       return
           [&]<typename... Args>(
               fmt::format_string<std::type_identity_t<Args>...>
                   fmt_str,
-              Args&&... args ) {
+              Args const&... args ) {
+            // We need the fmt::runtime here because we are
+            // changing the type of the args by passing them
+            // through fmt_type which would leave them incompat-
+            // ible with the type of the compile-time format
+            // string object fmt_str. But we are not losing
+            // compile-time format string checking because that
+            // has already been done by the construction of
+            // fmt_str upon calling this function.
             lines.push_back( fmt::format(
-                fmt_str, std::forward<Args>( args )... ) );
+                fmt::runtime( fmt_str ), fmt_type( args )... ) );
           };
     };
 
     auto log = line_logger( lines );
 
-    auto fmt_size = []( gfx::size const s ) {
-      return fmt::format( "{}x{}", s.w, s.h );
-    };
-
-    auto fmt_point = []( gfx::point const p ) {
-      return fmt::format( "[{},{}]", p.x, p.y );
-    };
-
     log( "Aspect Info:" );
 
     gfx::size const physical_size = main_window_physical_size();
-    log( " physical: {}", fmt_size( physical_size ) );
-
-    gfx::size const logical_size =
-        renderer.logical_screen_size();
-    log( " logical:  {}", fmt_size( logical_size ) );
 
     UNWRAP_CHECK_T(
         auto const actual_ratio,
         gfx::AspectRatio::from_size( physical_size ) );
-    log( " aspect:   {}", actual_ratio );
+    log( " aspect exact:  {}", actual_ratio );
 
     auto const closest_named_ratio =
         find_closest_named_aspect_ratio(
             actual_ratio, gfx::default_aspect_ratio_tolerance() )
             .fmap( gfx::named_ratio_canonical_name );
-    log( " closest:  {}", closest_named_ratio );
+    log( " aspect approx: {}", closest_named_ratio );
 
     auto const& resolution = get_resolution();
 
     log( " resolution:" );
-    log( "  scale:   {}", resolution.scale );
-    log( "  exact:   {}", resolution.exact );
-    log( "  target:  {}",
-         fmt_size( resolution.target_logical ) );
-    log( "  buffer:  {}", fmt_size( resolution.buffer ) );
-    log( "  score:   {}", resolution.score );
-    log( "  clipped:", resolution.lg_clipped );
-    log( "   origin: {}",
-         fmt_point( resolution.lg_clipped.origin ) );
-    log( "   size:   {}",
-         fmt_size( resolution.lg_clipped.size ) );
-    log( "  logical: {}", fmt_size( resolution.logical ) );
+    log( "  physical: {}", resolution.physical );
+    log( "  scale:    {}", resolution.scale );
+    log( "  lg_full:  {}", resolution.lg_full );
+    log( "  is_exact: {}", resolution.is_exact );
+    log( "  buffer:   {}", resolution.buffer );
+    log( "  score:    {}", resolution.score );
+    log( "  clipped:" );
+    log( "   origin:  {}", resolution.lg_clipped.origin );
+    log( "   size:    {}", resolution.lg_clipped.size );
+    log( "  logical:  {}", resolution.logical );
 
     gfx::size const lg_in_ph =
         resolution.logical * resolution.scale;
@@ -146,25 +150,16 @@ struct OmniPlane::Impl : public IPlane {
     gfx::rect const ph_viewport_rect{
       .origin = ph_viewport_origin, .size = lg_in_ph };
     log( " ph_viewport:" );
-    log( "  nw:      {}", fmt_point( ph_viewport_rect.nw() ) );
-    log( "  se:      {}", fmt_point( ph_viewport_rect.se() ) );
+    log( "  nw:       {}", ph_viewport_rect.nw() );
+    log( "  se:       {}", ph_viewport_rect.se() );
     auto const lg_viewport_rect =
         ph_viewport_rect / resolution.scale;
     log( " lg_viewport:" );
-    log( "  nw:      {}", fmt_point( lg_viewport_rect.nw() ) );
-    log( "  se:      {}", fmt_point( lg_viewport_rect.se() ) );
+    log( "  nw:       {}", lg_viewport_rect.nw() );
+    log( "  se:       {}", lg_viewport_rect.se() );
 
-    // rr::Painter painter = renderer.painter();
-    // painter.draw_empty_rect(
-    //     gfx::rect{ .origin = {}, .size = resolution.logical },
-    //     rr::Painter::e_border_mode::inside, gfx::pixel::red()
-    //     );
-
-    gfx::point const info_region_anchor = [&] {
-      gfx::point res;
-      res = gfx::point{ .x = 50, .y = 50 };
-      return res;
-    }();
+    gfx::point const info_region_anchor =
+        gfx::point{ .x = 50, .y = 50 };
 
     render_text_overlay_with_anchor(
         renderer, lines, info_region_anchor, e_cdirection::nw,
