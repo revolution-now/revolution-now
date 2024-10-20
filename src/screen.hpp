@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "error.hpp"
+#include "maybe.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -27,16 +28,18 @@ struct Resolution;
 namespace rn {
 
 // FIXME: get rid of this.
-int resolution_scale_factor();
+maybe<int> resolution_scale_factor();
 
-gfx::Resolution const& get_resolution();
+maybe<gfx::Resolution const&> get_resolution();
 
 // NOTE: you should not normally call this in most game code, in-
 // stead you should go through the compositor in order to allow
 // it to control the logical size of each element on the screen.
-Delta main_window_logical_size();
-Delta main_window_physical_size();
-Rect  main_window_logical_rect(); // !! origin at (0,0)
+gfx::size main_window_logical_size();
+gfx::size main_window_physical_size();
+
+// !! origin at (0,0)
+gfx::rect main_window_logical_rect();
 
 void on_main_window_resized( rr::Renderer& renderer );
 

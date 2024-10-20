@@ -57,16 +57,15 @@ struct AspectRatio {
 ** Public API.
 *****************************************************************/
 base::maybe<AspectRatio> find_closest_aspect_ratio(
-    std::span<AspectRatio const> ratios_all, AspectRatio target,
-    double tolerance );
-
-base::maybe<e_named_aspect_ratio>
-find_closest_named_aspect_ratio( AspectRatio target,
-                                 double      tolerance );
+    std::span<AspectRatio const> ratios_all,
+    AspectRatio                  target );
 
 // Returns the default tolerance used for bucketing of aspect ra-
 // tios. This is a small positive number < 1.
 double default_aspect_ratio_tolerance();
+
+base::maybe<e_named_aspect_ratio>
+find_closest_named_aspect_ratio( AspectRatio target );
 
 std::vector<LogicalResolution> supported_logical_resolutions(
     size max_resolution );
@@ -76,6 +75,8 @@ std::string named_ratio_canonical_name( e_named_aspect_ratio r );
 ResolutionAnalysis resolution_analysis(
     std::span<size const> target_logical_resolutions,
     size                  physical_resolution );
+
+bool is_exact( Resolution const& resolution );
 
 ResolutionRatings resolution_ratings(
     ResolutionAnalysis const&  analysis,

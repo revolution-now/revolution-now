@@ -50,8 +50,10 @@ void init_renderer() {
 
   g_window =
       static_cast<::SDL_Window*>( main_os_window_handle() );
-  Delta logical_screen_size  = main_window_logical_size();
-  Delta physical_screen_size = main_window_physical_size();
+  gfx::size const logical_screen_size =
+      main_window_logical_size();
+  gfx::size const physical_screen_size =
+      main_window_physical_size();
 
   g_gl_context = init_SDL_for_OpenGL( g_window );
   CHECK( g_gl_context != nullptr );

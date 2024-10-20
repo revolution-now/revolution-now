@@ -59,7 +59,8 @@ void rotate_console() {
 }
 
 maybe<Rect> section_inverted( e_section sec ) {
-  Rect const  screen       = main_window_logical_rect();
+  Rect const screen =
+      Rect::from_gfx( main_window_logical_rect() );
   maybe<Rect> non_inverted = section( sec );
   if( !non_inverted ) return screen;
 
@@ -166,19 +167,21 @@ maybe<Rect> section( e_section sec ) {
       res = section_inverted( e_section::console );
       break;
     case e_section::total: {
-      res = main_window_logical_rect();
+      res = Rect::from_gfx( main_window_logical_rect() );
       break;
     }
   }
 
   if( res.has_value() ) {
     res = res->normalized();
-    res = res->clamp( main_window_logical_rect() );
+    res = res->clamp(
+        Rect::from_gfx( main_window_logical_rect() ) );
   }
 
   if( res.has_value() ) {
     // Check invariants before returning.
-    Rect total [[maybe_unused]] = main_window_logical_rect();
+    Rect const total =
+        Rect::from_gfx( main_window_logical_rect() );
     CHECK_LE( res->right_edge(), total.right_edge() );
     CHECK_GE( res->left_edge(), total.left_edge() );
     CHECK_LE( res->bottom_edge(), total.bottom_edge() );

@@ -513,10 +513,10 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     Coord pos = position( *dragging_win_ );
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
-    Rect const total_area = main_window_logical_rect();
-    pos.y = clamp( pos.y, 0, total_area.bottom_edge() - 16 );
+    gfx::rect const total_area = main_window_logical_rect();
+    pos.y = clamp( pos.y, 0, total_area.bottom() - 16 );
     pos.x = clamp( pos.x, 16 - focused().delta().w,
-                   total_area.right_edge() - 16 );
+                   total_area.right() - 16 );
     set_position( *dragging_win_, pos );
   }
 }

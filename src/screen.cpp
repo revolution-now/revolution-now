@@ -45,7 +45,7 @@ namespace rn {
 
 namespace {
 
-gfx::Resolution g_resolution;
+maybe<gfx::Resolution> g_resolution;
 
 int g_resolution_idx = 0;
 
@@ -54,7 +54,7 @@ int g_resolution_idx = 0;
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
 // Cache is invalidated by setting to nothing.
-maybe<Delta> main_window_physical_size_cache;
+maybe<gfx::size> main_window_physical_size_cache;
 
 struct DisplayMode {
   Delta    size;
@@ -304,45 +304,67 @@ REGISTER_INIT_ROUTINE( screen );
 
 void set_resolution( rr::Renderer&          renderer,
                      gfx::Resolution const& resolution ) {
-  if( resolution.logical != g_resolution.logical )
+  if( !g_resolution.has_value() ||
+      resolution.logical != g_resolution->logical )
     lg.info( "logical resolution changing to {}",
              resolution.logical );
-
   g_resolution = resolution;
+  // Note this actually uses flipped coordinates where the origin
+  // as at the lower left, but this still works.
+  renderer.set_viewport( resolution.viewport );
+  renderer.set_logical_screen_size(
+      resolution.logical.dimensions );
+}
 
-  gfx::size const logical_in_physical_pixels =
-      resolution.logical * resolution.scale;
-  gfx::rect const physical_rect{ .origin = {},
-                                 .size   = resolution.physical };
-  auto const      viewport_origin = gfx::centered_in(
-      logical_in_physical_pixels, physical_rect );
-  gfx::rect const viewport_rect{
-    .origin = viewport_origin,
-    .size   = logical_in_physical_pixels };
-  // TODO: this actually uses flipped coordinates; perhaps we
-  // should indicate that.
-  renderer.set_viewport( viewport_rect );
-  renderer.set_logical_screen_size( resolution.logical );
+// This is the logical resolution given to the renderer when we
+// cannot find a supported resolution for the given window. This
+// should not be used by actual game code; when no supported res-
+// olution is found, there should be no rendering apart from a
+// message telling the user to resize their window.
+gfx::size logical_resolution_for_invalid_window_size() {
+  return main_window_physical_size();
+}
+
+void clear_resolution( rr::Renderer& renderer ) {
+  if( g_resolution.has_value() )
+    lg.info( "no logical resolution found." );
+  g_resolution = nothing;
+  // Note this actually uses flipped coordinates where the origin
+  // as at the lower left, but this still works.
+  renderer.set_viewport(
+      gfx::rect{ .size = main_window_physical_size() } );
+  renderer.set_logical_screen_size(
+      logical_resolution_for_invalid_window_size() );
 }
 
 } // namespace
 
 void* main_os_window_handle() { return (void*)g_window; }
 
-gfx::Resolution const& get_resolution() { return g_resolution; }
-
-Delta main_window_logical_size() {
-  return Delta::from_gfx( g_resolution.logical );
+maybe<gfx::Resolution const&> get_resolution() {
+  return g_resolution;
 }
 
-Rect main_window_logical_rect() {
-  return Rect::from_gfx(
-      gfx::rect{ .origin = {}, .size = g_resolution.logical } );
+gfx::size main_window_logical_size() {
+  if( !g_resolution.has_value() )
+    return logical_resolution_for_invalid_window_size();
+  return g_resolution->logical.dimensions;
 }
 
-int resolution_scale_factor() { return g_resolution.scale; }
+gfx::rect main_window_logical_rect() {
+  gfx::size const logical =
+      g_resolution.has_value()
+          ? g_resolution->logical.dimensions
+          : logical_resolution_for_invalid_window_size();
+  return gfx::rect{ .size = logical };
+}
 
-Delta main_window_physical_size() {
+maybe<int> resolution_scale_factor() {
+  if( !g_resolution.has_value() ) return nothing;
+  return g_resolution->logical.scale;
+}
+
+gfx::size main_window_physical_size() {
   if( !main_window_physical_size_cache ) {
     CHECK( g_window != nullptr );
     int w{}, h{};
@@ -407,14 +429,14 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
-  gfx::Resolution const resolution = [&] {
+  auto const resolution = [&]() {
     maybe<gfx::Resolution> res;
     res = recompute_best_logical_resolution( physical_size );
-    if( res ) return *res;
+    if( res ) return res;
     res = recompute_best_unavailable_logical_resolution(
         physical_size );
-    if( res ) return *res;
-    return g_resolution;
+    if( res ) return res;
+    return res;
   }();
   // FIXME: the logical resolution here can jump abruptly if the
   // user has previously cycled through the resolutions. Perhaps
@@ -423,7 +445,10 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   // (except for the physical size, which must be removed from
   // the data structure before comparison) and, if it is, just
   // keep it and the idx constant.
-  set_resolution( renderer, resolution );
+  if( resolution.has_value() )
+    set_resolution( renderer, *resolution );
+  else
+    clear_resolution( renderer );
   // The "best" resolution is always first in the list when there
   // are multiple, so this will provide continuity to the index
   // to avoid it jumping later.

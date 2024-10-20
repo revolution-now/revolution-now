@@ -43,32 +43,49 @@ maybe<double> is_close( double const l, double const r,
 
 maybe<double> is_close( AspectRatio const l, AspectRatio const r,
                         double const tolerance ) {
-  double const l_ratio = l.scalar();
-  double const r_ratio = r.scalar();
-  return is_close( l_ratio, r_ratio, tolerance );
+  return is_close( l.scalar(), r.scalar(), tolerance );
 }
 
-Resolution to_resolution( LogicalResolution const& logical ) {
-  rect const target_logical_rect{ .origin = {},
-                                  .size   = logical.resolution };
-  return Resolution{ .is_exact   = true,
-                     .lg_full    = logical.resolution,
-                     .scale      = logical.scale,
-                     .lg_clipped = target_logical_rect,
-                     .logical    = logical.resolution,
-                     .buffer     = {},
-                     .score      = 0 };
+static bool meets_tolerance(
+    Resolution const& r, ResolutionTolerance const& tolerance ) {
+  if( tolerance.min_percent_covered.has_value() &&
+      r.physical.area() > 0 ) {
+    int const scaled_clipped_area =
+        r.logical.dimensions.area() *
+        ( r.logical.scale * r.logical.scale );
+    double const percent_covered =
+        scaled_clipped_area /
+        static_cast<double>( r.physical.area() );
+    if( percent_covered < *tolerance.min_percent_covered )
+      return false;
+  }
+
+  if( tolerance.fitting_score_cutoff.has_value() ) {
+    if( r.scores.fitting > *tolerance.fitting_score_cutoff )
+      return false;
+  }
+  return true;
 }
 
-Resolution to_resolution(
-    InexactLogicalResolution const& inexact ) {
-  return Resolution{ .is_exact   = false,
-                     .lg_full    = inexact.lg_full,
-                     .scale      = inexact.scale,
-                     .lg_clipped = inexact.lg_clipped,
-                     .logical    = inexact.logical,
-                     .buffer     = inexact.buffer,
-                     .score      = inexact.score };
+void compute_scores( Resolution& r ) {
+  if( r.physical.area() == 0 ) return;
+  auto& scores = r.scores;
+
+  scores = {};
+
+  // Fitting score.
+  if( !is_exact( r ) )
+    scores.fitting =
+        ( r.logical.dimensions * r.logical.scale - r.physical )
+            .pythagorean() /
+        r.physical.pythagorean();
+
+  // Size score.
+  // TODO
+
+  // Overall score should be computed last.
+  // TODO: combine above scores to produce overall score.
+  r.scores.overall = r.scores.fitting;
 }
 
 } // namespace
@@ -100,23 +117,31 @@ double AspectRatio::scalar() const {
 AspectRatio AspectRatio::from_named(
     e_named_aspect_ratio const ratio ) {
   switch( ratio ) {
-    case e_named_aspect_ratio::_16x10: {
+    case e_named_aspect_ratio::w_h_16_10: {
       static AspectRatio const r( size{ .w = 8, .h = 5 } );
       return r;
     }
-    case e_named_aspect_ratio::_16x9: {
+    case e_named_aspect_ratio::w_h_10_16: {
+      static AspectRatio const r( size{ .w = 5, .h = 8 } );
+      return r;
+    }
+    case e_named_aspect_ratio::w_h_16_9: {
       static AspectRatio const r( size{ .w = 16, .h = 9 } );
       return r;
     }
-    case e_named_aspect_ratio::_1x1: {
+    case e_named_aspect_ratio::w_h_9_16: {
+      static AspectRatio const r( size{ .w = 9, .h = 16 } );
+      return r;
+    }
+    case e_named_aspect_ratio::w_h_1_1: {
       static AspectRatio const r( size{ .w = 1, .h = 1 } );
       return r;
     }
-    case e_named_aspect_ratio::_21x9: {
+    case e_named_aspect_ratio::w_h_21_9: {
       static AspectRatio const r( size{ .w = 7, .h = 3 } );
       return r;
     }
-    case e_named_aspect_ratio::_4x3: {
+    case e_named_aspect_ratio::w_h_4_3: {
       static AspectRatio const r( size{ .w = 4, .h = 3 } );
       return r;
     }
@@ -148,7 +173,8 @@ double default_aspect_ratio_tolerance() { return 0.04; }
 
 maybe<AspectRatio> find_closest_aspect_ratio(
     span<AspectRatio const> const ratios_all,
-    AspectRatio const target, double const tolerance ) {
+    AspectRatio const             target ) {
+  double const tolerance = default_aspect_ratio_tolerance();
   CHECK_LE( tolerance, 1.0 );
   struct Closest {
     double      delta = {};
@@ -164,7 +190,9 @@ maybe<AspectRatio> find_closest_aspect_ratio(
 }
 
 maybe<e_named_aspect_ratio> find_closest_named_aspect_ratio(
-    AspectRatio const target, double const tolerance ) {
+    AspectRatio const target ) {
+  double const tolerance = default_aspect_ratio_tolerance();
+  CHECK_LE( tolerance, 1.0 );
   struct Closest {
     double               delta        = {};
     e_named_aspect_ratio aspect_ratio = {};
@@ -188,20 +216,25 @@ vector<LogicalResolution> supported_logical_resolutions(
   for( int i = 1; i <= min_dimension; ++i )
     if( max_resolution.w % i == 0 && max_resolution.h % i == 0 )
       resolutions.push_back( LogicalResolution{
-        .resolution = max_resolution / i, .scale = i } );
+        .dimensions = max_resolution / i, .scale = i } );
   return resolutions;
 }
 
 string named_ratio_canonical_name(
     e_named_aspect_ratio const r ) {
-  string_view const name = refl::enum_value_name( r );
+  string_view name = refl::enum_value_name( r );
+  name.remove_prefix( 4 );
   // Should never be empty because this is an enum value identi-
   // fier name.
   CHECK( !name.empty() );
+  string sname( name );
+  replace( sname.begin(), sname.end(), '_', ':' );
+  return sname;
+}
 
-  string res( name.begin() + 1, name.end() );
-  std::replace( res.begin(), res.end(), 'x', ':' );
-  return res;
+bool is_exact( Resolution const& resolution ) {
+  return resolution.viewport.origin.distance_from_origin() ==
+         size{};
 }
 
 ResolutionAnalysis resolution_analysis(
@@ -211,96 +244,40 @@ ResolutionAnalysis resolution_analysis(
   vector<LogicalResolution> const choices =
       supported_logical_resolutions( physical );
   ResolutionAnalysis res;
-  res.physical = physical;
   for( size const target : target_logical_resolutions ) {
-    LogicalResolution scaled{ .resolution = target, .scale = 1 };
+    LogicalResolution scaled{ .dimensions = target, .scale = 1 };
     maybe<LogicalResolution> largest_that_fits;
-    while( scaled.resolution.fits_inside( physical ) ) {
-      largest_that_fits = scaled;
+    while( scaled.dimensions.fits_inside( physical ) ) {
+      largest_that_fits = LogicalResolution{
+        .dimensions = target, .scale = scaled.scale };
       ++scaled.scale;
-      scaled.resolution = target * scaled.scale;
+      scaled.dimensions = target * scaled.scale;
     }
-    LogicalResolution const smallest_that_does_not_fit = scaled;
-    if( largest_that_fits.has_value() &&
-        largest_that_fits->resolution == physical ) {
-      LogicalResolution unscaled = *largest_that_fits;
-      unscaled.resolution = unscaled.resolution / unscaled.scale;
-      res.exact_fits.push_back( unscaled );
-      continue;
+    if( !largest_that_fits.has_value() ) continue;
+    LogicalResolution const& logical = *largest_that_fits;
+
+    if( logical.dimensions * logical.scale == physical ) {
+      // Exact fit to physical window.
+      res.resolutions.push_back(
+          Resolution{ .physical = physical,
+                      .logical  = logical,
+                      .viewport = physical_rect,
+                      .scores   = {} } );
+    } else {
+      // Fits within the window but smaller.
+      size const chosen_physical =
+          logical.dimensions * logical.scale;
+      rect const viewport{
+        .origin = centered_in( chosen_physical, physical_rect ),
+        .size   = chosen_physical };
+      res.resolutions.push_back(
+          Resolution{ .physical = physical,
+                      .logical  = logical,
+                      .viewport = viewport } );
     }
-    auto score_for = [&]( size const l ) {
-      CHECK_GT( l.area(), 0 );
-      return ( l - physical ).pythagorean() /
-             physical.pythagorean();
-    };
-
-    // Did not exactly fit, so we'll add the one that is just
-    // smaller and just larger, since at least one of those is
-    // always better than any of the others.
-    auto add_inexact = [&]( LogicalResolution const inexact ) {
-      double const score = score_for( inexact.resolution );
-      CHECK_GT( score, 0.0 );
-      point const virtual_ne_physical =
-          centered_in( inexact.resolution, physical_rect );
-      rect const virtual_rect_physical{
-        .origin = virtual_ne_physical,
-        .size   = inexact.resolution };
-      UNWRAP_CHECK_T(
-          auto const clipped_physical,
-          virtual_rect_physical.clipped_by( physical_rect ) );
-      auto const lg_clipped = clipped_physical / inexact.scale;
-      auto const virtual_ne_logical =
-          virtual_ne_physical / inexact.scale;
-      auto const buffer_logical =
-          virtual_ne_logical.distance_from_origin();
-      auto const logical = inexact.resolution / inexact.scale;
-      res.inexact_fits.push_back(
-          InexactLogicalResolution{ .lg_full    = target,
-                                    .scale      = inexact.scale,
-                                    .lg_clipped = lg_clipped,
-                                    .logical    = logical,
-                                    .buffer     = buffer_logical,
-                                    .score      = score } );
-    };
-
-    add_inexact( smallest_that_does_not_fit );
-    if( largest_that_fits.has_value() )
-      add_inexact( *largest_that_fits );
+    compute_scores( res.resolutions.back() );
   }
   return res;
-}
-
-static bool meets_tolerance(
-    size const physical, InexactLogicalResolution const& inexact,
-    ResolutionTolerance const& tolerance ) {
-  if( tolerance.max_missing_pixels.has_value() ) {
-    if( -inexact.buffer.w > *tolerance.max_missing_pixels ||
-        -inexact.buffer.h > *tolerance.max_missing_pixels )
-      return false;
-  }
-
-  if( tolerance.max_extra_pixels.has_value() ) {
-    if( inexact.buffer.w > *tolerance.max_extra_pixels ||
-        inexact.buffer.h > *tolerance.max_extra_pixels )
-      return false;
-  }
-
-  if( tolerance.min_percent_covered.has_value() &&
-      physical.area() > 0 ) {
-    int const scaled_clipped_area =
-        inexact.lg_clipped.area() *
-        ( inexact.scale * inexact.scale );
-    double const percent_covered =
-        scaled_clipped_area /
-        static_cast<double>( physical.area() );
-    if( percent_covered < *tolerance.min_percent_covered )
-      return false;
-  }
-
-  if( tolerance.score_cutoff.has_value() ) {
-    if( inexact.score > *tolerance.score_cutoff ) return false;
-  }
-  return true;
 }
 
 ResolutionRatings resolution_ratings(
@@ -308,56 +285,31 @@ ResolutionRatings resolution_ratings(
     ResolutionTolerance const& tolerance ) {
   ResolutionRatings res;
 
-  auto const ordered_exact_fits = [&] {
-    auto sorted = analysis.exact_fits;
-    sort( sorted.begin(), sorted.end(),
-          []( LogicalResolution const& l,
-              LogicalResolution const& r ) {
+  auto sorted = analysis.resolutions;
+  sort( sorted.begin(), sorted.end(),
+        []( Resolution const& l, Resolution const& r ) {
+          if( is_exact( l ) != is_exact( r ) )
+            // Exact fits should go first.
+            return is_exact( l );
+          if( is_exact( l ) ) {
             // FIXME: this needs to be improved to account for
             // the angular size of pixels. Such angular size
             // might also need to be weighed in to the score for
             // inexact fits. These need to be given a `score`
             // field like the inexact fits.
-            return l.resolution.area() > r.resolution.area();
-          } );
-    return sorted;
-  }();
+            return l.logical.dimensions.area() >
+                   r.logical.dimensions.area();
+          } else {
+            return l.scores.overall < r.scores.overall;
+          }
+        } );
 
-  auto const ordered_inexact_fits = [&] {
-    auto sorted = analysis.inexact_fits;
-    sort( sorted.begin(), sorted.end(),
-          []( InexactLogicalResolution const& l,
-              InexactLogicalResolution const& r ) {
-            return l.score < r.score;
-          } );
-    return sorted;
-  }();
-
-  // Exact fits should go first.
-  for( auto const& exact_fit : ordered_exact_fits )
-    res.available.push_back( to_resolution( exact_fit ) );
-
-  for( auto const& inexact_fit : ordered_inexact_fits ) {
-    if( !meets_tolerance( analysis.physical, inexact_fit,
-                          tolerance ) ) {
-      res.unavailable.push_back( to_resolution( inexact_fit ) );
-    } else {
-      // FIXME: this additional condition of the kind of buffer
-      // needs to be weighed in during sorting into the score. We
-      // may also want to weigh in the angular pixel size as we
-      // probably should for the scoring of exact fits.
-      // if( !inexact_fit.buffer.negative() ) {
-      //   res.push_back( to_resolution( inexact_fit ) );
-      // }
-      res.available.push_back( to_resolution( inexact_fit ) );
-    }
+  for( auto const& resolution : sorted ) {
+    auto& where = meets_tolerance( resolution, tolerance )
+                      ? res.available
+                      : res.unavailable;
+    where.push_back( resolution );
   }
-
-  // Populate physical resolution.
-  for( auto& available : res.available )
-    available.physical = analysis.physical;
-  for( auto& unavailable : res.unavailable )
-    unavailable.physical = analysis.physical;
 
   return res;
 }

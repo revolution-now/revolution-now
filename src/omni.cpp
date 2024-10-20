@@ -49,6 +49,35 @@ string toggle_omni_overlay() {
   return g_debug_omni_overlay ? "on" : "off";
 }
 
+auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
+  static constexpr auto fmt_type = mp::overload{
+    []( gfx::size const s ) -> string {
+      return fmt::format( "{}x{}", s.w, s.h );
+    },
+    []( gfx::point const p ) -> string {
+      return fmt::format( "[{},{}]", p.x, p.y );
+    },
+    []( gfx::rect const r ) -> string {
+      return fmt::format( "[{},{}] {}x{}", r.origin.x,
+                          r.origin.y, r.size.w, r.size.h );
+    },
+    []( auto const& o ) -> string { return base::to_str( o ); },
+  };
+  return
+      [&]<typename... Args>( fmt::format_string<Args...> fmt_str,
+                             Args const&... args ) {
+        // We need the fmt::runtime here because we are changing
+        // the type of the args by passing them through fmt_type
+        // which would leave them incompatible with the type of
+        // the compile-time format string object fmt_str. But we
+        // are not losing compile-time format string checking be-
+        // cause that has already been done by the construction
+        // of fmt_str upon calling this function.
+        lines.push_back( fmt::format( fmt::runtime( fmt_str ),
+                                      fmt_type( args )... ) );
+      };
+}
+
 } // namespace
 
 /****************************************************************
@@ -65,101 +94,70 @@ struct OmniPlane::Impl : public IPlane {
   Impl() = default;
 
   void render_framerate( rr::Renderer& renderer ) const {
-    gfx::point const framerate_se_corner =
-        gfx::point{} + renderer.logical_screen_size();
-    vector<string> const lines = {
-      fmt::format( "fps: {:.1f}", avg_frame_rate() ) };
+    vector<string> lines;
+    auto const     log = line_logger( lines );
+
+    log( "f/s: {}", fmt::format( "{:.1f}", avg_frame_rate() ) );
+
     static gfx::pixel shaded_wood =
         gfx::pixel::wood().shaded( 2 );
     render_text_overlay_with_anchor(
-        renderer, lines, framerate_se_corner, e_cdirection::se,
-        gfx::pixel::banana(), shaded_wood );
+        renderer, lines, renderer.logical_screen_rect().se(),
+        e_cdirection::se, gfx::pixel::banana(), shaded_wood );
+  }
+
+  void render_bad_window_size_overlay(
+      rr::Renderer& renderer ) const {
+    auto const  physical_size   = main_window_physical_size();
+    rr::Painter painter         = renderer.painter();
+    auto const  default_logical = main_window_logical_rect();
+    painter.draw_solid_rect( default_logical,
+                             gfx::pixel::yellow() );
+    vector<string> help_msg{
+      fmt::format( "Window size {}x{} not supported.",
+                   physical_size.w, physical_size.h ),
+      "Please resize your window." };
+    render_text_overlay_with_anchor(
+        renderer, help_msg, default_logical.center(),
+        e_cdirection::c, gfx::pixel::white(),
+        gfx::pixel::black() );
   }
 
   void render_aspect_info( rr::Renderer& renderer ) const {
-    vector<string> lines;
+    auto const resolution = get_resolution();
+    if( !resolution.has_value() ) {
+      render_bad_window_size_overlay( renderer );
+      return;
+    }
 
-    auto line_logger = []( vector<string>& lines
-                               ATTR_LIFETIMEBOUND ) {
-      static constexpr auto fmt_type = mp::overload{
-        []( gfx::size const s ) -> string {
-          return fmt::format( "{}x{}", s.w, s.h );
-        },
-        []( gfx::point const p ) -> string {
-          return fmt::format( "[{},{}]", p.x, p.y );
-        },
-        []( auto const& o ) -> string {
-          return base::to_str( o );
-        },
-      };
-      return
-          [&]<typename... Args>(
-              fmt::format_string<std::type_identity_t<Args>...>
-                  fmt_str,
-              Args const&... args ) {
-            // We need the fmt::runtime here because we are
-            // changing the type of the args by passing them
-            // through fmt_type which would leave them incompat-
-            // ible with the type of the compile-time format
-            // string object fmt_str. But we are not losing
-            // compile-time format string checking because that
-            // has already been done by the construction of
-            // fmt_str upon calling this function.
-            lines.push_back( fmt::format(
-                fmt::runtime( fmt_str ), fmt_type( args )... ) );
-          };
+    vector<string> lines;
+    auto const     log = line_logger( lines );
+
+    auto const aspect_approx = [&]( gfx::size const sz ) {
+      return gfx::AspectRatio::from_size( sz )
+          .bind( gfx::find_closest_named_aspect_ratio )
+          .fmap( gfx::named_ratio_canonical_name );
     };
 
-    auto log = line_logger( lines );
+    auto const physical_size   = main_window_physical_size();
+    auto const aspect_physical = aspect_approx( physical_size );
+    auto const aspect_logical =
+        aspect_approx( resolution->logical.dimensions );
 
-    log( "Aspect Info:" );
-
-    gfx::size const physical_size = main_window_physical_size();
-
-    UNWRAP_CHECK_T(
-        auto const actual_ratio,
-        gfx::AspectRatio::from_size( physical_size ) );
-    log( " aspect exact:  {}", actual_ratio );
-
-    auto const closest_named_ratio =
-        find_closest_named_aspect_ratio(
-            actual_ratio, gfx::default_aspect_ratio_tolerance() )
-            .fmap( gfx::named_ratio_canonical_name );
-    log( " aspect approx: {}", closest_named_ratio );
-
-    auto const& resolution = get_resolution();
+    CHECK( resolution.has_value() );
 
     log( "Resolution:" );
-    log( " physical: {}", resolution.physical );
-    log( " scale:    {}", resolution.scale );
-    log( " lg_full:  {}", resolution.lg_full );
-    log( " is_exact: {}", resolution.is_exact );
-    log( " buffer:   {}", resolution.buffer );
-    log( " score:    {}", resolution.score );
-    log( " clipped:" );
-    log( "  origin:  {}", resolution.lg_clipped.origin );
-    log( "  size:    {}", resolution.lg_clipped.size );
-    log( " logical:  {}", resolution.logical );
-
-    gfx::size const lg_in_ph =
-        resolution.logical * resolution.scale;
-    gfx::rect const physical_rect{ .origin = {},
-                                   .size = resolution.physical };
-    auto const      ph_viewport_origin =
-        gfx::centered_in( lg_in_ph, physical_rect );
-    gfx::rect const ph_viewport_rect{
-      .origin = ph_viewport_origin, .size = lg_in_ph };
-    log( " ph_viewport:" );
-    log( "  nw:      {}", ph_viewport_rect.nw() );
-    log( "  se:      {}", ph_viewport_rect.se() );
-    auto const lg_viewport_rect =
-        ph_viewport_rect / resolution.scale;
-    log( " lg_viewport:" );
-    log( "  nw:      {}", lg_viewport_rect.nw() );
-    log( "  se:      {}", lg_viewport_rect.se() );
+    log( " physical:  {}", physical_size );
+    log( " logical:   {}", resolution->logical.dimensions );
+    log( " scale:     {}", resolution->logical.scale );
+    log( " viewport:  {}", resolution->viewport );
+    log( " fit.score: {}", resolution->scores.fitting );
+    log( " fit.size:  {}", resolution->scores.size );
+    log( " p.aspect: ~{}", aspect_physical );
+    log( " p.aspect: ~{}", aspect_logical );
 
     gfx::point const info_region_anchor =
-        gfx::point{ .x = 50, .y = 50 };
+        gfx::point{ .x = 32, .y = 32 };
 
     render_text_overlay_with_anchor(
         renderer, lines, info_region_anchor, e_cdirection::nw,

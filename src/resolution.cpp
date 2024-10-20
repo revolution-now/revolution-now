@@ -32,26 +32,27 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   vector<gfx::Resolution> res;
   vector<gfx::size> const target_logical_resolutions{
     // 16:9
-    { .w = 768, .h = 432 }, // for 27 in. monitors.
-    { .w = 640, .h = 360 }, // for laptops.
+    { .w = 768, .h = 432 },
+    { .w = 640, .h = 360 },
     // { .w = 480, .h = 270 }, // superlarge.
 
     // 9:16 (rotated 16:9)
-    { .w = 432, .h = 768 }, // for 27 in. monitors.
-    { .w = 360, .h = 640 }, // for laptops.
+    { .w = 432, .h = 768 },
+    { .w = 360, .h = 640 },
     // { .w = 270, .h = 480 }, // superlarge.
 
     // 16:10
-    { .w = 720, .h = 450 }, // for macbook pro.
-    { .w = 576, .h = 360 }, // for macbook pro.
+    { .w = 720, .h = 450 },
+    { .w = 576, .h = 360 },
     { .w = 640, .h = 400 },
 
     // 10:16 (rotated 16:10)
-    { .w = 450 , .h = 720}, // for macbook pro.
-    { .w = 360 , .h = 576}, // for macbook pro.
-    { .w = 400 , .h = 640},
+    { .w = 450, .h = 720 },
+    { .w = 360, .h = 576 },
+    { .w = 400, .h = 640 },
 
     // 4:3
+    { .w = 960, .h = 720 },
     { .w = 640, .h = 480 },
 
     // 21:9 (approximately)
@@ -74,10 +75,8 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
       target_logical_resolutions, physical_size );
 
   gfx::ResolutionTolerance const tolerance{
-    .max_missing_pixels  = 0,
-    .max_extra_pixels    = nothing, // 32,
-    .min_percent_covered = nothing, // .8,
-    .score_cutoff        = nothing,
+    .min_percent_covered  = nothing, // .8,
+    .fitting_score_cutoff = nothing,
   };
 
   return resolution_ratings( analysis, tolerance );
