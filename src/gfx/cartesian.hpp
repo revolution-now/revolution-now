@@ -121,6 +121,10 @@ struct point {
 
   void operator-=( size const s );
 
+  void operator*=( int scale );
+
+  void operator/=( int scale );
+
   [[nodiscard]] size operator-( point const rhs ) const;
 
   [[nodiscard]] point operator*( int scale ) const;

@@ -181,6 +181,22 @@ TEST_CASE( "[gfx/cartesian] dsize::operator/( double )" ) {
 /****************************************************************
 ** point
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] point::operator+=( int )" ) {
+  point p{ .x = 4, .y = 2 };
+  int   scale = 3;
+  p *= scale;
+  REQUIRE( p.x == 12 );
+  REQUIRE( p.y == 6 );
+}
+
+TEST_CASE( "[gfx/cartesian] point::operator/=( int )" ) {
+  point p{ .x = 6, .y = 2 };
+  int   scale = 3;
+  p /= scale;
+  REQUIRE( p.x == 2 );
+  REQUIRE( p.y == 0 );
+}
+
 TEST_CASE( "[gfx/cartesian] point::distance_from_origin" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p.distance_from_origin() == size{ .w = 4, .h = 2 } );

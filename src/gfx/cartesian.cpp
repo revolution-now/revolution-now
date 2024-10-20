@@ -189,6 +189,17 @@ void point::operator-=( size const s ) {
   y -= s.h;
 }
 
+void point::operator*=( int const scale ) {
+  x *= scale;
+  y *= scale;
+}
+
+void point::operator/=( int const scale ) {
+  CHECK_GT( scale, 0 );
+  x /= scale;
+  y /= scale;
+}
+
 size point::operator-( point rhs ) const {
   return size{ .w = x - rhs.x, .h = y - rhs.y };
 }
