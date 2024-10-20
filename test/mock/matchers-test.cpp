@@ -775,6 +775,13 @@ TEST_CASE( "[mock] Approx" ) {
   REQUIRE( user.add_two( .499 ) == 1.199_a );
 }
 
+TEST_CASE( "[mock] Approxf" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+  mp.EXPECT__double_add( Approxf( .6, .01 ) ).returns( .7 );
+  REQUIRE( user.add_two( .499 ) == 1.199_a );
+}
+
 TEST_CASE( "[mock] matcher stringification" ) {
   MockPoint mp;
   PointUser user( &mp );

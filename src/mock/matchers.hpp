@@ -172,6 +172,21 @@ inline auto Approx( double target, double plus_minus ) {
 }
 
 /****************************************************************
+** Approxf
+*****************************************************************/
+MATCHER_DEFINE_NODE( Approxf, held, actual ) {
+  double const lower_bound = held.target - held.plus_minus;
+  double const upper_bound = held.target + held.plus_minus;
+  return ( actual >= lower_bound ) && ( actual <= upper_bound );
+};
+
+inline auto Approxf( float target, float plus_minus ) {
+  return detail::ApproxImpl<ApproxData>(
+      "Approxf",
+      ApproxData{ .target = target, .plus_minus = plus_minus } );
+}
+
+/****************************************************************
 ** StartsWith
 *****************************************************************/
 MATCHER_DEFINE_NODE( StartsWith, held, actual ) {

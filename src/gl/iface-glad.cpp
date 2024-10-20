@@ -176,4 +176,10 @@ GLAD_GL_METHOD( Viewport, void,
                 ( ( GLint, x ), ( GLint, y ), ( GLsizei, width ),
                   ( GLsizei, height ) ) );
 
+GLAD_GL_METHOD( ClearColor, void,
+                ( ( GLfloat, red ), ( GLfloat, green ),
+                  ( GLfloat, blue ), ( GLfloat, alpha ) ) );
+
+GLAD_GL_METHOD( Clear, void, ( ( GLbitfield, mask ) ) );
+
 } // namespace gl

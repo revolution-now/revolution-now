@@ -115,6 +115,11 @@ struct MockOpenGL : IOpenGL {
 
   MOCK_GL_METHOD( void, gl_Viewport,
                   ( GLint, GLint, GLsizei, GLsizei ) );
+
+  MOCK_GL_METHOD( void, gl_ClearColor,
+                  ( GLfloat, GLfloat, GLfloat, GLfloat ) );
+
+  MOCK_GL_METHOD( void, gl_Clear, ( GLbitfield ) );
 };
 
 static_assert( !std::is_abstract_v<MockOpenGL> );

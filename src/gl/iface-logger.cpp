@@ -263,4 +263,12 @@ LOG_AND_CALL_GL_METHOD( gl_Viewport, void,
                           ( GLsizei, width ),
                           ( GLsizei, height ) ) );
 
+LOG_AND_CALL_GL_METHOD( gl_ClearColor, void,
+                        ( ( GLfloat, red ), ( GLfloat, green ),
+                          ( GLfloat, blue ),
+                          ( GLfloat, alpha ) ) );
+
+LOG_AND_CALL_GL_METHOD( gl_Clear, void,
+                        ( ( GLbitfield, mask ) ) );
+
 } // namespace gl

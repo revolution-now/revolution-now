@@ -19,15 +19,19 @@ using namespace std;
 
 namespace gl {
 
-void clear( gfx::pixel color ) {
-  clear( gl::color::from_pixel( color ) );
-}
+namespace {
 
 void clear( color floats ) {
-  GL_CHECK(
-      glClearColor( floats.r, floats.g, floats.b, floats.a ) );
-  GL_CHECK(
-      glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+  GL_CHECK( CALL_GL( gl_ClearColor, floats.r, floats.g, floats.b,
+                     floats.a ) );
+  GL_CHECK( CALL_GL(
+      gl_Clear, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT ) );
+}
+
+}
+
+void clear( gfx::pixel color ) {
+  clear( gl::color::from_pixel( color ) );
 }
 
 void set_viewport( gfx::rect const dimensions ) {

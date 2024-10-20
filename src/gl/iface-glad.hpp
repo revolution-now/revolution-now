@@ -138,6 +138,11 @@ struct OpenGLGlad : IOpenGL {
 
   void gl_Viewport( GLint x, GLint y, GLsizei width,
                     GLsizei height ) override;
+
+  void gl_ClearColor( GLfloat red, GLfloat green, GLfloat blue,
+                      GLfloat alpha ) override;
+
+  void gl_Clear( GLbitfield mask ) override;
 };
 
 static_assert( !std::is_abstract_v<OpenGLGlad> );

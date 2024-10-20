@@ -22,9 +22,6 @@ namespace gl {
 // Clear the current buffer.
 void clear( gfx::pixel color = gfx::pixel::black() );
 
-// Clear the current buffer.
-void clear( color c );
-
 // This defines the rectangle in physical window pixels that the
 // OpenGL clip space [-1, 1] will be mapped to. Normally it is
 // just set to the physical pixel dimensions of the window with

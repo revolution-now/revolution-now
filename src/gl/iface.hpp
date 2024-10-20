@@ -168,6 +168,11 @@ struct IOpenGL {
 
   virtual void gl_Viewport( GLint x, GLint y, GLsizei width,
                             GLsizei height ) = 0;
+
+  virtual void gl_ClearColor( GLfloat red, GLfloat green,
+                              GLfloat blue, GLfloat alpha ) = 0;
+
+  virtual void gl_Clear( GLbitfield mask ) = 0;
 };
 
 /****************************************************************
