@@ -27,10 +27,7 @@ struct Resolution;
 
 namespace rn {
 
-// FIXME: get rid of this.
-maybe<int> resolution_scale_factor();
-
-maybe<gfx::Resolution const&> get_resolution();
+maybe<gfx::Resolution const&> get_global_resolution();
 
 // NOTE: you should not normally call this in most game code, in-
 // stead you should go through the compositor in order to allow

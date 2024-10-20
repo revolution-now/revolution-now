@@ -325,7 +325,7 @@ gfx::size logical_resolution_for_invalid_window_size() {
 
 void* main_os_window_handle() { return (void*)g_window; }
 
-maybe<gfx::Resolution const&> get_resolution() {
+maybe<gfx::Resolution const&> get_global_resolution() {
   return g_resolution;
 }
 
@@ -341,11 +341,6 @@ gfx::rect main_window_logical_rect() {
           ? g_resolution->logical.dimensions
           : logical_resolution_for_invalid_window_size();
   return gfx::rect{ .size = logical };
-}
-
-maybe<int> resolution_scale_factor() {
-  if( !g_resolution.has_value() ) return nothing;
-  return g_resolution->logical.scale;
 }
 
 gfx::size main_window_physical_size() {
@@ -405,6 +400,9 @@ void on_logical_resolution_changed(
     rr::Renderer&                 renderer,
     maybe<gfx::Resolution const&> resolution ) {
   if( resolution.has_value() ) {
+    if( g_resolution.has_value() )
+      input::update_mouse_pos_with_viewport_change(
+          *g_resolution, *resolution );
     g_resolution = *resolution;
     // Note this actually uses flipped coordinates where the
     // origin as at the lower left, but this still works.

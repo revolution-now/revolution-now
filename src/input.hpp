@@ -102,6 +102,24 @@ Coord current_mouse_position();
 // polled through the usual mechanism.
 [[deprecated]] void set_mouse_position( Coord new_pos );
 
+// Whether or not to show the system cursor when the mouse is
+// over the game window. This can be useful e.g. when the mouse
+// moves out of the viewport so that the user doesn't feel that
+// they've lost their cursor.
+void set_show_system_cursor( bool show );
+
+// Takes the viewport rect in physical pixels.
+bool should_show_system_cursor( gfx::rect const viewport );
+
+// The mouse position that we store globally (so that it can be
+// fetched in code that does not have access to a mouse event)
+// will be relative to the current viewport origin. So when that
+// changes, we need to update the cached event to prevent the
+// cursor from appearing to jump.
+void update_mouse_pos_with_viewport_change(
+    gfx::Resolution const& old_resolution,
+    gfx::Resolution const& new_resolution );
+
 /****************************************************************
 ** Mouse Dragging
 *****************************************************************/

@@ -101,6 +101,7 @@ void init_sdl() {
 
   CHECK( ::SDL_Init( SDL_INIT_EVERYTHING ) >= 0,
          "sdl could not initialize" );
+  // This may be changed later.
   ::SDL_ShowCursor( SDL_DISABLE );
 }
 

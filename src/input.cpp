@@ -122,9 +122,20 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   //        event if it starts causing issues.
   ::SDL_GetMouseState( &mouse.x, &mouse.y );
 
-  // mouse.clip( ... );
-  mouse.x /= resolution_scale_factor().value_or( 1 );
-  mouse.y /= resolution_scale_factor().value_or( 1 );
+  gfx::size const viewport_offset =
+      get_global_resolution()
+          .member( &gfx::Resolution::viewport )
+          .member( &gfx::rect::origin )
+          .value_or( gfx::point{} )
+          .distance_from_origin();
+  int const scale_factor =
+      get_global_resolution()
+          .member( &gfx::Resolution::logical )
+          .member( &gfx::LogicalResolution::scale )
+          .value_or( 1 );
+  mouse -= Delta::from_gfx( viewport_offset );
+  mouse.x /= scale_factor;
+  mouse.y /= scale_factor;
 
   if_get( l_drag, drag_phase::dragging, val ) {
     if( val.phase == e_drag_phase::begin )
@@ -403,12 +414,44 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( Coord new_pos ) {
-  new_pos.x *= resolution_scale_factor().value_or( 0 );
-  new_pos.y *= resolution_scale_factor().value_or( 0 );
+  int const scale_factor =
+      get_global_resolution()
+          .member( &gfx::Resolution::logical )
+          .member( &gfx::LogicalResolution::scale )
+          .value_or( 1 );
+  new_pos.x *= scale_factor;
+  new_pos.y *= scale_factor;
   // Apparently we can use nullptr for the window and it will use
   // the "focused" one, which seems to work for us.
   ::SDL_WarpMouseInWindow( /*window=*/nullptr, new_pos.x,
                            new_pos.y );
+}
+
+void set_show_system_cursor( bool const show ) {
+  ::SDL_ShowCursor( show ? SDL_ENABLE : SDL_DISABLE );
+}
+
+bool should_show_system_cursor( gfx::rect const viewport ) {
+  gfx::point mouse_physical;
+  // Need to grab the current mouse position here because the one
+  // that we have stored will be relative to the viewport origin
+  // which may have just changed (e.g. a window resize or logical
+  // resolution change) hence the call to this function.
+  ::SDL_GetMouseState( &mouse_physical.x, &mouse_physical.y );
+  bool const show_system_cursor =
+      !mouse_physical.is_inside( viewport );
+  return show_system_cursor;
+}
+
+void update_mouse_pos_with_viewport_change(
+    gfx::Resolution const& old_resolution,
+    gfx::Resolution const& new_resolution ) {
+  gfx::point p = g_prev_mouse_pos;
+  p *= old_resolution.logical.scale;
+  p += old_resolution.viewport.origin.distance_from_origin();
+  p -= new_resolution.viewport.origin.distance_from_origin();
+  p /= new_resolution.logical.scale;
+  g_prev_mouse_pos = Coord::from_gfx( p );
 }
 
 /****************************************************************

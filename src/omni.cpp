@@ -94,6 +94,8 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
 //   4) Catching any global events (such as special key presses).
 //
 struct OmniPlane::Impl : public IPlane {
+  bool show_game_cursor_ = true;
+
   Impl() = default;
 
   void render_framerate( rr::Renderer& renderer ) const {
@@ -127,7 +129,7 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void render_aspect_info( rr::Renderer& renderer ) const {
-    auto const resolution = get_resolution();
+    auto const resolution = get_global_resolution();
     if( !resolution.has_value() ) {
       render_bad_window_size_overlay( renderer );
       return;
@@ -174,14 +176,31 @@ struct OmniPlane::Impl : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     render_framerate( renderer );
     if( g_debug_omni_overlay ) render_debug_overlay( renderer );
-    render_sprite(
-        renderer,
-        input::current_mouse_position() - Delta{ .w = 16 },
-        e_tile::mouse_arrow1 );
+    if( show_game_cursor_ )
+      render_sprite(
+          renderer,
+          input::current_mouse_position() - Delta{ .w = 16 },
+          e_tile::mouse_arrow1 );
+  }
+
+  void update_system_cursor() {
+    auto const viewport = get_global_resolution().member(
+        &gfx::Resolution::viewport );
+    if( !viewport.has_value() ) {
+      input::set_show_system_cursor( true );
+      show_game_cursor_ = false;
+      return;
+    } else {
+      bool const show_system_cursor =
+          input::should_show_system_cursor( *viewport );
+      input::set_show_system_cursor( show_system_cursor );
+      show_game_cursor_ = !show_system_cursor;
+    }
   }
 
   e_input_handled input( input::event_t const& event ) override {
     auto handled = e_input_handled::no;
+    update_system_cursor();
     SWITCH( event ) {
       CASE( quit_event ) { throw exception_exit{}; }
       CASE( key_event ) {
