@@ -33,6 +33,7 @@ using ::base::nothing;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/aspect] find_closest_aspect_ratio" ) {
+  using enum e_named_aspect_ratio;
   size const resolution_0 = { .w = 1'024, .h = 700 };
   size const resolution_1 = { .w = 1'024, .h = 807 };
   size const resolution_2 = { .w = 1'024, .h = 806 };
@@ -59,42 +60,40 @@ TEST_CASE( "[gfx/aspect] find_closest_aspect_ratio" ) {
   REQUIRE( actual_ratio_4.has_value() );
   REQUIRE( actual_ratio_5.has_value() );
 
-  double const tolerance = default_aspect_ratio_tolerance();
-
   auto const all_aspect_ratios = {
-    AspectRatio::from_named( e_named_aspect_ratio::_16x9 ),
-    AspectRatio::from_named( e_named_aspect_ratio::_16x10 ),
-    AspectRatio::from_named( e_named_aspect_ratio::_4x3 ),
-    AspectRatio::from_named( e_named_aspect_ratio::_1x1 ),
+    AspectRatio::from_named( w_h_16_9 ),
+    AspectRatio::from_named( w_h_16_10 ),
+    AspectRatio::from_named( w_h_4_3 ),
+    AspectRatio::from_named( w_h_1_1 ),
   };
 
   auto const snapped_ratio_0 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_0, tolerance );
+      all_aspect_ratios, *actual_ratio_0 );
   auto const snapped_ratio_1 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_1, tolerance );
+      all_aspect_ratios, *actual_ratio_1 );
   auto const snapped_ratio_2 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_2, tolerance );
+      all_aspect_ratios, *actual_ratio_2 );
   auto const snapped_ratio_3 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_3, tolerance );
+      all_aspect_ratios, *actual_ratio_3 );
   auto const snapped_ratio_4 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_4, tolerance );
+      all_aspect_ratios, *actual_ratio_4 );
   auto const snapped_ratio_5 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_5, tolerance );
+      all_aspect_ratios, *actual_ratio_5 );
 
   REQUIRE( snapped_ratio_0 == nothing );
-  REQUIRE( snapped_ratio_1 == AspectRatio::from_named(
-                                  e_named_aspect_ratio::_4x3 ) );
-  REQUIRE( snapped_ratio_2 == AspectRatio::from_named(
-                                  e_named_aspect_ratio::_4x3 ) );
-  REQUIRE( snapped_ratio_3 == AspectRatio::from_named(
-                                  e_named_aspect_ratio::_1x1 ) );
-  REQUIRE(
-      snapped_ratio_4 ==
-      AspectRatio::from_named( e_named_aspect_ratio::_16x9 ) );
+  REQUIRE( snapped_ratio_1 ==
+           AspectRatio::from_named( w_h_4_3 ) );
+  REQUIRE( snapped_ratio_2 ==
+           AspectRatio::from_named( w_h_4_3 ) );
+  REQUIRE( snapped_ratio_3 ==
+           AspectRatio::from_named( w_h_1_1 ) );
+  REQUIRE( snapped_ratio_4 ==
+           AspectRatio::from_named( w_h_16_9 ) );
   REQUIRE( snapped_ratio_5 == nothing );
 }
 
 TEST_CASE( "[gfx/aspect] find_closest_named_aspect_ratio" ) {
+  using enum e_named_aspect_ratio;
   size const resolution_0 = { .w = 1'024, .h = 700 };
   size const resolution_1 = { .w = 1'024, .h = 807 };
   size const resolution_2 = { .w = 1'024, .h = 806 };
@@ -121,26 +120,24 @@ TEST_CASE( "[gfx/aspect] find_closest_named_aspect_ratio" ) {
   REQUIRE( actual_ratio_4.has_value() );
   REQUIRE( actual_ratio_5.has_value() );
 
-  double const tolerance = default_aspect_ratio_tolerance();
-
-  auto const snapped_ratio_0 = find_closest_named_aspect_ratio(
-      *actual_ratio_0, tolerance );
-  auto const snapped_ratio_1 = find_closest_named_aspect_ratio(
-      *actual_ratio_1, tolerance );
-  auto const snapped_ratio_2 = find_closest_named_aspect_ratio(
-      *actual_ratio_2, tolerance );
-  auto const snapped_ratio_3 = find_closest_named_aspect_ratio(
-      *actual_ratio_3, tolerance );
-  auto const snapped_ratio_4 = find_closest_named_aspect_ratio(
-      *actual_ratio_4, tolerance );
-  auto const snapped_ratio_5 = find_closest_named_aspect_ratio(
-      *actual_ratio_5, tolerance );
+  auto const snapped_ratio_0 =
+      find_closest_named_aspect_ratio( *actual_ratio_0 );
+  auto const snapped_ratio_1 =
+      find_closest_named_aspect_ratio( *actual_ratio_1 );
+  auto const snapped_ratio_2 =
+      find_closest_named_aspect_ratio( *actual_ratio_2 );
+  auto const snapped_ratio_3 =
+      find_closest_named_aspect_ratio( *actual_ratio_3 );
+  auto const snapped_ratio_4 =
+      find_closest_named_aspect_ratio( *actual_ratio_4 );
+  auto const snapped_ratio_5 =
+      find_closest_named_aspect_ratio( *actual_ratio_5 );
 
   REQUIRE( snapped_ratio_0 == nothing );
-  REQUIRE( snapped_ratio_1 == e_named_aspect_ratio::_4x3 );
-  REQUIRE( snapped_ratio_2 == e_named_aspect_ratio::_4x3 );
-  REQUIRE( snapped_ratio_3 == e_named_aspect_ratio::_1x1 );
-  REQUIRE( snapped_ratio_4 == e_named_aspect_ratio::_16x9 );
+  REQUIRE( snapped_ratio_1 == w_h_4_3 );
+  REQUIRE( snapped_ratio_2 == w_h_4_3 );
+  REQUIRE( snapped_ratio_3 == w_h_1_1 );
+  REQUIRE( snapped_ratio_4 == w_h_16_9 );
   REQUIRE( snapped_ratio_5 == nothing );
 }
 
@@ -241,6 +238,7 @@ TEST_CASE( "[gfx/aspect] AspectRatio/to_str" ) {
 // on monitor geometry. Specifically, it tests that they are
 // bucketed correctly.
 TEST_CASE( "[gfx/aspect] steam numbers" ) {
+  using enum e_named_aspect_ratio;
   vector<size> const resolutions = {
     size{ .w = 1'920, .h = 1'080 }, // 0
     size{ .w = 2'560, .h = 1'440 }, // 1
@@ -265,35 +263,33 @@ TEST_CASE( "[gfx/aspect] steam numbers" ) {
   using AR = AspectRatio;
 
   vector<MR> const expected_buckets = {
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_21x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_21x9 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x9 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_21_9 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ AR::from_named( w_h_21_9 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ AR::from_named( w_h_16_9 ) },
+    MR{ AR::from_named( w_h_10_16 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ AR::from_named( w_h_16_10 ) },
     MR{},
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{ AR::from_named( e_named_aspect_ratio::_16x10 ) },
-    MR{},
-    MR{ AR::from_named( e_named_aspect_ratio::_4x3 ) },
+    MR{ AR::from_named( w_h_4_3 ) },
   };
 
   BASE_CHECK( expected_buckets.size() == resolutions.size() );
-
-  double const tolerance = default_aspect_ratio_tolerance();
 
   for( int i = 0; i < ssize( resolutions ); ++i ) {
     INFO( fmt::format( "i={}", i ) );
     UNWRAP_CHECK_T( auto const ratio,
                     AspectRatio::from_size( resolutions[i] ) );
     auto const approximate_ratio = find_closest_aspect_ratio(
-        AspectRatio::named_all(), ratio, tolerance );
+        AspectRatio::named_all(), ratio );
     REQUIRE( approximate_ratio == expected_buckets[i] );
   }
 }
@@ -308,72 +304,74 @@ TEST_CASE( "[gfx/aspect] supported_logical_resolutions" ) {
 
   resolution = { .w = 1, .h = 1 };
   expected   = {
-    { .resolution = { .w = 1, .h = 1 }, .scale = 1 },
+    { .dimensions = { .w = 1, .h = 1 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 1, .h = 2 };
   expected   = {
-    { .resolution = { .w = 1, .h = 2 }, .scale = 1 },
+    { .dimensions = { .w = 1, .h = 2 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 2, .h = 2 };
   expected   = {
-    { .resolution = { .w = 2, .h = 2 }, .scale = 1 },
-    { .resolution = { .w = 1, .h = 1 }, .scale = 2 },
+    { .dimensions = { .w = 2, .h = 2 }, .scale = 1 },
+    { .dimensions = { .w = 1, .h = 1 }, .scale = 2 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 3, .h = 2 };
   expected   = {
-    { .resolution = { .w = 3, .h = 2 }, .scale = 1 },
+    { .dimensions = { .w = 3, .h = 2 }, .scale = 1 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 4, .h = 2 };
   expected   = {
-    { .resolution = { .w = 4, .h = 2 }, .scale = 1 },
-    { .resolution = { .w = 2, .h = 1 }, .scale = 2 },
+    { .dimensions = { .w = 4, .h = 2 }, .scale = 1 },
+    { .dimensions = { .w = 2, .h = 1 }, .scale = 2 },
   };
   REQUIRE( f() == expected );
 
   resolution = { .w = 3'840, .h = 2'160 };
   expected   = {
-    { .resolution = { .w = 3'840, .h = 2'160 }, .scale = 1 },
-    { .resolution = { .w = 1'920, .h = 1'080 }, .scale = 2 },
-    { .resolution = { .w = 1'280, .h = 720 }, .scale = 3 },
-    { .resolution = { .w = 960, .h = 540 }, .scale = 4 },
-    { .resolution = { .w = 768, .h = 432 }, .scale = 5 },
-    { .resolution = { .w = 640, .h = 360 }, .scale = 6 },
-    { .resolution = { .w = 480, .h = 270 }, .scale = 8 },
-    { .resolution = { .w = 384, .h = 216 }, .scale = 10 },
-    { .resolution = { .w = 320, .h = 180 }, .scale = 12 },
-    { .resolution = { .w = 256, .h = 144 }, .scale = 15 },
-    { .resolution = { .w = 240, .h = 135 }, .scale = 16 },
-    { .resolution = { .w = 192, .h = 108 }, .scale = 20 },
-    { .resolution = { .w = 160, .h = 90 }, .scale = 24 },
-    { .resolution = { .w = 128, .h = 72 }, .scale = 30 },
-    { .resolution = { .w = 96, .h = 54 }, .scale = 40 },
-    { .resolution = { .w = 80, .h = 45 }, .scale = 48 },
-    { .resolution = { .w = 64, .h = 36 }, .scale = 60 },
-    { .resolution = { .w = 48, .h = 27 }, .scale = 80 },
-    { .resolution = { .w = 32, .h = 18 }, .scale = 120 },
-    { .resolution = { .w = 16, .h = 9 }, .scale = 240 },
+    { .dimensions = { .w = 3'840, .h = 2'160 }, .scale = 1 },
+    { .dimensions = { .w = 1'920, .h = 1'080 }, .scale = 2 },
+    { .dimensions = { .w = 1'280, .h = 720 }, .scale = 3 },
+    { .dimensions = { .w = 960, .h = 540 }, .scale = 4 },
+    { .dimensions = { .w = 768, .h = 432 }, .scale = 5 },
+    { .dimensions = { .w = 640, .h = 360 }, .scale = 6 },
+    { .dimensions = { .w = 480, .h = 270 }, .scale = 8 },
+    { .dimensions = { .w = 384, .h = 216 }, .scale = 10 },
+    { .dimensions = { .w = 320, .h = 180 }, .scale = 12 },
+    { .dimensions = { .w = 256, .h = 144 }, .scale = 15 },
+    { .dimensions = { .w = 240, .h = 135 }, .scale = 16 },
+    { .dimensions = { .w = 192, .h = 108 }, .scale = 20 },
+    { .dimensions = { .w = 160, .h = 90 }, .scale = 24 },
+    { .dimensions = { .w = 128, .h = 72 }, .scale = 30 },
+    { .dimensions = { .w = 96, .h = 54 }, .scale = 40 },
+    { .dimensions = { .w = 80, .h = 45 }, .scale = 48 },
+    { .dimensions = { .w = 64, .h = 36 }, .scale = 60 },
+    { .dimensions = { .w = 48, .h = 27 }, .scale = 80 },
+    { .dimensions = { .w = 32, .h = 18 }, .scale = 120 },
+    { .dimensions = { .w = 16, .h = 9 }, .scale = 240 },
   };
   REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[gfx/aspect] named_ratio_canonical_name" ) {
+  using enum e_named_aspect_ratio;
+
   auto f = []( e_named_aspect_ratio const r ) {
     return named_ratio_canonical_name( r );
   };
 
-  REQUIRE( f( e_named_aspect_ratio::_16x9 ) == "16:9" );
-  REQUIRE( f( e_named_aspect_ratio::_16x10 ) == "16:10" );
-  REQUIRE( f( e_named_aspect_ratio::_4x3 ) == "4:3" );
-  REQUIRE( f( e_named_aspect_ratio::_21x9 ) == "21:9" );
-  REQUIRE( f( e_named_aspect_ratio::_1x1 ) == "1:1" );
+  REQUIRE( f( w_h_16_9 ) == "16:9" );
+  REQUIRE( f( w_h_16_10 ) == "16:10" );
+  REQUIRE( f( w_h_4_3 ) == "4:3" );
+  REQUIRE( f( w_h_21_9 ) == "21:9" );
+  REQUIRE( f( w_h_1_1 ) == "1:1" );
 }
 
 TEST_CASE( "[gfx/aspect] resolution_analysis" ) {
