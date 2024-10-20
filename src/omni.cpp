@@ -73,6 +73,9 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
         // are not losing compile-time format string checking be-
         // cause that has already been done by the construction
         // of fmt_str upon calling this function.
+        if constexpr( sizeof...( Args ) == 0 ) {
+          (void)fmt_type; // suppress unused variable warning.
+        }
         lines.push_back( fmt::format( fmt::runtime( fmt_str ),
                                       fmt_type( args )... ) );
       };
