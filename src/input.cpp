@@ -25,8 +25,11 @@
 #include "base/lambda.hpp"
 #include "base/meta.hpp"
 
-// Rds
+// rds
 #include "input-impl.rds.hpp"
+
+// gfx
+#include "gfx/aspect.rds.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -471,6 +474,39 @@ void pump_event_queue() {
 
 std::queue<event_t>& event_queue() { return g_event_queue; }
 
+// WARNING: this function has not been tested.
+// WARNING: this function has not been tested.
+void inject_sdl_window_resize_event() {
+  ::SDL_Event event{};
+  event.type             = ::SDL_WINDOWEVENT;
+  event.window.type      = ::SDL_WINDOWEVENT_RESIZED;
+  event.window.data1     = 0;
+  event.window.timestamp = ::SDL_GetTicks();
+  // Apparently we can use nullptr for the window and it will use
+  // the "focused" one, which seems to work for us.
+  auto const window_id = ::SDL_GetWindowID( /*window=*/nullptr );
+  CHECK( window_id );
+  event.window.windowID = window_id;
+  // Returns 1 on success, 0 if the event was filtered, or a neg-
+  // ative error code on failure; call SDL_GetError() for more
+  // information. A common reason for error is the event queue
+  // being full.
+  auto const res = ::SDL_PushEvent( &event );
+  // We don't want the event to get filtered.
+  CHECK_NEQ( res, 0 );
+  // If it failed then we will just print a warning, since per-
+  // haps the queue was full.
+  if( res < 0 )
+    lg.warn( "SDL_PushEvent failed to push a window event." );
+}
+
+void inject_resolution_event(
+    gfx::Resolution const& resolution ) {
+  resolution_event_t event;
+  event.resolution = resolution;
+  event_queue().push( event );
+}
+
 /****************************************************************
 ** Utilities
 *****************************************************************/
@@ -602,6 +638,20 @@ mouse_move_event_t drag_event_to_mouse_motion_event(
                                                /*to=*/res );
   return res;
 }
+
+/****************************************************************
+** resolution_event_t
+*****************************************************************/
+resolution_event_t::resolution_event_t()  = default;
+resolution_event_t::~resolution_event_t() = default;
+resolution_event_t::resolution_event_t(
+    resolution_event_t&& ) noexcept = default;
+resolution_event_t& resolution_event_t::operator=(
+    resolution_event_t&& ) noexcept = default;
+resolution_event_t::resolution_event_t(
+    resolution_event_t const& ) = default;
+resolution_event_t& resolution_event_t::operator=(
+    resolution_event_t const& ) = default;
 
 /****************************************************************
 ** For Testing

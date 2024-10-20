@@ -24,6 +24,7 @@
 
 // base
 #include "base/adl-tag.hpp"
+#include "base/heap-value.hpp"
 #include "base/variant.hpp"
 
 // SDL
@@ -32,6 +33,10 @@
 
 // C++ standard library.
 #include <queue>
+
+namespace gfx {
+struct Resolution;
+}
 
 namespace rn::input {
 
@@ -134,7 +139,23 @@ enum class e_win_event_type {
 };
 
 struct win_event_t : public event_base_t {
-  e_win_event_type type;
+  e_win_event_type type = {};
+};
+
+/****************************************************************
+** Window
+*****************************************************************/
+struct resolution_event_t : public event_base_t {
+  // Declare these and use heap_value so that we can forward de-
+  // clare gfx::Resolution.
+  resolution_event_t();
+  ~resolution_event_t();
+  resolution_event_t( resolution_event_t&& ) noexcept;
+  resolution_event_t& operator=( resolution_event_t&& ) noexcept;
+  resolution_event_t( resolution_event_t const& );
+  resolution_event_t& operator=( resolution_event_t const& );
+
+  maybe<base::heap_value<gfx::Resolution>> resolution;
 };
 
 /****************************************************************
@@ -149,7 +170,8 @@ using event_base = base::variant<
   mouse_button_event_t,
   mouse_wheel_event_t,
   mouse_drag_event_t,
-  win_event_t
+  win_event_t,
+  resolution_event_t
 >;
 
 enum class e_input_event {
@@ -160,7 +182,8 @@ enum class e_input_event {
   mouse_button_event,
   mouse_wheel_event,
   mouse_drag_event,
-  win_event
+  win_event,
+  resolution_event,
 };
 
 struct event_t : public event_base {
@@ -176,7 +199,8 @@ struct event_t : public event_base {
   using mouse_button_event = mouse_button_event_t;
   using mouse_wheel_event = mouse_wheel_event_t;
   using mouse_drag_event = mouse_drag_event_t;
-  using win_event= win_event_t;
+  using win_event = win_event_t;
+  using resolution_event = resolution_event_t;
 
   using e = e_input_event;
 };
@@ -184,11 +208,21 @@ struct event_t : public event_base {
 // clang-format on
 NOTHROW_MOVE( event_t );
 
+/****************************************************************
+** Event queue.
+*****************************************************************/
 // Grab all new events and put them into the queue.
 void pump_event_queue();
 
 // Callers are responsible for popping used events.
 std::queue<event_t>& event_queue();
+
+// This is so that we can defer handling of a window resize event
+// until a more appropriate time.
+void inject_sdl_window_resize_event();
+
+void inject_resolution_event(
+    gfx::Resolution const& resolution );
 
 /****************************************************************
 ** Utilities

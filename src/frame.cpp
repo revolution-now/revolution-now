@@ -121,9 +121,14 @@ void notify_subscribers() {
   } );
 }
 
+struct DeferredEvents {
+  vector<input::win_event_t>        window;
+  vector<input::resolution_event_t> resolution;
+};
+
 using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc = base::function_ref<void(
-    rr::Renderer&, Planes&, maybe<input::win_event_t>&,
+    rr::Renderer&, Planes&, DeferredEvents&,
     InputReceivedFunc )>;
 
 void frame_loop_scheduler( wait<> const&     what,
@@ -136,7 +141,7 @@ void frame_loop_scheduler( wait<> const&     what,
 
   static auto time_of_last_input = Clock_t::now();
 
-  maybe<input::win_event_t> window_resize_pending;
+  DeferredEvents deferred_events;
 
   while( !what.ready() && !what.has_exception() ) {
     microseconds normal_frame_length =
@@ -152,7 +157,7 @@ void frame_loop_scheduler( wait<> const&     what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( renderer, planes, window_resize_pending, on_input );
+    body( renderer, planes, deferred_events, on_input );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -166,10 +171,9 @@ void frame_loop_scheduler( wait<> const&     what,
 }
 
 // Called once per frame.
-void frame_loop_body(
-    rr::Renderer& renderer, Planes& planes,
-    maybe<input::win_event_t>& window_resize_pending,
-    InputReceivedFunc          input_received ) {
+void frame_loop_body( rr::Renderer& renderer, Planes& planes,
+                      DeferredEvents&   deferred_events,
+                      InputReceivedFunc input_received ) {
   // ----------------------------------------------------------
   // Step: Notify
 
@@ -186,23 +190,52 @@ void frame_loop_body(
   for( auto& p : g_event_counts ) p.second.update();
 
   // ----------------------------------------------------------
-  // Step: Process deferred window resizes.
-  if( window_resize_pending.has_value() ) {
-    on_main_window_resized( renderer );
-    planes.get().input( *window_resize_pending );
+  // Step: Process deferred window events.
+  for( input::win_event_t const& event :
+       deferred_events.window ) {
+    switch( event.type ) {
+      using enum input::e_win_event_type;
+      case resized:
+        on_main_window_resized( renderer );
+        break;
+      case other:
+        break;
+    }
+    planes.get().input( event );
     run_all_coroutines();
-    window_resize_pending.reset();
   }
+  deferred_events.window.clear();
 
-  auto store_if_win_resize = [&]( input::event_t const& e ) {
+  // ----------------------------------------------------------
+  // Step: Process deferred resolution events.
+  for( input::resolution_event_t const& event :
+       deferred_events.resolution ) {
+    static maybe<gfx::Resolution const&> const kEmpty;
+    maybe<gfx::Resolution const&> const        resolution =
+        event.resolution.has_value() ? event.resolution->get()
+                                            : kEmpty;
+    on_logical_resolution_changed( renderer, resolution );
+    planes.get().input( event );
+    run_all_coroutines();
+  }
+  deferred_events.resolution.clear();
+
+  auto try_defer = [&]( input::event_t const& e ) {
     using namespace input;
-    using enum e_win_event_type;
-    auto const win_event = e.get_if<win_event_t>();
-    auto const type = win_event.member( &win_event_t::type );
-    if( type != resized ) return false;
-    CHECK( win_event.has_value() );
-    window_resize_pending = *win_event;
-    return true;
+    SWITCH( e ) {
+      CASE( win_event ) {
+        using enum e_win_event_type;
+        if( win_event.type != resized ) return false;
+        deferred_events.window.push_back( win_event );
+        return true;
+      }
+      CASE( resolution_event ) {
+        deferred_events.resolution.push_back( resolution_event );
+        return true;
+      }
+      default:
+        return false;
+    }
   };
 
   // ----------------------------------------------------------
@@ -211,9 +244,9 @@ void frame_loop_body(
 
   for( auto& q = input::event_queue(); !q.empty(); ) {
     input_received();
-    input::event_t const& event = q.front();
-    bool const is_resize_event  = store_if_win_resize( event );
-    if( !is_resize_event ) planes.get().input( event );
+    input::event_t const& event        = q.front();
+    bool const            was_deferred = try_defer( event );
+    if( !was_deferred ) planes.get().input( event );
     q.pop();
     run_all_coroutines();
   }

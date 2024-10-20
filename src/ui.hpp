@@ -118,6 +118,9 @@ class Object {
   ND virtual bool on_win_event(
       input::win_event_t const& event );
 
+  ND virtual bool on_resolution_event(
+      input::resolution_event_t const& event );
+
  private:
   bool disabled_ = false;
 };

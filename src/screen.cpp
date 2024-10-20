@@ -13,6 +13,7 @@
 // Revolution Now
 #include "error.hpp"
 #include "init.hpp"
+#include "input.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
 #include "renderer.hpp" // FIXME: remove
@@ -302,18 +303,13 @@ void cleanup_screen() {
 
 REGISTER_INIT_ROUTINE( screen );
 
-void set_resolution( rr::Renderer&          renderer,
-                     gfx::Resolution const& resolution ) {
+void set_pending_resolution(
+    gfx::Resolution const& resolution ) {
   if( !g_resolution.has_value() ||
       resolution.logical != g_resolution->logical )
     lg.info( "logical resolution changing to {}",
              resolution.logical );
-  g_resolution = resolution;
-  // Note this actually uses flipped coordinates where the origin
-  // as at the lower left, but this still works.
-  renderer.set_viewport( resolution.viewport );
-  renderer.set_logical_screen_size(
-      resolution.logical.dimensions );
+  input::inject_resolution_event( resolution );
 }
 
 // This is the logical resolution given to the renderer when we
@@ -323,18 +319,6 @@ void set_resolution( rr::Renderer&          renderer,
 // message telling the user to resize their window.
 gfx::size logical_resolution_for_invalid_window_size() {
   return main_window_physical_size();
-}
-
-void clear_resolution( rr::Renderer& renderer ) {
-  if( g_resolution.has_value() )
-    lg.info( "no logical resolution found." );
-  g_resolution = nothing;
-  // Note this actually uses flipped coordinates where the origin
-  // as at the lower left, but this still works.
-  renderer.set_viewport(
-      gfx::rect{ .size = main_window_physical_size() } );
-  renderer.set_logical_screen_size(
-      logical_resolution_for_invalid_window_size() );
 }
 
 } // namespace
@@ -412,17 +396,32 @@ bool toggle_fullscreen() {
     // the user fullscreens, since that probably will be what
     // they want.
     g_resolution_idx = 0;
-  // FIXME: we shouldn't need to call this here because ideally
-  // when we exit full screen mode it should send an input event
-  // through SDL; not sure why that is not happening. If it is
-  // not happening then perhaps we should inject one ourselves.
-  on_main_window_resized(
-      // FIXME
-      global_renderer_use_only_when_needed() );
   return new_fullscreen;
 }
 
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
+
+void on_logical_resolution_changed(
+    rr::Renderer&                 renderer,
+    maybe<gfx::Resolution const&> resolution ) {
+  if( resolution.has_value() ) {
+    g_resolution = *resolution;
+    // Note this actually uses flipped coordinates where the
+    // origin as at the lower left, but this still works.
+    renderer.set_viewport( resolution->viewport );
+    renderer.set_logical_screen_size(
+        resolution->logical.dimensions );
+  } else {
+    lg.info( "no logical resolution found." );
+    g_resolution = nothing;
+    // Note this actually uses flipped coordinates where the
+    // origin as at the lower left, but this still works.
+    renderer.set_viewport(
+        gfx::rect{ .size = main_window_physical_size() } );
+    renderer.set_logical_screen_size(
+        logical_resolution_for_invalid_window_size() );
+  }
+}
 
 void on_main_window_resized( rr::Renderer& renderer ) {
   // Invalidate cache.
@@ -445,10 +444,7 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   // (except for the physical size, which must be removed from
   // the data structure before comparison) and, if it is, just
   // keep it and the idx constant.
-  if( resolution.has_value() )
-    set_resolution( renderer, *resolution );
-  else
-    clear_resolution( renderer );
+  on_logical_resolution_changed( renderer, resolution );
   // The "best" resolution is always first in the list when there
   // are multiple, so this will provide continuity to the index
   // to avoid it jumping later.
@@ -466,10 +462,7 @@ void cycle_resolution( int const delta ) {
     g_resolution_idx += ratings.available.size();
   g_resolution_idx %= ratings.available.size();
   CHECK_LT( g_resolution_idx, ssize( ratings.available ) );
-  // FIXME
-  auto& renderer = global_renderer_use_only_when_needed();
-  set_resolution( renderer,
-                  ratings.available[g_resolution_idx] );
+  set_pending_resolution( ratings.available[g_resolution_idx] );
 }
 
 } // namespace rn

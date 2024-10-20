@@ -748,6 +748,9 @@ struct MenuPlane::Impl : public IPlane {
         []( input::quit_event_t ) {
           return e_input_handled::no;
         },
+        []( input::resolution_event_t ) {
+          return e_input_handled::no;
+        },
         []( input::win_event_t ) { return e_input_handled::no; },
         [&]( input::key_event_t const& key_event ) {
           if( holds<MenuState::item_click>( menu_state_ ) )

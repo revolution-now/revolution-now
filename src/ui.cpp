@@ -27,6 +27,10 @@ bool Object::input( input::event_t const& event ) {
       auto& val = event.get<input::win_event_t>();
       return on_win_event( val );
     }
+    case input::e_input_event::resolution_event: {
+      auto& val = event.get<input::resolution_event_t>();
+      return on_resolution_event( val );
+    }
     case input::e_input_event::key_event: {
       auto& val = event.get<input::key_event_t>();
       return on_key( val );
@@ -76,6 +80,11 @@ bool Object::on_mouse_button(
 
 bool Object::on_win_event(
     input::win_event_t const& /*unused*/ ) {
+  return false;
+}
+
+bool Object::on_resolution_event(
+    input::resolution_event_t const& /*unused*/ ) {
   return false;
 }
 

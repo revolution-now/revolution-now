@@ -43,6 +43,10 @@ gfx::rect main_window_logical_rect();
 
 void on_main_window_resized( rr::Renderer& renderer );
 
+void on_logical_resolution_changed(
+    rr::Renderer&                 renderer,
+    maybe<gfx::Resolution const&> resolution );
+
 void cycle_resolution( int delta );
 
 // Returns true if the window is now fullscreen.
