@@ -80,7 +80,6 @@ items {
   music_vol_up.name: Volume Up
   next_turn.name: Next Turn
   plow.name: Clear Forest/Plow
-  restore_window.name: Restore
   restore_zoom.name: Zoom Default
   retire.name: Retire
   revolution.name: REVOLUTION!
@@ -158,7 +157,6 @@ layout {
 
   window.contents: [
     toggle_fullscreen,
-    restore_window,
     null,
     scale_up,
     scale_down,

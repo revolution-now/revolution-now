@@ -45,6 +45,8 @@ void on_logical_resolution_changed(
     maybe<gfx::Resolution const&> resolution );
 
 void cycle_resolution( int delta );
+void set_resolution_idx_to_optimal();
+int  get_resolution_idx();
 
 // Returns true if the window is now fullscreen.
 bool toggle_fullscreen();

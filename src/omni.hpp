@@ -18,12 +18,13 @@
 namespace rn {
 
 struct IPlane;
+struct MenuPlane;
 
 /****************************************************************
 ** OmniPlane
 *****************************************************************/
 struct OmniPlane {
-  OmniPlane();
+  OmniPlane( MenuPlane& menu_plane );
   ~OmniPlane();
 
  private:

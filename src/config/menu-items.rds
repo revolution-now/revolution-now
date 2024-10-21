@@ -55,7 +55,6 @@ enum.e_menu_item {
   music_vol_up,
   next_turn,
   plow,
-  restore_window,
   restore_zoom,
   retire,
   revolution,

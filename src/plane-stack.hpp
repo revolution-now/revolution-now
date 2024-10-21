@@ -21,20 +21,11 @@ namespace rn {
 ** Planes
 *****************************************************************/
 struct Planes {
- private:
   // This both holds a group of planes and also serves as an raii
   // cleanup object.
   struct [[nodiscard]] PlaneGroupOwner {
-    PlaneGroupOwner( Planes& planes ) : planes_( planes ) {
-      prev_ = planes_.group_;
-      if( prev_ ) {
-        group.omni    = prev_->omni;
-        group.console = prev_->console;
-        group.window  = prev_->window;
-      }
-      planes_.group_ = &group;
-    }
-    ~PlaneGroupOwner() noexcept { planes_.group_ = prev_; }
+    PlaneGroupOwner( Planes& planes );
+    ~PlaneGroupOwner() noexcept;
     PlaneGroupOwner( PlaneGroupOwner&& ) = delete;
 
     Planes&     planes_;
@@ -42,7 +33,6 @@ struct Planes {
     PlaneGroup  group;
   };
 
- public:
   Planes();
   Planes( Planes&& ) = delete;
 

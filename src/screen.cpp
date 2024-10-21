@@ -54,6 +54,12 @@ int g_resolution_idx = 0;
 
 auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
+// The purpose of this cache is so that we can have a consistent
+// physical window size to report across a single frame. If the
+// size is changed, the processing of that event will be deferred
+// until the start of the next frame at which point this cache
+// will be updated.
+//
 // Cache is invalidated by setting to nothing.
 maybe<gfx::size> main_window_physical_size_cache;
 
@@ -462,5 +468,16 @@ void cycle_resolution( int const delta ) {
   CHECK_LT( g_resolution_idx, ssize( ratings.available ) );
   set_pending_resolution( ratings.available[g_resolution_idx] );
 }
+
+void set_resolution_idx_to_optimal() {
+  g_resolution_idx = 0;
+  gfx::ResolutionRatings const ratings =
+      compute_logical_resolution_ratings(
+          main_window_physical_size() );
+  if( ratings.available.empty() ) return;
+  set_pending_resolution( ratings.available[0] );
+}
+
+int get_resolution_idx() { return g_resolution_idx; }
 
 } // namespace rn

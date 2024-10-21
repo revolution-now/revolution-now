@@ -38,4 +38,20 @@ PlaneGroup& Planes::get() {
   return *group_;
 }
 
+Planes::PlaneGroupOwner::PlaneGroupOwner( Planes& planes )
+  : planes_( planes ) {
+  prev_ = planes_.group_;
+  if( prev_ ) {
+    group.omni    = prev_->omni;
+    group.console = prev_->console;
+    group.window  = prev_->window;
+    group.menu    = prev_->menu;
+  }
+  planes_.group_ = &group;
+}
+
+Planes::PlaneGroupOwner::~PlaneGroupOwner() noexcept {
+  planes_.group_ = prev_;
+}
+
 } // namespace rn

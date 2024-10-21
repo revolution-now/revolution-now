@@ -96,6 +96,8 @@ struct PlaneGroup : IPlaneGroup {
   void    set_bottom( IPlane& p ATTR_LIFETIMEBOUND );
   IPlane* get_bottom() const;
 
+  bool menus_enabled = false;
+
   template<IsTypedBottomType T>
   void set_bottom( T& p ATTR_LIFETIMEBOUND ) {
     bottom.emplace<TypedIPlane<T>>() = p;

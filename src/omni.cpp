@@ -13,12 +13,14 @@
 // Revolution Now
 #include "frame.hpp"
 #include "input.hpp"
+#include "menu.hpp"
 #include "plane.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 
 // config
+#include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
 // luapp
@@ -34,6 +36,7 @@
 #include "rds/switch-macro.hpp"
 
 // refl
+#include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
 
 using namespace std;
@@ -43,6 +46,15 @@ namespace rn {
 namespace {
 
 bool g_debug_omni_overlay = true;
+
+auto const kSupportedMenuItems = [] {
+  refl::enum_map<e_menu_item, bool> m;
+  m[e_menu_item::toggle_fullscreen] = true;
+  m[e_menu_item::scale_down]        = true;
+  m[e_menu_item::scale_up]          = true;
+  m[e_menu_item::scale_optimal]     = true;
+  return m;
+}();
 
 string toggle_omni_overlay() {
   g_debug_omni_overlay = !g_debug_omni_overlay;
@@ -96,7 +108,47 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
 struct OmniPlane::Impl : public IPlane {
   bool show_game_cursor_ = true;
 
-  Impl() = default;
+  vector<MenuPlane::Deregistrar> dereg_;
+
+  Impl( MenuPlane& menu_plane ) {
+    for( auto const& [item, enabled] : kSupportedMenuItems )
+      if( enabled )
+        dereg_.push_back(
+            menu_plane.register_handler( item, *this ) );
+  }
+
+  bool will_handle_menu_click(
+      e_menu_item const item ) override {
+    switch( item ) {
+      case e_menu_item::scale_optimal:
+        if( get_resolution_idx() == 0 ) return false;
+        break;
+      default:
+        break;
+    }
+    return kSupportedMenuItems[item];
+  }
+
+  void handle_menu_click( e_menu_item const item ) override {
+    switch( item ) {
+      case e_menu_item::scale_down:
+        cycle_resolution( 1 );
+        break;
+      case e_menu_item::scale_optimal:
+        set_resolution_idx_to_optimal();
+        break;
+      case e_menu_item::scale_up:
+        cycle_resolution( -1 );
+        break;
+      case e_menu_item::toggle_fullscreen:
+        this->toggle_fullscreen();
+        break;
+      default:
+        break;
+    }
+  }
+
+  void toggle_fullscreen() const { rn::toggle_fullscreen(); }
 
   void render_framerate( rr::Renderer& renderer ) const {
     vector<string> lines;
@@ -152,14 +204,14 @@ struct OmniPlane::Impl : public IPlane {
     CHECK( resolution.has_value() );
 
     log( "Resolution:" );
-    log( " physical:  {}", physical_size );
-    log( " logical:   {}", resolution->logical.dimensions );
-    log( " scale:     {}", resolution->logical.scale );
-    log( " viewport:  {}", resolution->viewport );
-    log( " fit.score: {}", resolution->scores.fitting );
-    log( " fit.size:  {}", resolution->scores.size );
-    log( " p.aspect: ~{}", aspect_physical );
-    log( " p.aspect: ~{}", aspect_logical );
+    log( " physical:    {}", physical_size );
+    log( " logical:     {}", resolution->logical.dimensions );
+    log( " scale:       {}", resolution->logical.scale );
+    log( " viewport:    {}", resolution->viewport );
+    log( " fit.score:   {}", resolution->scores.fitting );
+    log( " sz.score:    {}", resolution->scores.size );
+    log( " p.aspect:   ~{}", aspect_physical );
+    log( " l.aspect:   ~{}", aspect_logical );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 32, .y = 32 };
@@ -213,7 +265,7 @@ struct OmniPlane::Impl : public IPlane {
             //   lg.warn( "failed to take screenshot." );
             break;
           case ::SDLK_F11:
-            toggle_fullscreen();
+            this->toggle_fullscreen();
             break;
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down )
@@ -251,7 +303,8 @@ IPlane& OmniPlane::impl() { return *impl_; }
 
 OmniPlane::~OmniPlane() = default;
 
-OmniPlane::OmniPlane() : impl_( new Impl ) {}
+OmniPlane::OmniPlane( MenuPlane& menu_plane )
+  : impl_( new Impl( menu_plane ) ) {}
 
 /****************************************************************
 ** Lua

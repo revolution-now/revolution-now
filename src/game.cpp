@@ -100,9 +100,6 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   SCOPE_EXIT { st["ROOT"] = lua::nil; };
   SCOPE_EXIT { st["SS"] = lua::nil; };
 
-  auto        owner = planes.push();
-  PlaneGroup& group = owner.group;
-
   Rand         rand; // random seed.
   RealCombat   combat( ss, rand );
   ColonyViewer colony_viewer( ss );
@@ -160,8 +157,9 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
 
   ensure_human_player( ss.players );
 
-  MenuPlane menu_plane;
-  group.menu = menu_plane;
+  auto        owner   = planes.push();
+  PlaneGroup& group   = owner.group;
+  group.menus_enabled = true;
 
   PanelPlane panel_plane( ss, ts );
   group.panel = panel_plane;
