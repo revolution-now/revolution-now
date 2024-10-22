@@ -117,12 +117,40 @@ struct OmniPlane::Impl : public IPlane {
             menu_plane.register_handler( item, *this ) );
   }
 
+  bool can_cycle_resolution_up() {
+    auto const idx = get_resolution_idx();
+    CHECK_GE( *idx, 0 );
+    return *idx > 0;
+  }
+
+  bool can_cycle_resolution_down() {
+    auto const size = get_resolution_cycle_size();
+    auto const idx  = get_resolution_idx();
+    CHECK_EQ( size.has_value(), idx.has_value() );
+    if( !size.has_value() ) return false;
+    CHECK_LT( *idx, *size );
+    CHECK_GT( *size, 0 );
+    CHECK_GE( *idx, 0 );
+    if( *idx == *size - 1 ) return false;
+    return true;
+  }
+
   bool will_handle_menu_click(
       e_menu_item const item ) override {
     switch( item ) {
-      case e_menu_item::scale_optimal:
-        if( get_resolution_idx() == 0 ) return false;
+      case e_menu_item::scale_optimal: {
+        auto const idx = get_resolution_idx();
+        if( !idx.has_value() || *idx == 0 ) return false;
         break;
+      }
+      case rn::e_menu_item::scale_up: {
+        if( !can_cycle_resolution_up() ) return false;
+        break;
+      }
+      case rn::e_menu_item::scale_down: {
+        if( !can_cycle_resolution_down() ) return false;
+        break;
+      }
       default:
         break;
     }
@@ -132,13 +160,13 @@ struct OmniPlane::Impl : public IPlane {
   void handle_menu_click( e_menu_item const item ) override {
     switch( item ) {
       case e_menu_item::scale_down:
-        cycle_resolution( 1 );
+        cycle_resolution( -1 );
         break;
       case e_menu_item::scale_optimal:
         set_resolution_idx_to_optimal();
         break;
       case e_menu_item::scale_up:
-        cycle_resolution( -1 );
+        cycle_resolution( 1 );
         break;
       case e_menu_item::toggle_fullscreen:
         this->toggle_fullscreen();
@@ -268,16 +296,20 @@ struct OmniPlane::Impl : public IPlane {
             this->toggle_fullscreen();
             break;
           case ::SDLK_MINUS:
-            if( key_event.mod.ctrl_down )
-              cycle_resolution( 1 );
-            else
+            if( key_event.mod.ctrl_down ) {
+              if( can_cycle_resolution_down() )
+                cycle_resolution( -1 );
+            } else {
               handled = e_input_handled::no;
+            }
             break;
           case ::SDLK_EQUALS:
-            if( key_event.mod.ctrl_down )
-              cycle_resolution( -1 );
-            else
+            if( key_event.mod.ctrl_down ) {
+              if( can_cycle_resolution_up() )
+                cycle_resolution( 1 );
+            } else {
               handled = e_input_handled::no;
+            }
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};

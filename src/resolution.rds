@@ -1,0 +1,33 @@
+# ===============================================================
+# resolution.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-10-22.
+#
+# Description: Rds definitions for the resolution module.
+#
+# ===============================================================
+# Revolution Now
+include "maybe.hpp"
+
+# gfx
+include "gfx/aspect.rds.hpp"
+
+namespace "rn"
+
+enum.e_resolution_availability {
+  available,
+  unavailable,
+}
+
+struct.SelectedResolution {
+  resolution 'gfx::Resolution',
+  idx 'int',
+  availability 'e_resolution_availability',
+}
+
+struct.Resolutions {
+  ratings 'gfx::ResolutionRatings',
+  selected 'SelectedResolution',
+}

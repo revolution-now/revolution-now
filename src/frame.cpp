@@ -210,11 +210,8 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   // Step: Process deferred resolution events.
   for( input::resolution_event_t const& event :
        deferred_events.resolution ) {
-    static maybe<gfx::Resolution const&> const kEmpty;
-    maybe<gfx::Resolution const&> const        resolution =
-        event.resolution.has_value() ? event.resolution->get()
-                                            : kEmpty;
-    on_logical_resolution_changed( renderer, resolution );
+    on_logical_resolution_changed( renderer,
+                                   event.resolution.get() );
     planes.get().input( event );
     run_all_coroutines();
   }

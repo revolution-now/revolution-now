@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "logger.hpp"
+#include "resolution.rds.hpp"
 #include "screen.hpp"
 #include "sdl.hpp"
 #include "util.hpp"
@@ -27,9 +28,6 @@
 
 // rds
 #include "input-impl.rds.hpp"
-
-// gfx
-#include "gfx/aspect.rds.hpp"
 
 // C++ standard library
 #include <algorithm>
@@ -544,7 +542,7 @@ void inject_sdl_window_resize_event() {
 }
 
 void inject_resolution_event(
-    gfx::Resolution const& resolution ) {
+    SelectedResolution const& resolution ) {
   resolution_event_t event;
   event.resolution = resolution;
   event_queue().push( event );

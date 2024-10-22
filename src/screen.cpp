@@ -16,7 +16,6 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "menu.hpp"
-#include "renderer.hpp" // FIXME: remove
 #include "resolution.hpp"
 #include "sdl.hpp"
 #include "tiles.hpp"
@@ -46,9 +45,11 @@ namespace rn {
 
 namespace {
 
-maybe<gfx::Resolution> g_resolution;
-
-int g_resolution_idx = 0;
+Resolutions& g_resolutions() {
+  static Resolutions r =
+      compute_resolutions( main_window_physical_size() );
+  return r;
+}
 
 ::SDL_Window* g_window = nullptr;
 
@@ -310,12 +311,12 @@ void cleanup_screen() {
 REGISTER_INIT_ROUTINE( screen );
 
 void set_pending_resolution(
-    gfx::Resolution const& resolution ) {
-  if( !g_resolution.has_value() ||
-      resolution.logical != g_resolution->logical )
+    SelectedResolution const& selected_resolution ) {
+  if( selected_resolution.resolution.logical !=
+      g_resolutions().selected.resolution.logical )
     lg.info( "logical resolution changing to {}",
-             resolution.logical );
-  input::inject_resolution_event( resolution );
+             selected_resolution.resolution.logical );
+  input::inject_resolution_event( selected_resolution );
 }
 
 // This is the logical resolution given to the renderer when we
@@ -327,26 +328,67 @@ gfx::size logical_resolution_for_invalid_window_size() {
   return main_window_physical_size();
 }
 
+gfx::rect main_window_viewport() {
+  auto const& selected = g_resolutions().selected;
+  switch( selected.availability ) {
+    case e_resolution_availability::available:
+      return selected.resolution.viewport;
+    case e_resolution_availability::unavailable:
+      return gfx::rect{ .size = main_window_physical_size() };
+  }
+}
+
+void on_logical_resolution_changed(
+    rr::Renderer&      renderer,
+    Resolutions const& new_resolutions ) {
+  auto old_selected_resolution = g_resolutions().selected;
+  switch( new_resolutions.selected.availability ) {
+    case e_resolution_availability::available: {
+      if( g_resolutions().selected.availability ==
+          e_resolution_availability::available )
+        input::update_mouse_pos_with_viewport_change(
+            old_selected_resolution.resolution,
+            new_resolutions.selected.resolution );
+      break;
+    }
+    case e_resolution_availability::unavailable: {
+      lg.info( "no logical resolution found." );
+      break;
+    }
+  }
+  g_resolutions() = new_resolutions;
+  // Note this actually uses flipped coordinates where the origin
+  // as at the lower left, but this still works.
+  renderer.set_viewport( main_window_viewport() );
+  renderer.set_logical_screen_size( main_window_logical_size() );
+}
+
 } // namespace
 
 void* main_os_window_handle() { return (void*)g_window; }
 
 maybe<gfx::Resolution const&> get_global_resolution() {
-  return g_resolution;
+  auto const& selected = g_resolutions().selected;
+  switch( selected.availability ) {
+    case e_resolution_availability::available:
+      return selected.resolution;
+    case e_resolution_availability::unavailable:
+      return nothing;
+  }
 }
 
 gfx::size main_window_logical_size() {
-  if( !g_resolution.has_value() )
-    return logical_resolution_for_invalid_window_size();
-  return g_resolution->logical.dimensions;
+  auto const& selected = g_resolutions().selected;
+  switch( selected.availability ) {
+    case e_resolution_availability::available:
+      return selected.resolution.logical.dimensions;
+    case e_resolution_availability::unavailable:
+      return logical_resolution_for_invalid_window_size();
+  }
 }
 
 gfx::rect main_window_logical_rect() {
-  gfx::size const logical =
-      g_resolution.has_value()
-          ? g_resolution->logical.dimensions
-          : logical_resolution_for_invalid_window_size();
-  return gfx::rect{ .size = logical };
+  return gfx::rect{ .size = main_window_logical_size() };
 }
 
 gfx::size main_window_physical_size() {
@@ -392,39 +434,17 @@ bool toggle_fullscreen() {
   bool const old_fullscreen = is_window_fullscreen();
   bool const new_fullscreen = !old_fullscreen;
   set_fullscreen( new_fullscreen );
-  if( new_fullscreen )
-    // Always revert back to the "best" resolution choice when
-    // the user fullscreens, since that probably will be what
-    // they want.
-    g_resolution_idx = 0;
   return new_fullscreen;
 }
 
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
 
 void on_logical_resolution_changed(
-    rr::Renderer&                 renderer,
-    maybe<gfx::Resolution const&> resolution ) {
-  if( resolution.has_value() ) {
-    if( g_resolution.has_value() )
-      input::update_mouse_pos_with_viewport_change(
-          *g_resolution, *resolution );
-    g_resolution = *resolution;
-    // Note this actually uses flipped coordinates where the
-    // origin as at the lower left, but this still works.
-    renderer.set_viewport( resolution->viewport );
-    renderer.set_logical_screen_size(
-        resolution->logical.dimensions );
-  } else {
-    lg.info( "no logical resolution found." );
-    g_resolution = nothing;
-    // Note this actually uses flipped coordinates where the
-    // origin as at the lower left, but this still works.
-    renderer.set_viewport(
-        gfx::rect{ .size = main_window_physical_size() } );
-    renderer.set_logical_screen_size(
-        logical_resolution_for_invalid_window_size() );
-  }
+    rr::Renderer&             renderer,
+    SelectedResolution const& selected_resolution ) {
+  auto new_resolutions     = g_resolutions();
+  new_resolutions.selected = selected_resolution;
+  on_logical_resolution_changed( renderer, new_resolutions );
 }
 
 void on_main_window_resized( rr::Renderer& renderer ) {
@@ -432,15 +452,8 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
-  auto const resolution = [&]() {
-    maybe<gfx::Resolution> res;
-    res = recompute_best_logical_resolution( physical_size );
-    if( res ) return res;
-    res = recompute_best_unavailable_logical_resolution(
-        physical_size );
-    if( res ) return res;
-    return res;
-  }();
+  auto const new_resolutions =
+      compute_resolutions( physical_size );
   // FIXME: the logical resolution here can jump abruptly if the
   // user has previously cycled through the resolutions. Perhaps
   // the way to solve this is to get all of the resolutions here
@@ -448,36 +461,58 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   // (except for the physical size, which must be removed from
   // the data structure before comparison) and, if it is, just
   // keep it and the idx constant.
-  on_logical_resolution_changed( renderer, resolution );
-  // The "best" resolution is always first in the list when there
-  // are multiple, so this will provide continuity to the index
-  // to avoid it jumping later.
-  g_resolution_idx = 0;
+  on_logical_resolution_changed( renderer, new_resolutions );
 }
 
 void cycle_resolution( int const delta ) {
-  gfx::ResolutionRatings const ratings =
-      compute_logical_resolution_ratings(
-          main_window_physical_size() );
-  if( ratings.available.empty() ) return;
-  g_resolution_idx += delta;
+  // Copy; cannot modify the global state directly.
+  auto const& curr = g_resolutions();
+
+  if( curr.selected.availability ==
+      e_resolution_availability::unavailable )
+    return;
+  auto        selected  = curr.selected;
+  auto const& available = curr.ratings.available;
+  if( available.empty() ) return;
+  // The "better" resolutions, which also tend to be more scaled
+  // up (though not always) are at the start of the list, so for
+  // "scaling up" we must go negative.
+  selected.idx += ( -delta );
   // Need to do this because the c++ modulus is the wrong type.
-  while( g_resolution_idx < 0 )
-    g_resolution_idx += ratings.available.size();
-  g_resolution_idx %= ratings.available.size();
-  CHECK_LT( g_resolution_idx, ssize( ratings.available ) );
-  set_pending_resolution( ratings.available[g_resolution_idx] );
+  while( selected.idx < 0 ) selected.idx += available.size();
+  selected.idx %= available.size();
+  CHECK_LT( selected.idx, ssize( available ) );
+  selected.resolution = available[selected.idx];
+  set_pending_resolution( selected );
 }
 
 void set_resolution_idx_to_optimal() {
-  g_resolution_idx = 0;
-  gfx::ResolutionRatings const ratings =
-      compute_logical_resolution_ratings(
-          main_window_physical_size() );
-  if( ratings.available.empty() ) return;
-  set_pending_resolution( ratings.available[0] );
+  // Copy; cannot modify the global state directly.
+  auto const& curr = g_resolutions();
+
+  if( curr.ratings.available.empty() ) return;
+  set_pending_resolution( SelectedResolution{
+    .resolution   = curr.ratings.available[0],
+    .idx          = 0,
+    .availability = e_resolution_availability::available } );
 }
 
-int get_resolution_idx() { return g_resolution_idx; }
+maybe<int> get_resolution_idx() {
+  switch( g_resolutions().selected.availability ) {
+    case e_resolution_availability::available:
+      return g_resolutions().selected.idx;
+    case e_resolution_availability::unavailable:
+      return nothing;
+  }
+}
+
+maybe<int> get_resolution_cycle_size() {
+  switch( g_resolutions().selected.availability ) {
+    case e_resolution_availability::available:
+      return g_resolutions().ratings.available.size();
+    case e_resolution_availability::unavailable:
+      return nothing;
+  }
+}
 
 } // namespace rn

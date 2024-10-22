@@ -27,6 +27,8 @@ struct Resolution;
 
 namespace rn {
 
+struct SelectedResolution;
+
 maybe<gfx::Resolution const&> get_global_resolution();
 
 // NOTE: you should not normally call this in most game code, in-
@@ -41,12 +43,13 @@ gfx::rect main_window_logical_rect();
 void on_main_window_resized( rr::Renderer& renderer );
 
 void on_logical_resolution_changed(
-    rr::Renderer&                 renderer,
-    maybe<gfx::Resolution const&> resolution );
+    rr::Renderer&             renderer,
+    SelectedResolution const& resolution );
 
-void cycle_resolution( int delta );
-void set_resolution_idx_to_optimal();
-int  get_resolution_idx();
+void       cycle_resolution( int delta );
+void       set_resolution_idx_to_optimal();
+maybe<int> get_resolution_idx();
+maybe<int> get_resolution_cycle_size();
 
 // Returns true if the window is now fullscreen.
 bool toggle_fullscreen();

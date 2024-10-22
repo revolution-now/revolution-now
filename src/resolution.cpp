@@ -79,24 +79,47 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
     .fitting_score_cutoff = nothing,
   };
 
-  return resolution_ratings( analysis, tolerance );
+  gfx::ResolutionRatings ratings =
+      resolution_ratings( analysis, tolerance );
+
+  // Always make sure that we have at least one unavailable reso-
+  // lution since it is the last resort. Just choose the empty
+  // resolution.
+  ratings.unavailable.push_back( gfx::Resolution{
+    .physical = {},
+    .logical =
+        gfx::LogicalResolution{ .dimensions = {}, .scale = 1 },
+    .viewport = {},
+    .scores   = {} } );
+
+  return ratings;
 }
 
-maybe<gfx::Resolution> recompute_best_logical_resolution(
+Resolutions compute_resolutions(
     gfx::size const physical_size ) {
   auto ratings =
       compute_logical_resolution_ratings( physical_size );
-  if( ratings.available.empty() ) return nothing;
-  return std::move( ratings.available[0] );
-}
-
-maybe<gfx::Resolution>
-recompute_best_unavailable_logical_resolution(
-    gfx::size physical_size ) {
-  auto ratings =
-      compute_logical_resolution_ratings( physical_size );
-  if( ratings.unavailable.empty() ) return nothing;
-  return std::move( ratings.unavailable[0] );
+  // This should be guaranteed by the method that produces the
+  // ratings, and ensure that we always have at least one fall-
+  // back.
+  CHECK( !ratings.unavailable.empty() );
+  if( !ratings.available.empty() ) {
+    // Copy to avoid use-after-move.
+    auto selected = SelectedResolution{
+      .resolution   = ratings.available[0],
+      .idx          = 0,
+      .availability = e_resolution_availability::available };
+    return Resolutions{ .ratings  = std::move( ratings ),
+                        .selected = std::move( selected ) };
+  } else {
+    // Copy to avoid use-after-move.
+    auto selected = SelectedResolution{
+      .resolution   = ratings.unavailable[0],
+      .idx          = 0,
+      .availability = e_resolution_availability::unavailable };
+    return Resolutions{ .ratings  = std::move( ratings ),
+                        .selected = std::move( selected ) };
+  }
 }
 
 } // namespace rn
