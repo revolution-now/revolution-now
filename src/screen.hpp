@@ -53,13 +53,15 @@ maybe<int> get_resolution_cycle_size();
 
 // Returns true if the window is now fullscreen.
 bool toggle_fullscreen();
+bool is_window_fullscreen();
+void restore_window();
+
+// Shrinking to fit viewport.
+void shrink_window_to_fit();
+bool can_shrink_window_to_fit();
 
 void* main_os_window_handle();
 
-// FIXME: unused outside this module.
-void    hide_window();
-ND bool is_window_fullscreen();
-void    set_fullscreen( bool fullscreen );
-void    restore_window();
+void hide_window();
 
 } // namespace rn

@@ -62,6 +62,7 @@ items {
   european_advisor.name: Europian Advisor
   exit.name: Exit to DOS
   find_blinking_unit.name: Find Blinking Unit
+  fit_window.name: Shink Window to Fit
   fortify.name: Fortify
   founding_father_help.name: Founding Fathers
   game_options.name: Game Options
@@ -161,6 +162,8 @@ layout {
     scale_up,
     scale_down,
     scale_optimal,
+    null,
+    fit_window,
   ]
 
   cheat.contents: [

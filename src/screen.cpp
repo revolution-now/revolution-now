@@ -363,6 +363,29 @@ void on_logical_resolution_changed(
   renderer.set_logical_screen_size( main_window_logical_size() );
 }
 
+gfx::size shrinkage_size() {
+  auto const& logical =
+      g_resolutions().selected.resolution.logical;
+  gfx::size const target_size =
+      logical.dimensions * logical.scale;
+  return target_size;
+}
+
+void set_fullscreen( bool fullscreen ) {
+  if( fullscreen == is_window_fullscreen() ) return;
+
+  if( fullscreen ) {
+    ::SDL_SetWindowFullscreen( g_window,
+                               ::SDL_WINDOW_FULLSCREEN_DESKTOP );
+  } else {
+    ::SDL_SetWindowFullscreen( g_window, 0 );
+    // This somehow gets erased when we go to fullscreen mode, so
+    // it needs to be re-set each time.
+    ::SDL_SetWindowResizable( g_window,
+                              /*resizable=*/::SDL_TRUE );
+  }
+}
+
 } // namespace
 
 void* main_os_window_handle() { return (void*)g_window; }
@@ -415,21 +438,6 @@ bool is_window_fullscreen() {
            ::SDL_WINDOW_FULLSCREEN ) != 0;
 }
 
-void set_fullscreen( bool fullscreen ) {
-  if( fullscreen == is_window_fullscreen() ) return;
-
-  if( fullscreen ) {
-    ::SDL_SetWindowFullscreen( g_window,
-                               ::SDL_WINDOW_FULLSCREEN_DESKTOP );
-  } else {
-    ::SDL_SetWindowFullscreen( g_window, 0 );
-    // This somehow gets erased when we go to fullscreen mode, so
-    // it needs to be re-set each time.
-    ::SDL_SetWindowResizable( g_window,
-                              /*resizable=*/::SDL_TRUE );
-  }
-}
-
 bool toggle_fullscreen() {
   bool const old_fullscreen = is_window_fullscreen();
   bool const new_fullscreen = !old_fullscreen;
@@ -438,6 +446,27 @@ bool toggle_fullscreen() {
 }
 
 void restore_window() { ::SDL_RestoreWindow( g_window ); }
+
+bool can_shrink_window_to_fit() {
+  if( is_window_fullscreen() ) return false;
+  gfx::size const curr_size = [] {
+    gfx::size res;
+    ::SDL_GetWindowSize( g_window, &res.w, &res.h );
+    return res;
+  }();
+  return curr_size != shrinkage_size();
+}
+
+void shrink_window_to_fit() {
+  if( !can_shrink_window_to_fit() ) {
+    lg.warn( "cannot adjust window size." );
+    return;
+  }
+  // In case the window is maximized this must be done first.
+  restore_window();
+  gfx::size const size = shrinkage_size();
+  ::SDL_SetWindowSize( g_window, size.w, size.h );
+}
 
 void on_logical_resolution_changed(
     rr::Renderer&             renderer,

@@ -37,6 +37,7 @@ enum.e_menu_item {
   european_advisor,
   exit,
   find_blinking_unit,
+  fit_window,
   fortify,
   founding_father_help,
   game_options,

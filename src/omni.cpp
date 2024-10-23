@@ -53,6 +53,7 @@ auto const kSupportedMenuItems = [] {
   m[e_menu_item::scale_down]        = true;
   m[e_menu_item::scale_up]          = true;
   m[e_menu_item::scale_optimal]     = true;
+  m[e_menu_item::fit_window]        = true;
   return m;
 }();
 
@@ -151,6 +152,10 @@ struct OmniPlane::Impl : public IPlane {
         if( !can_cycle_resolution_down() ) return false;
         break;
       }
+      case e_menu_item::fit_window: {
+        if( !can_shrink_window_to_fit() ) return false;
+        break;
+      }
       default:
         break;
     }
@@ -171,6 +176,10 @@ struct OmniPlane::Impl : public IPlane {
       case e_menu_item::toggle_fullscreen:
         this->toggle_fullscreen();
         break;
+      case e_menu_item::fit_window: {
+        shrink_window_to_fit();
+        break;
+      }
       default:
         break;
     }
