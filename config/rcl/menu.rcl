@@ -86,9 +86,9 @@ items {
   revolution.name: REVOLUTION!
   road.name: Build Road
   save.name: Save Game
-  scale_down.name: Cycle Resolution Downward
+  scale_down.name: Cycle Resolution v
   scale_optimal.name: Set Optimal Resolution
-  scale_up.name: Cycle Resolution Forward
+  scale_up.name: Cycle Resolution ^
   sentry.name: Sentry
   terrain_help.name: Terrain
   toggle_fullscreen.name: Toggle Fullscreen
