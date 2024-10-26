@@ -8,12 +8,6 @@
 # Description: Rds definitions for the gfx/aspect module.
 #
 # ===============================================================
-# gfx
-include "cartesian.hpp"
-
-# base
-include "base/maybe.hpp"
-
 namespace "gfx"
 
 enum.e_named_aspect_ratio {
@@ -24,53 +18,4 @@ enum.e_named_aspect_ratio {
   w_h_4_3,
   w_h_21_9,
   w_h_1_1,
-}
-
-struct.LogicalResolution {
-  dimensions 'size',
-  scale 'int',
-}
-
-struct.ResolutionViewport {
-}
-
-# A score of 0.0 is a perfect score; the larger the score, the
-# worse it is.
-struct.ResolutionScores {
-  fitting 'double',
-  size 'double',
-  overall 'double',
-}
-
-struct.Resolution {
-  # This is the resolution not of the entire monitor but of the
-  # game window (though the two may coincide) in native pixels.
-  physical 'size',
-  logical 'LogicalResolution',
-  # This is in physical coordinates because 1) that is how it is
-  # most useful, and 2) it can't generally be expressed in dis-
-  # creet logical coordinates anyway because it may start on a
-  # fractional logical coordinate.
-  viewport 'rect',
-  scores 'ResolutionScores',
-}
-
-struct.ResolutionAnalysis {
-  resolutions 'std::vector<Resolution>',
-}
-
-struct.ResolutionTolerance {
-  min_percent_covered 'base::maybe<double>',
-  fitting_score_cutoff 'base::maybe<double>',
-}
-
-struct.ResolutionRatings {
-  # These are the ones that either fit the window exactly or fit
-  # within it, such that there will be no part bleeding off the
-  # edge of the window.
-  available 'std::vector<Resolution>',
-
-  # These are the ones that would have been in the 'viable' cate-
-  # gory but did not meet the require tolerance requirements.
-  unavailable 'std::vector<Resolution>',
 }

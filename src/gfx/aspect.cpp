@@ -5,14 +5,12 @@
 *
 * Created by David P. Sicilia on 2024-10-09.
 *
-* Description: Handles screen aspect ratio and resolution selec-
-*              tion.
+* Description: Helpers for dealing with aspect ratios.
 *
 *****************************************************************/
 #include "aspect.hpp"
 
 // refl
-#include "aspect.rds.hpp"
 #include "refl/query-enum.hpp"
 
 // C++ standard library
@@ -44,48 +42,6 @@ maybe<double> is_close( double const l, double const r,
 maybe<double> is_close( AspectRatio const l, AspectRatio const r,
                         double const tolerance ) {
   return is_close( l.scalar(), r.scalar(), tolerance );
-}
-
-static bool meets_tolerance(
-    Resolution const& r, ResolutionTolerance const& tolerance ) {
-  if( tolerance.min_percent_covered.has_value() &&
-      r.physical.area() > 0 ) {
-    int const scaled_clipped_area =
-        r.logical.dimensions.area() *
-        ( r.logical.scale * r.logical.scale );
-    double const percent_covered =
-        scaled_clipped_area /
-        static_cast<double>( r.physical.area() );
-    if( percent_covered < *tolerance.min_percent_covered )
-      return false;
-  }
-
-  if( tolerance.fitting_score_cutoff.has_value() ) {
-    if( r.scores.fitting > *tolerance.fitting_score_cutoff )
-      return false;
-  }
-  return true;
-}
-
-void compute_scores( Resolution& r ) {
-  if( r.physical.area() == 0 ) return;
-  auto& scores = r.scores;
-
-  scores = {};
-
-  // Fitting score.
-  if( !is_exact( r ) )
-    scores.fitting =
-        ( r.logical.dimensions * r.logical.scale - r.physical )
-            .pythagorean() /
-        r.physical.pythagorean();
-
-  // Size score.
-  // TODO
-
-  // Overall score should be computed last.
-  // TODO: combine above scores to produce overall score.
-  r.scores.overall = r.scores.fitting;
 }
 
 } // namespace
@@ -208,18 +164,6 @@ maybe<e_named_aspect_ratio> find_closest_named_aspect_ratio(
   return closest.member( &Closest::aspect_ratio );
 }
 
-vector<LogicalResolution> supported_logical_resolutions(
-    size const max_resolution ) {
-  vector<LogicalResolution> resolutions;
-  auto const                min_dimension =
-      std::min( max_resolution.w, max_resolution.h );
-  for( int i = 1; i <= min_dimension; ++i )
-    if( max_resolution.w % i == 0 && max_resolution.h % i == 0 )
-      resolutions.push_back( LogicalResolution{
-        .dimensions = max_resolution / i, .scale = i } );
-  return resolutions;
-}
-
 string named_ratio_canonical_name(
     e_named_aspect_ratio const r ) {
   string_view name = refl::enum_value_name( r );
@@ -230,88 +174,6 @@ string named_ratio_canonical_name(
   string sname( name );
   replace( sname.begin(), sname.end(), '_', ':' );
   return sname;
-}
-
-bool is_exact( Resolution const& resolution ) {
-  return resolution.viewport.origin.distance_from_origin() ==
-         size{};
-}
-
-ResolutionAnalysis resolution_analysis(
-    span<size const> const target_logical_resolutions,
-    size const             physical ) {
-  rect const physical_rect{ .origin = {}, .size = physical };
-  vector<LogicalResolution> const choices =
-      supported_logical_resolutions( physical );
-  ResolutionAnalysis res;
-  for( size const target : target_logical_resolutions ) {
-    LogicalResolution scaled{ .dimensions = target, .scale = 1 };
-    maybe<LogicalResolution> largest_that_fits;
-    while( scaled.dimensions.fits_inside( physical ) ) {
-      largest_that_fits = LogicalResolution{
-        .dimensions = target, .scale = scaled.scale };
-      ++scaled.scale;
-      scaled.dimensions = target * scaled.scale;
-    }
-    if( !largest_that_fits.has_value() ) continue;
-    LogicalResolution const& logical = *largest_that_fits;
-
-    if( logical.dimensions * logical.scale == physical ) {
-      // Exact fit to physical window.
-      res.resolutions.push_back(
-          Resolution{ .physical = physical,
-                      .logical  = logical,
-                      .viewport = physical_rect,
-                      .scores   = {} } );
-    } else {
-      // Fits within the window but smaller.
-      size const chosen_physical =
-          logical.dimensions * logical.scale;
-      rect const viewport{
-        .origin = centered_in( chosen_physical, physical_rect ),
-        .size   = chosen_physical };
-      res.resolutions.push_back(
-          Resolution{ .physical = physical,
-                      .logical  = logical,
-                      .viewport = viewport } );
-    }
-    compute_scores( res.resolutions.back() );
-  }
-  return res;
-}
-
-ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
-    ResolutionTolerance const& tolerance ) {
-  ResolutionRatings res;
-
-  auto sorted = analysis.resolutions;
-  sort( sorted.begin(), sorted.end(),
-        []( Resolution const& l, Resolution const& r ) {
-          if( is_exact( l ) != is_exact( r ) )
-            // Exact fits should go first.
-            return is_exact( l );
-          if( is_exact( l ) ) {
-            // FIXME: this needs to be improved to account for
-            // the angular size of pixels. Such angular size
-            // might also need to be weighed in to the score for
-            // inexact fits. These need to be given a `score`
-            // field like the inexact fits.
-            return l.logical.dimensions.area() >
-                   r.logical.dimensions.area();
-          } else {
-            return l.scores.overall < r.scores.overall;
-          }
-        } );
-
-  for( auto const& resolution : sorted ) {
-    auto& where = meets_tolerance( resolution, tolerance )
-                      ? res.available
-                      : res.unavailable;
-    where.push_back( resolution );
-  }
-
-  return res;
 }
 
 } // namespace gfx

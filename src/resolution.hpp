@@ -17,9 +17,6 @@
 // Revolution Now
 #include "maybe.hpp"
 
-// gfx
-#include "gfx/aspect.hpp"
-
 // C++ standard library
 #include <vector>
 

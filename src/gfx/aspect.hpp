@@ -5,8 +5,7 @@
 *
 * Created by David P. Sicilia on 2024-10-09.
 *
-* Description: Handles screen aspect ratio and resolution selec-
-*              tion.
+* Description: Helpers for dealing with aspect ratios.
 *
 *****************************************************************/
 #pragma once
@@ -26,12 +25,12 @@
 namespace gfx {
 
 /****************************************************************
-** AspectRatio
+** Aspect Ratios.
 *****************************************************************/
 // Represents a monitor aspect ratio. Keeps its contents as a re-
 // duced fraction that is always non-zero and with a denominator
 // that is larger than zero.
-struct AspectRatio {
+struct [[deprecated]] AspectRatio {
   static base::maybe<AspectRatio> from_size( size resolution );
 
   static AspectRatio from_named( e_named_aspect_ratio ratio );
@@ -53,33 +52,19 @@ struct AspectRatio {
   size ratio_;
 };
 
-/****************************************************************
-** Public API.
-*****************************************************************/
-base::maybe<AspectRatio> find_closest_aspect_ratio(
+[[deprecated]] base::maybe<AspectRatio>
+find_closest_aspect_ratio(
     std::span<AspectRatio const> ratios_all,
     AspectRatio                  target );
 
 // Returns the default tolerance used for bucketing of aspect ra-
 // tios. This is a small positive number < 1.
-double default_aspect_ratio_tolerance();
+[[deprecated]] double default_aspect_ratio_tolerance();
 
-base::maybe<e_named_aspect_ratio>
+[[deprecated]] base::maybe<e_named_aspect_ratio>
 find_closest_named_aspect_ratio( AspectRatio target );
 
-std::vector<LogicalResolution> supported_logical_resolutions(
-    size max_resolution );
-
-std::string named_ratio_canonical_name( e_named_aspect_ratio r );
-
-ResolutionAnalysis resolution_analysis(
-    std::span<size const> target_logical_resolutions,
-    size                  physical_resolution );
-
-bool is_exact( Resolution const& resolution );
-
-ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
-    ResolutionTolerance const& tolerance );
+[[deprecated]] std::string named_ratio_canonical_name(
+    e_named_aspect_ratio r );
 
 } // namespace gfx

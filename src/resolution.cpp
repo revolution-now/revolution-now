@@ -12,7 +12,7 @@
 #include "resolution.hpp"
 
 // gfx
-#include "gfx/aspect.hpp"
+#include "gfx/logical.hpp"
 
 using namespace std;
 
@@ -89,8 +89,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
     .physical = {},
     .logical =
         gfx::LogicalResolution{ .dimensions = {}, .scale = 1 },
-    .viewport = {},
-    .scores   = {} } );
+    .viewport = {} } );
 
   return ratings;
 }

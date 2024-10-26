@@ -12,7 +12,7 @@
 include "maybe.hpp"
 
 # gfx
-include "gfx/aspect.rds.hpp"
+include "gfx/logical.rds.hpp"
 
 namespace "rn"
 

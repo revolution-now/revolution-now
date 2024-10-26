@@ -30,7 +30,7 @@
 #include "render/renderer.hpp"
 
 // gfx
-#include "gfx/aspect.hpp"
+#include "gfx/logical.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -227,28 +227,18 @@ struct OmniPlane::Impl : public IPlane {
     vector<string> lines;
     auto const     log = line_logger( lines );
 
-    auto const aspect_approx = [&]( gfx::size const sz ) {
-      return gfx::AspectRatio::from_size( sz )
-          .bind( gfx::find_closest_named_aspect_ratio )
-          .fmap( gfx::named_ratio_canonical_name );
-    };
-
-    auto const physical_size   = main_window_physical_size();
-    auto const aspect_physical = aspect_approx( physical_size );
-    auto const aspect_logical =
-        aspect_approx( resolution->logical.dimensions );
+    auto const physical_size = main_window_physical_size();
 
     CHECK( resolution.has_value() );
+    auto const scores = gfx::score( *resolution );
 
     log( "Resolution:" );
     log( " physical:    {}", physical_size );
     log( " logical:     {}", resolution->logical.dimensions );
     log( " scale:       {}", resolution->logical.scale );
     log( " viewport:    {}", resolution->viewport );
-    log( " fit.score:   {}", resolution->scores.fitting );
-    log( " sz.score:    {}", resolution->scores.size );
-    log( " p.aspect:   ~{}", aspect_physical );
-    log( " l.aspect:   ~{}", aspect_logical );
+    log( " fit.score:   {}", scores.fitting );
+    log( " sz.score:    {}", scores.size );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 32, .y = 32 };
