@@ -19,18 +19,16 @@ namespace {
 using ::base::maybe;
 
 static bool meets_tolerance(
-    ScoredResolution const&    scored_resolution,
+    Resolution const& r, ResolutionScores const& scores,
     ResolutionTolerance const& tolerance ) {
-  auto const& r      = scored_resolution.resolution;
-  auto const& scores = scored_resolution.scores;
   if( tolerance.min_percent_covered.has_value() &&
-      r.physical.area() > 0 ) {
+      r.physical_window.area() > 0 ) {
     int const scaled_clipped_area =
         r.logical.dimensions.area() *
         ( r.logical.scale * r.logical.scale );
     double const percent_covered =
         scaled_clipped_area /
-        static_cast<double>( r.physical.area() );
+        static_cast<double>( r.physical_window.area() );
     if( percent_covered < *tolerance.min_percent_covered )
       return false;
   }
@@ -42,24 +40,21 @@ static bool meets_tolerance(
   return true;
 }
 
-void add_scores( ScoredResolution& scored_resolution ) {
-  scored_resolution.scores =
-      score( scored_resolution.resolution );
-}
-
 bool is_exact( Resolution const& resolution ) {
   return resolution.viewport.origin.distance_from_origin() ==
          size{};
 }
 
 vector<LogicalResolution> logical_resolutions_for_physical(
-    size const physical ) {
+    size const physical_window ) {
   vector<LogicalResolution> resolutions;
-  auto const min_dimension = std::min( physical.w, physical.h );
+  auto const                min_dimension =
+      std::min( physical_window.w, physical_window.h );
   for( int i = 1; i <= min_dimension; ++i )
-    if( physical.w % i == 0 && physical.h % i == 0 )
+    if( physical_window.w % i == 0 &&
+        physical_window.h % i == 0 )
       resolutions.push_back( LogicalResolution{
-        .dimensions = physical / i, .scale = i } );
+        .dimensions = physical_window / i, .scale = i } );
   return resolutions;
 }
 
@@ -68,16 +63,31 @@ vector<LogicalResolution> logical_resolutions_for_physical(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ResolutionScores score( Resolution const r ) {
+Monitor monitor_properties( size const          physical_screen,
+                            maybe<double> const dpi ) {
+  Monitor monitor;
+  monitor.physical_screen = physical_screen;
+  if( dpi.has_value() ) {
+    monitor.dpi = dpi;
+    monitor.diagonal_inches =
+        sqrt( pow( physical_screen.w, 2.0 ) +
+              pow( physical_screen.h, 2.0 ) ) /
+        *dpi;
+  }
+  return monitor;
+}
+
+ResolutionScores score( Resolution const& r,
+                        Monitor const&    monitor ) {
   ResolutionScores scores;
 
-  if( r.physical.area() == 0 ) return {};
+  if( r.physical_window.area() == 0 ) return {};
 
   scores = {};
 
   // Fitting score.
   int const occupied_area = r.viewport.area();
-  int const total_area    = r.physical.area();
+  int const total_area    = r.physical_window.area();
   CHECK_LE( occupied_area, total_area );
   scores.fitting = sqrt( 1.0 * occupied_area / total_area );
 
@@ -91,16 +101,18 @@ ResolutionScores score( Resolution const r ) {
 }
 
 ResolutionAnalysis resolution_analysis(
-    span<size const> const target_logical_resolutions,
-    size const             physical ) {
-  rect const physical_rect{ .origin = {}, .size = physical };
+    size const            physical_window,
+    std::span<size const> supported_logical_resolutions ) {
+  rect const physical_rect{ .origin = {},
+                            .size   = physical_window };
+
   vector<LogicalResolution> const choices =
-      logical_resolutions_for_physical( physical );
+      logical_resolutions_for_physical( physical_window );
   ResolutionAnalysis res;
-  for( size const target : target_logical_resolutions ) {
+  for( size const target : supported_logical_resolutions ) {
     LogicalResolution scaled{ .dimensions = target, .scale = 1 };
     maybe<LogicalResolution> largest_that_fits;
-    while( scaled.dimensions.fits_inside( physical ) ) {
+    while( scaled.dimensions.fits_inside( physical_window ) ) {
       largest_that_fits = LogicalResolution{
         .dimensions = target, .scale = scaled.scale };
       ++scaled.scale;
@@ -109,12 +121,12 @@ ResolutionAnalysis resolution_analysis(
     if( !largest_that_fits.has_value() ) continue;
     LogicalResolution const& logical = *largest_that_fits;
 
-    if( logical.dimensions * logical.scale == physical ) {
-      // Exact fit to physical window.
-      res.resolutions.push_back( ScoredResolution{
-        .resolution = { .physical = physical,
-                        .logical  = logical,
-                        .viewport = physical_rect } } );
+    if( logical.dimensions * logical.scale == physical_window ) {
+      // Exact fit to physical_window window.
+      res.resolutions.push_back(
+          { .physical_window = physical_window,
+            .logical         = logical,
+            .viewport        = physical_rect } );
     } else {
       // Fits within the window but smaller.
       size const chosen_physical =
@@ -122,47 +134,49 @@ ResolutionAnalysis resolution_analysis(
       rect const viewport{
         .origin = centered_in( chosen_physical, physical_rect ),
         .size   = chosen_physical };
-      res.resolutions.push_back( ScoredResolution{
-        .resolution = { .physical = physical,
-                        .logical  = logical,
-                        .viewport = viewport } } );
+      res.resolutions.push_back(
+          { .physical_window = physical_window,
+            .logical         = logical,
+            .viewport        = viewport } );
     }
-    add_scores( res.resolutions.back() );
   }
   return res;
 }
 
 ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
+    ResolutionAnalysis const& analysis, Monitor const& monitor,
     ResolutionTolerance const& tolerance ) {
   ResolutionRatings res;
 
+  auto score_for = [&]( Resolution const& r ) {
+    return score( r, monitor ).overall;
+  };
+
   auto sorted = analysis.resolutions;
   sort( sorted.begin(), sorted.end(),
-        []( ScoredResolution const& l,
-            ScoredResolution const& r ) {
-          if( is_exact( l.resolution ) !=
-              is_exact( r.resolution ) )
+        [&]( Resolution const& l, Resolution const& r ) {
+          if( is_exact( l ) != is_exact( r ) )
             // Exact fits should go first.
-            return is_exact( l.resolution );
-          if( is_exact( l.resolution ) ) {
+            return is_exact( l );
+          if( is_exact( l ) ) {
             // FIXME: this needs to be improved to account for
             // the angular size of pixels. Such angular size
             // might also need to be weighed in to the score for
             // inexact fits. These need to be given a `score`
             // field like the inexact fits.
-            return l.resolution.logical.dimensions.area() >
-                   r.resolution.logical.dimensions.area();
+            return l.logical.dimensions.area() >
+                   r.logical.dimensions.area();
           } else {
-            return l.scores.overall > r.scores.overall;
+            return score_for( l ) > score_for( r );
           }
         } );
 
-  for( auto const& scored_resolution : sorted ) {
-    auto& where = meets_tolerance( scored_resolution, tolerance )
-                      ? res.available
-                      : res.unavailable;
-    where.push_back( scored_resolution.resolution );
+  for( auto const& r : sorted ) {
+    auto& where =
+        meets_tolerance( r, score( r, monitor ), tolerance )
+            ? res.available
+            : res.unavailable;
+    where.push_back( r );
   }
 
   return res;

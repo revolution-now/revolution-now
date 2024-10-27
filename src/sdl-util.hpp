@@ -53,4 +53,8 @@ void sdl_gl_swap_window( ::SDL_Window* window );
 
 void close_SDL_for_OpenGL( ::SDL_GLContext context );
 
+// Only call this when the most recent SDL call made signaled an
+// error via its return code.
+std::string sdl_get_last_error();
+
 } // namespace rn

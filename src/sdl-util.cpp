@@ -197,4 +197,6 @@ void close_SDL_for_OpenGL( ::SDL_GLContext context ) {
   ::SDL_GL_UnloadLibrary();
 }
 
+string sdl_get_last_error() { return ::SDL_GetError(); }
+
 } // namespace rn

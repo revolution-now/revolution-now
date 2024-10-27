@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "menu.hpp"
 #include "resolution.hpp"
+#include "sdl-util.hpp"
 #include "sdl.hpp"
 #include "tiles.hpp"
 
@@ -29,6 +30,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// gfx
+#include "gfx/logical.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -45,9 +49,32 @@ namespace rn {
 
 namespace {
 
+struct DisplayMode {
+  gfx::size size         = {};
+  uint32_t  format       = 0;
+  int       refresh_rate = 0;
+};
+
+DisplayMode current_display_mode() {
+  SDL_DisplayMode dm;
+  if( ::SDL_GetCurrentDisplayMode( 0, &dm ) < 0 ) {
+    FATAL( "failed to get display mode info: {}",
+           sdl_get_last_error() );
+  }
+  return DisplayMode{ .size         = { .w = dm.w, .h = dm.h },
+                      .format       = dm.format,
+                      .refresh_rate = dm.refresh_rate };
+}
+
 Resolutions& g_resolutions() {
-  static Resolutions r =
-      compute_resolutions( main_window_physical_size() );
+  static Resolutions r = [] {
+    auto const         display_mode    = current_display_mode();
+    gfx::size const    physical_screen = display_mode.size;
+    gfx::Monitor const monitor         = gfx::monitor_properties(
+        physical_screen, monitor_dpi() );
+    return compute_resolutions( monitor,
+                                main_window_physical_size() );
+  }();
   return r;
 }
 
@@ -63,49 +90,6 @@ auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 //
 // Cache is invalidated by setting to nothing.
 maybe<gfx::size> main_window_physical_size_cache;
-
-struct DisplayMode {
-  Delta    size;
-  uint32_t format;
-  int      refresh_rate;
-};
-
-double monitor_diagonal_length( double ddpi, DisplayMode dm ) {
-  double length =
-      sqrt( pow( dm.size.w, 2.0 ) + pow( dm.size.h, 2.0 ) ) /
-      ddpi;
-  // Round to hearest 1/2 inch.
-  return double( lround( length * 2.0 ) ) / 2.0;
-}
-
-DisplayMode current_display_mode() {
-  SDL_DisplayMode dm;
-  SDL_GetCurrentDisplayMode( 0, &dm );
-  DisplayMode res{
-    { W{ dm.w }, H{ dm.h } }, dm.format, dm.refresh_rate };
-  return res;
-}
-
-// Get diagonal DPI of monitor. This seems to basically be the
-// same as the horizontal and vertical DPIs.
-double monitor_ddpi() {
-  static float ddpi = [] {
-    float res = 0.0; // diagonal DPI.
-    bool  success =
-        !::SDL_GetDisplayDPI( 0, &res, nullptr, nullptr );
-    if( !success ) {
-      lg.error( "could not get display dpi." );
-      res = 145.0;
-    }
-    return res;
-  }();
-  return ddpi;
-}
-
-double monitor_inches() {
-  return monitor_diagonal_length( monitor_ddpi(),
-                                  current_display_mode() );
-}
 
 #if 0
 double const& viewer_distance_from_monitor() {
@@ -163,8 +147,6 @@ void query_video_stats() {
   SDL_GetDisplayBounds( 0, &r );
   lg.debug( "GetDisplayBounds: {}",
             Rect{ X{ r.x }, Y{ r.y }, W{ r.w }, H{ r.h } } );
-
-  lg.debug( "monitor diagonal length: {}in.", monitor_inches() );
 }
 
 #if 0
@@ -296,11 +278,11 @@ void init_screen() {
   // maximized.
   flags |= ::SDL_WINDOW_RESIZABLE;
 
-  auto dm = current_display_mode().size;
+  DisplayMode const dm = current_display_mode();
 
   g_window =
       ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
-                          0, dm.w, dm.h, flags );
+                          0, dm.size.w, dm.size.h, flags );
   CHECK( g_window != nullptr, "failed to create window" );
 }
 
@@ -314,8 +296,10 @@ void set_pending_resolution(
     SelectedResolution const& selected_resolution ) {
   if( selected_resolution.resolution.logical !=
       g_resolutions().selected.resolution.logical )
-    lg.info( "logical resolution changing to {}",
-             selected_resolution.resolution.logical );
+    lg.info(
+        "logical resolution changing to {}x{}",
+        selected_resolution.resolution.logical.dimensions.w,
+        selected_resolution.resolution.logical.dimensions.h );
   input::inject_resolution_event( selected_resolution );
 }
 
@@ -387,6 +371,39 @@ void set_fullscreen( bool fullscreen ) {
 }
 
 } // namespace
+
+// Get diagonal DPI of monitor. This seems to basically be the
+// same as the horizontal and vertical DPIs.
+maybe<double> monitor_dpi() {
+  static maybe<double> const dpi = []() -> maybe<double> {
+    float hdpi = 0.0; // horizontal dpi.
+    float vdpi = 0.0; // vertical dpi.
+    float ddpi = 0.0; // diagonal dpi.
+    if( ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi ) < 0 ) {
+      lg.warn( "could not get display dpi: {}",
+               sdl_get_last_error() );
+      // res = 145.0;
+      return nothing;
+    }
+    lg.info(
+        "monitor DPI: horizontal={}, vertical={}, diagonal={}",
+        hdpi, vdpi, ddpi );
+    if( hdpi != vdpi )
+      lg.warn( "horizontal DPI not equal to vertical DPI.", hdpi,
+               vdpi );
+    if( hdpi > 0.0 ) return hdpi;
+    if( vdpi > 0.0 ) return vdpi;
+    lg.warn(
+        "neither horizontal nor vertical DPIs are available." );
+    // This is not exact, since the "diagonal" DPI may be calcu-
+    // lated from corner to corner of the monitor, in which case
+    // the scaling factor relative to the horizontal or vertical
+    // dpis would depend on aspect ratio. But it should be close
+    // enough. Hopefully this case is rare to begin with though.
+    return ddpi / 1.414;
+  }();
+  return dpi;
+}
 
 void* main_os_window_handle() { return (void*)g_window; }
 
@@ -481,8 +498,10 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   main_window_physical_size_cache = nothing;
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
+  gfx::Monitor const monitor =
+      gfx::monitor_properties( physical_size, monitor_dpi() );
   auto const new_resolutions =
-      compute_resolutions( physical_size );
+      compute_resolutions( monitor, physical_size );
   // FIXME: the logical resolution here can jump abruptly if the
   // user has previously cycled through the resolutions. Perhaps
   // the way to solve this is to get all of the resolutions here

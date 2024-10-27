@@ -22,15 +22,11 @@ namespace {
 
 using ::base::maybe;
 
-} // namespace
-
-/****************************************************************
-** Public API.
-*****************************************************************/
 gfx::ResolutionRatings compute_logical_resolution_ratings(
-    gfx::size physical_size ) {
+    gfx::Monitor const& monitor,
+    gfx::size const     physical_window ) {
   vector<gfx::Resolution> res;
-  vector<gfx::size> const target_logical_resolutions{
+  vector<gfx::size> const supported_logical_resolutions{
     // 16:9
     { .w = 768, .h = 432 },
     { .w = 640, .h = 360 },
@@ -72,7 +68,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   // Common ultrawide resolutions.
 
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      target_logical_resolutions, physical_size );
+      physical_window, supported_logical_resolutions );
 
   gfx::ResolutionTolerance const tolerance{
     .min_percent_covered  = nothing, // .8,
@@ -80,13 +76,13 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   };
 
   gfx::ResolutionRatings ratings =
-      resolution_ratings( analysis, tolerance );
+      resolution_ratings( analysis, monitor, tolerance );
 
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.
   ratings.unavailable.push_back( gfx::Resolution{
-    .physical = {},
+    .physical_window = {},
     .logical =
         gfx::LogicalResolution{ .dimensions = {}, .scale = 1 },
     .viewport = {} } );
@@ -94,10 +90,16 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   return ratings;
 }
 
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
 Resolutions compute_resolutions(
-    gfx::size const physical_size ) {
-  auto ratings =
-      compute_logical_resolution_ratings( physical_size );
+    gfx::Monitor const& monitor,
+    gfx::size const     physical_window ) {
+  auto ratings = compute_logical_resolution_ratings(
+      monitor, physical_window );
   // This should be guaranteed by the method that produces the
   // ratings, and ensure that we always have at least one fall-
   // back.

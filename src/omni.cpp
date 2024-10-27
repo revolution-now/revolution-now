@@ -63,25 +63,44 @@ string toggle_omni_overlay() {
 }
 
 auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
-  static constexpr auto fmt_type = mp::overload{
-    []( gfx::size const s ) -> string {
+  // Use a y-combinator like approach to produce a lambda that
+  // can call itself.
+  static constexpr auto fmt_type_impl = mp::overload{
+    []( auto const&, gfx::size const s ) -> string {
       return fmt::format( "{}x{}", s.w, s.h );
     },
-    []( gfx::point const p ) -> string {
+    []( auto const&, gfx::point const p ) -> string {
       return fmt::format( "[{},{}]", p.x, p.y );
     },
-    []( gfx::rect const r ) -> string {
+    []( auto const&, gfx::rect const r ) -> string {
       return fmt::format( "[{},{}] {}x{}", r.origin.x,
                           r.origin.y, r.size.w, r.size.h );
     },
-    []( double const d ) -> string {
+    []( auto const&, double const d ) -> string {
       return fmt::format( "{:.3}", d );
     },
-    []( auto const& o ) -> string { return base::to_str( o ); },
+    []<typename T>( auto const&    self,
+                    maybe<T> const m ) -> string {
+      if( !m.has_value() )
+        return base::to_str( m );
+      else
+        return self( self, *m );
+    },
+    []( auto const&, auto const& o ) -> string {
+      return base::to_str( o );
+    },
   };
+  static constexpr auto fmt_type =
+      []<typename... Args>( Args&&... args ) {
+        return fmt_type_impl( fmt_type_impl,
+                              std::forward<Args>( args )... );
+      };
   return
       [&]<typename... Args>( fmt::format_string<Args...> fmt_str,
                              Args const&... args ) {
+        if constexpr( sizeof...( Args ) == 0 ) {
+          (void)fmt_type; // suppress unused variable warning.
+        }
         // We need the fmt::runtime here because we are changing
         // the type of the args by passing them through fmt_type
         // which would leave them incompatible with the type of
@@ -89,9 +108,6 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
         // are not losing compile-time format string checking be-
         // cause that has already been done by the construction
         // of fmt_str upon calling this function.
-        if constexpr( sizeof...( Args ) == 0 ) {
-          (void)fmt_type; // suppress unused variable warning.
-        }
         lines.push_back( fmt::format( fmt::runtime( fmt_str ),
                                       fmt_type( args )... ) );
       };
@@ -231,10 +247,15 @@ struct OmniPlane::Impl : public IPlane {
     auto const     log = line_logger( lines );
 
     CHECK( resolution.has_value() );
-    auto const scores = gfx::score( *resolution );
+    auto const monitor = gfx::monitor_properties(
+        main_window_physical_size(), monitor_dpi() );
+    auto const scores = gfx::score( *resolution, monitor );
 
     log( "Resolution:" );
-    log( " physical:    {}", resolution->physical );
+    log( " screen:      {}", monitor.physical_screen );
+    log( " dpi:         {}", monitor.dpi );
+    log( " inches:      {}", monitor.diagonal_inches );
+    log( " window:      {}", resolution->physical_window );
     log( " logical:     {}", resolution->logical.dimensions );
     log( " scale:       {}", resolution->logical.scale );
     log( " viewport:    {}", resolution->viewport );

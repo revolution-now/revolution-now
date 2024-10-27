@@ -20,11 +20,13 @@
 // C++ standard library
 #include <vector>
 
+namespace gfx {
+struct Monitor;
+}
+
 namespace rn {
 
-gfx::ResolutionRatings compute_logical_resolution_ratings(
-    gfx::size physical_size );
-
-Resolutions compute_resolutions( gfx::size physical_size );
+Resolutions compute_resolutions( gfx::Monitor const& monitor,
+                                 gfx::size physical_window );
 
 } // namespace rn

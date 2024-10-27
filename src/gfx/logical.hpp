@@ -22,14 +22,18 @@ namespace gfx {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ResolutionScores score( Resolution const resolution );
+Monitor monitor_properties( size                physical_screen,
+                            base::maybe<double> dpi );
+
+ResolutionScores score( Resolution const& resolution,
+                        Monitor const&    monitor );
 
 ResolutionAnalysis resolution_analysis(
-    std::span<size const> target_logical_resolutions,
-    size                  physical_resolution );
+    size                  physical_window,
+    std::span<size const> supported_logical_resolutions );
 
 ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
+    ResolutionAnalysis const& analysis, Monitor const& monitor,
     ResolutionTolerance const& tolerance );
 
 } // namespace gfx

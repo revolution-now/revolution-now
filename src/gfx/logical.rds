@@ -27,14 +27,20 @@ struct.LogicalResolution {
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
 struct.ResolutionScores {
   fitting 'double',
-  size    'double',
+  size 'double',
   overall 'double',
+}
+
+struct.Monitor {
+  physical_screen 'size',
+  dpi 'base::maybe<double>',
+  diagonal_inches 'base::maybe<double>',
 }
 
 struct.Resolution {
   # This is the resolution not of the entire monitor but of the
   # game window (though the two may coincide) in native pixels.
-  physical 'size',
+  physical_window 'size',
   logical 'LogicalResolution',
   # This is in physical coordinates because 1) that is how it is
   # most useful, and 2) it can't generally be expressed in dis-
@@ -43,13 +49,8 @@ struct.Resolution {
   viewport 'rect',
 }
 
-struct.ScoredResolution {
-  resolution 'Resolution',
-  scores 'ResolutionScores',
-}
-
 struct.ResolutionAnalysis {
-  resolutions 'std::vector<ScoredResolution>',
+  resolutions 'std::vector<Resolution>',
 }
 
 struct.ResolutionTolerance {

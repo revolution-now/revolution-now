@@ -15,7 +15,7 @@
 #include "maybe.hpp"
 
 // gfx
-#include "gfx/coord.hpp"
+#include "gfx/cartesian.hpp"
 
 namespace rr {
 struct Renderer;
@@ -63,5 +63,7 @@ bool can_shrink_window_to_fit();
 void* main_os_window_handle();
 
 void hide_window();
+
+maybe<double> monitor_dpi();
 
 } // namespace rn
