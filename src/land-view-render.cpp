@@ -665,6 +665,10 @@ void LandViewRenderer::render_backdrop() const {
     int         longest_side  = std::max( delta.w, delta.h );
     return pair{ shortest_side, longest_side };
   }();
+  if( shortest_side == 0 )
+    // This would happen if the user has resized the game window
+    // to something with no visible area.
+    return;
   int const num_squares_needed =
       longest_side / shortest_side + 1;
   Delta const tile_size =
