@@ -96,22 +96,23 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
         return fmt_type_impl( fmt_type_impl,
                               std::forward<Args>( args )... );
       };
-  return
-      [&]<typename... Args>( fmt::format_string<Args...> fmt_str,
-                             Args const&... args ) {
-        if constexpr( sizeof...( Args ) == 0 ) {
-          (void)fmt_type; // suppress unused variable warning.
-        }
-        // We need the fmt::runtime here because we are changing
-        // the type of the args by passing them through fmt_type
-        // which would leave them incompatible with the type of
-        // the compile-time format string object fmt_str. But we
-        // are not losing compile-time format string checking be-
-        // cause that has already been done by the construction
-        // of fmt_str upon calling this function.
-        lines.push_back( fmt::format( fmt::runtime( fmt_str ),
-                                      fmt_type( args )... ) );
-      };
+  return [&]<typename... Args>(
+             fmt::format_string<Args...> fmt_str,
+             Args const&... args ) {
+    if constexpr( sizeof...( Args ) == 0 ) {
+      (void)fmt_type;      // suppress unused variable warning.
+      (void)fmt_type_impl; // suppress unused variable warning.
+    }
+    // We need the fmt::runtime here because we are changing the
+    // type of the args by passing them through fmt_type which
+    // would leave them incompatible with the type of the
+    // compile-time format string object fmt_str. But we are not
+    // losing compile-time format string checking because that
+    // has already been done by the construction of fmt_str upon
+    // calling this function.
+    lines.push_back( fmt::format( fmt::runtime( fmt_str ),
+                                  fmt_type( args )... ) );
+  };
 }
 
 } // namespace
