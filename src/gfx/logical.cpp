@@ -36,7 +36,7 @@ static bool meets_tolerance(
   }
 
   if( tolerance.fitting_score_cutoff.has_value() ) {
-    if( scores.fitting > *tolerance.fitting_score_cutoff )
+    if( scores.fitting < *tolerance.fitting_score_cutoff )
       return false;
   }
   return true;
@@ -47,42 +47,39 @@ void add_scores( ScoredResolution& scored_resolution ) {
       score( scored_resolution.resolution );
 }
 
-} // namespace
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-vector<LogicalResolution> supported_logical_resolutions(
-    size const max_resolution ) {
-  vector<LogicalResolution> resolutions;
-  auto const                min_dimension =
-      std::min( max_resolution.w, max_resolution.h );
-  for( int i = 1; i <= min_dimension; ++i )
-    if( max_resolution.w % i == 0 && max_resolution.h % i == 0 )
-      resolutions.push_back( LogicalResolution{
-        .dimensions = max_resolution / i, .scale = i } );
-  return resolutions;
-}
-
 bool is_exact( Resolution const& resolution ) {
   return resolution.viewport.origin.distance_from_origin() ==
          size{};
 }
 
-ResolutionScores score( Resolution const resolution ) {
-  ResolutionScores scores;
-  auto const&      r = resolution;
+vector<LogicalResolution> logical_resolutions_for_physical(
+    size const physical ) {
+  vector<LogicalResolution> resolutions;
+  auto const min_dimension = std::min( physical.w, physical.h );
+  for( int i = 1; i <= min_dimension; ++i )
+    if( physical.w % i == 0 && physical.h % i == 0 )
+      resolutions.push_back( LogicalResolution{
+        .dimensions = physical / i, .scale = i } );
+  return resolutions;
+}
 
-  if( resolution.physical.area() == 0 ) return {};
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+ResolutionScores score( Resolution const r ) {
+  ResolutionScores scores;
+
+  if( r.physical.area() == 0 ) return {};
 
   scores = {};
 
   // Fitting score.
-  if( !is_exact( r ) )
-    scores.fitting =
-        ( r.logical.dimensions * r.logical.scale - r.physical )
-            .pythagorean() /
-        r.physical.pythagorean();
+  int const occupied_area = r.viewport.area();
+  int const total_area    = r.physical.area();
+  CHECK_LE( occupied_area, total_area );
+  scores.fitting = sqrt( 1.0 * occupied_area / total_area );
 
   // Size score.
   // TODO
@@ -98,7 +95,7 @@ ResolutionAnalysis resolution_analysis(
     size const             physical ) {
   rect const physical_rect{ .origin = {}, .size = physical };
   vector<LogicalResolution> const choices =
-      supported_logical_resolutions( physical );
+      logical_resolutions_for_physical( physical );
   ResolutionAnalysis res;
   for( size const target : target_logical_resolutions ) {
     LogicalResolution scaled{ .dimensions = target, .scale = 1 };
@@ -157,7 +154,7 @@ ResolutionRatings resolution_ratings(
             return l.resolution.logical.dimensions.area() >
                    r.resolution.logical.dimensions.area();
           } else {
-            return l.scores.overall < r.scores.overall;
+            return l.scores.overall > r.scores.overall;
           }
         } );
 

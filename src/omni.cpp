@@ -74,6 +74,9 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
       return fmt::format( "[{},{}] {}x{}", r.origin.x,
                           r.origin.y, r.size.w, r.size.h );
     },
+    []( double const d ) -> string {
+      return fmt::format( "{:.3}", d );
+    },
     []( auto const& o ) -> string { return base::to_str( o ); },
   };
   return
@@ -227,18 +230,16 @@ struct OmniPlane::Impl : public IPlane {
     vector<string> lines;
     auto const     log = line_logger( lines );
 
-    auto const physical_size = main_window_physical_size();
-
     CHECK( resolution.has_value() );
     auto const scores = gfx::score( *resolution );
 
     log( "Resolution:" );
-    log( " physical:    {}", physical_size );
+    log( " physical:    {}", resolution->physical );
     log( " logical:     {}", resolution->logical.dimensions );
     log( " scale:       {}", resolution->logical.scale );
     log( " viewport:    {}", resolution->viewport );
     log( " fit.score:   {}", scores.fitting );
-    log( " sz.score:    {}", scores.size );
+    log( " size.score:  {}", scores.size );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 32, .y = 32 };

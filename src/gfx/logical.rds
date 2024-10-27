@@ -24,8 +24,7 @@ struct.LogicalResolution {
   scale 'int',
 }
 
-# A score of 0.0 is a perfect score; the larger the score, the
-# worse it is.
+# A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
 struct.ResolutionScores {
   fitting 'double',
   size    'double',

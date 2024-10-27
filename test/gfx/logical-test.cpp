@@ -24,6 +24,7 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+#if 0
 TEST_CASE( "[gfx/logical] supported_logical_resolutions" ) {
   vector<LogicalResolution> expected;
   size                      resolution;
@@ -89,6 +90,7 @@ TEST_CASE( "[gfx/logical] supported_logical_resolutions" ) {
   };
   REQUIRE( f() == expected );
 }
+#endif
 
 TEST_CASE( "[gfx/logical] resolution_analysis" ) {
   // TODO
