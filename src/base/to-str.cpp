@@ -31,10 +31,6 @@ void to_str( uint8_t const o, string& out, tag<uint8_t> ) {
   out += to_string( o );
 }
 
-void to_str( int const o, string& out, tag<int> ) {
-  out += to_string( o );
-}
-
 void to_str( int16_t const o, string& out, tag<int16_t> ) {
   out += to_string( o );
 }
@@ -43,15 +39,19 @@ void to_str( uint16_t const o, string& out, tag<uint16_t> ) {
   out += to_string( o );
 }
 
+void to_str( int32_t const o, string& out, tag<int32_t> ) {
+  out += to_string( o );
+}
+
 void to_str( uint32_t const o, string& out, tag<uint32_t> ) {
   out += to_string( o );
 }
 
-void to_str( size_t const o, string& out, tag<size_t> ) {
+void to_str( int64_t const o, string& out, tag<int64_t> ) {
   out += to_string( o );
 }
 
-void to_str( long const o, string& out, tag<long> ) {
+void to_str( uint64_t const o, string& out, tag<uint64_t> ) {
   out += to_string( o );
 }
 
@@ -61,6 +61,12 @@ void to_str( float const o, std::string& out, tag<float> ) {
 }
 
 void to_str( double const o, std::string& out, tag<double> ) {
+  // Using the fmt one suppresses extra decimal places.
+  out += fmt::to_string( o );
+}
+
+void to_str( long double const o, std::string& out,
+             tag<long double> ) {
   // Using the fmt one suppresses extra decimal places.
   out += fmt::to_string( o );
 }

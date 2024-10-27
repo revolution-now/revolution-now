@@ -32,16 +32,22 @@ namespace base {
 *****************************************************************/
 void to_str( bool o, std::string& out, tag<bool> );
 void to_str( char o, std::string& out, tag<char> );
+
 void to_str( int8_t o, std::string& out, tag<int8_t> );
 void to_str( uint8_t o, std::string& out, tag<uint8_t> );
-void to_str( int o, std::string& out, tag<int> );
+
 void to_str( int16_t o, std::string& out, tag<int16_t> );
 void to_str( uint16_t o, std::string& out, tag<uint16_t> );
+
+void to_str( int32_t o, std::string& out, tag<int32_t> );
 void to_str( uint32_t o, std::string& out, tag<uint32_t> );
-void to_str( size_t o, std::string& out, tag<size_t> );
-void to_str( long o, std::string& out, tag<long> );
+
+void to_str( int64_t o, std::string& out, tag<int64_t> );
+void to_str( uint64_t o, std::string& out, tag<uint64_t> );
+
 void to_str( float o, std::string& out, tag<float> );
 void to_str( double o, std::string& out, tag<double> );
+void to_str( long double o, std::string& out, tag<long double> );
 
 template<size_t N> void to_str( char const ( &o )[N],
                                 std::string& out,
