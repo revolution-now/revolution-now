@@ -65,6 +65,7 @@ struct.ResolutionTolerance {
 struct.ResolutionRatingOptions {
   prefer_fullscreen 'bool',
   tolerance 'ResolutionTolerance',
+  ideal_pixel_size_mm 'double',
 }
 
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.

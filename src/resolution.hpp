@@ -17,16 +17,17 @@
 // Revolution Now
 #include "maybe.hpp"
 
+// gfx
+#include "gfx/logical.rds.hpp"
+
 // C++ standard library
 #include <vector>
-
-namespace gfx {
-struct Monitor;
-}
 
 namespace rn {
 
 Resolutions compute_resolutions( gfx::Monitor const& monitor,
                                  gfx::size physical_window );
+
+gfx::ResolutionRatingOptions resolution_rating_options();
 
 } // namespace rn

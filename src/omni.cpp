@@ -15,6 +15,7 @@
 #include "input.hpp"
 #include "menu.hpp"
 #include "plane.hpp"
+#include "resolution.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -249,7 +250,8 @@ struct OmniPlane::Impl : public IPlane {
     CHECK( resolution.has_value() );
     auto const monitor = gfx::monitor_properties(
         main_window_physical_size(), monitor_dpi() );
-    auto const scores = gfx::score( *resolution );
+    auto const scores =
+        gfx::score( *resolution, resolution_rating_options() );
 
     log( "Resolution:" );
     log( " screen:        {}", monitor.physical_screen );

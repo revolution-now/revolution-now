@@ -22,63 +22,67 @@ namespace {
 
 using ::base::maybe;
 
+/****************************************************************
+** Globals.
+*****************************************************************/
+vector<gfx::size> const SUPPORTED_LOGICAL_RESOLUTIONS{
+  // 16:9
+  { .w = 768, .h = 432 },
+  { .w = 640, .h = 360 },
+  // { .w = 480, .h = 270 }, // superlarge.
+
+  // 9:16 (rotated 16:9)
+  { .w = 432, .h = 768 },
+  { .w = 360, .h = 640 },
+  // { .w = 270, .h = 480 }, // superlarge.
+
+  // 16:10
+  { .w = 720, .h = 450 },
+  { .w = 576, .h = 360 },
+  { .w = 640, .h = 400 },
+
+  // 10:16 (rotated 16:10)
+  { .w = 450, .h = 720 },
+  { .w = 360, .h = 576 },
+  { .w = 400, .h = 640 },
+
+  // 4:3
+  { .w = 960, .h = 720 },
+  { .w = 640, .h = 480 },
+
+  // 21:9 (approximately)
+  //
+  // - for native: 2560x1080 (WFHD)
+  { .w = 1'280, .h = 540 },
+  { .w = 852, .h = 360 }, // not exact; w=853.333333
+  //
+  // - for native: 3440x1440 (WQHD)
+  { .w = 1'146, .h = 480 }, // not exact; w=1146.67
+  { .w = 860, .h = 360 },
+  //
+  // - for native: 3840x1600
+  { .w = 960, .h = 400 },
+};
+
+gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
+  // TODO: consider making this a config parameter.
+  .prefer_fullscreen = false,
+  .tolerance         = { .min_percent_covered  = nothing,
+                         .fitting_score_cutoff = nothing },
+  // .ideal_pixel_size_mm = .79375, // selects 640x360
+  .ideal_pixel_size_mm = .66145, // selects 768x432
+};
+
+/****************************************************************
+** Helpers.
+*****************************************************************/
 gfx::ResolutionRatings compute_logical_resolution_ratings(
     gfx::Monitor const& monitor,
     gfx::size const     physical_window ) {
-  vector<gfx::Resolution> res;
-  vector<gfx::size> const supported_logical_resolutions{
-    // 16:9
-    { .w = 768, .h = 432 },
-    { .w = 640, .h = 360 },
-    // { .w = 480, .h = 270 }, // superlarge.
-
-    // 9:16 (rotated 16:9)
-    { .w = 432, .h = 768 },
-    { .w = 360, .h = 640 },
-    // { .w = 270, .h = 480 }, // superlarge.
-
-    // 16:10
-    { .w = 720, .h = 450 },
-    { .w = 576, .h = 360 },
-    { .w = 640, .h = 400 },
-
-    // 10:16 (rotated 16:10)
-    { .w = 450, .h = 720 },
-    { .w = 360, .h = 576 },
-    { .w = 400, .h = 640 },
-
-    // 4:3
-    { .w = 960, .h = 720 },
-    { .w = 640, .h = 480 },
-
-    // 21:9 (approximately)
-    //
-    // - for native: 2560x1080 (WFHD)
-    { .w = 1'280, .h = 540 },
-    { .w = 852, .h = 360 }, // not exact; w=853.333333
-    //
-    // - for native: 3440x1440 (WQHD)
-    { .w = 1'146, .h = 480 }, // not exact; w=1146.67
-    { .w = 860, .h = 360 },
-    //
-    // - for native: 3840x1600
-    { .w = 960, .h = 400 },
-  };
-
-  // Common ultrawide resolutions.
-
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      monitor, physical_window, supported_logical_resolutions );
-
-  gfx::ResolutionRatingOptions const options{
-    // TODO: consider making this a config parameter.
-    .prefer_fullscreen = false,
-    .tolerance         = { .min_percent_covered  = nothing, // .8,
-                           .fitting_score_cutoff = nothing } };
-
-  gfx::ResolutionRatings ratings =
-      resolution_ratings( analysis, options );
-
+      monitor, physical_window, SUPPORTED_LOGICAL_RESOLUTIONS );
+  gfx::ResolutionRatings ratings = resolution_ratings(
+      analysis, resolution_rating_options() );
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.
@@ -87,7 +91,6 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
     .logical =
         gfx::LogicalResolution{ .dimensions = {}, .scale = 1 },
     .viewport = {} } );
-
   return ratings;
 }
 
@@ -96,6 +99,10 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
 /****************************************************************
 ** Public API.
 *****************************************************************/
+gfx::ResolutionRatingOptions resolution_rating_options() {
+  return RESOLUTION_RATINGS;
+}
+
 Resolutions compute_resolutions(
     gfx::Monitor const& monitor,
     gfx::size const     physical_window ) {

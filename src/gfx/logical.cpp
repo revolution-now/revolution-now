@@ -20,8 +20,9 @@ using ::base::maybe;
 using ::base::nothing;
 
 static bool meets_tolerance(
-    Resolution const& r, ResolutionScores const& scores,
-    ResolutionTolerance const& tolerance ) {
+    Resolution const&              r,
+    ResolutionRatingOptions const& options ) {
+  auto const& tolerance = options.tolerance;
   if( tolerance.min_percent_covered.has_value() &&
       r.physical_window.area() > 0 ) {
     int const scaled_clipped_area =
@@ -35,6 +36,7 @@ static bool meets_tolerance(
   }
 
   if( tolerance.fitting_score_cutoff.has_value() ) {
+    auto const scores = score( r, options );
     if( scores.fitting < *tolerance.fitting_score_cutoff )
       return false;
   }
@@ -86,7 +88,9 @@ Monitor monitor_properties( size const          physical_screen,
   return monitor;
 }
 
-ResolutionScores score( Resolution const& r ) {
+ResolutionScores score(
+    Resolution const&              r,
+    ResolutionRatingOptions const& options ) {
   ResolutionScores scores;
 
   if( r.physical_window.area() == 0 ) return {};
@@ -102,9 +106,7 @@ ResolutionScores score( Resolution const& r ) {
   // Size score.
   if( r.pixel_size_mm.has_value() ) {
     CHECK_GE( *r.pixel_size_mm, 0.0 );
-    // TODO
-    // double constexpr ideal = .79375; // selects 640x360 first.
-    double constexpr ideal = .661458; // selects 768x432 first.
+    double const ideal = options.ideal_pixel_size_mm;
     // This has the property that is the pixel size is zero or
     // infinity then the score is zero, and the score is 1.0 when
     // the pixel size matches the ideal value.
@@ -175,17 +177,20 @@ ResolutionRatings resolution_ratings(
         is_exact( l ) != is_exact( r ) )
       // Exact fits should go first.
       return is_exact( l );
-    return score( l ).overall > score( r ).overall;
+    return score( l, options ).overall >
+           score( r, options ).overall;
   };
 
-  auto sorted = analysis.resolutions;
-  ranges::sort( sorted, sorter );
+  auto const sorted = [&] {
+    auto cpy = analysis.resolutions;
+    ranges::sort( cpy, sorter );
+    return cpy;
+  }();
 
-  for( auto const& r : sorted ) {
-    auto& where =
-        meets_tolerance( r, score( r ), options.tolerance )
-            ? res.available
-            : res.unavailable;
+  for( Resolution const& r : sorted ) {
+    auto& where = meets_tolerance( r, options )
+                      ? res.available
+                      : res.unavailable;
     where.push_back( r );
   }
 
