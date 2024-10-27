@@ -92,6 +92,14 @@ TEST_CASE( "[gfx/logical] supported_logical_resolutions" ) {
 }
 #endif
 
+TEST_CASE( "[gfx/logical] monitor_properties" ) {
+  // TODO
+}
+
+TEST_CASE( "[gfx/logical] score" ) {
+  // TODO
+}
+
 TEST_CASE( "[gfx/logical] resolution_analysis" ) {
   // TODO
 }
