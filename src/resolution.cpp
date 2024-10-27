@@ -68,7 +68,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   // Common ultrawide resolutions.
 
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      physical_window, supported_logical_resolutions );
+      monitor, physical_window, supported_logical_resolutions );
 
   gfx::ResolutionTolerance const tolerance{
     .min_percent_covered  = nothing, // .8,
@@ -76,7 +76,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   };
 
   gfx::ResolutionRatings ratings =
-      resolution_ratings( analysis, monitor, tolerance );
+      resolution_ratings( analysis, tolerance );
 
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty

@@ -27,7 +27,9 @@ struct.LogicalResolution {
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
 struct.ResolutionScores {
   fitting 'double',
-  size 'double',
+  # This scores based on the size of the logical pixels on the
+  # screen after scaling.
+  pixel_size 'double',
   overall 'double',
 }
 
@@ -47,6 +49,8 @@ struct.Resolution {
   # creet logical coordinates anyway because it may start on a
   # fractional logical coordinate.
   viewport 'rect',
+  # The size of a pixel on screen in millimeters.
+  pixel_size_mm 'base::maybe<double>',
 }
 
 struct.ResolutionAnalysis {

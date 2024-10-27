@@ -249,18 +249,19 @@ struct OmniPlane::Impl : public IPlane {
     CHECK( resolution.has_value() );
     auto const monitor = gfx::monitor_properties(
         main_window_physical_size(), monitor_dpi() );
-    auto const scores = gfx::score( *resolution, monitor );
+    auto const scores = gfx::score( *resolution );
 
     log( "Resolution:" );
-    log( " screen:      {}", monitor.physical_screen );
-    log( " dpi:         {}", monitor.dpi );
-    log( " inches:      {}", monitor.diagonal_inches );
-    log( " window:      {}", resolution->physical_window );
-    log( " logical:     {}", resolution->logical.dimensions );
-    log( " scale:       {}", resolution->logical.scale );
-    log( " viewport:    {}", resolution->viewport );
-    log( " fit.score:   {}", scores.fitting );
-    log( " size.score:  {}", scores.size );
+    log( " screen:        {}", monitor.physical_screen );
+    log( " dpi:           {}", monitor.dpi );
+    log( " inches:        {}", monitor.diagonal_inches );
+    log( " window:        {}", resolution->physical_window );
+    log( " logical:       {}", resolution->logical.dimensions );
+    log( " scale:         {}", resolution->logical.scale );
+    log( " viewport:      {}", resolution->viewport );
+    log( " fit score:     {}", scores.fitting );
+    log( " size score:    {}", scores.pixel_size );
+    log( " overall score: {}", scores.overall );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 32, .y = 32 };
