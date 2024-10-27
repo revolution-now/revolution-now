@@ -19,24 +19,21 @@ include "<vector>"
 
 namespace "gfx"
 
-struct.LogicalResolution {
-  dimensions 'size',
-  scale 'int',
-}
-
-# A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
-struct.ResolutionScores {
-  fitting 'double',
-  # This scores based on the size of the logical pixels on the
-  # screen after scaling.
-  pixel_size 'double',
-  overall 'double',
-}
-
+# ---------------------------------------------------------------
+# Hardware inputs.
+# ---------------------------------------------------------------
 struct.Monitor {
   physical_screen 'size',
   dpi 'base::maybe<double>',
   diagonal_inches 'base::maybe<double>',
+}
+
+# ---------------------------------------------------------------
+# Resolution Representations.
+# ---------------------------------------------------------------
+struct.LogicalResolution {
+  dimensions 'size',
+  scale 'int',
 }
 
 struct.Resolution {
@@ -57,9 +54,26 @@ struct.ResolutionAnalysis {
   resolutions 'std::vector<Resolution>',
 }
 
+# ---------------------------------------------------------------
+# Resolution Selection Heuristics.
+# ---------------------------------------------------------------
 struct.ResolutionTolerance {
   min_percent_covered 'base::maybe<double>',
   fitting_score_cutoff 'base::maybe<double>',
+}
+
+struct.ResolutionRatingOptions {
+  prefer_fullscreen 'bool',
+  tolerance 'ResolutionTolerance',
+}
+
+# A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
+struct.ResolutionScores {
+  fitting 'double',
+  # This scores based on the size of the logical pixels on the
+  # screen after scaling.
+  pixel_size 'double',
+  overall 'double',
 }
 
 struct.ResolutionRatings {

@@ -32,7 +32,7 @@ ResolutionAnalysis resolution_analysis(
     std::span<size const> supported_logical_resolutions );
 
 ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
-    ResolutionTolerance const& tolerance );
+    ResolutionAnalysis const&      analysis,
+    ResolutionRatingOptions const& options );
 
 } // namespace gfx

@@ -70,13 +70,14 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
       monitor, physical_window, supported_logical_resolutions );
 
-  gfx::ResolutionTolerance const tolerance{
-    .min_percent_covered  = nothing, // .8,
-    .fitting_score_cutoff = nothing,
-  };
+  gfx::ResolutionRatingOptions const options{
+    // TODO: consider making this a config parameter.
+    .prefer_fullscreen = false,
+    .tolerance         = { .min_percent_covered  = nothing, // .8,
+                           .fitting_score_cutoff = nothing } };
 
   gfx::ResolutionRatings ratings =
-      resolution_ratings( analysis, tolerance );
+      resolution_ratings( analysis, options );
 
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty

@@ -166,27 +166,26 @@ ResolutionAnalysis resolution_analysis(
 }
 
 ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&  analysis,
-    ResolutionTolerance const& tolerance ) {
+    ResolutionAnalysis const&      analysis,
+    ResolutionRatingOptions const& options ) {
   ResolutionRatings res;
 
-  auto score_for = [&]( Resolution const& r ) {
-    return score( r ).overall;
+  auto sorter = [&]( Resolution const& l, Resolution const& r ) {
+    if( options.prefer_fullscreen &&
+        is_exact( l ) != is_exact( r ) )
+      // Exact fits should go first.
+      return is_exact( l );
+    return score( l ).overall > score( r ).overall;
   };
 
   auto sorted = analysis.resolutions;
-  sort( sorted.begin(), sorted.end(),
-        [&]( Resolution const& l, Resolution const& r ) {
-          if( is_exact( l ) != is_exact( r ) )
-            // Exact fits should go first.
-            return is_exact( l );
-          return score_for( l ) > score_for( r );
-        } );
+  ranges::sort( sorted, sorter );
 
   for( auto const& r : sorted ) {
-    auto& where = meets_tolerance( r, score( r ), tolerance )
-                      ? res.available
-                      : res.unavailable;
+    auto& where =
+        meets_tolerance( r, score( r ), options.tolerance )
+            ? res.available
+            : res.unavailable;
     where.push_back( r );
   }
 
