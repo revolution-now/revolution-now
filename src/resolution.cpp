@@ -13,6 +13,7 @@
 
 // gfx
 #include "gfx/logical.hpp"
+#include "logical.rds.hpp"
 
 using namespace std;
 
@@ -31,20 +32,10 @@ vector<gfx::size> const SUPPORTED_LOGICAL_RESOLUTIONS{
   { .w = 640, .h = 360 },
   // { .w = 480, .h = 270 }, // superlarge.
 
-  // 9:16 (rotated 16:9)
-  { .w = 432, .h = 768 },
-  { .w = 360, .h = 640 },
-  // { .w = 270, .h = 480 }, // superlarge.
-
   // 16:10
   { .w = 720, .h = 450 },
   { .w = 576, .h = 360 },
   { .w = 640, .h = 400 },
-
-  // 10:16 (rotated 16:10)
-  { .w = 450, .h = 720 },
-  { .w = 360, .h = 576 },
-  { .w = 400, .h = 640 },
 
   // 4:3
   { .w = 960, .h = 720 },
@@ -69,6 +60,8 @@ gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
   .prefer_fullscreen = false,
   .tolerance         = { .min_percent_covered  = nothing,
                          .fitting_score_cutoff = nothing },
+  // TODO: see if there is a better way to come up with this
+  // number instead of hardcoding it for all monitor sizes.
   // .ideal_pixel_size_mm = .79375, // selects 640x360
   .ideal_pixel_size_mm = .66145, // selects 768x432
 };
@@ -86,11 +79,14 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.
-  ratings.unavailable.push_back( gfx::Resolution{
-    .physical_window = {},
-    .logical =
-        gfx::LogicalResolution{ .dimensions = {}, .scale = 1 },
-    .viewport = {} } );
+  ratings.unavailable.push_back( gfx::RatedResolution{
+    .resolution =
+        gfx::Resolution{
+          .physical_window = {},
+          .logical  = gfx::LogicalResolution{ .dimensions = {},
+                                              .scale      = 1 },
+          .viewport = {} },
+    .scores = {} } );
   return ratings;
 }
 
@@ -115,7 +111,7 @@ Resolutions compute_resolutions(
   if( !ratings.available.empty() ) {
     // Copy to avoid use-after-move.
     auto selected = SelectedResolution{
-      .resolution   = ratings.available[0],
+      .rated        = ratings.available[0],
       .idx          = 0,
       .availability = e_resolution_availability::available };
     return Resolutions{ .ratings  = std::move( ratings ),
@@ -123,7 +119,7 @@ Resolutions compute_resolutions(
   } else {
     // Copy to avoid use-after-move.
     auto selected = SelectedResolution{
-      .resolution   = ratings.unavailable[0],
+      .rated        = ratings.unavailable[0],
       .idx          = 0,
       .availability = e_resolution_availability::unavailable };
     return Resolutions{ .ratings  = std::move( ratings ),

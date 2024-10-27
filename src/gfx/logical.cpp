@@ -69,6 +69,24 @@ maybe<double> pixel_size_millimeters( maybe<double> const dpi,
   return scale * kMillimetersPerInch / *dpi;
 }
 
+// This function has the following desirable properties:
+//
+//   1. It is symetric in x and y.
+//   2. If either one is zero, the result is 0.
+//   3. If either one is +/- inf, the result is 0.
+//   4. If they are equal, the result is 1.
+//   5. The value is in [0, 1].
+//
+// This is used to generate a "score" that measure the difference
+// between the two in a way that maps onto [0, 1] and where 0 is
+// "worst match" and 1 is "best match".
+double relative_diff_score_fn( double const x, double const y ) {
+  // The clamp is just for floating point error; the equation
+  // theoretically guarantees that the result will be in [0,1.0]
+  // and so this would at most eliminate insignificant fractions.
+  return std::clamp( 1.0 - abs( x - y ) / ( x + y ), 0.0, 1.0 );
+}
+
 } // namespace
 
 /****************************************************************
@@ -95,28 +113,54 @@ ResolutionScores score(
 
   if( r.physical_window.area() == 0 ) return {};
 
+  auto round_score = []( double& score ) {
+    score = double( lround( score * 100.0 ) ) / 100.0;
+  };
+
   scores = {};
 
   // Fitting score.
   int const occupied_area = r.viewport.area();
   int const total_area    = r.physical_window.area();
   CHECK_LE( occupied_area, total_area );
-  scores.fitting = sqrt( 1.0 * occupied_area / total_area );
+  scores.fitting = relative_diff_score_fn( sqrt( occupied_area ),
+                                           sqrt( total_area ) );
 
-  // Size score.
+  // Pixel size score.
   if( r.pixel_size_mm.has_value() ) {
     CHECK_GE( *r.pixel_size_mm, 0.0 );
-    double const ideal = options.ideal_pixel_size_mm;
-    // This has the property that is the pixel size is zero or
-    // infinity then the score is zero, and the score is 1.0 when
-    // the pixel size matches the ideal value.
-    scores.pixel_size = 1.0 - abs( *r.pixel_size_mm - ideal ) /
-                                  ( *r.pixel_size_mm + ideal );
-    CHECK_GE( scores.pixel_size, 0.0 );
+    scores.pixel_size = relative_diff_score_fn(
+        *r.pixel_size_mm, options.ideal_pixel_size_mm );
+  }
+
+  // Aspect ratio score.
+  if( r.physical_window.h > 0 && r.logical.dimensions.h > 0 ) {
+    double const physical_ratio =
+        1.0 * r.physical_window.w / r.physical_window.h;
+    double const logical_ratio =
+        1.0 * r.logical.dimensions.w / r.logical.dimensions.h;
+    scores.aspect_match =
+        relative_diff_score_fn( physical_ratio, logical_ratio );
   }
 
   // Overall score should be computed last.
-  scores.overall = scores.fitting * scores.pixel_size;
+  auto const fields = {
+    &scores.fitting,      //
+    &scores.pixel_size,   //
+    &scores.aspect_match, //
+    // Leave out the overall score.
+  };
+
+  // Round them all to two decimal places to allow some amount of
+  // bucketing, that way we can have a chance of being able to
+  // say "if these two have the same fitting score, then defer to
+  // pixel size score".
+  for( auto const field : fields ) round_score( *field );
+
+  scores.overall = 1.0;
+  for( auto const field : fields ) scores.overall *= ( *field );
+  round_score( scores.overall );
+
   return scores;
 }
 
@@ -131,37 +175,35 @@ ResolutionAnalysis resolution_analysis(
   ResolutionAnalysis res;
   for( size const target : supported_logical_resolutions ) {
     LogicalResolution scaled{ .dimensions = target, .scale = 1 };
-    maybe<LogicalResolution> largest_that_fits;
     while( scaled.dimensions.fits_inside( physical_window ) ) {
-      largest_that_fits = LogicalResolution{
+      auto const logical = LogicalResolution{
         .dimensions = target, .scale = scaled.scale };
+      // Exact fit to physical window.
+      bool const exact_fit =
+          ( logical.dimensions * logical.scale ==
+            physical_window );
+      Resolution r;
+      r.physical_window = physical_window;
+      r.logical         = logical;
+      r.viewport        = physical_rect;
+      r.pixel_size_mm =
+          pixel_size_millimeters( monitor.dpi, logical.scale );
+
+      if( !exact_fit ) {
+        // Fits within the window but smaller. Need to adjust
+        // viewport.
+        size const chosen_physical =
+            logical.dimensions * logical.scale;
+        rect const viewport{
+          .origin =
+              centered_in( chosen_physical, physical_rect ),
+          .size = chosen_physical };
+        r.viewport = viewport;
+      }
+
+      res.resolutions.push_back( std::move( r ) );
       ++scaled.scale;
       scaled.dimensions = target * scaled.scale;
-    }
-    if( !largest_that_fits.has_value() ) continue;
-    LogicalResolution const& logical = *largest_that_fits;
-
-    if( logical.dimensions * logical.scale == physical_window ) {
-      // Exact fit to physical_window window.
-      res.resolutions.push_back(
-          Resolution{ .physical_window = physical_window,
-                      .logical         = logical,
-                      .viewport        = physical_rect,
-                      .pixel_size_mm   = pixel_size_millimeters(
-                          monitor.dpi, logical.scale ) } );
-    } else {
-      // Fits within the window but smaller.
-      size const chosen_physical =
-          logical.dimensions * logical.scale;
-      rect const viewport{
-        .origin = centered_in( chosen_physical, physical_rect ),
-        .size   = chosen_physical };
-      res.resolutions.push_back(
-          Resolution{ .physical_window = physical_window,
-                      .logical         = logical,
-                      .viewport        = viewport,
-                      .pixel_size_mm   = pixel_size_millimeters(
-                          monitor.dpi, logical.scale ) } );
     }
   }
   return res;
@@ -170,30 +212,52 @@ ResolutionAnalysis resolution_analysis(
 ResolutionRatings resolution_ratings(
     ResolutionAnalysis const&      analysis,
     ResolutionRatingOptions const& options ) {
-  ResolutionRatings res;
+  vector<RatedResolution> all;
+  for( auto const& r : analysis.resolutions )
+    all.push_back( RatedResolution{
+      .resolution = r, .scores = score( r, options ) } );
 
-  auto sorter = [&]( Resolution const& l, Resolution const& r ) {
-    if( options.prefer_fullscreen &&
-        is_exact( l ) != is_exact( r ) )
-      // Exact fits should go first.
-      return is_exact( l );
-    return score( l, options ).overall >
-           score( r, options ).overall;
+  auto stable_sort_by = [&]( auto&& key_fn ) {
+    ranges::stable_sort( all,
+                         [&]( auto const& l, auto const& r ) {
+                           return key_fn( l ) < key_fn( r );
+                         } );
   };
 
-  auto const sorted = [&] {
-    auto cpy = analysis.resolutions;
-    ranges::sort( cpy, sorter );
-    return cpy;
-  }();
+  // Sort in reverse order of importance. The less important once
+  // are not really ever expected to be relevant, since they'd
+  // only be consulted if the overall scores for two candidates
+  // turn out to be the same, which seems kind of rare.
 
-  for( Resolution const& r : sorted ) {
-    auto& where = meets_tolerance( r, options )
-                      ? res.available
-                      : res.unavailable;
-    where.push_back( r );
+  stable_sort_by( []( RatedResolution const& rr ) {
+    return -rr.scores.pixel_size;
+  } );
+
+  stable_sort_by( []( RatedResolution const& rr ) {
+    return -rr.scores.fitting;
+  } );
+
+  stable_sort_by( []( RatedResolution const& rr ) {
+    return -rr.scores.aspect_match;
+  } );
+
+  stable_sort_by( []( RatedResolution const& rr ) {
+    return -rr.scores.overall;
+  } );
+
+  if( options.prefer_fullscreen ) {
+    stable_sort_by( []( RatedResolution const& rr ) {
+      return is_exact( rr.resolution );
+    } );
   }
 
+  ResolutionRatings res;
+  for( RatedResolution const& rr : all ) {
+    auto& where = meets_tolerance( rr.resolution, options )
+                      ? res.available
+                      : res.unavailable;
+    where.push_back( rr );
+  }
   return res;
 }
 

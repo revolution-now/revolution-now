@@ -22,7 +22,7 @@ enum.e_resolution_availability {
 }
 
 struct.SelectedResolution {
-  resolution 'gfx::Resolution',
+  rated 'gfx::RatedResolution',
   idx 'int',
   availability 'e_resolution_availability',
 }

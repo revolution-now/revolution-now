@@ -294,12 +294,13 @@ REGISTER_INIT_ROUTINE( screen );
 
 void set_pending_resolution(
     SelectedResolution const& selected_resolution ) {
-  if( selected_resolution.resolution.logical !=
-      g_resolutions().selected.resolution.logical )
-    lg.info(
-        "logical resolution changing to {}x{}",
-        selected_resolution.resolution.logical.dimensions.w,
-        selected_resolution.resolution.logical.dimensions.h );
+  if( selected_resolution.rated.resolution.logical !=
+      g_resolutions().selected.rated.resolution.logical )
+    lg.info( "logical resolution changing to {}x{}",
+             selected_resolution.rated.resolution.logical
+                 .dimensions.w,
+             selected_resolution.rated.resolution.logical
+                 .dimensions.h );
   input::inject_resolution_event( selected_resolution );
 }
 
@@ -316,7 +317,7 @@ gfx::rect main_window_viewport() {
   auto const& selected = g_resolutions().selected;
   switch( selected.availability ) {
     case e_resolution_availability::available:
-      return selected.resolution.viewport;
+      return selected.rated.resolution.viewport;
     case e_resolution_availability::unavailable:
       return gfx::rect{ .size = main_window_physical_size() };
   }
@@ -331,8 +332,8 @@ void on_logical_resolution_changed(
       if( g_resolutions().selected.availability ==
           e_resolution_availability::available )
         input::update_mouse_pos_with_viewport_change(
-            old_selected_resolution.resolution,
-            new_resolutions.selected.resolution );
+            old_selected_resolution.rated.resolution,
+            new_resolutions.selected.rated.resolution );
       break;
     }
     case e_resolution_availability::unavailable: {
@@ -349,7 +350,7 @@ void on_logical_resolution_changed(
 
 gfx::size shrinkage_size() {
   auto const& logical =
-      g_resolutions().selected.resolution.logical;
+      g_resolutions().selected.rated.resolution.logical;
   gfx::size const target_size =
       logical.dimensions * logical.scale;
   return target_size;
@@ -411,7 +412,7 @@ maybe<gfx::Resolution const&> get_global_resolution() {
   auto const& selected = g_resolutions().selected;
   switch( selected.availability ) {
     case e_resolution_availability::available:
-      return selected.resolution;
+      return selected.rated.resolution;
     case e_resolution_availability::unavailable:
       return nothing;
   }
@@ -421,7 +422,7 @@ gfx::size main_window_logical_size() {
   auto const& selected = g_resolutions().selected;
   switch( selected.availability ) {
     case e_resolution_availability::available:
-      return selected.resolution.logical.dimensions;
+      return selected.rated.resolution.logical.dimensions;
     case e_resolution_availability::unavailable:
       return logical_resolution_for_invalid_window_size();
   }
@@ -530,7 +531,7 @@ void cycle_resolution( int const delta ) {
   while( selected.idx < 0 ) selected.idx += available.size();
   selected.idx %= available.size();
   CHECK_LT( selected.idx, ssize( available ) );
-  selected.resolution = available[selected.idx];
+  selected.rated = available[selected.idx];
   set_pending_resolution( selected );
 }
 
@@ -540,7 +541,7 @@ void set_resolution_idx_to_optimal() {
 
   if( curr.ratings.available.empty() ) return;
   set_pending_resolution( SelectedResolution{
-    .resolution   = curr.ratings.available[0],
+    .rated        = curr.ratings.available[0],
     .idx          = 0,
     .availability = e_resolution_availability::available } );
 }

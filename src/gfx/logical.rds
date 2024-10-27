@@ -70,20 +70,30 @@ struct.ResolutionRatingOptions {
 
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
 struct.ResolutionScores {
+  # The more of the screen it covers, the better.
   fitting 'double',
   # This scores based on the size of the logical pixels on the
-  # screen after scaling.
+  # screen after scaling. The closer it is to the specified tar-
+  # get, the better.
   pixel_size 'double',
+  # The closer the aspect ratio matches the aspect ratio of the
+  # window, the better.
+  aspect_match 'double',
   overall 'double',
+}
+
+struct.RatedResolution {
+  resolution 'Resolution',
+  scores 'ResolutionScores',
 }
 
 struct.ResolutionRatings {
   # These are the ones that either fit the window exactly or fit
   # within it, such that there will be no part bleeding off the
   # edge of the window.
-  available 'std::vector<Resolution>',
+  available 'std::vector<RatedResolution>',
 
   # These are the ones that would have been in the 'viable' cate-
   # gory but did not meet the require tolerance requirements.
-  unavailable 'std::vector<Resolution>',
+  unavailable 'std::vector<RatedResolution>',
 }

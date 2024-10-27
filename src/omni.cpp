@@ -263,6 +263,7 @@ struct OmniPlane::Impl : public IPlane {
     log( " viewport:      {}", resolution->viewport );
     log( " fit score:     {}", scores.fitting );
     log( " size score:    {}", scores.pixel_size );
+    log( " aspect score:  {}", scores.aspect_match );
     log( " overall score: {}", scores.overall );
 
     gfx::point const info_region_anchor =
