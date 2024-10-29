@@ -139,7 +139,7 @@ ResolutionScores score(
     ResolutionRatingOptions const& options ) {
   ResolutionScores scores;
 
-  if( r.physical_window.dimensions.area() == 0 ) return {};
+  if( r.physical_window.dimensions.area() == 0 ) return scores;
 
   auto round_score = []( double& score ) {
     score = double( lround( score * 100.0 ) ) / 100.0;
