@@ -41,8 +41,8 @@ end
 function M.formattable( func )
   return function( fmt, ... )
     if fmt == nil then return func() end
-    local cmd = format( fmt, ... )
-    return func( cmd )
+    if #{ ... } == 0 then return func( fmt ) end
+    return func( format( fmt, ... ) )
   end
 end
 
@@ -91,6 +91,42 @@ end
 
 function M.ide_root_dir()
   return assert( this_script:match( '^(.*/ide)/' ) )
+end
+
+local function make_command_string( prog, ... )
+  assert( prog )
+  local c = format( '"%s"', prog )
+  assert( not prog:match( ' ' ),
+          'program name should not have spaces in it.' )
+  for _, arg in ipairs{ ... } do
+    arg = arg:gsub( '"', [[\"]] )
+    c = format( '%s "%s"', c, arg )
+  end
+  return c
+end
+
+-- Runs a shell command in a subprocess, waits for it to end,
+-- then returns the entirety of stdout as a string. If the pro-
+-- gram ends with a non-zero error code then an error will be
+-- thrown with information about the error. Note that stderr of
+-- the subprocess is not captured, so it will just go to stderr
+-- of the calling process. If you want to send stderr to stdout
+-- it should work to include 2>&1 on the command line. It is ex-
+-- pected that the `sh` shell is used.
+function M.shell_command( prog, ... )
+  local c = make_command_string( prog, ... )
+  local file = assert( io.popen( c ) )
+  file:flush()
+  local stdout = file:read( '*all' )
+  local success, termination = file:close()
+  if not success then
+    error( format( 'system command failed.\n' .. --
+                       '  success:     %s\n' .. --
+                       '  termination: %s\n' .. --
+                       '  command:     %s', --
+    success, termination, c ) )
+  end
+  return stdout
 end
 
 return M

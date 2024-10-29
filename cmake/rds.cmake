@@ -11,6 +11,8 @@ function( generate_rds_target target )
   # Generate the include files parameters.
   set( rds_generated_files "" )
 
+  # NOTE: if this changes, don't forget to change the corre-
+  # sponding one in the ide.
   set( preamble "${CMAKE_SOURCE_DIR}/src/rds/rdsc/preamble.lua" )
 
   # RDS files currently do not include other RDS files, and so
@@ -24,6 +26,8 @@ function( generate_rds_target target )
     add_custom_command(
       OUTPUT ${generated_include}
       COMMENT "building rds definition ${name}"
+      # NOTE: if this command changes, don't forget to change the
+      # corresponding one in the ide.
       COMMAND rdsc
         ${rds}
         ${preamble}

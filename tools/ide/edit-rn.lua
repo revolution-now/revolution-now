@@ -12,7 +12,11 @@ local util = require( 'ide.util' )
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
+local augroup = vim.api.nvim_create_augroup
+local autocmd = vim.api.nvim_create_autocmd
+local buf_get_name = vim.api.nvim_buf_get_name
 local fnamemodify = vim.fn.fnamemodify
+local getbufinfo = vim.fn.getbufinfo
 local keymap = vim.keymap
 local glob = vim.fn.glob
 local format = string.format
@@ -171,6 +175,78 @@ local function mappings()
 end
 
 -----------------------------------------------------------------
+-- Rds file change detection and auto-recompilation.
+-----------------------------------------------------------------
+-- Returns a buffer table corresponding to some random hpp/cpp
+-- buffer that is currently loaded in the editor.
+local function find_any_loaded_cpp_src()
+  local bufs = getbufinfo{ buflisted=1, bufloaded=1 }
+  for _, buf in ipairs( bufs ) do
+    if buf.name:match( '.*%.[ch]pp$' ) then return buf end
+  end
+  return nil
+end
+
+-- This produces a command for running rdsc. It should be kept in
+-- sync with whatever the actual command is in the cmake files.
+local function cmd_to_recompile_rds( rds_name )
+  assert( rds_name )
+  local PREAMBLE = 'src/rds/rdsc/preamble.lua'
+  local RDSC = 'src/rds/rdsc/rdsc'
+  local root = util.rn_root_dir()
+  local build = ('%s/.builds/current'):format( root )
+  local rdsc = ('%s/%s'):format( build, RDSC )
+  local preamble = ('%s/%s'):format( root, PREAMBLE )
+  local out_path = rds_name:sub( #root + 2 )
+  local hpp = ('%s/%s.hpp'):format( build, out_path )
+  local function check_exists( f )
+    if util.file_exists( hpp ) then return end
+    error( '%s does not exist.', f )
+  end
+  check_exists( rdsc )
+  return { rdsc, rds_name, preamble, hpp }
+end
+
+local function on_rds_written( buf )
+  -- We need to find some (any) cpp/hpp source file that is
+  -- loaded because it will be attached to the lsp, and so we can
+  -- use it to get neovim to send events to the lsp for us, even
+  -- though it is the rds file that has changed.
+  local cppbuf = find_any_loaded_cpp_src()
+  if not cppbuf then return end
+  local rds_name = assert( buf_get_name( buf ) )
+  local rds_cmd = cmd_to_recompile_rds( rds_name )
+  util.shell_command( unpack( rds_cmd ) )
+  -- This will trigger a BufWritePost callback defined in the
+  -- neovim lsp lua module that will send a textDocument/didSave
+  -- to the lsp for the given cpp buffer which, for clangd, will
+  -- cause it to check all open buffers for recompilation, which
+  -- is what we want.
+  vim.api.nvim_exec_autocmds( 'BufWritePost', {
+    buffer=cppbuf.bufnr,
+    modeline=false,
+  } )
+end
+
+-- This will setup some callbacks so that each time we save
+-- changes to an rds file, it will automatically get recompiled
+-- using rdsc and then the LSP client will be told to check for
+-- recompilation on all of the open cpp source files.
+local function setup_rds_change_detector()
+  autocmd( 'BufWritePost', {
+    group=augroup( 'RdsChange', { clear=true } ),
+    pattern={ '*.rds' },
+    desc='recompiles rds files when changed and notifies the lsp.',
+    callback=function( ctx )
+      local ok, err = pcall( on_rds_written, ctx.buf )
+      if not ok then
+        print( 'error compiling rds: ' .. err .. '\n' )
+      end
+    end,
+  } )
+end
+
+-----------------------------------------------------------------
 -- Main.
 -----------------------------------------------------------------
 local function main()
@@ -178,7 +254,7 @@ local function main()
   mappings()
 
   -- Add snippets.
-  require( 'ide.snippets' )
+  require'ide.snippets'
 
   -- Creates all of the tabs/splits.
   tabs.set_tab_namer( tab_namer )
@@ -188,6 +264,9 @@ local function main()
   vim.cmd[[tabdo wincmd =]]
   -- When nvim supports it.
   vim.cmd[[tabdo set cmdheight=0]]
+
+  -- Enable rds auto-recompilation.
+  setup_rds_change_detector();
 
   tabs.set_selected_tab( curr_tab )
 end
