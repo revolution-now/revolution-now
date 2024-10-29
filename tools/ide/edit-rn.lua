@@ -20,6 +20,7 @@ local getbufinfo = vim.fn.getbufinfo
 local keymap = vim.keymap
 local glob = vim.fn.glob
 local format = string.format
+local file_exists = util.file_exists
 
 -----------------------------------------------------------------
 -- Constants.
@@ -200,10 +201,12 @@ local function cmd_to_recompile_rds( rds_name )
   local out_path = rds_name:sub( #root + 2 )
   local hpp = ('%s/%s.hpp'):format( build, out_path )
   local function check_exists( f )
-    if util.file_exists( hpp ) then return end
-    error( '%s does not exist.', f )
+    if not file_exists( f ) then
+      error( format( '%s does not exist.', f ) )
+    end
   end
   check_exists( rdsc )
+  -- Command and args.
   return { rdsc, rds_name, preamble, hpp }
 end
 
