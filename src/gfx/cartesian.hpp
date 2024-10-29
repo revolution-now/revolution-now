@@ -511,4 +511,22 @@ struct hash<::gfx::point> {
   }
 };
 
+template<>
+struct hash<::gfx::size> {
+  auto operator()( ::gfx::size const& c ) const noexcept {
+    // Required by std::bit_cast.
+    static_assert( sizeof( c.w ) == sizeof( uint32_t ) );
+    static_assert( sizeof( c.h ) == sizeof( uint32_t ) );
+    // This assumes that the coordinate's components will be less
+    // than 2^32. If that is violated, then it may not be a good
+    // hash function. Also, this should support negative coordi-
+    // nates as well.
+    uint64_t const flat =
+        ( static_cast<uint64_t>( std::bit_cast<uint32_t>( c.h ) )
+          << 32 ) +
+        static_cast<uint64_t>( std::bit_cast<uint32_t>( c.w ) );
+    return hash<uint64_t>{}( flat );
+  }
+};
+
 } // namespace std

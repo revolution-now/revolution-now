@@ -1539,5 +1539,42 @@ TEST_CASE( "[gfx/cartesian] hash point" ) {
   REQUIRE( hasher( p ) == 0x7fffffff7fffffffULL );
 }
 
+/****************************************************************
+** std::hash<gfx::size>
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] hash size" ) {
+  static std::hash<size> const hasher{};
+
+  size s = {};
+
+  s = {};
+  REQUIRE( hasher( s ) == 0x0000000000000000ULL );
+
+  s = { .w = 1 };
+  REQUIRE( hasher( s ) == 0x0000000000000001ULL );
+
+  s = { .h = 1 };
+  REQUIRE( hasher( s ) == 0x0000000100000000ULL );
+
+  s = { .w = 1, .h = 1 };
+  REQUIRE( hasher( s ) == 0x0000000100000001ULL );
+
+  s = { .w = -1, .h = 1 };
+  REQUIRE( hasher( s ) == 0x00000001ffffffffULL );
+
+  s = { .w = 1, .h = -1 };
+  REQUIRE( hasher( s ) == 0xffffffff00000001ULL );
+
+  s = { .w = 0x34500, .h = 0x56770 };
+  REQUIRE( hasher( s ) == 0x0005677000034500ULL );
+
+  s = { .w = -1, .h = -1 };
+  REQUIRE( hasher( s ) == 0xffffffffffffffffULL );
+
+  s = { .w = numeric_limits<int>::max(),
+        .h = numeric_limits<int>::max() };
+  REQUIRE( hasher( s ) == 0x7fffffff7fffffffULL );
+}
+
 } // namespace
 } // namespace gfx

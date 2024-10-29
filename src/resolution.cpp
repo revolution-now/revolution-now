@@ -64,6 +64,9 @@ gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
   // number instead of hardcoding it for all monitor sizes.
   // .ideal_pixel_size_mm = .79375, // selects 640x360
   .ideal_pixel_size_mm = .66145, // selects 768x432
+  // Just take the best of each logical resolution instead of in-
+  // cluding all possible scales of it that fit.
+  .remove_redundant = true,
 };
 
 /****************************************************************
@@ -80,13 +83,11 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   // lution since it is the last resort. Just choose the empty
   // resolution.
   ratings.unavailable.push_back( gfx::RatedResolution{
-    .resolution =
-        gfx::Resolution{
-          .physical_window = {},
-          .logical  = gfx::LogicalResolution{ .dimensions = {},
-                                              .scale      = 1 },
-          .viewport = {} },
-    .scores = {} } );
+    .resolution = gfx::Resolution{ .physical_window = {},
+                                   .logical = { .dimensions = {},
+                                                .scale = 1 },
+                                   .viewport = {} },
+    .scores     = {} } );
   return ratings;
 }
 

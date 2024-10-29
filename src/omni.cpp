@@ -11,6 +11,7 @@
 #include "omni.hpp"
 
 // Revolution Now
+#include "aspect.hpp"
 #include "frame.hpp"
 #include "input.hpp"
 #include "menu.hpp"
@@ -79,6 +80,11 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
     },
     []( auto const&, double const d ) -> string {
       return fmt::format( "{:.3}", d );
+    },
+    []( auto const&,
+        gfx::NamedAspectRatio const& nar ) -> string {
+      return fmt::format(
+          "{}", gfx::named_ratio_canonical_name( nar.name ) );
     },
     []<typename T>( auto const&    self,
                     maybe<T> const m ) -> string {
@@ -254,18 +260,26 @@ struct OmniPlane::Impl : public IPlane {
     auto const scores =
         gfx::score( *resolution, resolution_rating_options() );
 
-    log( "Resolution:" );
-    log( " screen:        {}", monitor.physical_screen );
-    log( " dpi:           {}", monitor.dpi );
-    log( " inches:        {}", monitor.diagonal_inches );
-    log( " window:        {}", resolution->physical_window );
-    log( " logical:       {}", resolution->logical.dimensions );
-    log( " scale:         {}", resolution->logical.scale );
-    log( " viewport:      {}", resolution->viewport );
-    log( " fit score:     {}", scores.fitting );
-    log( " size score:    {}", scores.pixel_size );
-    log( " aspect score:  {}", scores.aspect_match );
-    log( " overall score: {}", scores.overall );
+    log( "Screen:" );
+    log( " dimensions:     {}", monitor.physical_screen );
+    log( " dpi:            {}", monitor.dpi );
+    log( " inches:         {}", monitor.diagonal_inches );
+    log( "Window:" );
+    log( " window.dims:    {}",
+         resolution->physical_window.dimensions );
+    log(
+        " window.aspect:  {}",
+        resolution->physical_window.aspect_ratio.closest_named );
+    log( "Logical:" );
+    log( " logical:        {}", resolution->logical.dimensions );
+    log( " logical.aspect: {}",
+         resolution->logical.aspect_ratio.closest_named );
+    log( " scale:          {}", resolution->logical.scale );
+    log( " viewport:       {}", resolution->viewport );
+    log( "Scores:" );
+    log( " fit score:      {}", scores.fitting );
+    log( " size score:     {}", scores.pixel_size );
+    log( " overall score:  {}", scores.overall );
 
     gfx::point const info_region_anchor =
         gfx::point{ .x = 32, .y = 32 };

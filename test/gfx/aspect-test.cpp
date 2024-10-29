@@ -32,112 +32,46 @@ using ::base::nothing;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[gfx/aspect] find_closest_aspect_ratio" ) {
-  using enum e_named_aspect_ratio;
-  size const resolution_0 = { .w = 1'024, .h = 700 };
-  size const resolution_1 = { .w = 1'024, .h = 807 };
-  size const resolution_2 = { .w = 1'024, .h = 806 };
-  size const resolution_3 = { .w = 1'024, .h = 1'024 };
-  size const resolution_4 = { .w = 1'024, .h = 577 };
-  size const resolution_5 = { .w = 1'024, .h = 305 };
-
-  auto const actual_ratio_0 =
-      AspectRatio::from_size( resolution_0 );
-  auto const actual_ratio_1 =
-      AspectRatio::from_size( resolution_1 );
-  auto const actual_ratio_2 =
-      AspectRatio::from_size( resolution_2 );
-  auto const actual_ratio_3 =
-      AspectRatio::from_size( resolution_3 );
-  auto const actual_ratio_4 =
-      AspectRatio::from_size( resolution_4 );
-  auto const actual_ratio_5 =
-      AspectRatio::from_size( resolution_5 );
-  REQUIRE( actual_ratio_0.has_value() );
-  REQUIRE( actual_ratio_1.has_value() );
-  REQUIRE( actual_ratio_2.has_value() );
-  REQUIRE( actual_ratio_3.has_value() );
-  REQUIRE( actual_ratio_4.has_value() );
-  REQUIRE( actual_ratio_5.has_value() );
-
-  auto const all_aspect_ratios = {
-    AspectRatio::from_named( w_h_16_9 ),
-    AspectRatio::from_named( w_h_16_10 ),
-    AspectRatio::from_named( w_h_4_3 ),
-    AspectRatio::from_named( w_h_1_1 ),
-  };
-
-  auto const snapped_ratio_0 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_0 );
-  auto const snapped_ratio_1 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_1 );
-  auto const snapped_ratio_2 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_2 );
-  auto const snapped_ratio_3 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_3 );
-  auto const snapped_ratio_4 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_4 );
-  auto const snapped_ratio_5 = find_closest_aspect_ratio(
-      all_aspect_ratios, *actual_ratio_5 );
-
-  REQUIRE( snapped_ratio_0 == nothing );
-  REQUIRE( snapped_ratio_1 ==
-           AspectRatio::from_named( w_h_4_3 ) );
-  REQUIRE( snapped_ratio_2 ==
-           AspectRatio::from_named( w_h_4_3 ) );
-  REQUIRE( snapped_ratio_3 ==
-           AspectRatio::from_named( w_h_1_1 ) );
-  REQUIRE( snapped_ratio_4 ==
-           AspectRatio::from_named( w_h_16_9 ) );
-  REQUIRE( snapped_ratio_5 == nothing );
-}
-
 TEST_CASE( "[gfx/aspect] find_closest_named_aspect_ratio" ) {
   using enum e_named_aspect_ratio;
   size const resolution_0 = { .w = 1'024, .h = 700 };
   size const resolution_1 = { .w = 1'024, .h = 807 };
   size const resolution_2 = { .w = 1'024, .h = 806 };
-  size const resolution_3 = { .w = 1'024, .h = 1'024 };
+  size const resolution_3 = { .w = 1'024, .h = 438 };
   size const resolution_4 = { .w = 1'024, .h = 577 };
   size const resolution_5 = { .w = 1'024, .h = 305 };
 
-  auto const actual_ratio_0 =
-      AspectRatio::from_size( resolution_0 );
-  auto const actual_ratio_1 =
-      AspectRatio::from_size( resolution_1 );
-  auto const actual_ratio_2 =
-      AspectRatio::from_size( resolution_2 );
-  auto const actual_ratio_3 =
-      AspectRatio::from_size( resolution_3 );
-  auto const actual_ratio_4 =
-      AspectRatio::from_size( resolution_4 );
-  auto const actual_ratio_5 =
-      AspectRatio::from_size( resolution_5 );
-  REQUIRE( actual_ratio_0.has_value() );
-  REQUIRE( actual_ratio_1.has_value() );
-  REQUIRE( actual_ratio_2.has_value() );
-  REQUIRE( actual_ratio_3.has_value() );
-  REQUIRE( actual_ratio_4.has_value() );
-  REQUIRE( actual_ratio_5.has_value() );
+  auto const actual_ratio_0 = AspectRatio( resolution_0 );
+  auto const actual_ratio_1 = AspectRatio( resolution_1 );
+  auto const actual_ratio_2 = AspectRatio( resolution_2 );
+  auto const actual_ratio_3 = AspectRatio( resolution_3 );
+  auto const actual_ratio_4 = AspectRatio( resolution_4 );
+  auto const actual_ratio_5 = AspectRatio( resolution_5 );
+  REQUIRE( actual_ratio_0.scalar().has_value() );
+  REQUIRE( actual_ratio_1.scalar().has_value() );
+  REQUIRE( actual_ratio_2.scalar().has_value() );
+  REQUIRE( actual_ratio_3.scalar().has_value() );
+  REQUIRE( actual_ratio_4.scalar().has_value() );
+  REQUIRE( actual_ratio_5.scalar().has_value() );
 
   auto const snapped_ratio_0 =
-      find_closest_named_aspect_ratio( *actual_ratio_0 );
+      find_closest_named_aspect_ratio( actual_ratio_0 );
   auto const snapped_ratio_1 =
-      find_closest_named_aspect_ratio( *actual_ratio_1 );
+      find_closest_named_aspect_ratio( actual_ratio_1 );
   auto const snapped_ratio_2 =
-      find_closest_named_aspect_ratio( *actual_ratio_2 );
+      find_closest_named_aspect_ratio( actual_ratio_2 );
   auto const snapped_ratio_3 =
-      find_closest_named_aspect_ratio( *actual_ratio_3 );
+      find_closest_named_aspect_ratio( actual_ratio_3 );
   auto const snapped_ratio_4 =
-      find_closest_named_aspect_ratio( *actual_ratio_4 );
+      find_closest_named_aspect_ratio( actual_ratio_4 );
   auto const snapped_ratio_5 =
-      find_closest_named_aspect_ratio( *actual_ratio_5 );
+      find_closest_named_aspect_ratio( actual_ratio_5 );
 
   REQUIRE( snapped_ratio_0 == nothing );
-  REQUIRE( snapped_ratio_1 == w_h_4_3 );
-  REQUIRE( snapped_ratio_2 == w_h_4_3 );
-  REQUIRE( snapped_ratio_3 == w_h_1_1 );
-  REQUIRE( snapped_ratio_4 == w_h_16_9 );
+  REQUIRE( snapped_ratio_1 == _4_3 );
+  REQUIRE( snapped_ratio_2 == _4_3 );
+  REQUIRE( snapped_ratio_3 == _21_9 );
+  REQUIRE( snapped_ratio_4 == _16_9 );
   REQUIRE( snapped_ratio_5 == nothing );
 }
 
@@ -152,47 +86,38 @@ TEST_CASE( "[gfx/aspect] AspectRatio reduction" ) {
   size const resolution_7 = { .w = 320, .h = 200 };
   size const resolution_8 = { .w = 1, .h = 1 };
 
-  auto const actual_ratio_0 =
-      AspectRatio::from_size( resolution_0 );
-  auto const actual_ratio_1 =
-      AspectRatio::from_size( resolution_1 );
-  auto const actual_ratio_2 =
-      AspectRatio::from_size( resolution_2 );
-  auto const actual_ratio_3 =
-      AspectRatio::from_size( resolution_3 );
-  auto const actual_ratio_4 =
-      AspectRatio::from_size( resolution_4 );
-  auto const actual_ratio_5 =
-      AspectRatio::from_size( resolution_5 );
-  auto const actual_ratio_6 =
-      AspectRatio::from_size( resolution_6 );
-  auto const actual_ratio_7 =
-      AspectRatio::from_size( resolution_7 );
-  auto const actual_ratio_8 =
-      AspectRatio::from_size( resolution_8 );
+  auto const actual_ratio_0 = AspectRatio( resolution_0 );
+  auto const actual_ratio_1 = AspectRatio( resolution_1 );
+  auto const actual_ratio_2 = AspectRatio( resolution_2 );
+  auto const actual_ratio_3 = AspectRatio( resolution_3 );
+  auto const actual_ratio_4 = AspectRatio( resolution_4 );
+  auto const actual_ratio_5 = AspectRatio( resolution_5 );
+  auto const actual_ratio_6 = AspectRatio( resolution_6 );
+  auto const actual_ratio_7 = AspectRatio( resolution_7 );
+  auto const actual_ratio_8 = AspectRatio( resolution_8 );
 
-  REQUIRE( actual_ratio_0.has_value() );
-  REQUIRE( actual_ratio_1.has_value() );
-  REQUIRE( actual_ratio_2.has_value() );
-  REQUIRE( actual_ratio_3.has_value() );
-  REQUIRE( actual_ratio_4.has_value() );
-  REQUIRE( actual_ratio_5.has_value() );
-  REQUIRE( actual_ratio_6.has_value() );
-  REQUIRE( actual_ratio_7.has_value() );
-  REQUIRE( actual_ratio_8.has_value() );
+  REQUIRE( actual_ratio_0.scalar().has_value() );
+  REQUIRE( actual_ratio_1.scalar().has_value() );
+  REQUIRE( actual_ratio_2.scalar().has_value() );
+  REQUIRE( actual_ratio_3.scalar().has_value() );
+  REQUIRE( actual_ratio_4.scalar().has_value() );
+  REQUIRE( actual_ratio_5.scalar().has_value() );
+  REQUIRE( actual_ratio_6.scalar().has_value() );
+  REQUIRE( actual_ratio_7.scalar().has_value() );
+  REQUIRE( actual_ratio_8.scalar().has_value() );
 
-  REQUIRE( actual_ratio_0->get() == size{ .w = 256, .h = 175 } );
-  REQUIRE( actual_ratio_1->get() ==
+  REQUIRE( actual_ratio_0.get() == size{ .w = 256, .h = 175 } );
+  REQUIRE( actual_ratio_1.get() ==
            size{ .w = 1'024, .h = 807 } );
-  REQUIRE( actual_ratio_2->get() == size{ .w = 512, .h = 403 } );
-  REQUIRE( actual_ratio_3->get() == size{ .w = 1, .h = 1 } );
-  REQUIRE( actual_ratio_4->get() ==
+  REQUIRE( actual_ratio_2.get() == size{ .w = 512, .h = 403 } );
+  REQUIRE( actual_ratio_3.get() == size{ .w = 1, .h = 1 } );
+  REQUIRE( actual_ratio_4.get() ==
            size{ .w = 1'024, .h = 577 } );
-  REQUIRE( actual_ratio_5->get() ==
+  REQUIRE( actual_ratio_5.get() ==
            size{ .w = 1'024, .h = 605 } );
-  REQUIRE( actual_ratio_6->get() == size{ .w = 16, .h = 9 } );
-  REQUIRE( actual_ratio_7->get() == size{ .w = 8, .h = 5 } );
-  REQUIRE( actual_ratio_8->get() == size{ .w = 1, .h = 1 } );
+  REQUIRE( actual_ratio_6.get() == size{ .w = 16, .h = 9 } );
+  REQUIRE( actual_ratio_7.get() == size{ .w = 8, .h = 5 } );
+  REQUIRE( actual_ratio_8.get() == size{ .w = 1, .h = 1 } );
 }
 
 TEST_CASE( "[gfx/aspect] AspectRatio/to_str" ) {
@@ -205,22 +130,14 @@ TEST_CASE( "[gfx/aspect] AspectRatio/to_str" ) {
   size const resolution_6 = { .w = 640, .h = 360 };
   size const resolution_7 = { .w = 320, .h = 200 };
 
-  auto const actual_ratio_0 =
-      AspectRatio::from_size( resolution_0 );
-  auto const actual_ratio_1 =
-      AspectRatio::from_size( resolution_1 );
-  auto const actual_ratio_2 =
-      AspectRatio::from_size( resolution_2 );
-  auto const actual_ratio_3 =
-      AspectRatio::from_size( resolution_3 );
-  auto const actual_ratio_4 =
-      AspectRatio::from_size( resolution_4 );
-  auto const actual_ratio_5 =
-      AspectRatio::from_size( resolution_5 );
-  auto const actual_ratio_6 =
-      AspectRatio::from_size( resolution_6 );
-  auto const actual_ratio_7 =
-      AspectRatio::from_size( resolution_7 );
+  auto const actual_ratio_0 = AspectRatio( resolution_0 );
+  auto const actual_ratio_1 = AspectRatio( resolution_1 );
+  auto const actual_ratio_2 = AspectRatio( resolution_2 );
+  auto const actual_ratio_3 = AspectRatio( resolution_3 );
+  auto const actual_ratio_4 = AspectRatio( resolution_4 );
+  auto const actual_ratio_5 = AspectRatio( resolution_5 );
+  auto const actual_ratio_6 = AspectRatio( resolution_6 );
+  auto const actual_ratio_7 = AspectRatio( resolution_7 );
 
   REQUIRE( base::to_str( actual_ratio_0 ) == "256:175" );
   REQUIRE( base::to_str( actual_ratio_1 ) == "1024:807" );
@@ -252,44 +169,40 @@ TEST_CASE( "[gfx/aspect] steam numbers" ) {
     size{ .w = 2'560, .h = 1'080 }, // 9
     size{ .w = 1'680, .h = 1'050 }, // 10
     size{ .w = 1'360, .h = 768 },   // 11
-    size{ .w = 800, .h = 1'280 },   // 12
-    size{ .w = 1'280, .h = 800 },   // 13
-    size{ .w = 2'880, .h = 1'800 }, // 14
-    size{ .w = 5'120, .h = 1'440 }, // 15
-    size{ .w = 1'280, .h = 1'024 }, // 16
+    size{ .w = 1'280, .h = 800 },   // 12
+    size{ .w = 2'880, .h = 1'800 }, // 13
+    size{ .w = 5'120, .h = 1'440 }, // 14
+    size{ .w = 1'280, .h = 1'024 }, // 15
   };
 
-  using MR = maybe<AspectRatio>;
-  using AR = AspectRatio;
+  using MR = maybe<e_named_aspect_ratio>;
 
   vector<MR> const expected_buckets = {
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_21_9 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
-    MR{ AR::from_named( w_h_21_9 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
-    MR{ AR::from_named( w_h_16_9 ) },
-    MR{ AR::from_named( w_h_10_16 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
-    MR{ AR::from_named( w_h_16_10 ) },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_16_10 },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_21_9 },
+    MR{ e_named_aspect_ratio::_16_10 },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_16_10 },
+    MR{ e_named_aspect_ratio::_21_9 },
+    MR{ e_named_aspect_ratio::_16_10 },
+    MR{ e_named_aspect_ratio::_16_9 },
+    MR{ e_named_aspect_ratio::_16_10 },
+    MR{ e_named_aspect_ratio::_16_10 },
     MR{},
-    MR{ AR::from_named( w_h_4_3 ) },
+    MR{ e_named_aspect_ratio::_4_3 },
   };
 
   BASE_CHECK( expected_buckets.size() == resolutions.size() );
 
   for( int i = 0; i < ssize( resolutions ); ++i ) {
     INFO( fmt::format( "i={}", i ) );
-    UNWRAP_CHECK_T( auto const ratio,
-                    AspectRatio::from_size( resolutions[i] ) );
-    auto const approximate_ratio = find_closest_aspect_ratio(
-        AspectRatio::named_all(), ratio );
+    auto const ratio = AspectRatio( resolutions[i] );
+    auto const approximate_ratio =
+        find_closest_named_aspect_ratio( ratio );
     REQUIRE( approximate_ratio == expected_buckets[i] );
   }
 }
@@ -301,11 +214,10 @@ TEST_CASE( "[gfx/aspect] named_ratio_canonical_name" ) {
     return named_ratio_canonical_name( r );
   };
 
-  REQUIRE( f( w_h_16_9 ) == "16:9" );
-  REQUIRE( f( w_h_16_10 ) == "16:10" );
-  REQUIRE( f( w_h_4_3 ) == "4:3" );
-  REQUIRE( f( w_h_21_9 ) == "21:9" );
-  REQUIRE( f( w_h_1_1 ) == "1:1" );
+  REQUIRE( f( _16_9 ) == "16:9" );
+  REQUIRE( f( _16_10 ) == "16:10" );
+  REQUIRE( f( _4_3 ) == "4:3" );
+  REQUIRE( f( _21_9 ) == "21:9" );
 }
 
 } // namespace

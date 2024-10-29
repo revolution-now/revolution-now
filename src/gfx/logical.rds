@@ -9,6 +9,7 @@
 #
 # ===============================================================
 # gfx
+include "aspect.hpp"
 include "cartesian.hpp"
 
 # base
@@ -31,15 +32,29 @@ struct.Monitor {
 # ---------------------------------------------------------------
 # Resolution Representations.
 # ---------------------------------------------------------------
+struct.NamedAspectRatio {
+  name 'e_named_aspect_ratio',
+  ratio 'AspectRatio',
+}
+
+struct.ResolutionAspectRatio {
+  exact 'AspectRatio',
+  closest_named 'base::maybe<NamedAspectRatio>',
+}
+
+# ---------------------------------------------------------------
+# Resolution Representations.
+# ---------------------------------------------------------------
 struct.LogicalResolution {
   dimensions 'size',
   scale 'int',
+  aspect_ratio 'ResolutionAspectRatio',
 }
 
 struct.Resolution {
   # This is the resolution not of the entire monitor but of the
   # game window (though the two may coincide) in native pixels.
-  physical_window 'size',
+  physical_window 'LogicalResolution',
   logical 'LogicalResolution',
   # This is in physical coordinates because 1) that is how it is
   # most useful, and 2) it can't generally be expressed in dis-
@@ -66,6 +81,12 @@ struct.ResolutionRatingOptions {
   prefer_fullscreen 'bool',
   tolerance 'ResolutionTolerance',
   ideal_pixel_size_mm 'double',
+  # When this is true, only one of each logical resolution will
+  # be retained, namely the one with the best score. In practice
+  # this means that, for a given logical resolution, only the one
+  # with the largest scale factor will be kept. That said, it
+  # technically depends on the pixel size score as well.
+  remove_redundant 'bool',
 }
 
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
@@ -76,9 +97,6 @@ struct.ResolutionScores {
   # screen after scaling. The closer it is to the specified tar-
   # get, the better.
   pixel_size 'double',
-  # The closer the aspect ratio matches the aspect ratio of the
-  # window, the better.
-  aspect_match 'double',
   overall 'double',
 }
 

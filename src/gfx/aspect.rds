@@ -11,11 +11,8 @@
 namespace "gfx"
 
 enum.e_named_aspect_ratio {
-  w_h_16_9,
-  w_h_9_16,
-  w_h_16_10,
-  w_h_10_16,
-  w_h_4_3,
-  w_h_21_9,
-  w_h_1_1,
+  _16_9,
+  _16_10,
+  _4_3,
+  _21_9,
 }

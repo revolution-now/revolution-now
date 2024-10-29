@@ -20,6 +20,7 @@
 #include "base/maybe.hpp"
 
 // C++ standard library
+#include <numeric>
 #include <span>
 
 namespace gfx {
@@ -28,43 +29,49 @@ namespace gfx {
 ** Aspect Ratios.
 *****************************************************************/
 // Represents a monitor aspect ratio. Keeps its contents as a re-
-// duced fraction that is always non-zero and with a denominator
-// that is larger than zero.
-struct [[deprecated]] AspectRatio {
-  static base::maybe<AspectRatio> from_size( size resolution );
+// duced fraction.
+struct AspectRatio {
+  constexpr AspectRatio() = default;
 
-  static AspectRatio from_named( e_named_aspect_ratio ratio );
+  constexpr AspectRatio( size const ratio ) {
+    if( ratio.h == 0 ) {
+      if( ratio.w == 0 )
+        ratio_ = size{ .w = 0, .h = 0 };
+      else
+        ratio_ = size{ .w = 1, .h = 0 };
+      return;
+    }
+    auto const common = std::gcd( ratio.w, ratio.h );
+    size const reduced{ .w = ratio.w / common,
+                        .h = ratio.h / common };
+    ratio_ = reduced;
+  }
 
-  // AspectRatios for all named ratios.
-  static std::span<AspectRatio const> named_all();
+  constexpr size get() const { return ratio_; }
 
-  size get() const { return ratio_; }
-
-  double scalar() const;
+  constexpr base::maybe<double> scalar() const {
+    if( ratio_.h <= 0 ) return base::nothing;
+    return ratio_.w / double( ratio_.h );
+  }
 
   friend void to_str( AspectRatio const& o, std::string& out,
                       base::tag<AspectRatio> );
 
-  bool operator==( AspectRatio const& ) const = default;
+  constexpr bool operator==( AspectRatio const& ) const =
+      default;
 
  private:
-  AspectRatio( size resolution );
-  size ratio_;
+  size ratio_ = {};
 };
 
-[[deprecated]] base::maybe<AspectRatio>
-find_closest_aspect_ratio(
-    std::span<AspectRatio const> ratios_all,
-    AspectRatio                  target );
+// AspectRatios for all named ratios.
+std::span<AspectRatio const> named_aspect_ratios();
 
-// Returns the default tolerance used for bucketing of aspect ra-
-// tios. This is a small positive number < 1.
-[[deprecated]] double default_aspect_ratio_tolerance();
+AspectRatio named_aspect_ratio( e_named_aspect_ratio ratio );
 
-[[deprecated]] base::maybe<e_named_aspect_ratio>
+base::maybe<e_named_aspect_ratio>
 find_closest_named_aspect_ratio( AspectRatio target );
 
-[[deprecated]] std::string named_ratio_canonical_name(
-    e_named_aspect_ratio r );
+std::string named_ratio_canonical_name( e_named_aspect_ratio r );
 
 } // namespace gfx

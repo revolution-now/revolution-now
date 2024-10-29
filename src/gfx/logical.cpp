@@ -10,6 +10,12 @@
 *****************************************************************/
 #include "logical.hpp"
 
+// gfx
+#include "aspect.hpp"
+
+// C++ standard library
+#include <unordered_set>
+
 using namespace std;
 
 namespace gfx {
@@ -19,18 +25,40 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
+ResolutionAspectRatio construct_aspect_ratio(
+    size const dimensions ) {
+  AspectRatio const       exact( dimensions );
+  maybe<NamedAspectRatio> named;
+  if( auto const name = find_closest_named_aspect_ratio( exact );
+      name.has_value() ) {
+    named = NamedAspectRatio{
+      .name = *name, .ratio = named_aspect_ratio( *name ) };
+  }
+  return ResolutionAspectRatio{ .exact         = exact,
+                                .closest_named = named };
+}
+
+LogicalResolution construct_logical( size const dimensions,
+                                     int const  scale ) {
+  return LogicalResolution{
+    .dimensions   = dimensions,
+    .scale        = scale,
+    .aspect_ratio = construct_aspect_ratio( dimensions ) };
+}
+
 static bool meets_tolerance(
     Resolution const&              r,
     ResolutionRatingOptions const& options ) {
   auto const& tolerance = options.tolerance;
   if( tolerance.min_percent_covered.has_value() &&
-      r.physical_window.area() > 0 ) {
+      r.physical_window.dimensions.area() > 0 ) {
     int const scaled_clipped_area =
         r.logical.dimensions.area() *
         ( r.logical.scale * r.logical.scale );
     double const percent_covered =
         scaled_clipped_area /
-        static_cast<double>( r.physical_window.area() );
+        static_cast<double>(
+            r.physical_window.dimensions.area() );
     if( percent_covered < *tolerance.min_percent_covered )
       return false;
   }
@@ -56,8 +84,8 @@ vector<LogicalResolution> logical_resolutions_for_physical(
   for( int i = 1; i <= min_dimension; ++i )
     if( physical_window.w % i == 0 &&
         physical_window.h % i == 0 )
-      resolutions.push_back( LogicalResolution{
-        .dimensions = physical_window / i, .scale = i } );
+      resolutions.push_back(
+          construct_logical( physical_window / i, i ) );
   return resolutions;
 }
 
@@ -111,7 +139,7 @@ ResolutionScores score(
     ResolutionRatingOptions const& options ) {
   ResolutionScores scores;
 
-  if( r.physical_window.area() == 0 ) return {};
+  if( r.physical_window.dimensions.area() == 0 ) return {};
 
   auto round_score = []( double& score ) {
     score = double( lround( score * 100.0 ) ) / 100.0;
@@ -121,7 +149,7 @@ ResolutionScores score(
 
   // Fitting score.
   int const occupied_area = r.viewport.area();
-  int const total_area    = r.physical_window.area();
+  int const total_area    = r.physical_window.dimensions.area();
   CHECK_LE( occupied_area, total_area );
   scores.fitting = relative_diff_score_fn( sqrt( occupied_area ),
                                            sqrt( total_area ) );
@@ -133,21 +161,10 @@ ResolutionScores score(
         *r.pixel_size_mm, options.ideal_pixel_size_mm );
   }
 
-  // Aspect ratio score.
-  if( r.physical_window.h > 0 && r.logical.dimensions.h > 0 ) {
-    double const physical_ratio =
-        1.0 * r.physical_window.w / r.physical_window.h;
-    double const logical_ratio =
-        1.0 * r.logical.dimensions.w / r.logical.dimensions.h;
-    scores.aspect_match =
-        relative_diff_score_fn( physical_ratio, logical_ratio );
-  }
-
   // Overall score should be computed last.
   auto const fields = {
-    &scores.fitting,      //
-    &scores.pixel_size,   //
-    &scores.aspect_match, //
+    &scores.fitting,    //
+    &scores.pixel_size, //
     // Leave out the overall score.
   };
 
@@ -174,18 +191,19 @@ ResolutionAnalysis resolution_analysis(
       logical_resolutions_for_physical( physical_window );
   ResolutionAnalysis res;
   for( size const target : supported_logical_resolutions ) {
-    LogicalResolution scaled{ .dimensions = target, .scale = 1 };
+    LogicalResolution scaled = construct_logical( target, 1 );
     while( scaled.dimensions.fits_inside( physical_window ) ) {
-      auto const logical = LogicalResolution{
-        .dimensions = target, .scale = scaled.scale };
+      LogicalResolution const logical =
+          construct_logical( target, scaled.scale );
       // Exact fit to physical window.
       bool const exact_fit =
           ( logical.dimensions * logical.scale ==
             physical_window );
       Resolution r;
-      r.physical_window = physical_window;
-      r.logical         = logical;
-      r.viewport        = physical_rect;
+      r.physical_window =
+          construct_logical( physical_window, 1 );
+      r.logical  = logical;
+      r.viewport = physical_rect;
       r.pixel_size_mm =
           pixel_size_millimeters( monitor.dpi, logical.scale );
 
@@ -238,10 +256,6 @@ ResolutionRatings resolution_ratings(
   } );
 
   stable_sort_by( []( RatedResolution const& rr ) {
-    return -rr.scores.aspect_match;
-  } );
-
-  stable_sort_by( []( RatedResolution const& rr ) {
     return -rr.scores.overall;
   } );
 
@@ -251,12 +265,18 @@ ResolutionRatings resolution_ratings(
     } );
   }
 
-  ResolutionRatings res;
+  ResolutionRatings   res;
+  unordered_set<size> seen;
   for( RatedResolution const& rr : all ) {
-    auto& where = meets_tolerance( rr.resolution, options )
-                      ? res.available
-                      : res.unavailable;
-    where.push_back( rr );
+    size const dimensions = rr.resolution.logical.dimensions;
+    bool const skip =
+        options.remove_redundant && seen.contains( dimensions );
+    if( meets_tolerance( rr.resolution, options ) && !skip ) {
+      seen.insert( dimensions );
+      res.available.push_back( rr );
+    } else {
+      res.unavailable.push_back( rr );
+    }
   }
   return res;
 }
