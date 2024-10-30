@@ -347,6 +347,8 @@ struct HarborPlane::Impl : public IPlane {
     HarborState& hb_state  = harbor_state();
     hb_state.selected_unit = id;
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

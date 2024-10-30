@@ -11,6 +11,9 @@
 # Revolution Now
 include "maybe.hpp"
 
+# config
+include "config/resolutions.rds.hpp"
+
 # gfx
 include "gfx/logical.rds.hpp"
 
@@ -25,6 +28,7 @@ struct.SelectedResolution {
   rated 'gfx::RatedResolution',
   idx 'int',
   availability 'e_resolution_availability',
+  named 'maybe<e_resolution>',
 }
 
 struct.Resolutions {

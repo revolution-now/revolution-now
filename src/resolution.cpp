@@ -15,6 +15,12 @@
 #include "gfx/logical.hpp"
 #include "logical.rds.hpp"
 
+// config
+#include "config/resolutions.rds.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -26,38 +32,40 @@ using ::base::maybe;
 /****************************************************************
 ** Globals.
 *****************************************************************/
-vector<gfx::size> const SUPPORTED_LOGICAL_RESOLUTIONS{
-  // 16:9
-  { .w = 768, .h = 432 },
-  { .w = 640, .h = 360 },
-  // { .w = 480, .h = 270 }, // superlarge.
+constexpr gfx::size resolution_size( e_resolution const r ) {
+  switch( r ) {
+    case e_resolution::_640x360:
+      return { .w = 640, .h = 360 };
+    case e_resolution::_640x400:
+      return { .w = 640, .h = 400 };
+  }
+}
 
-  // 16:10
-  { .w = 720, .h = 450 },
-  { .w = 576, .h = 360 },
-  { .w = 640, .h = 400 },
+refl::enum_map<e_resolution, gfx::size> const
+    kResolutionSizeMap = [] {
+      refl::enum_map<e_resolution, gfx::size> res;
+      for( auto const r : refl::enum_values<e_resolution> )
+        res[r] = resolution_size( r );
+      return res;
+    }();
 
-  // 4:3
-  { .w = 960, .h = 720 },
-  { .w = 640, .h = 480 },
+unordered_map<gfx::size, e_resolution> const
+    kResolutionReverseSizeMap = [] {
+      unordered_map<gfx::size, e_resolution> res;
+      for( auto const& [k, v] : kResolutionSizeMap ) res[v] = k;
+      return res;
+    }();
 
-  // 21:9 (approximately)
-  //
-  // - for native: 2560x1080 (WFHD)
-  { .w = 1'280, .h = 540 },
-  { .w = 852, .h = 360 }, // not exact; w=853.333333
-  //
-  // - for native: 3440x1440 (WQHD)
-  { .w = 1'146, .h = 480 }, // not exact; w=1146.67
-  { .w = 860, .h = 360 },
-  //
-  // - for native: 3840x1600
-  { .w = 960, .h = 400 },
-};
+vector<gfx::size> const kResolutionSizes = [] {
+  vector<gfx::size> res;
+  for( auto const& [r, sz] : kResolutionSizeMap )
+    res.push_back( sz );
+  return res;
+}();
 
 gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
   // TODO: consider making this a config parameter.
-  .prefer_fullscreen = false,
+  .prefer_fullscreen = true,
   .tolerance         = { .min_percent_covered  = nothing,
                          .fitting_score_cutoff = nothing },
   // TODO: see if there is a better way to come up with this
@@ -76,7 +84,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
     gfx::Monitor const& monitor,
     gfx::size const     physical_window ) {
   gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      monitor, physical_window, SUPPORTED_LOGICAL_RESOLUTIONS );
+      monitor, physical_window, kResolutionSizes );
   gfx::ResolutionRatings ratings = resolution_ratings(
       analysis, resolution_rating_options() );
   // Always make sure that we have at least one unavailable reso-
@@ -110,11 +118,17 @@ Resolutions compute_resolutions(
   // back.
   CHECK( !ratings.unavailable.empty() );
   if( !ratings.available.empty() ) {
+    auto const& logical_size =
+        ratings.available[0].resolution.logical.dimensions;
+    auto const named_it =
+        kResolutionReverseSizeMap.find( logical_size );
+    CHECK( named_it != kResolutionReverseSizeMap.end() );
     // Copy to avoid use-after-move.
     auto selected = SelectedResolution{
       .rated        = ratings.available[0],
       .idx          = 0,
-      .availability = e_resolution_availability::available };
+      .availability = e_resolution_availability::available,
+      .named        = named_it->second };
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   } else {
@@ -122,7 +136,8 @@ Resolutions compute_resolutions(
     auto selected = SelectedResolution{
       .rated        = ratings.unavailable[0],
       .idx          = 0,
-      .availability = e_resolution_availability::unavailable };
+      .availability = e_resolution_availability::unavailable,
+      .named        = nothing };
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   }

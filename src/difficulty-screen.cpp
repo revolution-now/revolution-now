@@ -344,6 +344,8 @@ struct DifficultyScreen : public IPlane {
     layout_.resize_grid_for_screen_size( normal_area.delta() );
   }
 
+  void on_logical_resolution_changed( e_resolution ) override {}
+
   void advance_state() override { recomposite(); }
 
   gfx::size get_subrect_size() const {

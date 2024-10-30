@@ -1171,6 +1171,8 @@ struct LandViewPlane::Impl : public IPlane {
     SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
     co_return co_await next_player_input_object();
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

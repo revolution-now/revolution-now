@@ -1076,6 +1076,8 @@ struct MenuPlane::Impl : public IPlane {
     CHECK( handlers_[item].top() == &plane );
     handlers_[item].pop();
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

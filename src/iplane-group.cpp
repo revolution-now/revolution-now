@@ -189,4 +189,10 @@ e_input_handled IPlaneGroup::input(
   return e_input_handled::no;
 }
 
+void IPlaneGroup::on_logical_resolution_changed(
+    e_resolution const resolution ) {
+  for( IPlane* const plane : planes() )
+    plane->on_logical_resolution_changed( resolution );
+}
+
 } // namespace rn

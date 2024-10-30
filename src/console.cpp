@@ -285,6 +285,8 @@ struct ConsolePlane::Impl : public IPlane {
     if( !rect.has_value() ) return false;
     return is_mouse_over_rect( *rect );
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

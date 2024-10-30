@@ -33,6 +33,9 @@ struct IPlaneGroup : public IPlane {
 
   e_input_handled input( input::event_t const& event ) override;
 
+  void on_logical_resolution_changed(
+      e_resolution resolution ) override;
+
  private:
   // Drag state.
   enum class e_drag_send_mode {

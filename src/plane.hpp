@@ -27,6 +27,7 @@ struct Renderer;
 
 namespace rn {
 enum class e_input_handled;
+enum class e_resolution;
 namespace input {
 struct event_t;
 struct mod_keys;
@@ -113,8 +114,15 @@ struct IPlane {
   // returned true for this item in will_handle_menu_click at
   // least once this frame.
   virtual void handle_menu_click( e_menu_item item );
+
+  // Called whenever the logical resolution changes and hence
+  // when things may need to have their layout changed.
+  virtual void on_logical_resolution_changed(
+      e_resolution resolution ) = 0;
 };
 
-struct NoOpPlane : IPlane {};
+struct NoOpPlane : IPlane {
+  void on_logical_resolution_changed( e_resolution ) override {}
+};
 
 } // namespace rn

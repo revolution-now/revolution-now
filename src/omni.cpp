@@ -366,6 +366,8 @@ struct OmniPlane::Impl : public IPlane {
     }
     return handled;
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

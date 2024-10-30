@@ -432,6 +432,10 @@ gfx::rect main_window_logical_rect() {
   return gfx::rect{ .size = main_window_logical_size() };
 }
 
+maybe<e_resolution> main_window_named_logical_resolution() {
+  return g_resolutions().selected.named;
+}
+
 gfx::size main_window_physical_size() {
   if( !main_window_physical_size_cache ) {
     CHECK( g_window != nullptr );

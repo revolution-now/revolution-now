@@ -270,6 +270,8 @@ struct PanelPlane::Impl : public IPlane {
   wait<> wait_for_eot_button_click() {
     return user_hits_eot_button();
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

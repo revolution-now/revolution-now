@@ -238,7 +238,7 @@ ResolutionRatings resolution_ratings(
   auto stable_sort_by = [&]( auto&& key_fn ) {
     ranges::stable_sort( all,
                          [&]( auto const& l, auto const& r ) {
-                           return key_fn( l ) < key_fn( r );
+                           return key_fn( l, r );
                          } );
   };
 
@@ -247,21 +247,27 @@ ResolutionRatings resolution_ratings(
   // only be consulted if the overall scores for two candidates
   // turn out to be the same, which seems kind of rare.
 
-  stable_sort_by( []( RatedResolution const& rr ) {
-    return -rr.scores.pixel_size;
-  } );
+  stable_sort_by(
+      []( RatedResolution const& l, RatedResolution const& r ) {
+        return l.scores.pixel_size > r.scores.pixel_size;
+      } );
 
-  stable_sort_by( []( RatedResolution const& rr ) {
-    return -rr.scores.fitting;
-  } );
+  stable_sort_by(
+      []( RatedResolution const& l, RatedResolution const& r ) {
+        return l.scores.fitting > r.scores.fitting;
+      } );
 
-  stable_sort_by( []( RatedResolution const& rr ) {
-    return -rr.scores.overall;
-  } );
+  stable_sort_by(
+      []( RatedResolution const& l, RatedResolution const& r ) {
+        return l.scores.overall > r.scores.overall;
+      } );
 
   if( options.prefer_fullscreen ) {
-    stable_sort_by( []( RatedResolution const& rr ) {
-      return is_exact( rr.resolution );
+    stable_sort_by( []( RatedResolution const& l,
+                        RatedResolution const& r ) {
+      if( is_exact( l.resolution ) == is_exact( r.resolution ) )
+        return false;
+      return is_exact( l.resolution );
     } );
   }
 

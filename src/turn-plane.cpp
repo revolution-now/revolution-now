@@ -63,6 +63,8 @@ struct TurnPlane::Impl : public IPlane {
     e_menu_item item = co_await menu_actions.next();
     co_return item;
   }
+
+  void on_logical_resolution_changed( e_resolution ) override {}
 };
 
 /****************************************************************

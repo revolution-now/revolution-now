@@ -29,6 +29,8 @@ namespace rn {
 
 struct SelectedResolution;
 
+enum class e_resolution;
+
 maybe<gfx::Resolution const&> get_global_resolution();
 
 // NOTE: you should not normally call this in most game code, in-
@@ -36,6 +38,8 @@ maybe<gfx::Resolution const&> get_global_resolution();
 // it to control the logical size of each element on the screen.
 gfx::size main_window_logical_size();
 gfx::size main_window_physical_size();
+
+maybe<e_resolution> main_window_named_logical_resolution();
 
 // !! origin at (0,0)
 gfx::rect main_window_logical_rect();

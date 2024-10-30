@@ -193,6 +193,7 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   // Step: Process deferred window events.
   for( input::win_event_t const& event :
        deferred_events.window ) {
+    auto const old_logical = main_window_logical_size();
     switch( event.type ) {
       using enum input::e_win_event_type;
       case resized:
@@ -201,8 +202,16 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
       case other:
         break;
     }
+    auto const new_logical = main_window_logical_size();
     planes.get().input( event );
     run_all_coroutines();
+    if( new_logical != old_logical ) {
+      auto const named = main_window_named_logical_resolution();
+      if( named.has_value() ) {
+        planes.get().on_logical_resolution_changed( *named );
+        run_all_coroutines();
+      }
+    }
   }
   deferred_events.window.clear();
 

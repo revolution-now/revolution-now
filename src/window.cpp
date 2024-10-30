@@ -245,6 +245,8 @@ struct WindowPlane::Impl : public IPlane {
     return wm.num_windows_currently_open();
   }
 
+  void on_logical_resolution_changed( e_resolution ) override {}
+
   WindowManager wm;
 };
 
