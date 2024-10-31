@@ -161,26 +161,7 @@ bool meets_tolerance( Resolution const&              r,
   return true;
 }
 
-} // namespace
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-Monitor monitor_properties( size const          physical_screen,
-                            maybe<double> const dpi ) {
-  Monitor monitor;
-  monitor.physical_screen = physical_screen;
-  if( dpi.has_value() ) {
-    monitor.dpi = dpi;
-    monitor.diagonal_inches =
-        sqrt( pow( physical_screen.w, 2.0 ) +
-              pow( physical_screen.h, 2.0 ) ) /
-        *dpi;
-  }
-  return monitor;
-}
-
-ResolutionAnalysis resolution_analysis(
+vector<Resolution> find_resolutions(
     Monitor const& monitor, size const physical_window,
     std::span<size const> supported_logical_resolutions ) {
   rect const physical_rect{ .origin = {},
@@ -188,7 +169,7 @@ ResolutionAnalysis resolution_analysis(
 
   vector<LogicalResolution> const choices =
       logical_resolutions_for_physical( physical_window );
-  ResolutionAnalysis res;
+  vector<Resolution> res;
   for( size const target : supported_logical_resolutions ) {
     LogicalResolution scaled = construct_logical( target, 1 );
     while( scaled.dimensions.fits_inside( physical_window ) ) {
@@ -218,7 +199,7 @@ ResolutionAnalysis resolution_analysis(
         r.viewport = viewport;
       }
 
-      res.resolutions.push_back( std::move( r ) );
+      res.push_back( std::move( r ) );
       ++scaled.scale;
       scaled.dimensions = target * scaled.scale;
     }
@@ -226,13 +207,35 @@ ResolutionAnalysis resolution_analysis(
   return res;
 }
 
-ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&      analysis,
-    ResolutionRatingOptions const& options ) {
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+Monitor monitor_properties( size const          physical_screen,
+                            maybe<double> const dpi ) {
+  Monitor monitor;
+  monitor.physical_screen = physical_screen;
+  if( dpi.has_value() ) {
+    monitor.dpi = dpi;
+    monitor.diagonal_inches =
+        sqrt( pow( physical_screen.w, 2.0 ) +
+              pow( physical_screen.h, 2.0 ) ) /
+        *dpi;
+  }
+  return monitor;
+}
+
+ResolutionRatings resolution_analysis(
+    ResolutionAnalysisOptions const& options ) {
   vector<RatedResolution> all;
-  for( auto const& r : analysis.resolutions )
+  auto const              resolutions =
+      find_resolutions( options.monitor, options.physical_window,
+                        options.supported_logical_dimensions );
+  for( auto const& r : resolutions )
     all.push_back( RatedResolution{
-      .resolution = r, .scores = score( r, options ) } );
+      .resolution = r,
+      .scores     = score( r, options.rating_options ) } );
 
   auto stable_sort_by = [&]( auto&& key_fn ) {
     ranges::stable_sort( all,
@@ -261,7 +264,7 @@ ResolutionRatings resolution_ratings(
         return l.scores.overall > r.scores.overall;
       } );
 
-  if( options.prefer_fullscreen ) {
+  if( options.rating_options.prefer_fullscreen ) {
     stable_sort_by( []( RatedResolution const& l,
                         RatedResolution const& r ) {
       if( is_exact( l.resolution ) == is_exact( r.resolution ) )
@@ -274,9 +277,11 @@ ResolutionRatings resolution_ratings(
   unordered_set<size> seen;
   for( RatedResolution const& rr : all ) {
     size const dimensions = rr.resolution.logical.dimensions;
-    bool const skip =
-        options.remove_redundant && seen.contains( dimensions );
-    if( meets_tolerance( rr.resolution, options ) && !skip ) {
+    bool const skip = options.rating_options.remove_redundant &&
+                      seen.contains( dimensions );
+    if( meets_tolerance( rr.resolution,
+                         options.rating_options ) &&
+        !skip ) {
       seen.insert( dimensions );
       res.available.push_back( rr );
     } else {

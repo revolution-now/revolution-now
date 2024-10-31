@@ -20,17 +20,45 @@
 namespace gfx {
 
 /****************************************************************
+** Resolution Selection Heuristics.
+*****************************************************************/
+struct ResolutionTolerance {
+  base::maybe<double> min_percent_covered  = {};
+  base::maybe<double> fitting_score_cutoff = {};
+};
+
+struct ResolutionRatingOptions {
+  bool                prefer_fullscreen   = {};
+  ResolutionTolerance tolerance           = {};
+  double              ideal_pixel_size_mm = {};
+  // When this is true, only one of each logical resolution will
+  // be retained, namely the one with the best score. In practice
+  // this means that, for a given logical resolution, only the
+  // one with the largest scale factor will be kept. That said,
+  // it technically depends on the pixel size score as well.
+  bool remove_redundant = {};
+};
+
+struct Monitor {
+  size                physical_screen = {};
+  base::maybe<double> dpi             = {};
+  base::maybe<double> diagonal_inches = {};
+};
+
+struct ResolutionAnalysisOptions {
+  Monitor                 monitor                      = {};
+  size                    physical_window              = {};
+  std::span<size const>   supported_logical_dimensions = {};
+  ResolutionRatingOptions rating_options               = {};
+};
+
+/****************************************************************
 ** Public API.
 *****************************************************************/
 Monitor monitor_properties( size                physical_screen,
                             base::maybe<double> dpi );
 
-ResolutionAnalysis resolution_analysis(
-    Monitor const& monitor, size physical_window,
-    std::span<size const> supported_logical_resolutions );
-
-ResolutionRatings resolution_ratings(
-    ResolutionAnalysis const&      analysis,
-    ResolutionRatingOptions const& options );
+ResolutionRatings resolution_analysis(
+    ResolutionAnalysisOptions const& options );
 
 } // namespace gfx

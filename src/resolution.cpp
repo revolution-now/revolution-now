@@ -38,6 +38,8 @@ constexpr gfx::size resolution_size( e_resolution const r ) {
       return { .w = 640, .h = 360 };
     case e_resolution::_640x400:
       return { .w = 640, .h = 400 };
+    case e_resolution::_768x432:
+      return { .w = 768, .h = 432 };
   }
 }
 
@@ -83,10 +85,13 @@ gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
 gfx::ResolutionRatings compute_logical_resolution_ratings(
     gfx::Monitor const& monitor,
     gfx::size const     physical_window ) {
-  gfx::ResolutionAnalysis const analysis = resolution_analysis(
-      monitor, physical_window, kResolutionSizes );
-  gfx::ResolutionRatings ratings = resolution_ratings(
-      analysis, resolution_rating_options() );
+  gfx::ResolutionAnalysisOptions const options{
+    .monitor                      = monitor,
+    .physical_window              = physical_window,
+    .supported_logical_dimensions = kResolutionSizes,
+    .rating_options               = RESOLUTION_RATINGS };
+  gfx::ResolutionRatings ratings =
+      resolution_analysis( options );
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.

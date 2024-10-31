@@ -18,7 +18,7 @@
 #include "maybe.hpp"
 
 // gfx
-#include "gfx/logical.rds.hpp"
+#include "gfx/logical.hpp"
 
 // C++ standard library
 #include <vector>

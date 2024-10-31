@@ -21,15 +21,6 @@ include "<vector>"
 namespace "gfx"
 
 # ---------------------------------------------------------------
-# Hardware inputs.
-# ---------------------------------------------------------------
-struct.Monitor {
-  physical_screen 'size',
-  dpi 'base::maybe<double>',
-  diagonal_inches 'base::maybe<double>',
-}
-
-# ---------------------------------------------------------------
 # Resolution Representations.
 # ---------------------------------------------------------------
 struct.NamedAspectRatio {
@@ -63,30 +54,6 @@ struct.Resolution {
   viewport 'rect',
   # The size of a pixel on screen in millimeters.
   pixel_size_mm 'base::maybe<double>',
-}
-
-struct.ResolutionAnalysis {
-  resolutions 'std::vector<Resolution>',
-}
-
-# ---------------------------------------------------------------
-# Resolution Selection Heuristics.
-# ---------------------------------------------------------------
-struct.ResolutionTolerance {
-  min_percent_covered 'base::maybe<double>',
-  fitting_score_cutoff 'base::maybe<double>',
-}
-
-struct.ResolutionRatingOptions {
-  prefer_fullscreen 'bool',
-  tolerance 'ResolutionTolerance',
-  ideal_pixel_size_mm 'double',
-  # When this is true, only one of each logical resolution will
-  # be retained, namely the one with the best score. In practice
-  # this means that, for a given logical resolution, only the one
-  # with the largest scale factor will be kept. That said, it
-  # technically depends on the pixel size score as well.
-  remove_redundant 'bool',
 }
 
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.

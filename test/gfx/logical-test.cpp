@@ -96,15 +96,11 @@ TEST_CASE( "[gfx/logical] monitor_properties" ) {
   // TODO
 }
 
-TEST_CASE( "[gfx/logical] score" ) {
-  // TODO
-}
-
 TEST_CASE( "[gfx/logical] resolution_analysis" ) {
   // TODO
 }
 
-TEST_CASE( "[gfx/logical] recommended_resolution" ) {
+TEST_CASE( "[gfx/logical] resolution_ratings" ) {
   // TODO
 }
 
