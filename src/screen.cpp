@@ -418,6 +418,17 @@ maybe<gfx::Resolution const&> get_global_resolution() {
   }
 }
 
+maybe<gfx::ResolutionScores const&>
+get_global_resolution_scores() {
+  auto const& selected = g_resolutions().selected;
+  switch( selected.availability ) {
+    case e_resolution_availability::available:
+      return selected.rated.scores;
+    case e_resolution_availability::unavailable:
+      return nothing;
+  }
+}
+
 gfx::size main_window_logical_size() {
   auto const& selected = g_resolutions().selected;
   switch( selected.availability ) {

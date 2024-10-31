@@ -23,6 +23,7 @@ struct Renderer;
 
 namespace gfx {
 struct Resolution;
+struct ResolutionScores;
 }
 
 namespace rn {
@@ -32,6 +33,10 @@ struct SelectedResolution;
 enum class e_resolution;
 
 maybe<gfx::Resolution const&> get_global_resolution();
+
+// TODO: temporary.
+maybe<gfx::ResolutionScores const&>
+get_global_resolution_scores();
 
 // NOTE: you should not normally call this in most game code, in-
 // stead you should go through the compositor in order to allow

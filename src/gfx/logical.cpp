@@ -46,31 +46,6 @@ LogicalResolution construct_logical( size const dimensions,
     .aspect_ratio = construct_aspect_ratio( dimensions ) };
 }
 
-static bool meets_tolerance(
-    Resolution const&              r,
-    ResolutionRatingOptions const& options ) {
-  auto const& tolerance = options.tolerance;
-  if( tolerance.min_percent_covered.has_value() &&
-      r.physical_window.dimensions.area() > 0 ) {
-    int const scaled_clipped_area =
-        r.logical.dimensions.area() *
-        ( r.logical.scale * r.logical.scale );
-    double const percent_covered =
-        scaled_clipped_area /
-        static_cast<double>(
-            r.physical_window.dimensions.area() );
-    if( percent_covered < *tolerance.min_percent_covered )
-      return false;
-  }
-
-  if( tolerance.fitting_score_cutoff.has_value() ) {
-    auto const scores = score( r, options );
-    if( scores.fitting < *tolerance.fitting_score_cutoff )
-      return false;
-  }
-  return true;
-}
-
 bool is_exact( Resolution const& resolution ) {
   return resolution.viewport.origin.distance_from_origin() ==
          size{};
@@ -113,25 +88,6 @@ double relative_diff_score_fn( double const x, double const y ) {
   // theoretically guarantees that the result will be in [0,1.0]
   // and so this would at most eliminate insignificant fractions.
   return std::clamp( 1.0 - abs( x - y ) / ( x + y ), 0.0, 1.0 );
-}
-
-} // namespace
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-Monitor monitor_properties( size const          physical_screen,
-                            maybe<double> const dpi ) {
-  Monitor monitor;
-  monitor.physical_screen = physical_screen;
-  if( dpi.has_value() ) {
-    monitor.dpi = dpi;
-    monitor.diagonal_inches =
-        sqrt( pow( physical_screen.w, 2.0 ) +
-              pow( physical_screen.h, 2.0 ) ) /
-        *dpi;
-  }
-  return monitor;
 }
 
 ResolutionScores score(
@@ -179,6 +135,49 @@ ResolutionScores score(
   round_score( scores.overall );
 
   return scores;
+}
+
+bool meets_tolerance( Resolution const&              r,
+                      ResolutionRatingOptions const& options ) {
+  auto const& tolerance = options.tolerance;
+  if( tolerance.min_percent_covered.has_value() &&
+      r.physical_window.dimensions.area() > 0 ) {
+    int const scaled_clipped_area =
+        r.logical.dimensions.area() *
+        ( r.logical.scale * r.logical.scale );
+    double const percent_covered =
+        scaled_clipped_area /
+        static_cast<double>(
+            r.physical_window.dimensions.area() );
+    if( percent_covered < *tolerance.min_percent_covered )
+      return false;
+  }
+
+  if( tolerance.fitting_score_cutoff.has_value() ) {
+    auto const scores = score( r, options );
+    if( scores.fitting < *tolerance.fitting_score_cutoff )
+      return false;
+  }
+  return true;
+}
+
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+Monitor monitor_properties( size const          physical_screen,
+                            maybe<double> const dpi ) {
+  Monitor monitor;
+  monitor.physical_screen = physical_screen;
+  if( dpi.has_value() ) {
+    monitor.dpi = dpi;
+    monitor.diagonal_inches =
+        sqrt( pow( physical_screen.w, 2.0 ) +
+              pow( physical_screen.h, 2.0 ) ) /
+        *dpi;
+  }
+  return monitor;
 }
 
 ResolutionAnalysis resolution_analysis(

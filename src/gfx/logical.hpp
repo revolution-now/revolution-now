@@ -25,9 +25,6 @@ namespace gfx {
 Monitor monitor_properties( size                physical_screen,
                             base::maybe<double> dpi );
 
-ResolutionScores score( Resolution const& resolution,
-                        ResolutionRatingOptions const& options );
-
 ResolutionAnalysis resolution_analysis(
     Monitor const& monitor, size physical_window,
     std::span<size const> supported_logical_resolutions );

@@ -257,8 +257,8 @@ struct OmniPlane::Impl : public IPlane {
     CHECK( resolution.has_value() );
     auto const monitor = gfx::monitor_properties(
         main_window_physical_size(), monitor_dpi() );
-    auto const scores =
-        gfx::score( *resolution, resolution_rating_options() );
+    UNWRAP_CHECK_T( auto const scores,
+                    get_global_resolution_scores() );
 
     log( "Screen:" );
     log( " dimensions:     {}", monitor.physical_screen );
