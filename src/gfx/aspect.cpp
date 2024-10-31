@@ -64,17 +64,6 @@ void to_str( AspectRatio const& o, string& out,
 /****************************************************************
 ** Public API.
 *****************************************************************/
-span<AspectRatio const> named_aspect_ratios() {
-  static auto const all = [] {
-    vector<AspectRatio> res;
-    res.reserve( refl::enum_count<e_named_aspect_ratio> );
-    for( auto const e : refl::enum_values<e_named_aspect_ratio> )
-      res.push_back( named_aspect_ratio( e ) );
-    return res;
-  }();
-  return all;
-}
-
 AspectRatio named_aspect_ratio(
     e_named_aspect_ratio const ratio ) {
   switch( ratio ) {

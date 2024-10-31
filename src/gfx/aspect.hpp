@@ -64,9 +64,9 @@ struct AspectRatio {
   size ratio_ = {};
 };
 
-// AspectRatios for all named ratios.
-std::span<AspectRatio const> named_aspect_ratios();
-
+/****************************************************************
+** Public API.
+*****************************************************************/
 AspectRatio named_aspect_ratio( e_named_aspect_ratio ratio );
 
 base::maybe<e_named_aspect_ratio>
