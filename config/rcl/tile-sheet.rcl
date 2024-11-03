@@ -904,6 +904,13 @@ sheets {
         checkers_inv: { y: 0, x: 1 }
       }
     }
+    {
+      img_path: assets/art/tiles/hazard.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        hazard: { y: 0, x: 0 }
+      }
+    }
   ]
 
 }

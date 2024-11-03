@@ -294,7 +294,8 @@ Delta rendered_text_size_no_reflow( string_view text ) {
 void render_text_overlay_with_anchor(
     rr::Renderer& renderer, vector<string> const& lines,
     gfx::point const anchor, e_cdirection const cdirection,
-    gfx::pixel const fg_color, gfx::pixel const bg_color ) {
+    gfx::pixel const fg_color, gfx::pixel const bg_color,
+    int const scale ) {
   gfx::rect const info_region = [&] {
     gfx::size const info_region_size = [&] {
       auto delta_for = []( string_view const text ) {
@@ -307,7 +308,10 @@ void render_text_overlay_with_anchor(
         res.h += delta.h;
         ++res.h; // space between lines.
       }
-      return res;
+      // Leave room for a one (scaled) pixel border.
+      res.w += 2;
+      res.h += 2;
+      return res * scale;
     }();
 
     gfx::point const info_region_start = [&] {
@@ -352,8 +356,17 @@ void render_text_overlay_with_anchor(
 
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect( info_region, bg_color );
-  rr::Typer typer =
-      renderer.typer( info_region.origin, fg_color );
+  auto const text_origin = [&] {
+    auto res = info_region.origin;
+    // Account for the (scaled) border.
+    res.x += 1 * scale;
+    res.y += 1 * scale;
+    ++res.x;
+    ++res.y;
+    return res;
+  }();
+  rr::Typer typer = renderer.typer( text_origin, fg_color );
+  typer.multiply_scale( scale );
   for( auto const& line : lines ) {
     typer.write( line );
     typer.newline();

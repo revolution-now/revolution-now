@@ -57,6 +57,7 @@ struct Typer {
 
   void set_color( gfx::pixel color ) { color_ = color; }
   void set_scale( gfx::size scale ) { scale_ = scale; }
+  void multiply_scale( int factor );
 
   void reset_scale() { scale_.reset(); }
 

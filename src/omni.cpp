@@ -47,7 +47,7 @@ namespace rn {
 
 namespace {
 
-bool g_debug_omni_overlay = true;
+bool g_debug_resolution_overlay = false;
 
 auto const kSupportedMenuItems = [] {
   refl::enum_map<e_menu_item, bool> m;
@@ -60,8 +60,8 @@ auto const kSupportedMenuItems = [] {
 }();
 
 string toggle_omni_overlay() {
-  g_debug_omni_overlay = !g_debug_omni_overlay;
-  return g_debug_omni_overlay ? "on" : "off";
+  g_debug_resolution_overlay = !g_debug_resolution_overlay;
+  return g_debug_resolution_overlay ? "on" : "off";
 }
 
 string named_ratio_canonical_name(
@@ -220,37 +220,40 @@ struct OmniPlane::Impl : public IPlane {
 
   void toggle_fullscreen() const { rn::toggle_fullscreen(); }
 
+  inline static auto SHADED_WOOD =
+      gfx::pixel::wood().shaded( 8 );
+
+  inline static auto overlay_fg = gfx::pixel::banana();
+  inline static auto overlay_bg = SHADED_WOOD;
+
   void render_framerate( rr::Renderer& renderer ) const {
     vector<string> lines;
     auto const     log = line_logger( lines );
 
     log( "f/s: {}", fmt::format( "{:.1f}", avg_frame_rate() ) );
 
-    static gfx::pixel shaded_wood =
-        gfx::pixel::wood().shaded( 2 );
     render_text_overlay_with_anchor(
         renderer, lines, renderer.logical_screen_rect().se(),
-        e_cdirection::se, gfx::pixel::banana(), shaded_wood );
+        e_cdirection::se, overlay_fg, overlay_bg, /*scale=*/1 );
   }
 
   void render_bad_window_size_overlay(
       rr::Renderer& renderer ) const {
-    auto const  physical_size   = main_window_physical_size();
-    rr::Painter painter         = renderer.painter();
-    auto const  default_logical = main_window_logical_rect();
-    painter.draw_solid_rect( default_logical,
-                             gfx::pixel::yellow() );
+    auto const physical_size   = main_window_physical_size();
+    auto const default_logical = main_window_logical_rect();
+    tile_sprite( renderer, e_tile::hazard,
+                 Rect::from_gfx( default_logical ) );
     vector<string> help_msg{
-      fmt::format( "Window size {}x{} not supported.",
+      fmt::format( "  Window size {}x{} not supported.",
                    physical_size.w, physical_size.h ),
-      "Please resize your window." };
+      "Please expand the size of your window." };
     render_text_overlay_with_anchor(
         renderer, help_msg, default_logical.center(),
-        e_cdirection::c, gfx::pixel::white(),
-        gfx::pixel::black() );
+        e_cdirection::c, gfx::pixel::yellow(), SHADED_WOOD,
+        /*scale=*/2 );
   }
 
-  void render_aspect_info( rr::Renderer& renderer ) const {
+  void render_resolution_info( rr::Renderer& renderer ) const {
     auto const resolution = get_global_resolution();
     if( !resolution.has_value() ) {
       render_bad_window_size_overlay( renderer );
@@ -288,27 +291,60 @@ struct OmniPlane::Impl : public IPlane {
     log( " logical:        {}", resolution->logical );
     log( " logical.aspect: {}", logical_aspect );
     log( " scale:          {}", resolution->scale );
-    log( " viewport:       {}", resolution->viewport );
+    log( " viewport.orig:  {}", resolution->viewport.origin );
+    log( " viewport.size:  {}", resolution->viewport.size );
     log( "Scores:" );
     log( " fit score:      {}", scores.fitting );
     log( " size score:     {}", scores.pixel_size );
     log( " overall score:  {}", scores.overall );
 
     gfx::point const info_region_anchor =
-        gfx::point{ .x = 32, .y = 32 };
+        gfx::point{ .x = 0, .y = 16 };
 
     render_text_overlay_with_anchor(
         renderer, lines, info_region_anchor, e_cdirection::nw,
-        gfx::pixel::white(), gfx::pixel::black() );
+        overlay_fg, overlay_bg, /*scale=*/1 );
   }
 
-  void render_debug_overlay( rr::Renderer& renderer ) const {
-    render_aspect_info( renderer );
+  void render_logical_resolution(
+      rr::Renderer& renderer ) const {
+    UNWRAP_CHECK_T( auto const& resolution,
+                    get_global_resolution() );
+
+    vector<string> lines;
+    auto const     log = line_logger( lines );
+
+    log( "{}", resolution.logical );
+
+    gfx::point const info_region_anchor =
+        main_window_logical_rect().sw();
+
+    render_text_overlay_with_anchor(
+        renderer, lines, info_region_anchor, e_cdirection::sw,
+        overlay_fg, overlay_bg, /*scale=*/1 );
+  }
+
+  void render_debug_overlays( rr::Renderer& renderer ) const {
+    render_framerate( renderer );
+    if( g_debug_resolution_overlay )
+      render_resolution_info( renderer );
+    render_logical_resolution( renderer );
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    render_framerate( renderer );
-    if( g_debug_omni_overlay ) render_debug_overlay( renderer );
+    // This must be the top-most thing that is drawn in the en-
+    // tire game, since nothing else can effectively be drawn if
+    // we don't know what the logical resolution is, which in
+    // practice would happen if the window is too small.
+    //
+    // TODO: move this higher up the callstack.
+    if( !get_global_resolution().has_value() ) {
+      render_bad_window_size_overlay( renderer );
+      return;
+    }
+
+    render_debug_overlays( renderer );
+
     if( show_game_cursor_ )
       render_sprite(
           renderer,
@@ -339,7 +375,6 @@ struct OmniPlane::Impl : public IPlane {
       CASE( key_event ) {
         if( key_event.change != input::e_key_change::down )
           break;
-        handled = e_input_handled::yes;
         switch( key_event.keycode ) {
           case ::SDLK_F12:
             // if( !screenshot() )
@@ -348,28 +383,25 @@ struct OmniPlane::Impl : public IPlane {
           case ::SDLK_F11:
             this->toggle_fullscreen();
             break;
+          case ::SDLK_o:
+            if( key_event.mod.ctrl_down ) toggle_omni_overlay();
+            break;
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_down() )
                 cycle_resolution( -1 );
-            } else {
-              handled = e_input_handled::no;
             }
             break;
           case ::SDLK_EQUALS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_up() )
                 cycle_resolution( 1 );
-            } else {
-              handled = e_input_handled::no;
             }
             break;
           case ::SDLK_q:
             if( key_event.mod.ctrl_down ) throw exception_exit{};
-            handled = e_input_handled::no;
             break;
-          default: //
-            handled = e_input_handled::no;
+          default:
             break;
         }
         break;

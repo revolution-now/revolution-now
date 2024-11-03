@@ -241,5 +241,19 @@ TEST_CASE( "[render/typer] frame position" ) {
   REQUIRE( typer2.line_start() == point{ .x = 35, .y = 63 } );
 }
 
+TEST_CASE( "[render/typer] multiply_scale" ) {
+  vector<GenericVertex> v;
+  Emitter               emitter( v );
+  Painter               painter( atlas_map(), emitter );
+  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+  REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
+  typer.multiply_scale( 1 );
+  REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
+  typer.multiply_scale( 2 );
+  REQUIRE( typer.scale() == size{ .w = 4, .h = 8 } );
+  typer.multiply_scale( 2 );
+  REQUIRE( typer.scale() == size{ .w = 8, .h = 16 } );
+}
+
 } // namespace
 } // namespace rr

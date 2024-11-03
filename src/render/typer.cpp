@@ -47,6 +47,10 @@ gfx::size Typer::scale() const {
   return scale_.value_or( ascii_font_.char_size() );
 }
 
+void Typer::multiply_scale( int const factor ) {
+  scale_ = scale() * factor;
+}
+
 void Typer::write_char_impl( Painter& painter, char c ) {
   if( c == '\n' ) {
     line_start_.y +=

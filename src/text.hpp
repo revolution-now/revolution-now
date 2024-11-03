@@ -87,6 +87,7 @@ void render_text_overlay_with_anchor(
     rr::Renderer&                   renderer,
     std::vector<std::string> const& lines,
     gfx::point const anchor, e_cdirection const cdirection,
-    gfx::pixel const fg_color, gfx::pixel const bg_color );
+    gfx::pixel const fg_color, gfx::pixel const bg_color,
+    int scale );
 
 } // namespace rn
