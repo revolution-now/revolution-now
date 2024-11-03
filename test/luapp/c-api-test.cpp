@@ -1453,7 +1453,7 @@ LUA_TEST_CASE( "[lua-c-api] concat" ) {
 }
 
 LUA_TEST_CASE( "[lua-c-api] tostring" ) {
-  size_t len = 10'000;
+  size_t len = 10000;
 
   SECTION( "nil" ) {
     C.push( nil );
@@ -1686,8 +1686,8 @@ LUA_TEST_CASE( "[lua-c-api] rawlen" ) {
   REQUIRE( C.rawlen( -1 ) == 1 );
   C.pop();
 
-  C.newuserdata( 1'000 );
-  REQUIRE( C.rawlen( -1 ) == 1'000 );
+  C.newuserdata( 1000 );
+  REQUIRE( C.rawlen( -1 ) == 1000 );
   C.pop();
 }
 

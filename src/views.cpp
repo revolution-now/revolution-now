@@ -339,7 +339,7 @@ void ButtonBaseView::draw( rr::Renderer& renderer,
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
   auto time        = system_clock::now().time_since_epoch();
-  auto one_second  = 1'000ms;
+  auto one_second  = 1000ms;
   auto half_second = 500ms;
   bool on          = time % one_second > half_second;
 

@@ -203,7 +203,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
     REQUIRE( f( e_unit_type::missionary ) == expected );
   }
   SECTION( "money=1000" ) {
-    player.money = 1'000;
+    player.money = 1000;
 
     // free_colonist
     expected = {
@@ -380,7 +380,7 @@ TEST_CASE( "[equip] harbor_equip_options" ) {
     REQUIRE( f( e_unit_type::free_colonist ) == expected );
   }
   SECTION( "money=1000, muskets/horses boycotted" ) {
-    player.money = 1'000;
+    player.money = 1000;
 
     player.old_world.market.commodities[e_commodity::horses]
         .boycott = true;
@@ -511,7 +511,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
                                         unit_id, option );
   };
 
-  player.money = 10'000;
+  player.money = 10000;
 
   option   = { .modifier        = e_unit_type_modifier::blessing,
                .modifier_delta  = e_unit_type_modifier_delta::add,
@@ -523,7 +523,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::missionary );
-  REQUIRE( player.money == 10'000 );
+  REQUIRE( player.money == 10000 );
 
   option = {
     .modifier       = e_unit_type_modifier::tools,
@@ -538,7 +538,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::pioneer );
-  REQUIRE( player.money == 9'500 );
+  REQUIRE( player.money == 9500 );
 
   option = {
     .modifier       = e_unit_type_modifier::horses,
@@ -553,7 +553,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::scout );
-  REQUIRE( player.money == 9'200 );
+  REQUIRE( player.money == 9200 );
 
   option = {
     .modifier        = e_unit_type_modifier::muskets,
@@ -568,13 +568,13 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::soldier );
-  REQUIRE( player.money == 8'650 );
+  REQUIRE( player.money == 8650 );
 
   // Try to force a price change.
   option = {
     .modifier        = e_unit_type_modifier::muskets,
     .modifier_delta  = e_unit_type_modifier_delta::add,
-    .money_delta     = -5'500,
+    .money_delta     = -5500,
     .can_afford      = true,
     .commodity_delta = Commodity{ .type = e_commodity::muskets,
                                   .quantity = 500 },
@@ -584,7 +584,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
   REQUIRE( f() == expected );
   REQUIRE( W.ss().units.unit_for( unit_id ).type() ==
            e_unit_type::soldier );
-  REQUIRE( player.money == 3'150 );
+  REQUIRE( player.money == 3150 );
 }
 
 TEST_CASE( "[equip] colony_equip_description" ) {

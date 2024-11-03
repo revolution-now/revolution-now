@@ -76,10 +76,10 @@ TEST_CASE( "[range-lite] non-materialized" ) {
 
 TEST_CASE( "[range-lite] long-range" ) {
   vector<int> input;
-  input.reserve( 10'000 );
-  for( int s = 0; s < 10'000; ++s ) input.push_back( s );
+  input.reserve( 10000 );
+  for( int s = 0; s < 10000; ++s ) input.push_back( s );
   auto vec = rl::all( input )
-                 .keep_if( L( _ < 100'000 ) )
+                 .keep_if( L( _ < 100000 ) )
                  .map( L( _ * 2 ) )
                  .map( L( _ / 2 ) )
                  .take_while( L( _ >= 0 ) );
@@ -422,8 +422,7 @@ TEST_CASE( "[range-lite] accumulate_monoid" ) {
 }
 
 TEST_CASE( "[range-lite] mixing" ) {
-  vector<int> input{ 1,      22,      333,      4'444,
-                     55'555, 666'666, 7'777'777 };
+  vector<int> input{ 1, 22, 333, 4444, 55555, 666666, 7777777 };
 
   auto res = rl::all( input )
                  .keep_if( L( _ % 2 == 1 ) )

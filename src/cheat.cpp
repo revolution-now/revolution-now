@@ -476,13 +476,13 @@ void cheat_decrease_tax_rate( Player& player ) {
 void cheat_increase_gold( Player& player ) {
   RETURN_IF_NO_CHEAT;
   int& gold = player.money;
-  gold      = gold + 1'000;
+  gold      = gold + 1000;
 }
 
 void cheat_decrease_gold( Player& player ) {
   RETURN_IF_NO_CHEAT;
   int& gold = player.money;
-  gold      = std::max( gold - 1'000, 0 );
+  gold      = std::max( gold - 1000, 0 );
 }
 
 wait<> cheat_evolve_market_prices( SS& ss, TS& ts,

@@ -55,9 +55,9 @@ maybe<e_founding_father> pick_next_father_for_type(
   int const year   = ss.turn.time_point.year;
   auto      weight = [&]( e_founding_father father ) {
     auto& conf = config_fathers.fathers[father];
-    if( year < 1'600 )
+    if( year < 1600 )
       return conf.weight_1492_1600;
-    else if( year < 1'700 )
+    else if( year < 1700 )
       return conf.weight_1600_1700;
     else
       return conf.weight_1700_plus;

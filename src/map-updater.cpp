@@ -260,7 +260,7 @@ void RenderingMapUpdater::redraw_square_single_buffer(
   // Around 20k total tiles redrawn seems to be a good number,
   // but we have two buffers (landscape and obfuscation) and so
   // we'll give them about 10k each.
-  static int constexpr kRedrawThreshold = 10'000;
+  static int constexpr kRedrawThreshold = 10000;
   // The > is defensive.
   if( buffer_tracking.tiles_redrawn >= kRedrawThreshold )
     redraw_buffer();

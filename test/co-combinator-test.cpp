@@ -733,7 +733,7 @@ TEST_CASE( "[co-combinator] stream: cancel and reuse" ) {
   int const kFirst  = 1;
   int const kSecond = 10;
   int const kThird  = 100;
-  int const kFourth = 1'000;
+  int const kFourth = 1000;
 
   SECTION( "stream" ) {
     co::stream<int> s;

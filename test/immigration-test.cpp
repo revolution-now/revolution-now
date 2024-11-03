@@ -626,7 +626,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   pool[0]      = e_unit_type::veteran_soldier;
   pool[1]      = e_unit_type::pioneer;
   pool[2]      = e_unit_type::petty_criminal;
-  player.money = 1'000;
+  player.money = 1000;
   REQUIRE( compute_crosses( W.units(), player.nation )
                .crosses_needed == 8 ); // sanity check.
   player.crosses                                   = 5;
@@ -640,7 +640,7 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   REQUIRE( player.crosses == 0 );
   REQUIRE( player.old_world.immigration.num_recruits_rushed ==
            4 );
-  REQUIRE( player.money == 1'000 - 153 );
+  REQUIRE( player.money == 1000 - 153 );
 
   REQUIRE( pool[0] == e_unit_type::veteran_soldier );
   REQUIRE( pool[1] == e_unit_type::free_colonist ); // replaced

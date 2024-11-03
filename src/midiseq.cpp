@@ -542,7 +542,7 @@ void midi_play_event( MidiPlayInfo* info ) {
   // five second wait between two notes then we will wait five
   // seconds but we will return from this function every 200ms to
   // avoid blocking.
-  Duration_t max_blocking_wait = 200'000us; // 0.2 seconds
+  Duration_t max_blocking_wait = 200000us; // 0.2 seconds
   wait_time = std::min( max_blocking_wait, wait_time );
   // Just in case there's some overhead in calling sleep_for.
   sleep( wait_time );

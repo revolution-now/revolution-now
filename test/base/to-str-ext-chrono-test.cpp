@@ -39,61 +39,61 @@ TEST_CASE( "[base/to-str-ext-chrono] format_duration" ) {
   REQUIRE( f( 999ns ) == "999ns" );
 
   // Microseconds/nanoseconds.
-  REQUIRE( f( 1'000ns ) == "1us" );
-  REQUIRE( f( 1'010ns ) == "1us10ns" );
-  REQUIRE( f( 1'010ns ) == "1us10ns" );
-  REQUIRE( f( 9'010ns ) == "9us10ns" );
+  REQUIRE( f( 1000ns ) == "1us" );
+  REQUIRE( f( 1010ns ) == "1us10ns" );
+  REQUIRE( f( 1010ns ) == "1us10ns" );
+  REQUIRE( f( 9010ns ) == "9us10ns" );
 
   // Microseconds.
-  REQUIRE( f( 10'010ns ) == "10us" );
-  REQUIRE( f( 101'010ns ) == "101us" );
-  REQUIRE( f( 999'999ns ) == "999us" );
+  REQUIRE( f( 10010ns ) == "10us" );
+  REQUIRE( f( 101010ns ) == "101us" );
+  REQUIRE( f( 999999ns ) == "999us" );
 
   // Millseconds/microseconds.
-  REQUIRE( f( 1'000'000ns ) == "1ms" );
-  REQUIRE( f( 1'010'000ns ) == "1ms10us" );
-  REQUIRE( f( 1'010'000ns ) == "1ms10us" );
-  REQUIRE( f( 9'010'000ns ) == "9ms10us" );
+  REQUIRE( f( 1000000ns ) == "1ms" );
+  REQUIRE( f( 1010000ns ) == "1ms10us" );
+  REQUIRE( f( 1010000ns ) == "1ms10us" );
+  REQUIRE( f( 9010000ns ) == "9ms10us" );
 
   // Milliseconds.
-  REQUIRE( f( 10'010'000ns ) == "10ms" );
-  REQUIRE( f( 101'010'000ns ) == "101ms" );
-  REQUIRE( f( 999'999'000ns ) == "999ms" );
+  REQUIRE( f( 10010000ns ) == "10ms" );
+  REQUIRE( f( 101010000ns ) == "101ms" );
+  REQUIRE( f( 999999000ns ) == "999ms" );
 
   // Seconds/milliseconds.
-  REQUIRE( f( 1'000'000'000ns ) == "1s" );
-  REQUIRE( f( 1'010'000'000ns ) == "1s10ms" );
-  REQUIRE( f( 1'010'000'000ns ) == "1s10ms" );
-  REQUIRE( f( 9'010'000'000ns ) == "9s10ms" );
+  REQUIRE( f( 1000000000ns ) == "1s" );
+  REQUIRE( f( 1010000000ns ) == "1s10ms" );
+  REQUIRE( f( 1010000000ns ) == "1s10ms" );
+  REQUIRE( f( 9010000000ns ) == "9s10ms" );
 
   // Seconds.
-  REQUIRE( f( 10'010'000'000ns ) == "10s" );
-  REQUIRE( f( 51'010'000'000ns ) == "51s" );
-  REQUIRE( f( 59'999'999'999ns ) == "59s" );
+  REQUIRE( f( 10010000000ns ) == "10s" );
+  REQUIRE( f( 51010000000ns ) == "51s" );
+  REQUIRE( f( 59999999999ns ) == "59s" );
 
   // Minutes/seconds.
-  REQUIRE( f( 60'000'000'000ns ) == "1m" );
-  REQUIRE( f( 65'000'000'000ns ) == "1m5s" );
-  REQUIRE( f( 120'000'000'000ns ) == "2m" );
-  REQUIRE( f( 135'000'000'000ns ) == "2m15s" );
-  REQUIRE( f( 720'000'000'000ns ) == "12m" );
-  REQUIRE( f( 725'000'000'000ns ) == "12m5s" );
-  REQUIRE( f( 1'199'000'000'000ns ) == "19m59s" );
-  REQUIRE( f( 1'200'000'000'000ns ) == "20m" );
+  REQUIRE( f( 60000000000ns ) == "1m" );
+  REQUIRE( f( 65000000000ns ) == "1m5s" );
+  REQUIRE( f( 120000000000ns ) == "2m" );
+  REQUIRE( f( 135000000000ns ) == "2m15s" );
+  REQUIRE( f( 720000000000ns ) == "12m" );
+  REQUIRE( f( 725000000000ns ) == "12m5s" );
+  REQUIRE( f( 1199000000000ns ) == "19m59s" );
+  REQUIRE( f( 1200000000000ns ) == "20m" );
 
   // Minutes.
-  REQUIRE( f( 3'599'000'000'000ns ) == "59m" );
-  REQUIRE( f( 3'599'000'000'000ns ) == "59m" );
+  REQUIRE( f( 3599000000000ns ) == "59m" );
+  REQUIRE( f( 3599000000000ns ) == "59m" );
 
   // Hours/minutes.
-  REQUIRE( f( 3'600'000'000'000ns ) == "1h" );
-  REQUIRE( f( 3'600'000'000'000ns ) == "1h" );
-  REQUIRE( f( 5'000'000'000'000ns ) == "1h23m" );
-  REQUIRE( f( 71'999'000'000'000ns ) == "19h59m" );
-  REQUIRE( f( 72'000'000'000'000ns ) == "20h" );
+  REQUIRE( f( 3600000000000ns ) == "1h" );
+  REQUIRE( f( 3600000000000ns ) == "1h" );
+  REQUIRE( f( 5000000000000ns ) == "1h23m" );
+  REQUIRE( f( 71999000000000ns ) == "19h59m" );
+  REQUIRE( f( 72000000000000ns ) == "20h" );
 
   // Hours.
-  REQUIRE( f( 92'000'000'000'000ns ) == "25h" );
+  REQUIRE( f( 92000000000000ns ) == "25h" );
 }
 
 } // namespace

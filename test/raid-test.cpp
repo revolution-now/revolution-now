@@ -346,7 +346,7 @@ TEST_CASE( "[raid] raid_colony" ) {
   MockINativeMind& mock_native_mind =
       W.native_mind( tribe_type );
   Player& player = W.default_player();
-  player.money   = 1'000;
+  player.money   = 1000;
 
   // Sanity checks.
   REQUIRE( W.square( colony.location ).road );
@@ -429,7 +429,7 @@ TEST_CASE( "[raid] raid_colony" ) {
                     .id = colony.id } } );
     f( attacker );
 
-    REQUIRE( player.money == 1'000 );
+    REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE( W.colonies().exists( colony_id ) );
@@ -523,7 +523,7 @@ TEST_CASE( "[raid] raid_colony" ) {
                   .which = e_colony_building::newspaper } );
     f( attacker );
 
-    REQUIRE( player.money == 1'000 );
+    REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE( W.colonies().exists( colony_id ) );
@@ -659,7 +659,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );
 
-    REQUIRE( player.money == 1'000 );
+    REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );
@@ -741,7 +741,7 @@ TEST_CASE( "[raid] raid_colony" ) {
         combat, BraveAttackColonyEffect::none{} );
     f( attacker );
 
-    REQUIRE( player.money == 1'000 );
+    REQUIRE( player.money == 1000 );
     REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
     REQUIRE_FALSE( W.units().exists( attacker_id ) );
     REQUIRE_FALSE( W.colonies().exists( colony_id ) );

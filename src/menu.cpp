@@ -243,13 +243,12 @@ struct MenuPlane::Impl : public IPlane {
     // At this point, res holds the width of the largest rendered
     // text texture in this menu.  Now add padding on each side:
     res += config_ui.menus.padding_x * 2;
-    res =
-        clamp( res, config_ui.menus.body_min_width, 1'000'000 );
+    res = clamp( res, config_ui.menus.body_min_width, 1000000 );
     // round up to nearest multiple of 4, since that is the menu
     // tile width.
     if( res % 4 != 0 ) res += ( 4 - ( res % 4 ) );
     // Sanity check
-    CHECK( res > 0 && res < 2'000 );
+    CHECK( res > 0 && res < 2000 );
     return res;
   }
 

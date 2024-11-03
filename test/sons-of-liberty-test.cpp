@@ -639,7 +639,7 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
                 /*has_simon_bolivar=*/false ) );
     // So that we don't go into an infinite loop should things
     // not be converging quickly enough.
-    if( turns >= 1'000 ) break;
+    if( turns >= 1000 ) break;
   }
 
   // Ours is 183 turns and not 89, so it's about twice as long,
@@ -695,7 +695,7 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
                 /*has_simon_bolivar=*/false ) );
     // So that we don't go into an infinite loop should things
     // not be converging quickly enough.
-    if( turns >= 1'000 ) break;
+    if( turns >= 1000 ) break;
   }
 
   // Close enough to 33. Here we don't have the inconsistency
@@ -726,7 +726,7 @@ TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
             compute_sons_of_liberty_percent(
                 num_rebels_from_bells_only, colony_population,
                 /*has_simon_bolivar=*/false ) );
-    if( turns >= 1'000 ) break;
+    if( turns >= 1000 ) break;
   }
 
   // We don't really have good information from the original game

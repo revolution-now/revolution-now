@@ -2295,7 +2295,7 @@ TEST_CASE(
       .defender_outcome =
           DwellingCombatOutcome::destruction{
             // Test that these don't add to the messages.
-            .treasure_amount  = 1'000,
+            .treasure_amount  = 1000,
             .convert_produced = true },
     };
     expected = { .summaries = {

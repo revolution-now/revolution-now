@@ -51,59 +51,59 @@ TEST_CASE( "[to-str] primitive" ) {
   REQUIRE( to_str( int16_t{ -1 } ) == "-1" );
   REQUIRE( to_str( int16_t{ 0 } ) == "0" );
   REQUIRE( to_str( int16_t{ 5 } ) == "5" );
-  REQUIRE( to_str( int16_t{ 1'234 } ) == "1234" );
-  REQUIRE( to_str( int16_t{ 32'767 } ) == "32767" );
-  REQUIRE( to_str( int16_t{ -32'768 } ) == "-32768" );
+  REQUIRE( to_str( int16_t{ 1234 } ) == "1234" );
+  REQUIRE( to_str( int16_t{ 32767 } ) == "32767" );
+  REQUIRE( to_str( int16_t{ -32768 } ) == "-32768" );
 
   // uint16_t
   REQUIRE( to_str( uint16_t{ 1 } ) == "1" );
   REQUIRE( to_str( uint16_t{ 0 } ) == "0" );
   REQUIRE( to_str( uint16_t{ 5 } ) == "5" );
-  REQUIRE( to_str( uint16_t{ 1'234 } ) == "1234" );
-  REQUIRE( to_str( uint16_t{ 65'535 } ) == "65535" );
+  REQUIRE( to_str( uint16_t{ 1234 } ) == "1234" );
+  REQUIRE( to_str( uint16_t{ 65535 } ) == "65535" );
 
   // int
   REQUIRE( to_str( int{ -1 } ) == "-1" );
   REQUIRE( to_str( int{ 0 } ) == "0" );
   REQUIRE( to_str( int{ 5 } ) == "5" );
-  REQUIRE( to_str( int{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( int{ 1234 } ) == "1234" );
 
   // int32_t
   REQUIRE( to_str( int32_t{ -1 } ) == "-1" );
   REQUIRE( to_str( int32_t{ 0 } ) == "0" );
   REQUIRE( to_str( int32_t{ 5 } ) == "5" );
-  REQUIRE( to_str( int32_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( int32_t{ 1234 } ) == "1234" );
 
   // uint32_t
   REQUIRE( to_str( uint32_t{ 0 } ) == "0" );
   REQUIRE( to_str( uint32_t{ 5 } ) == "5" );
-  REQUIRE( to_str( uint32_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( uint32_t{ 1234 } ) == "1234" );
 
   // int64_t
   REQUIRE( to_str( int64_t{ -1 } ) == "-1" );
   REQUIRE( to_str( int64_t{ 0 } ) == "0" );
   REQUIRE( to_str( int64_t{ 5 } ) == "5" );
-  REQUIRE( to_str( int64_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( int64_t{ 1234 } ) == "1234" );
   REQUIRE( to_str( int64_t{ 0x7FFFFFFFFFFFFFFF } ) ==
            "9223372036854775807" );
 
   // uint64_t
   REQUIRE( to_str( uint64_t{ 0 } ) == "0" );
   REQUIRE( to_str( uint64_t{ 5 } ) == "5" );
-  REQUIRE( to_str( uint64_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( uint64_t{ 1234 } ) == "1234" );
   REQUIRE( to_str( uint64_t{ 0xFFFFFFFFFFFFFFFF } ) ==
            "18446744073709551615" );
 
   // size_t
   REQUIRE( to_str( size_t{ 0 } ) == "0" );
   REQUIRE( to_str( size_t{ 5 } ) == "5" );
-  REQUIRE( to_str( size_t{ 1'234 } ) == "1234" );
+  REQUIRE( to_str( size_t{ 1234 } ) == "1234" );
 
   // long
   REQUIRE( to_str( long{ -1L } ) == "-1" );
   REQUIRE( to_str( long{ 0L } ) == "0" );
   REQUIRE( to_str( long{ 5L } ) == "5" );
-  REQUIRE( to_str( long{ 1'234L } ) == "1234" );
+  REQUIRE( to_str( long{ 1234L } ) == "1234" );
 
   // float
   REQUIRE( to_str( float{ -1.0f } ) == "-1" );

@@ -493,48 +493,46 @@ TEST_CASE( "[price-group] evolve without buy/sell" ) {
   // advantage when buying/selling in the price group model.
   config.dutch = true;
   config.starting_intrinsic_volumes[e_processed_good::rum] =
-      5'000;
+      5000;
   config.starting_intrinsic_volumes[e_processed_good::cigars] =
-      4'000;
+      4000;
   config.starting_intrinsic_volumes[e_processed_good::cloth] =
-      3'000;
+      3000;
   config.starting_intrinsic_volumes[e_processed_good::coats] =
-      2'000;
+      2000;
 
   // These should influence the evolution but they should not
   // change.
-  config.starting_traded_volumes[e_processed_good::rum] = 1'000;
+  config.starting_traded_volumes[e_processed_good::rum] = 1000;
   config.starting_traded_volumes[e_processed_good::cigars] =
-      2'000;
-  config.starting_traded_volumes[e_processed_good::cloth] =
-      3'000;
-  config.starting_traded_volumes[e_processed_good::coats] =
-      4'000;
+      2000;
+  config.starting_traded_volumes[e_processed_good::cloth] = 3000;
+  config.starting_traded_volumes[e_processed_good::coats] = 4000;
 
   ProcessedGoodsPriceGroup group( config );
 
   // Sanity check.
   REQUIRE( group.intrinsic_volume( e_processed_good::rum ) ==
-           5'000 );
+           5000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::cigars ) ==
-           4'000 );
+           4000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::cloth ) ==
-           3'000 );
+           3000 );
   REQUIRE( group.intrinsic_volume( e_processed_good::coats ) ==
-           2'000 );
+           2000 );
 
   // Do the evolution.
   group.evolve();
 
   // Tests.
   REQUIRE( group.traded_volume( e_processed_good::rum ) ==
-           1'000 );
+           1000 );
   REQUIRE( group.traded_volume( e_processed_good::cigars ) ==
-           2'000 );
+           2000 );
   REQUIRE( group.traded_volume( e_processed_good::cloth ) ==
-           3'000 );
+           3000 );
   REQUIRE( group.traded_volume( e_processed_good::coats ) ==
-           4'000 );
+           4000 );
 
   int expected = 0;
 

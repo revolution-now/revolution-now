@@ -74,7 +74,7 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
     BackupForce const o{ .regulars   = 1,
                          .dragoons   = 0,
                          .man_o_wars = 2,
-                         .artillery  = 65'535 };
+                         .artillery  = 65535 };
     expected =
         "BackupForce{regulars=1,dragoons=0,man_o_wars=2,"
         "artillery=65535}";

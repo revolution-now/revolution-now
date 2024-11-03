@@ -171,7 +171,7 @@ TEST_CASE(
   }
 
   SECTION( "max distance" ) {
-    max_distance      = 1'000;
+    max_distance      = 1000;
     vector<point> gen = outward_spiral_pythdist_search_existing(
         W.ss(), { .x = 2, .y = 3 }, max_distance );
     // Don't cut off the stream just to make sure that it termi-

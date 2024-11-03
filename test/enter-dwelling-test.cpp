@@ -698,8 +698,8 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
   p_unit           = &scout_seasoned;
   W.rand().EXPECT__bernoulli( 0.0 ).returns( false );
   W.rand().EXPECT__between_ints( 0, 100 - 1 ).returns( 20 );
-  W.rand().EXPECT__between_ints( 166, 2'000 ).returns( 1'111 );
-  expected.action = ChiefAction::gift_money{ .quantity = 1'111 };
+  W.rand().EXPECT__between_ints( 166, 2000 ).returns( 1111 );
+  expected.action = ChiefAction::gift_money{ .quantity = 1111 };
   REQUIRE( f() == expected );
   dwelling = &dwelling_tupi;
 
@@ -857,9 +857,9 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
         StrContains( "sit around the campfire" ) );
     mock_land_view.EXPECT__center_on_tile(
         Coord{ .x = 4, .y = 4 } );
-    W.gui().EXPECT__wait_for( 20ms ).returns( 20'000us );
-    W.gui().EXPECT__wait_for( 20ms ).returns( 20'000us );
-    W.gui().EXPECT__wait_for( 600ms ).returns( 600'000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
+    W.gui().EXPECT__wait_for( 20ms ).returns( 20000us );
+    W.gui().EXPECT__wait_for( 600ms ).returns( 600000us );
     VisibilityForNation const viz( W.ss(), W.default_nation() );
     W.map_updater().make_squares_visible(
         W.default_nation(), { { .x = 3, .y = 6 } } );
@@ -960,7 +960,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   Unit& missionary = W.add_unit_on_map( e_unit_type::missionary,
                                         { .x = 1, .y = 0 } );
-  W.turn().time_point.year = 1'501;
+  W.turn().time_point.year = 1501;
   string msg;
 
   auto f = [&] {

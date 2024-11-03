@@ -70,7 +70,7 @@ vector<pair<TuneId, int>> tune_difference_scores(
 }
 
 TuneId gen_tune_id() {
-  static int next_id = 12'345;
+  static int next_id = 12345;
   return TuneId( next_id++ );
 }
 

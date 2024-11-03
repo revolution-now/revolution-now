@@ -34,11 +34,11 @@ LUA_TEST_CASE( "[userdata] userdata equality" ) {
   lightuserdata lud = C.newuserdata( 10 );
   C.pop();
 
-  C.newuserdata( 1'024 );
+  C.newuserdata( 1024 );
   userdata o1( C.this_cthread(), C.ref_registry() );
   REQUIRE( C.stack_size() == 0 );
 
-  C.newuserdata( 1'024 );
+  C.newuserdata( 1024 );
   userdata o2( C.this_cthread(), C.ref_registry() );
   REQUIRE( C.stack_size() == 0 );
 
@@ -85,7 +85,7 @@ LUA_TEST_CASE( "[userdata] userdata create/push/gc" ) {
   };
 
   {
-    C.newuserdata( 1'024 );
+    C.newuserdata( 1024 );
     int ref = C.ref_registry();
     REQUIRE( C.stack_size() == 0 );
     userdata o( C.this_cthread(), ref );
@@ -129,7 +129,7 @@ LUA_TEST_CASE( "[userdata] userdata copy --> no collect" ) {
     userdata u0( C.this_cthread(), C.ref_registry() );
     REQUIRE( C.stack_size() == 0 );
     {
-      C.newuserdata( 1'024 );
+      C.newuserdata( 1024 );
       int ref = C.ref_registry();
       REQUIRE( C.stack_size() == 0 );
       userdata o( C.this_cthread(), ref );

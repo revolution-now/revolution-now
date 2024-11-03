@@ -33,7 +33,7 @@ TEST_CASE( "[io] non-existent" ) {
 TEST_CASE( "[io] empty" ) {
   fs::path p = text_path( "empty.txt" );
   REQUIRE( fs::file_size( p ) == 0 );
-  size_t size = 1'234'567;
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
   constexpr size_t expected_size = 0;
@@ -55,7 +55,7 @@ TEST_CASE( "[io] empty" ) {
 TEST_CASE( "[io] single char" ) {
   fs::path p = text_path( "single-char.txt" );
   REQUIRE( fs::file_size( p ) == 1 );
-  size_t size = 1'234'567;
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
   constexpr size_t expected_size = 1;
@@ -77,7 +77,7 @@ TEST_CASE( "[io] single char" ) {
 TEST_CASE( "[io] one line" ) {
   fs::path p = text_path( "oneline.txt" );
   REQUIRE( fs::file_size( p ) == 26 );
-  size_t size = 1'234'567;
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
   constexpr size_t expected_size = 26;
@@ -99,7 +99,7 @@ TEST_CASE( "[io] one line" ) {
 TEST_CASE( "[io] small-unix" ) {
   fs::path p = text_path( "small-unix.txt" );
   REQUIRE( fs::file_size( p ) == 445 );
-  size_t size = 1'234'567;
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
   constexpr size_t expected_size = 445;
@@ -125,7 +125,7 @@ TEST_CASE( "[io] small-unix" ) {
 TEST_CASE( "[io] small-win" ) {
   fs::path p = text_path( "small-win.txt" );
   REQUIRE( fs::file_size( p ) == 451 );
-  size_t size = 1'234'567;
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
   constexpr size_t expected_size = 445;
@@ -149,11 +149,11 @@ TEST_CASE( "[io] small-win" ) {
 
 TEST_CASE( "[io] medium-unix" ) {
   fs::path p = text_path( "medium-unix.txt" );
-  REQUIRE( fs::file_size( p ) == 6'706 );
-  size_t size = 1'234'567;
+  REQUIRE( fs::file_size( p ) == 6706 );
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
-  constexpr size_t expected_size = 6'706;
+  constexpr size_t expected_size = 6706;
   REQUIRE( size == expected_size );
   REQUIRE( *res != nullptr );
 
@@ -175,11 +175,11 @@ TEST_CASE( "[io] medium-unix" ) {
 
 TEST_CASE( "[io] medium-win" ) {
   fs::path p = text_path( "medium-win.txt" );
-  REQUIRE( fs::file_size( p ) == 6'827 );
-  size_t size = 1'234'567;
+  REQUIRE( fs::file_size( p ) == 6827 );
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
-  constexpr size_t expected_size = 6'706;
+  constexpr size_t expected_size = 6706;
   REQUIRE( size == expected_size );
   REQUIRE( *res != nullptr );
 
@@ -200,11 +200,11 @@ TEST_CASE( "[io] medium-win" ) {
 
 TEST_CASE( "[io] large-unix" ) {
   fs::path p = text_path( "large-unix.txt" );
-  REQUIRE( fs::file_size( p ) == 28'619 );
-  size_t size = 1'234'567;
+  REQUIRE( fs::file_size( p ) == 28619 );
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
-  constexpr size_t expected_size = 28'619;
+  constexpr size_t expected_size = 28619;
   REQUIRE( size == expected_size );
   REQUIRE( *res != nullptr );
 
@@ -226,11 +226,11 @@ TEST_CASE( "[io] large-unix" ) {
 
 TEST_CASE( "[io] large-win" ) {
   fs::path p = text_path( "large-win.txt" );
-  REQUIRE( fs::file_size( p ) == 29'142 );
-  size_t size = 1'234'567;
+  REQUIRE( fs::file_size( p ) == 29142 );
+  size_t size = 1234567;
   auto   res  = read_text_file( p, size );
   REQUIRE( res );
-  constexpr size_t expected_size = 28'619;
+  constexpr size_t expected_size = 28619;
   REQUIRE( size == expected_size );
   REQUIRE( *res != nullptr );
 
@@ -255,7 +255,7 @@ TEST_CASE( "[io] read_text_file_as_string large" ) {
     auto     res = read_text_file_as_string( p );
     REQUIRE( res );
     string s = std::move( *res );
-    REQUIRE( s.size() == 28'619 );
+    REQUIRE( s.size() == 28619 );
     REQUIRE(
         s.starts_with( "Lorem ipsum dolor sit amet, consectetur "
                        "adipiscing elit, sed do\n"
@@ -267,7 +267,7 @@ TEST_CASE( "[io] read_text_file_as_string large" ) {
     auto     res = read_text_file_as_string( p );
     REQUIRE( res );
     string s = std::move( *res );
-    REQUIRE( s.size() == 28'619 );
+    REQUIRE( s.size() == 28619 );
     REQUIRE(
         s.starts_with( "Lorem ipsum dolor sit amet, consectetur "
                        "adipiscing elit, sed do\n"

@@ -571,7 +571,7 @@ TEST_CASE(
   }
 
   SECTION( "write" ) {
-    int16_t x1 = -32'768;
+    int16_t x1 = -32768;
     REQUIRE( write_binary( b, x1 ) );
     expected = { 0x00, 0x80, 0x05, 0x80,
                  0xff, 0xff, 0xff, 0xff };
@@ -586,7 +586,7 @@ TEST_CASE(
     expected = { 0xff, 0xff, 0xff, 0x01,
                  0xff, 0xff, 0xff, 0xff };
 
-    int32_t x3 = -234'567'788;
+    int32_t x3 = -234567788;
     REQUIRE( write_binary( b, x3 ) );
     expected = { 0xff, 0xff, 0xff, 0x01,
                  0x94, 0xc7, 0x04, 0xf2 };

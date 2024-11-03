@@ -57,7 +57,7 @@ struct World : testing::World {
 TEST_CASE( "[rpt] click_purchase" ) {
   World   W;
   Player& player             = W.default_player();
-  player.money               = 2'000;
+  player.money               = 2000;
   player.artillery_purchases = 2;
 
   using C             = ChoiceConfig;
@@ -120,7 +120,7 @@ TEST_CASE( "[rpt] click_purchase" ) {
 
   // Check that we've created the artillery.
   REQUIRE( player.artillery_purchases == 3 );
-  REQUIRE( player.money == 1'300 );
+  REQUIRE( player.money == 1300 );
   REQUIRE( units.all().size() == 1 );
   REQUIRE( units.unit_for( UnitId{ 1 } ).type() ==
            e_unit_type::artillery );
@@ -133,7 +133,7 @@ TEST_CASE( "[rpt] click_purchase" ) {
 TEST_CASE( "[rpt] click_train" ) {
   World   W;
   Player& player             = W.default_player();
-  player.money               = 1'010;
+  player.money               = 1010;
   player.artillery_purchases = 2;
 
   using C             = ChoiceConfig;
@@ -241,7 +241,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
   pool[0]        = e_unit_type::veteran_soldier;
   pool[1]        = e_unit_type::pioneer;
   pool[2]        = e_unit_type::petty_criminal;
-  player.money   = 1'000;
+  player.money   = 1000;
   player.crosses = 5;
   player.old_world.immigration.num_recruits_rushed = 3;
 
@@ -283,7 +283,7 @@ TEST_CASE( "[rpt] click_recruit" ) {
 
   // Check that we've created the pioneer.
   REQUIRE( player.artillery_purchases == 0 );
-  REQUIRE( player.money == 1'000 - 153 );
+  REQUIRE( player.money == 1000 - 153 );
   REQUIRE( player.crosses == 0 );
   REQUIRE( player.old_world.immigration.num_recruits_rushed ==
            4 );

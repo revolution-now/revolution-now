@@ -211,7 +211,7 @@ private:
     return base::valid;
   }
 
-  static constexpr size_t kInvalidUniformName = 1'234'567;
+  static constexpr size_t kInvalidUniformName = 1234567;
 
   template<size_t... Idx>
   constexpr static size_t find_uniform_index_impl(

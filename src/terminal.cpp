@@ -43,7 +43,7 @@ namespace rl = ::base::rl;
 using ::base::function_ref;
 using ::lua::lua_valid;
 
-size_t constexpr max_scrollback_lines = 10'000;
+size_t constexpr max_scrollback_lines = 10000;
 
 unordered_map<string,
               function_ref<void( Terminal& ) const>> const

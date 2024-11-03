@@ -381,8 +381,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand().EXPECT__between_ints( 2'000, 6'000 ).returns( 5'123 );
-  expected = 5'100;
+  W.rand().EXPECT__between_ints( 2000, 6000 ).returns( 5123 );
+  expected = 5100;
   REQUIRE( f() == expected );
 
   // Civilized, no capital, no cortes, yes treasure.
@@ -390,10 +390,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes = false;
   capital    = false;
   W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
-  W.rand()
-      .EXPECT__between_ints( 3'000, 10'000 )
-      .returns( 8'123 );
-  expected = 8'100;
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
+  expected = 8100;
   REQUIRE( f() == expected );
 
   // Civilized, no capital, with cortes. (viceroy).
@@ -401,10 +399,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = false;
   W.settings().difficulty = e_difficulty::viceroy;
-  W.rand()
-      .EXPECT__between_ints( 3'000, 10'000 )
-      .returns( 8'123 );
-  expected = 12'100;
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
+  expected = 12100;
   REQUIRE( f() == expected );
 
   // Civilized, capital, with cortes. (governor).
@@ -412,10 +408,8 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   has_cortes              = true;
   capital                 = true;
   W.settings().difficulty = e_difficulty::governor;
-  W.rand()
-      .EXPECT__between_ints( 3'000, 10'000 )
-      .returns( 8'123 );
-  expected = 24'300;
+  W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
+  expected = 24300;
   REQUIRE( f() == expected );
 }
 

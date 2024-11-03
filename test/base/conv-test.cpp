@@ -74,7 +74,7 @@ TEST_CASE( "[conv] int_to_string_literary" ) {
   REQUIRE( int_to_string_literary( 11 ) == "11" );
   REQUIRE( int_to_string_literary( 12 ) == "12" );
   REQUIRE( int_to_string_literary( 20 ) == "20" );
-  REQUIRE( int_to_string_literary( 1'000 ) == "1000" );
+  REQUIRE( int_to_string_literary( 1000 ) == "1000" );
 }
 
 } // namespace

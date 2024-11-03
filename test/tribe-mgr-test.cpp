@@ -289,9 +289,9 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
 
   // Sioux.
   Tribe& sioux         = W.add_tribe( e_tribe::sioux );
-  sioux.muskets        = 1'000;
-  sioux.horse_herds    = 1'000;
-  sioux.horse_breeding = 1'000;
+  sioux.muskets        = 1000;
+  sioux.horse_herds    = 1000;
+  sioux.horse_breeding = 1000;
   DwellingId const dwelling3_id =
       W.add_dwelling( { .x = 0, .y = 5 }, e_tribe::sioux ).id;
   NativeUnitId const brave4_id =

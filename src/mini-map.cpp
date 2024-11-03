@@ -443,7 +443,7 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
   bool const blink_on =
       chrono::duration_cast<chrono::milliseconds>(
           Clock_t::now().time_since_epoch() ) %
-          chrono::milliseconds{ 1'000 } >
+          chrono::milliseconds{ 1000 } >
       chrono::milliseconds{ 500 };
 
   for( gfx::rect r : gfx::subrects( squares.truncated() ) ) {

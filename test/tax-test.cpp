@@ -183,19 +183,19 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 
   type = e_commodity::ore;
   player.old_world.market.commodities[type].bid_price = 5;
-  expected                                            = 4'000;
+  expected                                            = 4000;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 
   type = e_commodity::silver;
   player.old_world.market.commodities[type].bid_price = 19;
-  expected                                            = 10'000;
+  expected                                            = 10000;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 
   type = e_commodity::rum;
   player.old_world.market.commodities[type].bid_price = 2;
-  expected                                            = 1'500;
+  expected                                            = 1500;
   REQUIRE( f() == expected );
   REQUIRE( player.old_world.taxes.tax_rate == 7 );
 }

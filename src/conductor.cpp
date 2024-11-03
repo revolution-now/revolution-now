@@ -690,7 +690,7 @@ void playlist_generate( IRand& rand ) {
   auto   num_tunes = config_music.tunes.size();
   size_t no_overlap_size =
       ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
-  CHECK( no_overlap_size < 100'000 ); // sanity check
+  CHECK( no_overlap_size < 100000 ); // sanity check
   vector<TuneId> last_n;
   for( auto id : rl::all( all_tunes() ).take( no_overlap_size ) )
     last_n.push_back( id );

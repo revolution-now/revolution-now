@@ -76,16 +76,15 @@ valid_or<string> read( IBinaryIO& b, ColonySAV& out ) {
   // than 5k then something is definitely wrong. Actually, some
   // reports say that the OG only allows 38 colonies per player,
   // so this should be more than enough.
-  HAS_VALUE_OR_RET( read_vector( b, "colony",
-                                 out.header.colony_count, 5'000,
-                                 out.colony ) );
+  HAS_VALUE_OR_RET( read_vector(
+      b, "colony", out.header.colony_count, 5000, out.colony ) );
 
   // The OG apparently has a limit of 256 units on the map (per
   // player?), which is what this section holds. But we'll be a
   // bit more generous. Note that this section only includes
   // units on the map.
   HAS_VALUE_OR_RET( read_vector(
-      b, "unit", out.header.unit_count, 10'000, out.unit ) );
+      b, "unit", out.header.unit_count, 10000, out.unit ) );
 
   if( !read_binary( b, out.nation ) )
     return fmt::format( "while reading nation array." );

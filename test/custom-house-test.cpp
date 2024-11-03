@@ -104,7 +104,7 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
     apply_custom_house_sales( W.ss(), player, colony, sales );
   };
 
-  player.money = 1'000;
+  player.money = 1000;
 
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     colony.commodities[comm]                            = 150;
@@ -152,7 +152,7 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
           W.default_player(), e_commodity::sugar,
           /*price_change=*/0 ) } };
   f();
-  REQUIRE( player.money == 1'000 + 186 + 93 );
+  REQUIRE( player.money == 1000 + 186 + 93 );
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     INFO( fmt::format( "comm: {}", comm ) );
     if( comm == e_commodity::sugar ) {
@@ -221,7 +221,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
 
   W.players()
       .global_market_state.commodities[e_commodity::cloth]
-      .intrinsic_volume = 1'000;
+      .intrinsic_volume = 1000;
 
   SECTION( "independence not declared" ) {
     colony.custom_house[e_commodity::furs]    = true;
@@ -420,7 +420,7 @@ TEST_CASE(
         .money_delta_before_taxes = 100 * 19,
         .tax_rate                 = 0,
         .tax_amount               = 0,
-        .money_delta_final        = 1'900,
+        .money_delta_final        = 1900,
         .player_volume_delta      = 100,
         .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
                                       { e_nation::french, 400 } },
@@ -504,7 +504,7 @@ TEST_CASE(
         .money_delta_before_taxes = 100 * 19,
         .tax_rate                 = 0,
         .tax_amount               = 0,
-        .money_delta_final        = 1'900,
+        .money_delta_final        = 1900,
         .player_volume_delta      = 100,
         .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
                                       { e_nation::french, 400 } },

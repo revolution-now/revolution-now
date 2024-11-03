@@ -166,7 +166,7 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
   SECTION( "civilized" ) {
     dwelling =
         &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
-    expected = { { { e_native_skill::farming, 2'350 },
+    expected = { { { e_native_skill::farming, 2350 },
                    { e_native_skill::fishing, 520 },
                    { e_native_skill::sugar_planting, 21 },
                    { e_native_skill::tobacco_planting, 0 },
@@ -183,7 +183,7 @@ TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
     dwelling =
         &W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
     W.square( { .x = 2, .y = 2 } ).road = false;
-    expected = { { { e_native_skill::farming, 2'350 },
+    expected = { { { e_native_skill::farming, 2350 },
                    { e_native_skill::fishing, 520 },
                    { e_native_skill::sugar_planting, 21 },
                    { e_native_skill::tobacco_planting, 0 },

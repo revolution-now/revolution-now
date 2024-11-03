@@ -248,7 +248,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   };
 
   SECTION( "fills pool and chooses, year 1500" ) {
-    W.turn().time_point.year = 1'500;
+    W.turn().time_point.year = 1500;
     // These ranges are sums of the relevant father weights for
     // the year in question.
     expect_rand( 0, 15, 2 );
@@ -303,7 +303,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 
   SECTION(
       "fills pool and chooses, year 1600, one slot populated" ) {
-    W.turn().time_point.year = 1'600;
+    W.turn().time_point.year = 1600;
     player.fathers.pool[e_founding_father_type::political] =
         e_founding_father::benjamin_franklin;
     // These ranges are sums of the relevant father weights for
@@ -357,7 +357,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 
   SECTION(
       "fills pool and chooses, year 1700, one slot populated" ) {
-    W.turn().time_point.year = 1'700;
+    W.turn().time_point.year = 1700;
     // These ranges are sums of the relevant father weights for
     // the year in question.
     expect_rand( 0, 32, 22 );
@@ -413,7 +413,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     FOR_ENUM( father, e_founding_father )
       player.fathers.has[father] = true;
     player.fathers.has[e_founding_father::adam_smith] = false;
-    W.turn().time_point.year                          = 1'700;
+    W.turn().time_point.year                          = 1700;
     expect_rand( 0, 6, 2 );
     ChoiceConfig const config{
       .msg =

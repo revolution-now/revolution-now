@@ -2201,7 +2201,7 @@ TEST_CASE(
   // generate some random numbers to reseed our own random gener-
   // ator to get predictable results based on Catch2's seed.
   uint32_t sub_seed =
-      GENERATE( take( 100, random( 0, 1'000'000 ) ) );
+      GENERATE( take( 100, random( 0, 1000000 ) ) );
   INFO( fmt::format( "sub_seed: {}", sub_seed ) );
   default_random_engine rng_engine( sub_seed );
 

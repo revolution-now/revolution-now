@@ -83,7 +83,7 @@ result<int16_t> from_canonical( converter& conv, value const& v,
         "failed to convert value of type {} to int16_t.",
         type_name( v ) );
   integer_type const itype = v.get<integer_type>();
-  if( itype < -32'768 || itype > 32'767 )
+  if( itype < -32768 || itype > 32767 )
     return conv.err(
         "number out of range for conversion to signed 16 bit "
         "integer: {}",
@@ -143,7 +143,7 @@ result<uint16_t> from_canonical( converter& conv, value const& v,
         "failed to convert value of type {} to uint16_t.",
         type_name( v ) );
   integer_type const itype = v.get<integer_type>();
-  if( itype < 0 || itype > 65'535 )
+  if( itype < 0 || itype > 65535 )
     return conv.err(
         "number out of range for conversion to unsigned 16 bit "
         "integer: {}",
@@ -165,7 +165,7 @@ result<uint32_t> from_canonical( converter& conv, value const& v,
         "failed to convert value of type {} to uint32_t.",
         type_name( v ) );
   integer_type const itype = v.get<integer_type>();
-  if( itype < 0 || itype > 4'294'967'295 )
+  if( itype < 0 || itype > 4294967295 )
     return conv.err(
         "number out of range for conversion to unsigned 32 bit "
         "integer: {}",

@@ -82,7 +82,7 @@ read_text_file( fs::path const& file, maybe<size_t&> o_size ) {
 
   char* p = buffer.get();
 
-  constexpr size_t kStackBufferSize = 4'096;
+  constexpr size_t kStackBufferSize = 4096;
   char             stack_buffer[kStackBufferSize];
   // This algo probably won't work unless char has size 1.
   static_assert( sizeof( char ) == 1 );
