@@ -32,25 +32,18 @@ using ::base::maybe;
 /****************************************************************
 ** Globals.
 *****************************************************************/
-refl::enum_map<e_resolution, gfx::size> const
-    kResolutionSizeMap = [] {
-      refl::enum_map<e_resolution, gfx::size> res;
-      for( auto const r : refl::enum_values<e_resolution> )
-        res[r] = resolution_size( r );
-      return res;
-    }();
-
 unordered_map<gfx::size, e_resolution> const
     kResolutionReverseSizeMap = [] {
       unordered_map<gfx::size, e_resolution> res;
-      for( auto const& [k, v] : kResolutionSizeMap ) res[v] = k;
+      for( auto const r : refl::enum_values<e_resolution> )
+        res[resolution_size( r )] = r;
       return res;
     }();
 
 vector<gfx::size> const kResolutionSizes = [] {
   vector<gfx::size> res;
-  for( auto const& [r, sz] : kResolutionSizeMap )
-    res.push_back( sz );
+  for( auto const r : refl::enum_values<e_resolution> )
+    res.push_back( resolution_size( r ) );
   return res;
 }();
 
