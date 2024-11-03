@@ -74,7 +74,6 @@ IndentWrappedFunctionNames:                                   false
 IndentRequires:                                               false
 IntegerLiteralSeparator:
   Binary: 8
-  Decimal: 3
   Hex: -1
 KeepEmptyLinesAtTheStartOfBlocks:                             false
 # LambdaBodyIndentation:                                      OuterScope # Not working as expected
