@@ -19,7 +19,7 @@ namespace base {
 
 // Full, absolute, canonical path to the root of the project
 // source tree on the build machine during the build. This is the
-// "revolution-now-game" folder, under which there is "src".
+// "revolution-now" folder, under which there is "src".
 fs::path const& source_tree_root();
 
 // Full, absolute, canonical path to the root of the binary
