@@ -331,14 +331,16 @@ struct OmniPlane::Impl : public IPlane {
     render_logical_resolution( renderer );
   }
 
+  static bool window_too_small() {
+    return !get_global_resolution().has_value();
+  }
+
   void draw( rr::Renderer& renderer ) const override {
     // This must be the top-most thing that is drawn in the en-
     // tire game, since nothing else can effectively be drawn if
     // we don't know what the logical resolution is, which in
     // practice would happen if the window is too small.
-    //
-    // TODO: move this higher up the callstack.
-    if( !get_global_resolution().has_value() ) {
+    if( window_too_small() ) {
       render_bad_window_size_overlay( renderer );
       return;
     }
@@ -382,20 +384,26 @@ struct OmniPlane::Impl : public IPlane {
             break;
           case ::SDLK_F11:
             this->toggle_fullscreen();
+            handled = e_input_handled::yes;
             break;
           case ::SDLK_o:
-            if( key_event.mod.ctrl_down ) toggle_omni_overlay();
+            if( key_event.mod.ctrl_down ) {
+              toggle_omni_overlay();
+              handled = e_input_handled::yes;
+            }
             break;
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_down() )
                 cycle_resolution( -1 );
+              handled = e_input_handled::yes;
             }
             break;
           case ::SDLK_EQUALS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_up() )
                 cycle_resolution( 1 );
+              handled = e_input_handled::yes;
             }
             break;
           case ::SDLK_q:
@@ -409,7 +417,8 @@ struct OmniPlane::Impl : public IPlane {
       default:
         break;
     }
-    return handled;
+    bool const hazard_is_shown = window_too_small();
+    return hazard_is_shown ? e_input_handled::yes : handled;
   }
 
   void on_logical_resolution_changed( e_resolution ) override {}
