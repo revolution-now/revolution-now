@@ -75,6 +75,61 @@ ratings {
         pixel_size: 1
       }
     },
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.7937499999999998
+        scale: 6
+        viewport {
+          origin.x: 192
+          size {
+            h: 2160
+            w: 3456
+          }
+        }
+      }
+      scores {
+        fitting: 0.97
+        overall: 0.88
+        pixel_size: 0.91
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 450
+          w: 720
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.5291666666666667
+        scale: 4
+        viewport {
+          origin {
+            x: 480
+            y: 180
+          }
+          size {
+            h: 1800
+            w: 2880
+          }
+        }
+      }
+      scores {
+        fitting: 0.88
+        overall: 0.78
+        pixel_size: 0.89
+      }
+    },
   ]
   unavailable: [
     {
@@ -103,6 +158,35 @@ ratings {
       scores {
         fitting: 0.91
         overall: 0.91
+        pixel_size: 1
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.6614583333333334
+        scale: 5
+        viewport {
+          origin {
+            x: 480
+            y: 180
+          }
+          size {
+            h: 1800
+            w: 2880
+          }
+        }
+      }
+      scores {
+        fitting: 0.88
+        overall: 0.88
         pixel_size: 1
       }
     },
@@ -196,6 +280,35 @@ ratings {
     {
       resolution {
         logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.5291666666666667
+        scale: 4
+        viewport {
+          origin {
+            x: 768
+            y: 360
+          }
+          size {
+            h: 1440
+            w: 2304
+          }
+        }
+      }
+      scores {
+        fitting: 0.77
+        overall: 0.69
+        pixel_size: 0.89
+      }
+    },
+    {
+      resolution {
+        logical {
           h: 432
           w: 768
         }
@@ -219,6 +332,35 @@ ratings {
       scores {
         fitting: 0.75
         overall: 0.56
+        pixel_size: 0.75
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 450
+          w: 720
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.3968749999999999
+        scale: 3
+        viewport {
+          origin {
+            x: 840
+            y: 405
+          }
+          size {
+            h: 1350
+            w: 2160
+          }
+        }
+      }
+      scores {
+        fitting: 0.74
+        overall: 0.55
         pixel_size: 0.75
       }
     },
@@ -283,6 +425,35 @@ ratings {
     {
       resolution {
         logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.3968749999999999
+        scale: 3
+        viewport {
+          origin {
+            x: 1056
+            y: 540
+          }
+          size {
+            h: 1080
+            w: 1728
+          }
+        }
+      }
+      scores {
+        fitting: 0.64
+        overall: 0.48
+        pixel_size: 0.75
+      }
+    },
+    {
+      resolution {
+        logical {
           h: 432
           w: 768
         }
@@ -300,6 +471,35 @@ ratings {
           size {
             h: 864
             w: 1536
+          }
+        }
+      }
+      scores {
+        fitting: 0.57
+        overall: 0.32
+        pixel_size: 0.57
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 450
+          w: 720
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.26458333333333334
+        scale: 2
+        viewport {
+          origin {
+            x: 1200
+            y: 630
+          }
+          size {
+            h: 900
+            w: 1440
           }
         }
       }
@@ -370,6 +570,35 @@ ratings {
     {
       resolution {
         logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.26458333333333334
+        scale: 2
+        viewport {
+          origin {
+            x: 1344
+            y: 720
+          }
+          size {
+            h: 720
+            w: 1152
+          }
+        }
+      }
+      scores {
+        fitting: 0.48
+        overall: 0.27
+        pixel_size: 0.57
+      }
+    },
+    {
+      resolution {
+        logical {
           h: 432
           w: 768
         }
@@ -387,6 +616,35 @@ ratings {
           size {
             h: 432
             w: 768
+          }
+        }
+      }
+      scores {
+        fitting: 0.33
+        overall: 0.11
+        pixel_size: 0.33
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 450
+          w: 720
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.13229166666666667
+        scale: 1
+        viewport {
+          origin {
+            x: 1560
+            y: 855
+          }
+          size {
+            h: 450
+            w: 720
           }
         }
       }
@@ -451,6 +709,35 @@ ratings {
       scores {
         fitting: 0.29
         overall: 0.1
+        pixel_size: 0.33
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 576
+        }
+        physical_window {
+          h: 2160
+          w: 3840
+        }
+        pixel_size: 0.13229166666666667
+        scale: 1
+        viewport {
+          origin {
+            x: 1632
+            y: 900
+          }
+          size {
+            h: 360
+            w: 576
+          }
+        }
+      }
+      scores {
+        fitting: 0.27
+        overall: 0.09
         pixel_size: 0.33
       }
     },

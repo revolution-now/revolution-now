@@ -60,7 +60,9 @@ TEST_CASE( "[resolution] supported_resolutions" ) {
   vector<gfx::size> const expected{
     gfx::size{ .w = 640, .h = 360 },
     gfx::size{ .w = 768, .h = 432 },
+    gfx::size{ .w = 576, .h = 360 },
     gfx::size{ .w = 640, .h = 400 },
+    gfx::size{ .w = 720, .h = 450 },
   };
   REQUIRE( supported_resolutions() == expected );
 }
@@ -116,11 +118,9 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
       size{ .w = 1366, .h = 768 },  //
       size{ .w = 3440, .h = 1440 }, //
       size{ .w = 1600, .h = 900 },  //
-      size{ .w = 1440, .h = 900 },  //
       size{ .w = 2560, .h = 1080 }, //
       size{ .w = 1680, .h = 1050 }, //
       size{ .w = 1360, .h = 768 },  //
-      size{ .w = 2880, .h = 1800 }, //
       size{ .w = 5120, .h = 1440 }, //
       size{ .w = 1280, .h = 1024 }, //
     };
@@ -133,9 +133,7 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
       size{ .w = 1680, .h = 1050 }, //
       size{ .w = 5120, .h = 1440 }, //
       size{ .w = 3440, .h = 1440 }, //
-      size{ .w = 1440, .h = 900 },  //
       size{ .w = 2560, .h = 1080 }, //
-      size{ .w = 2880, .h = 1800 }, //
       size{ .w = 1280, .h = 1024 }, //
     };
     check_fits( expected_fail );
