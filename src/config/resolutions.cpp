@@ -28,6 +28,10 @@ gfx::size resolution_size( e_resolution const r ) {
       return { .w = 640, .h = 400 };
     case e_resolution::_768x432:
       return { .w = 768, .h = 432 };
+    case e_resolution::_576x360:
+      return { .w = 576, .h = 360 };
+    case e_resolution::_720x450:
+      return { .w = 720, .h = 450 };
   }
 }
 
