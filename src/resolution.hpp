@@ -14,14 +14,8 @@
 // rds
 #include "resolution.rds.hpp"
 
-// Revolution Now
-#include "maybe.hpp"
-
 // gfx
 #include "gfx/logical.hpp"
-
-// C++ standard library
-#include <vector>
 
 namespace rn {
 

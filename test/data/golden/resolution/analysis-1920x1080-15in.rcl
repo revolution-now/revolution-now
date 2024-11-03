@@ -1,0 +1,232 @@
+ratings {
+  available: [
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 640
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.7937499999999998
+        scale: 3
+        viewport.size {
+          h: 1080
+          w: 1920
+        }
+      }
+      scores {
+        fitting: 1
+        overall: 0.91
+        pixel_size: 0.91
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 432
+          w: 768
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.5291666666666667
+        scale: 2
+        viewport {
+          origin {
+            x: 192
+            y: 108
+          }
+          size {
+            h: 864
+            w: 1536
+          }
+        }
+      }
+      scores {
+        fitting: 0.89
+        overall: 0.79
+        pixel_size: 0.89
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 400
+          w: 640
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.5291666666666667
+        scale: 2
+        viewport {
+          origin {
+            x: 320
+            y: 140
+          }
+          size {
+            h: 800
+            w: 1280
+          }
+        }
+      }
+      scores {
+        fitting: 0.83
+        overall: 0.74
+        pixel_size: 0.89
+      }
+    },
+  ]
+  unavailable: [
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 640
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.5291666666666667
+        scale: 2
+        viewport {
+          origin {
+            x: 320
+            y: 180
+          }
+          size {
+            h: 720
+            w: 1280
+          }
+        }
+      }
+      scores {
+        fitting: 0.8
+        overall: 0.71
+        pixel_size: 0.89
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 432
+          w: 768
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.26458333333333334
+        scale: 1
+        viewport {
+          origin {
+            x: 576
+            y: 324
+          }
+          size {
+            h: 432
+            w: 768
+          }
+        }
+      }
+      scores {
+        fitting: 0.57
+        overall: 0.32
+        pixel_size: 0.57
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 400
+          w: 640
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.26458333333333334
+        scale: 1
+        viewport {
+          origin {
+            x: 640
+            y: 340
+          }
+          size {
+            h: 400
+            w: 640
+          }
+        }
+      }
+      scores {
+        fitting: 0.52
+        overall: 0.3
+        pixel_size: 0.57
+      }
+    },
+    {
+      resolution {
+        logical {
+          h: 360
+          w: 640
+        }
+        physical_window {
+          h: 1080
+          w: 1920
+        }
+        pixel_size: 0.26458333333333334
+        scale: 1
+        viewport {
+          origin {
+            x: 640
+            y: 360
+          }
+          size {
+            h: 360
+            w: 640
+          }
+        }
+      }
+      scores {
+        fitting: 0.5
+        overall: 0.28
+        pixel_size: 0.57
+      }
+    },
+    .resolution.scale: 1,
+  ]
+}
+
+selected {
+  available: true
+  named: _640x360
+  rated {
+    resolution {
+      logical {
+        h: 360
+        w: 640
+      }
+      physical_window {
+        h: 1080
+        w: 1920
+      }
+      pixel_size: 0.7937499999999998
+      scale: 3
+      viewport.size {
+        h: 1080
+        w: 1920
+      }
+    }
+    scores {
+      fitting: 1
+      overall: 0.91
+      pixel_size: 0.91
+    }
+  }
+}

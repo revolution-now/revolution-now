@@ -17,8 +17,20 @@
 // Testing.
 #include "test/data/steam/steam-resolutions.hpp"
 
+// rcl
+#include "src/rcl/golden.hpp"
+
 // refl
+#include "src/refl/cdr.hpp"
 #include "src/refl/to-str.hpp"
+
+// cdr
+#include "src/cdr/ext-base.hpp"
+#include "src/cdr/ext-builtin.hpp"
+#include "src/cdr/ext-std.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -136,6 +148,48 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
     };
     check_fits( expected_fail );
   }
+}
+
+TEST_CASE( "[resolution] compute_resolutions 3840x2160 27in" ) {
+  gfx::size const physical{ .w = 3840, .h = 2160 };
+
+  // 27in 4K monitor.
+  gfx::Monitor const monitor{ .physical_screen = physical,
+                              .dpi =
+                                  MonitorDpi{
+                                    .horizontal = 192.0,
+                                    .vertical   = 192.0,
+                                    .diagonal   = 163.355,
+                                  },
+                              .diagonal_inches = 22.9 };
+
+  Resolutions const resolutions =
+      compute_resolutions( monitor, physical );
+
+  rcl::Golden const gold( resolutions,
+                          "analysis-3840x2160-27in" );
+
+  REQUIRE( gold.is_golden() == base::valid );
+}
+
+TEST_CASE( "[resolution] compute_resolutions 1920x1080 15in" ) {
+  gfx::size const physical{ .w = 1920, .h = 1080 };
+
+  // 15in 1080p monitor.
+  gfx::Monitor const monitor{
+    .physical_screen = { .w = 1920, .h = 1080 },
+    .dpi             = MonitorDpi{ .horizontal = 96.0,
+                                   .vertical   = 96.0,
+                                   .diagonal   = 141.68 },
+    .diagonal_inches = 15.0 };
+
+  Resolutions const resolutions =
+      compute_resolutions( monitor, physical );
+
+  rcl::Golden const gold( resolutions,
+                          "analysis-1920x1080-15in" );
+
+  REQUIRE( gold.is_golden() == base::valid );
 }
 
 } // namespace
