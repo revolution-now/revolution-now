@@ -70,8 +70,8 @@ Resolutions& g_resolutions() {
   static Resolutions r = [] {
     auto const         display_mode    = current_display_mode();
     gfx::size const    physical_screen = display_mode.size;
-    gfx::Monitor const monitor         = gfx::monitor_properties(
-        physical_screen, monitor_dpi() );
+    gfx::Monitor const monitor =
+        monitor_properties( physical_screen, monitor_dpi() );
     return compute_resolutions( monitor,
                                 main_window_physical_size() );
   }();
@@ -112,6 +112,19 @@ double const& viewer_distance_from_monitor() {
 
 void query_video_stats() {
   float ddpi, hdpi, vdpi;
+  // A warning from the SDL2 docs:
+  //
+  //   WARNING: This reports the DPI that the hardware reports,
+  //   and it is not always reliable! It is almost always better
+  //   to use SDL_GetWindowSize() to find the window size, which
+  //   might be in logical points instead of pixels, and then
+  //   SDL_GL_GetDrawableSize(), SDL_Vulkan_GetDrawableSize(),
+  //   SDL_Metal_GetDrawableSize(), or SDL_Get-Renderer-Output-
+  //   Size(), and compare the two values to get an actual
+  //   scaling value between the two. We will be rethinking how
+  //   high-dpi details should be managed in SDL3 to make things
+  //   more consistent, reliable, and clear.
+  //
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
   lg.debug( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.",
             ddpi, hdpi, vdpi );
@@ -297,10 +310,8 @@ void set_pending_resolution(
   if( selected_resolution.rated.resolution.logical !=
       g_resolutions().selected.rated.resolution.logical )
     lg.info( "logical resolution changing to {}x{}",
-             selected_resolution.rated.resolution.logical
-                 .dimensions.w,
-             selected_resolution.rated.resolution.logical
-                 .dimensions.h );
+             selected_resolution.rated.resolution.logical.w,
+             selected_resolution.rated.resolution.logical.h );
   input::inject_resolution_event( selected_resolution );
 }
 
@@ -315,31 +326,22 @@ gfx::size logical_resolution_for_invalid_window_size() {
 
 gfx::rect main_window_viewport() {
   auto const& selected = g_resolutions().selected;
-  switch( selected.availability ) {
-    case e_resolution_availability::available:
-      return selected.rated.resolution.viewport;
-    case e_resolution_availability::unavailable:
-      return gfx::rect{ .size = main_window_physical_size() };
-  }
+  return selected.available
+             ? selected.rated.resolution.viewport
+             : gfx::rect{ .size = main_window_physical_size() };
 }
 
 void on_logical_resolution_changed(
     rr::Renderer&      renderer,
     Resolutions const& new_resolutions ) {
   auto old_selected_resolution = g_resolutions().selected;
-  switch( new_resolutions.selected.availability ) {
-    case e_resolution_availability::available: {
-      if( g_resolutions().selected.availability ==
-          e_resolution_availability::available )
-        input::update_mouse_pos_with_viewport_change(
-            old_selected_resolution.rated.resolution,
-            new_resolutions.selected.rated.resolution );
-      break;
-    }
-    case e_resolution_availability::unavailable: {
-      lg.info( "no logical resolution found." );
-      break;
-    }
+  if( new_resolutions.selected.available ) {
+    if( g_resolutions().selected.available )
+      input::update_mouse_pos_with_viewport_change(
+          old_selected_resolution.rated.resolution,
+          new_resolutions.selected.rated.resolution );
+  } else {
+    lg.info( "no logical resolution found." );
   }
   g_resolutions() = new_resolutions;
   // Note this actually uses flipped coordinates where the origin
@@ -349,10 +351,10 @@ void on_logical_resolution_changed(
 }
 
 gfx::size shrinkage_size() {
-  auto const& logical =
-      g_resolutions().selected.rated.resolution.logical;
+  auto const& resolution =
+      g_resolutions().selected.rated.resolution;
   gfx::size const target_size =
-      logical.dimensions * logical.scale;
+      resolution.logical * resolution.scale;
   return target_size;
 }
 
@@ -373,17 +375,28 @@ void set_fullscreen( bool fullscreen ) {
 
 } // namespace
 
-// Get diagonal DPI of monitor. This seems to basically be the
-// same as the horizontal and vertical DPIs.
-maybe<double> monitor_dpi() {
-  static maybe<double> const dpi = []() -> maybe<double> {
+maybe<gfx::MonitorDpi> monitor_dpi() {
+  static maybe<gfx::MonitorDpi> const dpi =
+      []() -> maybe<gfx::MonitorDpi> {
     float hdpi = 0.0; // horizontal dpi.
     float vdpi = 0.0; // vertical dpi.
     float ddpi = 0.0; // diagonal dpi.
+    // A warning from the SDL2 docs:
+    //
+    //   WARNING: This reports the DPI that the hardware reports,
+    //   and it is not always reliable! It is almost always
+    //   better to use SDL_GetWindowSize() to find the window
+    //   size, which might be in logical points instead of pix-
+    //   els, and then SDL_GL_GetDrawableSize(), SDL_Vulkan_-Get-
+    //   DrawableSize(), SDL_Metal_GetDrawableSize(), or SDL_Get-
+    //   RendererOutputSize(), and compare the two values to get
+    //   an actual scaling value between the two. We will be re-
+    //   thinking how high-dpi details should be managed in SDL3
+    //   to make things more consistent, reliable, and clear.
+    //
     if( ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi ) < 0 ) {
       lg.warn( "could not get display dpi: {}",
                sdl_get_last_error() );
-      // res = 145.0;
       return nothing;
     }
     lg.info(
@@ -392,16 +405,86 @@ maybe<double> monitor_dpi() {
     if( hdpi != vdpi )
       lg.warn( "horizontal DPI not equal to vertical DPI.", hdpi,
                vdpi );
-    if( hdpi > 0.0 ) return hdpi;
-    if( vdpi > 0.0 ) return vdpi;
-    lg.warn(
-        "neither horizontal nor vertical DPIs are available." );
-    // This is not exact, since the "diagonal" DPI may be calcu-
-    // lated from corner to corner of the monitor, in which case
-    // the scaling factor relative to the horizontal or vertical
-    // dpis would depend on aspect ratio. But it should be close
-    // enough. Hopefully this case is rare to begin with though.
-    return ddpi / 1.414;
+
+    // The above function may not provide all of the components,
+    // and/or it may return inconsistent or invalid components.
+    // Thus, we now do our best to reconstruct any missing or in-
+    // valid ones if we have enough information.
+
+    static auto good = []( double const d ) {
+      // Any sensible DPI should surely be larger than 1 pixel
+      // per inch. If not then it is probably invalid.
+      return !isnan( d ) && d > 1.0;
+    };
+    static auto bad = []( double const d ) {
+      return !good( d );
+    };
+
+    // Geometrically, the diagonal DPI should always be >= to the
+    // cardinal DPIs. If it is not then one of the components may
+    // not be reliable. In those cases that were observed, it was
+    // the case that the diagonal one was the accurate one, so
+    // let's nuke the cardinal one and hope that we'll be able to
+    // recompute it below.
+    if( bad( ddpi ) ) {
+      lg.warn( "diagonal DPI is not available from hardware." );
+    } else if( good( hdpi ) && hdpi <= ddpi ) {
+      lg.warn(
+          "horizontal DPI is less than diagonal DPI, thus one "
+          "of them is inaccurate and must be discarded.  Will "
+          "assume that the diagonal one is accurate." );
+      hdpi = 0.0;
+    } else if( good( vdpi ) && vdpi <= ddpi ) {
+      lg.warn(
+          "vertical DPI is less than diagonal DPI, thus one of "
+          "them is inaccurate and must be discarded.  Will "
+          "assume that the diagonal one is accurate." );
+      vdpi = 0.0;
+    }
+
+    if( good( hdpi ) && bad( vdpi ) ) vdpi = hdpi;
+    if( bad( hdpi ) && good( vdpi ) ) hdpi = vdpi;
+    // At this point hdpi/vdpi are either both good or both bad.
+    CHECK_EQ( good( hdpi ), good( vdpi ) );
+
+    bool const have_cardinal = good( hdpi );
+    bool const have_diagonal = good( ddpi );
+
+    if( !have_cardinal )
+      lg.warn(
+          "neither horizontal nor vertical DPIs are "
+          "available." );
+
+    if( !have_cardinal && !have_diagonal ) {
+      // Can't do anything here;
+      lg.warn( "no DPI information can be obtained." );
+      return nothing;
+    }
+
+    if( have_cardinal && have_diagonal )
+      return gfx::MonitorDpi{
+        .horizontal = hdpi, .vertical = vdpi, .diagonal = ddpi };
+
+    if( !have_cardinal && have_diagonal ) {
+      lg.warn(
+          "cardinal DPI must be inferred from diagonal DPI." );
+      // Assume a square; won't be perfect, but good enough.
+      return gfx::MonitorDpi{ .horizontal = ddpi / 1.41421,
+                              .vertical   = vdpi / 1.41421,
+                              .diagonal   = ddpi };
+    }
+
+    if( have_cardinal && !have_diagonal ) {
+      lg.warn(
+          "diagonal DPI must be inferred from cardinal DPI." );
+      return gfx::MonitorDpi{
+        .horizontal = hdpi,
+        .vertical   = vdpi,
+        .diagonal   = sqrt( hdpi * hdpi + vdpi * vdpi ) };
+    }
+
+    lg.error( "something went wrong while computing DPI." );
+    return nothing;
   }();
   return dpi;
 }
@@ -410,33 +493,22 @@ void* main_os_window_handle() { return (void*)g_window; }
 
 maybe<gfx::Resolution const&> get_global_resolution() {
   auto const& selected = g_resolutions().selected;
-  switch( selected.availability ) {
-    case e_resolution_availability::available:
-      return selected.rated.resolution;
-    case e_resolution_availability::unavailable:
-      return nothing;
-  }
+  if( !selected.available ) return nothing;
+  return selected.rated.resolution;
 }
 
 maybe<gfx::ResolutionScores const&>
 get_global_resolution_scores() {
   auto const& selected = g_resolutions().selected;
-  switch( selected.availability ) {
-    case e_resolution_availability::available:
-      return selected.rated.scores;
-    case e_resolution_availability::unavailable:
-      return nothing;
-  }
+  if( !selected.available ) return nothing;
+  return selected.rated.scores;
 }
 
 gfx::size main_window_logical_size() {
   auto const& selected = g_resolutions().selected;
-  switch( selected.availability ) {
-    case e_resolution_availability::available:
-      return selected.rated.resolution.logical.dimensions;
-    case e_resolution_availability::unavailable:
-      return logical_resolution_for_invalid_window_size();
-  }
+  return selected.available
+             ? selected.rated.resolution.logical
+             : logical_resolution_for_invalid_window_size();
 }
 
 gfx::rect main_window_logical_rect() {
@@ -515,7 +587,7 @@ void on_main_window_resized( rr::Renderer& renderer ) {
   gfx::size const physical_size   = main_window_physical_size();
   lg.debug( "main window resizing to {}", physical_size );
   gfx::Monitor const monitor =
-      gfx::monitor_properties( physical_size, monitor_dpi() );
+      monitor_properties( physical_size, monitor_dpi() );
   auto const new_resolutions =
       compute_resolutions( monitor, physical_size );
   // FIXME: the logical resolution here can jump abruptly if the
@@ -532,9 +604,7 @@ void cycle_resolution( int const delta ) {
   // Copy; cannot modify the global state directly.
   auto const& curr = g_resolutions();
 
-  if( curr.selected.availability ==
-      e_resolution_availability::unavailable )
-    return;
+  if( !curr.selected.available ) return;
   auto        selected  = curr.selected;
   auto const& available = curr.ratings.available;
   if( available.empty() ) return;
@@ -555,28 +625,20 @@ void set_resolution_idx_to_optimal() {
   auto const& curr = g_resolutions();
 
   if( curr.ratings.available.empty() ) return;
-  set_pending_resolution( SelectedResolution{
-    .rated        = curr.ratings.available[0],
-    .idx          = 0,
-    .availability = e_resolution_availability::available } );
+  set_pending_resolution(
+      SelectedResolution{ .rated     = curr.ratings.available[0],
+                          .idx       = 0,
+                          .available = true } );
 }
 
 maybe<int> get_resolution_idx() {
-  switch( g_resolutions().selected.availability ) {
-    case e_resolution_availability::available:
-      return g_resolutions().selected.idx;
-    case e_resolution_availability::unavailable:
-      return nothing;
-  }
+  if( !g_resolutions().selected.available ) return nothing;
+  return g_resolutions().selected.idx;
 }
 
 maybe<int> get_resolution_cycle_size() {
-  switch( g_resolutions().selected.availability ) {
-    case e_resolution_availability::available:
-      return g_resolutions().ratings.available.size();
-    case e_resolution_availability::unavailable:
-      return nothing;
-  }
+  if( !g_resolutions().selected.available ) return nothing;
+  return g_resolutions().ratings.available.size();
 }
 
 } // namespace rn

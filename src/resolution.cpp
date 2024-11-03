@@ -16,7 +16,7 @@
 #include "logical.rds.hpp"
 
 // config
-#include "config/resolutions.rds.hpp"
+#include "config/resolutions.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -32,17 +32,6 @@ using ::base::maybe;
 /****************************************************************
 ** Globals.
 *****************************************************************/
-constexpr gfx::size resolution_size( e_resolution const r ) {
-  switch( r ) {
-    case e_resolution::_640x360:
-      return { .w = 640, .h = 360 };
-    case e_resolution::_640x400:
-      return { .w = 640, .h = 400 };
-    case e_resolution::_768x432:
-      return { .w = 768, .h = 432 };
-  }
-}
-
 refl::enum_map<e_resolution, gfx::size> const
     kResolutionSizeMap = [] {
       refl::enum_map<e_resolution, gfx::size> res;
@@ -88,18 +77,18 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
   gfx::ResolutionAnalysisOptions const options{
     .monitor                      = monitor,
     .physical_window              = physical_window,
-    .supported_logical_dimensions = kResolutionSizes,
-    .rating_options               = RESOLUTION_RATINGS };
+    .rating_options               = RESOLUTION_RATINGS,
+    .supported_logical_dimensions = kResolutionSizes };
   gfx::ResolutionRatings ratings =
       resolution_analysis( options );
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.
-  ratings.unavailable.push_back( gfx::RatedResolution{
+  ratings.unavailable.push_back( gfx::ScoredResolution{
     .resolution = gfx::Resolution{ .physical_window = {},
-                                   .logical = { .dimensions = {},
-                                                .scale = 1 },
-                                   .viewport = {} },
+                                   .logical         = {},
+                                   .scale           = 1,
+                                   .viewport        = {} },
     .scores     = {} } );
   return ratings;
 }
@@ -109,10 +98,6 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-gfx::ResolutionRatingOptions resolution_rating_options() {
-  return RESOLUTION_RATINGS;
-}
-
 Resolutions compute_resolutions(
     gfx::Monitor const& monitor,
     gfx::size const     physical_window ) {
@@ -124,25 +109,25 @@ Resolutions compute_resolutions(
   CHECK( !ratings.unavailable.empty() );
   if( !ratings.available.empty() ) {
     auto const& logical_size =
-        ratings.available[0].resolution.logical.dimensions;
+        ratings.available[0].resolution.logical;
     auto const named_it =
         kResolutionReverseSizeMap.find( logical_size );
     CHECK( named_it != kResolutionReverseSizeMap.end() );
     // Copy to avoid use-after-move.
-    auto selected = SelectedResolution{
-      .rated        = ratings.available[0],
-      .idx          = 0,
-      .availability = e_resolution_availability::available,
-      .named        = named_it->second };
+    auto selected =
+        SelectedResolution{ .rated     = ratings.available[0],
+                            .idx       = 0,
+                            .available = true,
+                            .named     = named_it->second };
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   } else {
     // Copy to avoid use-after-move.
-    auto selected = SelectedResolution{
-      .rated        = ratings.unavailable[0],
-      .idx          = 0,
-      .availability = e_resolution_availability::unavailable,
-      .named        = nothing };
+    auto selected =
+        SelectedResolution{ .rated     = ratings.unavailable[0],
+                            .idx       = 0,
+                            .available = false,
+                            .named     = nothing };
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   }

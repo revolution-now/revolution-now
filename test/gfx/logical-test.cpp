@@ -13,6 +13,21 @@
 // Under test.
 #include "src/gfx/logical.hpp"
 
+// rcl
+#include "src/rcl/golden.hpp"
+
+// refl
+#include "src/refl/cdr.hpp"
+#include "src/refl/to-str.hpp"
+
+// cdr
+#include "src/cdr/ext-base.hpp"
+#include "src/cdr/ext-builtin.hpp"
+#include "src/cdr/ext-std.hpp"
+
+// base
+#include "src/base/to-str-ext-std.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -21,86 +36,171 @@ namespace {
 
 using namespace std;
 
+using ::base::maybe;
+using ::base::nothing;
+
+/****************************************************************
+** Data
+*****************************************************************/
+// This is a list of resolutions that we currently plan to sup-
+// port, though it may change. This is here to have something
+// stable for testing.
+vector<size> const kSupportedResolutions{
+  { .w = 640, .h = 360 },  //
+  { .w = 768, .h = 432 },  //
+  { .w = 480, .h = 270 },  //
+  { .w = 576, .h = 360 },  //
+  { .w = 640, .h = 400 },  //
+  { .w = 720, .h = 450 },  //
+  { .w = 640, .h = 480 },  //
+  { .w = 960, .h = 720 },  //
+  { .w = 852, .h = 360 },  //
+  { .w = 1280, .h = 540 }, //
+  { .w = 1146, .h = 480 }, //
+  { .w = 860, .h = 360 },  //
+  { .w = 960, .h = 400 },  //
+};
+
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-#if 0
-TEST_CASE( "[gfx/logical] supported_logical_resolutions" ) {
-  vector<LogicalResolution> expected;
-  size                      resolution;
-
-  auto f = [&] {
-    return supported_logical_resolutions( resolution );
-  };
-
-  resolution = { .w = 1, .h = 1 };
-  expected   = {
-    { .dimensions = { .w = 1, .h = 1 }, .scale = 1 },
-  };
-  REQUIRE( f() == expected );
-
-  resolution = { .w = 1, .h = 2 };
-  expected   = {
-    { .dimensions = { .w = 1, .h = 2 }, .scale = 1 },
-  };
-  REQUIRE( f() == expected );
-
-  resolution = { .w = 2, .h = 2 };
-  expected   = {
-    { .dimensions = { .w = 2, .h = 2 }, .scale = 1 },
-    { .dimensions = { .w = 1, .h = 1 }, .scale = 2 },
-  };
-  REQUIRE( f() == expected );
-
-  resolution = { .w = 3, .h = 2 };
-  expected   = {
-    { .dimensions = { .w = 3, .h = 2 }, .scale = 1 },
-  };
-  REQUIRE( f() == expected );
-
-  resolution = { .w = 4, .h = 2 };
-  expected   = {
-    { .dimensions = { .w = 4, .h = 2 }, .scale = 1 },
-    { .dimensions = { .w = 2, .h = 1 }, .scale = 2 },
-  };
-  REQUIRE( f() == expected );
-
-  resolution = { .w = 3'840, .h = 2'160 };
-  expected   = {
-    { .dimensions = { .w = 3'840, .h = 2'160 }, .scale = 1 },
-    { .dimensions = { .w = 1'920, .h = 1'080 }, .scale = 2 },
-    { .dimensions = { .w = 1'280, .h = 720 }, .scale = 3 },
-    { .dimensions = { .w = 960, .h = 540 }, .scale = 4 },
-    { .dimensions = { .w = 768, .h = 432 }, .scale = 5 },
-    { .dimensions = { .w = 640, .h = 360 }, .scale = 6 },
-    { .dimensions = { .w = 480, .h = 270 }, .scale = 8 },
-    { .dimensions = { .w = 384, .h = 216 }, .scale = 10 },
-    { .dimensions = { .w = 320, .h = 180 }, .scale = 12 },
-    { .dimensions = { .w = 256, .h = 144 }, .scale = 15 },
-    { .dimensions = { .w = 240, .h = 135 }, .scale = 16 },
-    { .dimensions = { .w = 192, .h = 108 }, .scale = 20 },
-    { .dimensions = { .w = 160, .h = 90 }, .scale = 24 },
-    { .dimensions = { .w = 128, .h = 72 }, .scale = 30 },
-    { .dimensions = { .w = 96, .h = 54 }, .scale = 40 },
-    { .dimensions = { .w = 80, .h = 45 }, .scale = 48 },
-    { .dimensions = { .w = 64, .h = 36 }, .scale = 60 },
-    { .dimensions = { .w = 48, .h = 27 }, .scale = 80 },
-    { .dimensions = { .w = 32, .h = 18 }, .scale = 120 },
-    { .dimensions = { .w = 16, .h = 9 }, .scale = 240 },
-  };
-  REQUIRE( f() == expected );
-}
-#endif
-
 TEST_CASE( "[gfx/logical] monitor_properties" ) {
+  size              physical = {};
+  maybe<MonitorDpi> dpi;
+  Monitor           expected;
+
+  auto f = [&] { return monitor_properties( physical, dpi ); };
+
+  physical = { .w = 1920, .h = 1080 };
+  dpi      = nothing;
+  expected = { .physical_screen = physical,
+               .dpi             = nothing,
+               .diagonal_inches = nothing };
+  REQUIRE( f() == expected );
+
+  physical = { .w = 1920, .h = 1080 };
+
+  dpi = MonitorDpi{
+    .horizontal = 200.0, .vertical = 200.0, .diagonal = 141.68 };
+  expected = { .physical_screen = physical,
+               .dpi             = dpi,
+               .diagonal_inches = 15.548469579914583 };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[gfx/logical] resolution_analysis empty options" ) {
+  ResolutionAnalysisOptions const options{};
+  ResolutionRatings const         analysis =
+      resolution_analysis( options );
+  REQUIRE( analysis == ResolutionRatings{} );
+}
+
+// 27in 4K monitor.
+TEST_CASE( "[gfx/logical] resolution_analysis 3840x2160 27in" ) {
+  ResolutionAnalysisOptions const options{
+    .monitor =
+        Monitor{ .physical_screen = { .w = 3840, .h = 2160 },
+                 .dpi =
+                     MonitorDpi{
+                       .horizontal = 192.0,
+                       .vertical   = 192.0,
+                       .diagonal   = 163.355,
+                     },
+                 .diagonal_inches = 22.9 },
+    .physical_window = { .w = 3840, .h = 2160 },
+    .rating_options =
+        ResolutionRatingOptions{
+          .prefer_fullscreen = true,
+          .tolerance =
+              ResolutionTolerance{
+                .min_percent_covered  = nothing,
+                .fitting_score_cutoff = nothing },
+          .ideal_pixel_size_mm = .66145,
+          .remove_redundant    = true },
+    .supported_logical_dimensions = kSupportedResolutions };
+
+  ResolutionRatings const analysis =
+      resolution_analysis( options );
+
+  rcl::Golden const gold( analysis, "analysis-3840x2160-27in" );
+
+  REQUIRE( gold.is_golden() == base::valid );
+}
+
+// 15in 1080p laptop monitor.
+TEST_CASE( "[gfx/logical] resolution_analysis 1920x1080 15in" ) {
+  ResolutionAnalysisOptions const options{
+    .monitor =
+        Monitor{ .physical_screen = { .w = 1920, .h = 1080 },
+                 .dpi = MonitorDpi{ .horizontal = 96.0,
+                                    .vertical   = 96.0,
+                                    .diagonal   = 141.68 },
+                 .diagonal_inches = 15.0 },
+    .physical_window = { .w = 1920, .h = 1080 },
+    .rating_options =
+        ResolutionRatingOptions{
+          .prefer_fullscreen = true,
+          .tolerance =
+              ResolutionTolerance{
+                .min_percent_covered  = nothing,
+                .fitting_score_cutoff = nothing },
+          .ideal_pixel_size_mm = .66145,
+          .remove_redundant    = true },
+    .supported_logical_dimensions = kSupportedResolutions };
+
+  ResolutionRatings const analysis =
+      resolution_analysis( options );
+
+  rcl::Golden const gold( analysis, "analysis-1920x1080-15in" );
+
+  REQUIRE( gold.is_golden() == base::valid );
+}
+
+// Since this is such an important resolution we'll explicitly
+// test that the best selection is 640x360.
+TEST_CASE(
+    "[gfx/logical] resolution_analysis 1920x1080 first" ) {
+  ResolutionAnalysisOptions const options{
+    // 15in 2K monitor.
+    .monitor =
+        Monitor{ .physical_screen = { .w = 1920, .h = 1080 },
+                 .dpi = MonitorDpi{ .horizontal = 96.0,
+                                    .vertical   = 96.0,
+                                    .diagonal   = 141.68 },
+                 .diagonal_inches = 15.0 },
+    .physical_window = { .w = 1920, .h = 1080 },
+    .rating_options =
+        ResolutionRatingOptions{
+          .prefer_fullscreen = true,
+          .tolerance =
+              ResolutionTolerance{
+                .min_percent_covered  = nothing,
+                .fitting_score_cutoff = nothing },
+          .ideal_pixel_size_mm = .66145,
+          .remove_redundant    = true },
+    .supported_logical_dimensions = kSupportedResolutions };
+
+  ResolutionRatings const analysis =
+      resolution_analysis( options );
+
+  REQUIRE( !analysis.available.empty() );
+
+  auto const best_logical_resolution =
+      analysis.available[0].resolution.logical;
+  size const expected{ .w = 640, .h = 360 };
+
+  REQUIRE( best_logical_resolution == expected );
+}
+
+TEST_CASE( "[gfx/logical] resolution_analysis 1920x1200 15in" ) {
   // TODO
 }
 
-TEST_CASE( "[gfx/logical] resolution_analysis" ) {
+TEST_CASE( "[gfx/logical] resolution_analysis 2560x1440 15in" ) {
   // TODO
 }
 
-TEST_CASE( "[gfx/logical] resolution_ratings" ) {
+TEST_CASE( "[gfx/logical] resolution_analysis 2560x1600 15in" ) {
   // TODO
 }
 

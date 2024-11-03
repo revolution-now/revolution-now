@@ -64,6 +64,12 @@ string toggle_omni_overlay() {
   return g_debug_omni_overlay ? "on" : "off";
 }
 
+string named_ratio_canonical_name(
+    gfx::e_named_aspect_ratio const r ) {
+  gfx::size const sz = named_aspect_ratio( r );
+  return fmt::format( "{}:{}", sz.w, sz.h );
+}
+
 auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
   // Use a y-combinator like approach to produce a lambda that
   // can call itself.
@@ -82,9 +88,9 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
       return fmt::format( "{:.3}", d );
     },
     []( auto const&,
-        gfx::NamedAspectRatio const& nar ) -> string {
-      return fmt::format(
-          "{}", gfx::named_ratio_canonical_name( nar.name ) );
+        gfx::e_named_aspect_ratio const& nar ) -> string {
+      return fmt::format( "{}",
+                          named_ratio_canonical_name( nar ) );
     },
     []<typename T>( auto const&    self,
                     maybe<T> const m ) -> string {
@@ -255,26 +261,33 @@ struct OmniPlane::Impl : public IPlane {
     auto const     log = line_logger( lines );
 
     CHECK( resolution.has_value() );
-    auto const monitor = gfx::monitor_properties(
+    auto const monitor = monitor_properties(
         main_window_physical_size(), monitor_dpi() );
     UNWRAP_CHECK_T( auto const scores,
                     get_global_resolution_scores() );
+    // Although this is a tolerance, it is not a rating option,
+    // since it is not used to filter results, just to describe
+    // them.
+    double const RATIO_TOLERANCE = 0.04;
+    auto const   logical_aspect =
+        gfx::find_close_named_aspect_ratio( resolution->logical,
+                                            RATIO_TOLERANCE );
 
     log( "Screen:" );
     log( " dimensions:     {}", monitor.physical_screen );
-    log( " dpi:            {}", monitor.dpi );
+    log( " dpi.horizontal: {}",
+         monitor.dpi.member( &gfx::MonitorDpi::horizontal ) );
+    log( " dpi.vertical:   {}",
+         monitor.dpi.member( &gfx::MonitorDpi::vertical ) );
+    log( " dpi.diagonal:   {}",
+         monitor.dpi.member( &gfx::MonitorDpi::diagonal ) );
     log( " inches:         {}", monitor.diagonal_inches );
     log( "Window:" );
-    log( " window.dims:    {}",
-         resolution->physical_window.dimensions );
-    log(
-        " window.aspect:  {}",
-        resolution->physical_window.aspect_ratio.closest_named );
+    log( " dims:           {}", resolution->physical_window );
     log( "Logical:" );
-    log( " logical:        {}", resolution->logical.dimensions );
-    log( " logical.aspect: {}",
-         resolution->logical.aspect_ratio.closest_named );
-    log( " scale:          {}", resolution->logical.scale );
+    log( " logical:        {}", resolution->logical );
+    log( " logical.aspect: {}", logical_aspect );
+    log( " scale:          {}", resolution->scale );
     log( " viewport:       {}", resolution->viewport );
     log( "Scores:" );
     log( " fit score:      {}", scores.fitting );

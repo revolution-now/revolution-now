@@ -9,7 +9,6 @@
 #
 # ===============================================================
 # gfx
-include "aspect.hpp"
 include "cartesian.hpp"
 
 # base
@@ -21,41 +20,41 @@ include "<vector>"
 namespace "gfx"
 
 # ---------------------------------------------------------------
+# Monitor Info.
+# ---------------------------------------------------------------
+struct.MonitorDpi {
+  horizontal 'double',
+  vertical 'double',
+  diagonal 'double',
+}
+
+struct.Monitor {
+  physical_screen 'size',
+  dpi 'base::maybe<MonitorDpi>',
+  diagonal_inches 'base::maybe<double>',
+}
+
+# ---------------------------------------------------------------
 # Resolution Representations.
 # ---------------------------------------------------------------
-struct.NamedAspectRatio {
-  name 'e_named_aspect_ratio',
-  ratio 'AspectRatio',
-}
-
-struct.ResolutionAspectRatio {
-  exact 'AspectRatio',
-  closest_named 'base::maybe<NamedAspectRatio>',
-}
-
-# ---------------------------------------------------------------
-# Resolution Representations.
-# ---------------------------------------------------------------
-struct.LogicalResolution {
-  dimensions 'size',
-  scale 'int',
-  aspect_ratio 'ResolutionAspectRatio',
-}
-
 struct.Resolution {
   # This is the resolution not of the entire monitor but of the
   # game window (though the two may coincide) in native pixels.
-  physical_window 'LogicalResolution',
-  logical 'LogicalResolution',
+  physical_window 'size',
+  logical 'size',
+  scale 'int',
   # This is in physical coordinates because 1) that is how it is
   # most useful, and 2) it can't generally be expressed in dis-
   # creet logical coordinates anyway because it may start on a
   # fractional logical coordinate.
   viewport 'rect',
   # The size of a pixel on screen in millimeters.
-  pixel_size_mm 'base::maybe<double>',
+  pixel_size 'base::maybe<double>',
 }
 
+# ---------------------------------------------------------------
+# Resolution Scoring & Selection.
+# ---------------------------------------------------------------
 # A score is in [0, 1.0] with 1.0 being best and 0.0 being worst.
 struct.ResolutionScores {
   # The more of the screen it covers, the better.
@@ -67,7 +66,7 @@ struct.ResolutionScores {
   overall 'double',
 }
 
-struct.RatedResolution {
+struct.ScoredResolution {
   resolution 'Resolution',
   scores 'ResolutionScores',
 }
@@ -76,9 +75,9 @@ struct.ResolutionRatings {
   # These are the ones that either fit the window exactly or fit
   # within it, such that there will be no part bleeding off the
   # edge of the window.
-  available 'std::vector<RatedResolution>',
+  available 'std::vector<ScoredResolution>',
 
   # These are the ones that would have been in the 'viable' cate-
   # gory but did not meet the require tolerance requirements.
-  unavailable 'std::vector<RatedResolution>',
+  unavailable 'std::vector<ScoredResolution>',
 }

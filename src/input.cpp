@@ -126,11 +126,9 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
           .member( &gfx::rect::origin )
           .value_or( gfx::point{} )
           .distance_from_origin();
-  int const scale_factor =
-      get_global_resolution()
-          .member( &gfx::Resolution::logical )
-          .member( &gfx::LogicalResolution::scale )
-          .value_or( 1 );
+  int const scale_factor = get_global_resolution()
+                               .member( &gfx::Resolution::scale )
+                               .value_or( 1 );
   mouse -= Delta::from_gfx( viewport_offset );
   mouse.x /= scale_factor;
   mouse.y /= scale_factor;
@@ -412,11 +410,9 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( Coord new_pos ) {
-  int const scale_factor =
-      get_global_resolution()
-          .member( &gfx::Resolution::logical )
-          .member( &gfx::LogicalResolution::scale )
-          .value_or( 1 );
+  int const scale_factor = get_global_resolution()
+                               .member( &gfx::Resolution::scale )
+                               .value_or( 1 );
   new_pos.x *= scale_factor;
   new_pos.y *= scale_factor;
   // Apparently we can use nullptr for the window and it will use
@@ -445,10 +441,10 @@ void update_mouse_pos_with_viewport_change(
     gfx::Resolution const& old_resolution,
     gfx::Resolution const& new_resolution ) {
   gfx::point p = g_prev_mouse_pos;
-  p *= old_resolution.logical.scale;
+  p *= old_resolution.scale;
   p += old_resolution.viewport.origin.distance_from_origin();
   p -= new_resolution.viewport.origin.distance_from_origin();
-  p /= new_resolution.logical.scale;
+  p /= new_resolution.scale;
   g_prev_mouse_pos = Coord::from_gfx( p );
 }
 
@@ -502,7 +498,7 @@ maybe<event_t> next_event() {
   return nothing;
 }
 
-constexpr int       kMaxEventQueueSize = 10'000;
+constexpr int       kMaxEventQueueSize = 10000;
 std::queue<event_t> g_event_queue;
 
 } // namespace

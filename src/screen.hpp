@@ -16,6 +16,7 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
+#include "gfx/logical.hpp"
 
 namespace rr {
 struct Renderer;
@@ -73,6 +74,11 @@ void* main_os_window_handle();
 
 void hide_window();
 
-maybe<double> monitor_dpi();
+// If the result is provided then all fields will be populated.
+// If the underlying system API did not provide all components
+// then the missing components will be computed from the ones
+// provided. If this cannot be done then nothing will be re-
+// turned.
+maybe<gfx::MonitorDpi> monitor_dpi();
 
 } // namespace rn

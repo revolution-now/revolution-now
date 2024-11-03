@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "logical.hpp"
 
-// gfx
-#include "aspect.hpp"
-
 // C++ standard library
 #include <unordered_set>
 
@@ -25,25 +22,15 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-ResolutionAspectRatio construct_aspect_ratio(
-    size const dimensions ) {
-  AspectRatio const       exact( dimensions );
-  maybe<NamedAspectRatio> named;
-  if( auto const name = find_closest_named_aspect_ratio( exact );
-      name.has_value() ) {
-    named = NamedAspectRatio{
-      .name = *name, .ratio = named_aspect_ratio( *name ) };
-  }
-  return ResolutionAspectRatio{ .exact         = exact,
-                                .closest_named = named };
-}
+struct LogicalResolution {
+  size dimensions = {};
+  int  scale      = {};
+};
 
 LogicalResolution construct_logical( size const dimensions,
                                      int const  scale ) {
-  return LogicalResolution{
-    .dimensions   = dimensions,
-    .scale        = scale,
-    .aspect_ratio = construct_aspect_ratio( dimensions ) };
+  return LogicalResolution{ .dimensions = dimensions,
+                            .scale      = scale };
 }
 
 bool is_exact( Resolution const& resolution ) {
@@ -64,12 +51,13 @@ vector<LogicalResolution> logical_resolutions_for_physical(
   return resolutions;
 }
 
-maybe<double> pixel_size_millimeters( maybe<double> const dpi,
-                                      int const scale ) {
+maybe<double> pixel_size_millimeters(
+    maybe<MonitorDpi const&> const dpi, int const scale ) {
   CHECK_GT( scale, 0 );
   if( !dpi.has_value() ) return nothing;
   double constexpr kMillimetersPerInch = 25.4;
-  return scale * kMillimetersPerInch / *dpi;
+  // We are assuming that horizontal == vertical here.
+  return scale * kMillimetersPerInch / dpi->horizontal;
 }
 
 // This function has the following desirable properties:
@@ -95,7 +83,7 @@ ResolutionScores score(
     ResolutionRatingOptions const& options ) {
   ResolutionScores scores;
 
-  if( r.physical_window.dimensions.area() == 0 ) return scores;
+  if( r.physical_window.area() == 0 ) return scores;
 
   auto round_score = []( double& score ) {
     score = double( lround( score * 100.0 ) ) / 100.0;
@@ -105,16 +93,16 @@ ResolutionScores score(
 
   // Fitting score.
   int const occupied_area = r.viewport.area();
-  int const total_area    = r.physical_window.dimensions.area();
+  int const total_area    = r.physical_window.area();
   CHECK_LE( occupied_area, total_area );
   scores.fitting = relative_diff_score_fn( sqrt( occupied_area ),
                                            sqrt( total_area ) );
 
   // Pixel size score.
-  if( r.pixel_size_mm.has_value() ) {
-    CHECK_GE( *r.pixel_size_mm, 0.0 );
+  if( r.pixel_size.has_value() ) {
+    CHECK_GE( *r.pixel_size, 0.0 );
     scores.pixel_size = relative_diff_score_fn(
-        *r.pixel_size_mm, options.ideal_pixel_size_mm );
+        *r.pixel_size, options.ideal_pixel_size_mm );
   }
 
   // Overall score should be computed last.
@@ -137,24 +125,23 @@ ResolutionScores score(
   return scores;
 }
 
-bool meets_tolerance( Resolution const&              r,
+bool meets_tolerance( ScoredResolution const& scored_resolution,
                       ResolutionRatingOptions const& options ) {
+  auto const& r         = scored_resolution.resolution;
+  auto const& scores    = scored_resolution.scores;
   auto const& tolerance = options.tolerance;
   if( tolerance.min_percent_covered.has_value() &&
-      r.physical_window.dimensions.area() > 0 ) {
+      r.physical_window.area() > 0 ) {
     int const scaled_clipped_area =
-        r.logical.dimensions.area() *
-        ( r.logical.scale * r.logical.scale );
+        r.logical.area() * ( r.scale * r.scale );
     double const percent_covered =
         scaled_clipped_area /
-        static_cast<double>(
-            r.physical_window.dimensions.area() );
+        static_cast<double>( r.physical_window.area() );
     if( percent_covered < *tolerance.min_percent_covered )
       return false;
   }
 
   if( tolerance.fitting_score_cutoff.has_value() ) {
-    auto const scores = score( r, options );
     if( scores.fitting < *tolerance.fitting_score_cutoff )
       return false;
   }
@@ -180,11 +167,11 @@ vector<Resolution> find_resolutions(
           ( logical.dimensions * logical.scale ==
             physical_window );
       Resolution r;
-      r.physical_window =
-          construct_logical( physical_window, 1 );
-      r.logical  = logical;
-      r.viewport = physical_rect;
-      r.pixel_size_mm =
+      r.physical_window = physical_window;
+      r.logical         = logical.dimensions;
+      r.scale           = logical.scale;
+      r.viewport        = physical_rect;
+      r.pixel_size =
           pixel_size_millimeters( monitor.dpi, logical.scale );
 
       if( !exact_fit ) {
@@ -212,8 +199,8 @@ vector<Resolution> find_resolutions(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Monitor monitor_properties( size const          physical_screen,
-                            maybe<double> const dpi ) {
+Monitor monitor_properties( size const physical_screen,
+                            maybe<MonitorDpi> const dpi ) {
   Monitor monitor;
   monitor.physical_screen = physical_screen;
   if( dpi.has_value() ) {
@@ -221,19 +208,19 @@ Monitor monitor_properties( size const          physical_screen,
     monitor.diagonal_inches =
         sqrt( pow( physical_screen.w, 2.0 ) +
               pow( physical_screen.h, 2.0 ) ) /
-        *dpi;
+        dpi->diagonal;
   }
   return monitor;
 }
 
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options ) {
-  vector<RatedResolution> all;
-  auto const              resolutions =
+  vector<ScoredResolution> all;
+  auto const               resolutions =
       find_resolutions( options.monitor, options.physical_window,
                         options.supported_logical_dimensions );
   for( auto const& r : resolutions )
-    all.push_back( RatedResolution{
+    all.push_back( ScoredResolution{
       .resolution = r,
       .scores     = score( r, options.rating_options ) } );
 
@@ -249,24 +236,24 @@ ResolutionRatings resolution_analysis(
   // only be consulted if the overall scores for two candidates
   // turn out to be the same, which seems kind of rare.
 
-  stable_sort_by(
-      []( RatedResolution const& l, RatedResolution const& r ) {
-        return l.scores.pixel_size > r.scores.pixel_size;
-      } );
+  stable_sort_by( []( ScoredResolution const& l,
+                      ScoredResolution const& r ) {
+    return l.scores.pixel_size > r.scores.pixel_size;
+  } );
 
-  stable_sort_by(
-      []( RatedResolution const& l, RatedResolution const& r ) {
-        return l.scores.fitting > r.scores.fitting;
-      } );
+  stable_sort_by( []( ScoredResolution const& l,
+                      ScoredResolution const& r ) {
+    return l.scores.fitting > r.scores.fitting;
+  } );
 
-  stable_sort_by(
-      []( RatedResolution const& l, RatedResolution const& r ) {
-        return l.scores.overall > r.scores.overall;
-      } );
+  stable_sort_by( []( ScoredResolution const& l,
+                      ScoredResolution const& r ) {
+    return l.scores.overall > r.scores.overall;
+  } );
 
   if( options.rating_options.prefer_fullscreen ) {
-    stable_sort_by( []( RatedResolution const& l,
-                        RatedResolution const& r ) {
+    stable_sort_by( []( ScoredResolution const& l,
+                        ScoredResolution const& r ) {
       if( is_exact( l.resolution ) == is_exact( r.resolution ) )
         return false;
       return is_exact( l.resolution );
@@ -275,12 +262,11 @@ ResolutionRatings resolution_analysis(
 
   ResolutionRatings   res;
   unordered_set<size> seen;
-  for( RatedResolution const& rr : all ) {
-    size const dimensions = rr.resolution.logical.dimensions;
+  for( ScoredResolution const& rr : all ) {
+    size const dimensions = rr.resolution.logical;
     bool const skip = options.rating_options.remove_redundant &&
                       seen.contains( dimensions );
-    if( meets_tolerance( rr.resolution,
-                         options.rating_options ) &&
+    if( meets_tolerance( rr, options.rating_options ) &&
         !skip ) {
       seen.insert( dimensions );
       res.available.push_back( rr );

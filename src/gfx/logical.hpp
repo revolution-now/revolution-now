@@ -15,12 +15,11 @@
 
 // C++ standard library
 #include <span>
-#include <string>
 
 namespace gfx {
 
 /****************************************************************
-** Resolution Selection Heuristics.
+** Resolution Selection Parameters.
 *****************************************************************/
 struct ResolutionTolerance {
   base::maybe<double> min_percent_covered  = {};
@@ -39,24 +38,18 @@ struct ResolutionRatingOptions {
   bool remove_redundant = {};
 };
 
-struct Monitor {
-  size                physical_screen = {};
-  base::maybe<double> dpi             = {};
-  base::maybe<double> diagonal_inches = {};
-};
-
 struct ResolutionAnalysisOptions {
   Monitor                 monitor                      = {};
   size                    physical_window              = {};
-  std::span<size const>   supported_logical_dimensions = {};
   ResolutionRatingOptions rating_options               = {};
+  std::span<size const>   supported_logical_dimensions = {};
 };
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Monitor monitor_properties( size                physical_screen,
-                            base::maybe<double> dpi );
+Monitor monitor_properties( size physical_screen,
+                            base::maybe<MonitorDpi> dpi );
 
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options );

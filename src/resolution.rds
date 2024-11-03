@@ -19,15 +19,10 @@ include "gfx/logical.rds.hpp"
 
 namespace "rn"
 
-enum.e_resolution_availability {
-  available,
-  unavailable,
-}
-
 struct.SelectedResolution {
-  rated 'gfx::RatedResolution',
+  rated 'gfx::ScoredResolution',
   idx 'int',
-  availability 'e_resolution_availability',
+  available 'bool',
   named 'maybe<e_resolution>',
 }
 

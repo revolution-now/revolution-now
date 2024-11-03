@@ -28,6 +28,4 @@ namespace rn {
 Resolutions compute_resolutions( gfx::Monitor const& monitor,
                                  gfx::size physical_window );
 
-gfx::ResolutionRatingOptions resolution_rating_options();
-
 } // namespace rn
