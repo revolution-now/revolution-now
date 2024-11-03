@@ -260,6 +260,14 @@ void RenderingMapUpdater::redraw_square_single_buffer(
   // Around 20k total tiles redrawn seems to be a good number,
   // but we have two buffers (landscape and obfuscation) and so
   // we'll give them about 10k each.
+  //
+  // TODO: this seems to work fine for standard map sizes, but
+  // may need to be scaled up for large map sizes. This was
+  // prompted by the observation that on an 800x800 map, when de-
+  // stroying all of the native tribes with full map visibility,
+  // the rerendering done under the villages as a result caused
+  // the entire map to be redraw ~20 times. Increasing this
+  // number to 100,000 decreased that to two.
   static int constexpr kRedrawThreshold = 10000;
   // The > is defensive.
   if( buffer_tracking.tiles_redrawn >= kRedrawThreshold )
