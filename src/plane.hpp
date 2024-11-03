@@ -30,9 +30,18 @@ enum class e_input_handled;
 enum class e_resolution;
 namespace input {
 struct event_t;
+struct unknown_event_t;
+struct key_event_t;
+struct quit_event_t;
+struct mouse_wheel_event_t;
+struct mouse_move_event_t;
+struct mouse_drag_event_t;
+struct mouse_button_event_t;
+struct win_event_t;
+struct resolution_event_t;
 struct mod_keys;
 enum class e_mouse_button;
-}
+} // namespace input
 } // namespace rn
 
 namespace rn {
@@ -48,15 +57,45 @@ struct IPlane {
   // Called once per frame.
   virtual void advance_state();
 
-  // yes:     Will not be given to any other planes.
-  // no:      Will try the next plane.
-
-  // Accept input; returns true/false depending on whether the
-  // input was handled or not.  If it was handled (true) then
-  // this input will not be given to any further planes.
-  ND e_input_handled virtual input(
+  // ------------------------------------------------------------
+  // Input
+  // ------------------------------------------------------------
+  // The default implementation of this will delegate to the spe-
+  // cific handlers below, which is typically what you should
+  // override instead of this one.
+  [[nodiscard]] e_input_handled virtual input(
       input::event_t const& event );
 
+  [[nodiscard]] virtual e_input_handled on_key(
+      input::key_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_wheel(
+      input::mouse_wheel_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_mouse_move(
+      input::mouse_move_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_mouse_drag(
+      input::mouse_drag_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_mouse_button(
+      input::mouse_button_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_win_event(
+      input::win_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_resolution_event(
+      input::resolution_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_unknown_event(
+      input::unknown_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_quit(
+      input::quit_event_t const& event );
+
+  // ------------------------------------------------------------
+  // Input
+  // ------------------------------------------------------------
   // This encodes the result of asking a plane if it can handle a
   // drag event:
   //
