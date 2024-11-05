@@ -66,8 +66,6 @@ struct.config_rn_power {
 }
 
 struct.config_rn_t {
-  ideal_tile_angular_size 'double',
-
   main_window 'config_rn_main_window',
   viewport    'config_rn_viewport',
   console     'config_rn_console',
