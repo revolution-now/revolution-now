@@ -21,6 +21,13 @@ Game mechanics:
 
   - Free units require food and they carry it with them.
 
+Art:
+
+  - Consider having the shader be able to adjust the overall
+    saturation of the screen, and use it for some effects:
+      - Flashing color/grey as an animation for something.
+      - Colors get slightly more saturated on the map as
+        rebel sentiment rises and falls throughout the game.
 UI:
 
   - Panel can be opened/closed with a sliding animation.
