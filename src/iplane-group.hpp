@@ -27,14 +27,15 @@ struct IPlaneGroup : public IPlane {
   virtual std::vector<IPlane*> planes() const = 0;
 
  public: // IPlane
-  void draw( rr::Renderer& renderer ) const override;
+  void draw( rr::Renderer& renderer ) const override final;
 
-  void advance_state() override;
+  void advance_state() override final;
 
-  e_input_handled input( input::event_t const& event ) override;
+  e_input_handled input(
+      input::event_t const& event ) override final;
 
   void on_logical_resolution_changed(
-      e_resolution resolution ) override;
+      e_resolution resolution ) override final;
 
  private:
   // Drag state.
