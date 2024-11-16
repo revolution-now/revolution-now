@@ -19,6 +19,8 @@ include "gfx/logical.rds.hpp"
 
 namespace "rn"
 
+# NOTE: Try not to create this directly; instead use the factory
+# method provided.
 struct.SelectedResolution {
   rated 'gfx::ScoredResolution',
   idx 'int',

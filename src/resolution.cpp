@@ -32,14 +32,6 @@ using ::base::maybe;
 /****************************************************************
 ** Globals.
 *****************************************************************/
-unordered_map<gfx::size, e_resolution> const
-    kResolutionReverseSizeMap = [] {
-      unordered_map<gfx::size, e_resolution> res;
-      for( auto const r : refl::enum_values<e_resolution> )
-        res[resolution_size( r )] = r;
-      return res;
-    }();
-
 vector<gfx::size> const kResolutionSizes = [] {
   vector<gfx::size> res;
   for( auto const r : refl::enum_values<e_resolution> )
@@ -101,17 +93,9 @@ Resolutions compute_resolutions(
   // back.
   CHECK( !ratings.unavailable.empty() );
   if( !ratings.available.empty() ) {
-    auto const& logical_size =
-        ratings.available[0].resolution.logical;
-    auto const named_it =
-        kResolutionReverseSizeMap.find( logical_size );
-    CHECK( named_it != kResolutionReverseSizeMap.end() );
     // Copy to avoid use-after-move.
     auto selected =
-        SelectedResolution{ .rated     = ratings.available[0],
-                            .idx       = 0,
-                            .available = true,
-                            .named     = named_it->second };
+        create_selected_available_resolution( ratings, 0 );
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   } else {
@@ -124,6 +108,21 @@ Resolutions compute_resolutions(
     return Resolutions{ .ratings  = std::move( ratings ),
                         .selected = std::move( selected ) };
   }
+}
+
+SelectedResolution create_selected_available_resolution(
+    gfx::ResolutionRatings const& ratings, int const idx ) {
+  SelectedResolution selected;
+  auto const&        available = ratings.available;
+  CHECK_LT( idx, ssize( available ) );
+  selected.rated     = available[idx];
+  selected.idx       = idx;
+  selected.available = true;
+  UNWRAP_CHECK_T(
+      selected.named,
+      resolution_from_size(
+          available[selected.idx].resolution.logical ) );
+  return selected;
 }
 
 } // namespace rn

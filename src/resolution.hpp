@@ -22,4 +22,7 @@ namespace rn {
 Resolutions compute_resolutions( gfx::Monitor const& monitor,
                                  gfx::size physical_window );
 
+SelectedResolution create_selected_available_resolution(
+    gfx::ResolutionRatings const& ratings, int idx );
+
 } // namespace rn

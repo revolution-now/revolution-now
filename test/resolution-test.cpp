@@ -67,6 +67,61 @@ TEST_CASE( "[resolution] supported_resolutions" ) {
   REQUIRE( supported_resolutions() == expected );
 }
 
+TEST_CASE(
+    "[resolution] create_selected_available_resolution" ) {
+  ScoredResolution const scored1{
+    .resolution = { .physical_window = { .w = 1, .h = 2 },
+                    .logical         = { .w = 640, .h = 360 },
+                    .scale           = 3,
+                    .viewport        = { .origin = { .x = 99 } },
+                    .pixel_size      = 3.4 },
+    .scores     = {
+          .fitting = 1.1, .pixel_size = 2.2, .overall = 3.3 } };
+  ScoredResolution const scored2{
+    .resolution = { .physical_window = { .w = 2, .h = 3 },
+                    .logical         = { .w = 640, .h = 400 },
+                    .scale           = 4,
+                    .viewport   = { .origin = { .x = 100 } },
+                    .pixel_size = nothing },
+    .scores     = {
+          .fitting = 2.1, .pixel_size = 3.2, .overall = 4.3 } };
+  ScoredResolution const scored3{
+    .resolution = { .physical_window = { .w = 3, .h = 4 },
+                    .logical         = { .w = 720, .h = 450 },
+                    .scale           = 5,
+                    .viewport   = { .origin = { .x = 101 } },
+                    .pixel_size = 1.2 },
+    .scores     = {
+          .fitting = 3.1, .pixel_size = 4.2, .overall = 5.3 } };
+
+  ResolutionRatings const ratings{
+    .available = { scored1, scored2, scored3 } };
+
+  auto f = [&]( int const idx ) {
+    return create_selected_available_resolution( ratings, idx );
+  };
+
+  SelectedResolution expected;
+
+  expected = { .rated     = scored1,
+               .idx       = 0,
+               .available = true,
+               .named     = e_resolution::_640x360 };
+  REQUIRE( f( 0 ) == expected );
+
+  expected = { .rated     = scored2,
+               .idx       = 1,
+               .available = true,
+               .named     = e_resolution::_640x400 };
+  REQUIRE( f( 1 ) == expected );
+
+  expected = { .rated     = scored3,
+               .idx       = 2,
+               .available = true,
+               .named     = e_resolution::_720x450 };
+  REQUIRE( f( 2 ) == expected );
+}
+
 // Ensure that each of the steam resolutions has at least one
 // fullscreen or near-fullscreen possibility given the resolu-
 // tions that we support.
