@@ -28,4 +28,6 @@ gfx::size resolution_size( e_resolution resolution );
 
 std::vector<gfx::size> const& supported_resolutions();
 
+base::maybe<e_resolution> resolution_from_size( gfx::size sz );
+
 } // namespace rn

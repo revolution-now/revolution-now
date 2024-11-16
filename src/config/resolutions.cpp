@@ -13,9 +13,24 @@
 // refl
 #include "refl/query-enum.hpp"
 
+// base
+#include "base/keyval.hpp"
+
 using namespace std;
 
 namespace rn {
+
+namespace {
+
+unordered_map<gfx::size, e_resolution> const
+    kResolutionReverseSizeMap = [] {
+      unordered_map<gfx::size, e_resolution> res;
+      for( auto const r : refl::enum_values<e_resolution> )
+        res[resolution_size( r )] = r;
+      return res;
+    }();
+
+}
 
 /****************************************************************
 ** Public API.
@@ -44,6 +59,11 @@ vector<gfx::size> const& supported_resolutions() {
     return res;
   }();
   return v;
+}
+
+base::maybe<e_resolution> resolution_from_size(
+    gfx::size const sz ) {
+  return base::lookup( kResolutionReverseSizeMap, sz );
 }
 
 } // namespace rn
