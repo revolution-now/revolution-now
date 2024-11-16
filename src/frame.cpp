@@ -211,7 +211,6 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   // Step: Process deferred window events.
   for( input::win_event_t const& event :
        deferred_events.window ) {
-    auto const old_logical = main_window_logical_size();
     switch( event.type ) {
       using enum input::e_win_event_type;
       case resized:
@@ -220,16 +219,9 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
       case other:
         break;
     }
-    auto const new_logical = main_window_logical_size();
     planes.get().input( event );
     run_all_coroutines();
-    if( new_logical != old_logical ) {
-      auto const named = main_window_named_logical_resolution();
-      if( named.has_value() ) {
-        planes.get().on_logical_resolution_changed( *named );
-        run_all_coroutines();
-      }
-    }
+    planes.make_dirty();
   }
   deferred_events.window.clear();
 
@@ -241,26 +233,14 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
                                    event.resolution.get() );
     planes.get().input( event );
     run_all_coroutines();
+    planes.make_dirty();
   }
   deferred_events.resolution.clear();
 
-  auto try_defer = [&]( input::event_t const& e ) {
-    using namespace input;
-    SWITCH( e ) {
-      CASE( win_event ) {
-        using enum e_win_event_type;
-        if( win_event.type != resized ) return false;
-        deferred_events.window.push_back( win_event );
-        return true;
-      }
-      CASE( resolution_event ) {
-        deferred_events.resolution.push_back( resolution_event );
-        return true;
-      }
-      default:
-        return false;
-    }
-  };
+  // ----------------------------------------------------------
+  // Step: Refresh dirty plane groups.
+  planes.refresh_if_needed();
+  run_all_coroutines();
 
   // ----------------------------------------------------------
   // Step: Get Input.

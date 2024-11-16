@@ -25,4 +25,7 @@ Resolutions compute_resolutions( gfx::Monitor const& monitor,
 SelectedResolution create_selected_available_resolution(
     gfx::ResolutionRatings const& ratings, int idx );
 
+void set_pending_resolution(
+    SelectedResolution const& selected_resolution );
+
 } // namespace rn

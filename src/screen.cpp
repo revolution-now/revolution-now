@@ -23,6 +23,7 @@
 
 // config
 #include "config/gfx.rds.hpp"
+#include "config/resolutions.hpp"
 #include "config/rn.rds.hpp"
 
 // render
@@ -305,16 +306,6 @@ void cleanup_screen() {
 
 REGISTER_INIT_ROUTINE( screen );
 
-void set_pending_resolution(
-    SelectedResolution const& selected_resolution ) {
-  if( selected_resolution.rated.resolution.logical !=
-      g_resolutions().selected.rated.resolution.logical )
-    lg.info( "logical resolution changing to {}x{}",
-             selected_resolution.rated.resolution.logical.w,
-             selected_resolution.rated.resolution.logical.h );
-  input::inject_resolution_event( selected_resolution );
-}
-
 // This is the logical resolution given to the renderer when we
 // cannot find a supported resolution for the given window. This
 // should not be used by actual game code; when no supported res-
@@ -324,29 +315,35 @@ gfx::size logical_resolution_for_invalid_window_size() {
   return main_window_physical_size();
 }
 
-gfx::rect main_window_viewport() {
-  auto const& selected = g_resolutions().selected;
-  return selected.available
-             ? selected.rated.resolution.viewport
-             : gfx::rect{ .size = main_window_physical_size() };
-}
-
 void on_logical_resolution_changed(
     rr::Renderer&      renderer,
     Resolutions const& new_resolutions ) {
-  auto old_selected_resolution = g_resolutions().selected;
   if( new_resolutions.selected.available ) {
+    auto const old_selected_resolution =
+        g_resolutions().selected.rated.resolution;
+    auto const& new_selected_resolution =
+        new_resolutions.selected.rated.resolution;
+    if( new_selected_resolution.logical !=
+        old_selected_resolution.logical )
+      lg.info( "logical resolution changing to {}x{}",
+               new_selected_resolution.logical.w,
+               new_selected_resolution.logical.h );
     if( g_resolutions().selected.available )
       input::update_mouse_pos_with_viewport_change(
-          old_selected_resolution.rated.resolution,
+          old_selected_resolution,
           new_resolutions.selected.rated.resolution );
   } else {
     lg.info( "no logical resolution found." );
   }
-  g_resolutions() = new_resolutions;
+  g_resolutions()          = new_resolutions;
+  auto const&     selected = g_resolutions().selected;
+  gfx::rect const viewport =
+      selected.available
+          ? selected.rated.resolution.viewport
+          : gfx::rect{ .size = main_window_physical_size() };
   // Note this actually uses flipped coordinates where the origin
   // as at the lower left, but this still works.
-  renderer.set_viewport( main_window_viewport() );
+  renderer.set_viewport( viewport );
   renderer.set_logical_screen_size( main_window_logical_size() );
 }
 
@@ -603,21 +600,20 @@ void on_main_window_resized( rr::Renderer& renderer ) {
 void cycle_resolution( int const delta ) {
   // Copy; cannot modify the global state directly.
   auto const& curr = g_resolutions();
-
   if( !curr.selected.available ) return;
-  auto        selected  = curr.selected;
   auto const& available = curr.ratings.available;
   if( available.empty() ) return;
+  int idx = curr.selected.idx;
   // The "better" resolutions, which also tend to be more scaled
   // up (though not always) are at the start of the list, so for
   // "scaling up" we must go negative.
-  selected.idx += ( -delta );
+  idx += ( -delta );
   // Need to do this because the c++ modulus is the wrong type.
-  while( selected.idx < 0 ) selected.idx += available.size();
-  selected.idx %= available.size();
-  CHECK_LT( selected.idx, ssize( available ) );
-  selected.rated = available[selected.idx];
-  set_pending_resolution( selected );
+  while( idx < 0 ) idx += available.size();
+  idx %= available.size();
+  CHECK_LT( idx, ssize( available ) );
+  set_pending_resolution( create_selected_available_resolution(
+      curr.ratings, idx ) );
 }
 
 void set_resolution_idx_to_optimal() {
@@ -625,10 +621,8 @@ void set_resolution_idx_to_optimal() {
   auto const& curr = g_resolutions();
 
   if( curr.ratings.available.empty() ) return;
-  set_pending_resolution(
-      SelectedResolution{ .rated     = curr.ratings.available[0],
-                          .idx       = 0,
-                          .available = true } );
+  set_pending_resolution( create_selected_available_resolution(
+      curr.ratings, /*idx=*/0 ) );
 }
 
 maybe<int> get_resolution_idx() {
