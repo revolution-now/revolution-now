@@ -52,6 +52,11 @@ struct pixel {
   static base::maybe<pixel> parse_from_hex(
       std::string_view hex );
 
+  // E.g. from_hex_rgba( 0x12ab23cd ). Must contain alpha.
+  static pixel from_hex_rgba( uint32_t hex );
+  // E.g. from_hex_rgb( 0x12ab23 ). Assumes alpha=0xff.
+  static pixel from_hex_rgb( uint32_t hex );
+
   // Returns this color but with changed alpha.
   pixel with_alpha( uint8_t a_new ) const;
 

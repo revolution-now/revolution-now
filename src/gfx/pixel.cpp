@@ -133,6 +133,31 @@ double pixel::luminosity() const {
                     .068 * pow( b / 255.0, 2.0 ) );
 }
 
+pixel pixel::from_hex_rgba( uint32_t hex ) {
+  pixel p;
+  p.a = hex & 0xff;
+  hex >>= 8;
+  p.b = hex & 0xff;
+  hex >>= 8;
+  p.g = hex & 0xff;
+  hex >>= 8;
+  p.r = hex & 0xff;
+  hex >>= 8;
+  return p;
+}
+
+pixel pixel::from_hex_rgb( uint32_t hex ) {
+  pixel p;
+  p.a = 0xff;
+  p.b = hex & 0xff;
+  hex >>= 8;
+  p.g = hex & 0xff;
+  hex >>= 8;
+  p.r = hex & 0xff;
+  hex >>= 8;
+  return p;
+}
+
 // Parses a string of the form 'NNNNNN[NN]' where N is:
 // [0-9a-fA-F]. The optional two digits at the end represent al-
 // pha. If these are omitted then alpha will be set to 255.
