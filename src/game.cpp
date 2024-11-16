@@ -19,7 +19,8 @@
 #include "conductor.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
-#include "difficulty-screen.hpp" // FIXME
+#include "difficulty-screen-2.hpp" // FIXME
+#include "difficulty-screen.hpp"   // FIXME
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "inative-mind.hpp"
@@ -214,6 +215,8 @@ wait<> handle_mode( Planes& planes, IGui& gui,
     lua::table options = ts.lua.table.create();
     options["difficulty"] =
         co_await choose_difficulty_screen( planes );
+    options["difficulty"] =
+        co_await choose_difficulty_screen_2( planes );
     ts.lua["new_game"]["create"]( ss.root, options );
     co_return true;
   };
