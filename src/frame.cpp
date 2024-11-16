@@ -169,6 +169,25 @@ void frame_loop_scheduler( wait<> const&     what,
   }
 }
 
+static bool try_defer( DeferredEvents&       deferred_events,
+                       input::event_t const& e ) {
+  using namespace input;
+  SWITCH( e ) {
+    CASE( win_event ) {
+      using enum e_win_event_type;
+      if( win_event.type != resized ) return false;
+      deferred_events.window.push_back( win_event );
+      return true;
+    }
+    CASE( resolution_event ) {
+      deferred_events.resolution.push_back( resolution_event );
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
 // Called once per frame.
 void frame_loop_body( rr::Renderer& renderer, Planes& planes,
                       DeferredEvents&   deferred_events,
@@ -249,8 +268,9 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
 
   for( auto& q = input::event_queue(); !q.empty(); ) {
     input_received();
-    input::event_t const& event        = q.front();
-    bool const            was_deferred = try_defer( event );
+    input::event_t const& event = q.front();
+    bool const            was_deferred =
+        try_defer( deferred_events, event );
     if( !was_deferred ) planes.get().input( event );
     q.pop();
     run_all_coroutines();
