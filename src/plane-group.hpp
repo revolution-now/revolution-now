@@ -43,7 +43,7 @@ struct TypedIPlane {
     return typed_ != nullptr && untyped_ != nullptr;
   }
 
-  operator T&() { return typed(); }
+  operator T&() const { return typed(); }
 
   T& typed() const {
     CHECK( typed_ != nullptr );
