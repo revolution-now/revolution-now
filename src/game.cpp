@@ -21,6 +21,7 @@
 #include "console.hpp"
 #include "difficulty-screen-2.hpp" // FIXME
 #include "difficulty-screen.hpp"   // FIXME
+#include "frame-count.hpp"         // FIXME
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
 #include "inative-mind.hpp"
@@ -208,6 +209,10 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   co_await co::erase( co::try_<game_quit_interrupt>( loop ) );
 }
 
+wait<> persistent_msg_box( IGui& gui, string_view const msg ) {
+  while( true ) co_await gui.message_box( string( msg ) );
+}
+
 wait<> handle_mode( Planes& planes, IGui& gui,
                     StartMode::new_random const& ) {
   auto factory = [&]( SS& ss,
@@ -217,6 +222,9 @@ wait<> handle_mode( Planes& planes, IGui& gui,
         co_await choose_difficulty_screen( planes );
     options["difficulty"] =
         co_await choose_difficulty_screen_2( planes );
+    wait<> const generating_msg = persistent_msg_box(
+        gui, "Generating game... please wait." );
+    co_await 1_frames;
     ts.lua["new_game"]["create"]( ss.root, options );
     co_return true;
   };
