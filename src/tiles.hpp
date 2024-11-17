@@ -56,6 +56,9 @@ Delta sprite_size( e_tile tile );
 void render_sprite( rr::Renderer& renderer, Coord where,
                     e_tile tile );
 
+void render_sprite( rr::Renderer& renderer, gfx::point where,
+                    e_tile tile );
+
 // This one allows stretching the tile.
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile );

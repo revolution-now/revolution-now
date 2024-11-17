@@ -101,9 +101,14 @@ void render_sprite( rr::Painter& painter, Rect where,
   painter.draw_sprite_scale( atlas_lookup( tile ), where );
 }
 
-void render_sprite( rr::Renderer& renderer, Coord where,
+void render_sprite( rr::Renderer& renderer, gfx::point where,
                     e_tile tile ) {
   renderer.painter().draw_sprite( atlas_lookup( tile ), where );
+}
+
+void render_sprite( rr::Renderer& renderer, Coord where,
+                    e_tile tile ) {
+  render_sprite( renderer, where.to_gfx(), tile );
 }
 
 void render_sprite_section( rr::Painter& painter, e_tile tile,
