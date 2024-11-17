@@ -37,6 +37,12 @@ struct IPlaneGroup : public IPlane {
   void on_logical_resolution_changed(
       e_resolution resolution ) override final;
 
+ public: // IPlaneGroup
+  // This is used to ensure that the plane group gets initialized
+  // once after it is create and before it is used.
+  void initialize_if_needed(
+      maybe<e_resolution> const resolution );
+
  private:
   // Drag state.
   enum class e_drag_send_mode {
@@ -49,6 +55,9 @@ struct IPlaneGroup : public IPlane {
     e_drag_send_mode mode = e_drag_send_mode::normal;
   };
   maybe<DragState> drag_state_;
+
+  // Initialization.
+  bool initialized_ = false;
 };
 
 } // namespace rn

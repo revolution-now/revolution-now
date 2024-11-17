@@ -195,4 +195,17 @@ void IPlaneGroup::on_logical_resolution_changed(
     plane->on_logical_resolution_changed( resolution );
 }
 
+void IPlaneGroup::initialize_if_needed(
+    maybe<e_resolution> const resolution ) {
+  if( initialized_ ) return;
+  initialized_ = true;
+
+  // This functions to let the planes know what the logical reso-
+  // lution is so that they can do their layouts.
+  if( resolution.has_value() )
+    on_logical_resolution_changed( *resolution );
+
+  // May do other things here in the future...
+}
+
 } // namespace rn
