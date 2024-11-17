@@ -112,6 +112,8 @@ struct DifficultyCell {
   enum_map<e_cardinal_direction, e_difficulty> next = {};
 
   pixel selected_color = {};
+
+  std::string_view description_label = {};
 };
 
 struct Layout {
@@ -127,6 +129,9 @@ struct Layout {
   // the center for the label text.
   size center_for_label = {};
 
+  // Same as above but for the "(easy)", "(hard)" labels.
+  size center_for_description_label = {};
+
   enum_map<e_difficulty, DifficultyCell> cells = {};
 };
 
@@ -135,70 +140,76 @@ struct Layout {
 *****************************************************************/
 auto const kLayout_640x360 = [] {
   Layout l;
-  l.bg_rect.size     = { .w = 640, .h = 360 };
-  l.selected_buffer  = { .w = 5, .h = 5 };
-  l.center_for_label = { .w = 63, .h = 20 };
+  l.bg_rect.size                 = { .w = 640, .h = 360 };
+  l.selected_buffer              = { .w = 5, .h = 5 };
+  l.center_for_label             = { .w = 63, .h = 20 };
+  l.center_for_description_label = { .w = 63, .h = 146 };
 
   using enum e_difficulty;
   using enum e_cardinal_direction;
 
   // Discoverer.
   {
-    auto& cell          = l.cells[discoverer];
-    cell.label          = "Discoverer";
-    cell.scroll_origin  = { .x = 46, .y = 10 };
-    cell.next[n]        = explorer;
-    cell.next[e]        = viceroy;
-    cell.next[w]        = viceroy;
-    cell.next[s]        = explorer;
+    auto& cell             = l.cells[discoverer];
+    cell.label             = "Discoverer";
+    cell.description_label = "(easiest)";
+    cell.scroll_origin     = { .x = 46, .y = 12 };
+    cell.next[n]           = explorer;
+    cell.next[e]           = viceroy;
+    cell.next[w]           = viceroy;
+    cell.next[s]           = explorer;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0x04B410 );
   }
 
   // Explorer.
   {
-    auto& cell          = l.cells[explorer];
-    cell.label          = "Explorer";
-    cell.scroll_origin  = { .x = 46, .y = 190 };
-    cell.next[n]        = discoverer;
-    cell.next[e]        = conquistador;
-    cell.next[w]        = governor;
-    cell.next[s]        = discoverer;
+    auto& cell             = l.cells[explorer];
+    cell.label             = "Explorer";
+    cell.description_label = "(easy)";
+    cell.scroll_origin     = { .x = 46, .y = 188 };
+    cell.next[n]           = discoverer;
+    cell.next[e]           = conquistador;
+    cell.next[w]           = governor;
+    cell.next[s]           = discoverer;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0x5555ff );
   }
 
   // Conquistador.
   {
-    auto& cell          = l.cells[conquistador];
-    cell.label          = "Conquistador";
-    cell.scroll_origin  = { .x = 260, .y = 190 };
-    cell.next[n]        = conquistador;
-    cell.next[e]        = governor;
-    cell.next[w]        = explorer;
-    cell.next[s]        = conquistador;
+    auto& cell             = l.cells[conquistador];
+    cell.label             = "Conquistador";
+    cell.description_label = "(moderate)";
+    cell.scroll_origin     = { .x = 260, .y = 188 };
+    cell.next[n]           = conquistador;
+    cell.next[e]           = governor;
+    cell.next[w]           = explorer;
+    cell.next[s]           = conquistador;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xfffe54 );
   }
 
   // Governor.
   {
-    auto& cell          = l.cells[governor];
-    cell.label          = "Governor";
-    cell.scroll_origin  = { .x = 473, .y = 190 };
-    cell.next[n]        = viceroy;
-    cell.next[e]        = explorer;
-    cell.next[w]        = conquistador;
-    cell.next[s]        = viceroy;
+    auto& cell             = l.cells[governor];
+    cell.label             = "Governor";
+    cell.description_label = "(tough)";
+    cell.scroll_origin     = { .x = 473, .y = 188 };
+    cell.next[n]           = viceroy;
+    cell.next[e]           = explorer;
+    cell.next[w]           = conquistador;
+    cell.next[s]           = viceroy;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xff7100 );
   }
 
   // Viceroy.
   {
-    auto& cell          = l.cells[viceroy];
-    cell.label          = "Viceroy";
-    cell.scroll_origin  = { .x = 473, .y = 10 };
-    cell.next[n]        = governor;
-    cell.next[e]        = discoverer;
-    cell.next[w]        = discoverer;
-    cell.next[s]        = governor;
+    auto& cell             = l.cells[viceroy];
+    cell.label             = "Viceroy";
+    cell.description_label = "(toughest)";
+    cell.scroll_origin     = { .x = 473, .y = 12 };
+    cell.next[n]           = governor;
+    cell.next[e]           = discoverer;
+    cell.next[w]           = discoverer;
+    cell.next[s]           = governor;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xff0000 );
   }
 
@@ -248,35 +259,41 @@ struct DifficultyScreen : public IPlane {
     bool const this_selected = ( selected_ == difficulty );
     render_sprite( renderer, cell.scroll_origin,
                    e_tile::difficulty_scroll );
-    size const label_size =
-        rr::rendered_text_line_size_pixels( cell.label );
-    rect const label_rect = gfx::centered_on(
-        label_size, cell.scroll_origin + l.center_for_label );
-    if( !this_selected ) {
-      renderer
-          .typer( label_rect.nw() + size{ .w = 1 },
-                  pixel::black().with_alpha( 100 ) )
-          .write( cell.label );
-      renderer
-          .typer( label_rect.nw() + size{ .h = 1 },
-                  pixel::black().with_alpha( 100 ) )
-          .write( cell.label );
-      renderer
-          .typer( label_rect.nw(),
-                  pixel::from_hex_rgb( 0x777777 ) )
-          .write( cell.label );
-    } else {
-      renderer
-          .typer( label_rect.nw() + size{ .w = 1 },
-                  pixel::black() )
-          .write( cell.label );
-      renderer
-          .typer( label_rect.nw() + size{ .h = 1 },
-                  pixel::black() )
-          .write( cell.label );
-      renderer.typer( label_rect.nw(), cell.selected_color )
-          .write( cell.label );
-    }
+    auto write_centered = [&]( size const        center,
+                               string_view const text ) {
+      size const text_size =
+          rr::rendered_text_line_size_pixels( text );
+      rect const text_rect = gfx::centered_on(
+          text_size, cell.scroll_origin + center );
+      if( !this_selected ) {
+        renderer
+            .typer( text_rect.nw() + size{ .w = 1 },
+                    pixel::black().with_alpha( 100 ) )
+            .write( text );
+        renderer
+            .typer( text_rect.nw() + size{ .h = 1 },
+                    pixel::black().with_alpha( 100 ) )
+            .write( text );
+        renderer
+            .typer( text_rect.nw(),
+                    pixel::from_hex_rgb( 0x777777 ) )
+            .write( text );
+      } else {
+        renderer
+            .typer( text_rect.nw() + size{ .w = 1 },
+                    pixel::black() )
+            .write( text );
+        renderer
+            .typer( text_rect.nw() + size{ .h = 1 },
+                    pixel::black() )
+            .write( text );
+        renderer.typer( text_rect.nw(), cell.selected_color )
+            .write( text );
+      }
+    };
+    write_centered( l.center_for_label, cell.label );
+    write_centered( l.center_for_description_label,
+                    cell.description_label );
     if( this_selected ) {
       rr::Painter       painter = renderer.painter();
       static size const kScrollSize =
