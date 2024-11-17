@@ -127,6 +127,8 @@ struct point {
 
   [[nodiscard]] size operator-( point const rhs ) const;
 
+  [[nodiscard]] point operator-( size const rhs ) const;
+
   [[nodiscard]] point operator*( int scale ) const;
 
   [[nodiscard]] point operator/( int scale ) const;

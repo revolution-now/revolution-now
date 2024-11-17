@@ -314,6 +314,12 @@ TEST_CASE( "[gfx/cartesian] operator-( point )" ) {
   REQUIRE( p1 - p2 == size{ .w = -1, .h = 1 } );
 }
 
+TEST_CASE( "[gfx/cartesian] point::operator-( size )" ) {
+  point p{ .x = 4, .y = 2 };
+  size  s{ .w = 5, .h = 1 };
+  REQUIRE( p - s == point{ .x = -1, .y = 1 } );
+}
+
 TEST_CASE( "[gfx/cartesian] operator*( int )" ) {
   point p{ .x = 4, .y = 2 };
   REQUIRE( p * 10 == point{ .x = 40, .y = 20 } );

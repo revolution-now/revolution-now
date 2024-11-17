@@ -204,6 +204,10 @@ size point::operator-( point rhs ) const {
   return size{ .w = x - rhs.x, .h = y - rhs.y };
 }
 
+point point::operator-( size rhs ) const {
+  return point{ .x = x - rhs.w, .y = y - rhs.h };
+}
+
 point point::operator*( int scale ) const {
   point res = *this;
   res.x *= scale;
