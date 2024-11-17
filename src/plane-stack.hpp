@@ -29,7 +29,6 @@ struct Planes {
     PlaneGroupOwner( PlaneGroupOwner&& ) = delete;
 
     Planes&          planes_;
-    PlaneGroup*      prev_       = nullptr;
     PlaneGroupOwner* prev_owner_ = nullptr;
     PlaneGroup       group;
   };
