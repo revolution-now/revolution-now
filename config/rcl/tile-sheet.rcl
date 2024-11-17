@@ -911,6 +911,13 @@ sheets {
         hazard: { y: 0, x: 0 }
       }
     }
+    {
+      img_path: assets/art/difficulty/scroll.png
+      sprite_size: { w: 121, h: 161 }
+      sprites {
+        difficulty_scroll: { y: 0, x: 0 }
+      }
+    }
   ]
 
 }
