@@ -661,6 +661,12 @@ point centered_at_right( size const& s, rect const& r ) {
   return upper_left;
 }
 
+rect centered_on( size s, point p ) {
+  return rect{
+    .origin = { .x = p.x - s.w / 2, .y = p.y - s.h / 2 },
+    .size   = s };
+}
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/

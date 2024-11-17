@@ -1502,6 +1502,44 @@ TEST_CASE( "[coord] centered_at_*" ) {
   REQUIRE( centered_at_right( s, r ) == expect );
 }
 
+TEST_CASE( "[gfx/cartesian] centered_on" ) {
+  rect  expected;
+  size  sz;
+  point p;
+
+  auto f = [&] { return centered_on( sz, p ); };
+
+  p        = { .x = 2, .y = 3 };
+  sz       = { .w = 2, .h = 8 };
+  expected = { .origin = { .x = 1, .y = -1 }, .size = sz };
+  REQUIRE( f() == expected );
+
+  p        = { .x = 2, .y = 3 };
+  sz       = { .w = 2, .h = 9 };
+  expected = { .origin = { .x = 1, .y = -1 }, .size = sz };
+  REQUIRE( f() == expected );
+
+  p        = { .x = 2, .y = 3 };
+  sz       = { .w = 2, .h = 10 };
+  expected = { .origin = { .x = 1, .y = -2 }, .size = sz };
+  REQUIRE( f() == expected );
+
+  p        = { .x = 0, .y = 0 };
+  sz       = { .w = 2, .h = 10 };
+  expected = { .origin = { .x = -1, .y = -5 }, .size = sz };
+  REQUIRE( f() == expected );
+
+  p        = { .x = 0, .y = 0 };
+  sz       = { .w = 0, .h = 0 };
+  expected = { .origin = { .x = 0, .y = 0 }, .size = sz };
+  REQUIRE( f() == expected );
+
+  p        = { .x = 2, .y = 2 };
+  sz       = { .w = 0, .h = 0 };
+  expected = { .origin = { .x = 2, .y = 2 }, .size = sz };
+  REQUIRE( f() == expected );
+}
+
 /****************************************************************
 ** std::hash<gfx::point>
 *****************************************************************/

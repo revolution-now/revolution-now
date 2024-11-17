@@ -352,6 +352,9 @@ inline auto rect::to_double() const {
 [[nodiscard]] point centered_at_right( size const& s,
                                        rect const& r );
 
+// Get the rect obtained by centering the area of size s on p.
+[[nodiscard]] rect centered_on( size s, point p );
+
 /****************************************************************
 ** Combining Operators
 *****************************************************************/
