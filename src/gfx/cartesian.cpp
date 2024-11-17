@@ -200,11 +200,11 @@ void point::operator/=( int const scale ) {
   y /= scale;
 }
 
-size point::operator-( point rhs ) const {
+size point::operator-( point const rhs ) const {
   return size{ .w = x - rhs.x, .h = y - rhs.y };
 }
 
-point point::operator-( size rhs ) const {
+point point::operator-( size const rhs ) const {
   return point{ .x = x - rhs.w, .y = y - rhs.h };
 }
 
@@ -665,7 +665,7 @@ point centered_at_right( size const& s, rect const& r ) {
   return upper_left;
 }
 
-rect centered_on( size s, point p ) {
+rect centered_on( size const s, point const p ) {
   return rect{
     .origin = { .x = p.x - s.w / 2, .y = p.y - s.h / 2 },
     .size   = s };
