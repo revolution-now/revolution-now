@@ -17,6 +17,7 @@
 #include "moving-avg.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "resolution.rds.hpp"
 #include "screen.hpp"
 #include "time.hpp"
 #include "variant.hpp"
@@ -211,6 +212,8 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   // Step: Process deferred window events.
   for( input::win_event_t const& event :
        deferred_events.window ) {
+    auto const old_resolution =
+        main_window_named_logical_resolution();
     switch( event.type ) {
       using enum input::e_win_event_type;
       case resized:
@@ -219,9 +222,15 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
       case other:
         break;
     }
+    auto const new_resolution =
+        main_window_named_logical_resolution();
     planes.get().input( event );
     run_all_coroutines();
-    planes.make_dirty();
+    if( new_resolution.has_value() &&
+        new_resolution != old_resolution ) {
+      planes.on_logical_resolution_changed( *new_resolution );
+      run_all_coroutines();
+    }
   }
   deferred_events.window.clear();
 
@@ -233,14 +242,13 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
                                    event.resolution.get() );
     planes.get().input( event );
     run_all_coroutines();
-    planes.make_dirty();
+    if( event.resolution.get().named.has_value() ) {
+      planes.on_logical_resolution_changed(
+          *event.resolution.get().named );
+      run_all_coroutines();
+    }
   }
   deferred_events.resolution.clear();
-
-  // ----------------------------------------------------------
-  // Step: Refresh dirty plane groups.
-  planes.refresh_if_needed();
-  run_all_coroutines();
 
   // ----------------------------------------------------------
   // Step: Get Input.

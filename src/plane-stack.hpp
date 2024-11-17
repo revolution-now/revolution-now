@@ -28,9 +28,10 @@ struct Planes {
     ~PlaneGroupOwner() noexcept;
     PlaneGroupOwner( PlaneGroupOwner&& ) = delete;
 
-    Planes&     planes_;
-    PlaneGroup* prev_ = nullptr;
-    PlaneGroup  group;
+    Planes&          planes_;
+    PlaneGroup*      prev_       = nullptr;
+    PlaneGroupOwner* prev_owner_ = nullptr;
+    PlaneGroup       group;
   };
 
   Planes();
@@ -41,8 +42,17 @@ struct Planes {
   PlaneGroup const& get() const;
   PlaneGroup&       get();
 
+  void on_logical_resolution_changed( e_resolution resolution );
+
  private:
-  PlaneGroup* group_ = nullptr;
+  template<typename Func>
+  void on_all_groups( Func const& fn ) const;
+
+  // Effectively a linked list of PlaneGroupOwner objects, each
+  // of which will be located on the stack in some stack frame.
+  // This will initially be set to point to the initial_ plane
+  // group owner below during its constructor.
+  PlaneGroupOwner* owner_head_ = nullptr;
   // This must be declared after group_ because its constructor
   // will refer to it.
   PlaneGroupOwner initial_;
