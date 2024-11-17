@@ -212,7 +212,7 @@ struct DifficultyScreen : public IPlane {
   // State
   wait_promise<maybe<e_difficulty>> result_ = {};
   Layout const*                     layout_ = {};
-  e_difficulty selected_ = e_difficulty::discoverer;
+  e_difficulty selected_ = e_difficulty::conquistador;
 
  public:
   DifficultyScreen() {
@@ -284,7 +284,8 @@ struct DifficultyScreen : public IPlane {
       rect const selected_rect{
         .origin = cell.scroll_origin - l.selected_buffer,
         .size   = kScrollSize + l.selected_buffer * 2 };
-      draw_empty_rect_no_corners( painter, selected_rect,
+      draw_empty_rect_no_corners( painter,
+                                  selected_rect.with_dec_size(),
                                   cell.selected_color );
     }
   }
