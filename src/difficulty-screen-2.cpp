@@ -21,6 +21,7 @@
 // config
 #include "config/resolutions.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/difficulty.rds.hpp"
@@ -59,49 +60,6 @@ using ::gfx::size;
 using ::refl::enum_map;
 
 /****************************************************************
-** Helpers.
-*****************************************************************/
-// TODO: move this somewhere else.
-void draw_empty_rect_no_corners( rr::Painter&     painter,
-                                 const gfx::rect  box,
-                                 const gfx::pixel color ) {
-  using namespace gfx;
-  using ::gfx::size;
-  // Left.
-  {
-    point const start = box.nw();
-    point const end   = box.sw();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Right.
-  {
-    point const start = box.ne();
-    point const end   = box.se();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Top.
-  {
-    point const start = box.nw();
-    point const end   = box.ne();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
-  }
-  // Bottom.
-  {
-    point const start = box.sw();
-    point const end   = box.se();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
-  }
-}
-
-/****************************************************************
 ** Layout.
 *****************************************************************/
 struct DifficultyCell {
@@ -114,6 +72,14 @@ struct DifficultyCell {
   pixel selected_color = {};
 
   std::string_view description_label = {};
+};
+
+struct InstructionsCell {
+  point center_for_title_label = {};
+
+  point center_for_click_here_label = {};
+
+  rect select_rect = {};
 };
 
 struct Layout {
@@ -132,6 +98,8 @@ struct Layout {
   // Same as above but for the "(easy)", "(hard)" labels.
   size center_for_description_label = {};
 
+  InstructionsCell instructions_cell = {};
+
   enum_map<e_difficulty, DifficultyCell> cells = {};
 };
 
@@ -144,6 +112,13 @@ auto const kLayout_640x360 = [] {
   l.selected_buffer              = { .w = 5, .h = 5 };
   l.center_for_label             = { .w = 63, .h = 20 };
   l.center_for_description_label = { .w = 63, .h = 146 };
+
+  auto& instructions                  = l.instructions_cell;
+  instructions.center_for_title_label = { .x = 320, .y = 65 };
+  instructions.center_for_click_here_label = { .x = 320,
+                                               .y = 120 };
+  instructions.select_rect = { .origin = { .x = 234, .y = 28 },
+                               .size = { .w = 172, .h = 123 } };
 
   using enum e_difficulty;
   using enum e_cardinal_direction;
@@ -217,13 +192,57 @@ auto const kLayout_640x360 = [] {
 };
 
 /****************************************************************
+** Helpers.
+*****************************************************************/
+// TODO: move this somewhere else.
+void draw_empty_rect_no_corners( rr::Painter&     painter,
+                                 const gfx::rect  box,
+                                 const gfx::pixel color ) {
+  using namespace gfx;
+  using ::gfx::size;
+  // Left.
+  {
+    point const start = box.nw();
+    point const end   = box.sw();
+    painter.draw_vertical_line(
+        start + size{ .h = 1 },
+        std::max( 0, end.y - start.y - 2 + 1 ), color );
+  }
+  // Right.
+  {
+    point const start = box.ne();
+    point const end   = box.se();
+    painter.draw_vertical_line(
+        start + size{ .h = 1 },
+        std::max( 0, end.y - start.y - 2 + 1 ), color );
+  }
+  // Top.
+  {
+    point const start = box.nw();
+    point const end   = box.ne();
+    painter.draw_horizontal_line(
+        start + size{ .w = 1 },
+        std::max( 0, end.x - start.x - 2 + 1 ), color );
+  }
+  // Bottom.
+  {
+    point const start = box.sw();
+    point const end   = box.se();
+    painter.draw_horizontal_line(
+        start + size{ .w = 1 },
+        std::max( 0, end.x - start.x - 2 + 1 ), color );
+  }
+}
+
+/****************************************************************
 ** DfficultyScreen
 *****************************************************************/
 struct DifficultyScreen : public IPlane {
   // State
   wait_promise<maybe<e_difficulty>> result_ = {};
   Layout const*                     layout_ = {};
-  e_difficulty selected_ = e_difficulty::conquistador;
+  e_difficulty        selected_    = e_difficulty::conquistador;
+  maybe<e_difficulty> highlighted_ = nothing;
 
  public:
   DifficultyScreen() {
@@ -253,47 +272,41 @@ struct DifficultyScreen : public IPlane {
     }
   }
 
+  void write_centered( rr::Renderer& renderer,
+                       pixel const   color_fg,
+                       pixel const color_bg, point const center,
+                       string_view const text ) const {
+    size const text_size =
+        rr::rendered_text_line_size_pixels( text );
+    rect const text_rect = gfx::centered_on( text_size, center );
+    renderer.typer( text_rect.nw() + size{ .w = 1 }, color_bg )
+        .write( text );
+    renderer.typer( text_rect.nw() + size{ .h = 1 }, color_bg )
+        .write( text );
+    renderer.typer( text_rect.nw(), color_fg ).write( text );
+  }
+
   void draw( rr::Renderer& renderer, Layout const& l,
              e_difficulty const    difficulty,
              DifficultyCell const& cell ) const {
-    bool const this_selected = ( selected_ == difficulty );
+    bool const this_selected    = ( selected_ == difficulty );
+    bool const this_highlighted = ( highlighted_ == difficulty );
     render_sprite( renderer, cell.scroll_origin,
                    e_tile::difficulty_scroll );
-    auto write_centered = [&]( size const        center,
-                               string_view const text ) {
-      size const text_size =
-          rr::rendered_text_line_size_pixels( text );
-      rect const text_rect = gfx::centered_on(
-          text_size, cell.scroll_origin + center );
-      if( !this_selected ) {
-        renderer
-            .typer( text_rect.nw() + size{ .w = 1 },
-                    pixel::black().with_alpha( 100 ) )
-            .write( text );
-        renderer
-            .typer( text_rect.nw() + size{ .h = 1 },
-                    pixel::black().with_alpha( 100 ) )
-            .write( text );
-        renderer
-            .typer( text_rect.nw(),
-                    pixel::from_hex_rgb( 0x777777 ) )
-            .write( text );
-      } else {
-        renderer
-            .typer( text_rect.nw() + size{ .w = 1 },
-                    pixel::black() )
-            .write( text );
-        renderer
-            .typer( text_rect.nw() + size{ .h = 1 },
-                    pixel::black() )
-            .write( text );
-        renderer.typer( text_rect.nw(), cell.selected_color )
-            .write( text );
-      }
+    auto const write = [&]( size const        center,
+                            string_view const text ) {
+      if( this_highlighted || this_selected )
+        write_centered( renderer, cell.selected_color,
+                        pixel::black(),
+                        cell.scroll_origin + center, text );
+      else
+        write_centered(
+            renderer, pixel::from_hex_rgb( 0x777777 ),
+            pixel::black(), cell.scroll_origin + center, text );
     };
-    write_centered( l.center_for_label, cell.label );
-    write_centered( l.center_for_description_label,
-                    cell.description_label );
+    write( l.center_for_label, cell.label );
+    write( l.center_for_description_label,
+           cell.description_label );
     if( this_selected ) {
       rr::Painter       painter = renderer.painter();
       static size const kScrollSize =
@@ -309,9 +322,24 @@ struct DifficultyScreen : public IPlane {
 
   void draw( rr::Renderer& renderer, const Layout& l ) const {
     rr::Painter painter = renderer.painter();
+
+    // Background.
     painter.draw_solid_rect( l.bg_rect, l.bg_color );
+
+    // Scrolls.
     for( auto const& [difficulty, cell] : l.cells )
       draw( renderer, l, difficulty, cell );
+
+    // Instructions box.
+    static gfx::pixel const kUiTextColor =
+        config_ui.dialog_text.normal;
+    write_centered( renderer, kUiTextColor, pixel::black(),
+                    l.instructions_cell.center_for_title_label,
+                    "Choose Difficulty Level" );
+    write_centered(
+        renderer, kUiTextColor, pixel::black(),
+        l.instructions_cell.center_for_click_here_label,
+        "(Click here when finished)" );
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -361,16 +389,47 @@ struct DifficultyScreen : public IPlane {
     return handled;
   }
 
+  e_input_handled on_mouse_move(
+      input::mouse_move_event_t const& event ) override {
+    if( !layout_ ) return e_input_handled::no;
+    auto const& l = *layout_;
+
+    static size const kScrollSize =
+        sprite_size( e_tile::difficulty_scroll );
+    highlighted_ = nothing;
+    for( const auto& [difficulty, cell] : l.cells ) {
+      rect const click_area{ .origin = cell.scroll_origin,
+                             .size   = kScrollSize };
+      if( event.pos.to_gfx().is_inside( click_area ) )
+        highlighted_ = difficulty;
+    }
+
+    return e_input_handled::yes;
+  }
+
   e_input_handled on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_up )
       return e_input_handled::no;
 
     if( !layout_ ) return e_input_handled::no;
+    auto const& l = *layout_;
 
-    auto handled = e_input_handled::no;
-    // TODO
-    return handled;
+    if( event.pos.to_gfx().is_inside(
+            l.instructions_cell.select_rect ) ) {
+      result_.set_value( selected_ );
+    } else {
+      static size const kScrollSize =
+          sprite_size( e_tile::difficulty_scroll );
+      for( const auto& [difficulty, cell] : l.cells ) {
+        rect const click_area{ .origin = cell.scroll_origin,
+                               .size   = kScrollSize };
+        if( event.pos.to_gfx().is_inside( click_area ) )
+          selected_ = difficulty;
+      }
+    }
+
+    return e_input_handled::yes;
   }
 
   wait<e_difficulty> run() {
