@@ -81,16 +81,12 @@ namespace detail {
 }
 
 template<typename... Args>
-[[noreturn]] void throw_lua_error( cthread          L,
-                                   std::string_view fmt_str,
-                                   Args&&... args ) {
+[[noreturn]] void throw_lua_error(
+    cthread const L, fmt::format_string<Args...> const fmt_str,
+    Args&&... args ) {
   try {
-    std::string msg;
-    if constexpr( sizeof...( args ) > 0 )
-      msg = fmt::format( fmt::runtime( fmt_str ),
-                         std::forward<Args>( args )... );
-    else
-      msg = std::string( fmt_str );
+    std::string const msg =
+        fmt::format( fmt_str, std::forward<Args>( args )... );
     detail::throw_lua_error_impl( L, msg );
   } catch( fmt::format_error const& e ) {
     FATAL( "fmt format error while formatting Lua error: {}",

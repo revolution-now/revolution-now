@@ -225,9 +225,15 @@ struct state : base::zero<state, cthread> {
   ** Throw error
   ***************************************************************/
   template<typename... Args>
-  [[noreturn]] void error( std::string_view msg,
-                           Args&&... args ) const {
-    throw_lua_error( resource(), msg, FWD( args )... );
+  [[noreturn]] void error(
+      fmt::format_string<Args...> const fmt_str,
+      Args&&... args ) const {
+    throw_lua_error( resource(), fmt_str, FWD( args )... );
+  }
+
+  template<typename... Args>
+  [[noreturn]] void error( std::string const& msg ) const {
+    throw_lua_error( resource(), "{}", msg );
   }
 
  private:
