@@ -241,7 +241,7 @@ int push( cthread L, T&& o ) {
 ** get
 *****************************************************************/
 template<Gettable T>
-auto get( cthread L, int idx ) {
+[[nodiscard]] auto get( cthread const L, int const idx ) {
   if constexpr( GettableViaAdl<T> )
     return lua_get( L, idx, tag<T>{} );
   else if constexpr( GettableViaTraits<T> )
@@ -255,9 +255,10 @@ auto get( cthread L, int idx ) {
 // convert it to the given type and will throw a lua error if it
 // cannot convert it.
 template<Gettable T>
-T get_or_luaerr( cthread L, int idx,
-                 std::source_location loc =
-                     std::source_location::current() ) {
+[[nodiscard]] T get_or_luaerr(
+    cthread const L, int const idx,
+    std::source_location const loc =
+        std::source_location::current() ) {
   base::maybe<T> m = lua::get<T>( L, idx );
   if( m.has_value() ) return *m;
   throw_lua_error( L,
