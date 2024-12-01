@@ -46,9 +46,6 @@ struct Validator {
           case expr::e_feature::validation:
             break;
           case expr::e_feature::nodiscard:
-            error(
-                "sumtypes do not support the 'nodiscard' "
-                "feature." );
             break;
         }
       }

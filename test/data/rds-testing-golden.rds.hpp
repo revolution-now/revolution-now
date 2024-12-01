@@ -172,7 +172,7 @@ namespace rdstest {
 
   } // namespace detail
 
-  struct MyVariant1 : public detail::MyVariant1Base {
+  struct [[nodiscard]] MyVariant1 : public detail::MyVariant1Base {
     using happy   = detail::MyVariant1_alternatives::happy;
     using sad     = detail::MyVariant1_alternatives::sad;
     using excited = detail::MyVariant1_alternatives::excited;

@@ -44,7 +44,7 @@ sumtype.MyVariant1 {
   },
   excited {},
 
-  _features { equality }
+  _features { equality, nodiscard }
 }
 
 sumtype.MyVariant2 {

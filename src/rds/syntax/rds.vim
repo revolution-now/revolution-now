@@ -94,7 +94,7 @@ syn keyword  rdsSumtypeFeatures _features contained nextgroup=rdsSumtypeFeatures
 syn region   rdsSumtypeFeaturesListBlock start='{' end='}' contained fold contains=rdsSumtypeFeaturesListItem,rdsSumtypeFeaturesListItemErr nextgroup=rdsSumtypeFeaturesListBlockComma skipwhite skipempty
 syn match    rdsSumtypeFeaturesListBlockComma ',' contained nextgroup=rdsSumtypeAlternative,rdsSumtypeTemplate skipwhite skipempty
 syn match    rdsSumtypeFeaturesListItemErr '[^{} ,]\+' contained
-syn match    rdsSumtypeFeaturesListItem '\(equality\|validation\|offsets\)' contained
+syn match    rdsSumtypeFeaturesListItem '\(equality\|nodiscard\|validation\|offsets\)' contained
 
 hi def link  rdsSumtypeDot                    Comment
 hi def link  rdsSumtypeAlternativeVarComma    Comment

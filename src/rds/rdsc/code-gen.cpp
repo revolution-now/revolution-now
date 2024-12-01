@@ -535,6 +535,10 @@ struct CodeGenerator {
         item_has_feature( sumtype, expr::e_feature::equality );
     bool const emit_validation =
         item_has_feature( sumtype, expr::e_feature::validation );
+    string const nodiscard_str =
+        item_has_feature( sumtype, expr::e_feature::nodiscard )
+            ? "[[nodiscard]] "
+            : "";
     string const alt_ns =
         fmt::format( "{}_alternatives", sumtype.name );
     if( !sumtype.alternatives.empty() ) {
@@ -567,7 +571,8 @@ struct CodeGenerator {
         fmt::format( "detail::{}Base{}", sumtype.name,
                      template_params( sumtype.tmpl_params,
                                       /*put_typename=*/false ) );
-    line( "struct {} : public {} {{", sumtype.name, base_name );
+    line( "struct {}{} : public {} {{", nodiscard_str,
+          sumtype.name, base_name );
     {
       auto _ = indent();
 
