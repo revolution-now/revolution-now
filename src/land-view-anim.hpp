@@ -112,6 +112,8 @@ struct LandViewAnimator {
 
   wait<> animate_blink( UnitId id, bool visible_initially );
 
+  wait<> animate_white_square( gfx::point location );
+
   // Smooth map scrolling.
 
   wait<> ensure_visible( Coord const& coord );

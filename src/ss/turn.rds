@@ -50,6 +50,9 @@ struct.Autosave {
 sumtype.NationTurnState {
   not_started {},
   colonies {},
+  view {
+    q 'std::deque<UnitId>',
+  },
   units {
     q 'std::deque<UnitId>',
     skip_eot 'bool',

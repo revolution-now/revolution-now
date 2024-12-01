@@ -438,6 +438,89 @@ wait<e_menu_item> wait_for_menu_selection(
 }
 
 /****************************************************************
+** View Mode.
+*****************************************************************/
+wait<> process_view_mode_input( SS& ss, TS& ts, Player& player,
+                                NationTurnState::view&,
+                                e_menu_item const item ) {
+  // In the future we might need to put logic here that is spe-
+  // cific to view mode, but for now this is sufficient.
+  co_await menu_handler( ss, ts, player, item );
+}
+
+wait<> process_view_mode_input(
+    SS& ss, TS& ts, Player& player, NationTurnState::view& view,
+    LandViewPlayerInput const& input ) {
+  SWITCH( input ) {
+    CASE( toggle_view_mode ) { SHOULD_NOT_BE_HERE; }
+    CASE( colony ) {
+      e_colony_abandoned const abandoned =
+          co_await ts.colony_viewer.show(
+              ts, input.get<LandViewPlayerInput::colony>().id );
+      if( abandoned == e_colony_abandoned::yes )
+        // Nothing really special to do here.
+        break;
+      break;
+    }
+    CASE( european_status ) {
+      co_await show_harbor_view( ss, ts, player,
+                                 /*selected_unit=*/nothing );
+      break;
+    }
+    CASE( exit ) {
+      co_await proceed_to_exit( ss, ts );
+      break;
+    }
+    CASE( hidden_terrain ) {
+      co_await ts.planes.get()
+          .get_bottom<ILandViewPlane>()
+          .show_hidden_terrain();
+      break;
+    }
+    CASE( next_turn ) {
+      // The land view should never send us a 'next turn' command
+      // when we are not at the end of a turn.
+      SHOULD_NOT_BE_HERE;
+    }
+    CASE( give_command ) {
+      // TODO
+      break;
+    }
+    CASE( prioritize ) {
+      vector<UnitId> const units =
+          co_await process_unit_prioritization_request(
+              ss, ts, prioritize );
+      for( UnitId const id_to_add : units )
+        prioritize_unit( view.q, id_to_add );
+      break;
+    }
+  }
+  co_return;
+}
+
+wait<> show_view_mode( SS& ss, TS& ts, Player& player,
+                       NationTurnState::view& view ) {
+  lg.info( "entering view mode." );
+  SCOPE_EXIT { lg.info( "leaving view mode." ); };
+  while( true ) {
+    auto const command = co_await co::first(
+        wait_for_menu_selection( ts.planes.get().menu ),
+        ts.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .show_view_mode() );
+    bool const leave =
+        command.get_if<LandViewPlayerInput>()
+            .get_if<LandViewPlayerInput::toggle_view_mode>()
+            .has_value();
+    if( leave ) co_return;
+    co_await visit( command, [&]( auto const& action ) {
+      return process_view_mode_input( ss, ts, player, view,
+                                      action );
+    } );
+  }
+}
+
+/****************************************************************
 ** Processing Player Input (End of Turn).
 *****************************************************************/
 namespace eot {
@@ -474,6 +557,11 @@ wait<EndOfTurnResult> process_player_input(
       co_await ts.planes.get()
           .get_bottom<ILandViewPlane>()
           .show_hidden_terrain();
+      break;
+    }
+    case e::toggle_view_mode: {
+      // Does nothing in end-of-turn mode, since said mode is al-
+      // ready a view mode.
       break;
     }
     case e::next_turn:
@@ -602,6 +690,9 @@ wait<> process_player_input(
           .show_hidden_terrain();
       break;
     }
+    case e::toggle_view_mode: {
+      throw view_mode_interrupt{};
+    }
     // We have some orders for the current unit.
     case e::give_command: {
       auto& command =
@@ -703,7 +794,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
-  co_await overload_visit( command, [&]( auto const& action ) {
+  co_await visit( command, [&]( auto const& action ) {
     return process_player_input( id, action, ss, ts, player,
                                  nat_units );
   } );
@@ -1051,8 +1142,18 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       co_await post_colonies( ss, ts, player );
       co_return NationTurnState::units{};
     }
+    CASE( view ) {
+      co_await show_view_mode( ss, ts, player, view );
+      co_return NationTurnState::units{ .q = std::move( view.q ),
+                                        .skip_eot = true };
+    }
     CASE( units ) {
-      co_await units_turn( ss, ts, player, units );
+      try {
+        co_await units_turn( ss, ts, player, units );
+      } catch( view_mode_interrupt const& ) {
+        co_return NationTurnState::view{
+          .q = std::move( units.q ) };
+      }
       CHECK( units.q.empty() );
       if( !units.skip_eot ) co_return NationTurnState::eot{};
       if( ss.settings.game_options

@@ -95,6 +95,7 @@ items {
   units_help.name: Units
   zoom_in.name: Zoom In
   zoom_out.name: Zoom Out
+  toggle_view_mode.name: Toggle View Mode
 }
 
 layout {
@@ -125,6 +126,7 @@ layout {
     harbor_view,
     null,
     hidden_terrain,
+    toggle_view_mode,
   ]
 
   orders.contents: [

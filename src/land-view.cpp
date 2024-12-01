@@ -154,6 +154,8 @@ struct LandViewPlane::Impl : public IPlane {
         e_menu_item::road, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::hidden_terrain, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::toggle_view_mode, *this ) );
   }
 
   Impl( SS& ss, TS& ts, maybe<e_nation> nation )
@@ -329,6 +331,12 @@ struct LandViewPlane::Impl : public IPlane {
       case e::hidden_terrain: {
         translated_input_stream_.push(
             PlayerInput( LandViewPlayerInput::hidden_terrain{},
+                         raw_input.when ) );
+        break;
+      }
+      case e::toggle_view_mode: {
+        translated_input_stream_.push(
+            PlayerInput( LandViewPlayerInput::toggle_view_mode{},
                          raw_input.when ) );
         break;
       }
@@ -510,6 +518,13 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::reveal_map{} ) );
+        };
+        return handler;
+      }
+      case e_menu_item::toggle_view_mode: {
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::toggle_view_mode{} ) );
         };
         return handler;
       }
@@ -1025,6 +1040,38 @@ struct LandViewPlane::Impl : public IPlane {
                         hidden_terrain_interact() );
   }
 
+  wait<LandViewPlayerInput> show_view_mode() {
+    auto const new_state = LandViewMode::view_mode{};
+    // Clear input buffers after changing state to the new state
+    // and after switching back to the old state.
+    SCOPE_EXIT { reset_input_buffers(); };
+    SCOPED_SET_AND_RESTORE( mode_, new_state );
+    reset_input_buffers();
+
+    // * Need to pan to the white square.
+    // * Need to pan as the white square moves.
+    // * Need to choose an initial location for the white square.
+    // * Need to set various things that get_next_input sets.
+
+    gfx::point const location = [&] {
+      gfx::point res = {};
+      if( last_unit_input_.has_value() ) {
+        UnitId const last_unit_id = last_unit_input_->unit_id;
+        if( ss_.units.exists( last_unit_id ) ) {
+          // TODO: only choose if unit location is within
+          // viewport.
+        }
+      }
+      return res;
+    }();
+
+    LandViewPlayerInput const input = co_await co::background(
+        next_player_input_object(),
+        animator_.animate_white_square( location ) );
+
+    co_return input;
+  }
+
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {
     // There are some things that use last_unit_input_ below that
     // will crash if the last unit that asked for orders no
@@ -1204,6 +1251,10 @@ wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
 
 wait<> LandViewPlane::show_hidden_terrain() {
   return impl_->show_hidden_terrain();
+}
+
+wait<LandViewPlayerInput> LandViewPlane::show_view_mode() {
+  return impl_->show_view_mode();
 }
 
 wait<LandViewPlayerInput> LandViewPlane::get_next_input(

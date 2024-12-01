@@ -42,4 +42,9 @@ struct.LandViewState {
 
   # This is only here to support the "reveal map" cheat feature.
   map_revealed 'MapRevealed',
+
+  # This gives the position of the white view square when it is
+  # visible, which can happen either in end-of-turn mode or if
+  # the user explicitly enters "view mode" during a turn.
+  white_square 'gfx::point',
 }

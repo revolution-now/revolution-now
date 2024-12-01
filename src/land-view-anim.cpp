@@ -308,6 +308,15 @@ wait<> LandViewAnimator::animate_blink(
   }
 }
 
+wait<> LandViewAnimator::animate_white_square(
+    gfx::point const location ) {
+  // TODO
+  (void)location;
+  while( true ) {
+    co_await 1s; //
+  }
+}
+
 wait<> LandViewAnimator::slide_throttler_impl(
     co::latch& hold, e_direction d, UnitSlide& slide ) {
   double const kMaxVelocity =

@@ -47,4 +47,9 @@ struct colony_abandon_interrupt : std::exception {};
 // tion of the game.
 struct top_of_turn_loop : std::exception {};
 
+// This is thrown during a turn when the user wants to enter view
+// mode, i.e. the mode where the white inspection square is vis-
+// ible on the map.
+struct view_mode_interrupt : std::exception {};
+
 } // namespace rn

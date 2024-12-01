@@ -70,4 +70,5 @@ enum.e_menu_item {
   units_help,
   zoom_in,
   zoom_out,
+  toggle_view_mode,
 }

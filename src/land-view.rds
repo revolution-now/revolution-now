@@ -44,6 +44,11 @@ sumtype.LandViewPlayerInput {
   # not give the player any information that they shouldn't have.
   hidden_terrain {},
 
+  # When in mid-turn, this allows entering "view mode", which is
+  # the mode where you can move a white selection square around
+  # the map to inspect tiles.
+  toggle_view_mode {},
+
   # Player has given a command to a unit.
   give_command {
     cmd 'command',
@@ -64,4 +69,6 @@ sumtype.LandViewPlayerInput {
 
   # When the user hits escape this will be sent.
   exit {},
+
+  _features { nodiscard }
 }
