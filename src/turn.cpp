@@ -703,7 +703,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
-  co_await overload_visit( command, [&]( auto const& action ) {
+  co_await visit( command, [&]( auto const& action ) {
     return process_player_input( id, action, ss, ts, player,
                                  nat_units );
   } );
