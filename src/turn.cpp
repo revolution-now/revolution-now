@@ -564,7 +564,7 @@ wait<> process_player_input( UnitId, e_menu_item item, SS& ss,
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
-  return menu_handler( ss, ts, player, item );
+  co_await menu_handler( ss, ts, player, item );
 }
 
 wait<> process_player_input(
