@@ -1152,5 +1152,61 @@ TEST_CASE( "[co-combinator] while_throws" ) {
   }
 }
 
+TEST_CASE( "[co-combinator] while_throws( bool )" ) {
+  int called = 0;
+
+  SECTION( "returns int" ) {
+    wait<int> w = co::while_throws<my_exception>(
+        [&]( bool const threw ) -> wait<int> {
+          if( called == 0 ) {
+            REQUIRE( threw == false );
+          } else {
+            REQUIRE( threw == true );
+          }
+          ++called;
+          if( called < 3 ) throw my_exception{};
+          BASE_CHECK( called < 100 );
+          co_return called;
+        } );
+
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( *w == 3 );
+    REQUIRE( called == 3 );
+
+    // The following should be redundant.
+    run_all_cpp_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( *w == 3 );
+    REQUIRE( called == 3 );
+  }
+
+  SECTION( "returns monostate" ) {
+    wait<> w = co::while_throws<my_exception>(
+        [&]( bool const threw ) -> wait<> {
+          if( called == 0 ) {
+            REQUIRE( threw == false );
+          } else {
+            REQUIRE( threw == true );
+          }
+          ++called;
+          if( called < 3 ) throw my_exception{};
+          BASE_CHECK( called < 100 );
+          co_return;
+        } );
+
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( called == 3 );
+
+    // The following should be redundant.
+    run_all_cpp_coroutines();
+    REQUIRE( w.ready() );
+    REQUIRE( !w.has_exception() );
+    REQUIRE( called == 3 );
+  }
+}
+
 } // namespace
 } // namespace rn::co
