@@ -229,6 +229,37 @@ point point::operator/( size scale ) const {
   return res;
 }
 
+point point::moved( e_direction d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_direction::nw: return {.x=x-1,.y=y-1};
+    case e_direction::n:  return {.x=x,  .y=y-1};
+    case e_direction::ne: return {.x=x+1,.y=y-1};
+    case e_direction::w:  return {.x=x-1,.y=y  };
+    case e_direction::e:  return {.x=x+1,.y=y  };
+    case e_direction::sw: return {.x=x-1,.y=y+1};
+    case e_direction::s:  return {.x=x,  .y=y+1};
+    case e_direction::se: return {.x=x+1,.y=y+1};
+  };
+  // clang-format on
+}
+
+point point::moved( e_cdirection d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_cdirection::nw: return {.x=x-1,.y=y-1};
+    case e_cdirection::n:  return {.x=x,  .y=y-1};
+    case e_cdirection::ne: return {.x=x+1,.y=y-1};
+    case e_cdirection::w:  return {.x=x-1,.y=y  };
+    case e_cdirection::e:  return {.x=x+1,.y=y  };
+    case e_cdirection::sw: return {.x=x-1,.y=y+1};
+    case e_cdirection::s:  return {.x=x,  .y=y+1};
+    case e_cdirection::se: return {.x=x+1,.y=y+1};
+    case e_cdirection::c:  return {.x=x,  .y=y  };
+  };
+  // clang-format on
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/

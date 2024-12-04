@@ -355,6 +355,45 @@ TEST_CASE( "[gfx/cartesian] point::to_double" ) {
   REQUIRE( p.to_double() == dpoint{ .x = 4.0, .y = 2.0 } );
 }
 
+TEST_CASE( "[gfx/cartesian] moved*" ) {
+  point const p{ .x = 3, .y = 5 };
+  REQUIRE( p.moved( e_cdirection::nw ) ==
+           point{ .x = 2, .y = 4 } );
+  REQUIRE( p.moved( e_cdirection::n ) ==
+           point{ .x = 3, .y = 4 } );
+  REQUIRE( p.moved( e_cdirection::ne ) ==
+           point{ .x = 4, .y = 4 } );
+  REQUIRE( p.moved( e_cdirection::w ) ==
+           point{ .x = 2, .y = 5 } );
+  REQUIRE( p.moved( e_cdirection::e ) ==
+           point{ .x = 4, .y = 5 } );
+  REQUIRE( p.moved( e_cdirection::sw ) ==
+           point{ .x = 2, .y = 6 } );
+  REQUIRE( p.moved( e_cdirection::s ) ==
+           point{ .x = 3, .y = 6 } );
+  REQUIRE( p.moved( e_cdirection::se ) ==
+           point{ .x = 4, .y = 6 } );
+  REQUIRE( p.moved( e_cdirection::c ) ==
+           point{ .x = 3, .y = 5 } );
+
+  REQUIRE( p.moved( e_direction::nw ) ==
+           point{ .x = 2, .y = 4 } );
+  REQUIRE( p.moved( e_direction::n ) ==
+           point{ .x = 3, .y = 4 } );
+  REQUIRE( p.moved( e_direction::ne ) ==
+           point{ .x = 4, .y = 4 } );
+  REQUIRE( p.moved( e_direction::w ) ==
+           point{ .x = 2, .y = 5 } );
+  REQUIRE( p.moved( e_direction::e ) ==
+           point{ .x = 4, .y = 5 } );
+  REQUIRE( p.moved( e_direction::sw ) ==
+           point{ .x = 2, .y = 6 } );
+  REQUIRE( p.moved( e_direction::s ) ==
+           point{ .x = 3, .y = 6 } );
+  REQUIRE( p.moved( e_direction::se ) ==
+           point{ .x = 4, .y = 6 } );
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/

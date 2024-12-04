@@ -142,6 +142,9 @@ struct point {
   [[nodiscard]] point moved_right( int by = 1 ) const;
   [[nodiscard]] point moved_up( int by = 1 ) const;
   [[nodiscard]] point moved_down( int by = 1 ) const;
+
+  [[nodiscard]] point moved( e_direction d ) const;
+  [[nodiscard]] point moved( e_cdirection cd ) const;
 };
 
 /****************************************************************
