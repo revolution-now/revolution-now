@@ -27,6 +27,7 @@
 #include "ss/difficulty.rds.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // rds
@@ -192,49 +193,6 @@ auto const kLayout_640x360 = [] {
 };
 
 /****************************************************************
-** Helpers.
-*****************************************************************/
-// TODO: move this somewhere else.
-void draw_empty_rect_no_corners( rr::Painter&     painter,
-                                 const gfx::rect  box,
-                                 const gfx::pixel color ) {
-  using namespace gfx;
-  using ::gfx::size;
-  // Left.
-  {
-    point const start = box.nw();
-    point const end   = box.sw();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Right.
-  {
-    point const start = box.ne();
-    point const end   = box.se();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Top.
-  {
-    point const start = box.nw();
-    point const end   = box.ne();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
-  }
-  // Bottom.
-  {
-    point const start = box.sw();
-    point const end   = box.se();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
-  }
-}
-
-/****************************************************************
 ** DfficultyScreen
 *****************************************************************/
 struct DifficultyScreen : public IPlane {
@@ -314,9 +272,9 @@ struct DifficultyScreen : public IPlane {
       rect const selected_rect{
         .origin = cell.scroll_origin - l.selected_buffer,
         .size   = kScrollSize + l.selected_buffer * 2 };
-      draw_empty_rect_no_corners( painter,
-                                  selected_rect.with_dec_size(),
-                                  cell.selected_color );
+      rr::draw_empty_rect_no_corners(
+          painter, selected_rect.with_dec_size(),
+          cell.selected_color );
     }
   }
 

@@ -30,6 +30,7 @@
 #include "ss/difficulty.rds.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
@@ -189,45 +190,6 @@ string_view description_for_difficulty(
       return "Tough";
     case e_difficulty::viceroy:
       return "Toughest";
-  }
-}
-
-void draw_empty_rect_no_corners( rr::Painter&     painter,
-                                 const gfx::rect  box,
-                                 const gfx::pixel color ) {
-  using namespace gfx;
-  using ::gfx::size;
-  // Left.
-  {
-    point const start = box.nw();
-    point const end   = box.sw();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Right.
-  {
-    point const start = box.ne();
-    point const end   = box.se();
-    painter.draw_vertical_line(
-        start + size{ .h = 1 },
-        std::max( 0, end.y - start.y - 2 + 1 ), color );
-  }
-  // Top.
-  {
-    point const start = box.nw();
-    point const end   = box.ne();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
-  }
-  // Bottom.
-  {
-    point const start = box.sw();
-    point const end   = box.se();
-    painter.draw_horizontal_line(
-        start + size{ .w = 1 },
-        std::max( 0, end.x - start.x - 2 + 1 ), color );
   }
 }
 
@@ -494,7 +456,7 @@ struct DifficultyScreen : public IPlane {
         CHECK( difficulty.has_value() );
         auto      color   = color_for_difficulty( *difficulty );
         int const padding = 2;
-        draw_empty_rect_no_corners(
+        rr::draw_empty_rect_no_corners(
             painter,
             inner_r.with_edges_removed( padding )
                 .with_dec_size(),
