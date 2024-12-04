@@ -13,9 +13,6 @@
 // gfx
 #include "cartesian.hpp"
 
-// Rds
-#include "coord.rds.hpp"
-
 // luapp
 #include "luapp/ext.hpp"
 
@@ -29,6 +26,12 @@
 #include <cmath>
 
 namespace rn {
+
+/****************************************************************
+** Injections (FIXME: temporary)
+*****************************************************************/
+// The stuff in this section is for backward compatibility and
+// should be removed eventually when the Coord module is retired.
 
 using X  = int;
 using Y  = int;

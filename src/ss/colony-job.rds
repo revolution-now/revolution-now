@@ -12,7 +12,7 @@
 include "colony-enums.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/cartesian.rds.hpp"
 
 namespace "rn"
 

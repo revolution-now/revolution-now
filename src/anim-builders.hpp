@@ -22,7 +22,7 @@
 #include "ss/unit-type.rds.hpp"
 
 // gfx
-#include "gfx/coord.rds.hpp"
+#include "gfx/cartesian.rds.hpp"
 
 // C++ standard library
 #include <set>

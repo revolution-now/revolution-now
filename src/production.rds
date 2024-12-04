@@ -13,7 +13,7 @@ include "ss/colony.rds.hpp"
 include "ss/commodity.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/cartesian.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

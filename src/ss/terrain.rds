@@ -14,7 +14,7 @@ include "ss/map-square.rds.hpp"
 include "ss/nation.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/cartesian.rds.hpp"
 include "gfx/matrix.hpp"
 
 # refl

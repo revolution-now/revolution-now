@@ -17,7 +17,7 @@ include "ss/mv-points.hpp"
 include "ss/unit-type.rds.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/cartesian.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"

@@ -15,7 +15,7 @@ include "tribe-arms.rds.hpp"
 include "ss/mv-points.hpp"
 
 # gfx
-include "gfx/coord.rds.hpp"
+include "gfx/cartesian.rds.hpp"
 
 namespace "rn"
 
