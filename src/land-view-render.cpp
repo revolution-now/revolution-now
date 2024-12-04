@@ -77,10 +77,18 @@ bool last_unit_input_is_in_stack_indirect(
 
 // Given a tile, compute the screen rect where it should be ren-
 // dered.
+gfx::rect LandViewRenderer::render_rect_for_tile(
+    gfx::point const tile ) const {
+  gfx::size const delta_in_tiles =
+      tile - covered_.upper_left().to_gfx();
+  gfx::size const delta_in_pixels =
+      delta_in_tiles * g_tile_delta.w;
+  return gfx::rect{ .origin = gfx::point{} + delta_in_pixels,
+                    .size   = g_tile_delta };
+}
+
 Rect LandViewRenderer::render_rect_for_tile( Coord tile ) const {
-  Delta delta_in_tiles  = tile - covered_.upper_left();
-  Delta delta_in_pixels = delta_in_tiles * g_tile_delta;
-  return Rect::from( Coord{} + delta_in_pixels, g_tile_delta );
+  return Rect::from_gfx( render_rect_for_tile( tile.to_gfx() ) );
 }
 
 vector<GenericUnitId> land_view_unit_stack(

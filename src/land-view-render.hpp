@@ -93,6 +93,8 @@ struct LandViewRenderer {
 
   Rect render_rect_for_tile( Coord tile ) const;
 
+  gfx::rect render_rect_for_tile( gfx::point const tile ) const;
+
   void render_single_unit(
       Coord where, GenericUnitId id,
       maybe<UnitFlagOptions> flag_count ) const;
