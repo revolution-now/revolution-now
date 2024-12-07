@@ -44,7 +44,7 @@ struct ILandViewPlane {
   // Tries to center on the tile (smoothly, if not too far away)
   // as much as is possible. E.g. if the tile is close to the
   // world edge then it won't end up centered.
-  virtual wait<> center_on_tile( Coord coord ) = 0;
+  virtual wait<> center_on_tile( gfx::point tile ) = 0;
 
   virtual wait<> ensure_visible_unit( GenericUnitId id ) = 0;
 
@@ -97,7 +97,7 @@ struct LandViewPlane : ILandViewPlane {
   void set_visibility( maybe<e_nation> nation ) override;
 
   wait<> ensure_visible( Coord const& coord ) override;
-  wait<> center_on_tile( Coord coord ) override;
+  wait<> center_on_tile( gfx::point tile ) override;
   wait<> ensure_visible_unit( GenericUnitId id ) override;
 
   wait<> show_hidden_terrain() override;

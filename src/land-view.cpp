@@ -898,8 +898,9 @@ struct LandViewPlane::Impl : public IPlane {
     g_needs_scroll_to_unit_on_input = true;
   }
 
-  wait<> center_on_tile( Coord coord ) {
-    co_await viewport().center_on_tile_smooth( coord );
+  wait<> center_on_tile( point const tile ) {
+    co_await viewport().center_on_tile_smooth(
+        Coord::from_gfx( tile ) );
   }
 
   void set_visibility( maybe<e_nation> nation ) {
@@ -1187,11 +1188,11 @@ LandViewPlane::LandViewPlane( SS& ss, TS& ts,
   : impl_( new Impl( ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
-  return impl_->animator_.ensure_visible( coord );
+  return impl_->animator_.ensure_visible( coord.to_gfx() );
 }
 
-wait<> LandViewPlane::center_on_tile( Coord coord ) {
-  return impl_->center_on_tile( coord );
+wait<> LandViewPlane::center_on_tile( point const tile ) {
+  return impl_->center_on_tile( tile );
 }
 
 void LandViewPlane::set_visibility( maybe<e_nation> nation ) {

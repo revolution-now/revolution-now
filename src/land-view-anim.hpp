@@ -114,7 +114,9 @@ struct LandViewAnimator {
 
   // Smooth map scrolling.
 
-  wait<> ensure_visible( Coord const& coord );
+  [[deprecated]] wait<> ensure_visible( Coord coord );
+
+  wait<> ensure_visible( gfx::point tile );
 
   wait<> ensure_visible_unit( GenericUnitId id );
 

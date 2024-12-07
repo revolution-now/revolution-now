@@ -360,20 +360,26 @@ wait<> LandViewAnimator::slide_throttler_talk( co::latch& hold,
   co_await slide_throttler_impl( hold, d, slide.slide );
 }
 
-wait<> LandViewAnimator::ensure_visible( Coord const& coord ) {
-  if( !ss_.terrain.square_exists( coord ) ) {
+wait<> LandViewAnimator::ensure_visible( Coord const tile ) {
+  return ensure_visible( tile.to_gfx() );
+}
+
+wait<> LandViewAnimator::ensure_visible(
+    gfx::point const tile ) {
+  if( !ss_.terrain.square_exists( Coord::from_gfx( tile ) ) ) {
     // We could have a situation where a ship is being animated
     // to move off the map edge to sail the high seas, and so
     // someone might end up calling this with such a tile. Even
     // in those cases, we do expect that it should be just one
     // tile off of the edge.
     CHECK(
-        coord.is_inside(
+        tile.is_inside(
             ss_.terrain.world_rect_tiles().with_border_added() ),
-        "world map does not contain tile {}", coord );
+        "world map does not contain tile {}", tile );
     co_return;
   }
-  co_await viewport_.ensure_tile_visible_smooth( coord );
+  co_await viewport_.ensure_tile_visible_smooth(
+      Coord::from_gfx( tile ) );
 }
 
 wait<> LandViewAnimator::ensure_visible_unit(
@@ -385,7 +391,7 @@ wait<> LandViewAnimator::ensure_visible_unit(
       coord, coord_for_unit_multi_ownership( ss_, id ),
       "cannot obtain map coordinate for unit ID {}: {}", id,
       ss_.units.euro_unit_for( id ).refl() );
-  co_await ensure_visible( coord );
+  co_await ensure_visible( coord.to_gfx() );
 }
 
 // In this function we can assume that the `primitive` argument
@@ -409,7 +415,8 @@ wait<> LandViewAnimator::animate_action_primitive(
       break;
     }
     CASE( ensure_tile_visible ) {
-      co_await ensure_visible( ensure_tile_visible.tile );
+      co_await ensure_visible(
+          ensure_tile_visible.tile.to_gfx() );
       hold.count_down();
       break;
     }
