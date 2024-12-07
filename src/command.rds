@@ -49,7 +49,11 @@ sumtype.command {
   plow      {},
   fortify   {},
   sentry    {},
-  disband   {},
+  disband   {
+    # For use only when issuing a disband command on a tile and
+    # not a unit asking for orders.
+    tile 'base::maybe<gfx::point>',
+  },
   dump      {},
   move      { d 'e_direction' },
 }

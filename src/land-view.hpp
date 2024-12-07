@@ -56,6 +56,11 @@ struct ILandViewPlane {
   // ning, otherwise it might conflict.
   virtual wait<> show_hidden_terrain() = 0;
 
+  // Only needs to be called mid-turn, since the end-of-turn
+  // state is also a view mode.
+  virtual wait<LandViewPlayerInput> show_view_mode(
+      ViewModeOptions options ) = 0;
+
   virtual wait<LandViewPlayerInput> get_next_input(
       UnitId id ) = 0;
 
@@ -101,6 +106,9 @@ struct LandViewPlane : ILandViewPlane {
   wait<> ensure_visible_unit( GenericUnitId id ) override;
 
   wait<> show_hidden_terrain() override;
+
+  wait<LandViewPlayerInput> show_view_mode(
+      ViewModeOptions options ) override;
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) override;
 

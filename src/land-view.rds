@@ -12,6 +12,7 @@
 include "colony-id.hpp"
 include "command.rds.hpp"
 include "unit-id.hpp"
+include "white-box.rds.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -43,6 +44,13 @@ sumtype.LandViewPlayerInput {
   # the entities and forests, but does so carefully in order to
   # not give the player any information that they shouldn't have.
   hidden_terrain {},
+
+  # When in mid-turn, this allows entering "view mode", which is
+  # the mode where you can move a white selection square around
+  # the map to inspect tiles.
+  toggle_view_mode {
+    options 'ViewModeOptions',
+  },
 
   # Player has given a command to a unit.
   give_command {

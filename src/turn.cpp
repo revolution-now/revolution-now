@@ -103,6 +103,8 @@ struct IMapUpdater;
 
 namespace {
 
+using ::gfx::point;
+
 /****************************************************************
 ** Global State
 *****************************************************************/
@@ -323,7 +325,11 @@ wait<vector<UnitId>> process_unit_prioritization_request(
 // for input, we therefore attempt to autosave at those two
 // points. Since sometimes both can happen (if end-of-turn is en-
 // abled in game settings), the autosave mechanism makes sure
-// never to save twice per turn.
+// never to save twice per turn. Note that there is also "view
+// mode" which the user can enter during a turn to inspect using
+// the white square. However, said mode cannot be entered unless
+// there is first a unit asking for orders, so this case is cov-
+// ered by autosaving when a unit asks for orders.
 void autosave_if_needed( SS& ss, TS& ts ) {
   set<int> const autosave_slots = should_autosave( ss.as_const );
   if( autosave_slots.empty() ) return;
@@ -364,6 +370,11 @@ wait<> prioritize_units_during_turn(
                                                     prioritize );
   for( UnitId const id_to_add : units )
     prioritize_unit( nat_units.q, id_to_add );
+}
+
+wait<> disband_at_location( SS&, TS& ts, point const ) {
+  co_await ts.gui.message_box(
+      "Location-based disanding not implemented." );
 }
 
 /****************************************************************
@@ -489,12 +500,26 @@ wait<EndOfTurnResult> process_player_input_eot(
       co_await show_hidden_terrain( ts );
       break;
     }
+    CASE( toggle_view_mode ) {
+      // End-of-turn mode is already a view mode, so we should
+      // not be getting this command here.
+      SHOULD_NOT_BE_HERE;
+    }
     CASE( next_turn ) { co_return EndOfTurnResult::proceed{}; }
     CASE( exit ) {
       co_await proceed_to_exit( ss, ts );
       break;
     }
     CASE( give_command ) {
+      SWITCH( give_command.cmd ) {
+        CASE( disband ) {
+          CHECK( disband.tile.has_value() );
+          co_await disband_at_location( ss, ts, *disband.tile );
+          break;
+        }
+        default:
+          break;
+      }
       break;
     }
     CASE( prioritize ) {
@@ -608,6 +633,11 @@ wait<> process_player_input_normal_mode(
       co_await show_hidden_terrain( ts );
       break;
     }
+    CASE( toggle_view_mode ) {
+      view_mode_interrupt e;
+      e.options = toggle_view_mode.options;
+      throw e;
+    }
     // We have some orders for the current unit.
     CASE( give_command ) {
       auto& cmd = give_command.cmd;
@@ -712,6 +742,95 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
   // allow for the possibility and any action executed above
   // might affect the status of the unit asking for orders, and
   // so returning will cause the unit to be re-examined.
+}
+
+/****************************************************************
+** View Mode.
+*****************************************************************/
+wait<> process_player_input_view_mode( SS& ss, TS& ts,
+                                       Player& player,
+                                       NationTurnState::units&,
+                                       e_menu_item const item ) {
+  // In the future we might need to put logic here that is spe-
+  // cific to view mode, but for now this is sufficient.
+  co_await menu_handler( ss, ts, player, item );
+}
+
+wait<> process_player_input_view_mode(
+    SS& ss, TS& ts, Player& player,
+    NationTurnState::units&    nat_units,
+    LandViewPlayerInput const& input ) {
+  SWITCH( input ) {
+    CASE( toggle_view_mode ) { break; }
+    CASE( colony ) {
+      co_await open_colony( ts, colony );
+      break;
+    }
+    CASE( european_status ) {
+      co_await show_harbor_view( ss, ts, player,
+                                 /*selected_unit=*/nothing );
+      break;
+    }
+    CASE( exit ) {
+      co_await proceed_to_exit( ss, ts );
+      break;
+    }
+    CASE( hidden_terrain ) {
+      co_await show_hidden_terrain( ts );
+      break;
+    }
+    CASE( next_turn ) {
+      // The land view should never send us a 'next turn' command
+      // when we are not at the end of a turn.
+      SHOULD_NOT_BE_HERE;
+    }
+    CASE( give_command ) {
+      SWITCH( give_command.cmd ) {
+        CASE( disband ) {
+          CHECK( disband.tile.has_value() );
+          co_await disband_at_location( ss, ts, *disband.tile );
+          break;
+        }
+        default:
+          break;
+      }
+      break;
+    }
+    CASE( prioritize ) {
+      co_await prioritize_units_during_turn( ss, ts, nat_units,
+                                             prioritize );
+      break;
+    }
+  }
+  co_return;
+}
+
+wait<> show_view_mode( SS& ss, TS& ts, Player& player,
+                       NationTurnState::units& nat_units,
+                       ViewModeOptions const&  options ) {
+  lg.info( "entering view mode." );
+  SCOPE_EXIT { lg.info( "leaving view mode." ); };
+  nat_units.view_mode = true;
+  SCOPE_EXIT { nat_units.view_mode = false; };
+  while( true ) {
+    auto const command = co_await co::first(
+        wait_for_menu_selection( ts.planes.get().menu ),
+        ts.planes.get()
+            .get_bottom<ILandViewPlane>()
+            .show_view_mode( options ) );
+    co_await visit( command, [&]( auto const& action ) {
+      return process_player_input_view_mode( ss, ts, player,
+                                             nat_units, action );
+    } );
+    bool const leave =
+        command.get_if<LandViewPlayerInput>()
+            .get_if<LandViewPlayerInput::toggle_view_mode>()
+            .has_value() ||
+        command.get_if<LandViewPlayerInput>()
+            .get_if<LandViewPlayerInput::prioritize>()
+            .has_value();
+    if( leave ) co_return;
+  }
 }
 
 /****************************************************************
@@ -928,6 +1047,33 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
   auto& st = nat_units;
   auto& q  = st.q;
 
+  // NOTE: this function needs to support the case where a game
+  // is loaded already in view mode, thus we must be ready to
+  // enter into it before asking units for orders if needed.
+  auto input_or_view_mode = [&]() -> wait<> {
+    ViewModeOptions view_mode_options;
+
+    auto const view_mode = [&]() -> wait<> {
+      co_await show_view_mode( ss, ts, player, nat_units,
+                               view_mode_options );
+    };
+
+    if( nat_units.view_mode ) co_await view_mode();
+    // This should have been reset upon exiting from view mode.
+    CHECK( !nat_units.view_mode );
+
+    while( true ) {
+      try {
+        co_await units_turn_one_pass( ss, ts, player, nat_units,
+                                      q );
+        co_return;
+      } catch( view_mode_interrupt const& e ) {
+        view_mode_options = e.options;
+      };
+      co_await view_mode();
+    }
+  };
+
   // Here we will keep reloading all of the units (that still
   // need to move) and making passes over them in order make sure
   // that we systematically get to all units that need to move
@@ -944,7 +1090,7 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
   // already some units in the queue on the first iteration, as
   // would be the case just after deserialization.
   while( true ) {
-    co_await units_turn_one_pass( ss, ts, player, nat_units, q );
+    co_await input_or_view_mode();
     CHECK( q.empty() );
     // Refill the queue.
     vector<UnitId> units =

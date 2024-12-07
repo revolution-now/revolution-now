@@ -48,6 +48,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 // During a pixelation animation (such as e.g. when a unit gets
 // defeated in battle) this curve controls the rate at which
 // pixels are removed (or added) with time. The "linear" method
@@ -305,6 +307,18 @@ wait<> LandViewAnimator::animate_blink(
   while( true ) {
     co_await throttle();
     blink.visible = !blink.visible;
+  }
+}
+
+wait<> LandViewAnimator::animate_white_box() {
+  auto& state = white_box_anim_state_;
+  state.emplace();
+  SCOPE_EXIT { state.reset(); };
+  state->visible = false;
+  AnimThrottler throttle( 500ms );
+  while( true ) {
+    co_await throttle();
+    state->visible = !state->visible;
   }
 }
 

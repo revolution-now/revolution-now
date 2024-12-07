@@ -147,10 +147,10 @@ wait<maybe<UnitId>> create_unit_on_map(
 // sion above since it will run through any UI actions.
 UnitId create_unit_on_map_non_interactive(
     SS& ss, TS& ts, Player const& player,
-    UnitComposition const& comp, Coord coord );
+    UnitComposition const& comp, gfx::point coord );
 
 NativeUnitId create_unit_on_map_non_interactive(
-    SS& ss, e_native_unit_type type, Coord coord,
+    SS& ss, e_native_unit_type type, gfx::point coord,
     DwellingId dwelling_id );
 
 /****************************************************************

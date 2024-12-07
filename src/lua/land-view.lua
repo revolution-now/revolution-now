@@ -16,7 +16,6 @@ local orders = {
   forfeight=function() return { forfeight={} } end,
   fortify=function() return { fortify={} } end,
   sentry=function() return { sentry={} } end,
-  disband=function() return { disband={} } end,
   wait=function() return { wait={} } end,
   build=function() return { build={} } end,
   road=function() return { road={} } end,
@@ -47,7 +46,6 @@ local key_map = {
 
 local shift_key_map = {
   -- Other orders.
-  ['d']=orders.disband(),
 }
 
 local ctrl_key_map = {

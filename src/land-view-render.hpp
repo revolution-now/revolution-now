@@ -135,6 +135,8 @@ struct LandViewRenderer {
 
   void render_backdrop() const;
 
+  void render_white_box() const;
+
   SSConst const&          ss_;
   rr::Renderer&           renderer_;
   rr::Renderer&           renderer; // no _ for macros.

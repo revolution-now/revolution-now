@@ -331,7 +331,7 @@ NativeUnit& World::add_native_unit_on_map(
 }
 
 Unit& World::add_unit_on_map( UnitComposition const& comp,
-                              Coord                  where,
+                              gfx::point const       where,
                               maybe<e_nation>        nation ) {
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_unit_on_map_non_interactive(

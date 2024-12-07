@@ -57,6 +57,10 @@ struct LandViewAnimator {
       std::unordered_map<Coord,
                          std::stack<ColonyAnimationState>>;
 
+  struct WhiteBoxAnimState {
+    bool visible = false;
+  };
+
   LandViewAnimator(
       SSConst const& ss, SmoothViewport& viewport,
       std::unique_ptr<IVisibility const> const& viz );
@@ -94,6 +98,10 @@ struct LandViewAnimator {
     return landview_anim_enpixelation_state_;
   }
 
+  auto const& white_box_anim_state() const {
+    return white_box_anim_state_;
+  }
+
   // Animation sequences.
 
   // Will animate the sequence then co_return. It is not uncommon
@@ -111,6 +119,8 @@ struct LandViewAnimator {
       AnimationSequence const& seq ATTR_LIFETIMEBOUND );
 
   wait<> animate_blink( UnitId id, bool visible_initially );
+
+  wait<> animate_white_box();
 
   // Smooth map scrolling.
 
@@ -228,7 +238,8 @@ struct LandViewAnimator {
   maybe<LandscapeAnimReplacementState>
       landview_anim_replacement_state_;
   maybe<LandscapeAnimEnpixelationState>
-      landview_anim_enpixelation_state_;
+                           landview_anim_enpixelation_state_;
+  maybe<WhiteBoxAnimState> white_box_anim_state_;
   // We hold the unique_ptr reference because we need to know
   // when the source version was changed.
   std::unique_ptr<IVisibility const> const& viz_;

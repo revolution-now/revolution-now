@@ -202,6 +202,11 @@ cdr::value cdr_game_state_default =
                 cdr::table{
                   "no_special_view"_key = cdr::table{},
                 },
+            "white_box"_key =
+                cdr::table{
+                  "x"_key = 0,
+                  "y"_key = 0,
+                },
           },
       "map"_key =
           cdr::table{

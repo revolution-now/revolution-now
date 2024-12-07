@@ -36,6 +36,7 @@
 #include "unit-mgr.hpp"
 #include "viewport.hpp"
 #include "visibility.hpp"
+#include "white-box.hpp"
 #include "window.hpp"
 
 // config
@@ -75,6 +76,9 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+using ::gfx::rect;
+
 struct RawInput {
   RawInput( LandViewRawInput input_ )
     : input( std::move( input_ ) ), when( Clock_t::now() ) {}
@@ -102,6 +106,8 @@ struct LandViewPlane::Impl : public IPlane {
   co::stream<RawInput> raw_input_stream_;
   queue<PlayerInput>   translated_input_stream_;
   LandViewMode         mode_ = LandViewMode::none{};
+
+  maybe<co::stream<point>> white_box_stream_;
 
   // Holds info about the previous unit that was asking for or-
   // ders, since it can affect the UI behavior when asking for
@@ -154,6 +160,8 @@ struct LandViewPlane::Impl : public IPlane {
         e_menu_item::road, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::hidden_terrain, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::toggle_view_mode, *this ) );
   }
 
   Impl( SS& ss, TS& ts, maybe<e_nation> nation )
@@ -174,6 +182,19 @@ struct LandViewPlane::Impl : public IPlane {
     // the viewport size that cannot be known while it is being
     // constructed.
     advance_viewport_state();
+  }
+
+  maybe<point> find_tile_to_center_on() const {
+    SWITCH( mode_ ) {
+      CASE( none ) { return nothing; }
+      CASE( end_of_turn ) { return white_box_tile( ss_ ); }
+      CASE( hidden_terrain ) { return white_box_tile( ss_ ); }
+      CASE( unit_input ) {
+        return coord_for_unit_indirect_or_die(
+            ss_.units, unit_input.unit_id );
+      }
+      CASE( view_mode ) { return white_box_tile( ss_ ); }
+    }
   }
 
   /****************************************************************
@@ -202,6 +223,9 @@ struct LandViewPlane::Impl : public IPlane {
           viewport().world_tile_to_world_pixel_center( coord ) );
     };
 
+    if( white_box_stream_.has_value() )
+      white_box_stream_->send( coord );
+
     if( mode_.holds<LandViewMode::hidden_terrain>() ) {
       scroll_map();
       co_return res;
@@ -213,6 +237,8 @@ struct LandViewPlane::Impl : public IPlane {
     };
 
     // First check for colonies.
+    // FIXME: limit this using the roles module, and also in the
+    // enter_on_world_tile method below.
     if( auto maybe_id = ss_.colonies.maybe_from_coord( coord );
         maybe_id ) {
       auto& colony = add( LandViewPlayerInput::colony{} );
@@ -223,6 +249,7 @@ struct LandViewPlane::Impl : public IPlane {
     // Now check for units.
     bool const allow_unit_click =
         mode_.holds<LandViewMode::unit_input>() ||
+        mode_.holds<LandViewMode::view_mode>() ||
         mode_.holds<LandViewMode::end_of_turn>();
     auto const& units =
         euro_units_from_coord_recursive( ss_.units, coord );
@@ -271,6 +298,54 @@ struct LandViewPlane::Impl : public IPlane {
     }
 
     scroll_map();
+    co_return res;
+  }
+
+  wait<vector<LandViewPlayerInput>> right_click_on_world_tile(
+      gfx::point const tile ) {
+    vector<LandViewPlayerInput> res;
+
+    if( white_box_stream_.has_value() )
+      white_box_stream_->send( tile );
+
+    auto add = [&res]<typename T>( T t ) -> T& {
+      res.push_back( std::move( t ) );
+      return res.back().get<T>();
+    };
+
+    if( mode_.holds<LandViewMode::unit_input>() ) {
+      add( LandViewPlayerInput::toggle_view_mode{
+        .options = ViewModeOptions{ .initial_tile = tile } } );
+      co_return res;
+    }
+
+    co_return res;
+  }
+
+  /****************************************************************
+  ** Tile Entering
+  *****************************************************************/
+  // This happens typically when the white box is visible and the
+  // enter or return keys are hit on a square.
+  wait<vector<LandViewPlayerInput>> enter_on_world_tile(
+      gfx::point const tile ) {
+    vector<LandViewPlayerInput> res;
+
+    auto add = [&res]<typename T>( T t ) -> T& {
+      res.push_back( std::move( t ) );
+      return res.back().get<T>();
+    };
+
+    // First check for colonies.
+    // FIXME: limit this using the roles module, and also in the
+    // click_on_world_tile method above.
+    if( auto const colony_id =
+            ss_.colonies.maybe_from_coord( tile );
+        colony_id.has_value() ) {
+      add( LandViewPlayerInput::colony{ .id = *colony_id } );
+      co_return res;
+    }
+
     co_return res;
   }
 
@@ -332,6 +407,15 @@ struct LandViewPlane::Impl : public IPlane {
                          raw_input.when ) );
         break;
       }
+      case e::toggle_view_mode: {
+        auto& o = raw_input.input
+                      .get<LandViewRawInput::toggle_view_mode>();
+        translated_input_stream_.push( PlayerInput(
+            LandViewPlayerInput::toggle_view_mode{
+              .options = o.options },
+            raw_input.when ) );
+        break;
+      }
       case e::tile_click: {
         auto& o =
             raw_input.input.get<LandViewRawInput::tile_click>();
@@ -356,20 +440,30 @@ struct LandViewPlane::Impl : public IPlane {
               PlayerInput( input, Clock_t::now() ) );
         break;
       }
+      case e::tile_right_click: {
+        auto& o = raw_input.input
+                      .get<LandViewRawInput::tile_right_click>();
+        vector<LandViewPlayerInput> inputs =
+            co_await right_click_on_world_tile( o.coord );
+        for( auto const& input : inputs )
+          translated_input_stream_.push(
+              PlayerInput( input, raw_input.when ) );
+        break;
+      }
+      case e::tile_enter: {
+        auto& o =
+            raw_input.input.get<LandViewRawInput::tile_enter>();
+        vector<LandViewPlayerInput> inputs =
+            co_await enter_on_world_tile( o.tile );
+        for( auto const& input : inputs )
+          translated_input_stream_.push(
+              PlayerInput( input, raw_input.when ) );
+        break;
+      }
       case e::center: {
         // For this one, we just perform the action right here.
-        using u_i = LandViewMode::unit_input;
-        auto blinking_unit =
-            mode_.get_if<u_i>().member( &u_i::unit_id );
-        if( !blinking_unit ) {
-          lg.warn(
-              "There are no units currently asking for "
-              "orders." );
-          break;
-        }
-        Coord const tile = coord_for_unit_indirect_or_die(
-            ss_.units, *blinking_unit );
-        co_await center_on_tile( tile );
+        auto const tile = find_tile_to_center_on();
+        if( tile.has_value() ) co_await center_on_tile( *tile );
         break;
       }
     }
@@ -461,7 +555,7 @@ struct LandViewPlane::Impl : public IPlane {
     else if( tbl["sentry"] )
       command = command::sentry{};
     else if( tbl["disband"] )
-      command = command::disband{};
+      ; // handled in c++
     else if( tbl["road"] )
       command = command::road{};
     else if( tbl["plow"] )
@@ -510,6 +604,16 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::reveal_map{} ) );
+        };
+        return handler;
+      }
+      case e_menu_item::toggle_view_mode: {
+        if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::view_mode>() )
+          break;
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::toggle_view_mode{} ) );
         };
         return handler;
       }
@@ -605,6 +709,7 @@ struct LandViewPlane::Impl : public IPlane {
       }
       case e_menu_item::hidden_terrain: {
         if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::view_mode>() &&
             !mode_.holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
@@ -642,16 +747,27 @@ struct LandViewPlane::Impl : public IPlane {
         auto& key_event = event.get<input::key_event_t>();
         if( key_event.change != input::e_key_change::down )
           break;
-        handled = e_input_handled::yes;
+        handled          = e_input_handled::yes;
+        auto is_move_key = [&] {
+          return key_event.direction.has_value();
+        };
+
         // NOTE: we need to keep collecting inputs even when the
         // land view state is "none" so that e.g. the user can
         // buffer motion commands for a unit while it is sliding.
-        if( !input::is_mod_key( key_event ) &&
-            mode_.holds<LandViewMode::hidden_terrain>() ) {
-          // This will tell hidden-terrain mode to exit.
-          raw_input_stream_.send(
-              RawInput( LandViewRawInput::hidden_terrain{} ) );
-          break;
+
+        if( mode_.holds<LandViewMode::hidden_terrain>() ) {
+          // Here we want to basically allow the user to navigate
+          // around with the white box, but any other key should
+          // exit hidden terrain mode, regardless of what it
+          // would otherwise normally do.
+          if( !input::is_mod_key( key_event ) &&
+              !is_move_key() && key_event.keycode != ::SDLK_c ) {
+            // This will tell hidden-terrain mode to exit.
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::hidden_terrain{} ) );
+            break;
+          }
         }
         // First allow the Lua hook to handle the key press if it
         // wants.
@@ -675,23 +791,28 @@ struct LandViewPlane::Impl : public IPlane {
               // it is likely that, when zooming in, the user
               // will want to zoom in on the current blinking
               // unit.
-              bool center_on_unit =
+              bool const center_on_tile =
                   viewport().are_surroundings_visible();
               viewport().smooth_zoom_target( 1.0 );
-              if( center_on_unit ) {
-                auto blinking_unit =
-                    mode_.get_if<LandViewMode::unit_input>();
-                if( blinking_unit.has_value() )
+              if( center_on_tile ) {
+                auto const tile = find_tile_to_center_on();
+                if( tile.has_value() )
                   viewport().set_point_seek(
                       viewport()
                           .world_tile_to_world_pixel_center(
-                              coord_for_unit_indirect_or_die(
-                                  ss_.units,
-                                  blinking_unit->unit_id ) ) );
+                              Coord::from_gfx( *tile ) ) );
               }
             }
             break;
           }
+          case ::SDLK_v:
+            if( key_event.mod.shf_down ) break;
+            if( !mode_.holds<LandViewMode::unit_input>() &&
+                !mode_.holds<LandViewMode::view_mode>() )
+              break;
+            raw_input_stream_.send( RawInput(
+                LandViewRawInput::toggle_view_mode{} ) );
+            break;
           case ::SDLK_w:
             if( key_event.mod.shf_down ) break;
             raw_input_stream_.send(
@@ -731,9 +852,16 @@ struct LandViewPlane::Impl : public IPlane {
           case ::SDLK_d:
             if( !key_event.mod.shf_down ) break;
             // Note: shift key down.
-            raw_input_stream_.send(
-                RawInput( LandViewRawInput::cmd{
-                  .what = command::disband{} } ) );
+            if( mode_.holds<LandViewMode::view_mode>() ||
+                mode_.holds<LandViewMode::end_of_turn>() )
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::disband{
+                      .tile = white_box_tile( ss_ ) } } ) );
+            else if( mode_.holds<LandViewMode::unit_input>() )
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::cmd{
+                    .what = command::disband{} } ) );
             break;
           case ::SDLK_h:
             if( !key_event.mod.shf_down ) break;
@@ -759,6 +887,16 @@ struct LandViewPlane::Impl : public IPlane {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::escape{} ) );
             break;
+          case ::SDLK_KP_ENTER:
+          case ::SDLK_RETURN:
+            if( mode_.holds<LandViewMode::view_mode>() ||
+                mode_.holds<LandViewMode::end_of_turn>() ) {
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::tile_enter{
+                    .tile = white_box_tile( ss_ ),
+                    .mods = key_event.mod } ) );
+            }
+            break;
           case ::SDLK_SPACE:
           case ::SDLK_KP_5:
             if( mode_.holds<LandViewMode::unit_input>() ) {
@@ -770,6 +908,9 @@ struct LandViewPlane::Impl : public IPlane {
                            LandViewMode::end_of_turn>() ) {
               raw_input_stream_.send(
                   RawInput( LandViewRawInput::next_turn{} ) );
+            } else if( mode_.holds<LandViewMode::view_mode>() ) {
+              raw_input_stream_.send( RawInput(
+                  LandViewRawInput::toggle_view_mode{} ) );
             }
             break;
           default:
@@ -810,16 +951,30 @@ struct LandViewPlane::Impl : public IPlane {
       }
       case input::e_input_event::mouse_button_event: {
         auto& val = event.get<input::mouse_button_event_t>();
-        if( val.buttons != input::e_mouse_button_event::left_up )
-          break;
         UNWRAP_BREAK(
-            world_tile,
+            tile,
             viewport().screen_pixel_to_world_tile( val.pos ) );
         handled = e_input_handled::yes;
-        lg.debug( "clicked on tile: {}.", world_tile );
-        raw_input_stream_.send(
-            RawInput( LandViewRawInput::tile_click{
-              .coord = world_tile, .mods = val.mod } ) );
+        lg.debug( "clicked on tile: {}.", tile );
+        // Need to only handle "up" events here because if we
+        // handled "down" events then that would interfere with
+        // dragging.
+        switch( val.buttons ) {
+          case input::e_mouse_button_event::left_up: {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::tile_click{
+                  .coord = tile, .mods = val.mod } ) );
+            break;
+          }
+          case input::e_mouse_button_event::right_up: {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::tile_right_click{
+                  .coord = tile, .mods = val.mod } ) );
+            break;
+          }
+          default:
+            break;
+        }
         break;
       }
       default: //
@@ -979,9 +1134,10 @@ struct LandViewPlane::Impl : public IPlane {
     return ( sorted[0] == id );
   }
 
-  // Consume further inputs but eat all of them except for the
-  // ones we want, returning only when we should interrupt.
-  wait<> hidden_terrain_interact() {
+  // Handles interaction while the animation is happening. Con-
+  // sume further inputs but eat all of them except for the ones
+  // we want, returning only when we should interrupt.
+  wait<> hidden_terrain_interact_during_animation() {
     CHECK( mode_.holds<LandViewMode::hidden_terrain>() );
     for( ;; ) {
       RawInput const raw = co_await raw_input_stream_.next();
@@ -996,6 +1152,17 @@ struct LandViewPlane::Impl : public IPlane {
       }
     }
   };
+
+  // Handles interaction while waiting in hidden_terrain mode.
+  wait<LandViewPlayerInput> hidden_terrain_white_box_loop(
+      point const initial_tile ) {
+    wait<> const _ = white_box_thread( initial_tile );
+    while( true ) {
+      auto const input = co_await white_box_input();
+      if( input->get_if<LandViewPlayerInput::hidden_terrain>() )
+        co_return *input;
+    }
+  }
 
   wait<> show_hidden_terrain() {
     auto const new_state = LandViewMode::hidden_terrain{};
@@ -1015,15 +1182,92 @@ struct LandViewPlane::Impl : public IPlane {
     HiddenTerrainAnimationSequence const seq =
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
-    co_await co::first( animator_.animate_sequence( seq.hide ),
-                        hidden_terrain_interact() );
+    auto const tile = find_a_good_white_box_location(
+        ss_, last_unit_input_.member( &LastUnitInput::unit_id ),
+        ss_.land_view.viewport.covered_tiles() );
 
-    co_await co::background(
-        hidden_terrain_interact(),
-        animator_.animate_sequence_and_hold( seq.hold ) );
+    co_await co::first(
+        animator_.animate_sequence( seq.hide ),
+        hidden_terrain_interact_during_animation() );
 
-    co_await co::first( animator_.animate_sequence( seq.show ),
-                        hidden_terrain_interact() );
+    co_await co::first(
+        animator_.animate_sequence_and_hold( seq.hold ),
+        hidden_terrain_white_box_loop( tile ) );
+
+    co_await co::first(
+        animator_.animate_sequence( seq.show ),
+        hidden_terrain_interact_during_animation() );
+  }
+
+  wait<> white_box_thread( point const initial ) {
+    CHECK( !white_box_stream_.has_value() );
+    auto& stream = white_box_stream_.emplace();
+    SCOPE_EXIT { white_box_stream_.reset(); };
+    set_white_box_tile( ss_, initial );
+    while( true ) {
+      point const  tile    = white_box_tile( ss_ );
+      wait<> const blinker = animator_.animate_white_box();
+      wait<> const panner  = animator_.ensure_visible( tile );
+      set_white_box_tile( ss_, co_await stream.next() );
+    }
+  }
+
+  wait<maybe<LandViewPlayerInput>> white_box_input() {
+    LandViewPlayerInput const input =
+        co_await next_player_input_object();
+
+    auto const direction =
+        input.inner_if<LandViewPlayerInput::give_command>()
+            .inner_if<command::move>();
+
+    if( !direction.has_value() ) co_return input;
+
+    white_box_stream_->send(
+        white_box_tile( ss_ )
+            .moved( *direction )
+            .clamped(
+                viz_->rect_tiles().to_gfx().with_dec_size() ) );
+
+    co_return nothing;
+  }
+
+  wait<LandViewPlayerInput> white_box_input_loop(
+      point const initial_tile ) {
+    wait<> const _ = white_box_thread( initial_tile );
+    // This loop typically returns on the first iteration in
+    // order to deliver the command to the caller, but it may
+    // loop if the player is just doing things that can be han-
+    // dled in this module, such as moving the white box tile or
+    // doing things that only affect the land view display.
+    while( true ) {
+      auto const input = co_await white_box_input();
+      if( input.has_value() ) co_return *input;
+    }
+  }
+
+  wait<LandViewPlayerInput> show_view_mode(
+      ViewModeOptions const options ) {
+    auto const new_state = LandViewMode::view_mode{};
+    // Clear input buffers after changing state to the new state
+    // and after switching back to the old state.
+    SCOPE_EXIT { reset_input_buffers(); };
+    SCOPED_SET_AND_RESTORE( mode_, new_state );
+    reset_input_buffers();
+    point const initial_tile =
+        options.initial_tile.has_value()
+            ? *options.initial_tile
+            : find_a_good_white_box_location(
+                  ss_,
+                  last_unit_input_.member(
+                      &LastUnitInput::unit_id ),
+                  ss_.land_view.viewport.covered_tiles() );
+    // Now that we've extracted potential info from this, reset
+    // it since the fact that we're changing modes means that we
+    // don't want the continuity behavior when we exit this mode
+    // and return to asking order for the unit which would other-
+    // wise be enabled by letting this remain set.
+    last_unit_input_ = nothing;
+    co_return co_await white_box_input_loop( initial_tile );
   }
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {
@@ -1170,7 +1414,10 @@ struct LandViewPlane::Impl : public IPlane {
   wait<LandViewPlayerInput> eot_get_next_input() {
     last_unit_input_ = nothing;
     SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
-    co_return co_await next_player_input_object();
+    point const initial_tile = find_a_good_white_box_location(
+        ss_, /*last_unit_input=*/nothing,
+        ss_.land_view.viewport.covered_tiles() );
+    co_return co_await white_box_input_loop( initial_tile );
   }
 
   void on_logical_resolution_changed( e_resolution ) override {}
@@ -1205,6 +1452,11 @@ wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {
 
 wait<> LandViewPlane::show_hidden_terrain() {
   return impl_->show_hidden_terrain();
+}
+
+wait<LandViewPlayerInput> LandViewPlane::show_view_mode(
+    ViewModeOptions const options ) {
+  return impl_->show_view_mode( options );
 }
 
 wait<LandViewPlayerInput> LandViewPlane::get_next_input(

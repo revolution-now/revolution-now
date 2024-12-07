@@ -13,6 +13,7 @@ include "input.hpp"
 include "physics.hpp"
 include "unit-id.hpp"
 include "command.rds.hpp"
+include "white-box.rds.hpp"
 
 # ss
 include "ss/dwelling-id.hpp"
@@ -29,6 +30,9 @@ sumtype.LandViewMode {
     unit_id 'UnitId',
   },
   hidden_terrain {},
+  # This is a mode that can be entered mid-turn where units pause
+  # from asking for orders and where the white box tile is shown.
+  view_mode {},
 }
 
 sumtype.LandViewRawInput {
@@ -39,9 +43,20 @@ sumtype.LandViewRawInput {
     coord 'Coord',
     mods 'input::mod_keys',
   },
+  tile_right_click {
+    coord 'Coord',
+    mods 'input::mod_keys',
+  },
+  tile_enter {
+    tile 'gfx::point',
+    mods 'input::mod_keys',
+  },
   center {}, # Center on blinking unit, if any.
   next_turn {},
   hidden_terrain {},
+  toggle_view_mode {
+    options 'ViewModeOptions',
+  },
   european_status {},
   escape {},
   reveal_map {},

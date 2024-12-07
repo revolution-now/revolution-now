@@ -1,0 +1,24 @@
+# ===============================================================
+# white-box.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-06.
+#
+# Description: Rds definitions for the white-box module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "rn"
+
+struct.ViewModeOptions {
+  # In the case that these options are used when entering view
+  # mode then the initial location of the white box can option-
+  # ally be specified.
+  initial_tile 'base::maybe<gfx::point>',
+}

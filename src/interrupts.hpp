@@ -16,11 +16,19 @@
 // Revolution Now
 #include "maybe.hpp"
 
+// base
+#include "base/heap-value.hpp"
+
 // C++ standard library
 #include <exception>
 
 namespace rn {
 
+struct ViewModeOptions;
+
+/****************************************************************
+** Interrupts.
+*****************************************************************/
 struct game_quit_interrupt : std::exception {};
 
 struct game_load_interrupt : std::exception {
@@ -46,5 +54,13 @@ struct colony_abandon_interrupt : std::exception {};
 // of the turn loop, perhaps due to some change in the configura-
 // tion of the game.
 struct top_of_turn_loop : std::exception {};
+
+// This is thrown during a turn when the user wants to enter view
+// mode, i.e. the mode where the white inspection square is vis-
+// ible on the map.
+struct view_mode_interrupt : std::exception {
+  // Use heap_value so that we can forward declare.
+  base::heap_value<ViewModeOptions> options;
+};
 
 } // namespace rn

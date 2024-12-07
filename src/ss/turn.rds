@@ -53,6 +53,7 @@ sumtype.NationTurnState {
   units {
     q 'std::deque<UnitId>',
     skip_eot 'bool',
+    view_mode 'bool',
   },
   eot {},
   finish {},

@@ -161,24 +161,25 @@ NativeUnit create_unregistered_unit( e_native_unit_type type ) {
 
 UnitId create_unit_on_map_non_interactive(
     SS& ss, TS& ts, Player const& player,
-    UnitComposition const& comp, Coord coord ) {
+    UnitComposition const& comp, gfx::point const coord ) {
   UnitId const id =
       create_free_unit( ss.units, player, std::move( comp ) );
   UnitOwnershipChanger( ss, id ).change_to_map_non_interactive(
-      ts, coord );
+      ts, Coord::from_gfx( coord ) );
   return id;
 }
 
 NativeUnitId create_unit_on_map_non_interactive(
-    SS& ss, e_native_unit_type type, Coord coord,
+    SS& ss, e_native_unit_type type, gfx::point const coord,
     DwellingId dwelling_id ) {
   NativeUnitId const native_unit_id = ss.units.add_unit_on_map(
-      create_unregistered_unit( type ), coord, dwelling_id );
+      create_unregistered_unit( type ), Coord::from_gfx( coord ),
+      dwelling_id );
   // This performs few actions that are needed when a unit moves
   // on the map (which also must be done when a unit is created
   // on the map).
   UnitOnMapMover::native_unit_to_map_non_interactive(
-      ss, native_unit_id, coord );
+      ss, native_unit_id, Coord::from_gfx( coord ) );
   return native_unit_id;
 }
 

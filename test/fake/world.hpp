@@ -144,7 +144,7 @@ struct World {
                                       DwellingId dwelling_id );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
-                         Coord                  where,
+                         gfx::point             where,
                          maybe<e_nation> nation = nothing );
 
   Unit& add_missionary_in_dwelling(

@@ -21,6 +21,7 @@
 #include "unit-stack.hpp"
 #include "viewport.hpp"
 #include "visibility.hpp"
+#include "white-box.hpp"
 
 // config
 #include "config/land-view.rds.hpp"
@@ -846,6 +847,7 @@ void LandViewRenderer::render_entities() const {
   render_dwellings();
   render_colonies();
   render_units();
+  render_white_box();
 }
 
 void LandViewRenderer::render_landscape_anim_buffer_impl(
@@ -947,6 +949,20 @@ void LandViewRenderer::render_non_entities() const {
                        zoom );
 
   render_landscape_anim_buffers();
+}
+
+void LandViewRenderer::render_white_box() const {
+  auto const& state = lv_animator_.white_box_anim_state();
+  if( !state.has_value() ) return;
+  if( !state->visible ) return;
+  gfx::rect const box =
+      render_rect_for_tile( white_box_tile( ss_ ) )
+          .with_dec_size();
+  // The white box needs to be above the obfuscation layers.
+  SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
+                           rr::e_render_buffer::normal );
+  rr::Painter painter = renderer_.painter();
+  painter.draw_empty_rect( box, gfx::pixel::white() );
 }
 
 } // namespace rn

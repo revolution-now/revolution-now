@@ -183,7 +183,7 @@ struct UnitsState {
   friend struct UnitOnMapMover;
 
   friend NativeUnitId create_unit_on_map_non_interactive(
-      SS& ss, e_native_unit_type type, Coord coord,
+      SS& ss, e_native_unit_type type, gfx::point coord,
       DwellingId dwelling_id );
 
   // These are all private and must be called via the friend en-
