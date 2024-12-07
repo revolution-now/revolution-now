@@ -107,17 +107,13 @@ namespace {
 ** Global State
 *****************************************************************/
 // Globals relevant to end of turn.
-namespace eot {
-
 struct next_turn_t {};
 
-using UserInput = base::variant< //
-    e_menu_item,                 //
-    LandViewPlayerInput,         //
-    next_turn_t                  //
+using UserInputEndOfTurn = base::variant< //
+    e_menu_item,                          //
+    LandViewPlayerInput,                  //
+    next_turn_t                           //
     >;
-
-} // namespace eot
 
 /****************************************************************
 ** Save-Game State
@@ -468,18 +464,15 @@ wait<e_menu_item> wait_for_menu_selection(
 /****************************************************************
 ** Processing Player Input (End of Turn).
 *****************************************************************/
-namespace eot {
-
-wait<EndOfTurnResult> process_player_input( e_menu_item item,
-                                            SS& ss, TS& ts,
-                                            Player& player ) {
+wait<EndOfTurnResult> process_player_input_eot(
+    e_menu_item item, SS& ss, TS& ts, Player& player ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
   co_await menu_handler( ss, ts, player, item );
   co_return EndOfTurnResult::not_done_yet{};
 }
 
-wait<EndOfTurnResult> process_player_input(
+wait<EndOfTurnResult> process_player_input_eot(
     LandViewPlayerInput const& input, SS& ss, TS& ts,
     Player& player ) {
   SWITCH( input ) {
@@ -534,14 +527,14 @@ wait<EndOfTurnResult> process_player_input(
   co_return EndOfTurnResult::not_done_yet{};
 }
 
-wait<EndOfTurnResult> process_player_input( next_turn_t, SS&,
-                                            TS&, Player& ) {
+wait<EndOfTurnResult> process_player_input_eot( next_turn_t, SS&,
+                                                TS&, Player& ) {
   lg.debug( "end of turn button clicked." );
   co_return EndOfTurnResult::proceed{};
 }
 
-wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
-                                     Player& player ) {
+wait<EndOfTurnResult> process_input_eot( SS& ss, TS& ts,
+                                         Player& player ) {
   auto wait_for_button = co::fmap(
       [] λ( next_turn_t{} ), ts.planes.get()
                                  .panel.typed()
@@ -553,18 +546,17 @@ wait<EndOfTurnResult> process_input( SS& ss, TS& ts,
   // effect of disabling further input on them (e.g., disabling
   // menu items), which is what we want for a good user experi-
   // ence.
-  UserInput command = co_await co::first(              //
-      wait_for_menu_selection( ts.planes.get().menu ), //
+  UserInputEndOfTurn const command = co_await co::first( //
+      wait_for_menu_selection( ts.planes.get().menu ),   //
       ts.planes.get()
           .get_bottom<ILandViewPlane>()
           .eot_get_next_input(),   //
       std::move( wait_for_button ) //
   );
   co_return co_await rn::visit(
-      command, LC( process_player_input( _, ss, ts, player ) ) );
+      command,
+      LC( process_player_input_eot( _, ss, ts, player ) ) );
 }
-
-} // namespace eot
 
 // Enters the EOT phase and processes a single input then re-
 // turns.
@@ -573,7 +565,7 @@ wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
   // See comments above the autosave_if_needed function for why
   // we are putting this here and how it works.
   autosave_if_needed( ss, ts );
-  co_return co_await eot::process_input( ss, ts, player );
+  co_return co_await process_input_eot( ss, ts, player );
 }
 
 /****************************************************************
