@@ -211,9 +211,19 @@ base::maybe<ColonyId> ColoniesState::maybe_from_coord(
   return base::lookup( colony_from_coord_, coord );
 }
 
+base::maybe<ColonyId> ColoniesState::maybe_from_coord(
+    gfx::point const tile ) const {
+  return maybe_from_coord( Coord::from_gfx( tile ) );
+}
+
 ColonyId ColoniesState::from_coord( Coord const& coord ) const {
   UNWRAP_CHECK( id, maybe_from_coord( coord ) );
   return id;
+}
+
+ColonyId ColoniesState::from_coord(
+    gfx::point const tile ) const {
+  return from_coord( Coord::from_gfx( tile ) );
 }
 
 base::maybe<ColonyId> ColoniesState::maybe_from_name(

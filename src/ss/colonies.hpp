@@ -50,7 +50,10 @@ struct ColoniesState {
   Coord coord_for( ColonyId id ) const;
 
   base::maybe<ColonyId> maybe_from_coord( Coord const& c ) const;
-  ColonyId              from_coord( Coord const& c ) const;
+  base::maybe<ColonyId> maybe_from_coord(
+      gfx::point tile ) const;
+  ColonyId from_coord( Coord const& c ) const;
+  ColonyId from_coord( gfx::point tile ) const;
 
   base::maybe<ColonyId> maybe_from_name(
       std::string_view name ) const;
