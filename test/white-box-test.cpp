@@ -17,18 +17,20 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
-#include "src/ss/ref.hpp"
+#include "src/unit-ownership.hpp"
 
 // ss
 #include "src/ss/land-view.rds.hpp"
 #include "src/ss/unit-composition.hpp"
 #include "src/ss/unit.hpp"
+#include "src/ss/ref.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
+#include "unit-ownership.hpp"
 
 namespace rn {
 namespace {
@@ -131,8 +133,14 @@ TEST_CASE( "[white-box] find_a_good_white_box_location" ) {
   expected      = { .x = 2, .y = 4 };
   REQUIRE( f() == expected );
 
-  // Nuke unit.
+  // Omit unit.
   last_unit_input = nothing;
+  expected        = { .x = 2, .y = 4 };
+  REQUIRE( f() == expected );
+
+  // With unit that doesn't exist.
+  last_unit_input = unit_id;
+  UnitOwnershipChanger( w.ss(), unit_id ).destroy();
   expected        = { .x = 2, .y = 4 };
   REQUIRE( f() == expected );
 
