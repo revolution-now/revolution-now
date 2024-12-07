@@ -343,6 +343,34 @@ void autosave_if_needed( SS& ss, TS& ts ) {
 }
 
 /****************************************************************
+** Common Player Input Handling.
+*****************************************************************/
+wait<> open_colony( TS&                                ts,
+                    LandViewPlayerInput::colony const& colony ) {
+  e_colony_abandoned const abandoned =
+      co_await ts.colony_viewer.show( ts, colony.id );
+  if( abandoned == e_colony_abandoned::yes )
+    // Nothing really special to do here.
+    co_return;
+}
+
+wait<> show_hidden_terrain( TS& ts ) {
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .show_hidden_terrain();
+}
+
+wait<> prioritize_units_during_turn(
+    SSConst const& ss, TS& ts, NationTurnState::units& nat_units,
+    LandViewPlayerInput::prioritize const& prioritize ) {
+  vector<UnitId> const units =
+      co_await process_unit_prioritization_request( ss, ts,
+                                                    prioritize );
+  for( UnitId const id_to_add : units )
+    prioritize_unit( nat_units.q, id_to_add );
+}
+
+/****************************************************************
 ** Menu Handlers
 *****************************************************************/
 wait<> menu_handler( SS& ss, TS& ts, Player& player,
@@ -454,36 +482,29 @@ wait<EndOfTurnResult> process_player_input( e_menu_item item,
 wait<EndOfTurnResult> process_player_input(
     LandViewPlayerInput const& input, SS& ss, TS& ts,
     Player& player ) {
-  switch( input.to_enum() ) {
-    using e = LandViewPlayerInput::e;
-    case e::colony: {
-      e_colony_abandoned const abandoned =
-          co_await ts.colony_viewer.show(
-              ts, input.get<LandViewPlayerInput::colony>().id );
-      if( abandoned == e_colony_abandoned::yes )
-        // Nothing really special to do here.
-        break;
+  SWITCH( input ) {
+    CASE( colony ) {
+      co_await open_colony( ts, colony );
       break;
     }
-    case e::european_status: {
+    CASE( european_status ) {
       co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
-    case e::hidden_terrain: {
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .show_hidden_terrain();
+    CASE( hidden_terrain ) {
+      co_await show_hidden_terrain( ts );
       break;
     }
-    case e::next_turn:
-      co_return EndOfTurnResult::proceed{};
-    case e::exit:
+    CASE( next_turn ) { co_return EndOfTurnResult::proceed{}; }
+    CASE( exit ) {
       co_await proceed_to_exit( ss, ts );
       break;
-    case e::give_command:
+    }
+    CASE( give_command ) {
       break;
-    case e::prioritize: {
+    }
+    CASE( prioritize ) {
       auto& val = input.get<LandViewPlayerInput::prioritize>();
       vector<UnitId> const units =
           co_await process_unit_prioritization_request( ss, ts,
@@ -558,55 +579,47 @@ wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
-wait<> process_player_input( UnitId, e_menu_item item, SS& ss,
-                             TS& ts, Player& player,
-                             NationTurnState::units& ) {
+wait<> process_player_input_normal_mode(
+    UnitId, e_menu_item item, SS& ss, TS& ts, Player& player,
+    NationTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
   co_await menu_handler( ss, ts, player, item );
 }
 
-wait<> process_player_input(
+wait<> process_player_input_normal_mode(
     UnitId id, LandViewPlayerInput const& input, SS& ss, TS& ts,
     Player& player, NationTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
-  switch( input.to_enum() ) {
-    using e = LandViewPlayerInput::e;
-    case e::next_turn: {
+  SWITCH( input ) {
+    CASE( next_turn ) {
       // The land view should never send us a 'next turn' command
       // when we are not at the end of a turn.
       SHOULD_NOT_BE_HERE;
     }
-    case e::exit:
+    CASE( exit ) {
       co_await proceed_to_exit( ss, ts );
       break;
-    case e::colony: {
-      e_colony_abandoned const abandoned =
-          co_await ts.colony_viewer.show(
-              ts, input.get<LandViewPlayerInput::colony>().id );
-      if( abandoned == e_colony_abandoned::yes )
-        // Nothing really special to do here.
-        co_return;
+    }
+    CASE( colony ) {
+      co_await open_colony( ts, colony );
       break;
     }
-    case e::european_status: {
+    CASE( european_status ) {
       co_await show_harbor_view( ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
-    case e::hidden_terrain: {
-      co_await ts.planes.get()
-          .get_bottom<ILandViewPlane>()
-          .show_hidden_terrain();
+    CASE( hidden_terrain ) {
+      co_await show_hidden_terrain( ts );
       break;
     }
     // We have some orders for the current unit.
-    case e::give_command: {
-      auto& command =
-          input.get<LandViewPlayerInput::give_command>().cmd;
-      if( command.holds<command::wait>() ) {
+    CASE( give_command ) {
+      auto& cmd = give_command.cmd;
+      if( cmd.holds<command::wait>() ) {
         // Just remove it form the queue, and it'll get picked up
         // in the next iteration. We don't want to push this unit
         // onto the back of the queue since that will cause it to
@@ -631,7 +644,7 @@ wait<> process_player_input(
         q.pop_front();
         break;
       }
-      if( command.holds<command::forfeight>() ) {
+      if( cmd.holds<command::forfeight>() ) {
         ss.units.unit_for( id ).forfeight_mv_points();
         break;
       }
@@ -640,7 +653,7 @@ wait<> process_player_input(
           .get_bottom<ILandViewPlane>()
           .ensure_visible_unit( id );
       unique_ptr<CommandHandler> handler =
-          command_handler( ss, ts, player, id, command );
+          command_handler( ss, ts, player, id, cmd );
       CHECK( handler );
 
       auto run_result = co_await handler->run();
@@ -654,13 +667,9 @@ wait<> process_player_input(
         prioritize_unit( q, id );
       break;
     }
-    case e::prioritize: {
-      auto& val = input.get<LandViewPlayerInput::prioritize>();
-      vector<UnitId> const prioritize =
-          co_await process_unit_prioritization_request( ss, ts,
-                                                        val );
-      for( UnitId id_to_add : prioritize )
-        prioritize_unit( q, id_to_add );
+    CASE( prioritize ) {
+      co_await prioritize_units_during_turn( ss, ts, nat_units,
+                                             prioritize );
       break;
     }
   }
@@ -704,8 +713,8 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
   co_await visit( command, [&]( auto const& action ) {
-    return process_player_input( id, action, ss, ts, player,
-                                 nat_units );
+    return process_player_input_normal_mode( id, action, ss, ts,
+                                             player, nat_units );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
