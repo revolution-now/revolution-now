@@ -64,4 +64,6 @@ sumtype.LandViewPlayerInput {
 
   # When the user hits escape this will be sent.
   exit {},
+
+  _features { nodiscard }
 }
