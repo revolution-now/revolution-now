@@ -263,28 +263,6 @@ auto while_throws( const Func& func )
   }
 }
 
-// In this variant, the function is given a parameter to indicate
-// whether it is being called the first time (false) or whether
-// it is being called because the previous attempt threw (true).
-template<typename Exception, typename..., typename Func>
-auto while_throws( const Func& func ) -> wait<
-    typename std::invoke_result_t<Func, bool>::value_type> {
-  using Ret =
-      typename std::invoke_result_t<Func, bool>::value_type;
-  bool threw = false;
-  while( true ) {
-    try {
-      if constexpr( std::is_same_v<Ret, std::monostate> ) {
-        co_await func( threw );
-        co_return;
-      } else {
-        co_return co_await func( threw );
-      }
-    } catch( Exception const& ) {}
-    threw = true;
-  }
-}
-
 /****************************************************************
 ** Erase
 *****************************************************************/
