@@ -181,6 +181,12 @@ struct LandViewPlane::Impl : public IPlane {
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::disband, *this ) );
     dereg.push_back( menu_plane.register_handler(
+        e_menu_item::wait, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::build_colony, *this ) );
+    dereg.push_back( menu_plane.register_handler(
+        e_menu_item::return_to_europe, *this ) );
+    dereg.push_back( menu_plane.register_handler(
         e_menu_item::dump, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::plow, *this ) );
@@ -717,6 +723,54 @@ struct LandViewPlane::Impl : public IPlane {
                 RawInput( LandViewRawInput::cmd{
                   .what = command::disband{ .tile = tile } } ) );
           };
+        }
+        break;
+      }
+      case e_menu_item::wait: {
+        if( mode_.holds<LandViewMode::unit_input>() ) {
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::wait{} } ) );
+          };
+        }
+        break;
+      }
+      case e_menu_item::build_colony: {
+        if( mode_.holds<LandViewMode::unit_input>() ) {
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::build{} } ) );
+          };
+        }
+        break;
+      }
+      case e_menu_item::return_to_europe: {
+        if( auto const unit_input = mode_.get_if<LandViewMode::unit_input>() ) {
+          // TODO: to implement this like in the OG we need to
+          // verify that the unit is a ship and that it is over a
+          // sea lane tile. Then there is the question of how to
+          // actually make the transition; normally a ship must
+          // have an adjacent sea lane square that it can move to
+          // (without foreign ships) to go to the harbor, but in
+          // the OG it can do it without moving. We need to de-
+          // cide if we are going to change this behavior or not.
+          // If we do change it then it will avoid "cheating" by
+          // making the return-to-harbor more consistent between
+          // movement and menu item, but if we don't change it
+          // then that would keep things more consistent with the
+          // OG in that a ship that can reach at least one sea
+          // lane tile won't be blocked from returning to the
+          // harbor.
+          //
+          // Note that in the OG this command does not cause the
+          // ship to navigate to a sea lane tile; that action is
+          // done via the separate "go to" menu item. As an
+          // aside, there is a bug in the OG in that action be-
+          // cause a ship needs one less movement point to go to
+          // the harbor than it would with manual movement; we
+          // will probably fix that.
         }
         break;
       }
