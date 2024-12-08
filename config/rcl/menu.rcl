@@ -96,6 +96,16 @@ items {
   zoom_in.name: Zoom In
   zoom_out.name: Zoom Out
   toggle_view_mode.name: Toggle View Mode
+  activate.name: Activate Unit
+  wait.name: Wait
+  build_colony.name: Build Colony
+  load_cargo.name: Load Cargo
+  unload_cargo.name: Unload Cargo
+  go_to.name: Go To
+  trade_route.name: Begin Trade Route
+  return_to_europe.name: Return to Europe
+  no_orders.name: No Orders This Turn
+  disband.name: Disband Unit
 }
 
 layout {
@@ -130,11 +140,25 @@ layout {
   ]
 
   orders.contents: [
-    sentry,
+    activate,
+    wait,
     fortify,
-    road,
+    sentry,
+    null,
+    build_colony,
     plow,
+    road,
+    load_cargo,
+    unload_cargo,
+    null,
+    go_to,
+    trade_route,
+    return_to_europe,
+    null,
+    no_orders,
+    null,
     dump,
+    disband,
   ]
 
   advisors.contents: [
