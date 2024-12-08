@@ -93,6 +93,41 @@ struct PlayerInput {
   Time_t              when;
 };
 
+// Holds info about the previous unit that was asking for orders,
+// since it can affect the UI behavior when asking for the cur-
+// rent unit's orders (just some niceties that make it easier for
+// the player to accurately control multiple units that are al-
+// ternately asking for orders).
+//
+// This class also functions to guard against usage of unit IDs
+// representing units that no longer exist, which is a bit hard
+// to track otherwise.
+struct LastUnitInput {
+  explicit LastUnitInput( SSConst const& ss, UnitId const id )
+    : ss_( ss ), unit_id_( id ) {}
+
+  maybe<UnitId> unit_id() const {
+    maybe<UnitId> res;
+    if( ss_.units.exists( unit_id_ ) ) res = unit_id_;
+    return res;
+  }
+
+ private:
+  SSConst const& ss_;
+  // Should not allow direct access to this because it could rep-
+  // resent a unit that no longer exists.
+  UnitId unit_id_ = {};
+
+ public:
+  bool need_input_buffer_shield = false;
+  // Records the total number of windows that have been opened
+  // thus far when the unit last asked for orders. That way, if
+  // the same unit asks for orders again, we can check this to
+  // see if any windows were opened during the course of the last
+  // move and, if so, clear the input buffers.
+  int window_count = 0;
+};
+
 } // namespace
 
 struct LandViewPlane::Impl : public IPlane {
@@ -109,22 +144,13 @@ struct LandViewPlane::Impl : public IPlane {
 
   maybe<co::stream<point>> white_box_stream_;
 
-  // Holds info about the previous unit that was asking for or-
-  // ders, since it can affect the UI behavior when asking for
-  // the current unit's orders (just some niceties that make it
-  // easier for the player to accurately control multiple units
-  // that are alternately asking for orders).
-  struct LastUnitInput {
-    UnitId unit_id                  = {};
-    bool   need_input_buffer_shield = false;
-    // Records the total number of windows that have been opened
-    // thus far when the unit last asked for orders. That way, if
-    // the same unit asks for orders again, we can check this to
-    // see if any windows were opened during the course of the
-    // last move and, if so, clear the input buffers.
-    int window_count = 0;
-  };
   maybe<LastUnitInput> last_unit_input_;
+
+  // For convenience.
+  maybe<UnitId> last_unit_input_id() const {
+    if( !last_unit_input_.has_value() ) return nothing;
+    return last_unit_input_->unit_id();
+  }
 
   maybe<InputOverrunIndicator> input_overrun_indicator_;
 
@@ -578,8 +604,7 @@ struct LandViewPlane::Impl : public IPlane {
         viewport_rect_pixels,
         compositor::section( compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
-        ss_, renderer, animator_, viz_,
-        last_unit_input_.member( &LastUnitInput::unit_id ),
+        ss_, renderer, animator_, viz_, last_unit_input_id(),
         viewport_rect_pixels, input_overrun_indicator_,
         viewport() );
 
@@ -1127,9 +1152,8 @@ struct LandViewPlane::Impl : public IPlane {
         // caught it.
         return false;
     }
-    vector<GenericUnitId> const sorted = land_view_unit_stack(
-        ss_, *tile,
-        last_unit_input_.member( &LastUnitInput::unit_id ) );
+    vector<GenericUnitId> const sorted =
+        land_view_unit_stack( ss_, *tile, last_unit_input_id() );
     CHECK( !sorted.empty() );
     return ( sorted[0] == id );
   }
@@ -1183,7 +1207,7 @@ struct LandViewPlane::Impl : public IPlane {
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
     auto const tile = find_a_good_white_box_location(
-        ss_, last_unit_input_.member( &LastUnitInput::unit_id ),
+        ss_, last_unit_input_id(),
         ss_.land_view.viewport.covered_tiles() );
 
     co_await co::first(
@@ -1257,9 +1281,7 @@ struct LandViewPlane::Impl : public IPlane {
         options.initial_tile.has_value()
             ? *options.initial_tile
             : find_a_good_white_box_location(
-                  ss_,
-                  last_unit_input_.member(
-                      &LastUnitInput::unit_id ),
+                  ss_, last_unit_input_id(),
                   ss_.land_view.viewport.covered_tiles() );
     // Now that we've extracted potential info from this, reset
     // it since the fact that we're changing modes means that we
@@ -1271,19 +1293,15 @@ struct LandViewPlane::Impl : public IPlane {
   }
 
   wait<LandViewPlayerInput> get_next_input( UnitId id ) {
-    // There are some things that use last_unit_input_ below that
-    // will crash if the last unit that asked for orders no
-    // longer exists. So we'll just do this up here to be safe.
-    if( last_unit_input_.has_value() &&
-        !ss_.units.exists( last_unit_input_->unit_id ) )
-      last_unit_input_ = nothing;
+    // If the last unit that asked for orders no longer exists
+    // then clear all state associated with it.
+    if( !last_unit_input_id() ) last_unit_input_ = nothing;
 
     // We only pan to the unit here because if we did that out-
     // side of this if statement then the viewport would pan to
     // the blinking unit after the player e.g. clicks on another
     // unit to activate it.
-    if( !last_unit_input_.has_value() ||
-        last_unit_input_->unit_id != id )
+    if( last_unit_input_id() != id )
       g_needs_scroll_to_unit_on_input = true;
 
     // Input buffers. If there was no previous unit asking for
@@ -1336,14 +1354,14 @@ struct LandViewPlane::Impl : public IPlane {
     // clearing in an interactive way in order to signal to the
     // user what is happening.
     bool const eat_buffered =
-        last_unit_input_.has_value() &&
+        last_unit_input_id().has_value() &&
         // If still moving same unit then no need to shield.
-        last_unit_input_->unit_id != id &&
+        *last_unit_input_id() != id &&
         last_unit_input_->need_input_buffer_shield &&
         // E.g. if the previous unit got on a ship then the
         // player doesn't expect them to continue moving, so no
         // need to shield this unit.
-        is_unit_on_map( ss_.units, last_unit_input_->unit_id );
+        is_unit_on_map( ss_.units, *last_unit_input_id() );
     if( eat_buffered ) {
       // We typically wait for a bit while eating input events;
       // during that time, make sure that the unit who is about
@@ -1381,10 +1399,10 @@ struct LandViewPlane::Impl : public IPlane {
               is_unit_visible_on_map( id ), eat_buffered,
               visible_initially );
 
-    last_unit_input_ = LastUnitInput{
-      .unit_id                  = id,
-      .need_input_buffer_shield = true,
-      .window_count = ts_.gui.total_windows_created() };
+    last_unit_input_.emplace( ss_, /*unit_id=*/id );
+    last_unit_input_->need_input_buffer_shield = true;
+    last_unit_input_->window_count =
+        ts_.gui.total_windows_created();
 
     // Run the blinker while waiting for user input. The question
     // is, do we want the blinking to start "on" or "off"? The
