@@ -149,5 +149,33 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   REQUIRE( W.colonies().last_colony_id() == nothing );
 }
 
+TEST_CASE( "[command-build] build colony by ship" ) {
+  World       W;
+  Coord const tile{ .x = 0, .y = 0 };
+  Unit const& unit =
+      W.add_unit_on_map( e_unit_type::caravel, tile );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.ss(), W.ts(), W.default_player(),
+                      unit.id(), command::build{} );
+
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+
+  auto confirm = [&] {
+    wait<bool> w_confirm = handler->confirm();
+    REQUIRE( !w_confirm.exception() );
+    REQUIRE( w_confirm.ready() );
+    return *w_confirm;
+  };
+
+  REQUIRE( W.colonies().last_colony_id() == nothing );
+
+  auto msg_matcher = StrContains( "cannot be built by ships" );
+  W.gui().EXPECT__message_box( msg_matcher );
+  REQUIRE( confirm() == false );
+  REQUIRE_FALSE( unit.mv_pts_exhausted() );
+  REQUIRE( unit.orders().to_enum() == unit_orders::e::none );
+  REQUIRE( W.colonies().last_colony_id() == nothing );
+}
+
 } // namespace
 } // namespace rn

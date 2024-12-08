@@ -99,8 +99,8 @@ struct BuildHandler : public CommandHandler {
               "This unit cannot found new colonies." );
           co_return false;
         case e_found_colony_err::ship_cannot_found_colony:
-          // No message box here since this should be obvious to
-          // the player.
+          co_await ts_.gui.message_box(
+              "Colonies cannot be built by ships." );
           co_return false;
         case e_found_colony_err::colonist_not_on_map:
           SHOULD_NOT_BE_HERE;
