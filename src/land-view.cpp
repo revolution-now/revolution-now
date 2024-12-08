@@ -179,6 +179,8 @@ struct LandViewPlane::Impl : public IPlane {
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::fortify, *this ) );
     dereg.push_back( menu_plane.register_handler(
+        e_menu_item::disband, *this ) );
+    dereg.push_back( menu_plane.register_handler(
         e_menu_item::dump, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::plow, *this ) );
@@ -696,6 +698,27 @@ struct LandViewPlane::Impl : public IPlane {
                 .what = command::fortify{} } ) );
         };
         return handler;
+      }
+      case e_menu_item::disband: {
+        if( mode_.holds<LandViewMode::unit_input>() ) {
+          return [this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::disband{} } ) );
+          };
+        }
+        if( mode_.holds<LandViewMode::view_mode>() ) {
+          point const tile = white_box_tile( ss_ );
+          if( ss_.units.from_coord( Coord::from_gfx( tile ) )
+                  .empty() )
+            break;
+          return [tile, this] {
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::cmd{
+                  .what = command::disband{ .tile = tile } } ) );
+          };
+        }
+        break;
       }
       case e_menu_item::dump: {
         if( !mode_.holds<LandViewMode::unit_input>() ) break;
