@@ -198,7 +198,6 @@ struct UnitsHider final
   inline static milliseconds const kDelay{ 30 };
 
   [[nodiscard]] bool on_tile( Coord tile ) {
-    if( is_water( ss_.terrain.square_at( tile ) ) ) return false;
     unordered_set<GenericUnitId> const& units =
         ss_.units.from_coord( tile );
     if( units.empty() ) return false;
