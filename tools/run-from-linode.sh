@@ -5,6 +5,11 @@ source ~/dev/utilities/bashlib/util.sh
 
 [[ -d .builds ]] || die 'must run from rn root folder.'
 
+# FIXME: need to fail if we are asked to rsync a file that con-
+# tains local changes as recognized by git (timestamps is not a
+# good indicator). Otherwise this will just overwrite any local
+# changes.
+
 get_file() {
   local from="$1"
   local to="$2"
