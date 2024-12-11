@@ -1,0 +1,31 @@
+# ===============================================================
+# disband.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-09.
+#
+# Description: Rds definitions for the disband module.
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+include "ss/dwelling-id.hpp"
+include "ss/unit-id.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+# MAYBE: this could potentially be used more generally.
+struct.EntitiesOnTile {
+  units 'std::vector<GenericUnitId>',
+  colonies 'std::vector<ColonyId>',
+  dwellings 'std::vector<DwellingId>',
+}
+
+struct.DisbandingPermissions {
+  disbandable 'EntitiesOnTile',
+  non_disbandable 'EntitiesOnTile',
+}
