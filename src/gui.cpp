@@ -169,7 +169,7 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
     auto iter = items.find( item );
     if( iter == items.end() ) continue;
     CheckBoxInfo const& info = iter->second;
-    auto labeled_box         = make_unique<LabeledCheckBoxView>(
+    auto labeled_box = make_unique<TextLabeledCheckBoxView>(
         string( info.name ), info.on );
     if( info.disabled ) labeled_box->set_disabled( true );
     boxes[item] = labeled_box.get();

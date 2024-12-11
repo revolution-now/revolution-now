@@ -59,7 +59,7 @@ wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
 
   refl::enum_map<e_commodity, LabeledCheckBoxView const*> boxes;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
-    auto labeled_box = make_unique<LabeledCheckBoxView>(
+    auto labeled_box = make_unique<TextLabeledCheckBoxView>(
         string( uppercase_commodity_display_name( comm ) ),
         colony.custom_house[comm] );
     boxes[comm]      = labeled_box.get();

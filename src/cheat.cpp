@@ -302,7 +302,7 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
       boxes;
   for( e_founding_father father :
        refl::enum_values<e_founding_father> ) {
-    auto labeled_box = make_unique<LabeledCheckBoxView>(
+    auto labeled_box = make_unique<TextLabeledCheckBoxView>(
         string( founding_father_name( father ) ),
         player.fathers.has[father] );
     boxes[father] = labeled_box.get();
