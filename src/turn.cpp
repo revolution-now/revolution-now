@@ -22,6 +22,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "command.hpp"
+#include "disband.hpp"
 #include "fathers.hpp"
 #include "game-options.hpp"
 #include "harbor-units.hpp"
@@ -372,9 +373,13 @@ wait<> prioritize_units_during_turn(
     prioritize_unit( nat_units.q, id_to_add );
 }
 
-wait<> disband_at_location( SS&, TS& ts, point const ) {
-  co_await ts.gui.message_box(
-      "Location-based disanding not implemented." );
+wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
+                            point const tile ) {
+  auto const entities = disbandable_entities_on_tile(
+      ss.as_const, player.nation, tile );
+  auto const selected = co_await disband_tile_ui_interaction(
+      ss.as_const, ts, entities );
+  execute_disband( ss, ts, selected );
 }
 
 /****************************************************************
@@ -514,7 +519,8 @@ wait<EndOfTurnResult> process_player_input_eot(
       SWITCH( give_command.cmd ) {
         CASE( disband ) {
           CHECK( disband.tile.has_value() );
-          co_await disband_at_location( ss, ts, *disband.tile );
+          co_await disband_at_location( ss, ts, player,
+                                        *disband.tile );
           break;
         }
         default:
@@ -788,7 +794,8 @@ wait<> process_player_input_view_mode(
       SWITCH( give_command.cmd ) {
         CASE( disband ) {
           CHECK( disband.tile.has_value() );
-          co_await disband_at_location( ss, ts, *disband.tile );
+          co_await disband_at_location( ss, ts, player,
+                                        *disband.tile );
           break;
         }
         default:
