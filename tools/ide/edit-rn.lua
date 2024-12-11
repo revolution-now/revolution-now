@@ -8,6 +8,7 @@ local layout = require( 'ide.layout' )
 local module_cpp = require( 'ide.module-cpp' )
 local tabs = require( 'ide.tabs' )
 local util = require( 'ide.util' )
+local lsp_comp = require( 'dsicilia.lsp-completion' )
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -21,6 +22,9 @@ local keymap = vim.keymap
 local glob = vim.fn.glob
 local format = string.format
 local file_exists = util.file_exists
+local find_quoted_header = lsp_comp.find_quoted_header
+local setreg = vim.fn.setreg
+local expand = vim.fn.expand
 
 -----------------------------------------------------------------
 -- Constants.
@@ -48,6 +52,25 @@ local function open_module( stem )
   return layout.open( module_cpp.create( stem ) )
 end
 
+local function file_to_module( path )
+  local ext = fnamemodify( path, ':e' )
+  local stem = fnamemodify( path, ':t:r' )
+  if ext == 'cpp' or ext == 'hpp' then
+    path = fnamemodify( path, ':s|^src/||' )
+    path = fnamemodify( path, ':s|^exe/||' )
+    path = fnamemodify( path, ':s|^test/|../test/|' )
+    path = fnamemodify( path, ':r:r' )
+    return path
+  end
+  if ext == 'vert' or ext == 'frag' then
+    path = fnamemodify( path, ':s|^src/||' )
+    path = fnamemodify( path, ':r' )
+    return path
+  end
+  if ext == 'txt' then return 'doc/' .. stem end
+  if ext == 'lua' then return 'lua/' .. stem end
+end
+
 -----------------------------------------------------------------
 -- Tabs.
 -----------------------------------------------------------------
@@ -69,22 +92,8 @@ end
 local function tab_namer( buffer_list )
   for _, buffer in ipairs( buffer_list ) do
     local path = buffer.path
-    local ext = fnamemodify( path, ':e' )
-    local stem = fnamemodify( path, ':t:r' )
-    if ext == 'cpp' or ext == 'hpp' then
-      path = fnamemodify( path, ':s|^src/||' )
-      path = fnamemodify( path, ':s|^exe/||' )
-      path = fnamemodify( path, ':s|^test/|../test/|' )
-      path = fnamemodify( path, ':r' )
-      return path
-    end
-    if ext == 'vert' or ext == 'frag' then
-      path = fnamemodify( path, ':s|^src/||' )
-      path = fnamemodify( path, ':r' )
-      return path
-    end
-    if ext == 'txt' then return 'doc/' .. stem end
-    if ext == 'lua' then return 'lua/' .. stem end
+    local module = file_to_module( path )
+    if module then return module end
   end
   -- We could not determine a name from any of the buffers, so
   -- just use the path of the filename of the first buffer.
@@ -147,6 +156,18 @@ local function open_module_with_telescope()
 end
 
 -----------------------------------------------------------------
+-- Module Finder.
+-----------------------------------------------------------------
+local function open_module_from_hover()
+  local header = find_quoted_header()
+  if not header then return end
+  local identifier = expand( '<cword>' )
+  local module = file_to_module( header )
+  module_opener( module )
+  setreg( '/', format( [[\<%s\>]], identifier ) )
+end
+
+-----------------------------------------------------------------
 -- Quitting.
 -----------------------------------------------------------------
 local function quit_all_and_save_tabs()
@@ -173,6 +194,7 @@ local function mappings()
   nmap( '<C-p>', open_module_with_telescope )
   nmap( 'Q', quit_all_and_save_tabs )
   nmap( 'E', close_tab_and_save_tabs )
+  nmap( '<Leader>lm', open_module_from_hover )
 end
 
 -----------------------------------------------------------------
