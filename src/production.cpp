@@ -16,7 +16,6 @@
 #include "colony.hpp"
 #include "land-production.hpp"
 #include "sons-of-liberty.hpp"
-#include "unit.hpp"
 
 // ss
 #include "ss/colony-enums.hpp"
@@ -25,6 +24,7 @@
 #include "ss/ref.hpp"
 #include "ss/settings.hpp"
 #include "ss/terrain.hpp"
+#include "ss/unit.hpp"
 #include "ss/units.hpp"
 
 // config

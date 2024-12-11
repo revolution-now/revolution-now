@@ -10,16 +10,16 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+// rds
+#include "game-ui-views.rds.hpp"
 
 // Revolution Now
 #include "macros.hpp"
 #include "unit-id.hpp"
-#include "unit.hpp"
 #include "views.hpp"
 
-// Rds
-#include "game-ui-views.rds.hpp"
+// ss
+#include "ss/unit.hpp"
 
 // C++ standard library
 #include <memory>

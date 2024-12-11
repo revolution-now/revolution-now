@@ -19,7 +19,6 @@
 #include "tiles.hpp"
 #include "ui-enums.hpp"
 #include "ui.hpp"
-#include "unit.hpp"
 #include "view.hpp"
 #include "wait.hpp"
 
@@ -29,6 +28,7 @@
 // ss
 #include "ss/nation.rds.hpp"
 #include "ss/unit-type.hpp"
+#include "ss/unit.hpp"
 
 // render
 #include "render/renderer.hpp"

@@ -35,7 +35,6 @@
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
-#include "unit.hpp"
 #include "views.hpp"
 #include "visibility.hpp"
 #include "window.hpp"
@@ -54,6 +53,7 @@
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/unit.hpp"
 
 // gfx
 #include "gfx/iter.hpp"

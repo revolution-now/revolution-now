@@ -55,7 +55,6 @@
 #include "turn-plane.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
-#include "unit.hpp"
 #include "unsentry.hpp"
 #include "visibility.hpp"
 #include "woodcut.hpp"
@@ -72,6 +71,7 @@
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/turn.rds.hpp"
+#include "ss/unit.hpp"
 #include "ss/units.hpp"
 
 // rds

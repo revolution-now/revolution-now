@@ -27,7 +27,6 @@
 #include "tiles.hpp"
 #include "ui.hpp"
 #include "unit-mgr.hpp"
-#include "unit.hpp"
 #include "util.hpp"
 #include "views.hpp"
 
@@ -37,6 +36,7 @@
 
 // ss
 #include "ss/ref.hpp"
+#include "ss/unit.hpp"
 
 // render
 #include "render/renderer.hpp"
