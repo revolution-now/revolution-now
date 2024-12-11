@@ -753,12 +753,18 @@ GenericUnitId UnitsState::last_unit_id() const {
   return o_.next_unit_id;
 }
 
-unordered_set<GenericUnitId> const& UnitsState::from_coord(
-    Coord const& coord ) const {
+std::unordered_set<GenericUnitId> const& UnitsState::from_coord(
+    gfx::point const tile ) const {
   static unordered_set<GenericUnitId> const empty = {};
   // CHECK( square_exists( c ) );
-  return base::lookup( units_from_coords_, coord )
+  return base::lookup( units_from_coords_,
+                       Coord::from_gfx( tile ) )
       .value_or( empty );
+}
+
+unordered_set<GenericUnitId> const& UnitsState::from_coord(
+    Coord const& coord ) const {
+  return from_coord( coord.to_gfx() );
 }
 
 unordered_map<Coord, unordered_set<GenericUnitId>> const&

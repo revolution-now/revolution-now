@@ -126,6 +126,8 @@ struct UnitsState {
 
   std::unordered_set<GenericUnitId> const& from_coord(
       Coord const& c ) const;
+  std::unordered_set<GenericUnitId> const& from_coord(
+      gfx::point tile ) const;
 
   std::unordered_map<Coord,
                      std::unordered_set<GenericUnitId>> const&
