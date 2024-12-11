@@ -63,18 +63,17 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
 
   UnitId unit_id = {};
 
+  unique_ptr<CommandHandler> cmd;
+
   auto confirm = [&] {
-    auto handler =
-        handle_command( W.ss(), W.ts(), W.default_player(),
-                        unit_id, command::disband{} );
-    return co_await_test( handler->confirm() );
+    cmd = handle_command( W.ss(), W.ts(), W.default_player(),
+                          unit_id, command::disband{} );
+    return co_await_test( cmd->confirm() );
   };
 
   auto perform = [&] {
-    auto handler =
-        handle_command( W.ss(), W.ts(), W.default_player(),
-                        unit_id, command::disband{} );
-    return co_await_test( handler->perform() );
+    BASE_CHECK( cmd != nullptr );
+    return co_await_test( cmd->perform() );
   };
 
   auto require_on_land = [&]( Unit const& unit ) {
