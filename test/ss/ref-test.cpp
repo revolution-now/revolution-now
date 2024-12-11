@@ -65,6 +65,10 @@ cdr::value cdr_game_state_default =
                         "show_fog_of_war"_key     = false,
                       },
                 },
+            "cheat_options"_key =
+                cdr::table{
+                  "enabled"_key = false,
+                },
           },
       "events"_key = cdr::table{},
       "units"_key =
