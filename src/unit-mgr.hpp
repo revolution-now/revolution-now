@@ -72,6 +72,10 @@ maybe<e_unit_activity> current_activity_for_unit(
 std::vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, Coord coord );
 
+// Same as above but also includes any native units.
+std::vector<GenericUnitId> units_from_coord_recursive(
+    UnitsState const& units, gfx::point tile );
+
 // These will return the coordinates for a unit if it is owned by
 // the map or if it is the cargo of something that is owned by
 // the map. So this would fail to return a value if e.g. the unit

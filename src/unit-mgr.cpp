@@ -66,6 +66,7 @@ namespace rn {
 namespace {
 
 using ::base::function_ref;
+using ::gfx::point;
 
 // If the unit is working in the colony then this will return it;
 // however it will not return a ColonyId if the unit simply occu-
@@ -243,6 +244,29 @@ vector<UnitId> euro_units_from_coord_recursive(
                           .cargo()
                           .items_of_type<Cargo::unit>();
     for( auto held : held_units ) res.push_back( held.id );
+  }
+  return res;
+}
+
+std::vector<GenericUnitId> units_from_coord_recursive(
+    UnitsState const& units, point const tile ) {
+  vector<GenericUnitId> res;
+  for( GenericUnitId const id : units.from_coord( tile ) ) {
+    switch( units.unit_kind( id ) ) {
+      case e_unit_kind::euro: {
+        UnitId const unit_id = units.check_euro_unit( id );
+        res.push_back( unit_id );
+        auto held_units = units.unit_for( unit_id )
+                              .cargo()
+                              .items_of_type<Cargo::unit>();
+        for( auto const held : held_units )
+          res.push_back( held.id );
+        break;
+      }
+      case e_unit_kind::native:
+        res.push_back( id );
+        break;
+    }
   }
   return res;
 }
