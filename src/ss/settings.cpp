@@ -37,17 +37,26 @@ namespace {
 
 LUA_STARTUP( lua::state& st ) {
   // SettingsState.
-  [&] {
+  if( true ) {
     using U = ::rn::SettingsState;
     auto u  = st.usertype.create<U>();
 
-    u["difficulty"] = &U::difficulty;
+    u["difficulty"]    = &U::difficulty;
+    u["cheat_options"] = &U::cheat_options;
 
     // NOTE: Game options are not exposed here; they are exposed
     // via a higher level API in the game-options module because
     // they require wrappers that execute functions when their
     // values are changed.
-  }();
+  };
+
+  // CheatOptions.
+  if( true ) {
+    using U = ::rn::CheatOptions;
+    auto u  = st.usertype.create<U>();
+
+    u["enabled"] = &U::enabled;
+  }
 };
 
 } // namespace

@@ -35,11 +35,17 @@ struct.GameOptions {
   # Put any non-flag options here...
 }
 
+struct.CheatOptions {
+  enabled 'bool',
+}
+
 struct.SettingsState {
   # discoverer, explorer, etc.
   difficulty 'e_difficulty',
 
   game_options 'GameOptions',
+
+  cheat_options 'CheatOptions',
 
   _features { equality, validation }
 }
