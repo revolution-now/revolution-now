@@ -41,10 +41,14 @@ struct TerrainState {
   Rect  world_rect_tiles() const;
 
   bool square_exists( Coord coord ) const;
+  bool square_exists( gfx::point tile ) const;
 
-  MapSquare const&              square_at( Coord coord ) const;
+  MapSquare const& square_at( Coord coord ) const;
+  MapSquare const& square_at( gfx::point tile ) const;
   base::maybe<MapSquare const&> maybe_square_at(
       Coord coord ) const;
+  base::maybe<MapSquare const&> maybe_square_at(
+      gfx::point tile ) const;
 
   int  placement_seed() const { return o_.placement_seed; }
   void set_placement_seed( int seed ) {
@@ -72,12 +76,15 @@ struct TerrainState {
   // the map. The word "total" in the name refers to the fact
   // that, unlike `square_at`, this is a total function.
   MapSquare const& total_square_at( Coord coord ) const;
+  MapSquare const& total_square_at( gfx::point tile ) const;
 
   // Given a tile coordinate that is off of the map, this will
   // return the proto square direction for it. If the tile is on
   // the map then it returns nothing.
   base::maybe<e_cardinal_direction>
   proto_square_direction_for_tile( Coord tile ) const;
+  base::maybe<e_cardinal_direction>
+  proto_square_direction_for_tile( gfx::point tile ) const;
 
   MapSquare const& proto_square( e_cardinal_direction d ) const;
 
@@ -108,6 +115,9 @@ struct TerrainState {
 
   MapSquare&              mutable_square_at( Coord coord );
   base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
+  MapSquare&              mutable_square_at( gfx::point tile );
+  base::maybe<MapSquare&> mutable_maybe_square_at(
+      gfx::point tile );
   PlayerTerrain& mutable_player_terrain( e_nation nation );
 
   // Whenever the map matrix is modified as a whole (which could

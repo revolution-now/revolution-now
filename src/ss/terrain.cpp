@@ -34,6 +34,9 @@ using namespace std;
 
 namespace rn {
 
+using ::gfx::point;
+using ::gfx::rect;
+
 /****************************************************************
 ** TerrainState
 *****************************************************************/
@@ -89,16 +92,25 @@ Rect TerrainState::world_rect_tiles() const {
            .h = world_size_tiles().h };
 }
 
+bool TerrainState::square_exists( point const tile ) const {
+  if( tile.x < 0 || tile.y < 0 ) return false;
+  return tile.is_inside(
+      rect{ .origin = {}, .size = world_map().size() } );
+}
+
 bool TerrainState::square_exists( Coord coord ) const {
-  if( coord.x < 0 || coord.y < 0 ) return false;
-  return coord.is_inside(
-      Rect::from( Coord{}, world_map().size() ) );
+  return square_exists( coord.to_gfx() );
+}
+
+base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
+    point const tile ) {
+  if( !square_exists( tile ) ) return base::nothing;
+  return o_.real_terrain.map[tile.y][tile.x];
 }
 
 base::maybe<MapSquare&> TerrainState::mutable_maybe_square_at(
     Coord coord ) {
-  if( !square_exists( coord ) ) return base::nothing;
-  return o_.real_terrain.map[coord.y][coord.x];
+  return mutable_maybe_square_at( coord.to_gfx() );
 }
 
 base::maybe<PlayerTerrain const&> TerrainState::player_terrain(
@@ -113,33 +125,48 @@ PlayerTerrain& TerrainState::mutable_player_terrain(
 }
 
 base::maybe<MapSquare const&> TerrainState::maybe_square_at(
+    point const tile ) const {
+  if( !square_exists( tile ) ) return base::nothing;
+  return o_.real_terrain.map[tile.y][tile.x];
+}
+
+base::maybe<MapSquare const&> TerrainState::maybe_square_at(
     Coord coord ) const {
-  if( !square_exists( coord ) ) return base::nothing;
-  return o_.real_terrain.map[coord.y][coord.x];
+  return maybe_square_at( coord.to_gfx() );
+}
+
+MapSquare const& TerrainState::total_square_at(
+    point const tile ) const {
+  base::maybe<e_cardinal_direction> d =
+      proto_square_direction_for_tile( tile );
+  if( d.has_value() ) return proto_square( *d );
+  // This should never fail since coord should now be on the map.
+  return square_at( tile );
 }
 
 MapSquare const& TerrainState::total_square_at(
     Coord coord ) const {
-  base::maybe<e_cardinal_direction> d =
-      proto_square_direction_for_tile( coord );
-  if( d.has_value() ) return proto_square( *d );
-  // This should never fail since coord should now be on the map.
-  return square_at( coord );
+  return total_square_at( coord.to_gfx() );
+}
+
+base::maybe<e_cardinal_direction>
+TerrainState::proto_square_direction_for_tile(
+    point const tile ) const {
+  Rect rect = world_rect_tiles();
+  if( tile.x < rect.left_edge() ) return e_cardinal_direction::w;
+  if( tile.y < rect.top_edge() ) //
+    return e_cardinal_direction::n;
+  if( tile.x >= rect.right_edge() )
+    return e_cardinal_direction::e;
+  if( tile.y >= rect.bottom_edge() )
+    return e_cardinal_direction::s;
+  return base::nothing;
 }
 
 base::maybe<e_cardinal_direction>
 TerrainState::proto_square_direction_for_tile(
     Coord coord ) const {
-  Rect rect = world_rect_tiles();
-  if( coord.x < rect.left_edge() )
-    return e_cardinal_direction::w;
-  if( coord.y < rect.top_edge() ) //
-    return e_cardinal_direction::n;
-  if( coord.x >= rect.right_edge() )
-    return e_cardinal_direction::e;
-  if( coord.y >= rect.bottom_edge() )
-    return e_cardinal_direction::s;
-  return base::nothing;
+  return proto_square_direction_for_tile( coord.to_gfx() );
 }
 
 MapSquare const& TerrainState::proto_square(
@@ -152,16 +179,25 @@ MapSquare& TerrainState::mutable_proto_square(
   return o_.proto_squares[d];
 }
 
+MapSquare const& TerrainState::square_at(
+    point const tile ) const {
+  base::maybe<MapSquare const&> res = maybe_square_at( tile );
+  CHECK( res, "square {} does not exist!", tile );
+  return *res;
+}
+
 MapSquare const& TerrainState::square_at( Coord coord ) const {
-  base::maybe<MapSquare const&> res = maybe_square_at( coord );
-  CHECK( res, "square {} does not exist!", coord );
+  return square_at( coord.to_gfx() );
+}
+
+MapSquare& TerrainState::mutable_square_at( point const tile ) {
+  base::maybe<MapSquare&> res = mutable_maybe_square_at( tile );
+  CHECK( res, "square {} does not exist!", tile );
   return *res;
 }
 
 MapSquare& TerrainState::mutable_square_at( Coord coord ) {
-  base::maybe<MapSquare&> res = mutable_maybe_square_at( coord );
-  CHECK( res, "square {} does not exist!", coord );
-  return *res;
+  return mutable_square_at( coord.to_gfx() );
 }
 
 bool TerrainState::is_land( Coord coord ) const {
@@ -258,9 +294,13 @@ LUA_STARTUP( lua::state& st ) {
     u["placement_seed"]     = &U::placement_seed;
     u["set_placement_seed"] = &U::set_placement_seed;
     u["size"]               = &U::world_size_tiles;
-    u["square_exists"]      = &U::square_exists;
-    u["square_at"]          = &U::mutable_square_at;
-    u["proto_square"]       = &U::mutable_proto_square;
+    u["square_exists"]      = []( U& o, Coord const tile ) {
+      return o.square_exists( tile );
+    };
+    u["square_at"] = []( U& o, Coord const tile ) -> MapSquare& {
+      return o.mutable_square_at( tile );
+    };
+    u["proto_square"] = &U::mutable_proto_square;
     u["initialize_player_terrain"] =
         &U::initialize_player_terrain;
 
