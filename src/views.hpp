@@ -39,6 +39,13 @@
 // C++ standard library
 #include <memory>
 
+namespace rn {
+
+enum class e_native_unit_type;
+enum class e_tribe;
+
+}
+
 namespace rn::ui {
 
 // NOTE: Don't put anymore views in here that are specific to
@@ -676,7 +683,8 @@ struct CheckBoxView : public View {
 };
 
 struct LabeledCheckBoxView : public HorizontalArrayView {
-  LabeledCheckBoxView( std::string label, bool on = false );
+  LabeledCheckBoxView( std::unique_ptr<View> label,
+                       bool                  on = false );
 
   bool on() const { return check_box_->on(); }
 
@@ -688,6 +696,10 @@ struct LabeledCheckBoxView : public HorizontalArrayView {
 
  private:
   CheckBoxView* check_box_ = nullptr;
+};
+
+struct TextLabeledCheckBoxView : public LabeledCheckBoxView {
+  TextLabeledCheckBoxView( std::string label, bool on = false );
 };
 
 class OkCancelAdapterView : public VerticalArrayView {
@@ -810,6 +822,24 @@ class FakeUnitView : public View {
   e_unit_type const type_;
   e_nation const    nation_;
   unit_orders       orders_;
+};
+
+class FakeNativeUnitView : public View {
+ public:
+  FakeNativeUnitView( e_native_unit_type type, e_tribe tribe );
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
+
+  bool needs_padding() const override { return true; }
+
+ private:
+  e_native_unit_type const type_;
+  e_tribe const            tribe_;
 };
 
 class ClickableView : public CompositeSingleView {

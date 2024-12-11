@@ -1020,15 +1020,15 @@ bool CheckBoxView::on_mouse_button(
 /****************************************************************
 ** LabeledCheckBoxView
 *****************************************************************/
-LabeledCheckBoxView::LabeledCheckBoxView( string label, bool on )
+LabeledCheckBoxView::LabeledCheckBoxView( unique_ptr<View> label,
+                                          bool             on )
   : HorizontalArrayView( HorizontalArrayView::align::middle ) {
   auto check_box = make_unique<CheckBoxView>( on );
   check_box_     = check_box.get();
   add_view( std::move( check_box ) );
   // Add some spacing between the box and text.
   add_view( make_unique<EmptyView>( Delta{ .w = 2, .h = 1 } ) );
-  auto label_view = make_unique<TextView>( std::move( label ) );
-  add_view( std::move( label_view ) );
+  add_view( std::move( label ) );
   recompute_child_positions();
 }
 
@@ -1036,6 +1036,17 @@ bool LabeledCheckBoxView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
   // Clicking on the label is equivalent to clicking in the box.
   return check_box_->on_mouse_button( event );
+}
+
+/****************************************************************
+** LabeledCheckBoxView
+*****************************************************************/
+TextLabeledCheckBoxView::TextLabeledCheckBoxView( string label,
+                                                  bool   on )
+  : LabeledCheckBoxView(
+        make_unique<TextView>( std::move( label ) ), on ) {
+  add_view( make_unique<TextView>( std::move( label ) ) );
+  recompute_child_positions();
 }
 
 /****************************************************************
@@ -1290,6 +1301,26 @@ void FakeUnitView::draw( rr::Renderer& renderer,
                          Coord         coord ) const {
   UnitFlagRenderInfo const flag_info =
       euro_unit_type_flag_info( type_, orders_, nation_ );
+  render_unit_type( renderer, coord, type_,
+                    UnitRenderOptions{ .flag = flag_info } );
+}
+
+/****************************************************************
+** FakeNativeUnitView
+*****************************************************************/
+FakeNativeUnitView::FakeNativeUnitView(
+    e_native_unit_type const type, e_tribe const tribe )
+  : type_( type ), tribe_( tribe ) {}
+
+Delta FakeNativeUnitView::delta() const {
+  return { .w = 32, .h = 32 };
+}
+
+void FakeNativeUnitView::draw( rr::Renderer& renderer,
+                               Coord         coord ) const {
+  UnitFlagRenderInfo const flag_info =
+      native_unit_type_flag_info( type_, tribe_,
+                                  UnitFlagOptions{} );
   render_unit_type( renderer, coord, type_,
                     UnitRenderOptions{ .flag = flag_info } );
 }
