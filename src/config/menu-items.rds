@@ -25,6 +25,7 @@ enum.e_menu {
 
 enum.e_menu_item {
   about,
+  cheat_create_unit_on_map,
   cheat_edit_fathers,
   cheat_explore_entire_map,
   cheat_map_editor,

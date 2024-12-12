@@ -166,6 +166,8 @@ struct LandViewPlane::Impl : public IPlane {
   void register_menu_items( MenuPlane& menu_plane ) {
     // Register menu handlers.
     dereg.push_back( menu_plane.register_handler(
+        e_menu_item::cheat_create_unit_on_map, *this ) );
+    dereg.push_back( menu_plane.register_handler(
         e_menu_item::cheat_reveal_map, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::zoom_in, *this ) );
@@ -434,6 +436,17 @@ struct LandViewPlane::Impl : public IPlane {
         cheat_toggle_reveal_full_map( ss_, ts_ );
         break;
       }
+      case e::cheat_create_unit: {
+        // cheat mode.
+        maybe<e_nation> const nation =
+            player_for_role( ss_, e_player_role::active );
+        if( !nation.has_value() ) break;
+        auto const tile = cheat_target_square( ss_, ts_ );
+        if( !tile.has_value() ) break;
+        co_await cheat_create_unit_on_map( ss_, ts_, *nation,
+                                           *tile );
+        break;
+      }
       case e::escape: {
         translated_input_stream_.push( PlayerInput(
             LandViewPlayerInput::exit{}, raw_input.when ) );
@@ -661,6 +674,17 @@ struct LandViewPlane::Impl : public IPlane {
     // store to previous state.
     static_assert( zoom_in_factor * zoom_out_factor == 1.0 );
     switch( item ) {
+      case e_menu_item::cheat_create_unit_on_map: {
+        if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::view_mode>() &&
+            !mode_.holds<LandViewMode::end_of_turn>() )
+          break;
+        auto handler = [this] {
+          raw_input_stream_.send( RawInput(
+              LandViewRawInput::cheat_create_unit{} ) );
+        };
+        return handler;
+      }
       case e_menu_item::cheat_reveal_map: {
         if( !mode_.holds<LandViewMode::unit_input>() &&
             !mode_.holds<LandViewMode::end_of_turn>() )

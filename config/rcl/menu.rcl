@@ -50,6 +50,7 @@ menus {
 
 items {
   about.name: About this Game
+  cheat_create_unit_on_map.name: Create Unit
   cheat_edit_fathers.name: Edit Founding Fathers
   cheat_explore_entire_map.name: Explore Entire Map
   cheat_map_editor.name: Enter Map Editor
@@ -193,6 +194,7 @@ layout {
   ]
 
   cheat.contents: [
+    cheat_create_unit_on_map,
     cheat_reveal_map,
     cheat_explore_entire_map,
     cheat_set_human_players,

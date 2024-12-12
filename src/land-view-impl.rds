@@ -61,4 +61,5 @@ sumtype.LandViewRawInput {
   escape {},
   reveal_map {},
   toggle_map_reveal {},
+  cheat_create_unit {},
 }
