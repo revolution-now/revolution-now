@@ -42,16 +42,18 @@ namespace rn {
 namespace {
 
 using namespace std;
+using namespace gfx::literals;
 
 using ::Catch::UnorderedEquals;
+using ::gfx::point;
 using ::mock::matchers::_;
 
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_player( e_nation::dutch );
     add_player( e_nation::spanish );
     set_default_player( e_nation::dutch );
@@ -81,18 +83,18 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
-  World W;
+  world w;
 
   auto f = [&]( UnitId id ) {
-    return current_activity_for_unit( W.units(), W.colonies(),
+    return current_activity_for_unit( w.units(), w.colonies(),
                                       id );
   };
 
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
+    Colony&         colony = w.add_colony( w.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+        w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer )
             .id();
     REQUIRE( f( id ) == e_unit_activity::carpentry );
@@ -100,9 +102,9 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
+    Colony&         colony = w.add_colony( w.kLand );
     UnitId          id =
-        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+        w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal )
             .id();
     REQUIRE( f( id ) == e_unit_activity::carpentry );
@@ -110,9 +112,9 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "petty_criminal farmer" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
+    Colony&         colony = w.add_colony( w.kLand );
     UnitId          id =
-        W.add_unit_outdoors( colony.id, e_direction::w,
+        w.add_unit_outdoors( colony.id, e_direction::w,
                              e_outdoor_job::food,
                              e_unit_type::petty_criminal )
             .id();
@@ -122,7 +124,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
   SECTION( "petty_criminal no job" ) {
     UnitComposition expected;
     UnitId          id =
-        W.add_unit_on_map( e_unit_type::petty_criminal, W.kLand )
+        w.add_unit_on_map( e_unit_type::petty_criminal, w.kLand )
             .id();
     REQUIRE( f( id ) == nothing );
   }
@@ -130,7 +132,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
     UnitId          id =
-        W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand )
+        w.add_unit_on_map( e_unit_type::expert_farmer, w.kLand )
             .id();
     REQUIRE( f( id ) == nothing );
   }
@@ -140,7 +142,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
     UNWRAP_CHECK( initial_ut, UnitType::create(
                                   e_unit_type::dragoon,
                                   e_unit_type::expert_farmer ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
+    UnitId id = w.add_unit_on_map( initial_ut, w.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::fighting );
   }
 
@@ -149,7 +151,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
     UNWRAP_CHECK( initial_ut, UnitType::create(
                                   e_unit_type::dragoon,
                                   e_unit_type::expert_farmer ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
+    UnitId id = w.add_unit_on_map( initial_ut, w.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::fighting );
   }
 
@@ -159,15 +161,15 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
         initial_ut,
         UnitType::create( e_unit_type::pioneer,
                           e_unit_type::petty_criminal ) );
-    UnitId id = W.add_unit_on_map( initial_ut, W.kLand ).id();
+    UnitId id = w.add_unit_on_map( initial_ut, w.kLand ).id();
     REQUIRE( f( id ) == e_unit_activity::pioneering );
   }
 
   SECTION( "missionary" ) {
     UnitComposition expected;
     Dwelling const& dwelling =
-        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
-    UnitId const id = W.add_missionary_in_dwelling(
+        w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+    UnitId const id = w.add_missionary_in_dwelling(
                            e_unit_type::missionary, dwelling.id )
                           .id();
     REQUIRE( f( id ) == e_unit_activity::missioning );
@@ -175,59 +177,59 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 }
 
 TEST_CASE( "[unit-mgr] tribe_type_for_unit" ) {
-  World           W;
+  world           w;
   Dwelling const& dwelling =
-      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
-  NativeUnit const& unit = W.add_native_unit_on_map(
+      w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
+  NativeUnit const& unit = w.add_native_unit_on_map(
       e_native_unit_type::mounted_brave, { .x = 0, .y = 0 },
       dwelling.id );
-  REQUIRE( tribe_type_for_unit( W.ss(), unit ) ==
+  REQUIRE( tribe_type_for_unit( w.ss(), unit ) ==
            e_tribe::arawak );
 }
 
 TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
-  World           W;
+  world           w;
   Dwelling const& dwelling =
-      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
-  NativeUnit const& unit = W.add_native_unit_on_map(
+      w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
+  NativeUnit const& unit = w.add_native_unit_on_map(
       e_native_unit_type::mounted_brave, { .x = 0, .y = 0 },
       dwelling.id );
-  REQUIRE( tribe_for_unit( W.ss(), unit ).type ==
+  REQUIRE( tribe_for_unit( w.ss(), unit ).type ==
            e_tribe::arawak );
-  SSConst const ss_const( W.ss() );
+  SSConst const ss_const( w.ss() );
   REQUIRE( tribe_for_unit( ss_const, unit ).type ==
            e_tribe::arawak );
 }
 
 TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
-  World W;
+  world w;
 
   SECTION( "colonist in colony" ) {
-    W.found_colony_with_new_unit( { .x = 1, .y = 1 } );
+    w.found_colony_with_new_unit( { .x = 1, .y = 1 } );
     UnitId const id{ 1 };
     REQUIRE(
-        !coord_for_unit_indirect( W.units(), id ).has_value() );
-    REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==
+        !coord_for_unit_indirect( w.units(), id ).has_value() );
+    REQUIRE( coord_for_unit_multi_ownership( w.ss(), id ) ==
              Coord{ .x = 1, .y = 1 } );
   }
 
   SECTION( "missionary in dwelling" ) {
     Dwelling const& dwelling =
-        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
-    UnitId const id = W.add_missionary_in_dwelling(
+        w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
+    UnitId const id = w.add_missionary_in_dwelling(
                            e_unit_type::missionary, dwelling.id )
                           .id();
     REQUIRE(
-        !coord_for_unit_indirect( W.units(), id ).has_value() );
-    REQUIRE( coord_for_unit_multi_ownership( W.ss(), id ) ==
+        !coord_for_unit_indirect( w.units(), id ).has_value() );
+    REQUIRE( coord_for_unit_multi_ownership( w.ss(), id ) ==
              Coord{ .x = 1, .y = 1 } );
   }
 }
 
 TEST_CASE( "[unit-mgr] change_unit_type" ) {
-  World                     W;
-  VisibilityForNation const viz( W.ss(), W.default_nation() );
-  Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
+  world                     w;
+  VisibilityForNation const viz( w.ss(), w.default_nation() );
+  Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 3, .y = 3 } );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -240,7 +242,7 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
   REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::clear );
 
-  change_unit_type( W.ss(), W.ts(), unit,
+  change_unit_type( w.ss(), w.ts(), unit,
                     e_unit_type::expert_farmer );
 
   REQUIRE( unit.type() == e_unit_type::expert_farmer );
@@ -253,7 +255,7 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
   REQUIRE( viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::clear );
 
-  change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
+  change_unit_type( w.ss(), w.ts(), unit, e_unit_type::scout );
 
   REQUIRE( unit.type() == e_unit_type::scout );
   REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
@@ -267,12 +269,12 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
 }
 
 TEST_CASE( "[unit-mgr] change_unit_nation" ) {
-  World                     W;
-  VisibilityForNation const dutch_viz( W.ss(), e_nation::dutch );
-  VisibilityForNation const spanish_viz( W.ss(),
+  world                     w;
+  VisibilityForNation const dutch_viz( w.ss(), e_nation::dutch );
+  VisibilityForNation const spanish_viz( w.ss(),
                                          e_nation::spanish );
   Unit&                     unit =
-      W.add_unit_on_map( e_unit_type::free_colonist,
+      w.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 3, .y = 3 }, e_nation::dutch );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
@@ -293,7 +295,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::hidden );
 
-  change_unit_nation( W.ss(), W.ts(), unit, e_nation::spanish );
+  change_unit_nation( w.ss(), w.ts(), unit, e_nation::spanish );
 
   REQUIRE( unit.type() == e_unit_type::free_colonist );
   REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
@@ -313,7 +315,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::clear );
 
-  change_unit_type( W.ss(), W.ts(), unit, e_unit_type::scout );
+  change_unit_type( w.ss(), w.ts(), unit, e_unit_type::scout );
 
   REQUIRE( unit.type() == e_unit_type::scout );
   REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
@@ -335,26 +337,26 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
 }
 
 TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
-  World W;
+  world w;
 
   Coord const viz_check1{ .x = 0, .y = 0 };
   Coord const src{ .x = 1, .y = 1 };
   Coord const dst{ .x = 2, .y = 2 };
   Coord const viz_check2{ .x = 3, .y = 3 };
 
-  Unit& unit = W.add_unit_on_map( e_unit_type::free_colonist,
+  Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   src, e_nation::dutch );
 
-  VisibilityForNation const dutch_viz( W.ss(), e_nation::dutch );
-  VisibilityForNation const spanish_viz( W.ss(),
+  VisibilityForNation const dutch_viz( w.ss(), e_nation::dutch );
+  VisibilityForNation const spanish_viz( w.ss(),
                                          e_nation::spanish );
 
   auto f = [&] {
-    change_unit_nation_and_move( W.ss(), W.ts(), unit,
+    change_unit_nation_and_move( w.ss(), w.ts(), unit,
                                  e_nation::spanish, dst );
   };
 
-  REQUIRE( W.units().coord_for( unit.id() ) == src );
+  REQUIRE( w.units().coord_for( unit.id() ) == src );
 
   REQUIRE( dutch_viz.visible( src ) ==
            e_tile_visibility::clear );
@@ -375,7 +377,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
 
   f();
 
-  REQUIRE( W.units().coord_for( unit.id() ) == dst );
+  REQUIRE( w.units().coord_for( unit.id() ) == dst );
 
   REQUIRE( dutch_viz.visible( src ) ==
            e_tile_visibility::clear );
@@ -397,16 +399,16 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
 }
 
 TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
-  World          W;
+  world          w;
   vector<UnitId> expected;
 
   auto f = [&] {
-    return offboard_units_on_ships( W.ss(), W.ts(), W.kLand );
+    return offboard_units_on_ships( w.ss(), w.ts(), w.kLand );
   };
 
   auto require_on_land = [&]( Unit const& unit ) {
-    REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-             UnitOwnership::world{ .coord = W.kLand } );
+    REQUIRE( as_const( w.units() ).ownership_of( unit.id() ) ==
+             UnitOwnership::world{ .coord = w.kLand } );
   };
 
   auto require_sentried = [&]( Unit const& unit ) {
@@ -425,7 +427,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
 
   SECTION( "one non-ship" ) {
     Unit const& free_colonist =
-        W.add_unit_on_map( e_unit_type::free_colonist, W.kLand );
+        w.add_unit_on_map( e_unit_type::free_colonist, w.kLand );
 
     SECTION( "this" ) {
       expected = {};
@@ -434,7 +436,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
 
     SECTION( "two non-ship" ) {
       Unit const& soldier =
-          W.add_unit_on_map( e_unit_type::soldier, W.kLand );
+          w.add_unit_on_map( e_unit_type::soldier, w.kLand );
 
       SECTION( "this" ) {
         expected = {};
@@ -443,7 +445,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
 
       SECTION( "two non-ship, one ship" ) {
         Unit const& galleon =
-            W.add_unit_on_map( e_unit_type::galleon, W.kLand );
+            w.add_unit_on_map( e_unit_type::galleon, w.kLand );
 
         SECTION( "this" ) {
           expected = {};
@@ -451,7 +453,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
         }
 
         SECTION( "two non-ship, one ship with one unit" ) {
-          Unit const& indentured_servant = W.add_unit_in_cargo(
+          Unit const& indentured_servant = w.add_unit_in_cargo(
               e_unit_type::indentured_servant, galleon.id() );
 
           SECTION( "this" ) {
@@ -460,7 +462,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
           }
 
           SECTION( "two non-ship, one ship with two units" ) {
-            Unit const& dragoon = W.add_unit_in_cargo(
+            Unit const& dragoon = w.add_unit_in_cargo(
                 e_unit_type::dragoon, galleon.id() );
             expected = { indentured_servant.id(), dragoon.id() };
             REQUIRE( f() == expected );
@@ -487,18 +489,18 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
 }
 
 TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
-  World          W;
+  world          w;
   vector<UnitId> expected;
   Unit*          p_unit = nullptr;
 
   auto f = [&] {
     CHECK( p_unit != nullptr );
-    return offboard_units_on_ship( W.ss(), W.ts(), *p_unit );
+    return offboard_units_on_ship( w.ss(), w.ts(), *p_unit );
   };
 
   auto require_on_land = [&]( Unit const& unit ) {
-    REQUIRE( as_const( W.units() ).ownership_of( unit.id() ) ==
-             UnitOwnership::world{ .coord = W.kLand } );
+    REQUIRE( as_const( w.units() ).ownership_of( unit.id() ) ==
+             UnitOwnership::world{ .coord = w.kLand } );
   };
 
   auto require_sentried = [&]( Unit const& unit ) {
@@ -510,14 +512,14 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   };
 
   Unit& galleon =
-      W.add_unit_on_map( e_unit_type::galleon, W.kLand );
+      w.add_unit_on_map( e_unit_type::galleon, w.kLand );
 
   p_unit   = &galleon;
   expected = {};
   REQUIRE( f() == expected );
 
   Unit const& free_colonist =
-      W.add_unit_on_map( e_unit_type::free_colonist, W.kLand );
+      w.add_unit_on_map( e_unit_type::free_colonist, w.kLand );
 
   p_unit   = &galleon;
   expected = {};
@@ -526,7 +528,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   require_not_sentried( free_colonist );
 
   Unit const& soldier =
-      W.add_unit_on_map( e_unit_type::soldier, W.kLand );
+      w.add_unit_on_map( e_unit_type::soldier, w.kLand );
 
   p_unit   = &galleon;
   expected = {};
@@ -536,11 +538,11 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   require_on_land( soldier );
   require_not_sentried( soldier );
 
-  Unit const& indentured_servant = W.add_unit_in_cargo(
+  Unit const& indentured_servant = w.add_unit_in_cargo(
       e_unit_type::indentured_servant, galleon.id() );
 
   Unit const& dragoon =
-      W.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
+      w.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
 
   p_unit   = &galleon;
   expected = { indentured_servant.id(), dragoon.id() };
@@ -551,7 +553,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
   require_sentried( indentured_servant );
 
   Unit const& dragoon2 =
-      W.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
+      w.add_unit_in_cargo( e_unit_type::dragoon, galleon.id() );
 
   p_unit   = &galleon;
   expected = { dragoon2.id() };
@@ -561,13 +563,13 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
 }
 
 TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
-  World W;
+  world w;
 
   e_tribe           tribe_type = {};
   set<NativeUnitId> expected;
 
   auto f = [&] {
-    return units_for_tribe_ordered( W.ss(), tribe_type );
+    return units_for_tribe_ordered( w.ss(), tribe_type );
   };
 
   expected   = {};
@@ -578,7 +580,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   REQUIRE( f() == expected );
 
   auto [apache_dwelling_id_1, apache_brave_id_1] =
-      W.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
+      w.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
                                     e_tribe::apache );
   expected   = { apache_brave_id_1 };
   tribe_type = e_tribe::apache;
@@ -588,7 +590,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   REQUIRE( f() == expected );
 
   NativeUnitId const apache_brave_id_2 =
-      W.add_native_unit_on_map(
+      w.add_native_unit_on_map(
            e_native_unit_type::mounted_brave, { .x = 2, .y = 2 },
            apache_dwelling_id_1 )
           .id;
@@ -600,7 +602,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   REQUIRE( f() == expected );
 
   auto [apache_dwelling_id_2, apache_brave_id_3] =
-      W.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
+      w.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
                                     e_tribe::apache );
   expected   = { apache_brave_id_1, apache_brave_id_2,
                  apache_brave_id_3 };
@@ -611,7 +613,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   REQUIRE( f() == expected );
 
   auto [aztec_dwelling_id_1, aztec_brave_id_1] =
-      W.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
+      w.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
                                     e_tribe::aztec );
   expected   = { apache_brave_id_1, apache_brave_id_2,
                  apache_brave_id_3 };
@@ -623,13 +625,13 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
 }
 
 TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
-  World W;
+  world w;
 
   e_tribe              tribe_type = {};
   vector<NativeUnitId> expected;
 
   auto f = [&] {
-    return units_for_tribe_unordered( W.ss(), tribe_type );
+    return units_for_tribe_unordered( w.ss(), tribe_type );
   };
 
   expected   = {};
@@ -640,7 +642,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 
   auto [apache_dwelling_id_1, apache_brave_id_1] =
-      W.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
+      w.add_dwelling_and_brave_ids( { .x = 1, .y = 1 },
                                     e_tribe::apache );
   expected   = { apache_brave_id_1 };
   tribe_type = e_tribe::apache;
@@ -650,7 +652,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 
   NativeUnitId const apache_brave_id_2 =
-      W.add_native_unit_on_map(
+      w.add_native_unit_on_map(
            e_native_unit_type::mounted_brave, { .x = 2, .y = 2 },
            apache_dwelling_id_1 )
           .id;
@@ -662,7 +664,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 
   auto [apache_dwelling_id_2, apache_brave_id_3] =
-      W.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
+      w.add_dwelling_and_brave_ids( { .x = 2, .y = 1 },
                                     e_tribe::apache );
   expected   = { apache_brave_id_1, apache_brave_id_2,
                  apache_brave_id_3 };
@@ -673,7 +675,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 
   auto [aztec_dwelling_id_1, aztec_brave_id_1] =
-      W.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
+      w.add_dwelling_and_brave_ids( { .x = 2, .y = 2 },
                                     e_tribe::aztec );
   expected   = { apache_brave_id_1, apache_brave_id_2,
                  apache_brave_id_3 };
@@ -685,11 +687,138 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
 }
 
 TEST_CASE( "[unit-mgr] units_from_coord_recursive" ) {
-  World w;
+  world w;
+
+  point                 tile;
+  vector<GenericUnitId> expected;
+
+  auto f = [&] {
+    return units_from_coord_recursive( w.units(), tile );
+  };
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  UnitId const free_colonist =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         ( 1_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  UnitId const privateer =
+      w.add_unit_on_map( e_unit_type::privateer, ( 0_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer };
+  REQUIRE( f() == expected );
+
+  UnitId const artillery =
+      w.add_unit_in_cargo( e_unit_type::artillery, privateer )
+          .id();
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer, artillery };
+  REQUIRE( f() == expected );
+
+  UnitId const caravel =
+      w.add_unit_on_map( e_unit_type::privateer, ( 1_x, 0_y ) )
+          .id();
+  UnitId const scout =
+      w.add_unit_in_cargo( e_unit_type::scout, caravel ).id();
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist, caravel, scout };
+  REQUIRE( f() == expected );
+
+  DwellingId const dwelling_id =
+      w.add_dwelling( ( 2_x, 2_y ), e_tribe::sioux ).id;
+  NativeUnitId const armed_brave =
+      w.add_native_unit_on_map( e_native_unit_type::armed_brave,
+                                ( 1_x, 0_y ), dwelling_id )
+          .id;
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist, caravel, scout, armed_brave };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
-  World w;
+  world w;
+
+  point          tile;
+  vector<UnitId> expected;
+
+  auto f = [&] {
+    return euro_units_from_coord_recursive( w.units(), tile );
+  };
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  UnitId const free_colonist =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         ( 1_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  UnitId const privateer =
+      w.add_unit_on_map( e_unit_type::privateer, ( 0_x, 0_y ) )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist };
+  REQUIRE( f() == expected );
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer };
+  REQUIRE( f() == expected );
+
+  UnitId const artillery =
+      w.add_unit_in_cargo( e_unit_type::artillery, privateer )
+          .id();
+
+  tile     = ( 0_x, 0_y );
+  expected = { privateer, artillery };
+  REQUIRE( f() == expected );
+
+  UnitId const caravel =
+      w.add_unit_on_map( e_unit_type::privateer, ( 1_x, 0_y ) )
+          .id();
+  UnitId const scout =
+      w.add_unit_in_cargo( e_unit_type::scout, caravel ).id();
+
+  tile     = ( 1_x, 0_y );
+  expected = { free_colonist, caravel, scout };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

@@ -63,6 +63,12 @@ using namespace std;
 
 namespace rn::testing {
 
+namespace {
+
+using ::gfx::point;
+
+}
+
 FormatVersion& World::version() { return root().version; }
 EventsState&   World::events() { return root().events; }
 SettingsState& World::settings() { return root().settings; }
@@ -256,12 +262,12 @@ void World::init_player_maps() {
   }
 }
 
-MapSquare& World::square( gfx::point p ) {
+MapSquare& World::square( point const p ) {
   return terrain().mutable_square_at( Coord::from_gfx( p ) );
 }
 
-PlayerSquare& World::player_square( gfx::point      p,
-                                    maybe<e_nation> nation ) {
+PlayerSquare& World::player_square(
+    point const p, maybe<e_nation> const nation ) {
   return ss()
       .mutable_terrain_use_with_care
       .mutable_player_terrain(
@@ -269,47 +275,47 @@ PlayerSquare& World::player_square( gfx::point      p,
       .map[Coord::from_gfx( p )];
 }
 
-void World::add_forest( gfx::point p ) {
+void World::add_forest( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
         square.overlay = e_land_overlay::forest;
       } );
 }
 
-void World::add_mountains( gfx::point p ) {
+void World::add_mountains( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
         square.overlay = e_land_overlay::mountains;
       } );
 }
 
-void World::add_hills( gfx::point p ) {
+void World::add_hills( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
         square.overlay = e_land_overlay::hills;
       } );
 }
 
-void World::add_road( gfx::point p ) {
+void World::add_road( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ),
       []( MapSquare& square ) { square.road = true; } );
 }
 
-void World::add_plow( gfx::point p ) {
+void World::add_plow( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ),
       []( MapSquare& square ) { square.irrigation = true; } );
 }
 
-void World::add_minor_river( gfx::point p ) {
+void World::add_minor_river( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
         square.river = e_river::minor;
       } );
 }
 
-void World::add_major_river( gfx::point p ) {
+void World::add_major_river( point const p ) {
   map_updater_->modify_map_square(
       Coord::from_gfx( p ), []( MapSquare& square ) {
         square.river = e_river::major;
@@ -324,18 +330,18 @@ Unit& World::add_unit_in_port( e_unit_type     type,
 }
 
 NativeUnit& World::add_native_unit_on_map(
-    e_native_unit_type type, Coord where,
+    e_native_unit_type type, point const tile,
     DwellingId dwelling_id ) {
   return units().unit_for( create_unit_on_map_non_interactive(
-      ss(), type, where, dwelling_id ) );
+      ss(), type, tile, dwelling_id ) );
 }
 
 Unit& World::add_unit_on_map( UnitComposition const& comp,
-                              gfx::point const       where,
+                              point const            tile,
                               maybe<e_nation>        nation ) {
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_unit_on_map_non_interactive(
-      ss(), ts(), player( *nation ), comp, where );
+      ss(), ts(), player( *nation ), comp, tile );
   return units().unit_for( unit_id );
 }
 
@@ -505,15 +511,16 @@ void World::kill_all_colonies( maybe<e_nation> const nation ) {
 // --------------------------------------------------------------
 // Creating Native Dwellings.
 // --------------------------------------------------------------
-Dwelling& World::add_dwelling( Coord where, e_tribe tribe ) {
+Dwelling& World::add_dwelling( point const tile,
+                               e_tribe     tribe ) {
   natives().create_or_get_tribe( tribe );
   DwellingId const id = natives().add_dwelling(
-      tribe, where,
+      tribe, Coord::from_gfx( tile ),
       Dwelling{
         .population =
             config_natives.tribes[tribe].max_population,
       } );
-  set_road( map_updater(), where );
+  set_road( map_updater(), Coord::from_gfx( tile ) );
   return natives().dwelling_for( id );
 }
 

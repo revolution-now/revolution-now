@@ -233,9 +233,9 @@ void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
 ** Map Ownership
 *****************************************************************/
 vector<UnitId> euro_units_from_coord_recursive(
-    UnitsState const& units_state, Coord coord ) {
+    UnitsState const& units_state, point const tile ) {
   vector<UnitId> res;
-  for( GenericUnitId id : units_state.from_coord( coord ) ) {
+  for( GenericUnitId id : units_state.from_coord( tile ) ) {
     if( units_state.unit_kind( id ) != e_unit_kind::euro )
       continue;
     UnitId const unit_id = units_state.check_euro_unit( id );
@@ -245,6 +245,7 @@ vector<UnitId> euro_units_from_coord_recursive(
                           .items_of_type<Cargo::unit>();
     for( auto held : held_units ) res.push_back( held.id );
   }
+  sort( res.begin(), res.end() ); // make it deterministic.
   return res;
 }
 
@@ -268,6 +269,7 @@ std::vector<GenericUnitId> units_from_coord_recursive(
         break;
     }
   }
+  sort( res.begin(), res.end() ); // make it deterministic.
   return res;
 }
 

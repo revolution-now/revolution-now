@@ -140,7 +140,7 @@ struct World {
                           maybe<e_nation> nation = nothing );
 
   NativeUnit& add_native_unit_on_map( e_native_unit_type type,
-                                      Coord              where,
+                                      gfx::point         tile,
                                       DwellingId dwelling_id );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
@@ -230,7 +230,7 @@ struct World {
   // ------------------------------------------------------------
   // Creating Native Dwellings.
   // ------------------------------------------------------------
-  Dwelling& add_dwelling( Coord where, e_tribe tribe );
+  Dwelling& add_dwelling( gfx::point tile, e_tribe tribe );
 
   // Creates a dwelling on the tile and then a brave on the same
   // tile associated with the dwelling.

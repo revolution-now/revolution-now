@@ -70,7 +70,7 @@ maybe<e_unit_activity> current_activity_for_unit(
 // unit cannot be held as cargo if it itself if capable of
 // holding cargo (e.g., a ship can't hold a wagon as cargo).
 std::vector<UnitId> euro_units_from_coord_recursive(
-    UnitsState const& units_state, Coord coord );
+    UnitsState const& units_state, gfx::point tile );
 
 // Same as above but also includes any native units.
 std::vector<GenericUnitId> units_from_coord_recursive(
