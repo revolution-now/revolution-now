@@ -63,19 +63,20 @@ struct IVisibility {
 
   // Returns if the tile is visible in this rendering. If the
   // tile if off-map then they are always hidden (proto square).
-  virtual e_tile_visibility visible( Coord tile ) const = 0;
+  virtual e_tile_visibility visible( gfx::point tile ) const = 0;
 
-  virtual maybe<Colony const&> colony_at( Coord tile ) const = 0;
+  virtual maybe<Colony const&> colony_at(
+      gfx::point tile ) const = 0;
 
   virtual maybe<Dwelling const&> dwelling_at(
-      Coord tile ) const = 0;
+      gfx::point tile ) const = 0;
 
   // For rendering purposes, this should be called to determine
   // whether there is a prime resource actually visible on the
   // square, since there is some logic involved in doing that be-
   // yond just looking at the MapSquare object.
   virtual maybe<e_natural_resource> resource_at(
-      Coord tile ) const final;
+      gfx::point tile ) const final;
 
   // In general we're rendering the terrain from the point of
   // view of a player and so it may have only partial visibility.
@@ -90,13 +91,14 @@ struct IVisibility {
   // hidden to the player, this will return either the real map
   // square (if visible and clear) or the player's version of it
   // (if fogged).
-  virtual MapSquare const& square_at( Coord tile ) const = 0;
+  virtual MapSquare const& square_at(
+      gfx::point tile ) const = 0;
 
   // For convenience.
   Rect rect_tiles() const;
 
   // For convenience. Is the tile on the map.
-  bool on_map( Coord tile ) const;
+  bool on_map( gfx::point tile ) const;
 
  private:
   // There are a couple of situations where we don't want to
@@ -107,7 +109,7 @@ struct IVisibility {
   // kept as dumb as possible for unit testing purposes. The ren-
   // derer will call the resource_at() method, which in turn will
   // call this one.
-  bool is_resource_suppressed( Coord tile ) const;
+  bool is_resource_suppressed( gfx::point tile ) const;
 
  protected:
   TerrainState const& terrain_;
@@ -126,14 +128,15 @@ struct VisibilityEntire : IVisibility {
     return base::nothing;
   };
 
-  e_tile_visibility visible( Coord ) const override;
+  e_tile_visibility visible( gfx::point ) const override;
 
-  maybe<Colony const&> colony_at( Coord tile ) const override;
+  maybe<Colony const&> colony_at(
+      gfx::point tile ) const override;
 
   maybe<Dwelling const&> dwelling_at(
-      Coord tile ) const override;
+      gfx::point tile ) const override;
 
-  MapSquare const& square_at( Coord tile ) const override;
+  MapSquare const& square_at( gfx::point tile ) const override;
 
  private:
   SSConst const& ss_;
@@ -151,18 +154,19 @@ struct VisibilityForNation : IVisibility {
     return nation_;
   };
 
-  e_tile_visibility visible( Coord tile ) const override;
+  e_tile_visibility visible( gfx::point tile ) const override;
 
-  maybe<Colony const&> colony_at( Coord tile ) const override;
+  maybe<Colony const&> colony_at(
+      gfx::point tile ) const override;
 
   maybe<Dwelling const&> dwelling_at(
-      Coord tile ) const override;
+      gfx::point tile ) const override;
 
-  MapSquare const& square_at( Coord tile ) const override;
+  MapSquare const& square_at( gfx::point tile ) const override;
 
  private:
   maybe<PlayerSquare const&> player_square_at(
-      Coord tile ) const;
+      gfx::point tile ) const;
 
   SSConst const&             ss_;
   VisibilityEntire           entire_;
@@ -185,14 +189,15 @@ struct VisibilityWithOverrides : IVisibility {
     return underlying_.nation();
   };
 
-  e_tile_visibility visible( Coord tile ) const override;
+  e_tile_visibility visible( gfx::point tile ) const override;
 
-  maybe<Colony const&> colony_at( Coord tile ) const override;
+  maybe<Colony const&> colony_at(
+      gfx::point tile ) const override;
 
   maybe<Dwelling const&> dwelling_at(
-      Coord tile ) const override;
+      gfx::point tile ) const override;
 
-  MapSquare const& square_at( Coord tile ) const override;
+  MapSquare const& square_at( gfx::point tile ) const override;
 
  private:
   IVisibility const&         underlying_;
@@ -212,8 +217,8 @@ std::unique_ptr<IVisibility const> create_visibility_for(
 // that it was explored earlier in the turn and is still consid-
 // ered visible and clear.
 bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation nation,
-                                             Coord    tile );
+                                             e_nation   nation,
+                                             gfx::point tile );
 
 // This will look up the unit type's sighting radius, and then
 // compute each (existing) square that the unit could see as-
@@ -229,7 +234,7 @@ bool does_nation_have_fog_removed_on_square( SSConst const& ss,
 std::vector<Coord> unit_visible_squares( SSConst const& ss,
                                          e_nation       nation,
                                          e_unit_type    type,
-                                         Coord          tile );
+                                         gfx::point     tile );
 
 // Will restore all visible tiles' fog state to "fog enabled" un-
 // less the square is within the sighting radius of a friendly
@@ -258,7 +263,7 @@ void update_map_visibility( TS& ts, maybe<e_nation> nation );
 // Used to determine if a unit move should be animated, which
 // happens if either the source or destination tiles of the move
 // (or attack) is visible and clear.
-bool should_animate_move( IVisibility const& viz, Coord src,
-                          Coord dst );
+bool should_animate_move( IVisibility const& viz, gfx::point src,
+                          gfx::point dst );
 
 } // namespace rn

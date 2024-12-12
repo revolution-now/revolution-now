@@ -47,6 +47,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 using unexplored = PlayerSquare::unexplored;
 using explored   = PlayerSquare::explored;
 using fogged     = FogStatus::fogged;
@@ -105,12 +107,12 @@ Rect IVisibility::rect_tiles() const {
   return terrain_.world_rect_tiles();
 }
 
-bool IVisibility::on_map( Coord tile ) const {
+bool IVisibility::on_map( point const tile ) const {
   return tile.is_inside( rect_tiles() );
 }
 
 maybe<e_natural_resource> IVisibility::resource_at(
-    Coord tile ) const {
+    point const tile ) const {
   maybe<e_natural_resource> const res =
       effective_resource( square_at( tile ) );
   // Check this first for optimization purposes.
@@ -120,7 +122,8 @@ maybe<e_natural_resource> IVisibility::resource_at(
   return *res;
 }
 
-bool IVisibility::is_resource_suppressed( Coord tile ) const {
+bool IVisibility::is_resource_suppressed(
+    point const tile ) const {
   MapSquare const& square = square_at( tile );
   if( square.lost_city_rumor ) return true;
   // The OG suppresses the rendering of prime resources under na-
@@ -138,17 +141,18 @@ bool IVisibility::is_resource_suppressed( Coord tile ) const {
 VisibilityEntire::VisibilityEntire( SSConst const& ss )
   : IVisibility( ss ), ss_( ss ) {}
 
-e_tile_visibility VisibilityEntire::visible( Coord ) const {
+e_tile_visibility VisibilityEntire::visible(
+    point const ) const {
   return e_tile_visibility::clear;
 }
 
 MapSquare const& VisibilityEntire::square_at(
-    Coord tile ) const {
+    point const tile ) const {
   return ss_.terrain.total_square_at( tile );
 };
 
 maybe<Colony const&> VisibilityEntire::colony_at(
-    Coord tile ) const {
+    point const tile ) const {
   return ss_.colonies.maybe_from_coord( tile ).fmap(
       [&]( ColonyId const colony_id ) -> Colony const& {
         return ss_.colonies.colony_for( colony_id );
@@ -156,7 +160,7 @@ maybe<Colony const&> VisibilityEntire::colony_at(
 }
 
 maybe<Dwelling const&> VisibilityEntire::dwelling_at(
-    Coord tile ) const {
+    point const tile ) const {
   return ss_.natives.maybe_dwelling_from_coord( tile ).fmap(
       [&]( DwellingId const dwelling_id ) -> Dwelling const& {
         return ss_.natives.dwelling_for( dwelling_id );
@@ -176,7 +180,7 @@ VisibilityForNation::VisibilityForNation( SSConst const& ss,
         ss.terrain.player_terrain( nation ).value() ) ) {}
 
 e_tile_visibility VisibilityForNation::visible(
-    Coord tile ) const {
+    point const tile ) const {
   maybe<PlayerSquare const&> player_square =
       player_square_at( tile );
   if( !player_square.has_value() )
@@ -194,14 +198,14 @@ e_tile_visibility VisibilityForNation::visible(
 }
 
 maybe<PlayerSquare const&> VisibilityForNation::player_square_at(
-    Coord tile ) const {
+    point const tile ) const {
   // If it's a proto square then can't obtain a player square.
   if( !on_map( tile ) ) return nothing;
   return player_terrain_->map[tile];
 }
 
 maybe<Colony const&> VisibilityForNation::colony_at(
-    Coord tile ) const {
+    point const tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
     CASE( unexplored ) { return nothing; }
@@ -215,7 +219,7 @@ maybe<Colony const&> VisibilityForNation::colony_at(
 }
 
 maybe<Dwelling const&> VisibilityForNation::dwelling_at(
-    Coord tile ) const {
+    point const tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
     CASE( unexplored ) { return nothing; }
@@ -229,7 +233,7 @@ maybe<Dwelling const&> VisibilityForNation::dwelling_at(
 }
 
 MapSquare const& VisibilityForNation::square_at(
-    Coord tile ) const {
+    point const tile ) const {
   maybe<PlayerSquare const&> const player_square =
       player_square_at( tile );
   if( !player_square.has_value() )
@@ -276,17 +280,17 @@ VisibilityWithOverrides::VisibilityWithOverrides(
     overrides_( overrides ) {}
 
 e_tile_visibility VisibilityWithOverrides::visible(
-    Coord tile ) const {
+    point const tile ) const {
   return underlying_.visible( tile );
 }
 
 maybe<Colony const&> VisibilityWithOverrides::colony_at(
-    Coord tile ) const {
+    point const tile ) const {
   return underlying_.colony_at( tile );
 }
 
 maybe<Dwelling const&> VisibilityWithOverrides::dwelling_at(
-    Coord tile ) const {
+    point const tile ) const {
   if( auto it = overrides_.dwellings.find( tile );
       it != overrides_.dwellings.end() )
     return it->second;
@@ -294,7 +298,7 @@ maybe<Dwelling const&> VisibilityWithOverrides::dwelling_at(
 }
 
 MapSquare const& VisibilityWithOverrides::square_at(
-    Coord tile ) const {
+    point const tile ) const {
   if( auto it = overrides_.squares.find( tile );
       it != overrides_.squares.end() )
     return it->second;
@@ -315,7 +319,7 @@ std::unique_ptr<IVisibility const> create_visibility_for(
 vector<Coord> unit_visible_squares( SSConst const& ss,
                                     e_nation       nation,
                                     e_unit_type    type,
-                                    Coord          tile ) {
+                                    point const    tile ) {
   TerrainState const& terrain = ss.terrain;
   int const  radius = unit_sight_radius( ss, nation, type );
   Rect const possible =
@@ -330,7 +334,7 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
       largest_possible_sighting_radius() * 2 + 1;
   res.reserve( largest_block_size * largest_block_size );
   for( Rect rect : gfx::subrects( possible ) ) {
-    Coord                   coord = rect.upper_left();
+    point const             coord = rect.upper_left();
     maybe<MapSquare const&> square =
         terrain.maybe_square_at( coord );
     if( !square.has_value() ) continue;
@@ -348,8 +352,8 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
 }
 
 bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation nation,
-                                             Coord    tile ) {
+                                             e_nation    nation,
+                                             point const tile ) {
   if( !ss.players.players[nation].has_value() ) return false;
   UNWRAP_CHECK( player_terrain,
                 ss.terrain.player_terrain( nation ) );
@@ -370,10 +374,10 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
   auto const& m = player_terrain.map;
 
   timer.checkpoint( "generate fogged set" );
-  unordered_set<Coord> fogged;
+  unordered_set<point> fogged;
   for( int y = 0; y < m.size().h; ++y ) {
     for( int x = 0; x < m.size().w; ++x ) {
-      Coord const coord{ .x = x, .y = y };
+      point const coord{ .x = x, .y = y };
       SWITCH( m[coord] ) {
         CASE( unexplored ) { continue; }
         CASE( explored ) {
@@ -408,7 +412,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
     // This should not yield and squares that don't exist.
     vector<Coord> const visible = unit_visible_squares(
         ss, nation, unit.type(), world->coord );
-    for( Coord const coord : visible ) { fogged.erase( coord ); }
+    for( point const coord : visible ) { fogged.erase( coord ); }
   }
 
   // Unfog the surroundings of colonies.
@@ -455,8 +459,8 @@ void update_map_visibility( TS&                   ts,
       nation );
 }
 
-bool should_animate_move( IVisibility const& viz, Coord src,
-                          Coord dst ) {
+bool should_animate_move( IVisibility const& viz,
+                          point const src, point const dst ) {
   return ( viz.visible( src ) == e_tile_visibility::clear ) ||
          ( viz.visible( dst ) == e_tile_visibility::clear );
 }
