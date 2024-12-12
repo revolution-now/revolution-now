@@ -22,6 +22,13 @@
 // C++ standard library
 #include <algorithm>
 
+// TODO: temporary.
+namespace rn {
+struct Coord;
+struct Delta;
+struct Rect;
+}
+
 namespace gfx {
 
 struct drect;
@@ -34,6 +41,14 @@ struct rect;
 struct size {
   int w = 0;
   int h = 0;
+
+  // Do some delayed type stuff so that we can break the circular
+  // reference of point<-->Delta since they both need to be in-
+  // terconvertible to each other for a smooth migration.
+  template<std::same_as<::rn::Delta> T = ::rn::Delta>
+  operator T() const {
+    return T{ .w = w, .h = h };
+  }
 
   [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
@@ -104,6 +119,14 @@ struct point {
   }
 
   static point origin();
+
+  // Do some delayed type stuff so that we can break the circular
+  // reference of point<-->Coord since they both need to be in-
+  // terconvertible to each other for a smooth migration.
+  template<std::same_as<::rn::Coord> T = ::rn::Coord>
+  operator T() const {
+    return T{ .x = x, .y = y };
+  }
 
   [[nodiscard]] point point_becomes_origin( point p ) const;
   [[nodiscard]] point origin_becomes_point( point p ) const;
@@ -208,6 +231,15 @@ inline auto point::to_double() const {
 struct rect {
   point     origin = {}; // upper left when normalized.
   gfx::size size   = {};
+
+  // Do some delayed type stuff so that we can break the circular
+  // reference of point<-->Rect since they both need to be inter-
+  // convertible to each other for a smooth migration.
+  template<std::same_as<::rn::Rect> T = ::rn::Rect>
+  operator T() const {
+    return T{
+      .x = origin.x, .y = origin.y, .w = size.w, .h = size.h };
+  }
 
   static rect from( point first, point opposite );
 

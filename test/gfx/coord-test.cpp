@@ -505,15 +505,23 @@ TEST_CASE( "[coord] rounded_to_multiple_to_plus_inf" ) {
 }
 
 TEST_CASE( "[coord] to gfx" ) {
-  Delta d{ .w = 5, .h = 6 };
-  Coord c{ .x = 5, .y = 6 };
-  Rect  r = Rect::from( Coord{ .x = 1, .y = 2 },
-                        Delta{ .w = 5, .h = 6 } );
+  Delta const d{ .w = 5, .h = 6 };
+  Coord const c{ .x = 5, .y = 6 };
+  Rect const  r = Rect::from( Coord{ .x = 1, .y = 2 },
+                              Delta{ .w = 5, .h = 6 } );
 
-  REQUIRE( d == gfx::size{ .w = 5, .h = 6 } );
-  REQUIRE( c == gfx::point{ .x = 5, .y = 6 } );
-  REQUIRE( r == gfx::rect{ .origin = { .x = 1, .y = 2 },
-                           .size   = { .w = 5, .h = 6 } } );
+  gfx::size const s = d;
+  REQUIRE( s == gfx::size{ .w = 5, .h = 6 } );
+  REQUIRE( d.to_gfx() == s );
+
+  gfx::point const p = c;
+  REQUIRE( p == gfx::point{ .x = 5, .y = 6 } );
+  REQUIRE( c.to_gfx() == p );
+
+  gfx::rect const gr = r;
+  REQUIRE( gr == gfx::rect{ .origin = { .x = 1, .y = 2 },
+                            .size   = { .w = 5, .h = 6 } } );
+  REQUIRE( r.to_gfx() == gr );
 }
 
 TEST_CASE( "[coord] from gfx" ) {

@@ -104,10 +104,11 @@ void render_unit_flag( rr::Renderer& renderer, Coord where,
                        UnitFlagRenderInfo const& flag_info ) {
   if( flag_info.stacked )
     render_unit_flag_single(
-        renderer, where + flag_info.offsets.offset_stacked,
+        renderer,
+        where.to_gfx() + flag_info.offsets.offset_stacked,
         flag_info );
   render_unit_flag_single(
-      renderer, where + flag_info.offsets.offset_first,
+      renderer, where.to_gfx() + flag_info.offsets.offset_first,
       flag_info );
 }
 

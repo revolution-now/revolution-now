@@ -77,7 +77,7 @@ void PopulationView::draw_sons_of_liberty(
     render_sprite( renderer, pos, e_tile::rebel_flag );
     pos.x += sprite_size( e_tile::rebel_flag ).w + kIconPadding;
     rr::Typer typer = renderer.typer(
-        pos + gfx::size{ .h = kTextVerticalOffset },
+        pos.to_gfx() + gfx::size{ .h = kTextVerticalOffset },
         text_color );
     typer.write( fmt::format(
         "{}% ({})", info.sol_integral_percent, info.rebels ) );
@@ -94,7 +94,8 @@ void PopulationView::draw_sons_of_liberty(
           sprite_size( e_tile::crown ).w - kIconPadding -
           tories_text_width.w;
   rr::Typer typer = renderer.typer(
-      pos + gfx::size{ .h = kTextVerticalOffset }, text_color );
+      pos.to_gfx() + gfx::size{ .h = kTextVerticalOffset },
+      text_color );
   typer.write( tories_str );
   pos.x = typer.position().x;
   pos.x += kIconPadding;

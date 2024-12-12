@@ -13,6 +13,9 @@
 // Under test.
 #include "src/gfx/cartesian.hpp"
 
+// gfx
+#include "src/gfx/coord.hpp" // FIXME: temporary
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -1721,6 +1724,21 @@ TEST_CASE( "[gfx/cartesian] UDLs" ) {
 
   auto constexpr nx = ( -4_x, 3_y );
   REQUIRE( nx == point{ .x = -4, .y = 3 } );
+}
+
+/****************************************************************
+** Interconversion (FIXME: temporary)
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] interconversion" ) {
+  ::rn::Coord const c = point{ .x = 6, .y = 7 };
+  REQUIRE( c == ::rn::Coord{ .x = 6, .y = 7 } );
+
+  ::rn::Delta const d = size{ .w = 6, .h = 7 };
+  REQUIRE( d == ::rn::Delta{ .w = 6, .h = 7 } );
+
+  ::rn::Rect const r = rect{ .origin = { .x = 1, .y = 2 },
+                             .size   = { .w = 6, .h = 7 } };
+  REQUIRE( r == ::rn::Rect{ .x = 1, .y = 2, .w = 6, .h = 7 } );
 }
 
 } // namespace

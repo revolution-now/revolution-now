@@ -504,7 +504,7 @@ TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
   REQUIRE( convert_to_rn( classic, modern ) == valid );
 
   auto const& map = modern.map;
-  REQUIRE( map.size() == gfx::size{ .w = 5, .h = 6 } );
+  REQUIRE( map.size().to_gfx() == gfx::size{ .w = 5, .h = 6 } );
 
   expected = MS{ .surface = rn::e_surface::water };
   REQUIRE( map[{ .x = 0, .y = 0 }] == expected );
