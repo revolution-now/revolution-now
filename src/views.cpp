@@ -1044,10 +1044,7 @@ bool LabeledCheckBoxView::on_mouse_button(
 TextLabeledCheckBoxView::TextLabeledCheckBoxView( string label,
                                                   bool   on )
   : LabeledCheckBoxView(
-        make_unique<TextView>( std::move( label ) ), on ) {
-  add_view( make_unique<TextView>( std::move( label ) ) );
-  recompute_child_positions();
-}
+        make_unique<TextView>( std::move( label ) ), on ) {}
 
 /****************************************************************
 ** OkCancelAdapterView
