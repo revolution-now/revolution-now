@@ -240,6 +240,7 @@ struct HarborPlane::Impl : public IPlane {
 
     // Intercept cheat commands.
     if( event.mod.shf_down ) {
+      if( !cheat_mode_enabled( ss_ ) ) co_return;
       switch( event.keycode ) {
         case ::SDLK_LEFTBRACKET:
           cheat_decrease_tax_rate( player_ );

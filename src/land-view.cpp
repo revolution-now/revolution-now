@@ -429,15 +429,17 @@ struct LandViewPlane::Impl : public IPlane {
     switch( raw_input.input.to_enum() ) {
       using e = LandViewRawInput::e;
       case e::reveal_map: {
+        if( !cheat_mode_enabled( ss_ ) ) break;
         co_await cheat_reveal_map( ss_, ts_ );
         break;
       }
       case e::toggle_map_reveal: {
+        if( !cheat_mode_enabled( ss_ ) ) break;
         cheat_toggle_reveal_full_map( ss_, ts_ );
         break;
       }
       case e::cheat_create_unit: {
-        // cheat mode.
+        if( !cheat_mode_enabled( ss_ ) ) break;
         maybe<e_nation> const nation =
             player_for_role( ss_, e_player_role::active );
         if( !nation.has_value() ) break;
@@ -499,6 +501,7 @@ struct LandViewPlane::Impl : public IPlane {
             raw_input.input.get<LandViewRawInput::tile_click>();
         if( o.mods.shf_down ) {
           // cheat mode.
+          if( !cheat_mode_enabled( ss_ ) ) break;
           maybe<e_nation> const nation =
               player_for_role( ss_, e_player_role::active );
           if( !nation.has_value() ) break;
@@ -963,6 +966,17 @@ struct LandViewPlane::Impl : public IPlane {
             }
             break;
           }
+          case ::SDLK_F1:
+            if( key_event.mod.shf_down ) {
+              if( !cheat_mode_enabled( ss_ ) ) break;
+              // Cheat mode.
+              if( !mode_.holds<LandViewMode::unit_input>() &&
+                  !mode_.holds<LandViewMode::view_mode>() )
+                break;
+              raw_input_stream_.send( RawInput(
+                  LandViewRawInput::cheat_create_unit{} ) );
+            }
+            break;
           case ::SDLK_v:
             if( key_event.mod.shf_down ) break;
             if( !mode_.holds<LandViewMode::unit_input>() &&

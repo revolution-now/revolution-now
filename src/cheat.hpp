@@ -35,6 +35,11 @@ struct Unit;
 struct UnitsState;
 
 /****************************************************************
+** General.
+*****************************************************************/
+bool cheat_mode_enabled( SSConst const& ss );
+
+/****************************************************************
 ** In Land View
 *****************************************************************/
 // Any cheat function that requires a target map square on which

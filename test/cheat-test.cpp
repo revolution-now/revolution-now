@@ -812,5 +812,17 @@ TEST_CASE( "[cheat] cheat_target_square" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[cheat] cheat_mode_enabled" ) {
+  world w;
+
+  auto f = [&] { return cheat_mode_enabled( w.ss().as_const ); };
+
+  REQUIRE_FALSE( f() );
+  w.settings().cheat_options.enabled = true;
+  REQUIRE( f() );
+  w.settings().cheat_options.enabled = false;
+  REQUIRE_FALSE( f() );
+}
+
 } // namespace
 } // namespace rn

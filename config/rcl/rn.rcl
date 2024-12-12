@@ -53,7 +53,7 @@ power {
 }
 
 # Are the various cheat/debug hot keys and menus available.
-cheat_functions_enabled: true
+cheat_functions_enabled: false
 
 game_flag_options_defaults {
   show_indian_moves:   true

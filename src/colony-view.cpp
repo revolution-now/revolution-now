@@ -220,6 +220,7 @@ struct ColonyPlane : public IPlane {
       co_return false;
     if( event.mod.shf_down ) {
       // Cheat commands.
+      if( !cheat_mode_enabled( ss_ ) ) co_return false;
       switch( event.keycode ) {
         case ::SDLK_1:
           co_await cheat_colony_buildings( colony_, ts_.gui );
@@ -258,6 +259,7 @@ struct ColonyPlane : public IPlane {
       co_return false;
     if( event.mod.shf_down ) {
       // Cheat commands.
+      if( !cheat_mode_enabled( ss_ ) ) co_return false;
       switch( event.buttons ) {
         case input::e_mouse_button_event::left_up:
           try_promote_demote_unit( ss_, ts_, colony_, event.pos,

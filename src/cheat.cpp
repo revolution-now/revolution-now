@@ -56,6 +56,9 @@
 #include "ss/terrain.hpp"
 #include "ss/unit.hpp"
 
+// luapp
+#include "luapp/register.hpp"
+
 // gfx
 #include "gfx/iter.hpp"
 
@@ -76,12 +79,6 @@
 using namespace std;
 
 namespace rn {
-
-#define CO_RETURN_IF_NO_CHEAT \
-  if( !config_rn.cheat_functions_enabled ) co_return
-
-#define RETURN_IF_NO_CHEAT \
-  if( !config_rn.cheat_functions_enabled ) return
 
 namespace {
 
@@ -108,7 +105,21 @@ void reveal_map_qol( SS& ss, TS& ts ) {
                        e_game_flag_option::show_foreign_moves );
 }
 
+// This just decides if cheat functions should be enabled by de-
+// fault when a new game starts. The actual per-game setting is
+// stored in the game settings.
+bool config_cheat_mode_enabled() {
+  return config_rn.cheat_functions_enabled;
+}
+
 } // namespace
+
+/****************************************************************
+** General.
+*****************************************************************/
+bool cheat_mode_enabled( SSConst const& ss ) {
+  return ss.settings.cheat_options.enabled;
+}
 
 /****************************************************************
 ** In Land View
@@ -127,7 +138,6 @@ maybe<point> cheat_target_square( SSConst const& ss, TS& ts ) {
 }
 
 wait<> cheat_reveal_map( SS& ss, TS& ts ) {
-  CO_RETURN_IF_NO_CHEAT;
   // All enabled by default.
   refl::enum_map<e_cheat_reveal_map, bool> disabled;
   for( e_nation nation : refl::enum_values<e_nation> ) {
@@ -179,7 +189,6 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 }
 
 wait<> cheat_set_human_players( SS& ss, TS& ts ) {
-  CO_RETURN_IF_NO_CHEAT;
   // All enabled by default.
   refl::enum_map<e_nation, CheckBoxInfo> info_map;
   for( e_nation nation : refl::enum_values<e_nation> ) {
@@ -224,7 +233,6 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
 }
 
 void cheat_explore_entire_map( SS& ss, TS& ts ) {
-  RETURN_IF_NO_CHEAT;
   Rect const world_rect = ss.terrain.world_rect_tiles();
   maybe<e_nation> const nation =
       player_for_role( ss, e_player_role::viewer );
@@ -276,7 +284,6 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
 }
 
 void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
-  RETURN_IF_NO_CHEAT;
   MapRevealed& revealed = ss.land_view.map_revealed;
   if( revealed.holds<MapRevealed::no_special_view>() ||
       revealed.holds<MapRevealed::nation>() ) {
@@ -367,7 +374,6 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
 }
 
 wait<> kill_natives( SS& ss, TS& ts ) {
-  CO_RETURN_IF_NO_CHEAT;
   constexpr auto& tribes = refl::enum_values<e_tribe>;
 
   // Is there anything to do?
@@ -478,32 +484,27 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 ** In Harbor View
 *****************************************************************/
 void cheat_increase_tax_rate( Player& player ) {
-  RETURN_IF_NO_CHEAT;
   int& rate = player.old_world.taxes.tax_rate;
   rate      = clamp( rate + 1, 0, 100 );
 }
 
 void cheat_decrease_tax_rate( Player& player ) {
-  RETURN_IF_NO_CHEAT;
   int& rate = player.old_world.taxes.tax_rate;
   rate      = clamp( rate - 1, 0, 100 );
 }
 
 void cheat_increase_gold( Player& player ) {
-  RETURN_IF_NO_CHEAT;
   int& gold = player.money;
   gold      = gold + 1000;
 }
 
 void cheat_decrease_gold( Player& player ) {
-  RETURN_IF_NO_CHEAT;
   int& gold = player.money;
   gold      = std::max( gold - 1000, 0 );
 }
 
 wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
                                    Player& player ) {
-  CO_RETURN_IF_NO_CHEAT;
   evolve_group_model_volumes( ss );
   refl::enum_map<e_commodity, PriceChange> const changes =
       evolve_player_prices( static_cast<SSConst const&>( ss ),
@@ -515,7 +516,6 @@ wait<> cheat_evolve_market_prices( SS& ss, TS& ts,
 }
 
 void cheat_toggle_boycott( Player& player, e_commodity type ) {
-  RETURN_IF_NO_CHEAT;
   bool& boycott =
       player.old_world.market.commodities[type].boycott;
   boycott = !boycott;
@@ -525,7 +525,6 @@ void cheat_toggle_boycott( Player& player, e_commodity type ) {
 ** In Colony View
 *****************************************************************/
 wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
-  CO_RETURN_IF_NO_CHEAT;
   maybe<e_cheat_colony_buildings_option> mode =
       co_await gui.optional_enum_choice<
           e_cheat_colony_buildings_option>();
@@ -580,7 +579,6 @@ wait<> cheat_colony_buildings( Colony& colony, IGui& gui ) {
 }
 
 void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
-  RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT {
     lg.debug( "{} --> {}", original_type, unit.type_obj() );
@@ -639,7 +637,6 @@ void cheat_upgrade_unit_expertise( SS& ss, TS& ts, Unit& unit ) {
 
 void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
                                      Unit& unit ) {
-  RETURN_IF_NO_CHEAT;
   UnitType const original_type = unit.type_obj();
   SCOPE_EXIT {
     lg.debug( "{} --> {}", original_type, unit.type_obj() );
@@ -706,7 +703,6 @@ void cheat_downgrade_unit_expertise( SS& ss, TS& ts,
 void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Player const& player,
                                 Colony const& colony ) {
-  RETURN_IF_NO_CHEAT;
   // Non-interactive works here because currently we're only
   // using this to create a unit inside the colony view.
   create_unit_on_map_non_interactive( ss, ts, player,
@@ -716,7 +712,6 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
 
 void cheat_increase_commodity( Colony&     colony,
                                e_commodity type ) {
-  RETURN_IF_NO_CHEAT;
   int& quantity = colony.commodities[type];
   quantity += 50;
   quantity = quantity - ( quantity % 50 );
@@ -724,7 +719,6 @@ void cheat_increase_commodity( Colony&     colony,
 
 void cheat_decrease_commodity( Colony&     colony,
                                e_commodity type ) {
-  RETURN_IF_NO_CHEAT;
   int& quantity = colony.commodities[type];
   if( quantity % 50 != 0 )
     quantity -= ( quantity % 50 );
@@ -735,7 +729,6 @@ void cheat_decrease_commodity( Colony&     colony,
 
 void cheat_advance_colony_one_turn(
     IColonyEvolver const& colony_evolver, Colony& colony ) {
-  RETURN_IF_NO_CHEAT;
   lg.debug( "advancing colony {}. notifications:", colony.name );
   ColonyEvolution ev =
       colony_evolver.evolve_colony_one_turn( colony );
@@ -751,7 +744,6 @@ void cheat_advance_colony_one_turn(
 wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
                                  e_nation const nation,
                                  point const    tile ) {
-  CO_RETURN_IF_NO_CHEAT;
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
     { e_cheat_unit_creation_categories::basic_colonists,
@@ -840,6 +832,15 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
   [[maybe_unused]] maybe<UnitId> unit_id =
       co_await create_unit_on_map( ss, ts, player, *type,
                                    Coord::from_gfx( tile ) );
+}
+
+/****************************************************************
+** Lua
+*****************************************************************/
+namespace {
+
+LUA_AUTO_FN( config_cheat_mode_enabled );
+
 }
 
 } // namespace rn

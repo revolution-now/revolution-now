@@ -81,7 +81,8 @@ wait<> HarborMarketCommodities::perform_click(
 
   if( event.mod.shf_down ) {
     // Cheat functions.
-    cheat_toggle_boycott( player_, type );
+    if( cheat_mode_enabled( ss_ ) )
+      cheat_toggle_boycott( player_, type );
     co_return;
   }
 

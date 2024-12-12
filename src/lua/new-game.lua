@@ -22,6 +22,7 @@ local map_gen = require( 'map-gen' )
 -- a declared global.
 local function global( name ) return assert( _G[name] ) end
 
+local cheat = global( 'cheat' )
 local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
 local market = global( 'market' )
@@ -54,7 +55,8 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.difficulty = options.difficulty
-  settings.cheat_options.enabled = true;
+  settings.cheat_options.enabled =
+      cheat.config_cheat_mode_enabled()
   -- TODO: these are in config/rn... get them from there.
   game_options.set_flag( 'show_indian_moves', true )
   game_options.set_flag( 'show_foreign_moves', true )
