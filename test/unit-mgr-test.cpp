@@ -684,5 +684,13 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   REQUIRE_THAT( f(), UnorderedEquals( expected ) );
 }
 
+TEST_CASE( "[unit-mgr] units_from_coord_recursive" ) {
+  World w;
+}
+
+TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
+  World w;
+}
+
 } // namespace
 } // namespace rn
