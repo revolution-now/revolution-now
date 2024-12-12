@@ -52,6 +52,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::Eq;
 
@@ -63,9 +64,9 @@ using clear      = FogStatus::clear;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -90,22 +91,22 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
-  World W;
-  W.create_default_map();
+  world w;
+  w.create_default_map();
 
   auto up = [&]( Unit& unit ) {
-    cheat_upgrade_unit_expertise( W.ss(), W.ts(), unit );
+    cheat_upgrade_unit_expertise( w.ss(), w.ts(), unit );
   };
 
   auto down = [&]( Unit& unit ) {
-    cheat_downgrade_unit_expertise( W.ss(), W.ts(), unit );
+    cheat_downgrade_unit_expertise( w.ss(), w.ts(), unit );
   };
 
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
+    Colony&         colony = w.add_colony( w.kLand );
     Unit&           unit =
-        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+        w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     expected = UnitComposition( wrapped::UnitComposition{
       .type      = e_unit_type::expert_farmer,
@@ -123,8 +124,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "free_colonist fishing" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
-    Unit& unit = W.add_unit_outdoors( colony.id, e_direction::ne,
+    Colony&         colony = w.add_colony( w.kLand );
+    Unit& unit = w.add_unit_outdoors( colony.id, e_direction::ne,
                                       e_outdoor_job::fish );
     expected   = UnitComposition( wrapped::UnitComposition{
         .type      = e_unit_type::free_colonist,
@@ -143,7 +144,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
     Unit&           unit =
-        W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand );
+        w.add_unit_on_map( e_unit_type::expert_farmer, w.kLand );
     expected = UnitComposition( wrapped::UnitComposition{
       .type      = e_unit_type::expert_farmer,
       .inventory = {},
@@ -213,7 +214,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
         initial_ut,
         UnitType::create( e_unit_type::dragoon,
                           e_unit_type::master_carpenter ) );
-    Unit& unit = W.add_unit_on_map( initial_ut, W.kLand );
+    Unit& unit = w.add_unit_on_map( initial_ut, w.kLand );
     {
       UNWRAP_CHECK(
           expected_ut,
@@ -243,7 +244,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
   SECTION( "dragoon" ) {
     UnitComposition expected;
     Unit&           unit =
-        W.add_unit_on_map( e_unit_type::dragoon, W.kLand );
+        w.add_unit_on_map( e_unit_type::dragoon, w.kLand );
     {
       UNWRAP_CHECK(
           expected_ut,
@@ -363,9 +364,9 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
+    Colony&         colony = w.add_colony( w.kLand );
     Unit&           unit =
-        W.add_unit_indoors( colony.id, e_indoor_job::hammers,
+        w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     expected = UnitComposition( wrapped::UnitComposition{
       .type      = e_unit_type::petty_criminal,
@@ -432,8 +433,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "hardy_pioneer" ) {
     Unit& unit =
-        W.add_unit_on_map( e_unit_type::hardy_pioneer, W.kLand );
-    consume_20_tools( W.ss(), W.ts(), unit );
+        w.add_unit_on_map( e_unit_type::hardy_pioneer, w.kLand );
+    consume_20_tools( w.ss(), w.ts(), unit );
     REQUIRE( unit.composition()
                  .inventory()[e_unit_inventory::tools] == 80 );
     REQUIRE( unit.type_obj() ==
@@ -508,9 +509,9 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 }
 
 TEST_CASE( "[cheat] cheat change commodity quantity" ) {
-  World W;
-  W.create_default_map();
-  Colony& colony = W.add_colony( /*where=*/World::kLand );
+  world w;
+  w.create_default_map();
+  Colony& colony = w.add_colony( /*where=*/world::kLand );
 
   e_commodity const type = e_commodity::horses;
 
@@ -550,120 +551,120 @@ TEST_CASE( "[cheat] cheat change commodity quantity" ) {
 }
 
 TEST_CASE( "[cheat] kill_natives" ) {
-  World             W;
+  world             w;
   MockLandViewPlane mock_land_view;
-  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
-    co_await_test( kill_natives( W.ss(), W.ts() ) );
+    co_await_test( kill_natives( w.ss(), w.ts() ) );
   };
 
   SECTION( "no tribes" ) {
-    W.gui().EXPECT__message_box(
+    w.gui().EXPECT__message_box(
         "All native tribes have been wiped out." );
     f();
-    REQUIRE( !W.natives().tribe_exists( e_tribe::apache ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::sioux ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::arawak ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::cherokee ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::iroquois ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::aztec ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::inca ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::apache ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::sioux ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::arawak ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::cherokee ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::iroquois ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::aztec ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::inca ) );
   }
 
   SECTION( "one tribe, no dwellings, none selected" ) {
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
-    W.add_tribe( e_tribe::tupi );
-    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
-    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
+    w.add_tribe( e_tribe::tupi );
+    REQUIRE( w.natives().tribe_exists( e_tribe::tupi ) );
+    w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{} ) );
     f();
-    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( w.natives().tribe_exists( e_tribe::tupi ) );
   }
 
   SECTION( "one tribe, no dwellings" ) {
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
-    W.add_tribe( e_tribe::tupi );
-    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
-    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
+    w.add_tribe( e_tribe::tupi );
+    REQUIRE( w.natives().tribe_exists( e_tribe::tupi ) );
+    w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate( _ );
-    W.gui().EXPECT__message_box(
+    w.gui().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
     f();
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
   }
 
   SECTION( "two tribes, some dwellings" ) {
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
-    REQUIRE( !W.natives().tribe_exists( e_tribe::iroquois ) );
-    W.add_tribe( e_tribe::tupi );
-    W.add_tribe( e_tribe::iroquois );
-    REQUIRE( W.natives().tribe_exists( e_tribe::tupi ) );
-    REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::iroquois ) );
+    w.add_tribe( e_tribe::tupi );
+    w.add_tribe( e_tribe::iroquois );
+    REQUIRE( w.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( w.natives().tribe_exists( e_tribe::iroquois ) );
     DwellingId const dwelling_id_1 =
-        W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::tupi ).id;
+        w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::tupi ).id;
     DwellingId const dwelling_id_2 =
-        W.add_dwelling( { .x = 0, .y = 1 }, e_tribe::tupi ).id;
+        w.add_dwelling( { .x = 0, .y = 1 }, e_tribe::tupi ).id;
     DwellingId const dwelling_id_3 =
-        W.add_dwelling( { .x = 1, .y = 2 }, e_tribe::tupi ).id;
+        w.add_dwelling( { .x = 1, .y = 2 }, e_tribe::tupi ).id;
     DwellingId const dwelling_id_4 =
-        W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::tupi ).id;
+        w.add_dwelling( { .x = 2, .y = 1 }, e_tribe::tupi ).id;
     DwellingId const dwelling_id_5 =
-        W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois )
+        w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois )
             .id;
-    W.square( { .x = 1, .y = 0 } ).road = true;
-    W.square( { .x = 0, .y = 1 } ).road = true;
-    W.square( { .x = 1, .y = 2 } ).road = true;
-    W.square( { .x = 2, .y = 1 } ).road = true;
-    W.square( { .x = 1, .y = 1 } ).road = true;
-    W.map_updater().make_squares_visible(
-        W.default_nation(), { { .x = 1, .y = 0 } } );
-    W.map_updater().make_squares_visible(
-        W.default_nation(), { { .x = 0, .y = 1 } } );
-    W.map_updater().make_squares_fogged(
-        W.default_nation(), { { .x = 0, .y = 1 } } );
-    W.gui().EXPECT__check_box_selector( _, _ ).returns(
+    w.square( { .x = 1, .y = 0 } ).road = true;
+    w.square( { .x = 0, .y = 1 } ).road = true;
+    w.square( { .x = 1, .y = 2 } ).road = true;
+    w.square( { .x = 2, .y = 1 } ).road = true;
+    w.square( { .x = 1, .y = 1 } ).road = true;
+    w.map_updater().make_squares_visible(
+        w.default_nation(), { { .x = 1, .y = 0 } } );
+    w.map_updater().make_squares_visible(
+        w.default_nation(), { { .x = 0, .y = 1 } } );
+    w.map_updater().make_squares_fogged(
+        w.default_nation(), { { .x = 0, .y = 1 } } );
+    w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
     mock_land_view.EXPECT__animate( _ );
-    W.gui().EXPECT__message_box(
+    w.gui().EXPECT__message_box(
         "The [Tupi] tribe has been wiped out." );
-    REQUIRE( W.player_square( { .x = 1, .y = 0 } )
+    REQUIRE( w.player_square( { .x = 1, .y = 0 } )
                  .inner_if<explored>()
                  .get_if<clear>() );
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( w.player_square( { .x = 0, .y = 1 } )
                  .inner_if<explored>()
                  .get_if<fogged>() );
-    REQUIRE( W.player_square( { .x = 1, .y = 2 } ) ==
+    REQUIRE( w.player_square( { .x = 1, .y = 2 } ) ==
              unexplored{} );
-    REQUIRE( W.player_square( { .x = 2, .y = 1 } ) ==
+    REQUIRE( w.player_square( { .x = 2, .y = 1 } ) ==
              unexplored{} );
-    REQUIRE( W.player_square( { .x = 1, .y = 1 } ) ==
+    REQUIRE( w.player_square( { .x = 1, .y = 1 } ) ==
              unexplored{} );
     // Only the fogged one got its fog square updated, because it
     // was flipped from visible to fogged.
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( w.player_square( { .x = 0, .y = 1 } )
                  .inner_if<explored>()
                  .inner_if<fogged>()
                  .value()
                  .dwelling.has_value() );
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( w.player_square( { .x = 0, .y = 1 } )
                  .inner_if<explored>()
                  .inner_if<fogged>()
                  .value()
                  .square.road );
     f();
-    REQUIRE( !W.natives().tribe_exists( e_tribe::tupi ) );
-    REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
-    REQUIRE( !W.natives().dwelling_exists( dwelling_id_1 ) );
-    REQUIRE( !W.natives().dwelling_exists( dwelling_id_2 ) );
-    REQUIRE( !W.natives().dwelling_exists( dwelling_id_3 ) );
-    REQUIRE( !W.natives().dwelling_exists( dwelling_id_4 ) );
-    REQUIRE( W.natives().dwelling_exists( dwelling_id_5 ) );
-    VisibilityForNation const viz( W.ss(), W.default_nation() );
+    REQUIRE( !w.natives().tribe_exists( e_tribe::tupi ) );
+    REQUIRE( w.natives().tribe_exists( e_tribe::iroquois ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_1 ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_2 ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_3 ) );
+    REQUIRE( !w.natives().dwelling_exists( dwelling_id_4 ) );
+    REQUIRE( w.natives().dwelling_exists( dwelling_id_5 ) );
+    VisibilityForNation const viz( w.ss(), w.default_nation() );
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
@@ -676,25 +677,25 @@ TEST_CASE( "[cheat] kill_natives" ) {
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 1 } ) ==
              e_tile_visibility::hidden );
-    REQUIRE( W.player_square( { .x = 1, .y = 0 } )
+    REQUIRE( w.player_square( { .x = 1, .y = 0 } )
                  .inner_if<explored>()
                  .get_if<clear>() );
-    REQUIRE( W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( w.player_square( { .x = 0, .y = 1 } )
                  .inner_if<explored>()
                  .get_if<fogged>() );
-    REQUIRE( W.player_square( { .x = 1, .y = 2 } ) ==
+    REQUIRE( w.player_square( { .x = 1, .y = 2 } ) ==
              unexplored{} );
-    REQUIRE( W.player_square( { .x = 2, .y = 1 } ) ==
+    REQUIRE( w.player_square( { .x = 2, .y = 1 } ) ==
              unexplored{} );
-    REQUIRE( W.player_square( { .x = 1, .y = 1 } ) ==
+    REQUIRE( w.player_square( { .x = 1, .y = 1 } ) ==
              unexplored{} );
     // Only the fogged one got its fog square updated.
-    REQUIRE( !W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( !w.player_square( { .x = 0, .y = 1 } )
                   .inner_if<explored>()
                   .inner_if<fogged>()
                   .value()
                   .dwelling.has_value() );
-    REQUIRE( !W.player_square( { .x = 0, .y = 1 } )
+    REQUIRE( !w.player_square( { .x = 0, .y = 1 } )
                   .inner_if<explored>()
                   .inner_if<fogged>()
                   .value()
@@ -703,27 +704,27 @@ TEST_CASE( "[cheat] kill_natives" ) {
 }
 
 TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
-  World W;
-  W.create_default_map();
+  world w;
+  w.create_default_map();
   MockLandViewPlane mock_land_view;
-  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   auto f = [&] {
-    cheat_toggle_reveal_full_map( W.ss(), W.ts() );
+    cheat_toggle_reveal_full_map( w.ss(), w.ts() );
   };
 
   auto& show_indian_moves =
-      W.settings()
+      w.settings()
           .game_options
           .flags[e_game_flag_option::show_indian_moves];
   auto& show_foreign_moves =
-      W.settings()
+      w.settings()
           .game_options
           .flags[e_game_flag_option::show_foreign_moves];
-  auto const& map_revealed = W.land_view().map_revealed;
+  auto const& map_revealed = w.land_view().map_revealed;
 
-  W.turn().cycle =
-      TurnCycle::nation{ .nation = W.default_nation() };
+  w.turn().cycle =
+      TurnCycle::nation{ .nation = w.default_nation() };
 
   // Starting state sanity check.
   REQUIRE_FALSE( show_indian_moves );
@@ -760,10 +761,10 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
 }
 
 TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
-  World              W;
+  world              w;
   MockIColonyEvolver mock_colony_evolver;
 
-  Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
 
   auto f = [&] {
     cheat_advance_colony_one_turn( mock_colony_evolver, colony );
@@ -775,6 +776,40 @@ TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
       Eq( ref( colony ) ) );
   ++colony.id; // make sure the mock is not holding a copy.
   f();
+}
+
+TEST_CASE( "[cheat] cheat_target_square" ) {
+  world        w;
+  maybe<point> expected;
+
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  auto f = [&] {
+    return cheat_target_square( w.ss().as_const, w.ts() );
+  };
+
+  // Neither a unit nor a white box.
+  mock_land_view.EXPECT__unit_blinking().returns( nothing );
+  mock_land_view.EXPECT__white_box().returns( nothing );
+  expected = nothing;
+  REQUIRE( f() == expected );
+
+  // White box.
+  mock_land_view.EXPECT__unit_blinking().returns( nothing );
+  mock_land_view.EXPECT__white_box().returns(
+      point{ .x = 1, .y = 2 } );
+  expected = { .x = 1, .y = 2 };
+  REQUIRE( f() == expected );
+
+  // Unit.
+  UnitId const unit_id =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         { .x = 1, .y = 0 } )
+          .id();
+  mock_land_view.EXPECT__unit_blinking().returns( unit_id );
+  expected = { .x = 1, .y = 0 };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

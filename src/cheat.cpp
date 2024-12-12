@@ -37,6 +37,7 @@
 #include "unit-mgr.hpp"
 #include "views.hpp"
 #include "visibility.hpp"
+#include "white-box.hpp"
 #include "window.hpp"
 
 // config
@@ -84,6 +85,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 bool can_remove_building( Colony const&     colony,
                           e_colony_building building ) {
   if( !colony.buildings[building] ) return true;
@@ -110,6 +113,19 @@ void reveal_map_qol( SS& ss, TS& ts ) {
 /****************************************************************
 ** In Land View
 *****************************************************************/
+maybe<point> cheat_target_square( SSConst const& ss, TS& ts ) {
+  auto const& lv = ts.planes.get().get_bottom<ILandViewPlane>();
+
+  if( auto const unit_id = lv.unit_blinking();
+      unit_id.has_value() )
+    return coord_for_unit_indirect_or_die( ss.units, *unit_id );
+
+  if( auto const tile = lv.white_box(); tile.has_value() )
+    return *tile;
+
+  return nothing;
+}
+
 wait<> cheat_reveal_map( SS& ss, TS& ts ) {
   CO_RETURN_IF_NO_CHEAT;
   // All enabled by default.
@@ -231,7 +247,7 @@ void cheat_explore_entire_map( SS& ss, TS& ts ) {
   auto& m = ss.mutable_terrain_use_with_care
                 .mutable_player_terrain( *nation )
                 .map;
-  for( gfx::point const p : gfx::rect_iterator( world_rect ) ) {
+  for( point const p : gfx::rect_iterator( world_rect ) ) {
     Coord const coord = Coord::from_gfx( p ); // FIXME
     // This will reveal the square to the player with fog if the
     // square was not already explored but with existing fog
@@ -732,8 +748,9 @@ void cheat_advance_colony_one_turn(
   if( ev.colony_disappeared ) lg.debug( "colony has starved." );
 }
 
-wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
-                                 Coord tile ) {
+wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
+                                 e_nation const nation,
+                                 point const    tile ) {
   CO_RETURN_IF_NO_CHEAT;
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
@@ -815,8 +832,14 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
           categories[*category] );
   if( !type.has_value() ) co_return;
   UNWRAP_CHECK( player, ss.players.players[nation] );
+  // TODO:
+  //   * If we are trying to add a land unit onto an ocean tile
+  //     then we should prevent it unless there is a ship on that
+  //     tile that can hold the unit, in which case we should add
+  //     the unit as cargo onto the ship.
   [[maybe_unused]] maybe<UnitId> unit_id =
-      co_await create_unit_on_map( ss, ts, player, *type, tile );
+      co_await create_unit_on_map( ss, ts, player, *type,
+                                   Coord::from_gfx( tile ) );
 }
 
 } // namespace rn

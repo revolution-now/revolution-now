@@ -37,6 +37,12 @@ struct UnitsState;
 /****************************************************************
 ** In Land View
 *****************************************************************/
+// Any cheat function that requires a target map square on which
+// to operate should use this function to get it, for a uniform
+// user experience.
+maybe<gfx::point> cheat_target_square( SSConst const& ss,
+                                       TS&            ts );
+
 // Ask the user which map they want to reveal.
 wait<> cheat_reveal_map( SS& ss, TS& ts );
 
@@ -105,7 +111,7 @@ void cheat_advance_colony_one_turn(
 // This is called when the player asks to just create a unit on
 // the map. It will allow the player to select the unit type.
 wait<> cheat_create_unit_on_map( SS& ss, TS& ts, e_nation nation,
-                                 Coord tile );
+                                 gfx::point tile );
 
 /****************************************************************
 ** In Harbor View
