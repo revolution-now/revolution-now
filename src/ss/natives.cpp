@@ -37,6 +37,7 @@ constexpr int kFirstDwellingId = 1;
 
 using ::base::maybe;
 using ::base::nothing;
+using ::gfx::point;
 
 } // namespace
 
@@ -310,8 +311,8 @@ DwellingId NativesState::last_dwelling_id() const {
 }
 
 base::maybe<DwellingId> NativesState::maybe_dwelling_from_coord(
-    Coord const& coord ) const {
-  return base::lookup( dwelling_from_coord_, coord );
+    point const tile ) const {
+  return base::lookup( dwelling_from_coord_, tile );
 }
 
 DwellingId NativesState::dwelling_from_coord(

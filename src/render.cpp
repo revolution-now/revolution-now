@@ -83,18 +83,15 @@ void render_unit_flag_single(
   SWITCH( flag_info.contents ) {
     CASE( character ) {
       string const text( 1, character.value );
-      Delta        char_size = Delta::from_gfx(
-          rr::rendered_text_line_size_pixels( text ) );
-      render_text( renderer,
-                   centered( char_size, Rect::from_gfx( rect ) ),
+      Delta        char_size =
+          rr::rendered_text_line_size_pixels( text );
+      render_text( renderer, centered( char_size, rect ),
                    font::nat_icon(), character.color, text );
       break;
     }
     CASE( icon ) {
-      render_sprite(
-          renderer,
-          Coord::from_gfx( where.moved_down().moved_right() ),
-          icon.tile );
+      render_sprite( renderer, where.moved_down().moved_right(),
+                     icon.tile );
       break;
     }
   }

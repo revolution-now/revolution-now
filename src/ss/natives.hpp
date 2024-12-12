@@ -83,7 +83,7 @@ struct NativesState {
   e_tribe tribe_type_for( DwellingId id ) const;
 
   base::maybe<DwellingId> maybe_dwelling_from_coord(
-      Coord const& c ) const;
+      gfx::point tile ) const;
   DwellingId dwelling_from_coord( Coord const& c ) const;
 
   bool dwelling_exists( DwellingId id ) const;
