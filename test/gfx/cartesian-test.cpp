@@ -1659,5 +1659,69 @@ TEST_CASE( "[gfx/cartesian] hash size" ) {
   REQUIRE( hasher( s ) == 0x7fffffff7fffffffULL );
 }
 
+/****************************************************************
+** Strong Types.
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] strong types" ) {
+  REQUIRE( X{ 2 }.n == 2 );
+  REQUIRE( X{ 2 } == X{ 2 } );
+  REQUIRE( X{ 1 } != X{ 2 } );
+  REQUIRE( X{ 1 } <= X{ 2 } );
+  REQUIRE( X{ 1 } < X{ 2 } );
+  REQUIRE( base::to_str( X{ 3 } ) == "gfx::X{n=3}" );
+
+  {
+    constexpr X cx = X{ 5 };
+    static_assert( cx.n == 5 );
+    REQUIRE( cx.n == 5 );
+  }
+  {
+    constexpr Y cy = Y{ 5 };
+    static_assert( cy.n == 5 );
+    REQUIRE( cy.n == 5 );
+  }
+
+  REQUIRE( Y{ 2 }.n == 2 );
+  REQUIRE( Y{ 2 } == Y{ 2 } );
+  REQUIRE( Y{ 1 } != Y{ 2 } );
+  REQUIRE( Y{ 1 } <= Y{ 2 } );
+  REQUIRE( Y{ 1 } < Y{ 2 } );
+  REQUIRE( base::to_str( Y{ 3 } ) == "gfx::Y{n=3}" );
+}
+
+/****************************************************************
+** UDLs
+*****************************************************************/
+TEST_CASE( "[gfx/cartesian] UDLs" ) {
+  using namespace ::gfx::literals;
+
+  REQUIRE( 2_x == X{ 2 } );
+  REQUIRE( 4_x == X{ 4 } );
+  REQUIRE( 2_y == Y{ 2 } );
+  REQUIRE( 4_y == Y{ 4 } );
+
+  REQUIRE( ( 4_x, 3_y ) == point{ .x = 4, .y = 3 } );
+
+  {
+    constexpr X cx = 5_x;
+    static_assert( cx.n == 5 );
+    REQUIRE( cx.n == 5 );
+  }
+  {
+    constexpr Y cy = 5_y;
+    static_assert( cy.n == 5 );
+    REQUIRE( cy.n == 5 );
+  }
+
+  auto constexpr p = ( 4_x, 3_y );
+  REQUIRE( p == point{ .x = 4, .y = 3 } );
+
+  auto constexpr ny = ( 4_x, -3_y );
+  REQUIRE( ny == point{ .x = 4, .y = -3 } );
+
+  auto constexpr nx = ( -4_x, 3_y );
+  REQUIRE( nx == point{ .x = -4, .y = 3 } );
+}
+
 } // namespace
 } // namespace gfx

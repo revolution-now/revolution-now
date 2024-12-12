@@ -374,12 +374,86 @@ inline auto rect::to_double() const {
 
 [[nodiscard]] point operator*( point const p, size const s );
 
+/****************************************************************
+** Strong typing/User-defined literals.
+*****************************************************************/
+struct X {
+  int n = 0;
+
+  friend auto operator<=>( X, X ) = default;
+  constexpr X operator-() const { return X{ -n }; }
+};
+
+struct Y {
+  int n = 0;
+
+  friend auto operator<=>( Y, Y ) = default;
+  constexpr Y operator-() const { return Y{ -n }; }
+};
+
+namespace literals {
+
+inline constexpr auto operator""_x( unsigned long long n ) {
+  return X{ .n = static_cast<int>( n ) };
+}
+
+inline constexpr auto operator""_y( unsigned long long n ) {
+  return Y{ .n = static_cast<int>( n ) };
+}
+
+} // namespace literals
+
+// Allows us to write:
+//   point p = ( 1_x, 2_y );
+//   point p = ( X{1}, Y{2} );
+inline constexpr auto operator,( X const x, Y const y ) {
+  return ::gfx::point{ .x = x.n, .y = y.n };
+}
+
+inline constexpr auto operator,( Y const y, X const x ) {
+  return ::gfx::point{ .x = x.n, .y = y.n };
+}
+
 } // namespace gfx
 
 /****************************************************************
 ** Reflection
 *****************************************************************/
 namespace refl {
+
+// Reflection info for struct X.
+template<>
+struct traits<gfx::X> {
+  using type = gfx::X;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name       = "X";
+  static constexpr bool is_sumtype_alternative = false;
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+    refl::StructField{ "n", &gfx::X::n, offsetof( type, n ) },
+  };
+};
+
+// Reflection info for struct Y.
+template<>
+struct traits<gfx::Y> {
+  using type = gfx::Y;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name       = "Y";
+  static constexpr bool is_sumtype_alternative = false;
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+    refl::StructField{ "n", &gfx::Y::n, offsetof( type, n ) },
+  };
+};
 
 // Reflection info for struct size.
 template<>
