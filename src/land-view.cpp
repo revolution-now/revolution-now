@@ -219,17 +219,47 @@ struct LandViewPlane::Impl : public IPlane {
     advance_viewport_state();
   }
 
-  maybe<point> find_tile_to_center_on() const {
+  maybe<point> white_box_tile_if_visible() const {
+    bool visible = false;
     SWITCH( mode_ ) {
-      CASE( none ) { return nothing; }
-      CASE( end_of_turn ) { return white_box_tile( ss_ ); }
-      CASE( hidden_terrain ) { return white_box_tile( ss_ ); }
+      CASE( none ) { break; }
+      CASE( end_of_turn ) {
+        visible = true;
+        break;
+      }
+      CASE( hidden_terrain ) {
+        visible = true;
+        break;
+      }
+      CASE( unit_input ) { break; }
+      CASE( view_mode ) {
+        visible = true;
+        break;
+      }
+    }
+    if( visible ) return white_box_tile( ss_ );
+    return nothing;
+  }
+
+  maybe<point> find_tile_to_center_on() const {
+    // First try white box.
+    if( auto const p = white_box_tile_if_visible();
+        p.has_value() )
+      return *p;
+
+    // Next try blinking units.
+    SWITCH( mode_ ) {
+      CASE( none ) { break; }
+      CASE( end_of_turn ) { break; }
+      CASE( hidden_terrain ) { break; }
       CASE( unit_input ) {
         return coord_for_unit_indirect_or_die(
             ss_.units, unit_input.unit_id );
       }
-      CASE( view_mode ) { return white_box_tile( ss_ ); }
+      CASE( view_mode ) { break; }
     }
+
+    return nothing;
   }
 
   /****************************************************************
@@ -1170,9 +1200,13 @@ struct LandViewPlane::Impl : public IPlane {
     viewport().set_zoom( viewport().optimal_min_zoom() );
   }
 
-  maybe<UnitId> unit_blinking() {
+  maybe<UnitId> unit_blinking() const {
     return mode_.get_if<LandViewMode::unit_input>().member(
         &LandViewMode::unit_input::unit_id );
+  }
+
+  maybe<point> white_box() const {
+    return white_box_tile_if_visible();
   }
 
   wait<> eat_cross_unit_buffered_input_events( UnitId id ) {
@@ -1573,8 +1607,12 @@ void LandViewPlane::zoom_out_full() {
   return impl_->zoom_out_full();
 }
 
-maybe<UnitId> LandViewPlane::unit_blinking() {
+maybe<UnitId> LandViewPlane::unit_blinking() const {
   return impl_->unit_blinking();
+}
+
+maybe<point> LandViewPlane::white_box() const {
+  return impl_->white_box();
 }
 
 wait<> LandViewPlane::animate( AnimationSequence const& seq ) {

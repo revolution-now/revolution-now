@@ -85,7 +85,12 @@ struct ILandViewPlane {
 
   // If there is a unit blinking and asking for commands then
   // this will return it.
-  virtual maybe<UnitId> unit_blinking() = 0;
+  virtual maybe<UnitId> unit_blinking() const = 0;
+
+  // If visible, will be returned. Note that this is distinct
+  // from the the API in the white-box module which will always
+  // return a value.
+  virtual maybe<gfx::point> white_box() const = 0;
 
   virtual IPlane& impl() = 0;
 };
@@ -120,7 +125,9 @@ struct LandViewPlane : ILandViewPlane {
 
   void zoom_out_full() override;
 
-  maybe<UnitId> unit_blinking() override;
+  maybe<UnitId> unit_blinking() const override;
+
+  maybe<gfx::point> white_box() const override;
 
  private:
   struct Impl;
