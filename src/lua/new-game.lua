@@ -54,6 +54,7 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.difficulty = options.difficulty
+  settings.cheat_options.enabled = true;
   -- TODO: these are in config/rn... get them from there.
   game_options.set_flag( 'show_indian_moves', true )
   game_options.set_flag( 'show_foreign_moves', true )
