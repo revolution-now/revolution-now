@@ -738,6 +738,8 @@ enum.e_tile {
   # =============================================================
   colony_basic,
   colony_stockade,
+  colony_fort,
+  colony_fortress,
 
   # =============================================================
   # Inside Colony View

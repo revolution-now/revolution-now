@@ -884,6 +884,8 @@ sheets {
       sprites {
         colony_basic:    { y: 0, x: 0  }
         colony_stockade: { y: 0, x: 1  }
+        colony_fort:     { y: 0, x: 1  } # TODO
+        colony_fortress: { y: 0, x: 1  } # TODO
       }
     }
     {

@@ -302,11 +302,9 @@ void render_colony( rr::Renderer& renderer, Coord where,
       case e_colony_barricade_type::stockade:
         return e_tile::colony_stockade;
       case e_colony_barricade_type::fort:
-        // FIXME
-        return e_tile::colony_stockade;
+        return e_tile::colony_fort;
       case e_colony_barricade_type::fortress:
-        // FIXME
-        return e_tile::colony_stockade;
+        return e_tile::colony_fortress;
     }
   }();
   FrozenColony const frozen_colony =
