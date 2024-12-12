@@ -101,50 +101,29 @@ struct GenericUnitId {
   constexpr GenericUnitId( NativeUnitId n ) noexcept
     : id( to_underlying( n ) ) {}
 
-  // FIXME: these should be ideally replaced with a defaulted
-  // spaceship operator, but that emits a warning due to a bug in
-  // clang, see here:
-  //
-  //   https://github.com/llvm/llvm-project/issues/55919
-  //
-  // when that gets fixed, replace the below with:
-  //
-  //   auto operator<=>( GenericUnitId const& ) const = default;
-  //
-  bool operator==( GenericUnitId const& ) const = default;
-  bool operator<( GenericUnitId const& rhs ) const noexcept {
-    return id < rhs.id;
-  }
-  bool operator>( GenericUnitId const& rhs ) const noexcept {
-    return id > rhs.id;
-  }
-  bool operator<=( GenericUnitId const& rhs ) const noexcept {
-    return id <= rhs.id;
-  }
-  bool operator>=( GenericUnitId const& rhs ) const noexcept {
-    return id >= rhs.id;
-  }
+  auto operator<=>( GenericUnitId const& ) const = default;
+
+  // to_str
+  friend void to_str( GenericUnitId o, std::string& out,
+                      base::tag<GenericUnitId> );
+
+  // cdr
+  friend cdr::value to_canonical( cdr::converter& conv,
+                                  GenericUnitId   o,
+                                  cdr::tag_t<GenericUnitId> );
+
+  friend cdr::result<GenericUnitId> from_canonical(
+      cdr::converter& conv, cdr::value const& v,
+      cdr::tag_t<GenericUnitId> );
+
+  // lua
+  friend void lua_push( lua::cthread L, GenericUnitId o );
+
+  friend base::maybe<GenericUnitId> lua_get(
+      lua::cthread L, int idx, lua::tag<GenericUnitId> );
 
   int id = 0;
 };
-
-// to_str
-void to_str( GenericUnitId o, std::string& out,
-             base::tag<GenericUnitId> );
-
-// cdr
-cdr::value to_canonical( cdr::converter& conv, GenericUnitId o,
-                         cdr::tag_t<GenericUnitId> );
-
-cdr::result<GenericUnitId> from_canonical(
-    cdr::converter& conv, cdr::value const& v,
-    cdr::tag_t<GenericUnitId> );
-
-// lua
-void lua_push( lua::cthread L, GenericUnitId o );
-
-base::maybe<GenericUnitId> lua_get( lua::cthread L, int idx,
-                                    lua::tag<GenericUnitId> );
 
 template<>
 inline constexpr auto to_underlying<GenericUnitId>(
