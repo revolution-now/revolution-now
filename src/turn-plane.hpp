@@ -15,9 +15,6 @@
 // Revolution Now
 #include "wait.hpp"
 
-// config
-#include "config/menu-items.rds.hpp"
-
 // C++ standard library
 #include <memory>
 
@@ -25,6 +22,8 @@ namespace rn {
 
 struct MenuPlane;
 struct IPlane;
+
+enum class e_menu_item;
 
 /****************************************************************
 ** TurnPlane

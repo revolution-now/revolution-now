@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// config
-#include "config/menu-items.rds.hpp"
-
 // gfx
 #include "gfx/coord.hpp"
 
@@ -28,6 +25,7 @@ struct Renderer;
 namespace rn {
 enum class e_input_handled;
 enum class e_resolution;
+enum class e_menu_item;
 namespace input {
 struct event_t;
 struct unknown_event_t;

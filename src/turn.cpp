@@ -61,6 +61,7 @@
 #include "woodcut.hpp"
 
 // config
+#include "config/menu-items.rds.hpp"
 #include "config/nation.hpp"
 #include "config/turn.rds.hpp"
 #include "config/unit-type.rds.hpp"

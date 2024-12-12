@@ -15,6 +15,9 @@
 #include "menu.hpp"
 #include "plane.hpp"
 
+// config
+#include "config/menu-items.rds.hpp"
+
 // C++ standard library
 #include <unordered_set>
 
