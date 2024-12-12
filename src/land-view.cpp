@@ -103,7 +103,8 @@ struct PlayerInput {
 // representing units that no longer exist, which is a bit hard
 // to track otherwise.
 struct LastUnitInput {
-  explicit LastUnitInput( SSConst const& ss, UnitId const id )
+  [[maybe_unused]] explicit LastUnitInput( SSConst const& ss,
+                                           UnitId const   id )
     : ss_( ss ), unit_id_( id ) {}
 
   maybe<UnitId> unit_id() const {
@@ -747,7 +748,8 @@ struct LandViewPlane::Impl : public IPlane {
         break;
       }
       case e_menu_item::return_to_europe: {
-        if( auto const unit_input = mode_.get_if<LandViewMode::unit_input>() ) {
+        if( auto const unit_input =
+                mode_.get_if<LandViewMode::unit_input>() ) {
           // TODO: to implement this like in the OG we need to
           // verify that the unit is a ship and that it is over a
           // sea lane tile. Then there is the question of how to
