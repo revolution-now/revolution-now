@@ -181,7 +181,7 @@ valid_or<string> UnitCompositionConfig::validate() const {
   for( auto& [type, type_struct] : m ) {
     for( auto& [mtype, mod_list] : type_struct.modifiers ) {
       UnitTypeAttributes const& mtype_desc = m[mtype];
-      auto                      demote =
+      auto demote =
           mtype_desc.on_death.get_if<UnitDeathAction::demote>();
       if( !demote ) continue;
       // Sanity check: make sure that the modifiers that the
@@ -204,7 +204,7 @@ valid_or<string> UnitCompositionConfig::validate() const {
         // just become the base type, which is always allowed.
         continue;
       auto& base_modifiers = type_struct.modifiers;
-      bool  found          = false;
+      bool found           = false;
       for( auto& [mtype, base_mod_set] : base_modifiers )
         if( base_mod_set == target_modifiers ) found = true;
       // Any type that has an on_death.demoted field should
@@ -230,7 +230,7 @@ valid_or<string> UnitCompositionConfig::validate() const {
             type );
       e_unit_type base_type = *type_struct.canonical_base;
       UnitTypeAttributes const& base_desc = m[base_type];
-      auto&                     modifiers = base_desc.modifiers;
+      auto& modifiers                     = base_desc.modifiers;
       if( !modifiers.contains( type ) )
         return fmt::format(
             "derived type {} lists the {} type as its canonical "

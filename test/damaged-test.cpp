@@ -46,8 +46,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, _, L, _, L, //
       L, _, L, _, L, _, L, _, //
@@ -68,8 +68,8 @@ struct World : testing::World {
 TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   World W;
 
-  maybe<ShipRepairPort> expected      = {};
-  Coord const           ship_location = { .x = 4, .y = 4 };
+  maybe<ShipRepairPort> expected = {};
+  Coord const ship_location      = { .x = 4, .y = 4 };
 
   auto f = [&] {
     return find_repair_port_for_ship( W.ss(), W.default_nation(),
@@ -170,8 +170,8 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
 TEST_CASE( "[damaged] find_repair_port_for_ship from land" ) {
   World W;
 
-  maybe<ShipRepairPort> expected      = {};
-  Coord const           ship_location = { .x = 2, .y = 3 };
+  maybe<ShipRepairPort> expected = {};
+  Coord const ship_location      = { .x = 2, .y = 3 };
 
   auto f = [&] {
     return find_repair_port_for_ship( W.ss(), W.default_nation(),
@@ -200,9 +200,9 @@ TEST_CASE( "[damaged] find_repair_port_for_ship from land" ) {
 }
 
 TEST_CASE( "[damaged] ship_still_damaged_message" ) {
-  World  W;
+  World W;
   string expected;
-  int    turns = 0;
+  int turns = 0;
 
   auto f = [&] { return ship_still_damaged_message( turns ); };
 
@@ -256,8 +256,8 @@ TEST_CASE( "[damaged] repair_turn_count_for_unit" ) {
 }
 
 TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
-  World                 W;
-  string                expected;
+  World W;
+  string expected;
   e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
@@ -330,9 +330,9 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
 }
 
 TEST_CASE( "[damaged] ship_damaged_message" ) {
-  World                 W;
-  string                expected;
-  ShipRepairPort        port;
+  World W;
+  string expected;
+  ShipRepairPort port;
   e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
@@ -432,7 +432,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
 }
 
 TEST_CASE( "[damaged] units_lost_on_ship_message" ) {
-  World         W;
+  World W;
   maybe<string> expected;
 
   auto f = [&]( Unit const& ship ) {
@@ -467,7 +467,7 @@ TEST_CASE( "[damaged] units_lost_on_ship_message" ) {
 }
 
 TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
-  World          W;
+  World W;
   ShipRepairPort port;
 
   auto f = [&]( Unit& ship ) {
@@ -713,7 +713,7 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
 
 TEST_CASE( "[damaged] ship_damaged_reason" ) {
   e_ship_damaged_reason reason = {};
-  string                expected;
+  string expected;
 
   auto f = [&] { return ship_damaged_reason( reason ); };
 
@@ -731,10 +731,10 @@ TEST_CASE( "[damaged] ship_damaged_reason" ) {
 }
 
 TEST_CASE( "[damaged] ship_repair_port_name" ) {
-  World          W;
+  World W;
   ShipRepairPort port;
-  string         expected;
-  e_nation       nation = {};
+  string expected;
+  e_nation nation = {};
 
   auto f = [&] {
     return ship_repair_port_name( W.ss(), nation, port );

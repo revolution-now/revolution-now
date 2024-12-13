@@ -32,7 +32,7 @@ struct NonReflectedStruct {
 struct MyEmptyStruct {};
 
 struct MyStruct {
-  int    x;
+  int x;
   double y;
 };
 
@@ -46,7 +46,7 @@ struct Wrapper {
   Wrapper( MyStruct const& );
 
   // Implement refl::WrapsReflected.
-  MyStruct const&              refl() const;
+  MyStruct const& refl() const;
   static constexpr string_view refl_ns   = "my_ns";
   static constexpr string_view refl_name = "Wrapper";
 
@@ -72,10 +72,10 @@ enum class my_enum {
 template<>
 struct traits<my_ns::MyEmptyStruct> {
   using type                        = my_ns::MyEmptyStruct;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyEmptyStruct";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -86,10 +86,10 @@ struct traits<my_ns::MyEmptyStruct> {
 template<>
 struct traits<my_ns::MyStruct> {
   using type                        = my_ns::MyStruct;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyStruct";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -103,10 +103,10 @@ struct traits<my_ns::MyStruct> {
 template<typename U, typename V>
 struct traits<my_ns::MyTmpStruct<U, V>> {
   using type                        = my_ns::MyTmpStruct<U, V>;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "MyStruct";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<U, V>;
@@ -122,7 +122,7 @@ struct traits<my_ns::MyTmpStruct<U, V>> {
 template<>
 struct traits<my_ns::empty_enum> {
   using type                        = my_ns::empty_enum;
-  static constexpr type_kind   kind = type_kind::enum_kind;
+  static constexpr type_kind kind   = type_kind::enum_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "empty_enum";
 
@@ -133,7 +133,7 @@ struct traits<my_ns::empty_enum> {
 template<>
 struct traits<my_ns::my_enum> {
   using type                        = my_ns::my_enum;
-  static constexpr type_kind   kind = type_kind::enum_kind;
+  static constexpr type_kind kind   = type_kind::enum_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "my_enum";
 

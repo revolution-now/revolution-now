@@ -27,8 +27,8 @@ namespace sav {
 ** bits_base
 *****************************************************************/
 struct bits_base {
-  int      n_bits = 0; // should be <= 64.
-  uint64_t n      = 0;
+  int n_bits = 0; // should be <= 64.
+  uint64_t n = 0;
 
   auto operator<=>( bits_base const& ) const = default;
 
@@ -92,7 +92,7 @@ struct bits : private bits_base {
   }
 
   friend cdr::value to_canonical( cdr::converter& conv,
-                                  bits const&     o,
+                                  bits const& o,
                                   cdr::tag_t<bits> ) {
     return bits_base::to_canonical( conv, o );
   }

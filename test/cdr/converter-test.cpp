@@ -44,8 +44,8 @@ using ::cdr::testing::conv_from_bt;
 ** Address
 *****************************************************************/
 struct Address {
-  int    street_number = {};
-  string state         = {};
+  int street_number = {};
+  string state      = {};
 
   friend void to_str( Address const& o, string& out,
                       base::tag<Address> ) {
@@ -67,7 +67,7 @@ value to_canonical( converter& conv, Address const& o,
 result<Address> from_canonical( converter& conv, value const& v,
                                 tag_t<Address> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Address     res{};
+  Address res{};
   set<string> used_keys;
   CONV_FROM_FIELD( street_number );
   CONV_FROM_FIELD( state );
@@ -129,11 +129,11 @@ static_assert( base::Show<e_pet> );
 ** Person
 *****************************************************************/
 struct Person {
-  string                    name   = {};
-  double                    height = {};
-  bool                      male   = {};
-  vector<Address>           houses = {};
-  unordered_map<e_pet, int> pets   = {};
+  string name                    = {};
+  double height                  = {};
+  bool male                      = {};
+  vector<Address> houses         = {};
+  unordered_map<e_pet, int> pets = {};
 
   friend void to_str( Person const& o, string& out,
                       base::tag<Person> ) {
@@ -159,7 +159,7 @@ value to_canonical( converter& conv, Person const& o,
 result<Person> from_canonical( converter& conv, value const& v,
                                tag_t<Person> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Person      res{};
+  Person res{};
   set<string> used_keys;
   CONV_FROM_FIELD( name );
   CONV_FROM_FIELD( height );
@@ -177,8 +177,8 @@ static_assert( base::Show<Person> );
 ** Rolodex
 *****************************************************************/
 struct Rolodex {
-  Person                        self     = {};
-  string                        updated  = {};
+  Person self                            = {};
+  string updated                         = {};
   unordered_map<string, Person> contacts = {};
 
   friend void to_str( Rolodex const& o, string& out,
@@ -203,7 +203,7 @@ value to_canonical( converter& conv, Rolodex const& o,
 result<Rolodex> from_canonical( converter& conv, value const& v,
                                 tag_t<Rolodex> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
-  Rolodex     res{};
+  Rolodex res{};
   set<string> used_keys;
   CONV_FROM_FIELD( self );
   CONV_FROM_FIELD( updated );
@@ -540,7 +540,7 @@ TEST_CASE(
 
 TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
   converter::options opts{ .allow_unrecognized_fields = true };
-  converter          conv( opts );
+  converter conv( opts );
   REQUIRE( conv_from_bt<Rolodex>( conv, cdr_rolodex_1 ) ==
            native_rolodex_1 );
   REQUIRE( conv.from<Rolodex>( cdr_rolodex_1_no_def_fields ) ==
@@ -553,8 +553,8 @@ TEST_CASE( "[cdr/converter] allow_unrecognized_fields" ) {
 
 TEST_CASE( "[cdr/converter] backtrace" ) {
   converter conv;
-  using M  = unordered_map<string, int>;
-  value  v = list{ table{ { "key", "one" }, { "val", 1 } },
+  using M = unordered_map<string, int>;
+  value v = list{ table{ { "key", "one" }, { "val", 1 } },
                   table{ { "key", "two" }, { "val", "2" } } };
   string expected =
       "failed to convert value of type string to int.\n"

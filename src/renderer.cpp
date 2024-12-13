@@ -38,9 +38,9 @@ namespace {
 ** Global State
 *****************************************************************/
 unique_ptr<rr::Renderer> g_renderer;
-::SDL_Window*            g_window = nullptr;
-gl::InitResult           g_gl_iface;
-::SDL_GLContext          g_gl_context = nullptr;
+::SDL_Window* g_window = nullptr;
+gl::InitResult g_gl_iface;
+::SDL_GLContext g_gl_context = nullptr;
 
 /****************************************************************
 ** Initialization

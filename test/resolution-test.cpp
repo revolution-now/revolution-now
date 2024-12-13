@@ -178,7 +178,7 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
 
   auto f = [&] { return resolution_analysis( options ); };
 
-  auto is_within_n = []( int const                tolerance,
+  auto is_within_n = []( int const tolerance,
                          ResolutionRatings const& rr ) {
     if( rr.available.empty() ) return false;
     int const scale = rr.available[0].resolution.scale;

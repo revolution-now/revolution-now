@@ -493,23 +493,23 @@ TEST_CASE( "[expected] converting copy construction" ) {
   SECTION( "val" ) {
     SECTION( "int" ) {
       E<Intable, string> m1 = "hello";
-      E<int, string>     m2( m1 );
+      E<int, string> m2( m1 );
       REQUIRE( !m2.has_value() );
       REQUIRE( m2.error() == "hello" );
 
       E<Intable, string> m3 = Intable{ 5 };
-      E<int, string>     m4( m3 );
+      E<int, string> m4( m3 );
       REQUIRE( m4.has_value() );
       REQUIRE( *m4 == 5 );
     }
     SECTION( "string" ) {
       E<Stringable, int> m1 = 3;
-      E<string, int>     m2( m1 );
+      E<string, int> m2( m1 );
       REQUIRE( !m2.has_value() );
       REQUIRE( m2.error() == 3 );
 
       E<Stringable, int> m3 = Stringable{ "hello" };
-      E<string, int>     m4( m3 );
+      E<string, int> m4( m3 );
       REQUIRE( m4.has_value() );
       REQUIRE( *m4 == "hello" );
     }
@@ -517,21 +517,21 @@ TEST_CASE( "[expected] converting copy construction" ) {
   SECTION( "err" ) {
     SECTION( "int" ) {
       E<string, Intable> m1 = "hello";
-      E<string, int>     m2( m1 );
+      E<string, int> m2( m1 );
       REQUIRE( m2.has_value() );
 
       E<string, Intable> m3 = Intable{ 5 };
-      E<string, int>     m4( m3 );
+      E<string, int> m4( m3 );
       REQUIRE( !m4.has_value() );
       REQUIRE( m4.error() == 5 );
     }
     SECTION( "string" ) {
       E<int, Stringable> m1 = 3;
-      E<int, string>     m2( m1 );
+      E<int, string> m2( m1 );
       REQUIRE( m2.has_value() );
 
       E<int, Stringable> m3 = Stringable{ "hello" };
-      E<int, string>     m4( m3 );
+      E<int, string> m4( m3 );
       REQUIRE( !m4.has_value() );
       REQUIRE( m4.error() == "hello" );
     }
@@ -647,23 +647,23 @@ TEST_CASE( "[expected] move construction" ) {
 TEST_CASE( "[expected] converting move construction" ) {
   SECTION( "int" ) {
     E<Intable, string> m1 = "hello";
-    E<int, string>     m2( std::move( m1 ) );
+    E<int, string> m2( std::move( m1 ) );
     REQUIRE( !m2.has_value() );
     REQUIRE( m2.error() == "hello" );
 
     E<Intable, string> m3 = Intable{ 5 };
-    E<int, string>     m4( std::move( m3 ) );
+    E<int, string> m4( std::move( m3 ) );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == 5 );
   }
   SECTION( "string" ) {
     E<Stringable, int> m1 = 5;
-    E<string, int>     m2( std::move( m1 ) );
+    E<string, int> m2( std::move( m1 ) );
     REQUIRE( !m2.has_value() );
     REQUIRE( m2.error() == 5 );
 
     E<Stringable, int> m3 = Stringable{ "hello" };
-    E<string, int>     m4( std::move( m3 ) );
+    E<string, int> m4( std::move( m3 ) );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == "hello" );
   }
@@ -673,7 +673,7 @@ TEST_CASE( "[expected] in place construction" ) {
   struct A {
     A( int n_, string s_, double d_ )
       : n( n_ ), s( s_ ), d( d_ ) {}
-    int    n;
+    int n;
     string s;
     double d;
   };
@@ -1055,7 +1055,7 @@ TEST_CASE( "[expected] emplace" ) {
     struct A {
       [[maybe_unused]] A( int n_, string s_, double d_ )
         : n( n_ ), s( s_ ), d( d_ ) {}
-      int    n;
+      int n;
       string s;
       double d;
     };
@@ -1068,7 +1068,7 @@ TEST_CASE( "[expected] emplace" ) {
     REQUIRE( m->d == 4.0 );
   }
   SECTION( "non-copy non-movable" ) {
-    NoCopyNoMove            ncnm( 'b' );
+    NoCopyNoMove ncnm( 'b' );
     E<NoCopyNoMove, string> m = "";
     REQUIRE( !m.has_value() );
     m.emplace( 'g' );
@@ -1932,8 +1932,8 @@ TEST_CASE( "[expected] consteexpr" ) {
 }
 
 TEST_CASE( "[expected] reference_wrapper" ) {
-  int               a = 5;
-  int               b = 7;
+  int a               = 5;
+  int b               = 7;
   E<RR<int>, Empty> m = Empty{};
   REQUIRE( !m.has_value() );
   m = a;
@@ -1952,27 +1952,27 @@ TEST_CASE( "[expected] reference_wrapper" ) {
 
   // Test implicit conversion.
   E<RR<int>, string> m3 = a;
-  E<int&, string>    m4 = m3;
+  E<int&, string> m4    = m3;
   REQUIRE( m4.has_value() );
   REQUIRE( m4 == 5 );
   ++a;
   REQUIRE( m4 == 6 );
 
   E<RR<int const>, string> m5 = a;
-  E<int const&, string>    m6 = m5;
+  E<int const&, string> m6    = m5;
   REQUIRE( m6.has_value() );
   REQUIRE( m6 == 6 );
   ++a;
   REQUIRE( m6 == 7 );
 
   E<RR<string>, Empty> m7 = Empty{};
-  E<string&, Empty>    m8 = m7;
+  E<string&, Empty> m8    = m7;
   REQUIRE( !m8.has_value() );
 }
 
 TEST_CASE( "[expected] fmap" ) {
   SECTION( "int" ) {
-    auto           f = []( int n ) { return n + 1; };
+    auto f           = []( int n ) { return n + 1; };
     E<int, string> m = "hello";
     REQUIRE( m.fmap( f ).error() == "hello" );
     m = 7;
@@ -1982,7 +1982,7 @@ TEST_CASE( "[expected] fmap" ) {
     REQUIRE( E<int, string>{ 3 }.fmap( f ) == 4 );
   }
   SECTION( "string" ) {
-    auto           f = []( string s ) { return s + s; };
+    auto f           = []( string s ) { return s + s; };
     E<string, int> m = 5;
     REQUIRE( m.fmap( f ) == 5 );
     m = "7";
@@ -2098,7 +2098,7 @@ TEST_CASE( "[expected] fmap" ) {
   SECTION( "pointer to member" ) {
     struct A {
       A( int m ) : n( m ) {}
-      int                 get_n() const { return n + 1; }
+      int get_n() const { return n + 1; }
       expect<int, string> maybe_get_n() const {
         return ( n > 5 ) ? expected<string>( n ) : "hello";
       }
@@ -2270,7 +2270,7 @@ TEST_CASE( "[expected] expected" ) {
   ASSERT_VAR_TYPE( m3, expect<string, Empty> );
 
   string const& s1 = "hello";
-  auto          m4 = expected<Empty>( s1 );
+  auto m4          = expected<Empty>( s1 );
   ASSERT_VAR_TYPE( m4, expect<string, Empty> );
 
   auto m5 = expected<string>( NoCopy{ 'a' } );
@@ -2334,7 +2334,7 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( !bool( m1 ) );
     REQUIRE( !m1.is_value_truish() );
 
-    int             n  = 5;
+    int n              = 5;
     E<int&, string> m3 = n;
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == 5 );
@@ -2374,7 +2374,7 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( !m7.has_value() );
     REQUIRE( m7.error() == "hello" );
 
-    int             z  = 0;
+    int z              = 0;
     E<int&, string> m8 = z;
     REQUIRE( m8 == 0 );
     REQUIRE( !m8.is_value_truish() );
@@ -2382,12 +2382,12 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( m8 == 2 );
     REQUIRE( m8.is_value_truish() );
 
-    NoCopyNoMove             ncnm{ 'a' };
+    NoCopyNoMove ncnm{ 'a' };
     E<NoCopyNoMove&, string> m9 = ncnm;
     REQUIRE( m9.has_value() );
     REQUIRE( m9->c == 'a' );
 
-    string            s   = "hello";
+    string s              = "hello";
     E<string&, Empty> m10 = s;
     REQUIRE( m10.has_value() );
     REQUIRE( m10 == "hello" );
@@ -2412,7 +2412,7 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( !bool( m1 ) );
     REQUIRE( !m1.is_value_truish() );
 
-    int                   n  = 5;
+    int n                    = 5;
     E<int const&, string> m3 = n;
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == 5 );
@@ -2451,7 +2451,7 @@ TEST_CASE( "[expected-ref] construction" ) {
     E<bool const&, Empty> m7 = Empty{};
     REQUIRE( !m7.has_value() );
 
-    int                   z  = 0;
+    int z                    = 0;
     E<int const&, string> m8 = z;
     REQUIRE( m8 == 0 );
     REQUIRE( !m8.is_value_truish() );
@@ -2459,12 +2459,12 @@ TEST_CASE( "[expected-ref] construction" ) {
     REQUIRE( m8 == 2 );
     REQUIRE( m8.is_value_truish() );
 
-    NoCopyNoMove                   ncnm{ 'a' };
+    NoCopyNoMove ncnm{ 'a' };
     E<NoCopyNoMove const&, string> m9 = ncnm;
     REQUIRE( m9.has_value() );
     REQUIRE( m9->c == 'a' );
 
-    string                  s   = "hello";
+    string s                    = "hello";
     E<string const&, Empty> m10 = s;
     REQUIRE( m10.has_value() );
     REQUIRE( m10 == "hello" );
@@ -2475,7 +2475,7 @@ TEST_CASE( "[expected-ref] construction" ) {
 
 TEST_CASE( "[expected-ref] fmap" ) {
   SECTION( "ref to value, int" ) {
-    int             n  = 5;
+    int n              = 5;
     E<int&, string> m1 = n;
 
     auto inc = []( int m ) { return m + 1; };
@@ -2486,7 +2486,7 @@ TEST_CASE( "[expected-ref] fmap" ) {
     REQUIRE( m2 == 6 );
   }
   SECTION( "ref to value, string" ) {
-    string          n  = "hello";
+    string n           = "hello";
     E<string&, int> m1 = n;
 
     auto inc = []( string const& s ) { return s + s; };
@@ -2497,7 +2497,7 @@ TEST_CASE( "[expected-ref] fmap" ) {
     REQUIRE( m2 == "hellohello" );
   }
   SECTION( "ref to ref, int" ) {
-    int             n  = 5;
+    int n              = 5;
     E<int&, string> m1 = n;
 
     auto inc = []( int ) -> int& {
@@ -2511,7 +2511,7 @@ TEST_CASE( "[expected-ref] fmap" ) {
     REQUIRE( m2 == 8 );
   }
   SECTION( "ref to ref, string" ) {
-    string          n  = "hello";
+    string n           = "hello";
     E<string&, int> m1 = n;
 
     auto inc = []( string const& ) -> string const& {
@@ -2554,7 +2554,7 @@ TEST_CASE( "[expected-ref] fmap" ) {
 
 TEST_CASE( "[expected-ref] bind" ) {
   SECTION( "ref to value, int" ) {
-    int             n  = 5;
+    int n              = 5;
     E<int&, string> m1 = n;
 
     auto inc = []( int m ) -> E<int, string> {
@@ -2574,7 +2574,7 @@ TEST_CASE( "[expected-ref] bind" ) {
     REQUIRE( m3.error() == "hello" );
   }
   SECTION( "ref to value, string" ) {
-    string          n  = "hello";
+    string n           = "hello";
     E<string&, int> m1 = n;
 
     auto inc = []( string const& m ) -> E<string, int> {
@@ -2594,7 +2594,7 @@ TEST_CASE( "[expected-ref] bind" ) {
     REQUIRE( m3 == 5 );
   }
   SECTION( "ref to ref, int" ) {
-    int             n  = 5;
+    int n              = 5;
     E<int&, string> m1 = n;
 
     auto inc = []( int m ) -> E<int const&, string> {
@@ -2616,7 +2616,7 @@ TEST_CASE( "[expected-ref] bind" ) {
     REQUIRE( m3.error() == "hello" );
   }
   SECTION( "ref to ref, string" ) {
-    string          n  = "hello";
+    string n           = "hello";
     E<string&, int> m1 = n;
 
     auto inc = []( string const& m ) -> E<string&, int> {
@@ -2683,30 +2683,30 @@ TEST_CASE( "[expected-ref] bind" ) {
 
 TEST_CASE( "[expected-ref] expect-ref" ) {
   SECTION( "int" ) {
-    int  n  = 5;
+    int n   = 5;
     auto m1 = expected_ref<string>( n );
     ASSERT_VAR_TYPE( m1, E<int&, string> );
     REQUIRE( m1.has_value() );
     REQUIRE( m1 == 5 );
     REQUIRE( *m1 == 5 );
 
-    int const m  = 5;
-    auto      m2 = expected_ref<string>( m );
+    int const m = 5;
+    auto m2     = expected_ref<string>( m );
     ASSERT_VAR_TYPE( m2, expect<int const&, string> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 5 );
     REQUIRE( *m2 == 5 );
   }
   SECTION( "string" ) {
-    string s  = "hello";
-    auto   m1 = expected_ref<int>( s );
+    string s = "hello";
+    auto m1  = expected_ref<int>( s );
     ASSERT_VAR_TYPE( m1, expect<string&, int> );
     REQUIRE( m1.has_value() );
     REQUIRE( m1 == "hello" );
     REQUIRE( *m1 == "hello" );
 
-    string const m  = "world";
-    auto         m2 = expected_ref<int>( m );
+    string const m = "world";
+    auto m2        = expected_ref<int>( m );
     ASSERT_VAR_TYPE( m2, expect<string const&, int> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == "world" );
@@ -2716,9 +2716,9 @@ TEST_CASE( "[expected-ref] expect-ref" ) {
 
 TEST_CASE( "[expected-ref] comparison" ) {
   SECTION( "int" ) {
-    int                   n  = 5;
-    E<int&, string>       m1 = n;
-    int                   m  = 6;
+    int n                    = 5;
+    E<int&, string> m1       = n;
+    int m                    = 6;
     E<int const&, string> m2 = m;
 
     REQUIRE( m1.has_value() );
@@ -2729,9 +2729,9 @@ TEST_CASE( "[expected-ref] comparison" ) {
     REQUIRE( m1 == m2 );
   }
   SECTION( "string" ) {
-    string          n  = "hello";
+    string n           = "hello";
     E<string&, int> m1 = n;
-    string          m  = "world";
+    string m           = "world";
     E<string&, int> m2 = m;
 
     REQUIRE( m1.has_value() );
@@ -2744,7 +2744,7 @@ TEST_CASE( "[expected-ref] comparison" ) {
 }
 
 TEST_CASE( "[expected-ref] with error" ) {
-  int             n  = 5;
+  int n              = 5;
   E<int&, string> m1 = n;
   REQUIRE( m1.has_value() );
   REQUIRE( *m1 == 5 );
@@ -2787,7 +2787,7 @@ TEST_CASE( "[expected] ref to member" ) {
       int n;
     };
 
-    A             a{ 4 };
+    A a{ 4 };
     E<A&, string> m = a;
 
     auto m2 = m.member( &A::n );
@@ -2861,7 +2861,7 @@ TEST_CASE( "[expected] ref to member" ) {
       maybe<int> n;
     };
 
-    A             a{};
+    A a{};
     E<A&, string> m = a;
 
     auto m1 = m.maybe_member( &A::n );
@@ -2958,9 +2958,9 @@ TEST_CASE( "[expected] get_if" ) {
       REQUIRE( !m.get_if<string>().has_value() );
     }
     SECTION( "int" ) {
-      V      v   = 3;
-      EE<V&> m   = v;
-      auto   res = m.get_if<int>();
+      V v      = 3;
+      EE<V&> m = v;
+      auto res = m.get_if<int>();
       ASSERT_VAR_TYPE( res, EE<maybe<int&>> );
       REQUIRE( res.has_value() );
       **res = 4;
@@ -2969,9 +2969,9 @@ TEST_CASE( "[expected] get_if" ) {
       REQUIRE( !m.get_if<double>()->has_value() );
     }
     SECTION( "string" ) {
-      V      v   = "hello";
-      EE<V&> m   = v;
-      auto   res = m.get_if<string>();
+      V v      = "hello";
+      EE<V&> m = v;
+      auto res = m.get_if<string>();
       ASSERT_VAR_TYPE( res, EE<maybe<string&>> );
       REQUIRE( res.has_value() );
       REQUIRE( m.get_if<double>().has_value() );
@@ -2981,9 +2981,9 @@ TEST_CASE( "[expected] get_if" ) {
   SECTION( "ref, base::variant" ) {
     using V = base::variant<int, string, double>;
     SECTION( "int" ) {
-      V      v   = 3;
-      EE<V&> m   = v;
-      auto   res = m.get_if<int>();
+      V v      = 3;
+      EE<V&> m = v;
+      auto res = m.get_if<int>();
       ASSERT_VAR_TYPE( res, EE<maybe<int&>> );
       REQUIRE( res.has_value() );
       **res = 4;
@@ -2992,9 +2992,9 @@ TEST_CASE( "[expected] get_if" ) {
       REQUIRE( !m.get_if<double>()->has_value() );
     }
     SECTION( "string" ) {
-      V const      v   = "hello";
-      EE<V const&> m   = v;
-      auto         res = m.get_if<string>();
+      V const v      = "hello";
+      EE<V const&> m = v;
+      auto res       = m.get_if<string>();
       ASSERT_VAR_TYPE( res, EE<maybe<string const&>> );
       REQUIRE( res.has_value() );
       REQUIRE( m.get_if<double>().has_value() );
@@ -3005,7 +3005,7 @@ TEST_CASE( "[expected] get_if" ) {
 
 TEST_CASE( "[expected] implicit conversion to expected-ref" ) {
   {
-    E<int, string>  m1 = 5;
+    E<int, string> m1  = 5;
     E<int&, string> m2 = m1;
     E<int&, string> m3 = static_cast<E<int&, string>>( m1 );
     (void)m2;
@@ -3024,7 +3024,7 @@ TEST_CASE( "[expected] implicit conversion to expected-ref" ) {
                                      E<int&, string>> );
   }
   {
-    E<int, string>        m1 = 5;
+    E<int, string> m1        = 5;
     E<int const&, string> m2 = as_const( m1 );
     E<int const&, string> m3 =
         static_cast<E<int const&, string>>( as_const( m1 ) );
@@ -3039,9 +3039,9 @@ TEST_CASE( "[expected] implicit conversion to expected-ref" ) {
 }
 
 TEST_CASE( "[expected] stringification" ) {
-  E<int, string>  e1 = 5;
-  E<int, string>  e2 = "hello";
-  int             n  = 3;
+  E<int, string> e1  = 5;
+  E<int, string> e2  = "hello";
+  int n              = 3;
   E<int&, string> e3 = n;
 
   REQUIRE( fmt::format( "{}", e1 ) == "5" );

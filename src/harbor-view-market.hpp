@@ -50,7 +50,7 @@ struct HarborMarketCommodities
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -58,7 +58,7 @@ struct HarborMarketCommodities
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::AwaitView.
   wait<> perform_click(
@@ -66,7 +66,7 @@ struct HarborMarketCommodities
 
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
-                 Coord const&                 where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -98,7 +98,7 @@ struct HarborMarketCommodities
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
-               Coord const&                 where ) override;
+               Coord const& where ) override;
 
   bool stacked() const { return stacked_; }
 
@@ -114,7 +114,7 @@ struct HarborMarketCommodities
 
   // Commodities will be 24x24 + 8 pixels for text.
   static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
-  static inline auto    sprite_delta =
+  static inline auto sprite_delta =
       Delta{ .w = 1, .h = 1 } * sprite_scale;
 
   static constexpr W single_layer_width =
@@ -127,12 +127,12 @@ struct HarborMarketCommodities
       double_layer_blocks_height * sprite_scale.h;
 
   struct Draggable {
-    Commodity   comm         = {};
+    Commodity comm           = {};
     PriceChange price_change = {};
   };
 
   maybe<Draggable> dragging_;
-  bool             stacked_ = false;
+  bool stacked_ = false;
 };
 
 } // namespace rn

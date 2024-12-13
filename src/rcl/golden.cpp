@@ -18,7 +18,7 @@ namespace rcl {
 /****************************************************************
 ** Golden.
 *****************************************************************/
-fs::path golden_file( string const&          tag,
+fs::path golden_file( string const& tag,
                       source_location const& loc ) {
   auto const rel_src_path = fs::relative(
       loc.file_name(), fs::current_path() / "test" );
@@ -26,7 +26,7 @@ fs::path golden_file( string const&          tag,
   auto const sub  = rel_src_path.parent_path();
 
   static string_view const kSuffix = "-test";
-  string_view              short_stem( stem );
+  string_view short_stem( stem );
   CHECK( short_stem.ends_with( kSuffix ) );
   short_stem.remove_suffix( kSuffix.size() );
   static fs::path golden{ "test/data/golden" };

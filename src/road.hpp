@@ -60,6 +60,6 @@ bool can_build_road( Unit const& unit );
 *****************************************************************/
 void render_road_if_present( rr::Renderer& renderer, Coord where,
                              IVisibility const& viz,
-                             Coord              world_tile );
+                             Coord world_tile );
 
 } // namespace rn

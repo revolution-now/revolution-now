@@ -53,7 +53,7 @@ class SmoothViewport {
 
   // Will give us a rect of world pixels covered by the viewport.
   gfx::drect covered_pixels() const;
-  Rect       covered_pixels_rounded() const;
+  Rect covered_pixels_rounded() const;
 
   // This function will shift the viewport to make the tile coor-
   // dinate visible plus some surrounding squares, but will avoid
@@ -73,7 +73,7 @@ class SmoothViewport {
   // than the viewport, in which case it will center the rect in
   // the available area.
   gfx::drect rendering_dest_rect() const;
-  Rect       rendering_dest_rect_rounded() const;
+  Rect rendering_dest_rect_rounded() const;
 
   // Computes the zoom required so that the entire map is visible
   // with a bit of map surrounds visible as well.
@@ -87,7 +87,7 @@ class SmoothViewport {
   double min_zoom_allowed() const;
 
   Delta world_size_tiles() const;
-  void  set_world_size_tiles( Delta size );
+  void set_world_size_tiles( Delta size );
 
   // This will provide the upper left corning where the GPU
   // should start rendering the landscape buffer (which could be
@@ -121,7 +121,7 @@ class SmoothViewport {
   bool screen_coord_in_viewport( Coord pixel_coord ) const;
 
   // Immediate change.
-  void   center_on_tile( Coord const& coords );
+  void center_on_tile( Coord const& coords );
   wait<> center_on_tile_smooth( Coord coord );
 
   void set_x_push( e_push_direction );
@@ -146,7 +146,7 @@ class SmoothViewport {
 
   // Return current zoom.
   double get_zoom() const;
-  void   set_zoom( double new_zoom );
+  void set_zoom( double new_zoom );
 
   // Move the center of the viewport by the given change in
   // screen coordinates. This means that the delta will be scaled
@@ -169,7 +169,7 @@ class SmoothViewport {
 
   // Implement refl::WrapsReflected.
   SmoothViewport( wrapped::SmoothViewport&& o );
-  wrapped::SmoothViewport const&    refl() const { return o_; }
+  wrapped::SmoothViewport const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "SmoothViewport";
 
@@ -201,7 +201,7 @@ class SmoothViewport {
   double end_y() const;
 
   gfx::drect get_bounds() const;
-  Rect       get_bounds_rounded() const;
+  Rect get_bounds_rounded() const;
 
   // Returns world coordinates of center in pixels, rounded
   // to the nearest pixel.
@@ -235,7 +235,7 @@ class SmoothViewport {
   struct SmoothScroll {
     double x_target{};
     double y_target{};
-    Coord  tile_target{};
+    Coord tile_target{};
     // This promise will be fulfilled when the above tile becomes
     // visible, even if there is a bit more scrolling left to do;
     // the scrolling will still continue though.

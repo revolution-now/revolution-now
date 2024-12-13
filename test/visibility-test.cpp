@@ -136,8 +136,8 @@ struct World : testing::World {
 TEST_CASE( "[visibility] unit_visible_squares" ) {
   World W;
   W.create_default_map();
-  e_unit_type   type = {};
-  Coord         tile = {};
+  e_unit_type type = {};
+  Coord tile       = {};
   vector<Coord> expected;
 
   auto f = [&] {
@@ -797,8 +797,8 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
 TEST_CASE( "[visibility] should_animate_move" ) {
   World W;
   W.create_small_map();
-  Coord const                   src = { .x = 0, .y = 0 };
-  Coord const                   dst = { .x = 0, .y = 1 };
+  Coord const src = { .x = 0, .y = 0 };
+  Coord const dst = { .x = 0, .y = 1 };
   unique_ptr<IVisibility const> viz;
 
   auto f = [&]() {
@@ -866,8 +866,8 @@ TEST_CASE(
     "[visibility] does_nation_have_fog_removed_on_square" ) {
   World W;
   W.create_small_map();
-  Coord const coord  = { .x = 0, .y = 0 };
-  e_nation    nation = {};
+  Coord const coord = { .x = 0, .y = 0 };
+  e_nation nation   = {};
 
   auto f = [&] {
     return does_nation_have_fog_removed_on_square(
@@ -900,10 +900,10 @@ TEST_CASE(
 TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   World W;
   W.create_small_map();
-  Coord       coord;
+  Coord coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
-  VisibilityEntire    viz_entire( W.ss() );
+  VisibilityEntire viz_entire( W.ss() );
   VisibilityForNation viz_nation( W.ss(), e_nation::english );
   VisibilityOverrides overrides;
   // This will keep a reference to the overrides.
@@ -1109,7 +1109,7 @@ TEST_CASE( "[visibility] resource_at" ) {
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
 
-  VisibilityEntire    viz_entire( W.ss() );
+  VisibilityEntire viz_entire( W.ss() );
   VisibilityForNation viz_nation( W.ss(), e_nation::english );
   VisibilityOverrides overrides;
   // These will keep references to `overrides`.

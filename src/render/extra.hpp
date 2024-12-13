@@ -19,7 +19,7 @@ namespace rr {
 struct Painter;
 
 void draw_empty_rect_no_corners( rr::Painter& painter,
-                                 gfx::rect    box,
-                                 gfx::pixel   color );
+                                 gfx::rect box,
+                                 gfx::pixel color );
 
 } // namespace rr

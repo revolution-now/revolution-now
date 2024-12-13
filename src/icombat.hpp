@@ -41,8 +41,8 @@ struct ICombat {
       Unit const& attacker, Unit const& defender ) = 0;
 
   virtual CombatEuroAttackUndefendedColony
-  euro_attack_undefended_colony( Unit const&   attacker,
-                                 Unit const&   defender,
+  euro_attack_undefended_colony( Unit const& attacker,
+                                 Unit const& defender,
                                  Colony const& colony ) = 0;
 
   virtual CombatEuroAttackBrave euro_attack_brave(
@@ -81,7 +81,7 @@ struct TrappingCombat : public ICombat {
 
   // Implement ICombat.
   CombatEuroAttackBrave euro_attack_brave(
-      Unit const&       attacker,
+      Unit const& attacker,
       NativeUnit const& defender ) override;
 
   // Implement ICombat.
@@ -91,7 +91,7 @@ struct TrappingCombat : public ICombat {
   // Implement ICombat.
   CombatBraveAttackEuro brave_attack_euro(
       NativeUnit const& attacker,
-      Unit const&       defender ) override;
+      Unit const& defender ) override;
 
   // Implement ICombat.
   CombatBraveAttackColony brave_attack_colony(

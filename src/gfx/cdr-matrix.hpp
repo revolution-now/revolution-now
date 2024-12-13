@@ -73,7 +73,7 @@ namespace gfx {
 // be faster.
 //
 template<cdr::ToCanonical T>
-cdr::value to_canonical( cdr::converter&  conv,
+cdr::value to_canonical( cdr::converter& conv,
                          Matrix<T> const& m,
                          cdr::tag_t<Matrix<T>> ) {
   bool write_defaults =
@@ -88,8 +88,8 @@ cdr::value to_canonical( cdr::converter&  conv,
     rect_iterator const ri( m.rect() );
     for( gfx::point const p : ri ) {
       rn::Coord const coord = rn::Coord::from_gfx( p ); // FIXME
-      T const&        elem  = m[coord];
-      static const T  def{};
+      T const& elem         = m[coord];
+      static const T def{};
       if( elem == def ) continue;
       lst.emplace_back(
           conv.to( std::pair{ coord, m[coord] } ) );
@@ -98,7 +98,7 @@ cdr::value to_canonical( cdr::converter&  conv,
     // Write defaults.
     conv.to_field( tbl, "has_coords", false );
     std::vector<T> const& data = m.data();
-    int                   size = int( data.size() );
+    int size                   = int( data.size() );
     for( int i = 0; i < size; ++i )
       lst.emplace_back( conv.to( data[i] ) );
   }
@@ -109,7 +109,7 @@ cdr::value to_canonical( cdr::converter&  conv,
 }
 
 template<cdr::FromCanonical T>
-cdr::result<Matrix<T>> from_canonical( cdr::converter&   conv,
+cdr::result<Matrix<T>> from_canonical( cdr::converter& conv,
                                        cdr::value const& v,
                                        cdr::tag_t<Matrix<T>> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );

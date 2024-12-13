@@ -289,8 +289,8 @@ GENERIC_TUPLE_ARG_MATCHER( AnyOf );
 // This should work with any tuple-like type that supports
 // std::get<N>();
 MATCHER_DEFINE_NODE( TupleElement, held, actual ) {
-  constexpr size_t N       = decltype( held.first )::value;
-  auto&            matcher = held.second;
+  constexpr size_t N = decltype( held.first )::value;
+  auto& matcher      = held.second;
   return converting_operator_equal( matcher,
                                     std::get<N>( actual ) );
 };

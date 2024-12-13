@@ -46,10 +46,10 @@ constexpr bool is_valid_or_v<valid_or<E>> = true;
 template<typename E>
 class [[nodiscard]] valid_or : expect<valid_t, E> {
   using Base = expect<valid_t, E>;
-  Base const&  as_expect() const& { return *this; }
-  Base&        as_expect() & { return *this; }
+  Base const& as_expect() const& { return *this; }
+  Base& as_expect() & { return *this; }
   Base const&& as_expect() const&& { return *this; }
-  Base&&       as_expect() && { return *this; }
+  Base&& as_expect() && { return *this; }
 
  public:
   using typename Base::error_type;
@@ -138,7 +138,7 @@ struct fmt::formatter<base::valid_or<E>>
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::valid_or<E> const& e,
-               FormatContext&           ctx ) const {
+               FormatContext& ctx ) const {
     if( e )
       return formatter_base::format( "valid", ctx );
     else

@@ -60,15 +60,15 @@ struct SSConst {
  public:
   FormatVersion const& version;
   SettingsState const& settings;
-  EventsState const&   events;
-  UnitsState const&    units;
-  PlayersState const&  players;
-  TurnState const&     turn;
+  EventsState const& events;
+  UnitsState const& units;
+  PlayersState const& players;
+  TurnState const& turn;
   ColoniesState const& colonies;
-  NativesState const&  natives;
+  NativesState const& natives;
   LandViewState const& land_view;
-  MapState const&      map;
-  TerrainState const&  terrain;
+  MapState const& map;
+  TerrainState const& terrain;
 
   RootState const& root;
 
@@ -93,16 +93,16 @@ struct SS {
   SS( SS& ) = delete;
 
  public:
-  FormatVersion&      version;
-  SettingsState&      settings;
-  EventsState&        events;
-  UnitsState&         units;
-  PlayersState&       players;
-  TurnState&          turn;
-  ColoniesState&      colonies;
-  NativesState&       natives;
-  LandViewState&      land_view;
-  MapState&           map;
+  FormatVersion& version;
+  SettingsState& settings;
+  EventsState& events;
+  UnitsState& units;
+  PlayersState& players;
+  TurnState& turn;
+  ColoniesState& colonies;
+  NativesState& natives;
+  LandViewState& land_view;
+  MapState& map;
   TerrainState const& terrain;
 
   // This should really only be used to initialize the IMapUp-

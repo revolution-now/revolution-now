@@ -79,7 +79,7 @@ struct AssociativeQueue {
   }
 
  private:
-  std::list<T>                                           elems_;
+  std::list<T> elems_;
   std::unordered_map<T, typename std::list<T>::iterator> iters_;
 };
 

@@ -36,7 +36,7 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::dutch );
-    MapSquare const   O = make_ocean();
+    MapSquare const O = make_ocean();
     vector<MapSquare> tiles{ O };
     build_map( std::move( tiles ), 1 );
   }
@@ -48,7 +48,7 @@ struct World : testing::World {
 TEST_CASE(
     "Commodity move_commodity_as_much_as_possible single "
     "ship" ) {
-  World  W;
+  World W;
   UnitId ship =
       W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
@@ -361,7 +361,7 @@ TEST_CASE(
 TEST_CASE(
     "Commodity move_commodity_as_much_as_possible two "
     "ships" ) {
-  World  W;
+  World W;
   UnitId ship1 =
       W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();

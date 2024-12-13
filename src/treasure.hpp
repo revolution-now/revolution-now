@@ -60,9 +60,9 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
 // a treasure and, if so, how much. Note that if the player has
 // Cortes then this will always yield a treasure, and in a larger
 // amount on average.
-maybe<int> treasure_from_dwelling( SSConst const&  ss,
-                                   IRand&          rand,
-                                   Player const&   player,
+maybe<int> treasure_from_dwelling( SSConst const& ss,
+                                   IRand& rand,
+                                   Player const& player,
                                    Dwelling const& dwelling );
 
 } // namespace rn

@@ -41,7 +41,7 @@ void to_str( e_shader_type type, std::string& out,
 *****************************************************************/
 Shader::Shader( ObjId id ) : base::zero<Shader, ObjId>( id ) {}
 
-base::expect<Shader> Shader::create( e_shader_type      type,
+base::expect<Shader> Shader::create( e_shader_type type,
                                      std::string const& code ) {
   GLenum gl_shader_type = 0;
   switch( type ) {
@@ -61,9 +61,9 @@ base::expect<Shader> Shader::create( e_shader_type      type,
       CALL_GL( gl_ShaderSource, id, 1, &p_code, nullptr ) );
   GL_CHECK( CALL_GL( gl_CompileShader, id ) );
   // Check for compiler errors.
-  int              success;
+  int success;
   constexpr size_t kErrorLength = 512;
-  char             errors[kErrorLength];
+  char errors[kErrorLength];
   GL_CHECK( CALL_GL( gl_GetShaderiv, id, GL_COMPILE_STATUS,
                      &success ) );
   if( !success ) {
@@ -76,7 +76,7 @@ base::expect<Shader> Shader::create( e_shader_type      type,
 }
 
 Shader::attacher::attacher( ProgramNonTyped const& pgrm,
-                            Shader const&          shader )
+                            Shader const& shader )
   : pgrm_( pgrm ), shader_( shader ) {
   GL_CHECK(
       CALL_GL( gl_AttachShader, pgrm_.id(), shader_.id() ) );
@@ -112,9 +112,9 @@ base::expect<ProgramNonTyped> ProgramNonTyped::create(
 
     GL_CHECK( CALL_GL( gl_LinkProgram, pgrm.id() ) );
     // Check for linking errors.
-    int              success;
+    int success;
     constexpr size_t kErrorLength = 512;
-    char             errors[kErrorLength];
+    char errors[kErrorLength];
     GL_CHECK( CALL_GL( gl_GetProgramiv, pgrm.id(),
                        GL_LINK_STATUS, &success ) );
     if( !success ) {
@@ -173,13 +173,13 @@ int ProgramNonTyped::num_input_attribs() const {
 base::expect<pair<e_attrib_compound_type, int /*location*/>,
              string>
 ProgramNonTyped::attrib_compound_type( int idx ) const {
-  GLint  size;
+  GLint size;
   GLenum type;
   // Need this in case it wants to write a null terminator to the
   // name against our wishes.
   constexpr size_t kBufSize = 256;
-  char             c_name[kBufSize];
-  GLsizei          name_length;
+  char c_name[kBufSize];
+  GLsizei name_length;
   GL_CHECK( CALL_GL( gl_GetActiveAttrib,
                      /*program=*/id(),
                      /*index=*/idx,

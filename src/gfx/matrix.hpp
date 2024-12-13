@@ -33,7 +33,7 @@ namespace gfx {
 template<typename T>
 struct Matrix {
  private:
-  int            w_ = 0;
+  int w_ = 0;
   std::vector<T> data_{};
 
  public:

@@ -63,8 +63,8 @@ TEST_CASE( "[cli-args] duplicate flag" ) {
 }
 
 TEST_CASE( "[cli-args] invalid argument" ) {
-  auto   res = cmd( "hello world", "--yoyo", "--count=444=1",
-                    "test", "one" );
+  auto res = cmd( "hello world", "--yoyo", "--count=444=1",
+                  "test", "one" );
   string expected = "invalid argument `count=444=1'.";
   REQUIRE( res == expected );
 }

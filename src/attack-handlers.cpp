@@ -108,8 +108,8 @@ wait<> display_base_verdict_msg(
 }
 
 e_direction direction_of_attack( SSConst const& ss,
-                                 auto           attacker_id,
-                                 auto           defender_id ) {
+                                 auto attacker_id,
+                                 auto defender_id ) {
   Coord const attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker_id );
   Coord const defender_coord =
@@ -120,8 +120,8 @@ e_direction direction_of_attack( SSConst const& ss,
 }
 
 e_direction direction_of_attack( SSConst const& ss,
-                                 UnitId         attacker_id,
-                                 DwellingId     dwelling_id ) {
+                                 UnitId attacker_id,
+                                 DwellingId dwelling_id ) {
   Coord const attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker_id );
   Coord const defender_coord =
@@ -156,11 +156,11 @@ struct AttackHandlerBase : public CommandHandler {
   unique_ptr<IVisibility const> viz_;
 
   // The unit doing the attacking.
-  UnitId     attacker_id_;
-  Unit&      attacker_;
-  Player&    attacking_player_;
+  UnitId attacker_id_;
+  Unit& attacker_;
+  Player& attacking_player_;
   IEuroMind& attacker_mind_;
-  bool       attacker_human_ = {};
+  bool attacker_human_ = {};
 
   e_direction direction_;
 
@@ -173,7 +173,7 @@ struct AttackHandlerBase : public CommandHandler {
 };
 
 AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
-                                      UnitId      attacker_id,
+                                      UnitId attacker_id,
                                       e_direction direction )
   : ss_( ss ),
     ts_( ts ),
@@ -267,9 +267,9 @@ struct EuroAttackHandlerBase : public AttackHandlerBase {
                          UnitId defender_id );
 
  protected:
-  UnitId     defender_id_;
-  Unit&      defender_;
-  Player&    defending_player_;
+  UnitId defender_id_;
+  Unit& defender_;
+  Player& defending_player_;
   IEuroMind& defender_mind_;
 };
 
@@ -298,8 +298,8 @@ struct NativeAttackHandlerBase : public AttackHandlerBase {
 
  protected:
   NativeUnitId defender_id_;
-  NativeUnit&  defender_;
-  Tribe&       defender_tribe_;
+  NativeUnit& defender_;
+  Tribe& defender_tribe_;
   INativeMind& defender_mind_;
 };
 
@@ -322,8 +322,8 @@ struct AttackColonyUndefendedHandler
   using Base = EuroAttackHandlerBase;
 
   AttackColonyUndefendedHandler( SS& ss, TS& ts,
-                                 UnitId  attacker_id,
-                                 UnitId  defender_id,
+                                 UnitId attacker_id,
+                                 UnitId defender_id,
                                  Colony& colony );
 
   // Implement CommandHandler.
@@ -700,13 +700,13 @@ struct AttackDwellingHandler : public AttackHandlerBase {
       wait<>( CombatEuroAttackBrave const& combat );
 
   wait<> with_phantom_brave_combat(
-      CombatEuroAttackDwelling const&               combat,
+      CombatEuroAttackDwelling const& combat,
       base::function_ref<PhantomCombatAnimatorFunc> func );
 
-  DwellingId         dwelling_id_;
-  Dwelling&          dwelling_;
-  Tribe&             tribe_;
-  INativeMind&       defender_mind_;
+  DwellingId dwelling_id_;
+  Dwelling& dwelling_;
+  Tribe& tribe_;
+  INativeMind& defender_mind_;
   TribeRelationship& relationship_;
 
   maybe<UnitId> treasure_;
@@ -769,7 +769,7 @@ wait<> AttackDwellingHandler::produce_convert() {
   // moved over to the attacker's square immediately, where we
   // know there is already a friendly unit, so no interactive
   // stuff need be done.
-  Coord const  dwelling_coord = attack_dst_;
+  Coord const dwelling_coord = attack_dst_;
   UnitId const convert_id = create_unit_on_map_non_interactive(
       ss_, ts_, attacking_player_, e_unit_type::native_convert,
       dwelling_coord );
@@ -784,7 +784,7 @@ wait<> AttackDwellingHandler::produce_convert() {
 }
 
 wait<> AttackDwellingHandler::with_phantom_brave_combat(
-    CombatEuroAttackDwelling const&               combat,
+    CombatEuroAttackDwelling const& combat,
     base::function_ref<PhantomCombatAnimatorFunc> func ) {
   NativeUnitId const phantom_brave = create_phantom_brave();
   SCOPE_EXIT { ss_.units.destroy_unit( phantom_brave ); };

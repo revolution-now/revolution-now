@@ -50,7 +50,7 @@ LUA_FN( dummy, void ) {}
 } // namespace
 
 wait<> lua_ui_test( Planes& planes ) {
-  auto        owner     = planes.push();
+  auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
   WindowPlane window_plane;
   new_group.window = window_plane;

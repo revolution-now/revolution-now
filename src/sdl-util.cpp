@@ -112,7 +112,7 @@ REGISTER_INIT_ROUTINE( sdl );
 } // namespace
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
-                              uint32_t         pixel ) {
+                              uint32_t pixel ) {
   CHECK( fmt->BitsPerPixel == 32, "bits per pixel: {}",
          fmt->BitsPerPixel );
   ::SDL_Color color{};

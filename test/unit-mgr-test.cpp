@@ -92,8 +92,8 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
-    UnitId          id =
+    Colony& colony = w.add_colony( w.kLand );
+    UnitId id =
         w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer )
             .id();
@@ -102,8 +102,8 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
-    UnitId          id =
+    Colony& colony = w.add_colony( w.kLand );
+    UnitId id =
         w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal )
             .id();
@@ -112,8 +112,8 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "petty_criminal farmer" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
-    UnitId          id =
+    Colony& colony = w.add_colony( w.kLand );
+    UnitId id =
         w.add_unit_outdoors( colony.id, e_direction::w,
                              e_outdoor_job::food,
                              e_unit_type::petty_criminal )
@@ -123,7 +123,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "petty_criminal no job" ) {
     UnitComposition expected;
-    UnitId          id =
+    UnitId id =
         w.add_unit_on_map( e_unit_type::petty_criminal, w.kLand )
             .id();
     REQUIRE( f( id ) == nothing );
@@ -131,7 +131,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
-    UnitId          id =
+    UnitId id =
         w.add_unit_on_map( e_unit_type::expert_farmer, w.kLand )
             .id();
     REQUIRE( f( id ) == nothing );
@@ -177,7 +177,7 @@ TEST_CASE( "[unit-mgr] current_activity_for_unit" ) {
 }
 
 TEST_CASE( "[unit-mgr] tribe_type_for_unit" ) {
-  world           w;
+  world w;
   Dwelling const& dwelling =
       w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
   NativeUnit const& unit = w.add_native_unit_on_map(
@@ -188,7 +188,7 @@ TEST_CASE( "[unit-mgr] tribe_type_for_unit" ) {
 }
 
 TEST_CASE( "[unit-mgr] tribe_for_unit" ) {
-  world           w;
+  world w;
   Dwelling const& dwelling =
       w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
   NativeUnit const& unit = w.add_native_unit_on_map(
@@ -227,7 +227,7 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
 }
 
 TEST_CASE( "[unit-mgr] change_unit_type" ) {
-  world                     w;
+  world w;
   VisibilityForNation const viz( w.ss(), w.default_nation() );
   Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 3, .y = 3 } );
@@ -269,11 +269,11 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
 }
 
 TEST_CASE( "[unit-mgr] change_unit_nation" ) {
-  world                     w;
+  world w;
   VisibilityForNation const dutch_viz( w.ss(), e_nation::dutch );
   VisibilityForNation const spanish_viz( w.ss(),
                                          e_nation::spanish );
-  Unit&                     unit =
+  Unit& unit =
       w.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 3, .y = 3 }, e_nation::dutch );
 
@@ -399,7 +399,7 @@ TEST_CASE( "[unit-mgr] change_unit_nation_and_move" ) {
 }
 
 TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
-  world          w;
+  world w;
   vector<UnitId> expected;
 
   auto f = [&] {
@@ -489,9 +489,9 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ships" ) {
 }
 
 TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
-  world          w;
+  world w;
   vector<UnitId> expected;
-  Unit*          p_unit = nullptr;
+  Unit* p_unit = nullptr;
 
   auto f = [&] {
     CHECK( p_unit != nullptr );
@@ -565,7 +565,7 @@ TEST_CASE( "[unit-mgr] offboard_units_on_ship" ) {
 TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
   world w;
 
-  e_tribe           tribe_type = {};
+  e_tribe tribe_type = {};
   set<NativeUnitId> expected;
 
   auto f = [&] {
@@ -627,7 +627,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_ordered" ) {
 TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
   world w;
 
-  e_tribe              tribe_type = {};
+  e_tribe tribe_type = {};
   vector<NativeUnitId> expected;
 
   auto f = [&] {
@@ -689,7 +689,7 @@ TEST_CASE( "[unit-mgr] units_for_tribe_unordered" ) {
 TEST_CASE( "[unit-mgr] units_from_coord_recursive" ) {
   world w;
 
-  point                 tile;
+  point tile;
   vector<GenericUnitId> expected;
 
   auto f = [&] {
@@ -762,7 +762,7 @@ TEST_CASE( "[unit-mgr] units_from_coord_recursive" ) {
 TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
   world w;
 
-  point          tile;
+  point tile;
   vector<UnitId> expected;
 
   auto f = [&] {

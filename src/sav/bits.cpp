@@ -51,7 +51,7 @@ bool bits_base::read_binary( base::IBinaryIO& b ) {
 bool bits_base::write_binary( base::IBinaryIO& b ) const {
   CHECK( n_bits % 8 == 0 );
   int const nbytes = n_bits / 8;
-  uint64_t  m      = n;
+  uint64_t m       = n;
   for( int i = 0; i < nbytes; ++i ) {
     uint8_t const byte = m & 0xff;
     if( !b.write( byte ) ) return false;

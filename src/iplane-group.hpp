@@ -51,7 +51,7 @@ struct IPlaneGroup : public IPlane {
     motion
   };
   struct DragState {
-    IPlane*          plane;
+    IPlane* plane;
     e_drag_send_mode mode = e_drag_send_mode::normal;
   };
   maybe<DragState> drag_state_;

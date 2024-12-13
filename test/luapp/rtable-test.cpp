@@ -34,9 +34,9 @@ using ::base::valid;
 ** table objects
 *****************************************************************/
 LUA_TEST_CASE( "[table] table equality" ) {
-  boolean       b   = true;
-  integer       i   = 1;
-  floating      f   = 2.3;
+  boolean b         = true;
+  integer i         = 1;
+  floating f        = 2.3;
   lightuserdata lud = C.newuserdata( 10 );
   C.pop();
 

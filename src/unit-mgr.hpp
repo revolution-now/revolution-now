@@ -51,14 +51,14 @@ enum class e_tribe;
 ** Units
 *****************************************************************/
 std::string debug_string( UnitsState const& units_state,
-                          UnitId            id );
+                          UnitId id );
 
 // This gets the activity that the unit is currently engaged in.
 // If it is working in a colony then it will be whatever job it
 // is doing. If it is e.g. a soldier on the map then it will be
 // that. This has nothing to do with the expertise of the unit.
 maybe<e_unit_activity> current_activity_for_unit(
-    UnitsState const&    units_state,
+    UnitsState const& units_state,
     ColoniesState const& colonies_state, UnitId id );
 
 /****************************************************************
@@ -89,7 +89,7 @@ ND maybe<Coord> coord_for_unit_indirect(
 // This will return true for a unit if it is owned by the map or
 // if its owner is on the map.
 bool is_unit_on_map_indirect( UnitsState const& units_state,
-                              UnitId            id );
+                              UnitId id );
 
 // These will return true for a unit if it is directly on the
 // map.
@@ -101,7 +101,7 @@ bool is_unit_on_map( UnitsState const& units_state, UnitId id );
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
 maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
-                               UnitId            id );
+                               UnitId id );
 
 // This is called on a colony square just before it is attacked.
 // It will eject all units (not commodities) from the cargo of
@@ -127,16 +127,16 @@ std::vector<UnitId> offboard_units_on_ship( SS& ss, TS& ts,
 *****************************************************************/
 // Creates a unit that is registered (with a valid ID) but with
 // no ownership.
-UnitId create_free_unit( UnitsState&            units_state,
-                         Player const&          player,
+UnitId create_free_unit( UnitsState& units_state,
+                         Player const& player,
                          UnitComposition const& comp );
 
 // Create unit that is not registered in the unit database, and
 // thus has no ID and no ownership. The unit will always have
 // id=0, since a unit does not get assigned an ID until it is
 // added into the units database.
-Unit       create_unregistered_unit( Player const&          player,
-                                     UnitComposition const& comp );
+Unit create_unregistered_unit( Player const& player,
+                               UnitComposition const& comp );
 NativeUnit create_unregistered_unit( e_native_unit_type type );
 
 // This has to return a maybe because the unit could theoreti-
@@ -172,16 +172,16 @@ void change_unit_nation( SS& ss, TS& ts, Unit& unit,
 // vealing map square around it before moving it.
 void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
                                   e_nation new_nation,
-                                  Coord    target );
+                                  Coord target );
 
 /****************************************************************
 ** Native-specific
 *****************************************************************/
-Tribe const& tribe_for_unit( SSConst const&    ss,
+Tribe const& tribe_for_unit( SSConst const& ss,
                              NativeUnit const& native_unit );
 Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit );
 
-e_tribe tribe_type_for_unit( SSConst const&    ss,
+e_tribe tribe_type_for_unit( SSConst const& ss,
                              NativeUnit const& native_unit );
 
 // When sorting order doesn't matter use this as it should be
@@ -203,8 +203,8 @@ std::set<NativeUnitId> units_for_tribe_ordered(
 // ownership, cargo ownership (where holder is on map), colony
 // ownership.
 maybe<Coord> coord_for_unit_multi_ownership( SSConst const& ss,
-                                             GenericUnitId  id );
+                                             GenericUnitId id );
 Coord coord_for_unit_multi_ownership_or_die( SSConst const& ss,
-                                             GenericUnitId  id );
+                                             GenericUnitId id );
 
 } // namespace rn

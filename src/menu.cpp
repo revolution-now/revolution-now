@@ -78,10 +78,10 @@ using config::menu::MenuItemConfig;
 *****************************************************************/
 struct MenuPlane::Impl : public IPlane {
   // State
-  refl::enum_map<e_menu, int>      menu_name_width_pixels_;
+  refl::enum_map<e_menu, int> menu_name_width_pixels_;
   refl::enum_map<e_menu_item, int> menu_item_name_width_pixels_;
 
-  refl::enum_map<e_menu_item, e_menu>         item_to_menu_;
+  refl::enum_map<e_menu_item, e_menu> item_to_menu_;
   refl::enum_map<e_menu, vector<e_menu_item>> items_from_menu_;
 
   MenuState menu_state_{ MenuState::menus_closed{} };
@@ -185,7 +185,7 @@ struct MenuPlane::Impl : public IPlane {
     // TODO: simplify this since menus are not invisible anymore.
     auto const& menus = config_menu.menus;
     auto const& desc  = menus[target];
-    W           width_delta{ 0 };
+    W width_delta{ 0 };
     if( desc.position == e_menu_side::right ) {
       width_delta = rl::rall( refl::enum_values<e_menu> )
                         .remove_if_L( menus[_].position !=
@@ -354,7 +354,7 @@ struct MenuPlane::Impl : public IPlane {
 
   // `cursor` is the screen position of the mouse cursor.
   maybe<e_menu_item> cursor_to_item( e_menu menu,
-                                     Coord  cursor ) const {
+                                     Coord cursor ) const {
     if( !cursor.is_inside( menu_body_rect_inner( menu ) ) )
       return {};
     return cursor_to_item(
@@ -382,7 +382,7 @@ struct MenuPlane::Impl : public IPlane {
     if( shortcut ) {
       // Highlight the letter representing the shortcut key.
       string const shortcut_str( 1, *shortcut );
-      auto         pos = name.find_first_of( shortcut_str );
+      auto pos = name.find_first_of( shortcut_str );
       if( pos != string::npos )
         name.replace( pos, 1,
                       fmt::format( "[{}]", shortcut_str ) );
@@ -393,7 +393,7 @@ struct MenuPlane::Impl : public IPlane {
   }
 
   void render_menu_element( rr::Renderer& renderer, Coord pos,
-                            e_menu     item,
+                            e_menu item,
                             gfx::pixel color ) const {
     render_menu_element( renderer, pos, item, color,
                          config_menu.menus[item].shortcut );
@@ -401,7 +401,7 @@ struct MenuPlane::Impl : public IPlane {
 
   void render_menu_element( rr::Renderer& renderer, Coord pos,
                             e_menu_item item,
-                            gfx::pixel  color ) const {
+                            gfx::pixel color ) const {
     render_menu_element( renderer, pos, item, color,
                          /*shortcut=*/nothing );
   }
@@ -431,7 +431,7 @@ struct MenuPlane::Impl : public IPlane {
   }
 
   void render_item_background_selected( rr::Renderer& renderer,
-                                        Coord         pos,
+                                        Coord pos,
                                         e_menu menu ) const {
     gfx::rect background = gfx::rect{
       .origin = pos, .size = menu_item_delta( menu ) };
@@ -440,7 +440,7 @@ struct MenuPlane::Impl : public IPlane {
   }
 
   void render_menu_header_background( rr::Renderer& renderer,
-                                      e_menu        menu,
+                                      e_menu menu,
                                       bool active ) const {
     Rect const header = menu_header_rect( menu );
     if( active ) {
@@ -456,7 +456,7 @@ struct MenuPlane::Impl : public IPlane {
   }
 
   void render_open_menu( rr::Renderer& renderer, Coord pos,
-                         e_menu             menu,
+                         e_menu menu,
                          maybe<e_menu_item> subject ) const {
     if( subject.has_value() ) {
       CHECK( item_to_menu_[*subject] == menu );
@@ -509,10 +509,10 @@ struct MenuPlane::Impl : public IPlane {
   // visitation.
   struct MenuBarRendererVisitor {
     // These would be the "lambda captures".
-    Impl const*   impl;
+    Impl const* impl;
     e_menu const& menu;
-    Coord const&  background_upper_left;
-    Coord const&  foreground_upper_left;
+    Coord const& background_upper_left;
+    Coord const& foreground_upper_left;
     rr::Renderer& renderer;
 
     void operator()( MenuState::menus_closed closed ) const {
@@ -548,12 +548,12 @@ struct MenuPlane::Impl : public IPlane {
         compositor::section( compositor::e_section::panel )
             .value_or( Rect{} );
     Coord const panel_upper_left = panel_rect.upper_left();
-    Rect const  bar_rect         = menu_bar_rect();
+    Rect const bar_rect          = menu_bar_rect();
     Delta const wood_size = sprite_size( e_tile::wood_middle );
     Coord const start =
         panel_upper_left - Delta{ .h = wood_size.h };
-    W const     wood_width = wood_size.w;
-    rr::Painter painter    = renderer.painter();
+    W const wood_width  = wood_size.w;
+    rr::Painter painter = renderer.painter();
     for( Coord c = start; c.x >= 0 - wood_width;
          c -= Delta{ .w = wood_width } )
       render_sprite( renderer, c, e_tile::wood_middle );
@@ -572,7 +572,7 @@ struct MenuPlane::Impl : public IPlane {
         config_ui.window.border_darker );
 
     for( auto menu : refl::enum_values<e_menu> ) {
-      auto  rect                  = menu_header_rect( menu );
+      auto rect                   = menu_header_rect( menu );
       Coord background_upper_left = rect.upper_left();
       Coord foreground_upper_left =
           menu_header_text_rect( menu ).upper_left();
@@ -590,7 +590,7 @@ struct MenuPlane::Impl : public IPlane {
   // tion.
   struct ClickTargetVisitor {
     // These would be the "lambda captures".
-    Impl&        impl;
+    Impl& impl;
     Coord const& screen_coord;
 
     using res_t = maybe<MouseOver>;
@@ -645,8 +645,8 @@ struct MenuPlane::Impl : public IPlane {
     overload_visit(
         menu_state_.as_base(), [&]( MenuState::menus_closed ) {},
         [&]( MenuState::item_click const& ic ) {
-          auto  menu = item_to_menu_[ic.item];
-          Coord pos  = menu_body_rect( menu ).upper_left();
+          auto menu = item_to_menu_[ic.item];
+          Coord pos = menu_body_rect( menu ).upper_left();
           SWITCH( ic.phase ) {
             CASE( off ) {
               render_open_menu( renderer, pos, menu, nothing );
@@ -697,7 +697,7 @@ struct MenuPlane::Impl : public IPlane {
   }
 
   struct MouseMoveVisitor {
-    Impl&           impl;
+    Impl& impl;
     e_input_handled operator()( MouseOver::bar ) {
       return e_input_handled::yes;
     }
@@ -1007,8 +1007,8 @@ struct MenuPlane::Impl : public IPlane {
         conf.click_animation_blink_duration_millis;
     milliseconds const kFadeDuration =
         conf.click_animation_fade_duration_millis;
-    int const  kBlinkCycles = conf.click_animation_blink_cycles;
-    long const kFadeFrames  = kFadeDuration / kFrameDuration;
+    int const kBlinkCycles = conf.click_animation_blink_cycles;
+    long const kFadeFrames = kFadeDuration / kFrameDuration;
 
     // Blinking.
     for( int i = 0; i < kBlinkCycles; ++i ) {
@@ -1104,7 +1104,7 @@ MenuPlane::Deregistrar MenuPlane::register_handler(
 }
 
 void MenuPlane::unregister_handler( e_menu_item item,
-                                    IPlane&     plane ) {
+                                    IPlane& plane ) {
   impl_->unregister_handler( item, plane );
 }
 

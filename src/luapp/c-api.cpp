@@ -658,10 +658,10 @@ bool c_api::pushthread() noexcept {
 
 string c_api::pop_tostring() noexcept {
   enforce_stack_size_ge( 1 );
-  size_t      len = 0;
-  char const* p   = tostring( -1, &len );
+  size_t len    = 0;
+  char const* p = tostring( -1, &len );
   string_view sv( p, len );
-  string      res = string( sv );
+  string res = string( sv );
   pop( 2 );
   return res;
 }
@@ -725,7 +725,7 @@ thread_status c_api::status() noexcept {
 
 lua_valid c_api::thread_ok() noexcept {
   thread_status stat = status();
-  lua_valid     res  = base::valid;
+  lua_valid res      = base::valid;
   switch( stat ) {
     case thread_status::err: {
       enforce_stack_size_ge( 1 );
@@ -761,9 +761,9 @@ lua_expect<resume_result> c_api::resume_or_leak(
   // L_ and L_toresume may or may not be the same here.
   c_api C_toresume( L_toresume );
   C_toresume.enforce_stack_size_ge( nargs );
-  lua_State*    L_from   = L_;
-  int           nresults = 0;
-  thread_status status   = to_thread_status(
+  lua_State* L_from    = L_;
+  int nresults         = 0;
+  thread_status status = to_thread_status(
       lua_resume( L_toresume, L_from, nargs, &nresults ) );
   HAS_VALUE_OR_RET( C_toresume.thread_ok() );
   CHECK( status != thread_status::err );
@@ -779,7 +779,7 @@ lua_expect<resume_result> c_api::resume_or_reset(
   lua_expect<resume_result> res =
       resume_or_leak( L_toresume, nargs );
   if( !res ) {
-    c_api     C_toresume( L_toresume );
+    c_api C_toresume( L_toresume );
     lua_valid close_result = C_toresume.resetthread();
     // close_result will always just contain the original error
     // even if there is an error while closing, so there is no

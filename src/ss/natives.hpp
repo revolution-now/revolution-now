@@ -35,7 +35,7 @@ struct NativesState {
 
   // Implement refl::WrapsReflected.
   NativesState( wrapped::NativesState&& o );
-  wrapped::NativesState const&      refl() const { return o_; }
+  wrapped::NativesState const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "NativesState";
 
@@ -50,7 +50,7 @@ struct NativesState {
   bool tribe_exists( e_tribe tribe ) const;
 
   // Tribe must exist or check fail.
-  Tribe&       tribe_for( e_tribe tribe );
+  Tribe& tribe_for( e_tribe tribe );
   Tribe const& tribe_for( e_tribe tribe ) const;
 
   Tribe& create_or_get_tribe( e_tribe tribe );
@@ -68,17 +68,17 @@ struct NativesState {
       e_tribe tribe ) const;
 
   Dwelling const& dwelling_for( DwellingId id ) const;
-  Dwelling&       dwelling_for( DwellingId id );
+  Dwelling& dwelling_for( DwellingId id );
 
   DwellingState const& state_for( DwellingId id ) const;
-  DwellingState&       state_for( DwellingId id );
+  DwellingState& state_for( DwellingId id );
 
   DwellingOwnership const& ownership_for( DwellingId id ) const;
-  DwellingOwnership&       ownership_for( DwellingId id );
+  DwellingOwnership& ownership_for( DwellingId id );
 
-  Coord        coord_for( DwellingId id ) const;
+  Coord coord_for( DwellingId id ) const;
   Tribe const& tribe_for( DwellingId id ) const;
-  Tribe&       tribe_for( DwellingId id );
+  Tribe& tribe_for( DwellingId id );
 
   e_tribe tribe_type_for( DwellingId id ) const;
 
@@ -155,7 +155,7 @@ struct NativesState {
   [[nodiscard]] DwellingId next_dwelling_id();
 
   base::valid_or<std::string> validate() const;
-  void                        validate_or_die() const;
+  void validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::NativesState o_;

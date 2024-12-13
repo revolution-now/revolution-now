@@ -53,11 +53,11 @@ constexpr double g_tile_overlap_width_percent = .2;
 // same value of the property) for smooth transitions.
 struct SurroundingsInfo {
   refl::enum_map<e_cdirection, bool> surroundings;
-  bool                               fully_surrounded = false;
+  bool fully_surrounded = false;
 };
 
 SurroundingsInfo surroundings_test( Coord const tile,
-                                    auto&&      is_on ) {
+                                    auto&& is_on ) {
   SurroundingsInfo info;
   info.fully_surrounded = true;
   for( e_cdirection const d : refl::enum_values<e_cdirection> ) {
@@ -73,7 +73,7 @@ void render_pixelated_overlay_transitions(
     rr::Renderer& renderer, Coord where,
     Coord const world_square, IVisibility const& viz,
     refl::enum_map<e_cdirection, bool> const& has_overlay,
-    e_tile                                    overlay_tile );
+    e_tile overlay_tile );
 
 e_tile tile_for_ground_terrain( e_ground_terrain terrain ) {
   switch( terrain ) {
@@ -492,7 +492,7 @@ void render_forest( IVisibility const& viz,
 }
 
 void render_adjacent_overlap( IVisibility const& viz,
-                              rr::Renderer&      renderer,
+                              rr::Renderer& renderer,
                               Coord where, Coord world_square,
                               double chop_percent ) {
   MapSquare const& west =
@@ -505,8 +505,8 @@ void render_adjacent_overlap( IVisibility const& viz,
       viz.square_at( world_square + Delta{ .h = 1 } );
 
   int chop_pixels = std::lround( g_tile_delta.w * chop_percent );
-  W   chop_w      = W{ chop_pixels };
-  H   chop_h      = H{ chop_pixels };
+  W chop_w        = W{ chop_pixels };
+  H chop_h        = H{ chop_pixels };
 
   // In the below, when two adjacent segments touch, we want
   // their depixelations to be .5, otherwise there will be a hard
@@ -522,7 +522,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 
   {
     // Render bottom part of north tile.
-    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Rect src  = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.h -= chop_h;
     src.y += chop_h;
@@ -538,8 +538,8 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter             painter = renderer.painter();
-    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+    rr::Painter painter            = renderer.painter();
+    maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, north, world_square - Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
@@ -549,7 +549,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 
   {
     // Render northern part of southern tile.
-    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Rect src  = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.h -= chop_h;
     src.y += 0;
@@ -565,8 +565,8 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter             painter = renderer.painter();
-    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+    rr::Painter painter            = renderer.painter();
+    maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, south, world_square + Delta{ .h = 1 } );
     if( ground )
       render_sprite_section( painter,
@@ -576,7 +576,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 
   {
     // Render east part of western tile.
-    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Rect src  = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.w -= chop_w;
     src.x += chop_w;
@@ -590,8 +590,8 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter             painter = renderer.painter();
-    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+    rr::Painter painter            = renderer.painter();
+    maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, west, world_square - Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
@@ -601,7 +601,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 
   {
     // Render west part of eastern tile.
-    Rect  src = Rect::from( Coord{}, g_tile_delta );
+    Rect src  = Rect::from( Coord{}, g_tile_delta );
     Coord dst = where;
     src.w -= chop_w;
     src.x += 0;
@@ -615,8 +615,8 @@ void render_adjacent_overlap( IVisibility const& viz,
         painter_mods.depixelate.stage_anchor,
         dst.to_gfx().to_double() );
     // Need a new painter since we changed the mods.
-    rr::Painter             painter = renderer.painter();
-    maybe<e_ground_terrain> ground  = ground_terrain_for_square(
+    rr::Painter painter            = renderer.painter();
+    maybe<e_ground_terrain> ground = ground_terrain_for_square(
         viz, east, world_square + Delta{ .w = 1 } );
     if( ground )
       render_sprite_section( painter,
@@ -627,7 +627,7 @@ void render_adjacent_overlap( IVisibility const& viz,
 
 void render_terrain_ground( IVisibility const& viz,
                             rr::Renderer& renderer, Coord where,
-                            Coord            world_square,
+                            Coord world_square,
                             e_ground_terrain ground ) {
   e_tile tile = tile_for_ground_terrain( ground );
   render_sprite( renderer, where, tile );
@@ -675,7 +675,7 @@ void render_terrain_ground( IVisibility const& viz,
 
 // Pass in the painter as well for efficiency.
 void render_terrain_land_square( IVisibility const& viz,
-                                 rr::Renderer&      renderer,
+                                 rr::Renderer& renderer,
                                  Coord where, Coord world_square,
                                  MapSquare const& square ) {
   DCHECK( square.surface == e_surface::land );
@@ -740,7 +740,7 @@ void render_river_water_tile( rr::Renderer& renderer,
 //
 void render_river_on_ocean( IVisibility const& viz,
                             rr::Renderer& renderer, Coord where,
-                            Coord            world_square,
+                            Coord world_square,
                             MapSquare const& square ) {
   CHECK( square.river.has_value() );
   MapSquare const& up =
@@ -794,9 +794,9 @@ void render_river_on_ocean( IVisibility const& viz,
 
 void render_river_on_land( IVisibility const& viz,
                            rr::Renderer& renderer, Coord where,
-                           Coord            world_square,
+                           Coord world_square,
                            MapSquare const& square,
-                           bool             no_bank ) {
+                           bool no_bank ) {
   DCHECK( square.river.has_value() );
   MapSquare const& up =
       viz.square_at( world_square - Delta{ .h = 1 } );
@@ -1085,7 +1085,7 @@ bool has_surrounding_nonforest_river_squares(
 
 void render_river_hinting( IVisibility const& viz,
                            rr::Renderer& renderer, Coord where,
-                           Coord            world_square,
+                           Coord world_square,
                            MapSquare const& square ) {
   DCHECK( square.overlay == e_land_overlay::forest );
   static double constexpr kEdgeAlpha         = 0.5;
@@ -1107,7 +1107,7 @@ void render_river_hinting( IVisibility const& viz,
 
 void render_land_overlay( IVisibility const& viz,
                           rr::Renderer& renderer, Coord where,
-                          Coord            world_square,
+                          Coord world_square,
                           MapSquare const& square ) {
   if( !square.overlay.has_value() ) return;
   switch( *square.overlay ) {
@@ -1152,9 +1152,9 @@ void render_land_overlay( IVisibility const& viz,
 // point of it is that it will ensure automatically that sea lane
 // is rendered properly on the tile if it is present.
 struct WaterRendererWithSeaLane {
-  rr::Renderer&      renderer;
-  Coord const        where;
-  Coord const        world_square;
+  rr::Renderer& renderer;
+  Coord const where;
+  Coord const world_square;
   IVisibility const& viz;
 
   void render() const {
@@ -1201,10 +1201,10 @@ struct WaterRendererWithSeaLane {
   }
 };
 
-void render_terrain_ocean_square( rr::Renderer&      renderer,
-                                  Coord              where,
+void render_terrain_ocean_square( rr::Renderer& renderer,
+                                  Coord where,
                                   IVisibility const& viz,
-                                  MapSquare const&   square,
+                                  MapSquare const& square,
                                   Coord world_square ) {
   DCHECK( square.surface == e_surface::water );
 
@@ -1252,9 +1252,9 @@ void render_terrain_ocean_square( rr::Renderer&      renderer,
     return;
   }
 
-  e_tile        water_tile         = {};
-  e_tile        beach_tile         = {};
-  e_tile        border_tile        = {};
+  e_tile water_tile                = {};
+  e_tile beach_tile                = {};
+  e_tile border_tile               = {};
   maybe<e_tile> second_water_tile  = {};
   maybe<e_tile> second_beach_tile  = {};
   maybe<e_tile> second_border_tile = {};
@@ -2070,7 +2070,7 @@ e_tile resource_tile( e_natural_resource resource ) {
   }
 }
 
-void render_resources( rr::Renderer&      renderer,
+void render_resources( rr::Renderer& renderer,
                        IVisibility const& viz, Coord where,
                        Coord world_square ) {
   maybe<e_natural_resource> const resource =
@@ -2088,7 +2088,7 @@ void render_pixelated_overlay_transitions(
     rr::Renderer& renderer, Coord where,
     Coord const world_square, IVisibility const& viz,
     refl::enum_map<e_cdirection, bool> const& has_overlay,
-    e_tile                                    overlay_tile ) {
+    e_tile overlay_tile ) {
   rr::Painter painter = renderer.painter();
   // The below will render 9 pieces, and will do so with dif-
   // ferent depixelation stages and alphas depending on the
@@ -2130,7 +2130,7 @@ void render_pixelated_overlay_transitions(
     double const stage_to   = !self_overlay ? 0.5 : 0.0;
     double const stage_slope =
         abs( stage_to - stage_from ) / kEdgeThickness;
-    double     stage_nw = 0;
+    double stage_nw     = 0;
     gfx::dsize gradient = {};
     switch( d ) {
       case e_cardinal_direction::n:
@@ -2172,7 +2172,7 @@ void render_pixelated_overlay_transitions(
     double const stage_slope =
         abs( stage_to - stage_from ) / kEdgeThickness;
     gfx::dsize gradient = {};
-    double     stage_nw = 0;
+    double stage_nw     = 0;
     switch( d ) {
       case e_cardinal_direction::n:
         stage_nw = 0.5;
@@ -2222,7 +2222,7 @@ void render_pixelated_overlay_transitions(
   {
     e_cardinal_direction const d = e_cardinal_direction::n;
     Delta const delta{ .w = kEdgeThickness, .h = 0 };
-    Rect const  rect =
+    Rect const rect =
         tile_rect.with_new_left_edge( kEdgeThickness )
             .with_new_right_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
@@ -2232,9 +2232,9 @@ void render_pixelated_overlay_transitions(
   // Bottom middle.
   {
     e_cardinal_direction const d = e_cardinal_direction::s;
-    Delta const                delta{ .w = kEdgeThickness,
-                                      .h = g_tile_height - kEdgeThickness };
-    Rect const                 rect =
+    Delta const delta{ .w = kEdgeThickness,
+                       .h = g_tile_height - kEdgeThickness };
+    Rect const rect =
         tile_rect.with_new_left_edge( kEdgeThickness )
             .with_new_right_edge( g_tile_width - kEdgeThickness )
             .with_new_top_edge( g_tile_height - kEdgeThickness );
@@ -2245,7 +2245,7 @@ void render_pixelated_overlay_transitions(
   {
     e_cardinal_direction const d = e_cardinal_direction::w;
     Delta const delta{ .w = 0, .h = kEdgeThickness };
-    Rect const  rect =
+    Rect const rect =
         tile_rect.with_new_top_edge( kEdgeThickness )
             .with_new_right_edge( kEdgeThickness )
             .with_new_bottom_edge( g_tile_height -
@@ -2258,7 +2258,7 @@ void render_pixelated_overlay_transitions(
     e_cardinal_direction const d = e_cardinal_direction::e;
     Delta const delta{ .w = g_tile_width - kEdgeThickness,
                        .h = kEdgeThickness };
-    Rect const  rect =
+    Rect const rect =
         tile_rect.with_new_top_edge( kEdgeThickness )
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( g_tile_height -
@@ -2285,7 +2285,7 @@ void render_pixelated_overlay_transitions(
       return;
     bool const no_overlay1 = !has_overlay[to_cdirection( d1 )];
     bool const no_overlay2 = !has_overlay[to_cdirection( d2 )];
-    int const  no_overlay_count =
+    int const no_overlay_count =
         ( no_overlay1 ? 1 : 0 ) + ( no_overlay2 ? 1 : 0 );
     double stage = 0.0, alpha = 0.0;
     if( !self_overlay ) {
@@ -2317,8 +2317,8 @@ void render_pixelated_overlay_transitions(
   {
     e_cardinal_direction const d1 = e_cardinal_direction::w;
     e_cardinal_direction const d2 = e_cardinal_direction::n;
-    Delta const                delta{ .w = 0, .h = 0 };
-    Rect const                 rect =
+    Delta const delta{ .w = 0, .h = 0 };
+    Rect const rect =
         tile_rect.with_new_right_edge( kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
     corner( delta, rect, d1, d2 );
@@ -2330,7 +2330,7 @@ void render_pixelated_overlay_transitions(
     e_cardinal_direction const d2 = e_cardinal_direction::e;
     Delta const delta{ .w = g_tile_width - kEdgeThickness,
                        .h = 0 };
-    Rect const  rect =
+    Rect const rect =
         tile_rect
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_bottom_edge( kEdgeThickness );
@@ -2341,9 +2341,9 @@ void render_pixelated_overlay_transitions(
   {
     e_cardinal_direction const d1 = e_cardinal_direction::s;
     e_cardinal_direction const d2 = e_cardinal_direction::w;
-    Delta const                delta{ .w = 0,
-                                      .h = g_tile_width - kEdgeThickness };
-    Rect const                 rect =
+    Delta const delta{ .w = 0,
+                       .h = g_tile_width - kEdgeThickness };
+    Rect const rect =
         tile_rect.with_new_right_edge( kEdgeThickness )
             .with_new_top_edge( g_tile_width - kEdgeThickness );
     corner( delta, rect, d1, d2 );
@@ -2355,7 +2355,7 @@ void render_pixelated_overlay_transitions(
     e_cardinal_direction const d2 = e_cardinal_direction::s;
     Delta const delta{ .w = g_tile_width - kEdgeThickness,
                        .h = g_tile_width - kEdgeThickness };
-    Rect const  rect =
+    Rect const rect =
         tile_rect
             .with_new_left_edge( g_tile_width - kEdgeThickness )
             .with_new_top_edge( g_tile_width - kEdgeThickness );
@@ -2364,8 +2364,8 @@ void render_pixelated_overlay_transitions(
 }
 
 void render_visible_terrain_square( rr::Renderer& renderer,
-                                    Coord         where,
-                                    Coord const   world_square,
+                                    Coord where,
+                                    Coord const world_square,
                                     IVisibility const& viz ) {
   MapSquare const& square = viz.square_at( world_square );
   if( square.surface == e_surface::water ) {
@@ -2457,7 +2457,7 @@ void render_obfuscation_overlay(
 
 void render_terrain_square_merged(
     rr::Renderer& renderer, Coord where, Coord world_square,
-    IVisibility const&          viz,
+    IVisibility const& viz,
     TerrainRenderOptions const& options ) {
   render_landscape_square_if_not_fully_hidden(
       renderer, where, world_square, viz, options );
@@ -2467,7 +2467,7 @@ void render_terrain_square_merged(
 
 void render_landscape_buffer(
     rr::Renderer& renderer, IVisibility const& viz,
-    TerrainRenderOptions const&   options,
+    TerrainRenderOptions const& options,
     gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );
@@ -2501,7 +2501,7 @@ void render_landscape_buffer(
 
 void render_obfuscation_buffer(
     rr::Renderer& renderer, IVisibility const& viz,
-    TerrainRenderOptions const&   options,
+    TerrainRenderOptions const& options,
     gfx::Matrix<rr::VertexRange>& tile_bounds ) {
   auto start_time = chrono::system_clock::now();
   SCOPED_RENDERER_MOD_SET( painter_mods.repos.use_camera, true );

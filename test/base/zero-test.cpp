@@ -25,8 +25,8 @@ namespace {
 using namespace std;
 
 unordered_map<int, int> resources;
-int                     next_key = 0;
-int                     next_val = 0;
+int next_key = 0;
+int next_val = 0;
 
 void reset_resources() {
   resources = {};

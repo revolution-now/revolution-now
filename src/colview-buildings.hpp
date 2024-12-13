@@ -50,7 +50,7 @@ class ColViewBuildings : public ui::View,
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override {
@@ -72,7 +72,7 @@ class ColViewBuildings : public ui::View,
 
   // Implement IDragSink.
   wait<> drop( ColViewObject const& o,
-               Coord const&         where ) override;
+               Coord const& where ) override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
@@ -81,7 +81,7 @@ class ColViewBuildings : public ui::View,
 
   // Implement IDragSource.
   bool try_drag( ColViewObject const& o,
-                 Coord const&         where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -111,12 +111,12 @@ class ColViewBuildings : public ui::View,
 
  private:
   struct Dragging {
-    UnitId                 id   = {};
+    UnitId id                   = {};
     e_colony_building_slot slot = {};
   };
 
-  Delta           size_;
-  Colony&         colony_;
+  Delta size_;
+  Colony& colony_;
   maybe<Dragging> dragging_ = {};
 };
 

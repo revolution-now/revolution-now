@@ -49,7 +49,7 @@ struct Shader : base::zero<Shader, ObjId> {
  private:
   struct [[nodiscard]] attacher {
     attacher( ProgramNonTyped const& pgrm,
-              Shader const&          shader );
+              Shader const& shader );
 
     ~attacher();
 
@@ -57,11 +57,11 @@ struct Shader : base::zero<Shader, ObjId> {
 
    private:
     ProgramNonTyped const& pgrm_;
-    Shader const&          shader_;
+    Shader const& shader_;
   };
 
  public:
-  static base::expect<Shader> create( e_shader_type      type,
+  static base::expect<Shader> create( e_shader_type type,
                                       std::string const& code );
 
   attacher attach( ProgramNonTyped const& pgrm ) const {
@@ -92,7 +92,7 @@ struct ProgramNonTyped : base::zero<ProgramNonTyped, ObjId> {
   void use() const;
 
   void run( VertexArrayNonTyped const& vert_array,
-            int                        num_vertices ) const;
+            int num_vertices ) const;
 
  protected:
   ProgramNonTyped( ObjId id );
@@ -136,7 +136,7 @@ struct Program : ProgramNonTyped {
 
   template<typename... VertexBuffers>
   void run( VertexArray<VertexBuffers...> const& vert_array,
-            int                                  num_vertices )
+            int num_vertices )
   requires std::is_same_v<
       InputAttribTypeList,
       typename VertexArray<VertexBuffers...>::AttribTypeList>
@@ -216,8 +216,8 @@ private:
   template<size_t... Idx>
   constexpr static size_t find_uniform_index_impl(
       std::string_view what, std::index_sequence<Idx...> ) {
-    size_t res      = kInvalidUniformName;
-    auto&  uniforms = ProgramUniforms::uniforms;
+    size_t res     = kInvalidUniformName;
+    auto& uniforms = ProgramUniforms::uniforms;
     ( ( res = ( std::get<Idx>( uniforms ).name == what ) ? Idx
                                                          : res ),
       ... );
@@ -248,7 +248,7 @@ private:
   template<typename... Specs, size_t... Idx>
   struct UniformArray<std::tuple<Specs...> const,
                       std::index_sequence<Idx...>> {
-    UniformArray( ObjId                       pgrm_id,
+    UniformArray( ObjId pgrm_id,
                   std::tuple<Specs...> const& specs )
       : values{ Uniform<typename Specs::type>{
           pgrm_id, std::get<Idx>( specs ).name }... } {}
@@ -274,7 +274,7 @@ private:
   // being assigned to be sure that it agrees with the uniform of
   // the given name.
   template<base::fixed_string name,
-           size_t             N = find_uniform_index( name )>
+           size_t N = find_uniform_index( name )>
   auto& operator[]( base::fixed_string_holder<name> ) {
     return std::get<N>( uniforms_.values );
   }

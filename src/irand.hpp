@@ -112,7 +112,7 @@ T IRand::pick_from_weighted_values(
   CHECK_GE( total, 0.0 );
   double stop    = between_doubles( 0.0, total );
   double running = 0.0;
-  T      res     = {};
+  T res          = {};
   for( auto const& [item, weight] : weights ) {
     res = item;
     running += weight;

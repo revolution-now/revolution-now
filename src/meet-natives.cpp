@@ -46,8 +46,8 @@ namespace rn {
 namespace {
 
 MeetTribe check_meet_tribe_single( SSConst const& ss,
-                                   Player const&  player,
-                                   e_tribe        tribe ) {
+                                   Player const& player,
+                                   e_tribe tribe ) {
   // Compute the land "occupied" by the player that will be
   // awarded to them by this tribe.
   lg.debug( "meeting the {} tribe.", tribe );
@@ -55,12 +55,12 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
   // 1. Compute all land square occupied by the player, meaning
   // the squares containing colonies and the outdoor workers in
   // those colonies.
-  unordered_set<Coord>   land_occupied;
+  unordered_set<Coord> land_occupied;
   vector<ColonyId> const colonies =
       ss.colonies.for_nation( player.nation );
   for( ColonyId colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    Coord const   home   = colony.location;
+    Coord const home     = colony.location;
     land_occupied.insert( home );
     for( auto& [direction, outdoor_unit] :
          colony.outdoor_jobs ) {
@@ -106,8 +106,8 @@ MeetTribe check_meet_tribe_single( SSConst const& ss,
 *****************************************************************/
 vector<MeetTribe> check_meet_europeans( SSConst const& ss,
                                         e_tribe tribe_type,
-                                        Coord   native_square ) {
-  Tribe const&      tribe = ss.natives.tribe_for( tribe_type );
+                                        Coord native_square ) {
+  Tribe const& tribe = ss.natives.tribe_for( tribe_type );
   vector<MeetTribe> res;
   unordered_set<e_nation> met;
   for( e_direction d : refl::enum_values<e_direction> ) {
@@ -135,10 +135,10 @@ vector<MeetTribe> check_meet_europeans( SSConst const& ss,
 }
 
 vector<MeetTribe> check_meet_tribes( SSConst const& ss,
-                                     Player const&  player,
-                                     Coord          coord ) {
+                                     Player const& player,
+                                     Coord coord ) {
   vector<MeetTribe> res;
-  MapSquare const&  square = ss.terrain.square_at( coord );
+  MapSquare const& square = ss.terrain.square_at( coord );
   if( square.surface == e_surface::water )
     // Cannot make an initial encounter with the natives from a
     // water square.
@@ -226,7 +226,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
 }
 
 void perform_meet_tribe( SS& ss, Player const& player,
-                         MeetTribe const&         meet_tribe,
+                         MeetTribe const& meet_tribe,
                          e_declare_war_on_natives declare_war ) {
   Tribe& tribe = ss.natives.tribe_for( meet_tribe.tribe );
 

@@ -121,7 +121,7 @@ struct no_default_wrapper {
   requires std::is_constructible_v<T, U&&>
   no_default_wrapper( U&& o ) : val_( std::forward<U>( o ) ) {}
 
-  T&       get() { return val_; }
+  T& get() { return val_; }
   T const& get() const { return val_; }
 
   no_default_wrapper() = delete;
@@ -168,7 +168,7 @@ struct no_default_linker_wrapper {
   no_default_linker_wrapper( U&& o )
     : val_( std::forward<U>( o ) ) {}
 
-  T&       get() { return val_; }
+  T& get() { return val_; }
   T const& get() const { return val_; }
 
   struct Dummy {};

@@ -40,8 +40,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -55,7 +55,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
-  World          W;
+  World W;
   vector<UnitId> units, expected;
 
   auto add = [&]( e_unit_type type ) {
@@ -92,7 +92,7 @@ TEST_CASE( "[unit-stack] sort_euro_unit_stack" ) {
 }
 
 TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
-  World                W;
+  World W;
   vector<NativeUnitId> units, expected;
 
   DwellingId const dwelling_id =
@@ -128,7 +128,7 @@ TEST_CASE( "[unit-stack] sort_native_unit_stack" ) {
 }
 
 TEST_CASE( "[unit-stack] sort_unit_stack" ) {
-  World                 W;
+  World W;
   vector<GenericUnitId> units, expected;
 
   DwellingId const dwelling_id =
@@ -171,7 +171,7 @@ TEST_CASE( "[unit-stack] sort_unit_stack" ) {
 }
 
 TEST_CASE( "[unit-stack] select_euro_unit_defender" ) {
-  World       W;
+  World W;
   Coord const coord{ .x = 1, .y = 1 };
 
   auto f = [&] {
@@ -210,8 +210,8 @@ TEST_CASE( "[unit-stack] select_euro_unit_defender" ) {
 }
 
 TEST_CASE( "[unit-stack] select_native_unit_defender" ) {
-  World            W;
-  Coord const      coord{ .x = 1, .y = 1 };
+  World W;
+  Coord const coord{ .x = 1, .y = 1 };
   DwellingId const dwelling_id =
       W.add_dwelling( coord, e_tribe::inca ).id;
 
@@ -240,9 +240,9 @@ TEST_CASE( "[unit-stack] select_native_unit_defender" ) {
 }
 
 TEST_CASE( "[unit-stack] select_colony_defender" ) {
-  World       W;
+  World W;
   Coord const coord{ .x = 1, .y = 1 };
-  Colony&     colony = W.add_colony( coord );
+  Colony& colony = W.add_colony( coord );
 
   auto f = [&] {
     return select_colony_defender( W.ss(), colony );

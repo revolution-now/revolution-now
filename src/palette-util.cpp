@@ -143,7 +143,7 @@ HueBucketKey sat_bucket_key( pixel c ) {
   return to_bucket( to_HSL( c ).s, saturation_buckets );
 }
 
-void render_palette_segment( rr::Renderer&        renderer,
+void render_palette_segment( rr::Renderer& renderer,
                              vector<pixel> const& colors,
                              Coord origin, int row_size = 64 ) {
   int idx                  = 0;
@@ -166,7 +166,7 @@ void render_palette_segment( rr::Renderer&        renderer,
 // already have a color whose r/g/b components are all within the
 // same chunk.
 vector<pixel> coursen_impl( vector<pixel> const& colors,
-                            uint8_t              chunk ) {
+                            uint8_t chunk ) {
   // Do this in a dedicated function so that we don't have any
   // issues with the fact that a) we're using unsigned numbers
   // and b) their are only 8 bit.  This may not be necessary, but
@@ -316,8 +316,8 @@ ColorBuckets hsl_bucket( vector<pixel> const& colors ) {
 }
 
 void dump_palette( ColorBuckets const& bucketed,
-                   fs::path const&     schema,
-                   fs::path const&     rcl ) {
+                   fs::path const& schema,
+                   fs::path const& rcl ) {
   ofstream rcl_out( rcl.string() );
   CHECK( rcl_out.good() );
   ofstream inl_out( schema.string() );
@@ -383,7 +383,7 @@ void remove_greys( vector<pixel>& colors ) {
 }
 
 vector<pixel> coursen( vector<pixel> const& colors,
-                       int                  min_count ) {
+                       int min_count ) {
   uint8_t chunk = 64;
   while( chunk > 1 ) {
     chunk--;
@@ -393,7 +393,7 @@ vector<pixel> coursen( vector<pixel> const& colors,
   return colors;
 }
 
-void show_palette( rr::Renderer&        renderer,
+void show_palette( rr::Renderer& renderer,
                    vector<pixel> const& colors ) {
   renderer.clear_screen();
   render_palette_segment( renderer, colors,
@@ -402,7 +402,7 @@ void show_palette( rr::Renderer&        renderer,
 }
 
 void show_color_adjustment( rr::Renderer& renderer,
-                            pixel         center ) {
+                            pixel center ) {
   vector<pixel> colors;
   for( int i = 10; i >= 0; --i )
     colors.push_back( center.shaded( i ) );

@@ -131,10 +131,10 @@ class wait_state {
   }
 
  private:
-  maybe<T>           maybe_value_;
+  maybe<T> maybe_value_;
   std::exception_ptr eptr_ = {}; // this is nullable.
   std::vector<base::unique_func<NotifyFunc>> callbacks_;
-  maybe<base::unique_func<ExceptFunc>>       exception_callback_;
+  maybe<base::unique_func<ExceptFunc>> exception_callback_;
   // Will be populated if this internal state is created by a
   // coroutine.
   maybe<base::unique_coro<promise_type<T>>> coro_;
@@ -210,7 +210,7 @@ class [[nodiscard]] wait {
 
   T const& operator*() const noexcept { return get(); }
 
-  T*       operator->() noexcept { return &get(); }
+  T* operator->() noexcept { return &get(); }
   T const* operator->() const noexcept { return &get(); }
 
   UniqueStatePtr<T>& state() {

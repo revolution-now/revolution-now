@@ -74,7 +74,7 @@ Commodity with_quantity( Commodity const& in, int new_quantity );
 // carried out then an error will be thrown. This will try to put
 // all the cargo in the specified slot, or, if it doesn't fit,
 // will try to distribute it to other slots.
-void add_commodity_to_cargo( UnitsState&      units_state,
+void add_commodity_to_cargo( UnitsState& units_state,
                              Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots );
@@ -116,8 +116,8 @@ void render_commodity_annotated(
 
 // Will use quantity as label and will render the icon greyed if
 // the quantity is less than 100.
-void render_commodity_annotated( rr::Renderer&    renderer,
-                                 Coord            where,
+void render_commodity_annotated( rr::Renderer& renderer,
+                                 Coord where,
                                  Commodity const& comm );
 
 } // namespace rn

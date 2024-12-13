@@ -54,7 +54,7 @@ struct UniformNonTyped {
 
  private:
   ObjId pgrm_id_;
-  int   location_;
+  int location_;
 };
 
 template<typename T>

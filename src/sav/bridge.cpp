@@ -289,8 +289,8 @@ valid_or<std::string> tiles_to_map_squares(
   squares.reserve( total_rn_tiles );
   for( int y = 1; y < og_map_size_y - 1; ++y ) {
     for( int x = 1; x < og_map_size_x - 1; ++x ) {
-      int const        og_offset = ( y * og_map_size_x ) + x;
-      sav::TILE const& tile      = tiles[og_offset];
+      int const og_offset   = ( y * og_map_size_x ) + x;
+      sav::TILE const& tile = tiles[og_offset];
       UNWRAP_RETURN( square, map_square_from_tile( tile ) );
       squares.push_back( square );
     }
@@ -325,7 +325,7 @@ valid_or<std::string> map_squares_to_tiles(
       CHECK_GT( y, 0 );
       CHECK_LT( x, og_map_size_x - 1 );
       CHECK_LT( y, og_map_size_y - 1 );
-      rn::Coord            coord{ .x = x - 1, .y = y - 1 };
+      rn::Coord coord{ .x = x - 1, .y = y - 1 };
       rn::MapSquare const& square = map[coord];
       UNWRAP_RETURN( tile, tile_from_map_square( square ) );
       tiles.push_back( tile );
@@ -360,7 +360,7 @@ valid_or<std::string> convert_to_rn( sav::ColonySAV const& in,
 }
 
 valid_or<std::string> convert_to_og( rn::RootState const& in,
-                                     sav::ColonySAV&      out ) {
+                                     sav::ColonySAV& out ) {
   ScopedTimer timer( "convert saved game from RN to OG" );
 
   // Header.
@@ -391,7 +391,7 @@ valid_or<std::string> convert_to_og( rn::RootState const& in,
 }
 
 valid_or<std::string> convert_to_rn( sav::MapFile const& in,
-                                     rn::RealTerrain&    out ) {
+                                     rn::RealTerrain& out ) {
   ScopedTimer timer( "convert map from OG to RN" );
   HAS_VALUE_OR_RET( tiles_to_map_squares(
       in.map_size_x, in.map_size_y, in.tile, out ) );

@@ -59,21 +59,21 @@ struct VertexBase : protected GenericVertex {
   // *** Depixelation.
   // Percent is in [0, 1.0] where 0 means totally visible and 1.0
   // means totally invisible.
-  void   set_depixelation_stage( double percent );
+  void set_depixelation_stage( double percent );
   double depixelation_stage() const;
   // Used to allow the depixelation animation to proceed deter-
   // ministically even as the sprite being depixelated moves
   // around.
-  void     set_depixelation_hash_anchor( gfx::point anchor );
+  void set_depixelation_hash_anchor( gfx::point anchor );
   gl::vec2 depixelation_hash_anchor() const;
   // Specifies how the depixelation stage should vary across the
   // triangle. Each component is a slope, thus the depixelation
   // stage will vary like a 2d plane.
-  void     set_depixelation_gradient( gfx::dsize gradient );
+  void set_depixelation_gradient( gfx::dsize gradient );
   gl::vec2 depixelation_gradient() const;
   // This is the anchor point from which the depixelation stage
   // will be extrapolated if it is gradiated.
-  void     set_depixelation_stage_anchor( gfx::dpoint anchor );
+  void set_depixelation_stage_anchor( gfx::dpoint anchor );
   gl::vec2 depixelation_stage_anchor() const;
   // Flips the state of each pixel.
   void set_depixelation_inversion( bool inverted );
@@ -81,8 +81,8 @@ struct VertexBase : protected GenericVertex {
 
   // *** Alpha in [0, 1].
   double alpha() const;
-  void   reset_alpha();
-  void   set_alpha( double alpha );
+  void reset_alpha();
+  void set_alpha( double alpha );
 
   // *** Repositioning.
   void set_scaling( double scale );
@@ -90,7 +90,7 @@ struct VertexBase : protected GenericVertex {
 
   // *** Auxiliary index.
   int32_t get_aux_idx() const;
-  void    set_aux_idx( int32_t value );
+  void set_aux_idx( int32_t value );
 
   // *** Color Cycling.
   bool get_color_cycle() const;
@@ -153,8 +153,8 @@ STATIC_VERTEX_CHECKS( SolidVertex );
 // ternate sprite with alpha multiplication.
 struct StencilVertex : public VertexBase {
   StencilVertex( gfx::point position, gfx::point atlas_position,
-                 gfx::rect  atlas_rect,
-                 gfx::size  atlas_target_offset,
+                 gfx::rect atlas_rect,
+                 gfx::size atlas_target_offset,
                  gfx::pixel key_color );
 
   bool operator==( StencilVertex const& ) const = default;

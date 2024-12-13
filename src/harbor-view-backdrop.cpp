@@ -38,7 +38,7 @@ ui::View const& HarborBackdrop::view() const noexcept {
 }
 
 void HarborBackdrop::draw( rr::Renderer& renderer,
-                           Coord         coord ) const {
+                           Coord coord ) const {
   rr::Painter painter = renderer.painter();
 
   // 1. Draw sky.
@@ -65,7 +65,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
 
   // 4. Draw land.
   {
-    Coord       coord;
+    Coord coord;
     Delta const land_size =
         sprite_size( e_tile::harbor_land_front );
     // First the main part.
@@ -141,7 +141,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
     Delta size, Coord cargo_upper_right,
     Coord inport_upper_right ) {
   Layout res;
-  H      inport_top_from_bottom = size.h - inport_upper_right.y;
+  H inport_top_from_bottom = size.h - inport_upper_right.y;
   Delta const water_size =
       sprite_size( e_tile::harbor_water_slice );
   res.horizon =
@@ -169,7 +169,7 @@ PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
     Coord cargo_upper_right, Coord inport_upper_right ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborBackdrop> view;
-  HarborSubView*             harbor_sub_view = nullptr;
+  HarborSubView* harbor_sub_view = nullptr;
 
   Layout const layout = recomposite(
       canvas.delta(), cargo_upper_right, inport_upper_right );

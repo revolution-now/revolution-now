@@ -56,7 +56,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, L, //
       L, L, L, L, L, //
@@ -73,9 +73,9 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[depletion] advance_depletion_state" ) {
-  World                  W;
+  World W;
   vector<DepletionEvent> expected;
-  ResourceDepletion      expected_depletion;
+  ResourceDepletion expected_depletion;
   using R = e_natural_resource;
   using O = e_land_overlay;
 
@@ -374,7 +374,7 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
 }
 
 TEST_CASE( "[depletion] update_depleted_tiles" ) {
-  World                  W;
+  World W;
   vector<DepletionEvent> events;
 
   auto f = [&] {
@@ -449,7 +449,7 @@ TEST_CASE( "[depletion] remove_depletion_counter_if_needed" ) {
   World W;
 
   auto& counters = W.map().depletion.counters;
-  auto  expected = counters;
+  auto expected  = counters;
 
   using R = e_natural_resource;
   using O = e_land_overlay;
@@ -513,7 +513,7 @@ TEST_CASE(
   World W;
 
   auto& counters = W.map().depletion.counters;
-  auto  expected = counters;
+  auto expected  = counters;
 
   using R = e_natural_resource;
   using O = e_land_overlay;

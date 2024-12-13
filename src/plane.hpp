@@ -129,12 +129,12 @@ struct IPlane {
   // if the can_drag returned true at the start of the drag
   // action.
   void virtual on_drag( input::mod_keys const& mod,
-                        input::e_mouse_button  button,
+                        input::e_mouse_button button,
                         Coord origin, Coord prev,
                         Coord current );
 
   void virtual on_drag_finished( input::mod_keys const& mod,
-                                 input::e_mouse_button  button,
+                                 input::e_mouse_button button,
                                  Coord origin, Coord end );
 
   // Returns true if and only if the plane can handle this menu

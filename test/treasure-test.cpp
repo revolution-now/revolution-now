@@ -69,16 +69,16 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
-  Unit&   unit   = W.add_unit_on_map(
+  Unit& unit     = W.add_unit_on_map(
       UnitComposition::create(
           e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
           .value(),
       { .x = 1, .y = 1 } );
   TreasureReceipt expected;
-  int&            tax_rate = player.old_world.taxes.tax_rate;
+  int& tax_rate = player.old_world.taxes.tax_rate;
 
   auto f = [&] {
     return treasure_in_harbor_receipt( W.default_player(),
@@ -132,7 +132,7 @@ TEST_CASE( "[treasure] treasure_in_harbor_receipt" ) {
 }
 
 TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   W.add_unit_on_map( UnitComposition::create(
                          e_unit_type::treasure,
@@ -156,10 +156,10 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
 }
 
 TEST_CASE( "[treasure] show_treasure_receipt" ) {
-  World           W;
-  Player const&   player = W.default_player();
+  World W;
+  Player const& player = W.default_player();
   TreasureReceipt receipt;
-  string          msg;
+  string msg;
 
   auto f = [&] {
     wait<> w = show_treasure_receipt( W.ts(), player, receipt );
@@ -209,9 +209,9 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[treasure] treasure_enter_colony" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
-  Unit&   unit   = W.add_unit_on_map(
+  Unit& unit     = W.add_unit_on_map(
       UnitComposition::create(
           e_unit_type::treasure,
           { { e_unit_inventory::gold, 100 } } )
@@ -219,8 +219,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
       { .x = 1, .y = 1 } );
   player.old_world.taxes.tax_rate = 7;
   maybe<TreasureReceipt> expected;
-  ChoiceConfig           config;
-  string                 msg;
+  ChoiceConfig config;
+  string msg;
 
   auto f = [&] {
     wait<maybe<TreasureReceipt>> w = treasure_enter_colony(
@@ -315,11 +315,11 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
 #endif
 
 TEST_CASE( "[treasure] treasure_from_dwelling" ) {
-  World      W;
-  e_tribe    tribe      = {};
-  Player&    player     = W.default_player();
-  bool       has_cortes = false;
-  bool       capital    = false;
+  World W;
+  e_tribe tribe   = {};
+  Player& player  = W.default_player();
+  bool has_cortes = false;
+  bool capital    = false;
   maybe<int> expected;
 
   auto f = [&] {

@@ -154,7 +154,7 @@ concept GettableOrVoid = Gettable<T> || std::same_as<void, T>;
 *****************************************************************/
 namespace internal {
 
-int         ext_stack_size( cthread L );
+int ext_stack_size( cthread L );
 std::string ext_type_name( cthread L, int idx );
 
 template<typename T>

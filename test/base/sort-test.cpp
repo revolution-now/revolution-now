@@ -29,7 +29,7 @@ using namespace std;
 *****************************************************************/
 TEST_CASE( "[base/sort] some test" ) {
   unordered_set<string> input;
-  vector<string>        expected;
+  vector<string> expected;
 
   auto f = [&] { return sorted( input ); };
 

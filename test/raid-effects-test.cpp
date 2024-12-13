@@ -50,8 +50,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, //
       L, L, L, L, L, L, //
@@ -66,7 +66,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
-  World                   W;
+  World W;
   BraveAttackColonyEffect expected;
 
   Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
@@ -538,7 +538,7 @@ TEST_CASE( "[raid] select_brave_attack_colony_effect" ) {
     SECTION( "three ships, one damaged" ) {
       R.EXPECT__between_ints( 0, 100 - 1 ).returns( 75 );
       add_ship( e_unit_type::caravel );
-      Unit&        galleon = add_ship( e_unit_type::galleon );
+      Unit& galleon = add_ship( e_unit_type::galleon );
       UnitId const ship_id3 =
           add_ship( e_unit_type::merchantman ).id();
       galleon.orders() = unit_orders::damaged{};
@@ -620,7 +620,7 @@ TEST_CASE( "[raid] perform_brave_attack_colony_effect" ) {
   colony.buildings[e_colony_building::iron_works]       = true;
   colony.buildings[e_colony_building::newspaper]        = true;
 
-  Colony       old_colony        = colony;
+  Colony old_colony              = colony;
   Colony const old_colony_repair = colony_repair;
 
   Unit const& ship1 =
@@ -998,9 +998,9 @@ TEST_CASE(
 TEST_CASE( "[raid] display_brave_attack_colony_effect_msg" ) {
   World W;
 
-  MockIEuroMind& mind   = W.euro_mind( W.default_nation() );
-  Colony&        colony = W.add_colony( { .x = 1, .y = 1 } );
-  colony.name           = "my colony";
+  MockIEuroMind& mind = W.euro_mind( W.default_nation() );
+  Colony& colony      = W.add_colony( { .x = 1, .y = 1 } );
+  colony.name         = "my colony";
   Unit const& ship =
       W.add_unit_on_map( e_unit_type::frigate, colony.location );
   BraveAttackColonyEffect effect;

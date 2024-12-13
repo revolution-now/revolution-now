@@ -51,8 +51,8 @@ size_t constexpr kNumCyclePlans =
 ** Public API.
 *****************************************************************/
 wait<> cycle_map_colors_thread( rr::IRenderer& renderer,
-                                IGui&          gui,
-                                bool const&    enabled ) {
+                                IGui& gui,
+                                bool const& enabled ) {
   SCOPE_EXIT { renderer.set_color_cycle_stage( 0 ); };
   int stage = 0;
 

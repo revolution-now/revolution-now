@@ -112,7 +112,7 @@ string ship_still_damaged_message( int turns_until_repaired ) {
 }
 
 int repair_turn_count_for_unit( ShipRepairPort const& port,
-                                e_unit_type           type ) {
+                                e_unit_type type ) {
   UNWRAP_CHECK_MSG( turns_to_repair,
                     config_unit_type.composition.unit_types[type]
                         .turns_to_repair,
@@ -206,7 +206,7 @@ string ship_damaged_reason( e_ship_damaged_reason reason ) {
 }
 
 string ship_damaged_message( SSConst const& ss, e_nation nation,
-                             e_unit_type           ship_type,
+                             e_unit_type ship_type,
                              e_ship_damaged_reason reason,
                              ShipRepairPort const& port ) {
   Player const& player =

@@ -260,7 +260,7 @@ TEST_CASE( "[cdr/ext-builtin] double" ) {
 
 TEST_CASE( "[cdr/ext-builtin] double from int" ) {
   integer_type n = 5;
-  double       d = 5.0;
+  double d       = 5.0;
   REQUIRE( conv_from_bt<double>( conv, value{ n } ) == d );
 }
 

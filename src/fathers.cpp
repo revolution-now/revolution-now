@@ -52,8 +52,8 @@ namespace {
 maybe<e_founding_father> pick_next_father_for_type(
     SSConst const& ss, TS& ts, Player const& player,
     e_founding_father_type type ) {
-  int const year   = ss.turn.time_point.year;
-  auto      weight = [&]( e_founding_father father ) {
+  int const year = ss.turn.time_point.year;
+  auto weight    = [&]( e_founding_father father ) {
     auto& conf = config_fathers.fathers[father];
     if( year < 1600 )
       return conf.weight_1492_1600;
@@ -130,7 +130,7 @@ void john_paul_jones( SS& ss, TS& ts, Player const& player ) {
 void bartolome_de_las_casas( SS& ss, TS& ts,
                              Player const& player ) {
   unordered_map<UnitId, UnitState::euro const*> const&
-       units_all          = ss.units.euro_all();
+      units_all           = ss.units.euro_all();
   auto free_colonist_type = e_unit_type::free_colonist;
   for( auto& [unit_id, state] : units_all ) {
     Unit& unit = ss.units.unit_for( unit_id );
@@ -159,7 +159,7 @@ void francisco_de_coronado( SS& ss, TS& ts,
     return Rect::from( coord, Delta{ .w = 1, .h = 1 } )
         .with_border_added( 5 );
   };
-  int const     tiles_per_colony = expand( Coord{} ).area();
+  int const tiles_per_colony = expand( Coord{} ).area();
   vector<Coord> make_visible;
   make_visible.reserve( colonies_all.size() * tiles_per_colony +
                         1 );
@@ -196,8 +196,8 @@ void pocahontas( SS& ss, Player const& player ) {
   int const max_new_alarm = max_tribal_alarm_after_pocahontas();
   for( e_tribe tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
-    Tribe& tribe_obj    = ss.natives.tribe_for( tribe );
-    auto&  relationship = tribe_obj.relationship[player.nation];
+    Tribe& tribe_obj   = ss.natives.tribe_for( tribe );
+    auto& relationship = tribe_obj.relationship[player.nation];
     if( !relationship.encountered ) continue;
     // If the tribe already has an alarm lower than this then we
     // don't want to raise it.
@@ -217,8 +217,8 @@ void william_brewster( SSConst const& ss, TS& ts,
                        Player& player ) {
   ImmigrationState& immigration_state =
       player.old_world.immigration;
-  auto& pool            = immigration_state.immigrants_pool;
-  auto  needs_replacing = []( e_unit_type type ) {
+  auto& pool           = immigration_state.immigrants_pool;
+  auto needs_replacing = []( e_unit_type type ) {
     return ( type == e_unit_type::petty_criminal ) ||
            ( type == e_unit_type::indentured_servant );
   };

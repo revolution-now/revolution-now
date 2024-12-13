@@ -287,10 +287,10 @@ base::maybe<Rect> Rect::overlap_with( Rect const& rhs ) const {
   // NOTE: be careful here with returning references; we should
   // only be using auto const& when the function will not return
   // a reference to a temporary.
-  auto const&       new_x1 = std::max( x, rhs.x );
-  auto const&       new_y1 = std::max( y, rhs.y );
-  auto /*!!*/       new_x2 = std::min( x + w, rhs.x + rhs.w );
-  auto /*!!*/       new_y2 = std::min( y + h, rhs.y + rhs.h );
+  auto const& new_x1 = std::max( x, rhs.x );
+  auto const& new_y1 = std::max( y, rhs.y );
+  auto /*!!*/ new_x2 = std::min( x + w, rhs.x + rhs.w );
+  auto /*!!*/ new_y2 = std::min( y + h, rhs.y + rhs.h );
   base::maybe<Rect> res =
       Rect::from( Coord{ .x = new_x1, .y = new_y1 },
                   Coord{ .x = new_x2, .y = new_y2 } );

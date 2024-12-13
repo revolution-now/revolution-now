@@ -34,7 +34,7 @@ using ::base::unexpected;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[markup] parse_markup" ) {
-  string_view          input;
+  string_view input;
   expect<MarkedUpText> expected = unexpected<MarkedUpText>( "" );
 
   auto f = [&] { return parse_markup( input ); };

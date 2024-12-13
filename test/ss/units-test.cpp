@@ -44,8 +44,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -79,7 +79,7 @@ TEST_CASE( "[units] dwelling_for" ) {
 }
 
 TEST_CASE( "[units] braves_for_dwelling" ) {
-  World                       W;
+  World W;
   unordered_set<NativeUnitId> expected;
 
   Dwelling const& dwelling1 =
@@ -110,7 +110,7 @@ TEST_CASE( "[units] braves_for_dwelling" ) {
 }
 
 TEST_CASE( "[units] validation" ) {
-  World                  W;
+  World W;
   base::valid_or<string> v = valid;
 
   REQUIRE( W.units().validate() == valid );

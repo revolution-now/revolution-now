@@ -55,7 +55,7 @@ set<int> should_autosave( SSConst const& ss ) {
   if( !ss.settings.game_options
            .flags[e_game_flag_option::autosave] )
     return res;
-  int const   curr_turn = ss.turn.time_point.turns;
+  int const curr_turn   = ss.turn.time_point.turns;
   auto const& last_save = ss.turn.autosave.last_save;
   if( last_save.has_value() && *last_save >= curr_turn )
     return res;
@@ -80,7 +80,7 @@ set<int> should_autosave( SSConst const& ss ) {
 expect<std::vector<fs::path>> autosave(
     SSConst const& ss, IGameSaver const& game_saver,
     Autosave& autosave, set<int> autosave_slots ) {
-  auto const       initial_slots_size = autosave_slots.size();
+  auto const initial_slots_size = autosave_slots.size();
   vector<fs::path> res;
   if( autosave_slots.empty() ) return res;
 

@@ -44,7 +44,7 @@ struct ContentHider {
   ContentHider( ContentHider&& )      = default;
 
   virtual void hide( AnimationBuilder& builder,
-                     int               stage ) const = 0;
+                     int stage ) const = 0;
 
   virtual void hide_final( AnimationBuilder& builder ) const = 0;
 
@@ -78,8 +78,8 @@ struct ContentHiderImpl : public ContentHider {
     return static_cast<Derived const&>( *this );
   }
 
-  static Derived create( SSConst const&       ss,
-                         IVisibility const&   viz,
+  static Derived create( SSConst const& ss,
+                         IVisibility const& viz,
                          vector<Coord> const& shuffled_tiles,
                          int target_chunks, T const& accum ) {
     Derived hider( ss, viz, shuffled_tiles, target_chunks,
@@ -93,7 +93,7 @@ struct ContentHiderImpl : public ContentHider {
   T const& accum() const { return accum_; }
 
   void hide( AnimationBuilder& builder,
-             int               stage ) const override {
+             int stage ) const override {
     CHECK_LT( stage, int( stages_.size() ) );
     for( auto const& e : stages_[stage] )
       as_derived().hide_one( builder, e );
@@ -143,12 +143,12 @@ struct ContentHiderImpl : public ContentHider {
   }
 
  protected:
-  SSConst const&      ss_;
-  IVisibility const&  viz_;
+  SSConst const& ss_;
+  IVisibility const& viz_;
   vector<Coord> const shuffled_tiles_;
-  int const           target_chunks_;
-  T                   accum_;
-  vector<T>           stages_;
+  int const target_chunks_;
+  T accum_;
+  vector<T> stages_;
 };
 
 /****************************************************************
@@ -165,7 +165,7 @@ struct LandviewModMixin {
   }
 
   void hide_one( AnimationBuilder& builder,
-                 auto const&       elem ) const {
+                 auto const& elem ) const {
     auto const& [tile, square] = elem;
     builder.landview_replace_set_tile( tile, square );
   }
@@ -209,7 +209,7 @@ struct UnitsHider final
     return true;
   }
 
-  void hide_one( AnimationBuilder&    builder,
+  void hide_one( AnimationBuilder& builder,
                  GenericUnitId const& id ) const {
     builder.hide_unit( id );
   }
@@ -232,7 +232,7 @@ struct DwellingsHider final
   }
 
   void hide_one( AnimationBuilder& builder,
-                 Coord const&      tile ) const {
+                 Coord const& tile ) const {
     builder.hide_dwelling( tile );
   }
 };
@@ -254,7 +254,7 @@ struct ColoniesHider final
   }
 
   void hide_one( AnimationBuilder& builder,
-                 Coord const&      tile ) const {
+                 Coord const& tile ) const {
     builder.hide_colony( tile );
   }
 };
@@ -342,9 +342,9 @@ struct ForestHider final
 *****************************************************************/
 struct HiderBuilder {
   HiderBuilder( SSConst const& ss, IVisibility const& viz,
-                AnimationBuilder&    builder,
+                AnimationBuilder& builder,
                 vector<Coord> const& shuffled_tiles,
-                int                  target_chunks )
+                int target_chunks )
     : ss_( ss ),
       viz_( viz ),
       builder_( builder ),
@@ -385,11 +385,11 @@ struct HiderBuilder {
     hiders_.push_back( &hider );
   };
 
-  SSConst const&              ss_;
-  IVisibility const&          viz_;
-  AnimationBuilder&           builder_;
-  vector<Coord>               shuffled_tiles_;
-  int const                   target_chunks_;
+  SSConst const& ss_;
+  IVisibility const& viz_;
+  AnimationBuilder& builder_;
+  vector<Coord> shuffled_tiles_;
+  int const target_chunks_;
   vector<ContentHider const*> hiders_;
 };
 
@@ -401,7 +401,7 @@ struct HiderBuilder {
 HiddenTerrainAnimationSequence anim_seq_for_hidden_terrain(
     SSConst const& ss, IVisibility const& viz, IRand& rand ) {
   HiddenTerrainAnimationSequence res;
-  AnimationBuilder               builder;
+  AnimationBuilder builder;
 
   // When our chunk size is 10 that means that with each chunk we
   // add roughly 1/10th of the squares. However, because when re-

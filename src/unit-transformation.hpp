@@ -70,7 +70,7 @@ UnitTransformation strip_to_base_type(
 // type will it become?
 std::vector<UnitTransformationFromCommodity>
 unit_receive_commodity( UnitComposition const& comp,
-                        Commodity const&       commodity );
+                        Commodity const& commodity );
 
 // Can a commodity be taken from the unit, and if so what unit
 // type will it become?
@@ -83,12 +83,12 @@ std::vector<UnitTransformationFromCommodity> unit_lose_commodity(
 // results, pick one that you want, and then call change_type
 // with the UnitComposition that it contains.
 std::vector<UnitTransformationFromCommodity>
-with_commodity_added( Unit const&      unit,
+with_commodity_added( Unit const& unit,
                       Commodity const& commodity );
 
 // Similar to the above, but removing.
 std::vector<UnitTransformationFromCommodity>
-with_commodity_removed( Unit const&      unit,
+with_commodity_removed( Unit const& unit,
                         Commodity const& commodity );
 
 // The unit must have at least 20 tools, which will be sub-
@@ -98,7 +98,7 @@ void consume_20_tools( SS& ss, TS& ts, Unit& unit );
 
 void adjust_for_independence_status(
     std::vector<UnitTransformation>& input,
-    bool                             independence_declared );
+    bool independence_declared );
 
 void adjust_for_independence_status(
     std::vector<UnitTransformationFromCommodity>& input,

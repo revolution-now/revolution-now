@@ -38,7 +38,7 @@ struct World : testing::World {
   World() : Base() { add_default_player(); }
 
   void create_map( Delta size ) {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles;
     for( int i = 0; i < size.w * size.h; ++i )
       tiles.push_back( L );
@@ -50,7 +50,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 7, .h = 7 };
   Delta const mini_map_size_tiles{ .w = 5, .h = 5 };
   Delta const viewport_size_tiles{ .w = 3, .h = 3 };
@@ -174,7 +174,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
 }
 
 TEST_CASE( "[mini-map] drag_box" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
   Delta const viewport_size_tiles{ .w = 3, .h = 3 };
@@ -309,7 +309,7 @@ TEST_CASE( "[mini-map] drag_box" ) {
 }
 
 TEST_CASE( "[mini-map] drag_box viewport larger than map" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 5, .h = 5 };
   Delta const viewport_size_tiles{ .w = 6, .h = 6 };
@@ -406,7 +406,7 @@ TEST_CASE( "[mini-map] drag_box viewport larger than map" ) {
 }
 
 TEST_CASE( "[mini-map] drag_map" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
   Delta const viewport_size_tiles{ .w = 3, .h = 3 };
@@ -549,7 +549,7 @@ TEST_CASE( "[mini-map] drag_map" ) {
 }
 
 TEST_CASE( "[mini-map] drag_map large viewport" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
   Delta const viewport_size_tiles{ .w = 9, .h = 9 };
@@ -622,7 +622,7 @@ TEST_CASE( "[mini-map] drag_map large viewport" ) {
 }
 
 TEST_CASE( "[mini-map] auto pan with small viewport" ) {
-  World       W;
+  World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
   Delta const viewport_size_tiles{ .w = 3, .h = 3 };

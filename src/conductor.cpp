@@ -60,7 +60,7 @@ unordered_map<e_special_music_event, TuneId> g_special_tunes;
 
 maybe<e_music_player> g_active_mplayer;
 
-size_t         g_playlist_pos{};
+size_t g_playlist_pos{};
 vector<TuneId> g_playlist;
 
 bool g_autoplay{ true };
@@ -224,7 +224,7 @@ void init_conductor() {
     CHECK( g_mplayer_descs.contains( mplayer ),
            "Music player `{}` not added to list.", mplayer );
 
-    bool   enable_mplayer = true;
+    bool enable_mplayer = true;
     string reason;
 
     MaybeMusicPlayer& expect_mplayer_obj =
@@ -353,7 +353,7 @@ void play_request( IRand& rand, e_request request,
   CONDUCTOR_INFO_OR_RETURN( info );
   DCHECK( dimensions_for_request().contains( request ) );
   auto const& dims = dimensions_for_request()[request];
-  double      prob = 1.0;
+  double prob      = 1.0;
   switch( probability ) {
     case e_request_probability::always:
       prob = 1.0;
@@ -430,9 +430,9 @@ maybe<ConductorInfo> state() {
   auto const& expect_mplayer =
       lookup_mplayer_or_die( *g_active_mplayer );
   DCHECK( expect_mplayer.has_value() );
-  auto&         mplayer  = *expect_mplayer;
-  auto          mp_state = mplayer.state();
-  e_music_state st       = e_music_state::stopped;
+  auto& mplayer    = *expect_mplayer;
+  auto mp_state    = mplayer.state();
+  e_music_state st = e_music_state::stopped;
   if( mp_state.tune_info.has_value() ) {
     if( mp_state.is_paused )
       st = e_music_state::paused;
@@ -526,7 +526,7 @@ void prev() {
   CONDUCTOR_INFO_OR_RETURN( info );
   // If progress and/or duration are not available then behave as
   // if it is zero.
-  Duration_t    progress_time = 0s;
+  Duration_t progress_time = 0s;
   maybe<TuneId> id;
   if( info.playing_now.has_value() ) {
     if( ( *info.playing_now ).progress.has_value() ) {
@@ -687,7 +687,7 @@ void playlist_generate( IRand& rand ) {
   // first set of tunes, since the playlist needs to wrap around.
   lg.info( "generating playlist." );
   CHECK( config_music.tunes.size() > 0 );
-  auto   num_tunes = config_music.tunes.size();
+  auto num_tunes = config_music.tunes.size();
   size_t no_overlap_size =
       ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
   CHECK( no_overlap_size < 100000 ); // sanity check
@@ -698,10 +698,10 @@ void playlist_generate( IRand& rand ) {
   auto overlaps = [&]( TuneId id ) {
     return util::find( last_n, id ) != last_n.end();
   };
-  vector<TuneId>   res;
-  constexpr size_t num_chunks        = 10;
-  size_t const     playlist_size     = num_tunes * num_chunks;
-  size_t           timeout_countdown = playlist_size * 100;
+  vector<TuneId> res;
+  constexpr size_t num_chunks = 10;
+  size_t const playlist_size  = num_tunes * num_chunks;
+  size_t timeout_countdown    = playlist_size * 100;
   for( size_t i = 0; i < playlist_size; ++i ) {
     while( true ) {
       timeout_countdown--;
@@ -731,7 +731,7 @@ void playlist_generate( IRand& rand ) {
   g_playlist_pos = 0;
 }
 
-void subscribe_to_conductor_event( e_conductor_event  event,
+void subscribe_to_conductor_event( e_conductor_event event,
                                    ConductorEventFunc func ) {
   subscriptions()[event].push_back( std::move( func ) );
 }

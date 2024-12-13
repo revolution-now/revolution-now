@@ -203,7 +203,7 @@ PriceChange perform_harbor_equip_option(
     SS& ss, TS& ts, Player& player, UnitId unit_id,
     HarborEquipOption const& option ) {
   PriceChange price_change = {};
-  Unit&       unit         = ss.units.unit_for( unit_id );
+  Unit& unit               = ss.units.unit_for( unit_id );
   change_unit_type( ss, ts, unit, option.new_comp );
   if( option.commodity_delta.has_value() ) {
     Invoice const invoice = transaction_invoice(

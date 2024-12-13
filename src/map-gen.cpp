@@ -49,7 +49,7 @@ void reset_terrain( IMapUpdater& map_updater, Delta size ) {
       } );
 }
 
-void generate_terrain( lua::state&  st,
+void generate_terrain( lua::state& st,
                        IMapUpdater& map_updater ) {
   map_updater.modify_entire_map_no_redraw(
       [&]( RealTerrain& real_terrain ) {

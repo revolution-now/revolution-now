@@ -66,8 +66,8 @@ CrossesCalculation compute_crosses(
 // cross production should already include the bonuses based on
 // William Penn and Sons of Liberty membership.
 void add_player_crosses( Player& player,
-                         int     total_colonies_cross_production,
-                         int     dock_crosses_bonus );
+                         int total_colonies_cross_production,
+                         int dock_crosses_bonus );
 
 // Will check if the player can obtain a new immigrant, and, if
 // so, will run through the associated UI routine. This can re-

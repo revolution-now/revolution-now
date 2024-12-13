@@ -45,7 +45,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -89,18 +89,18 @@ struct TestCaseConfig {
   };
 
   struct Action {
-    int              count = 0;
-    e_action_type    type  = {};
-    e_processed_good good  = {};
+    int count             = 0;
+    e_action_type type    = {};
+    e_processed_good good = {};
   };
 
   struct Step {
-    Action   action;
+    Action action;
     PGStruct expect_eq;
     PGStruct expect_vol;
   };
 
-  PGStruct     starting_intrinsic_volumes;
+  PGStruct starting_intrinsic_volumes;
   vector<Step> steps;
 };
 
@@ -392,7 +392,7 @@ TestCaseConfig const scenario_5{
 ** Scenario Runners.
 *****************************************************************/
 void assert_price( int step_idx, e_processed_good good,
-                   PGMap const&    eq_prices,
+                   PGMap const& eq_prices,
                    PGStruct const& expect_eq ) {
   INFO( fmt::format(
       "equilibrium price for commodity {} at step {}. "
@@ -402,7 +402,7 @@ void assert_price( int step_idx, e_processed_good good,
 }
 
 void assert_volume( int step_idx, e_processed_good good,
-                    PGMap           intrinsic_volumes,
+                    PGMap intrinsic_volumes,
                     PGStruct const& expected_volumes ) {
   int expect_vol = expected_volumes.get( good );
   // The volume will be in the form 0xNNNN, i.e. a signed 16 bit
@@ -418,7 +418,7 @@ void assert_volume( int step_idx, e_processed_good good,
   REQUIRE( intrinsic_volumes[good] == expect_vol );
 }
 
-void run_action( ProcessedGoodsPriceGroup&   group,
+void run_action( ProcessedGoodsPriceGroup& group,
                  TestCaseConfig::Step const& step ) {
   for( int i = 0; i < step.action.count; ++i ) {
     switch( step.action.type ) {
@@ -461,8 +461,8 @@ void run_scenario( TestCaseConfig const& scenario ) {
     // quence of steps.
     for( int i = 0; i < 20; ++i ) group.evolve();
     PGMap const& intrinsic_volumes = group.intrinsic_volumes();
-    PGMap const  eq_prices         = group.equilibrium_prices();
-    auto&        step              = scenario.steps[final_step];
+    PGMap const eq_prices          = group.equilibrium_prices();
+    auto& step                     = scenario.steps[final_step];
     assert_price( final_step, e_processed_good::rum, eq_prices,
                   step.expect_eq );
     assert_price( final_step, e_processed_good::cigars,

@@ -46,7 +46,7 @@ struct SSConst;
 // on ships) cannot meet the natives for the first time unless
 // they are on land.
 std::vector<MeetTribe> check_meet_tribes( SSConst const& ss,
-                                          Player const&  player,
+                                          Player const& player,
                                           Coord square );
 
 // Checks if there are any europeans in the immediate vicinity of
@@ -71,7 +71,7 @@ wait<e_declare_war_on_natives> perform_meet_tribe_ui_sequence(
 // ownership, etc. It should be called after the UI sequence is
 // finished.
 void perform_meet_tribe( SS& ss, Player const& player,
-                         MeetTribe const&         meet_tribe,
+                         MeetTribe const& meet_tribe,
                          e_declare_war_on_natives declare_war );
 
 } // namespace rn

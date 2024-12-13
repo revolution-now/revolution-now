@@ -54,7 +54,7 @@ struct World : testing::World {
   }
 
   void create_1x1_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -64,8 +64,8 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[equip] harbor_equip_options" ) {
-  World                     W;
-  Player&                   player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   vector<HarborEquipOption> expected;
   using UC = UnitComposition;
   using UT = UnitType;
@@ -499,10 +499,10 @@ TEST_CASE( "[equip] harbor_equip_description" ) {
 }
 
 TEST_CASE( "[equip] perform_harbor_equip_option" ) {
-  World             W;
-  Player&           player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   HarborEquipOption option;
-  UnitId const      unit_id =
+  UnitId const unit_id =
       W.add_unit_in_port( e_unit_type::free_colonist ).id();
   PriceChange expected;
 
@@ -589,7 +589,7 @@ TEST_CASE( "[equip] perform_harbor_equip_option" ) {
 
 TEST_CASE( "[equip] colony_equip_description" ) {
   e_unit_type input;
-  string      expected;
+  string expected;
 
   auto f = [&] {
     ColonyEquipOption const option = { .new_comp = input };

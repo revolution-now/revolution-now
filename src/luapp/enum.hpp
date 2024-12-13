@@ -27,7 +27,7 @@ namespace detail {
 // These so so that we don't have to include types.hpp here.
 
 base::maybe<std::string> get_str_from_stack( cthread L,
-                                             int     idx );
+                                             int idx );
 
 void push_str_to_stack( cthread L, std::string_view name );
 

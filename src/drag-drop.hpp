@@ -53,16 +53,16 @@ enum class e_drag_status_indicator {
 // FIXME: needed?
 struct DragStep {
   input::mod_keys mod;
-  Coord           current;
+  Coord current;
 };
 
 template<typename Draggable>
 struct DragState {
-  Draggable               object;
+  Draggable object;
   e_drag_status_indicator indicator;
-  bool                    source_requests_edit;
-  Coord                   where;
-  Delta                   click_offset;
+  bool source_requests_edit;
+  Coord where;
+  Delta click_offset;
 };
 
 struct DragRejection {
@@ -117,7 +117,7 @@ struct IDragSource {
   // Note: this function may be called when a drag is already in
   // progress in order to adjust the object being dragged.
   virtual bool try_drag( Draggable const& o,
-                         Coord const&     where ) = 0;
+                         Coord const& where ) = 0;
 
   // This function will always be called at the end of any drag,
   // whether it is successful, failed, or cancelled. Furthermore,
@@ -225,7 +225,7 @@ struct IDragSink {
   // Coordinates are relative to view's upper left corner. The
   // sink MUST accept the object as-is.
   virtual wait<> drop( Draggable const& o,
-                       Coord const&     where ) = 0;
+                       Coord const& where ) = 0;
 };
 
 template<typename Draggable>
@@ -234,13 +234,13 @@ struct IDraggableObjectsView;
 template<typename Draggable>
 struct DraggableObjectWithBounds {
   Draggable obj;
-  Rect      bounds;
+  Rect bounds;
 };
 
 template<typename Draggable>
 struct PositionedDraggableSubView {
   IDraggableObjectsView<Draggable>* drag_view;
-  Coord                             upper_left;
+  Coord upper_left;
 };
 
 // Interface for a view that has objects within it that can po-
@@ -305,7 +305,7 @@ wait<> eat_remaining_drag_events(
 *****************************************************************/
 template<typename Draggable>
 wait<> drag_drop_routine(
-    co::stream<input::event_t>&       input,
+    co::stream<input::event_t>& input,
     IDraggableObjectsView<Draggable>& top_view,
     maybe<DragState<Draggable>>& drag_state, IGui& gui,
     input::mouse_drag_event_t const& event ) {
@@ -337,7 +337,7 @@ wait<> drag_drop_routine(
   if( !source_bounded_object )
     NO_DRAG( "there is no object under the cursor." );
   Draggable source_object = source_bounded_object->obj;
-  Rect      source_object_bounds =
+  Rect source_object_bounds =
       source_bounded_object->bounds.as_if_origin_were(
           source_upper_left );
 
@@ -383,8 +383,8 @@ wait<> drag_drop_routine(
 
   // The first drag event also contains some motion that we want
   // to process.
-  input::event_t latest    = event;
-  Coord          mouse_pos = origin;
+  input::event_t latest = event;
+  Coord mouse_pos       = origin;
   goto have_event;
 
   while( true ) {
@@ -452,7 +452,7 @@ wait<> drag_drop_routine(
         target_view.drag_sink();
     if( !maybe_drag_sink ) continue;
     IDragSink<Draggable>& drag_sink = *maybe_drag_sink;
-    Coord                 sink_coord =
+    Coord sink_coord =
         mouse_pos.with_new_origin( target_upper_left );
     // Assume the drag won't work unless we find out otherwise.
     drag_state->indicator = e_drag_status_indicator::bad;
@@ -704,9 +704,9 @@ wait<> drag_drop_routine(
   drag_state->indicator = e_drag_status_indicator::none;
   drag_state->source_requests_edit = false;
 
-  Coord         start   = drag_state->where;
-  Coord         end     = origin;
-  double        percent = 0.0;
+  Coord start    = drag_state->where;
+  Coord end      = origin;
+  double percent = 0.0;
   AnimThrottler throttle( kAlmostStandardFrame );
   while( percent < 1.0 ) {
     co_await throttle();

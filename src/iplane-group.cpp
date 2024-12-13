@@ -40,8 +40,8 @@ e_input_handled IPlaneGroup::input(
   auto* drag_event =
       std::get_if<input::mouse_drag_event_t>( &event );
   if( drag_event == nullptr ) {
-    vector<IPlane*> const active   = planes();
-    auto                  reversed = rl::rall( active );
+    vector<IPlane*> const active = planes();
+    auto reversed                = rl::rall( active );
     // Normal event, so send it out using the usual protocol.
     for( IPlane* plane : reversed ) {
       switch( plane->input( event ) ) {
@@ -117,8 +117,8 @@ e_input_handled IPlaneGroup::input(
   // No drag plane registered to accept the event, so lets send
   // out the event but only if it's a `begin` event.
   if( drag_event->state.phase == e_drag_phase::begin ) {
-    vector<IPlane*> const active   = planes();
-    auto                  reversed = rl::rall( active );
+    vector<IPlane*> const active = planes();
+    auto reversed                = rl::rall( active );
     for( IPlane* plane : reversed ) {
       // Note here we use the origin position of the mouse drag
       // as opposed to the current mouse position because that

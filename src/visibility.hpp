@@ -168,9 +168,9 @@ struct VisibilityForNation : IVisibility {
   maybe<PlayerSquare const&> player_square_at(
       gfx::point tile ) const;
 
-  SSConst const&             ss_;
-  VisibilityEntire           entire_;
-  e_nation const             nation_         = {};
+  SSConst const& ss_;
+  VisibilityEntire entire_;
+  e_nation const nation_                     = {};
   PlayerTerrain const* const player_terrain_ = nullptr;
 };
 
@@ -200,7 +200,7 @@ struct VisibilityWithOverrides : IVisibility {
   MapSquare const& square_at( gfx::point tile ) const override;
 
  private:
-  IVisibility const&         underlying_;
+  IVisibility const& underlying_;
   VisibilityOverrides const& overrides_;
 };
 
@@ -217,7 +217,7 @@ std::unique_ptr<IVisibility const> create_visibility_for(
 // that it was explored earlier in the turn and is still consid-
 // ered visible and clear.
 bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation   nation,
+                                             e_nation nation,
                                              gfx::point tile );
 
 // This will look up the unit type's sighting radius, and then
@@ -232,9 +232,9 @@ bool does_nation_have_fog_removed_on_square( SSConst const& ss,
 // cent islands (which would be easily possible after getting De
 // Soto, in which case it would have 7x7 site).
 std::vector<Coord> unit_visible_squares( SSConst const& ss,
-                                         e_nation       nation,
-                                         e_unit_type    type,
-                                         gfx::point     tile );
+                                         e_nation nation,
+                                         e_unit_type type,
+                                         gfx::point tile );
 
 // Will restore all visible tiles' fog state to "fog enabled" un-
 // less the square is within the sighting radius of a friendly

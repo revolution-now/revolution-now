@@ -59,7 +59,7 @@ void CompositeView::advance_state() {
 }
 
 void CompositeView::draw( rr::Renderer& renderer,
-                          Coord         coord ) const {
+                          Coord coord ) const {
   // Draw each of the sub views, by augmenting its origin (which
   // is relative to the origin of the parent by the origin that
   // we have been given.
@@ -212,7 +212,7 @@ PositionedView CompositeView::at( int idx ) {
 }
 
 PositionedViewConst CompositeView::at( int idx ) const {
-  auto*       this_ = const_cast<CompositeView*>( this );
+  auto* this_ = const_cast<CompositeView*>( this );
   View const* view{ this_->mutable_at( idx ).get() };
   return { view, pos_of( idx ) };
 }
@@ -251,7 +251,7 @@ unique_ptr<View>& VectorView::mutable_at( int idx ) {
 ** SolidRectView
 *****************************************************************/
 void SolidRectView::draw( rr::Renderer& renderer,
-                          Coord         coord ) const {
+                          Coord coord ) const {
   renderer.painter().draw_solid_rect( rect( coord ), color_ );
 }
 
@@ -260,15 +260,15 @@ void SolidRectView::draw( rr::Renderer& renderer,
 *****************************************************************/
 // NOTE: If you add reflow info to this constructor, don't forget
 // to add it into the calculation of the text size as well.
-OneLineStringView::OneLineStringView( string     msg,
+OneLineStringView::OneLineStringView( string msg,
                                       gfx::pixel color,
-                                      Delta      size_override )
+                                      Delta size_override )
   : msg_( std::move( msg ) ),
     view_size_( size_override ),
     text_size_( rendered_text_size_no_reflow( msg ) ),
     color_( color ) {}
 
-OneLineStringView::OneLineStringView( string     msg,
+OneLineStringView::OneLineStringView( string msg,
                                       gfx::pixel color )
   : OneLineStringView( msg, color,
                        rendered_text_size_no_reflow( msg ) ) {}
@@ -276,7 +276,7 @@ OneLineStringView::OneLineStringView( string     msg,
 Delta OneLineStringView::delta() const { return view_size_; }
 
 void OneLineStringView::draw( rr::Renderer& renderer,
-                              Coord         coord ) const {
+                              Coord coord ) const {
   int const start_offset = ( view_size_.h - text_size_.h ) / 2;
   TextMarkupInfo const markup_info{ .normal = color_ };
   render_text_markup( renderer,
@@ -287,7 +287,7 @@ void OneLineStringView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** TextView
 *****************************************************************/
-TextView::TextView( std::string           msg,
+TextView::TextView( std::string msg,
                     TextMarkupInfo const& m_info,
                     TextReflowInfo const& r_info )
   : msg_( std::move( msg ) ),
@@ -302,7 +302,7 @@ TextView::TextView( std::string msg )
 Delta TextView::delta() const { return text_size_; }
 
 void TextView::draw( rr::Renderer& renderer,
-                     Coord         coord ) const {
+                     Coord coord ) const {
   render_text_markup_reflow( renderer, coord, font::standard(),
                              markup_info_, reflow_info_, msg_ );
 }
@@ -323,12 +323,12 @@ ButtonBaseView::ButtonBaseView( string label, e_type type )
         type ) {}
 
 ButtonBaseView::ButtonBaseView( string label,
-                                Delta  size_in_blocks )
+                                Delta size_in_blocks )
   : ButtonBaseView( std::move( label ), size_in_blocks,
                     e_type::standard ) {}
 
 ButtonBaseView::ButtonBaseView( string label,
-                                Delta  size_in_blocks,
+                                Delta size_in_blocks,
                                 e_type type )
   : label_( std::move( label ) ),
     type_( type ),
@@ -339,7 +339,7 @@ ButtonBaseView::ButtonBaseView( string label,
 Delta ButtonBaseView::delta() const { return size_in_pixels_; }
 
 void ButtonBaseView::draw( rr::Renderer& renderer,
-                           Coord         coord ) const {
+                           Coord coord ) const {
   using namespace std::chrono;
   using namespace std::literals::chrono_literals;
   auto time        = system_clock::now().time_since_epoch();
@@ -443,7 +443,7 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
 }
 
 void ButtonBaseView::render_hover( rr::Renderer& renderer,
-                                   gfx::point    where ) const {
+                                   gfx::point where ) const {
   render_rect_of_sprites_with_border(
       renderer, Coord::from_gfx( where ),
       size_in_pixels_ / Delta{ .w = 8, .h = 8 }, //
@@ -473,7 +473,7 @@ Delta SpriteView::delta() const {
 }
 
 void SpriteView::draw( rr::Renderer& renderer,
-                       Coord         coord ) const {
+                       Coord coord ) const {
   render_sprite( renderer, coord, tile_ );
 }
 
@@ -495,7 +495,7 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     current_rendering_{},
     cursor_width_{} {
   string text( 100, 'X' );
-  Delta  char_delta = Delta::from_gfx(
+  Delta char_delta = Delta::from_gfx(
       rr::rendered_text_line_size_pixels( text ) );
 
   cursor_width_ = char_delta.w / SX{ int( text.size() ) };
@@ -508,8 +508,8 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
   update_visible_string();
 }
 
-LineEditorView::LineEditorView( int          chars_wide,
-                                string_view  initial_text,
+LineEditorView::LineEditorView( int chars_wide,
+                                string_view initial_text,
                                 OnChangeFunc on_change )
   : LineEditorView(
         font::standard(),
@@ -519,7 +519,7 @@ LineEditorView::LineEditorView( int          chars_wide,
         std::move( on_change ), gfx::pixel::wood(),
         gfx::pixel::banana(), /*prompt=*/"", initial_text ) {}
 
-LineEditorView::LineEditorView( int         chars_wide,
+LineEditorView::LineEditorView( int chars_wide,
                                 string_view initial_text )
   : LineEditorView( chars_wide, initial_text,
                     []( auto const& ) {} ) {}
@@ -531,16 +531,16 @@ Delta LineEditorView::delta() const {
 }
 
 void LineEditorView::render_background( rr::Renderer& renderer,
-                                        Rect const&   r ) const {
+                                        Rect const& r ) const {
   renderer.painter().draw_solid_rect(
       Rect::from( r.upper_left(), r.delta() ), bg_ );
 }
 
 // Implement Object
 void LineEditorView::draw( rr::Renderer& renderer,
-                           Coord         coord ) const {
+                           Coord coord ) const {
   render_background( renderer, rect( coord ) );
-  auto      all_chars = prompt_ + current_rendering_;
+  auto all_chars = prompt_ + current_rendering_;
   gfx::size text_size =
       rr::rendered_text_line_size_pixels( current_rendering_ );
   Y text_pos_y =
@@ -554,11 +554,11 @@ void LineEditorView::draw( rr::Renderer& renderer,
   CHECK( rel_pos <= int( all_chars.size() ) );
   string string_up_to_cursor( all_chars.begin(),
                               all_chars.begin() + rel_pos );
-  W      rel_cursor_pixels =
+  W rel_cursor_pixels =
       rel_pos == 0
-               ? W{ 0 }
+          ? W{ 0 }
           // The rendered text might have width 1 in this case.
-               : Delta::from_gfx( rr::rendered_text_line_size_pixels(
+          : Delta::from_gfx( rr::rendered_text_line_size_pixels(
                                  string_up_to_cursor ) )
                 .w;
   Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
@@ -592,7 +592,7 @@ void LineEditorView::clear() {
 }
 
 void LineEditorView::set( std::string_view new_string,
-                          maybe<int>       cursor_pos ) {
+                          maybe<int> cursor_pos ) {
   line_editor_.set( new_string, cursor_pos );
   update_visible_string();
 }
@@ -617,7 +617,7 @@ unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
     string_view msg, wait_promise<>& on_close ) {
   TextMarkupInfo const& m_info = default_text_markup_info();
   TextReflowInfo const& r_info = default_text_reflow_info();
-  unique_ptr<TextView>  tview =
+  unique_ptr<TextView> tview =
       make_unique<TextView>( string( msg ), m_info, r_info );
   return make_unique<PlainMessageBoxView>( std::move( tview ),
                                            on_close );
@@ -889,8 +889,8 @@ void VerticalArrayView::recompute_child_positions() {
   Y y = 0;
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
-    auto  size = view->delta();
-    X     x{ 0 };
+    auto size  = view->delta();
+    X x{ 0 };
     switch( alignment_ ) {
       case align::left:
         x = 0;
@@ -946,8 +946,8 @@ void HorizontalArrayView::recompute_child_positions() {
   X x = 0;
   for( int i = 0; i < count(); ++i ) {
     auto& view = mutable_at( i );
-    auto  size = view->delta();
-    Y     y{ 0 };
+    auto size  = view->delta();
+    Y y{ 0 };
     switch( alignment_ ) {
       case align::up:
         y = 0;
@@ -979,8 +979,8 @@ Delta CheckBoxView::delta() const {
 }
 
 void CheckBoxView::draw( rr::Renderer& renderer,
-                         Coord         coord ) const {
-  rr::Painter             painter = renderer.painter();
+                         Coord coord ) const {
+  rr::Painter painter = renderer.painter();
   static gfx::pixel const background_color =
       config_ui.window.border_dark.with_alpha( 128 );
   static gfx::pixel const x_color =
@@ -1029,7 +1029,7 @@ bool CheckBoxView::on_mouse_button(
 ** LabeledCheckBoxView
 *****************************************************************/
 LabeledCheckBoxView::LabeledCheckBoxView( unique_ptr<View> label,
-                                          bool             on )
+                                          bool on )
   : HorizontalArrayView( HorizontalArrayView::align::middle ) {
   auto check_box = make_unique<CheckBoxView>( on );
   check_box_     = check_box.get();
@@ -1050,7 +1050,7 @@ bool LabeledCheckBoxView::on_mouse_button(
 ** LabeledCheckBoxView
 *****************************************************************/
 TextLabeledCheckBoxView::TextLabeledCheckBoxView( string label,
-                                                  bool   on )
+                                                  bool on )
   : LabeledCheckBoxView(
         make_unique<TextView>( std::move( label ) ), on ) {}
 
@@ -1168,7 +1168,7 @@ OptionSelectView::OptionSelectView(
   }
 
   Coord so_far{};
-  W     min_width{ 0 };
+  W min_width{ 0 };
   for( auto const& option : options ) {
     auto view   = make_unique<OptionSelectItemView>( option );
     auto width  = view->delta().w;
@@ -1303,7 +1303,7 @@ Delta FakeUnitView::delta() const {
 }
 
 void FakeUnitView::draw( rr::Renderer& renderer,
-                         Coord         coord ) const {
+                         Coord coord ) const {
   UnitFlagRenderInfo const flag_info =
       euro_unit_type_flag_info( type_, orders_, nation_ );
   render_unit_type( renderer, coord, type_,
@@ -1322,7 +1322,7 @@ Delta FakeNativeUnitView::delta() const {
 }
 
 void FakeNativeUnitView::draw( rr::Renderer& renderer,
-                               Coord         coord ) const {
+                               Coord coord ) const {
   UnitFlagRenderInfo const flag_info =
       native_unit_type_flag_info( type_, tribe_,
                                   UnitFlagOptions{} );
@@ -1334,7 +1334,7 @@ void FakeNativeUnitView::draw( rr::Renderer& renderer,
 ** RenderedColonyView
 *****************************************************************/
 RenderedColonyView::RenderedColonyView( SSConst const& ss,
-                                        Colony const&  colony )
+                                        Colony const& colony )
   : ss_( ss ),
     colony_( colony ),
     size_( sprite_size( tile_for_colony( colony ) ) ) {}
@@ -1342,7 +1342,7 @@ RenderedColonyView::RenderedColonyView( SSConst const& ss,
 Delta RenderedColonyView::delta() const { return size_; }
 
 void RenderedColonyView::draw( rr::Renderer& renderer,
-                               Coord const   where ) const {
+                               Coord const where ) const {
   render_colony( renderer, where, ss_, colony_,
                  ColonyRenderOptions{ .render_name       = false,
                                       .render_population = true,
@@ -1361,7 +1361,7 @@ RenderedDwellingView::RenderedDwellingView(
 Delta RenderedDwellingView::delta() const { return size_; }
 
 void RenderedDwellingView::draw( rr::Renderer& renderer,
-                                 Coord const   where ) const {
+                                 Coord const where ) const {
   render_dwelling( renderer, where, ss_, dwelling_ );
 }
 
@@ -1383,7 +1383,7 @@ bool ClickableView::on_mouse_button(
 /****************************************************************
 ** OnInputView
 *****************************************************************/
-OnInputView::OnInputView( unique_ptr<View>     view,
+OnInputView::OnInputView( unique_ptr<View> view,
                           OnInputView::OnInput on_input )
   : CompositeSingleView( std::move( view ), Coord{} ),
     on_input_( std::move( on_input ) ) {}
@@ -1412,7 +1412,7 @@ Delta BorderView::delta() const {
 }
 
 void BorderView::draw( rr::Renderer& renderer,
-                       Coord         coord ) const {
+                       Coord coord ) const {
   this->CompositeSingleView::draw(
       renderer, coord + Delta{ .w = 1 + W{ padding_ },
                                .h = 1 + H{ padding_ } } );

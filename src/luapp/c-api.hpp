@@ -47,7 +47,7 @@ struct c_api {
   // Could throw because it could cause __close to be called on
   // some objects.
   void settop( int top );
-  int  stack_size() noexcept;
+  int stack_size() noexcept;
 
   /**************************************************************
   ** running lua code
@@ -603,16 +603,16 @@ struct c_api {
   void print_stack( std::string_view label = "" ) noexcept;
 
  private:
-  bool                 get( int idx, bool* ) noexcept;
-  boolean              get( int idx, boolean* ) noexcept;
+  bool get( int idx, bool* ) noexcept;
+  boolean get( int idx, boolean* ) noexcept;
   base::maybe<integer> get( int idx, integer* ) noexcept;
   // This is for when you know the result will fit into an int.
-  base::maybe<int>         get( int idx, int* ) noexcept;
-  base::maybe<double>      get( int idx, double* ) noexcept;
-  base::maybe<floating>    get( int idx, floating* ) noexcept;
+  base::maybe<int> get( int idx, int* ) noexcept;
+  base::maybe<double> get( int idx, double* ) noexcept;
+  base::maybe<floating> get( int idx, floating* ) noexcept;
   base::maybe<std::string> get( int idx, std::string* ) noexcept;
   // This is done as light userdata.
-  base::maybe<void*>         get( int idx, void** ) noexcept;
+  base::maybe<void*> get( int idx, void** ) noexcept;
   base::maybe<lightuserdata> get( int idx,
                                   lightuserdata* ) noexcept;
   // This is done as light userdata.

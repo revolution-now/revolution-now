@@ -140,7 +140,7 @@ struct zero {
 
  protected:
   maybe<Resource> r_;
-  bool            own_ = false;
+  bool own_ = false;
 };
 
 } // namespace base

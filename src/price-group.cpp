@@ -126,7 +126,7 @@ void ProcessedGoodsPriceGroup::transaction(
 }
 
 void ProcessedGoodsPriceGroup::buy( e_processed_good good,
-                                    int              quantity ) {
+                                    int quantity ) {
   transaction( good, -quantity );
 }
 
@@ -326,8 +326,8 @@ LUA_STARTUP( lua::state& st ) {
     };
 
     u["equilibrium_prices"] = [&]( U& group ) {
-      lua::table res       = st.table.create();
-      PGMap      eq_prices = group.equilibrium_prices();
+      lua::table res  = st.table.create();
+      PGMap eq_prices = group.equilibrium_prices();
 
       res["rum"]    = eq_prices[e_processed_good::rum];
       res["cigars"] = eq_prices[e_processed_good::cigars];

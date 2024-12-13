@@ -75,7 +75,7 @@ TEST_CASE( "[map-square] movement_points_required" ) {
   reference_wrapper<MapSquare const> dst = ocean;
 
   MovementPoints expected;
-  auto           f = movement_points_required;
+  auto f = movement_points_required;
 
   src      = ocean;
   dst      = ocean;
@@ -269,7 +269,7 @@ TEST_CASE( "[map-square] effective_terrain" ) {
 
 TEST_CASE( "[map-square] has_forest" ) {
   MapSquare square;
-  bool      expected;
+  bool expected;
 
   square = MapSquare{
     .surface         = e_surface::water,
@@ -431,7 +431,7 @@ TEST_CASE( "[map-square] map_square_for_terrain" ) {
 }
 
 TEST_CASE( "[map-square] effective_resource" ) {
-  MapSquare          square;
+  MapSquare square;
   e_natural_resource expected;
 
   square = MapSquare{};

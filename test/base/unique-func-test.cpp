@@ -76,7 +76,7 @@ TEST_CASE( "[unique-func] non-copyable type" ) {
 
 TEST_CASE( "[unique-func] non-const move-only callable" ) {
   SECTION( "non-const" ) {
-    auto  x     = make_unique<int>( 4 );
+    auto x      = make_unique<int>( 4 );
     auto* x_ptr = x.get();
 
     unique_func<int( string )> f =
@@ -90,7 +90,7 @@ TEST_CASE( "[unique-func] non-const move-only callable" ) {
     REQUIRE( f( "hello" ) == 11 );
   }
   SECTION( "const" ) {
-    auto  x     = make_unique<int>( 4 );
+    auto x      = make_unique<int>( 4 );
     auto* x_ptr = x.get();
 
     unique_func<int( string ) const> func =

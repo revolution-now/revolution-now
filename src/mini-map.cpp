@@ -344,9 +344,9 @@ gfx::drect MiniMap::fractional_tiles_inside_white_box() const {
 
 void MiniMap::advance_auto_pan() {
   SCOPE_EXIT { fix_invariants(); };
-  MiniMapState& minimap   = ss_.land_view.minimap;
-  gfx::drect    visible   = tiles_visible_on_minimap();
-  gfx::drect    white_box = fractional_tiles_inside_white_box();
+  MiniMapState& minimap = ss_.land_view.minimap;
+  gfx::drect visible    = tiles_visible_on_minimap();
+  gfx::drect white_box  = fractional_tiles_inside_white_box();
 
   // FIXME: this auto panning needs to be made to happen at a
   // rate that is independent of frame rate. Currently it only
@@ -401,7 +401,7 @@ gfx::rect MiniMapView::white_box_pixels() const {
   return white_rect.truncated();
 }
 
-void MiniMapView::draw_impl( rr::Renderer&      renderer,
+void MiniMapView::draw_impl( rr::Renderer& renderer,
                              IVisibility const& viz ) const {
   gfx::rect const actual{
     .origin = {}, .size = mini_map_.size_screen_pixels() };
@@ -517,7 +517,7 @@ void MiniMapView::draw_impl( rr::Renderer&      renderer,
 }
 
 void MiniMapView::draw( rr::Renderer& renderer,
-                        Coord         where ) const {
+                        Coord where ) const {
   unique_ptr<IVisibility const> const viz =
       create_visibility_for(
           ss_, ts_.map_updater().options().nation );

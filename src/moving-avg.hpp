@@ -46,7 +46,7 @@ class MovingAverage {
   using QueryTimeFunc = std::chrono::system_clock::time_point();
 
   MovingAverage( std::chrono::seconds window_size );
-  MovingAverage( std::chrono::seconds              window_size,
+  MovingAverage( std::chrono::seconds window_size,
                  base::function_ref<QueryTimeFunc> now );
 
   // Add a count (to the count that is being time-averaged).
@@ -74,14 +74,14 @@ class MovingAverage {
 
   void advance_clock( nanoseconds ns );
 
-  seconds const     kWindowSize;
+  seconds const kWindowSize;
   nanoseconds const kBucketSize;
 
-  std::vector<uint64_t>                     buckets_;
-  uint64_t                                  ticks_     = 0;
-  Time_t                                    last_tick_ = {};
-  nanoseconds                               clock_{ 0 };
-  double                                    average_ = 0.0;
+  std::vector<uint64_t> buckets_;
+  uint64_t ticks_   = 0;
+  Time_t last_tick_ = {};
+  nanoseconds clock_{ 0 };
+  double average_ = 0.0;
   base::function_ref<Clock_t::time_point()> now_;
 
   // This is an index into bucket_ that marks the start of the

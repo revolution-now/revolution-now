@@ -48,10 +48,10 @@ struct IOpenGL {
 
   virtual void gl_BufferData( GLenum target, GLsizeiptr size,
                               void const* data,
-                              GLenum      usage ) = 0;
+                              GLenum usage ) = 0;
 
   virtual void gl_BufferSubData( GLenum target, GLintptr offset,
-                                 GLsizeiptr  size,
+                                 GLsizeiptr size,
                                  void const* data ) = 0;
 
   virtual void gl_CompileShader( GLuint shader ) = 0;
@@ -60,14 +60,14 @@ struct IOpenGL {
 
   virtual GLuint gl_CreateShader( GLenum type ) = 0;
 
-  virtual void gl_DeleteBuffers( GLsizei       n,
+  virtual void gl_DeleteBuffers( GLsizei n,
                                  GLuint const* buffers ) = 0;
 
   virtual void gl_DeleteProgram( GLuint program ) = 0;
 
   virtual void gl_DeleteShader( GLuint shader ) = 0;
 
-  virtual void gl_DeleteVertexArrays( GLsizei       n,
+  virtual void gl_DeleteVertexArrays( GLsizei n,
                                       GLuint const* arrays ) = 0;
 
   virtual void gl_DetachShader( GLuint program,
@@ -84,35 +84,35 @@ struct IOpenGL {
                                    GLuint* arrays ) = 0;
 
   virtual void gl_GetActiveAttrib( GLuint program, GLuint index,
-                                   GLsizei  bufSize,
+                                   GLsizei bufSize,
                                    GLsizei* length, GLint* size,
                                    GLenum* type,
                                    GLchar* name ) = 0;
 
-  virtual GLint gl_GetAttribLocation( GLuint        program,
+  virtual GLint gl_GetAttribLocation( GLuint program,
                                       GLchar const* name ) = 0;
 
   virtual GLenum gl_GetError() = 0;
 
   virtual void gl_GetIntegerv( GLenum pname, GLint* data ) = 0;
 
-  virtual void gl_GetProgramInfoLog( GLuint   program,
-                                     GLsizei  bufSize,
+  virtual void gl_GetProgramInfoLog( GLuint program,
+                                     GLsizei bufSize,
                                      GLsizei* length,
-                                     GLchar*  infoLog ) = 0;
+                                     GLchar* infoLog ) = 0;
 
   virtual void gl_GetProgramiv( GLuint program, GLenum pname,
                                 GLint* params ) = 0;
 
-  virtual void gl_GetShaderInfoLog( GLuint   shader,
-                                    GLsizei  bufSize,
+  virtual void gl_GetShaderInfoLog( GLuint shader,
+                                    GLsizei bufSize,
                                     GLsizei* length,
-                                    GLchar*  infoLog ) = 0;
+                                    GLchar* infoLog ) = 0;
 
   virtual void gl_GetShaderiv( GLuint shader, GLenum pname,
                                GLint* params ) = 0;
 
-  virtual GLint gl_GetUniformLocation( GLuint        program,
+  virtual GLint gl_GetUniformLocation( GLuint program,
                                        GLchar const* name ) = 0;
 
   virtual void gl_LinkProgram( GLuint program ) = 0;
@@ -139,9 +139,9 @@ struct IOpenGL {
   virtual void gl_ValidateProgram( GLuint program ) = 0;
 
   virtual void gl_VertexAttribPointer( GLuint index, GLint size,
-                                       GLenum      type,
-                                       GLboolean   normalized,
-                                       GLsizei     stride,
+                                       GLenum type,
+                                       GLboolean normalized,
+                                       GLsizei stride,
                                        void const* pointer ) = 0;
 
   virtual void gl_VertexAttribIPointer(
@@ -150,7 +150,7 @@ struct IOpenGL {
 
   virtual void gl_GenTextures( GLsizei n, GLuint* textures ) = 0;
 
-  virtual void gl_DeleteTextures( GLsizei       n,
+  virtual void gl_DeleteTextures( GLsizei n,
                                   GLuint const* textures ) = 0;
 
   virtual void gl_BindTexture( GLenum target,
@@ -160,10 +160,10 @@ struct IOpenGL {
                                  GLint param ) = 0;
 
   virtual void gl_TexImage2D( GLenum target, GLint level,
-                              GLint   internalformat,
+                              GLint internalformat,
                               GLsizei width, GLsizei height,
                               GLint border, GLenum format,
-                              GLenum      type,
+                              GLenum type,
                               void const* pixels ) = 0;
 
   virtual void gl_Viewport( GLint x, GLint y, GLsizei width,

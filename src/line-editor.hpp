@@ -28,14 +28,14 @@ namespace rn {
 // "cursor position" within that line.
 class LineEditor {
   std::string buffer_{};
-  int         pos_ = 0;
+  int pos_ = 0;
 
  public:
   LineEditor() = default;
   LineEditor( std::string buffer, int pos );
 
   std::string const& buffer() const { return buffer_; }
-  int                pos() const { return pos_; }
+  int pos() const { return pos_; }
 
   // Leaving off cursor position, it will attempt to keep it
   // where it is, unless it is out of bounds in which case it
@@ -45,7 +45,7 @@ class LineEditor {
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_buffer,
-            maybe<int>       maybe_pos = nothing );
+            maybe<int> maybe_pos = nothing );
 
   void clear();
 
@@ -93,7 +93,7 @@ class LineEditorInputView {
   // can move from the start to end of a line and only moving to
   // the next frame when the cursor touches one of the extremi-
   // ties.
-  std::string render( int                abs_cursor_pos,
+  std::string render( int abs_cursor_pos,
                       std::string const& buffer );
 };
 NOTHROW_MOVE( LineEditorInputView );

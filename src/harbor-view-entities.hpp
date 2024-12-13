@@ -79,7 +79,7 @@ class HarborSubView
 
   // All HarborSubView's will also be unspecified subclassess of
   // ui::View.
-  virtual ui::View&       view() noexcept       = 0;
+  virtual ui::View& view() noexcept             = 0;
   virtual ui::View const& view() const noexcept = 0;
 
   // Implement IDraggableObjectsView.
@@ -106,22 +106,22 @@ class HarborSubView
   virtual void update_this_and_children();
 
  protected:
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
 };
 
 template<typename T>
 struct PositionedHarborSubView {
   ui::OwningPositionedView owned;
-  HarborSubView*           harbor = nullptr;
-  T*                       actual = nullptr;
+  HarborSubView* harbor = nullptr;
+  T* actual             = nullptr;
 };
 
 void update_harbor_view( SSConst const& ss );
 
 struct HarborViewComposited {
-  Delta                          canvas_size;
+  Delta canvas_size;
   std::unique_ptr<HarborSubView> top_level;
   std::unordered_map<e_harbor_view_entity, HarborSubView*>
       entities;

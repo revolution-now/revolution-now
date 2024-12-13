@@ -53,7 +53,7 @@ struct Atlas {
   // This image can be released without disturbing the lookup
   // mechanism.
   gfx::image img;
-  AtlasMap   dict;
+  AtlasMap dict;
 };
 
 /****************************************************************
@@ -89,7 +89,7 @@ struct AtlasBuilder {
  private:
   struct AtlasImage {
     gfx::image img;
-    int        count = 0;
+    int count = 0;
   };
 
   // This keeps track of how many rects there are per image.

@@ -46,11 +46,11 @@ static_assert( Streamable<one_shot_stream_adapter<int>> );
 *****************************************************************/
 TEST_CASE( "[co-combinator] any" ) {
   wait_promise<> p1, p2;
-  auto           f1 = [&p1]() -> wait<> { co_await p1.wait(); };
-  auto           f2 = [&p2]() -> wait<> { co_await p2.wait(); };
-  wait<>         w1 = f1();
-  wait<>         w2 = f2();
-  wait<>         w  = any( std::move( w1 ), std::move( w2 ) );
+  auto f1   = [&p1]() -> wait<> { co_await p1.wait(); };
+  auto f2   = [&p2]() -> wait<> { co_await p2.wait(); };
+  wait<> w1 = f1();
+  wait<> w2 = f2();
+  wait<> w  = any( std::move( w1 ), std::move( w2 ) );
   REQUIRE( !w.ready() );
   SECTION( "first" ) {
     p1.finish();
@@ -163,12 +163,12 @@ TEST_CASE( "[co-combinator] all" ) {
 }
 
 TEST_CASE( "[co-combinator] first" ) {
-  wait_promise<int>    p1;
-  wait_promise<>       p2;
+  wait_promise<int> p1;
+  wait_promise<> p2;
   wait_promise<string> p3;
 
-  wait<int>    w1 = p1.wait();
-  wait<>       w2 = p2.wait();
+  wait<int> w1    = p1.wait();
+  wait<> w2       = p2.wait();
   wait<string> w3 = p3.wait();
 
   SECTION( "w1 finishes first" ) {
@@ -232,7 +232,7 @@ TEST_CASE( "[co-combinator] first" ) {
 
 TEST_CASE( "[co-combinator] background" ) {
   wait_promise<int> p1;
-  wait_promise<>    p2;
+  wait_promise<> p2;
 
   // Add an extra level of coroutine indirection here to make
   // this test more juicy.
@@ -250,7 +250,7 @@ TEST_CASE( "[co-combinator] background" ) {
   };
 
   wait<int> w1 = f_w1( p1 );
-  wait<>    w2 = f_w2( p2 );
+  wait<> w2    = f_w2( p2 );
 
   REQUIRE( !w1_finished );
   REQUIRE( !w2_finished );
@@ -313,7 +313,7 @@ TEST_CASE( "[co-combinator] background" ) {
 
 TEST_CASE( "[co-combinator] stream" ) {
   stream<int> s;
-  wait        w = s.next();
+  wait w = s.next();
   REQUIRE( !w.ready() );
   run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
@@ -353,7 +353,7 @@ TEST_CASE( "[co-combinator] stream" ) {
 
 TEST_CASE( "[co-combinator] finite_stream" ) {
   finite_stream<int> s;
-  wait               w = s.next();
+  wait w = s.next();
   REQUIRE( !w.ready() );
   run_all_cpp_coroutines();
   REQUIRE( !w.ready() );
@@ -410,8 +410,8 @@ wait<int> some_coroutine( wait<int>&& w ) {
 
 TEST_CASE( "[co-combinator] detect_suspend" ) {
   wait_promise<int> p1, p2;
-  wait<int>         w1 = p1.wait();
-  wait<int>         w2 = p2.wait();
+  wait<int> w1 = p1.wait();
+  wait<int> w2 = p2.wait();
   p1.set_value( 5 );
 
   auto should_not_suspend =
@@ -438,7 +438,7 @@ TEST_CASE( "[co-combinator] detect_suspend" ) {
 
 TEST_CASE( "[wait] simple exception chained" ) {
   wait_promise<> p1;
-  wait<>         w1 = p1.wait();
+  wait<> w1 = p1.wait();
   REQUIRE( !w1.ready() );
 
   wait_promise<> p2;
@@ -489,7 +489,7 @@ TEST_CASE( "[co-combinator] exception with any" ) {
   wait_promise<> p1;
   wait_promise<> p2;
   wait_promise<> p3;
-  wait<>         w = co::any( p1.wait(), p2.wait(), p3.wait() );
+  wait<> w = co::any( p1.wait(), p2.wait(), p3.wait() );
   REQUIRE( !w.ready() );
   REQUIRE( !w.has_exception() );
 
@@ -512,8 +512,8 @@ TEST_CASE( "[co-combinator] exception with any" ) {
 
 wait_promise<> get_int1_p;
 wait_promise<> get_int2_p;
-stream<int>    int_stream;
-string         places;
+stream<int> int_stream;
+string places;
 
 #define LOG_PLACES( a, A ) \
   places += a;             \
@@ -558,10 +558,10 @@ wait<int> get_int_from_some_combinators() {
   LOG_PLACES( 'k', 'K' );
   // Do these out of line so that we can control the precise or-
   // der, so that the test is deterministic.
-  auto                            w1 = get_int1();
-  auto                            w2 = get_int2();
-  auto                            w3 = get_int3();
-  variant<int, monostate, double> v  = co_await first(
+  auto w1                           = get_int1();
+  auto w2                           = get_int2();
+  auto w3                           = get_int3();
+  variant<int, monostate, double> v = co_await first(
       std::move( w1 ), std::move( w2 ), std::move( w3 ) );
   LOG_PLACES( 'l', 'L' );
   REQUIRE( v.index() == 2 );
@@ -656,7 +656,7 @@ wait<int> throwing_coro( bool should_throw, bool throw_eager ) {
 TEST_CASE( "[co-combinator] try" ) {
   wp.reset();
   string what;
-  auto   catcher = [&]( runtime_error const& e ) {
+  auto catcher = [&]( runtime_error const& e ) {
     what = e.what();
   };
 
@@ -821,7 +821,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 
   SECTION( "send all values first" ) {
     co::interleave il( s1, s2, s3 );
-    vector<int>    found;
+    vector<int> found;
 
     for( int i = 3; i < 6; ++i ) s1.send( i );
     for( int i = 0; i < 3; ++i ) s2.send( i );
@@ -839,7 +839,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
   }
   SECTION( "send then query, per stream" ) {
     co::interleave il( s1, s2, s3 );
-    vector<int>    found;
+    vector<int> found;
 
     for( int i = 3; i < 6; ++i ) s1.send( i );
     while( true ) {
@@ -873,8 +873,8 @@ TEST_CASE( "[co-combinator] interleave" ) {
   }
   SECTION( "send then query, per stream" ) {
     co::interleave il( s1, s2, s3 );
-    vector<int>    found;
-    size_t         idx = 0;
+    vector<int> found;
+    size_t idx = 0;
 
     s1.send( 3 );
     s2.send( 0 );
@@ -968,7 +968,7 @@ TEST_CASE( "[co-combinator] interleave" ) {
 }
 
 TEST_CASE( "[co-combinator] interleave different types" ) {
-  co::stream<int>    s1;
+  co::stream<int> s1;
   co::stream<double> s2;
   co::stream<string> s3;
 
@@ -996,7 +996,7 @@ TEST_CASE( "[co-combinator] interleave different types" ) {
 
 TEST_CASE( "[co-combinator] one shot stream adapter" ) {
   wait_promise<int> p;
-  auto              shot = co::make_streamable( p.wait() );
+  auto shot = co::make_streamable( p.wait() );
   run_all_cpp_coroutines();
 
   wait<int> w1 = shot.next();

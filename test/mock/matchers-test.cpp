@@ -43,10 +43,10 @@ using ::testing::monitoring_types::Trivial;
 struct Foo {
   bool operator==( Foo const& ) const = default;
 
-  int       bar = 6;
+  int bar       = 6;
   int const baz = 7;
 
-  int        get_bar() const { return bar; }
+  int get_bar() const { return bar; }
   int const& get_baz() const { return baz; }
 };
 

@@ -75,7 +75,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, L, L, //
       L, L, L, L, L, L, //
@@ -92,8 +92,8 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[native-turn] unit iteration, travel" ) {
-  World           W;
-  RealRaid        real_raid( W.ss(), W.ts() );
+  World W;
+  RealRaid real_raid( W.ss(), W.ts() );
   RealTribeEvolve real_tribe_evolver( W.ss(), W.ts() );
 
   auto f = [&] {
@@ -521,9 +521,9 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
 }
 
 TEST_CASE( "[native-turn] attack euro unit" ) {
-  World             W;
-  MockIRaid         mock_raid;
-  MockITribeEvolve  mock_tribe_evolver;
+  World W;
+  MockIRaid mock_raid;
+  MockITribeEvolve mock_tribe_evolver;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
@@ -588,8 +588,8 @@ TEST_CASE( "[native-turn] attack euro unit" ) {
 }
 
 TEST_CASE( "[native-turn] brave spawns" ) {
-  World            W;
-  MockIRaid        mock_raid;
+  World W;
+  MockIRaid mock_raid;
   MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
@@ -629,8 +629,8 @@ TEST_CASE( "[native-turn] brave spawns" ) {
 }
 
 TEST_CASE( "[native-turn] brave equips" ) {
-  World            W;
-  MockIRaid        mock_raid;
+  World W;
+  MockIRaid mock_raid;
   MockITribeEvolve mock_tribe_evolver;
 
   auto f = [&] {
@@ -640,7 +640,7 @@ TEST_CASE( "[native-turn] brave equips" ) {
 
   MockINativeMind& native_mind =
       W.native_mind( e_tribe::arawak );
-  Tribe&           tribe = W.add_tribe( e_tribe::arawak );
+  Tribe& tribe = W.add_tribe( e_tribe::arawak );
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 0, .y = 0 }, e_tribe::arawak ).id;
   NativeUnit const& brave = W.add_native_unit_on_map(

@@ -92,7 +92,7 @@ maybe<ColonyNotification::spoilage> check_spoilage(
   int const warehouse_capacity =
       colony_warehouse_capacity( colony );
 
-  vector<Commodity>                 spoiled;
+  vector<Commodity> spoiled;
   refl::enum_map<e_commodity, int>& commodities =
       colony.commodities;
   for( e_commodity c : refl::enum_values<e_commodity> ) {
@@ -151,8 +151,8 @@ void check_create_or_starve_colonist(
       // (delete) the colonist and delete the colony.
       colony_disappeared = true;
     } else {
-      UnitId      unit_id = ts.rand.pick_one( units_in_colony );
-      e_unit_type type    = ss.units.unit_for( unit_id ).type();
+      UnitId unit_id   = ts.rand.pick_one( units_in_colony );
+      e_unit_type type = ss.units.unit_for( unit_id ).type();
       UnitOwnershipChanger( ss, unit_id ).destroy();
       notifications.emplace_back(
           ColonyNotification::colonist_starved{ .type = type } );
@@ -327,7 +327,7 @@ void apply_commodity_increase(
 }
 
 void apply_bells_for_founding_fathers( Player& player,
-                                       int     bells_produced ) {
+                                       int bells_produced ) {
   if( has_all_fathers( player ) ) {
     // When all fathers have been obtained we want to stop accu-
     // mulating bells for them, otherwise this number would keep
@@ -341,8 +341,8 @@ void apply_bells_for_founding_fathers( Player& player,
 void evolve_sons_of_liberty(
     Player const& player, int bells_produced, Colony& colony,
     vector<ColonyNotification>& notifications ) {
-  SonsOfLiberty& sol        = colony.sons_of_liberty;
-  int const      population = colony_population( colony );
+  SonsOfLiberty& sol   = colony.sons_of_liberty;
+  int const population = colony_population( colony );
   // This won't happen in practice because the game does not
   // allow zero-population colonies, but it is useful for unit
   // tests where that something happens, and which would other-
@@ -498,7 +498,7 @@ void check_colonists_teaching(
 }
 
 void process_custom_house( SS& ss, Player& player,
-                           Colony&          colony,
+                           Colony& colony,
                            ColonyEvolution& ev ) {
   if( !colony.buildings[e_colony_building::custom_house] )
     return;
@@ -538,7 +538,7 @@ void check_prime_resource_depletion(
 ** Public API.
 *****************************************************************/
 ColonyNotificationMessage generate_colony_notification_message(
-    Colony const&             colony,
+    Colony const& colony,
     ColonyNotification const& notification ) {
   ColonyNotificationMessage res{
     // We shouldn't ever use this, but give a fallback to help

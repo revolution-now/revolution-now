@@ -39,21 +39,21 @@ struct ND Unit {
 
   /************************* Getters ***************************/
 
-  UnitId                    id() const { return o_.id; }
+  UnitId id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
   UnitTypeAttributes& desc_non_const() const;
-  bool                is_colonist() const;
-  unit_orders const&  orders() const { return o_.orders; }
-  unit_orders&        orders() { return o_.orders; }
-  CargoHold const&    cargo() const { return o_.cargo; }
+  bool is_colonist() const;
+  unit_orders const& orders() const { return o_.orders; }
+  unit_orders& orders() { return o_.orders; }
+  CargoHold const& cargo() const { return o_.cargo; }
   // Allow non-const access to cargo since the CargoHold class
   // itself should enforce all invariants and interacting with it
   // doesn't really depend on any private Unit data.
-  CargoHold&     cargo() { return o_.cargo; }
-  e_nation       nation() const { return o_.nation; }
+  CargoHold& cargo() { return o_.cargo; }
+  e_nation nation() const { return o_.nation; }
   MovementPoints movement_points() const { return o_.mv_pts; }
-  e_unit_type    base_type() const {
+  e_unit_type base_type() const {
     return o_.composition.base_type();
   }
   e_unit_type type() const { return o_.composition.type(); }
@@ -130,7 +130,7 @@ struct ND Unit {
  private:
   // Should not call this directly, instead should use
   // change_unit_type.
-  void change_type( Player const&   player,
+  void change_type( Player const& player,
                     UnitComposition new_comp );
 
   friend void change_unit_type(
@@ -144,16 +144,16 @@ struct ND Unit {
   friend void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                                   e_nation new_nation );
   friend void change_unit_nation_and_move( SS& ss, TS& ts,
-                                           Unit&    unit,
+                                           Unit& unit,
                                            e_nation new_nation,
-                                           Coord    target );
+                                           Coord target );
 
  public:
   maybe<e_unit_type> demoted_type() const;
 
   // Implement refl::WrapsReflected.
   Unit( wrapped::Unit&& o ) : o_( std::move( o ) ) {}
-  wrapped::Unit const&              refl() const { return o_; }
+  wrapped::Unit const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "Unit";
 

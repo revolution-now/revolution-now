@@ -43,15 +43,15 @@ namespace {
 
 BraveAttackColonyEffect choose_stolen_commodity(
     IRand& rand, Colony const& colony ) {
-  auto const&         conf = config_natives.combat.colony_attack;
+  auto const& conf = config_natives.combat.colony_attack;
   vector<e_commodity> stealable;
   stealable.reserve( refl::enum_count<e_commodity> );
   for( auto [comm, q] : colony.commodities )
     if( q >= conf.min_commodity_quantity_for_stealing )
       stealable.push_back( comm );
   if( stealable.empty() ) return BraveAttackColonyEffect::none{};
-  e_commodity const type = rand.pick_one( stealable );
-  int const         quantity_in_store = colony.commodities[type];
+  e_commodity const type      = rand.pick_one( stealable );
+  int const quantity_in_store = colony.commodities[type];
   // Upper bound.
   int comm_stolen_max = lround(
       conf.commodity_percent_stolen.max * quantity_in_store );
@@ -91,7 +91,7 @@ BraveAttackColonyEffect calculate_money_stolen(
   int const money = player.money;
   if( money == 0 ) return none;
   auto const& conf = config_natives.combat.colony_attack;
-  int const   money_stolen_max = std::min(
+  int const money_stolen_max = std::min(
       static_cast<int>(
           lround( conf.money_percent_stolen.max * money ) ),
       conf.money_stolen_abs_range_max );
@@ -141,7 +141,7 @@ BraveAttackColonyEffect choose_ship_to_damage(
 
 BraveAttackColonyEffect choose_building_to_destroy(
     IRand& rand, Colony const& colony ) {
-  auto const&       conf = config_natives.combat.colony_attack;
+  auto const& conf       = config_natives.combat.colony_attack;
   static const auto none = BraveAttackColonyEffect::none{};
   // The SG states that, although undocumented, a colony with a
   // fort (or fortress, it is assumed) will not have any build-
@@ -246,7 +246,7 @@ void perform_brave_attack_colony_effect(
     }
     CASE( ship_in_port_damaged ) {
       UnitId const ship_id = ship_in_port_damaged.which;
-      Unit&        ship    = ss.units.unit_for( ship_id );
+      Unit& ship           = ss.units.unit_for( ship_id );
       if( !ship_in_port_damaged.sent_to.has_value() ) {
         UnitOwnershipChanger( ss, ship_id ).destroy();
       } else {
@@ -294,7 +294,7 @@ wait<> display_brave_attack_colony_effect_msg(
     }
     CASE( ship_in_port_damaged ) {
       UnitId const ship_id = ship_in_port_damaged.which;
-      Unit const&  ship    = ss.units.unit_for( ship_id );
+      Unit const& ship     = ss.units.unit_for( ship_id );
       e_ship_damaged_reason const reason =
           e_ship_damaged_reason::battle;
       string msg;

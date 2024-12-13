@@ -47,7 +47,7 @@ namespace refl {
 template<>
 struct traits<my_ns::empty_enum> {
   using type                        = my_ns::empty_enum;
-  static constexpr type_kind   kind = type_kind::enum_kind;
+  static constexpr type_kind kind   = type_kind::enum_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "empty_enum";
 
@@ -58,7 +58,7 @@ struct traits<my_ns::empty_enum> {
 template<>
 struct traits<my_ns::my_enum> {
   using type                        = my_ns::my_enum;
-  static constexpr type_kind   kind = type_kind::enum_kind;
+  static constexpr type_kind kind   = type_kind::enum_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "my_enum";
 

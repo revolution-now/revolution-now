@@ -78,7 +78,7 @@ class ColonySubView
 
   // All ColonySubView's will also be unspecified subclassess of
   // ui::View.
-  virtual ui::View&       view() noexcept       = 0;
+  virtual ui::View& view() noexcept             = 0;
   virtual ui::View const& view() const noexcept = 0;
 
   // Implement IDraggableObjectsView.
@@ -104,8 +104,8 @@ class ColonySubView
   virtual void update_this_and_children();
 
  protected:
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
   Colony& colony_;
 };
@@ -118,10 +118,10 @@ ColonySubView& colview_top_level();
 ColonyProduction const& colview_production();
 
 void update_colony_view( SSConst const& ss,
-                         Colony const&  colony );
+                         Colony const& colony );
 
 void update_production( SSConst const& ss,
-                        Colony const&  colony );
+                        Colony const& colony );
 
 // Must be called before any other method in this module.
 void set_colview_colony( SS& ss, TS& ts, Player& player,
@@ -130,6 +130,6 @@ void set_colview_colony( SS& ss, TS& ts, Player& player,
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,
     DragState<ColViewObject> const& state,
-    Coord const&                    canvas_origin );
+    Coord const& canvas_origin );
 
 } // namespace rn

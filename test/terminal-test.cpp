@@ -70,7 +70,7 @@ TEST_CASE( "[terminal] autocomplete" ) {
 
   auto empty = vector<string>{};
 
-  string         in;
+  string in;
   vector<string> out;
 
   in = "";
@@ -214,7 +214,7 @@ TEST_CASE( "[terminal] autocomplete_iterative" ) {
 
   auto empty = vector<string>{};
 
-  string         in;
+  string in;
   vector<string> out;
 
   in = "";
@@ -350,7 +350,7 @@ TEST_CASE(
   W.expensive_run_lua_init();
 
   lua::state& st = W.lua();
-  Terminal    term( st );
+  Terminal term( st );
 
   auto autocomplete = [&]( string_view in ) {
     return term.autocomplete( in );
@@ -358,7 +358,7 @@ TEST_CASE(
 
   auto const empty = vector<string>{};
 
-  string         in;
+  string in;
   vector<string> out;
 
   in  = "ROO";

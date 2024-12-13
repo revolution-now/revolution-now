@@ -27,7 +27,7 @@ class PopulationView : public ui::View, public ColonySubView {
   static std::unique_ptr<PopulationView> create( SS& ss, TS& ts,
                                                  Player& player,
                                                  Colony& colony,
-                                                 Delta   size ) {
+                                                 Delta size ) {
     return std::make_unique<PopulationView>( ss, ts, player,
                                              colony, size );
   }
@@ -42,17 +42,17 @@ class PopulationView : public ui::View, public ColonySubView {
     return static_cast<int>( e_colview_entity::population );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
  private:
   void draw_sons_of_liberty( rr::Renderer& renderer,
-                             Coord         coord ) const;
+                             Coord coord ) const;
 
   Delta size_;
 };

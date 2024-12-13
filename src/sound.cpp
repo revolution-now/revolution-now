@@ -37,7 +37,7 @@ namespace {
 
 struct SfxDesc {
   string file;
-  int    volume;
+  int volume;
 };
 NOTHROW_MOVE( SfxDesc );
 
@@ -75,7 +75,7 @@ auto* load_sfx( e_sfx sound ) {
 void init_sound() {
   // Make sure that we're dynamically linked with a version of
   // SDL_mixer approximately like the one we compiled with.
-  ::SDL_version      compiled_version;
+  ::SDL_version compiled_version;
   SDL_version const* link_version = ::Mix_Linked_Version();
   SDL_MIXER_VERSION( &compiled_version );
   check_SDL_compile_link_version( "Mixer", *link_version,
@@ -93,10 +93,10 @@ void init_sound() {
          ::Mix_GetError() );
 
   // Verify settings.
-  int      frequency{ 0 };
+  int frequency{ 0 };
   uint16_t format{ 0 };
-  int      channels{ 0 };
-  auto     audio_opened =
+  int channels{ 0 };
+  auto audio_opened =
       ::Mix_QuerySpec( &frequency, &format, &channels );
 
   CHECK(

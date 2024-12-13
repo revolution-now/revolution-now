@@ -24,7 +24,7 @@ struct ColoniesState {
 
   // Implement refl::WrapsReflected.
   ColoniesState( wrapped::ColoniesState&& o );
-  wrapped::ColoniesState const&     refl() const { return o_; }
+  wrapped::ColoniesState const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "ColoniesState";
 
@@ -45,7 +45,7 @@ struct ColoniesState {
   std::vector<ColonyId> for_nation( e_nation nation ) const;
 
   Colony const& colony_for( ColonyId id ) const;
-  Colony&       colony_for( ColonyId id );
+  Colony& colony_for( ColonyId id );
 
   Coord coord_for( ColonyId id ) const;
 
@@ -74,7 +74,7 @@ struct ColoniesState {
   [[nodiscard]] ColonyId next_colony_id();
 
   base::valid_or<std::string> validate() const;
-  void                        validate_or_die() const;
+  void validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::ColoniesState o_;

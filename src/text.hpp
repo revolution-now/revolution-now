@@ -58,7 +58,7 @@ struct TextMarkupInfo {
 void render_text_markup( rr::Renderer& renderer,
                          gfx::point where, e_font font,
                          TextMarkupInfo const& info,
-                         std::string_view      text );
+                         std::string_view text );
 
 struct TextReflowInfo {
   int max_cols = std::numeric_limits<int>::max();
@@ -71,12 +71,12 @@ void render_text_markup_reflow( rr::Renderer& renderer,
                                 gfx::point where, e_font font,
                                 TextMarkupInfo const& m_info,
                                 TextReflowInfo const& r_info,
-                                std::string_view      text );
+                                std::string_view text );
 
 // This is not cheap, so ideally it should be called once and the
 // result stored, as opposed to calling it every frame.
 Delta rendered_text_size( TextReflowInfo const& reflow_info,
-                          std::string_view      text );
+                          std::string_view text );
 
 // Same as above but no reflow.  Will still account for markup.
 Delta rendered_text_size_no_reflow( std::string_view text );
@@ -84,7 +84,7 @@ Delta rendered_text_size_no_reflow( std::string_view text );
 // This is useful for debugging/development. It just puts a rec-
 // tangle on screen the given lines of text with no frills.
 void render_text_overlay_with_anchor(
-    rr::Renderer&                   renderer,
+    rr::Renderer& renderer,
     std::vector<std::string> const& lines,
     gfx::point const anchor, e_cdirection const cdirection,
     gfx::pixel const fg_color, gfx::pixel const bg_color,

@@ -49,7 +49,7 @@ string fmt_construction( string const& name,
 }
 
 string fmt_construction(
-    string const&                    name,
+    string const& name,
     construction_requirements const& materials ) {
   string needed =
       fmt::format( "{:>3} hammers", materials.hammers );
@@ -58,7 +58,7 @@ string fmt_construction(
   return fmt_construction( name, needed );
 }
 
-void adjust_materials( Colony const&              colony,
+void adjust_materials( Colony const& colony,
                        construction_requirements& materials ) {
   materials.hammers =
       std::max( materials.hammers - colony.hammers, 0 );
@@ -79,7 +79,7 @@ maybe<construction_requirements> requirements_for_construction(
   }
 }
 
-string fmt_building( Colony const&     colony,
+string fmt_building( Colony const& colony,
                      e_colony_building building ) {
   construction_requirements requirements =
       config_colony.requirements_for_building[building];
@@ -143,7 +143,7 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
       ChoiceConfigOption{ .key          = kNoProductionKey,
                           .display_name = "(no production)" } );
   maybe<int> initial_selection;
-  int const  population = colony_population( colony );
+  int const population = colony_population( colony );
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
   e_water_access const water_access =
       colony_water_access( ss, ts, colony );

@@ -141,7 +141,7 @@ private:
       ut_.set_member( name_, std::forward<Func>( func ) );
     }
 
-    usertype&   ut_;
+    usertype& ut_;
     std::string name_;
   };
 

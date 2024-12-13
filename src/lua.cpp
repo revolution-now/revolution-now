@@ -51,8 +51,8 @@ lua::table require( lua::state& st, string const& required ) {
   lg.debug( "requiring lua module \"{}\".", key );
   lua::table modules =
       lua::table::create_or_get( st["__modules"] );
-  lua::table const dummy        = st.table.create();
-  lua::table       module_table = dummy;
+  lua::table const dummy  = st.table.create();
+  lua::table module_table = dummy;
   if( modules[key] != lua::nil ) {
     LUA_CHECK( st, modules[key] != "loading",
                "cyclic dependency detected." )

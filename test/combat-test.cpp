@@ -56,8 +56,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -139,12 +139,12 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[combat] euro_attack_euro" ) {
-  World                W;
-  Player&              english = W.english();
+  World W;
+  Player& english = W.english();
   CombatEuroAttackEuro expected;
-  Unit*                attacker = nullptr;
-  Unit*                defender = nullptr;
-  RealCombat           combat( W.ss(), W.rand() );
+  Unit* attacker = nullptr;
+  Unit* defender = nullptr;
+  RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
     return combat.euro_attack_euro( *attacker, *defender );
@@ -427,12 +427,12 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
 }
 
 TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
-  World                            W;
+  World W;
   CombatEuroAttackUndefendedColony expected;
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
-  Unit const&   defender =
+  Unit const& defender =
       W.add_unit_indoors( colony.id, e_indoor_job::cigars );
-  Unit*      attacker = nullptr;
+  Unit* attacker = nullptr;
   RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
@@ -487,13 +487,13 @@ TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
 }
 
 TEST_CASE( "[combat] euro_attack_brave" ) {
-  World                 W;
+  World W;
   CombatEuroAttackBrave expected;
-  Dwelling const&       dwelling =
+  Dwelling const& dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::arawak );
-  Unit*       attacker = nullptr;
+  Unit* attacker       = nullptr;
   NativeUnit* defender = nullptr;
-  RealCombat  combat( W.ss(), W.rand() );
+  RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
     return combat.euro_attack_brave( *attacker, *defender );
@@ -686,13 +686,13 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
 }
 
 TEST_CASE( "[combat] brave_attack_euro" ) {
-  World                 W;
+  World W;
   CombatBraveAttackEuro expected;
-  Dwelling const&       dwelling =
+  Dwelling const& dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::arawak );
   NativeUnit* attacker = nullptr;
-  Unit*       defender = nullptr;
-  RealCombat  combat( W.ss(), W.rand() );
+  Unit* defender       = nullptr;
+  RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
     return combat.brave_attack_euro( *attacker, *defender );
@@ -1177,9 +1177,9 @@ TEST_CASE( "[combat] brave_attack_euro" ) {
 }
 
 TEST_CASE( "[combat] brave_attack_colony" ) {
-  World                   W;
+  World W;
   CombatBraveAttackColony expected;
-  RealCombat              combat( W.ss(), W.rand() );
+  RealCombat combat( W.ss(), W.rand() );
 
   Colony const& colony =
       W.add_colony( { .x = 1, .y = 0 }, W.default_nation() );
@@ -1188,10 +1188,10 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
                           e_unit_type::free_colonist );
 
   e_tribe const tribe_type = e_tribe::arawak;
-  Dwelling&     dwelling =
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe_type );
   NativeUnit const* attacker = nullptr;
-  Unit const*       defender = nullptr;
+  Unit const* defender       = nullptr;
 
   auto f = [&] {
     return combat.brave_attack_colony( *attacker, *defender,
@@ -1587,17 +1587,17 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
 }
 
 TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
-  World                    W;
+  World W;
   CombatEuroAttackDwelling expected;
-  e_tribe const            tribe_type = e_tribe::arawak;
-  Tribe&                   tribe = W.add_tribe( tribe_type );
-  TribeRelationship&       relationship =
+  e_tribe const tribe_type = e_tribe::arawak;
+  Tribe& tribe             = W.add_tribe( tribe_type );
+  TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
-  Dwelling&   dwelling =
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, tribe_type );
-  Unit*      attacker = nullptr;
+  Unit* attacker = nullptr;
   RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
@@ -1857,15 +1857,15 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
 }
 
 TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
-  World                    W;
+  World W;
   CombatEuroAttackDwelling expected;
-  e_tribe const            tribe_type = e_tribe::arawak;
-  Tribe&                   tribe = W.add_tribe( tribe_type );
-  TribeRelationship&       relationship =
+  e_tribe const tribe_type = e_tribe::arawak;
+  Tribe& tribe             = W.add_tribe( tribe_type );
+  TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
-  Dwelling&   dwelling =
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, tribe_type );
   NativeUnitId const brave1_id =
       W.add_native_unit_on_map(
@@ -1877,7 +1877,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
                                 { .x = 0, .y = 2 }, dwelling.id )
           .id;
   dwelling.population = 1;
-  Unit*      attacker = nullptr;
+  Unit* attacker      = nullptr;
   RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
@@ -2216,11 +2216,11 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
 //   Man-O-War    5         24      24      32    64
 //
 TEST_CASE( "[combat] ship_attack_ship" ) {
-  World                W;
+  World W;
   CombatShipAttackShip expected;
-  Unit*                attacker = nullptr;
-  Unit*                defender = nullptr;
-  RealCombat           combat( W.ss(), W.rand() );
+  Unit* attacker = nullptr;
+  Unit* defender = nullptr;
+  RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
     return combat.ship_attack_ship( *attacker, *defender );
@@ -2980,11 +2980,11 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
 
 TEST_CASE(
     "[combat] ship_attack_ship: damaged sent for repair" ) {
-  World                W;
+  World W;
   CombatShipAttackShip expected;
-  Unit*                attacker = nullptr;
-  Unit*                defender = nullptr;
-  RealCombat           combat( W.ss(), W.rand() );
+  Unit* attacker = nullptr;
+  Unit* defender = nullptr;
+  RealCombat combat( W.ss(), W.rand() );
 
   auto f = [&] {
     return combat.ship_attack_ship( *attacker, *defender );

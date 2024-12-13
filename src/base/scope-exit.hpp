@@ -95,7 +95,7 @@ struct ScopedSet {
   ~ScopedSet() noexcept { var_ = restore_val_; }
 
   T& var_;
-  T  restore_val_;
+  T restore_val_;
 };
 
 /****************************************************************
@@ -186,9 +186,9 @@ struct ScopeExit {
   }
 
   char const* file_{};
-  int         line_{};
-  T           func_;
-  int         exceptions_in_flight_{};
+  int line_{};
+  T func_;
+  int exceptions_in_flight_{};
 };
 
 namespace detail {
@@ -203,7 +203,7 @@ struct scope_exit_grabber {
   }
 
   char const* file_{};
-  int         line_{};
+  int line_{};
 };
 
 } // namespace detail

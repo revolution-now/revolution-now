@@ -33,17 +33,17 @@ TEST_CASE( "[render/emitter] emit" ) {
                       point{ .x = 3, .y = 4 },
                       rect{ .origin = point{ .x = 5, .y = 6 },
                             .size   = { .w = 1, .h = 2 } } );
-  SolidVertex  vert2(
+  SolidVertex vert2(
       point{ .x = 1, .y = 2 },
       pixel{ .r = 10, .g = 20, .b = 30, .a = 40 } );
-  SpriteVertex         vert3( point{ .x = 2, .y = 3 },
-                              point{ .x = 4, .y = 5 },
-                              rect{ .origin = point{ .x = 5, .y = 6 },
-                                    .size = { .w = 1, .h = 2 } } );
+  SpriteVertex vert3( point{ .x = 2, .y = 3 },
+                      point{ .x = 4, .y = 5 },
+                      rect{ .origin = point{ .x = 5, .y = 6 },
+                            .size   = { .w = 1, .h = 2 } } );
   vector<SpriteVertex> sprites{ vert1, vert3, vert3, vert1 };
 
   vector<GenericVertex> v;
-  bool                  log_capacity_changes = false;
+  bool log_capacity_changes = false;
 
   {
     Emitter emitter( v );

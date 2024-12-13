@@ -126,8 +126,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       // The upper-left 2x2 squares in this map are specially
       // setup so that we will automatically place attackers
@@ -226,9 +226,9 @@ struct World : testing::World {
 #ifndef COMPILER_GCC
 TEST_CASE(
     "[attack-handlers] common failure checks (land attacker)" ) {
-  World                   W;
+  World W;
   CommandHandlerRunResult expected = { .order_was_run = false };
-  CombatEuroAttackEuro    combat;
+  CombatEuroAttackEuro combat;
 
   auto expect_combat = [&] {
     W.combat()
@@ -316,9 +316,9 @@ TEST_CASE(
 // the handlers for the case of a ship battle.
 TEST_CASE(
     "[attack-handlers] common failure checks (ship attacker)" ) {
-  World                   W;
+  World W;
   CommandHandlerRunResult expected = { .order_was_run = false };
-  CombatEuroAttackEuro    combat;
+  CombatEuroAttackEuro combat;
 
   auto f = [&] {
     return W.run_handler(
@@ -337,9 +337,9 @@ TEST_CASE(
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
-  World                   W;
+  World W;
   CommandHandlerRunResult expected = { .order_was_run = true };
-  CombatEuroAttackEuro    combat;
+  CombatEuroAttackEuro combat;
 
   auto expect_combat = [&] {
     W.combat()
@@ -581,11 +581,11 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
-  World                   W;
+  World W;
   CommandHandlerRunResult expected = { .order_was_run = true };
-  CombatEuroAttackBrave   combat;
-  Tribe&                  tribe = W.tribe( W.kNativeTribe );
-  TribeRelationship&      relationship =
+  CombatEuroAttackBrave combat;
+  Tribe& tribe = W.tribe( W.kNativeTribe );
+  TribeRelationship& relationship =
       tribe.relationship[W.kAttackingNation];
   relationship.nation_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
@@ -759,12 +759,12 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
-  World                    W;
-  CommandHandlerRunResult  expected = { .order_was_run = true };
+  World W;
+  CommandHandlerRunResult expected = { .order_was_run = true };
   CombatEuroAttackDwelling combat;
   Player& player = W.player( W.kAttackingNation );
 
-  Tribe&             tribe = W.tribe( W.kNativeTribe );
+  Tribe& tribe = W.tribe( W.kNativeTribe );
   TribeRelationship& relationship =
       tribe.relationship[W.kAttackingNation];
   relationship.nation_has_attacked_tribe = true;
@@ -1476,8 +1476,8 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
-  World                   W;
-  CombatShipAttackShip    combat;
+  World W;
+  CombatShipAttackShip combat;
   CommandHandlerRunResult expected = { .order_was_run = true };
 
   auto expect_combat = [&] {
@@ -1951,7 +1951,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
 #ifndef COMPILER_GCC
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
-  World                            W;
+  World W;
   CombatEuroAttackUndefendedColony combat;
   // TODO
 }

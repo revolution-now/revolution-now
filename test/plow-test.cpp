@@ -81,7 +81,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[plow] can_irrigate" ) {
   MapSquare square;
-  bool      expected;
+  bool expected;
 
   square = MapSquare{
     .surface         = e_surface::water,
@@ -135,10 +135,10 @@ TEST_CASE( "[plow] plow_square with 40 tools" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::conifer );
 
-  UnitId           id{ 1 };
-  Unit&            unit     = W.units().unit_for( id );
-  Coord            location = W.units().coord_for( id );
-  MapSquare const& square   = W.square( kSquare );
+  UnitId id{ 1 };
+  Unit& unit              = W.units().unit_for( id );
+  Coord location          = W.units().coord_for( id );
+  MapSquare const& square = W.square( kSquare );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -270,10 +270,10 @@ TEST_CASE( "[plow] plow_square hardy_pioneer" ) {
   World W;
   W.initialize( e_unit_type::hardy_pioneer, e_terrain::desert );
 
-  UnitId           id{ 1 };
-  Unit&            unit     = W.units().unit_for( id );
-  Coord            location = W.units().coord_for( id );
-  MapSquare const& square   = W.terrain().square_at( kSquare );
+  UnitId id{ 1 };
+  Unit& unit              = W.units().unit_for( id );
+  Coord location          = W.units().coord_for( id );
+  MapSquare const& square = W.terrain().square_at( kSquare );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
@@ -347,10 +347,10 @@ TEST_CASE( "[plow] plow_square with cancellation" ) {
   World W;
   W.initialize( e_unit_type::pioneer, e_terrain::grassland );
 
-  UnitId           id{ 1 };
-  Unit&            unit     = W.units().unit_for( id );
-  Coord            location = W.units().coord_for( id );
-  MapSquare const& square   = W.terrain().square_at( kSquare );
+  UnitId id{ 1 };
+  Unit& unit              = W.units().unit_for( id );
+  Coord location          = W.units().coord_for( id );
+  MapSquare const& square = W.terrain().square_at( kSquare );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -447,7 +447,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     World W;
     W.initialize( e_unit_type::pioneer, e_terrain::scrub );
     UnitId id{ 1 };
-    Unit&  unit = W.units().unit_for( id );
+    Unit& unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 6;
     int const kPlowTurnsRequired  = 5;
@@ -494,7 +494,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     World W;
     W.initialize( e_unit_type::pioneer, e_terrain::scrub );
     UnitId id{ 1 };
-    Unit&  unit = W.units().unit_for( id );
+    Unit& unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 6;
     int const kPlowTurnsRequired  = 5;
@@ -550,7 +550,7 @@ TEST_CASE( "[plow] lumber yield / pioneer" ) {
     W.initialize( e_unit_type::hardy_pioneer,
                   e_terrain::conifer );
     UnitId id{ 1 };
-    Unit&  unit = W.units().unit_for( id );
+    Unit& unit = W.units().unit_for( id );
 
     int const kClearTurnsRequired = 3;
     int const kPlowTurnsRequired  = 2;

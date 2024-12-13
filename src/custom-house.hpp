@@ -78,7 +78,7 @@ CustomHouseSales compute_custom_house_sales(
 // Removes sold commodities from colony, gives player money, and
 // affects market state.
 void apply_custom_house_sales( SS& ss, Player& player,
-                               Colony&                 colony,
+                               Colony& colony,
                                CustomHouseSales const& sales );
 
 } // namespace rn

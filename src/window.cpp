@@ -96,7 +96,7 @@ struct WindowManager {
  public:
   struct PositionedWindow {
     Window* win = nullptr;
-    Coord   pos = {};
+    Coord pos   = {};
   };
 
   void draw_layout( rr::Renderer& renderer ) const;
@@ -109,10 +109,10 @@ struct WindowManager {
   ND e_input_handled input( input::event_t const& event );
 
   IPlane::e_accept_drag can_drag( input::e_mouse_button button,
-                                  Coord                 origin );
-  void                  on_drag( input::mod_keys const& mod,
-                                 input::e_mouse_button button, Coord origin,
-                                 Coord prev, Coord current );
+                                  Coord origin );
+  void on_drag( input::mod_keys const& mod,
+                input::e_mouse_button button, Coord origin,
+                Coord prev, Coord current );
 
   vector<PositionedWindow> const& active_windows() const {
     return windows_;
@@ -192,15 +192,15 @@ struct WindowManager {
   int num_windows_created_ = 0;
 
   struct TransientMessage {
-    string         msg;
-    double         alpha       = 1.0;
+    string msg;
+    double alpha               = 1.0;
     TextReflowInfo reflow_info = {};
     // This is stored here because it is expensive to compute; we
     // don't want to do it every frame.
     Delta rendered_size = {};
   };
 
-  co::stream<string>      transient_messages_ = {};
+  co::stream<string> transient_messages_ = {};
   maybe<TransientMessage> active_transient_message_;
 
   // This is a background coroutine that runs as long as this ob-
@@ -292,7 +292,7 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
         painter_mods.repos.translation,
         gfx::size( where.distance_from_origin() ).to_double() );
     rr::Painter painter = renderer.painter();
-    Rect        r       = rect( Coord{} );
+    Rect r              = rect( Coord{} );
     // Render shadow behind window.
     painter.draw_solid_rect( r + Delta{ .w = 4, .h = 4 },
                              gfx::pixel{ 0, 0, 0, 64 } );
@@ -462,8 +462,8 @@ e_input_handled WindowManager::input(
   // being entered or left.
   if( auto* val =
           std::get_if<input::mouse_move_event_t>( &event ) ) {
-    auto           new_pos = val->pos;
-    auto           old_pos = val->prev;
+    auto new_pos = val->pos;
+    auto old_pos = val->prev;
     maybe<Window&> old_view =
         window_for_cursor_pos_in_view( old_pos );
     maybe<Window&> new_view =
@@ -590,11 +590,11 @@ using GetOkCancelSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_cancel_window_builder(
-    WindowManager&                   window_manager,
-    function<ResultT()>              get_result,
+    WindowManager& window_manager,
+    function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( maybe<ResultT> )>         on_result,
+    function<void( maybe<ResultT> )> on_result,
     function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
   auto ok_cancel_view = make_unique<ui::OkCancelView>(
       /*on_ok=*/
@@ -616,8 +616,8 @@ template<typename ResultT>
         lg.trace( "selected cancel." );
         on_result( nothing );
       } );
-  auto* p_ok_button      = ok_cancel_view->ok_button();
-  auto  enable_ok_button = [p_ok_button]( bool enable ) {
+  auto* p_ok_button     = ok_cancel_view->ok_button();
+  auto enable_ok_button = [p_ok_button]( bool enable ) {
     p_ok_button->enable( enable );
   };
   unique_ptr<ui::View> subject_view = get_view_fn(
@@ -641,11 +641,11 @@ using GetOkBoxSubjectViewFunc = unique_ptr<ui::View>(
 
 template<typename ResultT>
 [[nodiscard]] unique_ptr<Window> ok_box_window_builder(
-    WindowManager&                   window_manager,
-    function<ResultT()>              get_result,
+    WindowManager& window_manager,
+    function<ResultT()> get_result,
     function<bool( ResultT const& )> validator,
     // on_result must be copyable.
-    function<void( ResultT )>             on_result,
+    function<void( ResultT )> on_result,
     function_ref<GetOkBoxSubjectViewFunc> get_view_fn ) {
   auto ok_button_view = make_unique<ui::OkButtonView>(
       /*on_ok=*/
@@ -659,8 +659,8 @@ template<typename ResultT>
           lg.debug( "{} is invalid.", proposed );
         }
       } );
-  auto* p_ok_button      = ok_button_view->ok_button();
-  auto  enable_ok_button = [p_ok_button]( bool enable ) {
+  auto* p_ok_button     = ok_button_view->ok_button();
+  auto enable_ok_button = [p_ok_button]( bool enable ) {
     p_ok_button->enable( enable );
   };
   auto subject_view = get_view_fn(
@@ -682,7 +682,7 @@ namespace {
 [[nodiscard]] unique_ptr<Window> text_input_box(
     WindowManager& window_manager, string_view msg,
     string_view initial_text, ui::ValidatorFunc validator,
-    WindowCancelActions const&      cancel_actions,
+    WindowCancelActions const& cancel_actions,
     function<void( maybe<string> )> on_result ) {
   TextMarkupInfo m_info{
     /*normal=*/config_ui.dialog_text.normal,
@@ -809,7 +809,7 @@ WindowPlane::WindowPlane() : impl_( new Impl() ) {}
 WindowManager& WindowPlane::manager() { return impl_->wm; }
 
 wait<> WindowPlane::message_box( string_view msg ) {
-  wait_promise<>     p;
+  wait_promise<> p;
   unique_ptr<Window> win = async_window_builder(
       impl_->wm,
       ui::PlainMessageBoxView::create( string( msg ), p ),
@@ -827,7 +827,7 @@ void WindowPlane::transient_message_box( string_view msg ) {
 wait<maybe<int>> WindowPlane::select_box(
     string_view msg, vector<SelectBoxOption> const& options,
     WindowCancelActions const& cancel_actions,
-    maybe<int>                 initial_selection ) {
+    maybe<int> initial_selection ) {
   lg.info( "question: \"{}\"", msg );
   vector<ui::OptionSelectItemView::Option> view_options;
   view_options.reserve( options.size() );
@@ -897,7 +897,7 @@ wait<maybe<int>> WindowPlane::select_box(
       std::move( selector_view ), std::move( on_input ) );
   TextMarkupInfo const& m_info = ui::default_text_markup_info();
   TextReflowInfo const& r_info = ui::default_text_reflow_info();
-  auto                  text_view =
+  auto text_view =
       make_unique<ui::TextView>( string( msg ), m_info, r_info );
   vector<unique_ptr<ui::View>> vert_views;
   vert_views.push_back( std::move( text_view ) );
@@ -906,9 +906,9 @@ wait<maybe<int>> WindowPlane::select_box(
       std::move( vert_views ),
       ui::VerticalArrayView::align::left );
 
-  unique_ptr<ui::View> view   = std::move( va_view );
-  ui::CompositeView*   p_view = view->cast<ui::CompositeView>();
-  unique_ptr<Window>   win    = async_window_builder(
+  unique_ptr<ui::View> view = std::move( va_view );
+  ui::CompositeView* p_view = view->cast<ui::CompositeView>();
+  unique_ptr<Window> win    = async_window_builder(
       impl_->wm, std::move( view ), cancel_actions,
       /*auto_pad=*/true );
 
@@ -924,7 +924,7 @@ wait<maybe<string>> WindowPlane::str_input_box(
     string_view msg, WindowCancelActions const& cancel_actions,
     string_view initial_text ) {
   wait_promise<maybe<string>> p;
-  unique_ptr<Window>          win = text_input_box(
+  unique_ptr<Window> win = text_input_box(
       impl_->wm, msg, initial_text, L( _.size() > 0 ),
       cancel_actions,
       [&p]( maybe<string> result ) { p.set_value( result ); } );

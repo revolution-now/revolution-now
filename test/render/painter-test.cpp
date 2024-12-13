@@ -136,7 +136,7 @@ TEST_CASE( "[render/painter] draw_horizontal_line" ) {
   Painter painter( atlas_map(), emitter );
 
   point p;
-  int   length = 0;
+  int length = 0;
 
   auto Vert = [&]( point p ) {
     return SolidVertex( p, G ).generic();
@@ -198,7 +198,7 @@ TEST_CASE( "[render/painter] draw_vertical_line" ) {
   Painter painter( atlas_map(), emitter );
 
   point p;
-  int   length = 0;
+  int length = 0;
 
   auto Vert = [&]( point p ) {
     return SolidVertex( p, G ).generic();
@@ -293,7 +293,7 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
-  rect                   r;
+  rect r;
   Painter::e_border_mode mode = Painter::e_border_mode::inside;
 
   auto Vert = [&]( point p ) {
@@ -426,7 +426,7 @@ TEST_CASE( "[render/painter] draw_empty_rect in_out" ) {
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
-  rect                   r;
+  rect r;
   Painter::e_border_mode mode = Painter::e_border_mode::in_out;
 
   auto Vert = [&]( point p ) {
@@ -477,7 +477,7 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
 
-  rect                   r;
+  rect r;
   Painter::e_border_mode mode = Painter::e_border_mode::outside;
 
   auto Vert = [&]( point p ) {
@@ -713,8 +713,8 @@ TEST_CASE( "[render/painter] draw_sprite_section" ) {
   };
 
   point p{ .x = 20, .y = 30 };
-  rect  section{ .origin = { .x = 1, .y = 2 },
-                 .size   = { .w = 10, .h = 10 } };
+  rect section{ .origin = { .x = 1, .y = 2 },
+                .size   = { .w = 10, .h = 10 } };
 
   int atlas_id = 1;
   painter.draw_sprite_section( atlas_id, p, section );

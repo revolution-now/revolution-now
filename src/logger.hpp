@@ -35,7 +35,7 @@ enum class e_log_level {
 };
 
 e_log_level global_log_level();
-void        set_global_log_level( e_log_level level );
+void set_global_log_level( e_log_level level );
 
 /****************************************************************
 ** Logger Interface
@@ -111,6 +111,6 @@ void init_logger( e_log_level level );
 *****************************************************************/
 // FIXME: move these out of here.
 std::string fmt_bar( char c, std::string_view msg = "" );
-void        print_bar( char c, std::string_view msg = "" );
+void print_bar( char c, std::string_view msg = "" );
 
 } // namespace rn

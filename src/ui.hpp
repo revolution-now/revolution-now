@@ -65,7 +65,7 @@ class Object {
   // shift before calling a child view, that way the view can al-
   // ways draw relative to the origin of zero.
   virtual void draw( rr::Renderer& renderer,
-                     Coord         coord ) const = 0;
+                     Coord coord ) const = 0;
   // This is the physical size of the object in pixels.
   ND virtual Delta delta() const = 0;
   // Given a position, returns a bounding rect.  We need to be

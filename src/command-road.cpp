@@ -104,10 +104,10 @@ struct RoadHandler : public CommandHandler {
     co_return;
   }
 
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
-  UnitId  unit_id_;
+  UnitId unit_id_;
 };
 
 } // namespace

@@ -72,7 +72,7 @@ std::string error_read_text_file_msg( std::string_view filename,
 //
 expect<std::unique_ptr<char[]>, e_error_read_text_file>
 read_text_file( fs::path const& p,
-                maybe<size_t&>  o_size = nothing );
+                maybe<size_t&> o_size = nothing );
 
 expect<std::string, e_error_read_text_file>
 read_text_file_as_string( fs::path const& p );

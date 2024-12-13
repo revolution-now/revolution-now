@@ -50,7 +50,7 @@ int with_volatility( int what, int volatility ) {
 // The sum of the player-traded volume across all players for a
 // single commodity.
 int total_traded_volume_for_commodity( SSConst const& ss,
-                                       e_commodity    c ) {
+                                       e_commodity c ) {
   int sum = 0;
   for( auto const& [nation, player] : ss.players.players )
     if( player.has_value() )
@@ -80,13 +80,13 @@ ProcessedGoodsPriceGroup create_price_group(
 // Note that the intrinsic value passed in will generally already
 // have a value that needs to be taken into account.
 void try_price_change_default_model( Player const& player,
-                                     e_commodity   type,
+                                     e_commodity type,
                                      int& intrinsic_volume_delta,
                                      int& price_change ) {
   PlayerMarketItem const player_market_item =
       player.old_world.market.commodities[type];
   auto const& item_config = config_market.price_behavior[type];
-  int const   fall_threshold =
+  int const fall_threshold =
       item_config.model_parameters.fall * 100;
   int const rise_threshold =
       -item_config.model_parameters.rise * 100;
@@ -155,7 +155,7 @@ PriceChange try_price_change_group_model(
 Invoice transaction_invoice_default_model(
     SSConst const& ss, Player const& player,
     Commodity const orig_transacted,
-    e_transaction   transaction_type,
+    e_transaction transaction_type,
     e_immediate_price_change_allowed
         immediate_price_change_allowed ) {
   // Make the quantity so that its sign reflects the sign of the
@@ -170,9 +170,9 @@ Invoice transaction_invoice_default_model(
   CHECK( !is_in_processed_goods_price_group( transacted.type ) );
   CommodityPrice const prices =
       market_price( player, transacted.type );
-  int const         quantity  = transacted.quantity;
+  int const quantity          = transacted.quantity;
   e_commodity const comm_type = transacted.type;
-  auto const&       item_config =
+  auto const& item_config =
       config_market.price_behavior[comm_type];
   int const volatility = item_config.model_parameters.volatility;
   auto const& difficulty_modifiers =
@@ -419,7 +419,7 @@ evolve_group_model_prices( SSConst const& ss, Player& player ) {
 }
 
 CommodityPrice make_commodity_price( e_commodity commodity,
-                                     int         bid ) {
+                                     int bid ) {
   int const ask = bid + config_market.price_behavior[commodity]
                             .price_limits.bid_ask_spread;
   return CommodityPrice{ .bid = bid, .ask = ask };
@@ -431,8 +431,8 @@ CommodityPrice make_commodity_price( e_commodity commodity,
 ** Public API
 *****************************************************************/
 PriceChange create_price_change( Player const& player,
-                                 e_commodity   comm,
-                                 int           price_change ) {
+                                 e_commodity comm,
+                                 int price_change ) {
   int const current_bid =
       player.old_world.market.commodities[comm].bid_price;
   int const current_ask = ask_from_bid( comm, current_bid );
@@ -446,7 +446,7 @@ PriceChange create_price_change( Player const& player,
 }
 
 CommodityPrice market_price( Player const& player,
-                             e_commodity   commodity ) {
+                             e_commodity commodity ) {
   int const bid =
       player.old_world.market.commodities[commodity].bid_price;
   return make_commodity_price( commodity, bid );
@@ -507,10 +507,10 @@ wait<> display_price_change_notification(
       nation_obj( player.nation ).harbor_city_name;
   CHECK( change.to.bid - change.from.bid ==
          change.to.ask - change.from.ask );
-  int const    price_change = change.to.bid - change.from.bid;
+  int const price_change = change.to.bid - change.from.bid;
   string const verb = ( price_change > 0 ) ? "risen" : "fallen";
   CommodityPrice const prices = change.to;
-  string const         msg    = fmt::format(
+  string const msg            = fmt::format(
       "The price of [{}] in {} has {} to {}.",
       lowercase_commodity_display_name( change.type ),
       harbor_name, verb, prices.bid );

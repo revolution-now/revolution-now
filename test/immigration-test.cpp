@@ -66,7 +66,7 @@ struct World : testing::World {
   World() : Base() { add_default_player(); }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -132,7 +132,7 @@ TEST_CASE( "[immigration] compute_crosses (dutch)" ) {
   world.create_default_map();
 
   UnitsState const& units_state = world.units();
-  Player&           player      = world.default_player();
+  Player& player                = world.default_player();
   REQUIRE( player.crosses == 0 );
 
   CrossesCalculation crosses, expected;
@@ -268,7 +268,7 @@ TEST_CASE( "[immigration] compute_crosses (english)" ) {
   world.create_default_map();
 
   UnitsState const& units_state = world.units();
-  Player&           player      = world.default_player();
+  Player& player                = world.default_player();
   REQUIRE( player.crosses == 0 );
 
   CrossesCalculation crosses, expected;
@@ -338,7 +338,7 @@ TEST_CASE( "[immigration] take_immigrant_from_pool" ) {
 }
 
 TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   bool found_petty_criminal     = false;
@@ -377,7 +377,7 @@ TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
 
 TEST_CASE(
     "[immigration] pick_next_unit_for_pool with brewster" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   player.fathers.has[e_founding_father::william_brewster] = true;
 
@@ -423,9 +423,9 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
       initial_state.immigrants_pool;
 
   SECTION( "not enough crosses" ) {
-    player.crosses                     = 10;
-    int const           crosses_needed = 11;
-    wait<maybe<UnitId>> w              = check_for_new_immigrant(
+    player.crosses           = 10;
+    int const crosses_needed = 11;
+    wait<maybe<UnitId>> w    = check_for_new_immigrant(
         W.ss(), W.ts(), player, crosses_needed );
     REQUIRE( w.ready() );
     REQUIRE( *w == nothing );
@@ -521,10 +521,10 @@ TEST_CASE( "[immigration] check_for_new_immigrant" ) {
 }
 
 TEST_CASE( "[immigration] cost_of_recruit" ) {
-  World        W;
-  Player&      player         = W.default_player();
-  e_difficulty difficulty     = {};
-  int          crosses_needed = 0;
+  World W;
+  Player& player          = W.default_player();
+  e_difficulty difficulty = {};
+  int crosses_needed      = 0;
 
   auto f = [&] {
     return cost_of_recruit( player, crosses_needed, difficulty );
@@ -606,7 +606,7 @@ TEST_CASE( "[immigration] cost_of_recruit" ) {
 }
 
 TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   W.settings().difficulty = e_difficulty::conquistador;

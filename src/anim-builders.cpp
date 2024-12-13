@@ -193,7 +193,7 @@ void play_combat_outcome_sound(
 }
 
 void play_combat_outcome_sound(
-    AnimationBuilder&            builder,
+    AnimationBuilder& builder,
     CombatBraveAttackEuro const& combat ) {
   builder.play_sound(
       ( combat.winner == e_combat_winner::defender )
@@ -202,7 +202,7 @@ void play_combat_outcome_sound(
 }
 
 void play_combat_outcome_sound(
-    AnimationBuilder&              builder,
+    AnimationBuilder& builder,
     CombatBraveAttackColony const& combat ) {
   if( combat.colony_destroyed ) {
     builder.play_sound( e_sfx::city_destroyed );
@@ -215,7 +215,7 @@ void play_combat_outcome_sound(
 }
 
 void play_combat_outcome_sound(
-    AnimationBuilder&           builder,
+    AnimationBuilder& builder,
     CombatShipAttackShip const& combat ) {
   if( !combat.winner.has_value() ) {
     // Evade. FIXME: better sound here?
@@ -241,7 +241,7 @@ void play_combat_outcome_sound(
 }
 
 void play_combat_outcome_sound(
-    AnimationBuilder&            builder,
+    AnimationBuilder& builder,
     CombatEuroAttackBrave const& combat ) {
   switch( combat.winner ) {
     case e_combat_winner::attacker:
@@ -262,15 +262,15 @@ void play_combat_outcome_sound(
 // other, and so panning to the first one will very likely also
 // reveal the second one; but even if it doesn't, panning to the
 // second should still leave the first one visible.
-void ensure_tiles_visible( AnimationBuilder&    builder,
+void ensure_tiles_visible( AnimationBuilder& builder,
                            vector<Coord> const& tiles ) {
   for( Coord const tile : tiles )
     builder.ensure_tile_visible( tile );
 }
 
 // Should only call this once per phase.
-void animate_remove_roads( AnimationBuilder&    builder,
-                           IVisibility const&   viz,
+void animate_remove_roads( AnimationBuilder& builder,
+                           IVisibility const& viz,
                            vector<Coord> const& road_tiles ) {
   for( Coord const tile : road_tiles ) {
     MapSquare const& map_square = viz.square_at( tile );
@@ -313,7 +313,7 @@ AnimationSequence anim_seq_for_euro_attack_euro(
     SSConst const& ss, CombatEuroAttackEuro const& combat ) {
   UnitId const attacker_id = combat.attacker.id;
   UnitId const defender_id = combat.defender.id;
-  Coord const  attacker_coord =
+  Coord const attacker_coord =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
@@ -355,7 +355,7 @@ AnimationSequence anim_seq_for_naval_battle(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
   UnitId const attacker_id = combat.attacker.id;
   UnitId const defender_id = combat.defender.id;
-  Coord const  attacker_coord =
+  Coord const attacker_coord =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
@@ -410,9 +410,9 @@ AnimationSequence anim_seq_for_naval_battle(
 
 AnimationSequence anim_seq_for_euro_attack_brave(
     SSConst const& ss, CombatEuroAttackBrave const& combat ) {
-  UnitId const       attacker_id = combat.attacker.id;
+  UnitId const attacker_id       = combat.attacker.id;
   NativeUnitId const defender_id = combat.defender.id;
-  Coord const        attacker_coord =
+  Coord const attacker_coord =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
@@ -446,8 +446,8 @@ AnimationSequence anim_seq_for_euro_attack_brave(
 AnimationSequence anim_seq_for_brave_attack_euro(
     SSConst const& ss, CombatBraveAttackEuro const& combat ) {
   NativeUnitId const attacker_id = combat.attacker.id;
-  UnitId const       defender_id = combat.defender.id;
-  Coord const        attacker_coord =
+  UnitId const defender_id       = combat.defender.id;
+  Coord const attacker_coord =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
@@ -489,8 +489,8 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     SSConst const& ss, IVisibility const& viz,
     CombatBraveAttackColony const& combat ) {
   NativeUnitId const attacker_id = combat.attacker.id;
-  UnitId const       defender_id = combat.defender.id;
-  Coord const        attacker_coord =
+  UnitId const defender_id       = combat.defender.id;
+  Coord const attacker_coord =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
   Coord const defender_coord =
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
@@ -545,7 +545,7 @@ AnimationSequence anim_seq_for_brave_attack_colony(
 }
 
 static AnimationSequence anim_seq_for_lost_colony_capture(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat ) {
   CombatEuroAttackEuro const new_combat{
     .winner   = combat.winner,
@@ -560,7 +560,7 @@ static AnimationSequence anim_seq_for_lost_colony_capture(
 }
 
 AnimationSequence anim_seq_for_undefended_colony(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat ) {
   UnitId const attacker_id = combat.attacker.id;
   UnitId const defender_id = combat.defender.id;
@@ -602,7 +602,7 @@ AnimationSequence anim_seq_for_undefended_colony(
 
 AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, IVisibility const& viz,
-    UnitId                       attacker_id,
+    UnitId attacker_id,
     EuroUnitCombatOutcome const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
     DwellingCombatOutcome const& dwelling_outcome ) {
@@ -663,7 +663,7 @@ AnimationSequence anim_seq_for_unit_move(
     e_direction direction ) {
   Coord const tile =
       coord_for_unit_multi_ownership_or_die( ss, unit_id );
-  Coord const      target = tile.moved( direction );
+  Coord const target = tile.moved( direction );
   AnimationBuilder builder;
   // Phase 0: pan to site.
   ensure_tiles_visible( builder, { tile, target } );
@@ -679,7 +679,7 @@ AnimationSequence anim_seq_for_unit_talk(
     e_direction direction ) {
   Coord const tile =
       coord_for_unit_multi_ownership_or_die( ss, unit_id );
-  Coord const      target = tile.moved( direction );
+  Coord const target = tile.moved( direction );
   AnimationBuilder builder;
   // Phase 0: pan to site.
   ensure_tiles_visible( builder, { tile, target } );
@@ -861,7 +861,7 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
   // Dwellings.
   gfx::rect_iterator ri( ss.terrain.world_rect_tiles() );
   for( gfx::point const p : ri ) {
-    Coord const            tile = Coord::from_gfx( p ); // FIXME
+    Coord const tile = Coord::from_gfx( p ); // FIXME
     maybe<Dwelling const&> dwelling = viz.dwelling_at( tile );
     if( !dwelling.has_value() ) continue;
     e_tribe const tribe_type =
@@ -877,7 +877,7 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
   animate_remove_roads( builder, viz, dwelling_coords );
 
   // Braves.
-  auto const&          native_units = ss.units.native_all();
+  auto const& native_units = ss.units.native_all();
   vector<NativeUnitId> native_unit_ids;
   native_unit_ids.reserve( native_units.size() );
   for( auto [unit_id, p_state] : native_units ) {

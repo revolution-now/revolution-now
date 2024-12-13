@@ -44,8 +44,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -65,11 +65,11 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
-  World             W;
+  World W;
   NativeUnitCommand expected;
 
   e_tribe const tribe_type = e_tribe::aztec;
-  AiNativeMind  mind( W.ss(), W.rand(), tribe_type );
+  AiNativeMind mind( W.ss(), W.rand(), tribe_type );
 
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe_type ).id;
@@ -151,11 +151,11 @@ TEST_CASE( "[ai-native-mind] equips brave over dwelling" ) {
 
 TEST_CASE(
     "[ai-native-mind] does not de-equip brave over dwelling" ) {
-  World             W;
+  World W;
   NativeUnitCommand expected;
 
   e_tribe const tribe_type = e_tribe::aztec;
-  AiNativeMind  mind( W.ss(), W.rand(), tribe_type );
+  AiNativeMind mind( W.ss(), W.rand(), tribe_type );
 
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 1, .y = 1 }, tribe_type ).id;

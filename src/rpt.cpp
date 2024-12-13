@@ -70,9 +70,9 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   static_assert(
       tuple_size_v<remove_cvref_t<decltype( pool )>> == 3 );
   auto push = [&]( int n ) {
-    e_unit_type const type         = pool[n];
-    string const      key          = fmt::to_string( n );
-    string const      display_name = base::capitalize_initials(
+    e_unit_type const type    = pool[n];
+    string const key          = fmt::to_string( n );
+    string const display_name = base::capitalize_initials(
         unit_attr( type ).name_plural );
     bool const enabled = ( player.money >= price );
     config.options.push_back( { .key          = key,
@@ -153,7 +153,7 @@ wait<> click_train( SS& ss, TS& ts, Player& player ) {
   static string const kNone = "none";
   config.options.push_back(
       { .key = kNone, .display_name = "None" } );
-  auto&               costs = config_harbor.train.unit_prices;
+  auto& costs = config_harbor.train.unit_prices;
   vector<e_unit_type> ordering;
   for( e_unit_type type : refl::enum_values<e_unit_type> )
     if( costs[type].has_value() ) ordering.push_back( type );

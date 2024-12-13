@@ -56,7 +56,7 @@ void error_msg( std::string_view fmt, Args&&... args ) {
 // const version.
 template<typename T>
 void perform_on_item_type(
-    expr::Rds const&                     rds,
+    expr::Rds const& rds,
     base::function_ref<void( T const& )> func ) {
   for( expr::Item const& item : rds.items ) {
     for( expr::Construct const& construct : item.constructs ) {

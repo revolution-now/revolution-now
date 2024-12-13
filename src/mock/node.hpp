@@ -47,7 +47,7 @@
   template<typename T>                                         \
   template<typename U>                                         \
   bool detail::name##Impl<T>::equal( held_type const& lhs,     \
-                                     U const&         rhs )
+                                     U const& rhs )
 
 namespace mock::matchers {
 
@@ -80,7 +80,7 @@ struct NodeMatcher : IMatcher<Target> {
   }
 
   std::string_view name_;
-  HeldType         children_;
+  HeldType children_;
 };
 
 // Common Node stuff not dependent on the template parameters of

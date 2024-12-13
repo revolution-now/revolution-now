@@ -43,11 +43,11 @@ enum class e_tribe;
 ** Unit Rendering.
 *****************************************************************/
 struct UnitShadow {
-  gfx::pixel color  = default_color();
-  W          offset = default_offset();
+  gfx::pixel color = default_color();
+  W offset         = default_offset();
 
   static gfx::pixel default_color();
-  static W          default_offset();
+  static W default_offset();
 };
 
 struct UnitRenderOptions {
@@ -63,21 +63,21 @@ struct UnitRenderOptions {
 
 // Render an actual unit.
 void render_unit( rr::Renderer& renderer, Coord where,
-                  Unit const&              unit,
+                  Unit const& unit,
                   UnitRenderOptions const& options );
 
 // Render an actual native unit.
 void render_native_unit( rr::Renderer& renderer, Coord where,
-                         NativeUnit const&        native_unit,
+                         NativeUnit const& native_unit,
                          UnitRenderOptions const& options );
 
 // Render an abstract unit of a given type.
 void render_unit_type( rr::Renderer& renderer, Coord where,
-                       e_unit_type              unit_type,
+                       e_unit_type unit_type,
                        UnitRenderOptions const& options );
 
 void render_unit_type( rr::Renderer& renderer, Coord where,
-                       e_native_unit_type       unit_type,
+                       e_native_unit_type unit_type,
                        UnitRenderOptions const& options );
 
 void render_unit_depixelate( rr::Renderer& renderer, Coord where,
@@ -120,11 +120,11 @@ void render_colony( rr::Renderer& renderer, Coord where,
 *****************************************************************/
 e_tile dwelling_tile_for_tribe( e_tribe const tribe_type );
 
-e_tile tile_for_dwelling( SSConst const&  ss,
+e_tile tile_for_dwelling( SSConst const& ss,
                           Dwelling const& dwelling );
 
 void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const&  ss,
+                      SSConst const& ss,
                       Dwelling const& dwelling );
 
 /****************************************************************
@@ -132,7 +132,7 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
 *****************************************************************/
 // TODO: move this.
 void render_shadow_hightlight_border( rr::Renderer& renderer,
-                                      gfx::rect     rect,
+                                      gfx::rect rect,
                                       gfx::pixel left_and_bottom,
                                       gfx::pixel top_and_right );
 

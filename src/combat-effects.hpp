@@ -59,14 +59,14 @@ CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatEuroAttackBrave const& combat );
 
 CombatEffectsMessages combat_effects_msg(
-    SSConst const&                         ss,
+    SSConst const& ss,
     CombatColonyArtilleryAttackShip const& combat );
 
 CombatEffectsMessages combat_effects_msg(
     SSConst const& ss, CombatEuroAttackDwelling const& combat );
 
 CombatEffectsMessages combat_effects_msg(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat );
 
 CombatEffectsMessages combat_effects_msg(

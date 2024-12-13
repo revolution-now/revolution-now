@@ -44,7 +44,7 @@ TEST_CASE( "[unit-classes] pioneer_type" ) {
 }
 
 TEST_CASE( "[unit-classes] missionary_type" ) {
-  UnitType                 in;
+  UnitType in;
   maybe<e_missionary_type> expected = {};
 
   auto f = [&] { return missionary_type( in ); };

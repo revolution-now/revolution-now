@@ -62,11 +62,11 @@ namespace {} // namespace
 ** PanelPlane::Impl
 *****************************************************************/
 struct PanelPlane::Impl : public IPlane {
-  SS&                           ss_;
-  TS&                           ts_;
+  SS& ss_;
+  TS& ts_;
   unique_ptr<ui::InvisibleView> view;
-  wait_promise<>                w_promise;
-  MenuPlane::Deregistrar        eot_click_dereg_;
+  wait_promise<> w_promise;
+  MenuPlane::Deregistrar eot_click_dereg_;
 
   static Rect rect() {
     UNWRAP_CHECK( res, compositor::section(
@@ -75,8 +75,8 @@ struct PanelPlane::Impl : public IPlane {
   }
 
   Rect mini_map_available_rect() const {
-    Rect      mini_map_available_rect = rect();
-    int const kBorder                 = 4;
+    Rect mini_map_available_rect = rect();
+    int const kBorder            = 4;
     mini_map_available_rect.x += kBorder;
     mini_map_available_rect.y += kBorder;
     mini_map_available_rect.w -= kBorder * 2;
@@ -93,7 +93,7 @@ struct PanelPlane::Impl : public IPlane {
     vector<ui::OwningPositionedView> view_vec;
 
     Rect const mini_map_available = mini_map_available_rect();
-    auto       mini_map           = make_unique<MiniMapView>(
+    auto mini_map                 = make_unique<MiniMapView>(
         ss, ts, mini_map_available.delta() );
     Coord const mini_map_upper_left =
         centered( mini_map->delta(), mini_map_available );
@@ -110,10 +110,10 @@ struct PanelPlane::Impl : public IPlane {
         } );
     button_view->blink( /*enabled=*/true );
 
-    auto  button_size = button_view->delta();
-    Coord where       = centered( button_size, rect() );
-    where.y           = panel_height() - button_size.h * 2;
-    where = Coord{} + ( where - rect().upper_left() );
+    auto button_size = button_view->delta();
+    Coord where      = centered( button_size, rect() );
+    where.y          = panel_height() - button_size.h * 2;
+    where            = Coord{} + ( where - rect().upper_left() );
 
     ui::OwningPositionedView p_view{
       .view = std::move( button_view ), .coord = where };
@@ -141,7 +141,7 @@ struct PanelPlane::Impl : public IPlane {
   }
 
   void draw_some_stats( rr::Renderer& renderer,
-                        Coord const   where ) const {
+                        Coord const where ) const {
     rr::Typer typer =
         renderer.typer( where, config_ui.dialog_text.normal );
 
@@ -161,7 +161,7 @@ struct PanelPlane::Impl : public IPlane {
     if( !curr_nation ) return;
 
     // We have an active player, so print some info about it.
-    e_nation            nation        = *curr_nation;
+    e_nation nation                   = *curr_nation;
     PlayersState const& players_state = ss_.players;
     UNWRAP_CHECK( player, players_state.players[nation] );
 

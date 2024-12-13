@@ -28,10 +28,10 @@ namespace rr {
 *****************************************************************/
 base::valid_or<string> load_sprite_sheet(
     AtlasBuilder& builder, gfx::image sheet,
-    gfx::size                                sprite_size,
+    gfx::size sprite_size,
     unordered_map<string, gfx::point> const& names,
-    unordered_map<string, int>&              atlas_ids ) {
-  gfx::rect const            img_pixels = sheet.rect_pixels();
+    unordered_map<string, int>& atlas_ids ) {
+  gfx::rect const img_pixels = sheet.rect_pixels();
   AtlasBuilder::ImageBuilder img_builder =
       builder.add_image( std::move( sheet ) );
   gfx::rect r{ .origin = {}, .size = sprite_size };
@@ -76,8 +76,8 @@ base::expect<AsciiFont> load_ascii_font_sheet(
   gfx::size const char_size =
       gfx::size{ .w = size.w / 16, .h = size.h / 16 };
   gfx::rect r{ .origin = {}, .size = char_size };
-  auto      arr     = make_unique<array<int, 256>>();
-  int       arr_idx = 0;
+  auto arr    = make_unique<array<int, 256>>();
+  int arr_idx = 0;
   for( int y = 0; y < 16; ++y ) {
     for( int x = 0; x < 16; ++x ) {
       r.origin = gfx::point{ .x = x, .y = y } * char_size;

@@ -31,10 +31,10 @@ using ::gfx::rect;
 using ::gfx::size;
 
 TEST_CASE( "[render/vertex] SpriteVertex" ) {
-  SpriteVertex         vert( point{ .x = 1, .y = 2 },
-                             point{ .x = 3, .y = 4 },
-                             rect{ .origin = point{ .x = 5, .y = 6 },
-                                   .size = { .w = 1, .h = 2 } } );
+  SpriteVertex vert( point{ .x = 1, .y = 2 },
+                     point{ .x = 3, .y = 4 },
+                     rect{ .origin = point{ .x = 5, .y = 6 },
+                           .size   = { .w = 1, .h = 2 } } );
   GenericVertex const& gv = vert.generic();
   REQUIRE( gv.type == 0 );
   REQUIRE( gv.depixelate == gl::vec4{} );
@@ -245,10 +245,10 @@ TEST_CASE( "[render/vertex] desaturate" ) {
 
 TEST_CASE( "[render/vertex] fixed_color" ) {
   static_assert( VERTEX_FLAG_FIXED_COLOR == 8 );
-  SpriteVertex     vert( point{ .x = 6, .y = 12 },
-                         point{ .x = 3, .y = 4 },
-                         rect{ .origin = point{ .x = 5, .y = 6 },
-                               .size   = { .w = 1, .h = 2 } } );
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 },
+                     rect{ .origin = point{ .x = 5, .y = 6 },
+                           .size   = { .w = 1, .h = 2 } } );
   gfx::pixel const color{ .r = 16, .g = 32, .b = 64, .a = 128 };
   REQUIRE( ( vert.generic().flags & VERTEX_FLAG_FIXED_COLOR ) ==
            0 );

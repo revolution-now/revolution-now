@@ -87,8 +87,8 @@ HarborDockUnits::object_here( Coord const& where ) const {
 vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
     Coord origin ) const {
   vector<UnitWithPosition> units;
-  Rect const               r       = rect( origin );
-  X const                  x_start = r.lower_left().x;
+  Rect const r    = rect( origin );
+  X const x_start = r.lower_left().x;
   Coord coord = r.lower_left() - Delta{ .h = g_tile_delta.h };
   for( UnitId id :
        harbor_units_on_dock( ss_.units, player_.nation ) ) {
@@ -103,7 +103,7 @@ vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
 }
 
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
-  Unit const&  unit = ss_.units.unit_for( unit_id );
+  Unit const& unit = ss_.units.unit_for( unit_id );
   ChoiceConfig config{
     .msg     = fmt::format( "European dock options for [{}]:",
                             unit.desc().name ),
@@ -114,10 +114,10 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
       harbor_equip_options( ss_, player_, unit.composition() );
   for( int idx = 0; idx < int( equip_opts.size() ); ++idx ) {
     HarborEquipOption const& equip_opt = equip_opts[idx];
-    ChoiceConfigOption       option{
-            .key = fmt::to_string( idx ),
-            .display_name = harbor_equip_description( equip_opt ),
-            .disabled = !equip_opt.can_afford };
+    ChoiceConfigOption option{
+      .key          = fmt::to_string( idx ),
+      .display_name = harbor_equip_description( equip_opt ),
+      .disabled     = !equip_opt.can_afford };
     config.options.push_back( std::move( option ) );
   }
   static string const kNoChangesKey = "no changes";
@@ -202,7 +202,7 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
 }
 
 void HarborDockUnits::draw( rr::Renderer& renderer,
-                            Coord         coord ) const {
+                            Coord coord ) const {
   for( auto const& [unit_id, unit_coord] : units( coord ) ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
@@ -217,7 +217,7 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
     HarborBackdrop const& backdrop ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborDockUnits> view;
-  HarborSubView*              harbor_sub_view = nullptr;
+  HarborSubView* harbor_sub_view = nullptr;
 
   HarborBackdrop::DockUnitsLayout const dock_layout =
       backdrop.dock_units_layout();

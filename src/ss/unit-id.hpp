@@ -46,7 +46,7 @@ void to_str( UnitId o, std::string& out, base::tag<UnitId> );
 cdr::value to_canonical( cdr::converter& conv, UnitId o,
                          cdr::tag_t<UnitId> );
 
-cdr::result<UnitId> from_canonical( cdr::converter&   conv,
+cdr::result<UnitId> from_canonical( cdr::converter& conv,
                                     cdr::value const& v,
                                     cdr::tag_t<UnitId> );
 
@@ -109,7 +109,7 @@ struct GenericUnitId {
 
   // cdr
   friend cdr::value to_canonical( cdr::converter& conv,
-                                  GenericUnitId   o,
+                                  GenericUnitId o,
                                   cdr::tag_t<GenericUnitId> );
 
   friend cdr::result<GenericUnitId> from_canonical(

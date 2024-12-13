@@ -55,7 +55,7 @@ void init_sprites() {
       global_renderer_use_only_when_needed();
   cache.resize( refl::enum_count<e_tile> );
   auto& atlas_ids = renderer.atlas_ids();
-  int   i         = 0;
+  int i           = 0;
   for( e_tile tile : refl::enum_values<e_tile> ) {
     UNWRAP_CHECK( atlas_id,
                   base::lookup( atlas_ids, refl::enum_value_name(
@@ -144,7 +144,7 @@ void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
   }
 }
 
-rr::StencilPlan stencil_plan_for( e_tile     replacement_tile,
+rr::StencilPlan stencil_plan_for( e_tile replacement_tile,
                                   gfx::pixel key_color ) {
   return {
     .replacement_atlas_id = atlas_lookup( replacement_tile ),
@@ -163,7 +163,7 @@ void render_sprite_stencil( rr::Renderer& renderer, Coord where,
 void tile_sprite( rr::Renderer& renderer, e_tile tile,
                   Rect const& rect ) {
   Delta info = sprite_size( tile );
-  auto  mod  = rect.delta() % info;
+  auto mod   = rect.delta() % info;
   if( mod.w == 0 && rect.delta().w != 0 ) mod.w = 1 * info.w;
   if( mod.h == 0 && rect.delta().h != 0 ) mod.h = 1 * info.h;
   auto smaller_rect =
@@ -197,18 +197,18 @@ void tile_sprite( rr::Renderer& renderer, e_tile tile,
 }
 
 void render_rect_of_sprites_with_border(
-    rr::Renderer& renderer,    // where to draw it
-    Coord         dest_origin, // pixel coord of upper left
-    Delta         size_tiles,  // tile coords, including border
-    e_tile        middle,      //
-    e_tile        top,         //
-    e_tile        bottom,      //
-    e_tile        left,        //
-    e_tile        right,       //
-    e_tile        top_left,    //
-    e_tile        top_right,   //
-    e_tile        bottom_left, //
-    e_tile        bottom_right //
+    rr::Renderer& renderer, // where to draw it
+    Coord dest_origin,      // pixel coord of upper left
+    Delta size_tiles,       // tile coords, including border
+    e_tile middle,          //
+    e_tile top,             //
+    e_tile bottom,          //
+    e_tile left,            //
+    e_tile right,           //
+    e_tile top_left,        //
+    e_tile top_right,       //
+    e_tile bottom_left,     //
+    e_tile bottom_right     //
 ) {
   Delta sprite_middle = sprite_size( middle );
   CHECK( sprite_middle.w == sprite_middle.h );

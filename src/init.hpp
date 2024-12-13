@@ -30,7 +30,7 @@ namespace rn {
 
 using InitFunction = std::function<void( void )>;
 
-void register_init_routine( e_init_routine      routine,
+void register_init_routine( e_init_routine routine,
                             InitFunction const& init_func,
                             InitFunction const& cleanup_func );
 
@@ -45,7 +45,7 @@ void register_init_routine( e_init_routine      routine,
 // be run. Otherwise all routines will be run in order of depen-
 // dencies.
 void run_all_init_routines(
-    maybe<e_log_level>                    level,
+    maybe<e_log_level> level,
     std::initializer_list<e_init_routine> top_level = {} );
 // This will run the corresponding cleanup routine for each
 // initialization routine that was successfully run, and will do

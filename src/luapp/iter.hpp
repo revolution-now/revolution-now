@@ -77,7 +77,7 @@ struct raw_table_iterator {
   }
 
  private:
-  table                            tbl_;
+  table tbl_;
   base::maybe<std::pair<any, any>> curr_pair_;
 };
 

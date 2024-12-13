@@ -52,7 +52,7 @@ namespace {
 }
 
 int bordering_land_tiles( TerrainState const& terrain_state,
-                          Coord               where ) {
+                          Coord where ) {
   DCHECK( terrain_state.square_at( where ).surface ==
           e_surface::water );
   int n = 0;
@@ -373,7 +373,7 @@ maybe<e_outdoor_commons_secondary_job> choose_secondary_job(
     Player const& player, MapSquare const& square,
     e_difficulty difficulty ) {
   maybe<e_outdoor_commons_secondary_job> res;
-  int                                    max_found = 0;
+  int max_found = 0;
   for( e_outdoor_commons_secondary_job commons_job :
        refl::enum_values<e_outdoor_commons_secondary_job> ) {
     int const quantity = commodity_production_on_center_square(
@@ -399,8 +399,8 @@ int production_on_square(
           ? ( outdoor_job_for_expertise( *activity ) == job )
           : false;
 
-  MapSquare const& square  = terrain_state.square_at( where );
-  e_terrain const  terrain = effective_terrain( square );
+  MapSquare const& square = terrain_state.square_at( where );
+  e_terrain const terrain = effective_terrain( square );
 
   // If the base production is zero then that is taken to mean
   // that the square should never produce any of that commodity

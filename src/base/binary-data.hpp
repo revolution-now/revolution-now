@@ -152,7 +152,7 @@ struct MemBufferBinaryIO : IBinaryIO {
   bool write_bytes( int n, unsigned char const* src ) override;
 
   std::span<unsigned char> buffer_;
-  int                      idx_ = 0;
+  int idx_ = 0;
 };
 
 /****************************************************************
@@ -219,7 +219,7 @@ bool read_binary( base::IBinaryIO& b, std::array<T, N>& o ) {
 }
 
 template<ToBinary T, size_t N>
-bool write_binary( base::IBinaryIO&        b,
+bool write_binary( base::IBinaryIO& b,
                    std::array<T, N> const& o ) {
   for( T const& elem : o )
     if( !write_binary( b, elem ) ) //

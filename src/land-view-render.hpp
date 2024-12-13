@@ -57,11 +57,11 @@ struct InputOverrunIndicator {
 struct LandViewRenderer {
   LandViewRenderer(
       SSConst const& ss, rr::Renderer& renderer_arg,
-      LandViewAnimator const&                   lv_animator,
+      LandViewAnimator const& lv_animator,
       std::unique_ptr<IVisibility const> const& viz,
       maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
       maybe<InputOverrunIndicator> input_overrun_indicator,
-      SmoothViewport const&        viewport );
+      SmoothViewport const& viewport );
 
   // Units, colonies, dwellings.
   void render_entities() const;
@@ -83,8 +83,8 @@ struct LandViewRenderer {
       maybe<LandscapeAnimEnpixelationState const&> state ) const;
 
   void render_landscape_anim_buffer_impl(
-      rr::e_render_buffer        buffer,
-      std::vector<Coord> const&  redrawn,
+      rr::e_render_buffer buffer,
+      std::vector<Coord> const& redrawn,
       VisibilityOverrides const& overrides ) const;
 
   void render_units_underneath() const;
@@ -117,7 +117,7 @@ struct LandViewRenderer {
   void render_units_impl() const;
 
   void render_dwelling( Dwelling const& dwelling,
-                        Coord           tile ) const;
+                        Coord tile ) const;
 
   void render_dwelling_depixelate(
       DwellingAnimationState const& anim,
@@ -137,18 +137,18 @@ struct LandViewRenderer {
 
   void render_white_box() const;
 
-  SSConst const&          ss_;
-  rr::Renderer&           renderer_;
-  rr::Renderer&           renderer; // no _ for macros.
+  SSConst const& ss_;
+  rr::Renderer& renderer_;
+  rr::Renderer& renderer; // no _ for macros.
   LandViewAnimator const& lv_animator_;
-  Rect                    covered_;
+  Rect covered_;
   // We use the unique_ptr here because we need to know when the
   // source instance changed its value.
   std::unique_ptr<IVisibility const> const& viz_;
-  maybe<UnitId>                             last_unit_input_;
-  Rect                         viewport_rect_pixels_;
+  maybe<UnitId> last_unit_input_;
+  Rect viewport_rect_pixels_;
   maybe<InputOverrunIndicator> input_overrun_indicator_;
-  SmoothViewport const&        viewport_;
+  SmoothViewport const& viewport_;
 };
 
 /****************************************************************

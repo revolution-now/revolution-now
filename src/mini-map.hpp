@@ -90,7 +90,7 @@ struct MiniMapView : ui::View {
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::Object.
   ND Delta delta() const override;
@@ -122,12 +122,12 @@ struct MiniMapView : ui::View {
   // Any non-const method should call this at the end.
   void fix_invariants();
 
-  void draw_impl( rr::Renderer&      renderer,
+  void draw_impl( rr::Renderer& renderer,
                   IVisibility const& viz ) const;
 
-  SS&                    ss_;
-  TS&                    ts_;
-  MiniMap                mini_map_;
+  SS& ss_;
+  TS& ts_;
+  MiniMap mini_map_;
   maybe<e_mini_map_drag> drag_state_;
 };
 

@@ -138,7 +138,7 @@ struct LandViewAnimator {
   // Animation primitives.
 
   wait<> animate_action_primitive( AnimationAction const& action,
-                                   co::latch&             hold );
+                                   co::latch& hold );
 
   wait<> unit_depixelation_throttler(
       co::latch& hold, UnitId id,
@@ -148,14 +148,14 @@ struct LandViewAnimator {
       co::latch& hold, NativeUnitId id,
       maybe<e_native_unit_type> target_type );
 
-  wait<> unit_enpixelation_throttler( co::latch&    hold,
+  wait<> unit_enpixelation_throttler( co::latch& hold,
                                       GenericUnitId id );
 
-  wait<> colony_depixelation_throttler( co::latch&    hold,
+  wait<> colony_depixelation_throttler( co::latch& hold,
                                         Colony const& colony );
 
   wait<> dwelling_depixelation_throttler( co::latch& hold,
-                                          Coord      tile );
+                                          Coord tile );
 
   std::vector<Coord> redrawn_squares_for_overrides(
       VisibilityOverrides const& overrides );
@@ -169,9 +169,9 @@ struct LandViewAnimator {
   wait<> slide_throttler_impl( co::latch& hold, e_direction d,
                                UnitSlide& slide );
 
-  wait<> slide_throttler_slide( co::latch&    hold,
+  wait<> slide_throttler_slide( co::latch& hold,
                                 GenericUnitId id,
-                                e_direction   d );
+                                e_direction d );
 
   wait<> slide_throttler_talk( co::latch& hold, GenericUnitId id,
                                e_direction d );
@@ -204,8 +204,8 @@ struct LandViewAnimator {
     Anim& get() const { return anim_; }
 
    private:
-    Map&  m_;
-    Id    id_;
+    Map& m_;
+    Id id_;
     Anim& anim_;
   };
 
@@ -230,15 +230,15 @@ struct LandViewAnimator {
   }
 
  private:
-  SSConst const&        ss_;
-  SmoothViewport&       viewport_;
-  UnitAnimStatesMap     unit_animations_;
-  ColonyAnimStatesMap   colony_animations_;
+  SSConst const& ss_;
+  SmoothViewport& viewport_;
+  UnitAnimStatesMap unit_animations_;
+  ColonyAnimStatesMap colony_animations_;
   DwellingAnimStatesMap dwelling_animations_;
   maybe<LandscapeAnimReplacementState>
       landview_anim_replacement_state_;
   maybe<LandscapeAnimEnpixelationState>
-                           landview_anim_enpixelation_state_;
+      landview_anim_enpixelation_state_;
   maybe<WhiteBoxAnimState> white_box_anim_state_;
   // We hold the unique_ptr reference because we need to know
   // when the source version was changed.

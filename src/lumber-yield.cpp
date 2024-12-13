@@ -82,8 +82,8 @@ LumberYield yield_for_colony( SSConst const& ss,
 // vicinity and return the yield that they'd receive. The caller
 // can then pick the one with the highest yield.
 vector<LumberYield> lumber_yields( SSConst const& ss,
-                                   Player const&  player,
-                                   Coord          loc,
+                                   Player const& player,
+                                   Coord loc,
                                    e_unit_type pioneer_type ) {
   vector<LumberYield> res;
   for( ColonyId colony_id : close_friendly_colonies(

@@ -49,7 +49,7 @@ struct RealCombat : public ICombat {
 
   // Implement ICombat.
   CombatEuroAttackBrave euro_attack_brave(
-      Unit const&       attacker,
+      Unit const& attacker,
       NativeUnit const& defender ) override;
 
   // Implement ICombat.
@@ -59,7 +59,7 @@ struct RealCombat : public ICombat {
   // Implement ICombat.
   CombatBraveAttackEuro brave_attack_euro(
       NativeUnit const& attacker,
-      Unit const&       defender ) override;
+      Unit const& defender ) override;
 
   // Implement ICombat.
   CombatBraveAttackColony brave_attack_colony(
@@ -69,10 +69,10 @@ struct RealCombat : public ICombat {
  private:
   void set_sunk_or_damaged( Unit const& unit, Coord unit_coord,
                             EuroNavalUnitCombatOutcome& outcome,
-                            bool                        sinks );
+                            bool sinks );
 
   SSConst const& ss_;
-  IRand&         rand_;
+  IRand& rand_;
 };
 
 } // namespace rn

@@ -86,15 +86,15 @@ constexpr W kCommodityTileWidth = kCommodityTileSize.w;
 ** Globals
 *****************************************************************/
 struct ColViewComposited {
-  ColonyId                                        id;
-  Delta                                           canvas_size;
-  unique_ptr<ColonySubView>                       top_level;
+  ColonyId id;
+  Delta canvas_size;
+  unique_ptr<ColonySubView> top_level;
   unordered_map<e_colview_entity, ColonySubView*> entities;
 };
 
 // FIXME
 ColViewComposited g_composition;
-ColonyProduction  g_production;
+ColonyProduction g_production;
 
 string_view constexpr kReduceStockadeThreeMsg =
     "We cannot willingly reduce the population of a colony with "
@@ -296,7 +296,7 @@ class TitleBar : public ui::View, public ColonySubView {
   static unique_ptr<TitleBar> create( SS& ss, TS& ts,
                                       Player& player,
                                       Colony& colony,
-                                      Delta   size ) {
+                                      Delta size ) {
     return make_unique<TitleBar>( ss, ts, player, colony, size );
   }
 
@@ -311,7 +311,7 @@ class TitleBar : public ui::View, public ColonySubView {
     return static_cast<int>( e_colview_entity::title_bar );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
@@ -323,7 +323,7 @@ class TitleBar : public ui::View, public ColonySubView {
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
     painter.draw_solid_rect( rect( coord ), gfx::pixel::wood() );
     renderer
@@ -370,7 +370,7 @@ class MarketCommodities
     return static_cast<int>( e_colview_entity::commodities );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
@@ -386,13 +386,13 @@ class MarketCommodities
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    auto        comm_it = refl::enum_values<e_commodity>.begin();
-    auto        label   = CommodityLabel::quantity{ 0 };
-    Coord       pos     = coord;
+    auto comm_it        = refl::enum_values<e_commodity>.begin();
+    auto label          = CommodityLabel::quantity{ 0 };
+    Coord pos           = coord;
     auto const& colony  = ss_.colonies.colony_for( colony_.id );
-    int const   warehouse_limit =
+    int const warehouse_limit =
         colony_warehouse_capacity( colony );
     bool const has_custom_house =
         colony.buildings[e_colony_building::custom_house];
@@ -480,7 +480,7 @@ class MarketCommodities
   }
 
   bool try_drag( ColViewObject const& o,
-                 Coord const&         where ) override {
+                 Coord const& where ) override {
     UNWRAP_CHECK( [c], o.get_if<ColViewObject::commodity>() );
     if( c.quantity == 0 ) return false;
     // Sanity checks.
@@ -510,7 +510,7 @@ class MarketCommodities
 
   maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int /*from_entity*/,
-      Coord const&         where ) const override {
+      Coord const& where ) const override {
     CHECK( where.is_inside( rect( {} ) ) );
     if( o.holds<ColViewObject::commodity>() )
       return CanReceiveDraggable<ColViewObject>::yes{
@@ -529,8 +529,8 @@ class MarketCommodities
 
   wait<maybe<ColViewObject>> user_edit_object() const override {
     CHECK( dragging_ );
-    int    min  = 1;
-    int    max  = dragging_->quantity;
+    int min     = 1;
+    int max     = dragging_->quantity;
     string text = fmt::format(
         "What quantity of [{}] would you like to move? "
         "({}-{}):",
@@ -549,7 +549,7 @@ class MarketCommodities
   }
 
  private:
-  W                block_width_;
+  W block_width_;
   maybe<Commodity> dragging_;
 };
 
@@ -564,7 +564,7 @@ class CargoView : public ui::View,
   static unique_ptr<CargoView> create( SS& ss, TS& ts,
                                        Player& player,
                                        Colony& colony,
-                                       Delta   size ) {
+                                       Delta size ) {
     return make_unique<CargoView>( ss, ts, player, colony,
                                    size );
   }
@@ -580,7 +580,7 @@ class CargoView : public ui::View,
     return static_cast<int>( e_colview_entity::cargo );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
@@ -617,7 +617,7 @@ class CargoView : public ui::View,
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( rect( coord ),
                              rr::Painter::e_border_mode::in_out,
@@ -757,7 +757,7 @@ class CargoView : public ui::View,
         UNWRAP_CHECK( draggable_unit,
                       o.get_if<ColViewObject::unit>() );
         ColViewObject::unit new_draggable_unit = draggable_unit;
-        Unit const&         unit =
+        Unit const& unit =
             ss_.units.unit_for( draggable_unit.id );
         maybe<ColonyEquipOption> const equip_options =
             co_await ask_transorm_unit_on_leave( ts_, colony_,
@@ -810,7 +810,7 @@ class CargoView : public ui::View,
   }
 
   wait<> drop( ColViewObject const& o,
-               Coord const&         where ) override {
+               Coord const& where ) override {
     CHECK( holder_ );
     Unit& holder_unit = ss_.units.unit_for( *holder_ );
     // We've added something to the cargo; the OG will clear the
@@ -904,7 +904,7 @@ class CargoView : public ui::View,
   // be able to find a unique cargo slot that holds that com-
   // modity if there are more than one.
   bool try_drag( ColViewObject const& o,
-                 Coord const&         where ) override {
+                 Coord const& where ) override {
     if( !holder_ ) return false;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
@@ -965,9 +965,9 @@ class CargoView : public ui::View,
       co_return from_cargo( cargo );
     // We have a commodity.
     Cargo::commodity const& comm = cargo.get<Cargo::commodity>();
-    int                     min  = 1;
-    int                     max  = comm.obj.quantity;
-    string                  text = fmt::format(
+    int min                      = 1;
+    int max                      = comm.obj.quantity;
+    string text                  = fmt::format(
         "What quantity of [{}] would you like to move? "
                          "({}-{}):",
         lowercase_commodity_display_name( comm.obj.type ), min,
@@ -986,7 +986,7 @@ class CargoView : public ui::View,
 
  private:
   struct Draggable {
-    int           slot;
+    int slot;
     ColViewObject object;
   };
 
@@ -994,8 +994,8 @@ class CargoView : public ui::View,
   // either put this in a global place, or not recreate all of
   // these view objects each time we recomposite (i.e., reuse
   // them).
-  maybe<UnitId>    holder_;
-  Delta            size_;
+  maybe<UnitId> holder_;
+  Delta size_;
   maybe<Draggable> dragging_;
 };
 
@@ -1030,21 +1030,21 @@ class UnitsAtGateColonyView
     return static_cast<int>( e_colview_entity::units_at_gate );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( dragging_ == unit_id ) continue;
-      Coord       draw_pos = unit_pos.as_if_origin_were( coord );
-      Unit const& unit     = ss_.units.unit_for( unit_id );
+      Coord draw_pos   = unit_pos.as_if_origin_were( coord );
+      Unit const& unit = ss_.units.unit_for( unit_id );
       UnitFlagRenderInfo const flag_info =
           euro_unit_flag_render_info( unit, /*viewer=*/nothing,
                                       UnitFlagOptions{} );
@@ -1098,7 +1098,7 @@ class UnitsAtGateColonyView
   }
 
   maybe<CanReceiveDraggable<ColViewObject>> can_receive_unit(
-      UnitId       dragged, e_colview_entity /*from*/,
+      UnitId dragged, e_colview_entity /*from*/,
       Coord const& where ) const {
     auto& unit = ss_.units.unit_for( dragged );
     // Player should not be dragging ships or wagons.
@@ -1169,7 +1169,7 @@ class UnitsAtGateColonyView
         UNWRAP_CHECK( draggable_unit,
                       o.get_if<ColViewObject::unit>() );
         ColViewObject::unit new_draggable_unit = draggable_unit;
-        Unit const&         unit =
+        Unit const& unit =
             ss_.units.unit_for( draggable_unit.id );
         maybe<ColonyEquipOption> const equip_options =
             co_await ask_transorm_unit_on_leave( ts_, colony_,
@@ -1293,7 +1293,7 @@ class UnitsAtGateColonyView
   maybe<CanReceiveDraggable<ColViewObject>>
   can_receive_commodity( Commodity const& comm,
                          e_colview_entity from,
-                         Coord const&     where ) const {
+                         Coord const& where ) const {
     maybe<UnitId> over_unit_id = contains_unit( where );
     if( !over_unit_id ) return nothing;
     Unit const& target_unit =
@@ -1324,7 +1324,7 @@ class UnitsAtGateColonyView
   }
 
   wait<> drop( ColViewObject const& o,
-               Coord const&         where ) override {
+               Coord const& where ) override {
     maybe<UnitId> target_unit_id = contains_unit( where );
     if( target_unit_id.has_value() ) {
       Unit& target_unit = ss_.units.unit_for( *target_unit_id );
@@ -1516,7 +1516,7 @@ class UnitsAtGateColonyView
   void update_this_and_children() override {
     auto const& colony = ss_.colonies.colony_for( colony_.id );
     auto const& units  = ss_.units.from_coord( colony.location );
-    auto        unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
+    auto unit_pos      = Coord{} + Delta{ .w = 1, .h = 16 };
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
     for( GenericUnitId generic_id : units ) {
@@ -1539,7 +1539,7 @@ class UnitsAtGateColonyView
 
   struct PositionedUnit {
     UnitId id;
-    Coord  pos; // relative to upper left of this CargoView.
+    Coord pos; // relative to upper left of this CargoView.
   };
 
   vector<PositionedUnit> positioned_units_;
@@ -1549,8 +1549,8 @@ class UnitsAtGateColonyView
   // them).
   maybe<UnitId> selected_;
 
-  CargoView*    cargo_view_;
-  Delta         size_;
+  CargoView* cargo_view_;
+  Delta size_;
   maybe<UnitId> dragging_;
 };
 
@@ -1559,7 +1559,7 @@ class ProductionView : public ui::View, public ColonySubView {
   static unique_ptr<ProductionView> create( SS& ss, TS& ts,
                                             Player& player,
                                             Colony& colony,
-                                            Delta   size ) {
+                                            Delta size ) {
     return make_unique<ProductionView>( ss, ts, player, colony,
                                         size );
   }
@@ -1575,13 +1575,13 @@ class ProductionView : public ui::View, public ColonySubView {
     return static_cast<int>( e_colview_entity::production );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( rect( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
@@ -1644,7 +1644,7 @@ struct CompositeColSubView : public ui::InvisibleView,
     CHECK( int( ptrs_.size() ) == count() );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
@@ -1758,7 +1758,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
     .view = std::move( market_commodities ), .coord = pos } );
 
   // [Middle Strip] ---------------------------------------------
-  Delta   middle_strip_size{ canvas_size.w, 32 + 32 + 16 };
+  Delta middle_strip_size{ canvas_size.w, 32 + 32 + 16 };
   Y const middle_strip_top =
       market_commodities_top - middle_strip_size.h;
 
@@ -1876,7 +1876,7 @@ ColonySubView& colview_top_level() {
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,
     DragState<ColViewObject> const& state,
-    Coord const&                    canvas_origin ) {
+    Coord const& canvas_origin ) {
   Coord sprite_upper_left = state.where - state.click_offset +
                             canvas_origin.distance_from_origin();
   // Render the dragged item.
@@ -1925,14 +1925,14 @@ ColonyProduction const& colview_production() {
 }
 
 void update_colony_view( SSConst const& ss,
-                         Colony const&  colony ) {
+                         Colony const& colony ) {
   update_production( ss, colony );
   ColonySubView& top = colview_top_level();
   top.update_this_and_children();
 }
 
 void update_production( SSConst const& ss,
-                        Colony const&  colony ) {
+                        Colony const& colony ) {
   g_production = production_for_colony( ss, colony );
 }
 

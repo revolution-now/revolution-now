@@ -52,7 +52,7 @@ FrozenDwelling dwelling_to_frozen_dwelling(
 
   Coord const location = ss.natives.coord_for( dwelling.id );
   maybe<FrozenMission> mission;
-  maybe<UnitId> const  missionary_id =
+  maybe<UnitId> const missionary_id =
       ss.units.missionary_from_dwelling( dwelling.id );
   if( missionary_id.has_value() ) {
     Unit const& unit = ss.units.unit_for( *missionary_id );
@@ -69,7 +69,7 @@ FrozenDwelling dwelling_to_frozen_dwelling(
 }
 
 FrozenColony colony_to_frozen_colony( SSConst const& ss,
-                                      Colony const&  colony ) {
+                                      Colony const& colony ) {
   // This is to catch if we add any fields to ensure that we up-
   // date the below.
   static_assert(
@@ -81,7 +81,7 @@ FrozenColony colony_to_frozen_colony( SSConst const& ss,
     return frozen;
   }
 
-  int const     population = colony_population( colony );
+  int const population = colony_population( colony );
   Player const& player =
       player_for_nation_or_die( ss.players, colony.nation );
   // In a normal game a colony population should never be zero,

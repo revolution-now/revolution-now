@@ -53,7 +53,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -94,7 +94,7 @@ TEST_CASE( "[custom-house] set_default_custom_house_state" ) {
 }
 
 TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );
@@ -388,7 +388,7 @@ TEST_CASE(
   World W;
   // Expected values.
   CustomHouseSales expected;
-  PriceChange      expected_silver_change;
+  PriceChange expected_silver_change;
   // Init settings.
   W.settings().difficulty = e_difficulty::conquistador;
   // Init player.
@@ -472,7 +472,7 @@ TEST_CASE(
   World W;
   // Expected values.
   CustomHouseSales expected;
-  PriceChange      expected_silver_change;
+  PriceChange expected_silver_change;
   // Init settings.
   W.settings().difficulty = e_difficulty::conquistador;
   // Init player.

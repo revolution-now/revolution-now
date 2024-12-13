@@ -70,9 +70,9 @@ struct DepixelateInfo {
 // done around the origin (in screen coords), and then the trans-
 // lation.
 struct RepositionInfo {
-  base::maybe<double>     scale       = {};
+  base::maybe<double> scale           = {};
   base::maybe<gfx::dsize> translation = {};
-  bool                    use_camera  = false;
+  bool use_camera                     = false;
 };
 
 struct ColorCyclingInfo {
@@ -80,19 +80,19 @@ struct ColorCyclingInfo {
 };
 
 struct StencilPlan {
-  int        replacement_atlas_id = {};
-  gfx::pixel key_color            = {};
+  int replacement_atlas_id = {};
+  gfx::pixel key_color     = {};
 };
 
 struct PainterMods {
-  DepixelateInfo           depixelate           = {};
-  base::maybe<double>      alpha                = {};
-  RepositionInfo           repos                = {};
-  ColorCyclingInfo         cycling              = {};
-  base::maybe<bool>        desaturate           = {};
-  base::maybe<gfx::pixel>  fixed_color          = {};
-  base::maybe<bool>        uniform_depixelation = {};
-  base::maybe<StencilPlan> stencil              = {};
+  DepixelateInfo depixelate              = {};
+  base::maybe<double> alpha              = {};
+  RepositionInfo repos                   = {};
+  ColorCyclingInfo cycling               = {};
+  base::maybe<bool> desaturate           = {};
+  base::maybe<gfx::pixel> fixed_color    = {};
+  base::maybe<bool> uniform_depixelation = {};
+  base::maybe<StencilPlan> stencil       = {};
 };
 
 /****************************************************************
@@ -110,8 +110,8 @@ struct Painter {
       PainterMods const& mods ATTR_LIFETIMEBOUND );
   Painter without_mods();
 
-  AtlasMap const&    atlas() const { return atlas_; }
-  Emitter&           emitter() const { return emitter_; }
+  AtlasMap const& atlas() const { return atlas_; }
+  Emitter& emitter() const { return emitter_; }
   PainterMods const& mods() const;
 
   // .......................[[ Points ]]...................... //
@@ -165,7 +165,7 @@ struct Painter {
   // the mods.
   void emit( VertexBase&& vert );
 
-  static void add_mods( VertexBase&        vert,
+  static void add_mods( VertexBase& vert,
                         PainterMods const& mods );
 
   // This will draw a box with the border "inside" on the north
@@ -173,13 +173,13 @@ struct Painter {
   // and east faces.
   void draw_empty_box( gfx::rect r, gfx::pixel color );
 
-  Painter& draw_sprite_impl( gfx::rect              total_src,
-                             gfx::point             dst_origin,
+  Painter& draw_sprite_impl( gfx::rect total_src,
+                             gfx::point dst_origin,
                              base::maybe<gfx::size> dst_size,
                              base::maybe<gfx::rect> section );
 
-  AtlasMap const&    atlas_;
-  Emitter&           emitter_;
+  AtlasMap const& atlas_;
+  Emitter& emitter_;
   PainterMods const* mods_ = {}; // nullptr if no mods present.
 };
 

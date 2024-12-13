@@ -391,7 +391,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe" ) {
   )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( C2.stack_size() == 0 );
   C2.getglobal( "f" );
@@ -460,7 +460,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe w/ error" ) {
   )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( C2.stack_size() == 0 );
   C2.getglobal( "f" );
@@ -514,7 +514,7 @@ LUA_TEST_CASE( "[lua-call] call_lua_resume_safe_and_get" ) {
   )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( C2.stack_size() == 0 );
   C2.getglobal( "f" );
@@ -570,7 +570,7 @@ LUA_TEST_CASE(
   )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( C2.stack_size() == 0 );
   C2.getglobal( "f" );
@@ -629,7 +629,7 @@ LUA_TEST_CASE(
   )lua" );
   REQUIRE( C.stack_size() == 0 );
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
   REQUIRE( C2.stack_size() == 0 );
   C2.getglobal( "f" );

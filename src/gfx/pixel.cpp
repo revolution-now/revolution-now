@@ -235,7 +235,7 @@ cdr::value to_canonical( cdr::converter&, pixel const& o,
   return o.to_string( /*with_alpha=*/true );
 }
 
-cdr::result<pixel> from_canonical( cdr::converter&   conv,
+cdr::result<pixel> from_canonical( cdr::converter& conv,
                                    cdr::value const& v,
                                    cdr::tag_t<pixel> ) {
   UNWRAP_RETURN( hex, conv.from<string>( v ) );
@@ -268,12 +268,12 @@ pixel_hsl to_HSL( pixel const& rgb ) {
   pixel_hsl hsl;
   hsl.a = rgb.a;
   // www.rapidtables.com/convert/color/rgb-to-hsl.html
-  double rp    = rgb.r / 255.0;
-  double gp    = rgb.g / 255.0;
-  double bp    = rgb.b / 255.0;
-  auto   c_max = std::max( rp, std::max( gp, bp ) );
-  auto   c_min = std::min( rp, std::min( gp, bp ) );
-  auto   delta = c_max - c_min;
+  double rp  = rgb.r / 255.0;
+  double gp  = rgb.g / 255.0;
+  double bp  = rgb.b / 255.0;
+  auto c_max = std::max( rp, std::max( gp, bp ) );
+  auto c_min = std::min( rp, std::min( gp, bp ) );
+  auto delta = c_max - c_min;
   // Calculate hue
   if( delta == 0.0 ) {
     hsl.h = 0;
@@ -309,7 +309,7 @@ pixel to_RGB( pixel_hsl const& hsl ) {
   auto X =
       C * ( 1 - std::fabs( std::fmod( ( hsl.h / 60.0 ), 2.0 ) -
                            1 ) );
-  auto   m = hsl.l - C / 2;
+  auto m   = hsl.l - C / 2;
   double R = 0, G = 0, B = 0; // initailize to make gcc happy
   // clang-format off
   if( 0   <= hsl.h && hsl.h <  60 ) { R = C; G = X; B = 0; };

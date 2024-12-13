@@ -28,7 +28,7 @@ struct EmitOptions {
   bool flatten_keys = true;
 };
 
-std::string emit( doc const&         document,
+std::string emit( doc const& document,
                   EmitOptions const& options = {} );
 
 /****************************************************************
@@ -39,7 +39,7 @@ struct JsonEmitOptions {
 };
 
 // Since rcl is a superset of JSON, we can emit JSON as well.
-std::string emit_json( doc const&      document,
+std::string emit_json( doc const& document,
                        JsonEmitOptions options = {} );
 
 } // namespace rcl

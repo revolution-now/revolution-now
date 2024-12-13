@@ -89,12 +89,12 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   W.update_terrain_connectivity();
   Player& player = W.default_player();
-  UnitId  id     = W.add_unit_on_map( e_unit_type::galleon,
+  UnitId id      = W.add_unit_on_map( e_unit_type::galleon,
                                       Coord{ .x = 1, .y = 1 } )
                   .id();
   // Sanity check to make sure we are testing what we think we're
@@ -145,7 +145,7 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
   World W;
   W.update_terrain_connectivity();
   Player& player = W.default_player();
-  UnitId  id     = W.add_unit_on_map( e_unit_type::galleon,
+  UnitId id      = W.add_unit_on_map( e_unit_type::galleon,
                                       Coord{ .x = 4, .y = 2 } )
                   .id();
   // Sanity check to make sure we are testing what we think we're
@@ -170,12 +170,12 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
 TEST_CASE(
     "[command-move] consumption of movement points when moving "
     "into a colony" ) {
-  World             W;
+  World W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player&       player     = W.default_player();
-  Colony const& colony     = W.add_colony( { .x = 1, .y = 1 } );
-  Unit const&   missionary = W.add_unit_on_map(
+  Player& player         = W.default_player();
+  Colony const& colony   = W.add_colony( { .x = 1, .y = 1 } );
+  Unit const& missionary = W.add_unit_on_map(
       e_unit_type::missionary, { .x = 0, .y = 1 } );
   Unit const& free_colonist = W.add_unit_on_map(
       e_unit_type::free_colonist, { .x = 2, .y = 1 } );
@@ -254,10 +254,10 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] ship unloads units when moving into "
     "colony" ) {
-  World             W;
+  World W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player&       player = W.default_player();
+  Player& player       = W.default_player();
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } );
@@ -311,7 +311,7 @@ TEST_CASE(
   W.settings().difficulty = e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
-  Player&       player = W.default_player();
+  Player& player       = W.default_player();
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
   Unit const& galleon  = W.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } );
@@ -362,7 +362,7 @@ TEST_CASE(
 #ifdef COMPILER_GCC
   return;
 #endif
-  World             W;
+  World W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
@@ -430,7 +430,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] unit attempting to board/attack foreign "
     "ship" ) {
-  World       W;
+  World W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
                          { .x = 0, .y = 0 }, e_nation::dutch );
@@ -458,7 +458,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] land unit attempting to attack ship on "
     "land" ) {
-  World       W;
+  World W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
                          { .x = 1, .y = 0 }, e_nation::dutch );
@@ -482,7 +482,7 @@ TEST_CASE(
 TEST_CASE(
     "[command-move] units on ships in colony offboarded to help "
     "defend" ) {
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Colony const& colony =

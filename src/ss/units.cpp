@@ -496,7 +496,7 @@ UnitOwnership::harbor& UnitsState::harbor_view_state_of(
 }
 
 void UnitsState::move_unit_on_map( NativeUnitId id,
-                                   Coord        target ) {
+                                   Coord target ) {
   auto& [curr_coord, dwelling_id] = ownership_of( id );
   CHECK( braves_for_dwelling_.contains( dwelling_id ) );
   CHECK( braves_for_dwelling_[dwelling_id].contains( id ) );
@@ -537,9 +537,9 @@ void UnitsState::disown_unit( UnitId id ) {
       break;
     }
     case UnitOwnership::e::colony: {
-      auto& val    = v.get<UnitOwnership::colony>();
-      auto  col_id = val.id;
-      auto  set_it =
+      auto& val   = v.get<UnitOwnership::colony>();
+      auto col_id = val.id;
+      auto set_it =
           base::find( worker_units_from_colony_, col_id );
       CHECK( set_it != worker_units_from_colony_.end() );
       auto& units_set = set_it->second;
@@ -549,7 +549,7 @@ void UnitsState::disown_unit( UnitId id ) {
       break;
     }
     case UnitOwnership::e::dwelling: {
-      auto&            val = v.get<UnitOwnership::dwelling>();
+      auto& val = v.get<UnitOwnership::dwelling>();
       DwellingId const dwelling_id = val.id;
       CHECK( missionary_in_dwelling_.contains( dwelling_id ) );
       missionary_in_dwelling_.erase( dwelling_id );
@@ -608,7 +608,7 @@ void UnitsState::change_to_harbor_view(
     .port_status = port_status, .sailed_from = sailed_from };
 }
 
-void UnitsState::change_to_dwelling( UnitId     unit_id,
+void UnitsState::change_to_dwelling( UnitId unit_id,
                                      DwellingId dwelling_id ) {
   disown_unit( unit_id );
   CHECK( !missionary_in_dwelling_.contains( dwelling_id ) );
@@ -646,9 +646,9 @@ void UnitsState::change_to_colony( UnitId id, ColonyId col_id ) {
 UnitId UnitsState::add_unit( Unit&& unit ) {
   CHECK( unit.id() == UnitId{ 0 },
          "unit ID must be zero when creating unit." );
-  GenericUnitId const id      = next_unit_id();
-  UnitId const        unit_id = UnitId{ to_underlying( id ) };
-  unit.o_.id                  = unit_id;
+  GenericUnitId const id = next_unit_id();
+  UnitId const unit_id   = UnitId{ to_underlying( id ) };
+  unit.o_.id             = unit_id;
   CHECK( !o_.units.contains( id ) );
   CHECK( !euro_units_.contains( unit_id ) );
   CHECK( !deleted_.contains( id ) );
@@ -664,7 +664,7 @@ NativeUnitId UnitsState::add_unit_on_map(
   CHECK( unit.id == NativeUnitId{ 0 },
          "unit ID must be zero when creating unit." );
   GenericUnitId const id = next_unit_id();
-  NativeUnitId const  native_id =
+  NativeUnitId const native_id =
       NativeUnitId{ to_underlying( id ) };
   unit.id = NativeUnitId{ to_underlying( id ) };
   CHECK( !o_.units.contains( id ) );
@@ -786,7 +786,7 @@ maybe<UnitId> UnitsState::missionary_from_dwelling(
 
 unordered_set<NativeUnitId> const&
 UnitsState::braves_for_dwelling( DwellingId dwelling_id ) const {
-  static unordered_set<NativeUnitId>        empty;
+  static unordered_set<NativeUnitId> empty;
   maybe<unordered_set<NativeUnitId> const&> units =
       base::lookup( braves_for_dwelling_, dwelling_id );
   return units.has_value() ? *units : empty;
@@ -807,9 +807,9 @@ LUA_STARTUP( lua::state& st ) {
     return o.unit_for( id );
   };
   u["from_coord"] = [&]( U& o, Coord tile ) -> lua::table {
-    lua::table tbl        = st.table.create();
-    auto&      from_coord = o.from_coord( tile );
-    int        i          = 1;
+    lua::table tbl   = st.table.create();
+    auto& from_coord = o.from_coord( tile );
+    int i            = 1;
     for( auto id : from_coord ) tbl[i++] = id;
     return tbl;
   };

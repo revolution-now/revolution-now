@@ -29,7 +29,7 @@ base::valid_or<std::string> load_binary( std::string const& path,
                                          ColonySAV& out );
 
 base::valid_or<std::string> save_binary( std::string const& path,
-                                         ColonySAV const&   in );
+                                         ColonySAV const& in );
 
 // These will load/save the OG's map files, i.e. those files gen-
 // erated by the map editor. They tend to have the extension MP.

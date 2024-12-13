@@ -47,7 +47,7 @@ cthread any::this_cthread() const noexcept { return L_; }
 
 void any::lua_push_impl( cthread L ) const {
   c_api C( L );
-  int   ref = this->has_value() ? this->resource() : LUA_REFNIL;
+  int ref = this->has_value() ? this->resource() : LUA_REFNIL;
   C.registry_get( ref );
 }
 
@@ -57,7 +57,7 @@ namespace internal {
 
 bool compare_top_two_and_pop( cthread L ) {
   c_api C( L );
-  bool  res = C.compare_eq( -2, -1 );
+  bool res = C.compare_eq( -2, -1 );
   C.pop( 2 );
   return res;
 }

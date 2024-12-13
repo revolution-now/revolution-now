@@ -31,7 +31,7 @@ TerrainConnectivity compute_terrain_connectivity(
 
 // Returns true if the water tile does not have ocean access.
 bool is_inland_lake( TerrainConnectivity const& conn,
-                     Coord                      tile );
+                     Coord tile );
 
 // Should be called with the location of a water tile and this
 // will determine if it has access to one of the edges of the map

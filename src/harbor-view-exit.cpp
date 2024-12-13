@@ -49,11 +49,11 @@ wait<> HarborExitButton::perform_click(
 }
 
 void HarborExitButton::draw( rr::Renderer& renderer,
-                             Coord         coord ) const {
-  rr::Painter   painter   = renderer.painter();
-  auto          r         = rect( coord );
-  static string text      = "Exit";
-  Delta         text_size = Delta::from_gfx(
+                             Coord coord ) const {
+  rr::Painter painter = renderer.painter();
+  auto r              = rect( coord );
+  static string text  = "Exit";
+  Delta text_size     = Delta::from_gfx(
       rr::rendered_text_line_size_pixels( text ) );
   rr::Typer typer = renderer.typer(
       centered( text_size, r + Delta{ .w = 1, .h = 1 } ),
@@ -69,7 +69,7 @@ HarborExitButton::create( SS& ss, TS& ts, Player& player,
                           Coord market_lower_right ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborExitButton> view;
-  HarborSubView*               harbor_sub_view = nullptr;
+  HarborSubView* harbor_sub_view = nullptr;
 
   Coord origin =
       market_lower_right - Delta{ .h = kExitBlockPixels.h };

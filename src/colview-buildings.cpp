@@ -89,10 +89,10 @@ Rect ColViewBuildings::rect_for_slot(
     e_colony_building_slot slot ) const {
   // TODO: Temporary.
   Delta const box_size = delta() / Delta{ .w = 4, .h = 4 };
-  int const   idx      = static_cast<int>( slot );
+  int const idx        = static_cast<int>( slot );
   Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
-  Coord const upper_left  = coord * box_size;
-  Coord       lower_right = upper_left + box_size;
+  Coord const upper_left = coord * box_size;
+  Coord lower_right      = upper_left + box_size;
   if( idx / 4 == 3 ) lower_right.y = 0 + delta().h;
   return Rect::from( upper_left, lower_right );
 }
@@ -101,8 +101,8 @@ int const kEffectiveUnitWidthPixels = g_tile_delta.w / 2;
 
 Rect ColViewBuildings::visible_rect_for_unit_in_slot(
     e_colony_building_slot slot, int unit_idx ) const {
-  Rect  rect = rect_for_slot( slot );
-  Coord pos  = rect.lower_left() - Delta{ .h = g_tile_delta.h };
+  Rect rect = rect_for_slot( slot );
+  Coord pos = rect.lower_left() - Delta{ .h = g_tile_delta.h };
   pos.x += 3;
   pos.x += W{ kEffectiveUnitWidthPixels } * unit_idx;
   return Rect::from( pos, Delta{ .w = g_tile_delta.w / 2,
@@ -128,7 +128,7 @@ maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
 }
 
 void ColViewBuildings::draw( rr::Renderer& renderer,
-                             Coord         coord ) const {
+                             Coord coord ) const {
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
       gfx::size( coord.distance_from_origin() ).to_double() );
@@ -219,7 +219,7 @@ ColViewBuildings::can_receive( ColViewObject const& o, int,
   if( !unit_id.has_value() ) return nothing;
   // Check if the unit is a colonist.
   UnitsState const& units_state = ss_.units;
-  Unit const&       unit = units_state.unit_for( *unit_id );
+  Unit const& unit = units_state.unit_for( *unit_id );
   if( !unit.is_colonist() ) return nothing;
   // Check if this unit is coming from another building; if so
   // we'll allow it.
@@ -266,7 +266,7 @@ wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   UnitsState const& units_state = ss_.units;
-  Unit const&       unit = units_state.unit_for( unit_id );
+  Unit const& unit = units_state.unit_for( unit_id );
   // If this is a school type building then make sure that the
   // unit has the right expertise.
   maybe<e_school_type> const school_type =
@@ -283,7 +283,7 @@ wait<base::valid_or<DragRejection>> ColViewBuildings::sink_check(
 
 // Implement IDragSink.
 wait<> ColViewBuildings::drop( ColViewObject const& o,
-                               Coord const&         where ) {
+                               Coord const& where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
@@ -313,7 +313,7 @@ ColViewBuildings::object_here( Coord const& where ) const {
 }
 
 bool ColViewBuildings::try_drag( ColViewObject const& o,
-                                 Coord const&         where ) {
+                                 Coord const& where ) {
   UNWRAP_CHECK( obj_with_bounds, object_here( where ) );
   UNWRAP_CHECK( slot, slot_for_coord( where ) );
   UNWRAP_CHECK(

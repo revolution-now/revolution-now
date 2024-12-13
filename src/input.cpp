@@ -79,7 +79,7 @@ bool is_in_drag_zone( Coord current, Coord origin ) {
 // Should not call this from outside this module; should instead
 // use the mod keys delivered with the input events.
 mod_keys query_mod_keys( ::Uint8 const* sdl_keyboard_state ) {
-  auto     keymods = ::SDL_GetModState();
+  auto keymods = ::SDL_GetModState();
   mod_keys mod{};
 
   mod.l_shf_down  = ( keymods & ::KMOD_LSHIFT );
@@ -498,7 +498,7 @@ maybe<event_t> next_event() {
   return nothing;
 }
 
-constexpr int       kMaxEventQueueSize = 10000;
+constexpr int kMaxEventQueueSize = 10000;
 std::queue<event_t> g_event_queue;
 
 } // namespace
@@ -600,7 +600,7 @@ bool has_mod_key( key_event_t const& event ) {
 }
 
 event_t move_mouse_origin_by( event_t const& event,
-                              Delta          delta ) {
+                              Delta delta ) {
   event_t new_event = event;
   // This serves two purposes: 1) to tell us whether this is a
   // mouse event or not, and 2) to give us the mouse position.
@@ -708,7 +708,7 @@ bool is_any_key_down() {
   // must pump events in order for key state to be populated, al-
   // though we don't care about the event here.
   ::SDL_PumpEvents();
-  int         count = 0;
+  int count         = 0;
   auto const* state = ::SDL_GetKeyboardState( &count );
   return any_of( state, state + count, L( _ != 0 ) );
 }

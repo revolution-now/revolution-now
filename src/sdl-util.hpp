@@ -29,20 +29,20 @@ namespace rn {
 // etc.) than it was built with. A warning will be issued if the
 // minor version is different.
 void check_SDL_compile_link_version(
-    std::string_view     module_name,
+    std::string_view module_name,
     ::SDL_version const& link_version,
     ::SDL_version const& compiled_version );
 
 ::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
-                              uint32_t         pixel );
+                              uint32_t pixel );
 
 ::SDL_Point to_SDL( Coord const& coord );
-::SDL_Rect  to_SDL( Rect const& rect );
+::SDL_Rect to_SDL( Rect const& rect );
 ::SDL_Color to_SDL( gfx::pixel color );
 
-Coord      from_SDL( ::SDL_Point const& p );
+Coord from_SDL( ::SDL_Point const& p );
 gfx::pixel from_SDL( ::SDL_Color color );
-Rect       from_SDL( ::SDL_Rect const& rect );
+Rect from_SDL( ::SDL_Rect const& rect );
 
 /****************************************************************
 ** OpenGL Specific.

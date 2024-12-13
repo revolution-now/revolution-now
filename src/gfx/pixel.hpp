@@ -78,7 +78,7 @@ struct pixel {
 
   // Implement cdr::ToCanonical.
   friend cdr::value to_canonical( cdr::converter& conv,
-                                  pixel const&    o,
+                                  pixel const& o,
                                   cdr::tag_t<pixel> );
 
   // Implement cdr::FromCanonical.
@@ -118,16 +118,16 @@ static_assert( sizeof( pixel ) == 4 );
 ** Other stuff
 *****************************************************************/
 struct pixel_hsl {
-  double  h = 0; // hue [0..360]
-  double  s = 0; // saturation [0, 1]
-  double  l = 0; // lightness [0, 1]
+  double h  = 0; // hue [0..360]
+  double s  = 0; // saturation [0, 1]
+  double l  = 0; // lightness [0, 1]
   uint8_t a = 0; // alpha
 
   auto operator<=>( pixel_hsl const& ) const = default;
 };
 
 pixel_hsl to_HSL( pixel const& rgb );
-pixel     to_RGB( pixel_hsl const& hsl );
+pixel to_RGB( pixel_hsl const& hsl );
 
 } // namespace gfx
 

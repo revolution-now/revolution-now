@@ -69,7 +69,7 @@ void push_string( cthread L, std::string const& s );
 void push_userdata_impl(
     cthread L, int object_size,
     base::function_ref<void( void* )> placement_new,
-    std::string const&                type_name );
+    std::string const& type_name );
 
 bool register_userdata_metatable_if_needed_impl(
     cthread L, e_userdata_ownership_model semantics,
@@ -105,8 +105,8 @@ bool register_userdata_metatable_by_val_if_needed( cthread L ) {
 
   static auto tostring = []( lua_State* L ) -> int {
     if constexpr( showable ) {
-      void* ud     = check_udata( L, 1, type_name.c_str() );
-      T*    object = reinterpret_cast<T*>( ud );
+      void* ud  = check_udata( L, 1, type_name.c_str() );
+      T* object = reinterpret_cast<T*>( ud );
       detail::push_string(
           L,
           fmt::format( "{}@{}: {}", type_name, ud, *object ) );
@@ -144,7 +144,7 @@ bool register_userdata_metatable_owned_by_cpp_if_needed(
 
   static auto tostring = []( lua_State* L ) -> int {
     if constexpr( showable ) {
-      void*  ud     = check_udata( L, 1, type_name.c_str() );
+      void* ud      = check_udata( L, 1, type_name.c_str() );
       auto** object = reinterpret_cast<T_noref**>( ud );
       CHECK( object != nullptr );
       std::string res = fmt::format( "{}@{}: ", type_name, ud );

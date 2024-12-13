@@ -30,8 +30,8 @@ using ::gfx::size;
 ** Public API.
 *****************************************************************/
 void draw_empty_rect_no_corners( rr::Painter& painter,
-                                 rect const   box,
-                                 pixel const  color ) {
+                                 rect const box,
+                                 pixel const color ) {
   // Left.
   {
     point const start = box.nw();

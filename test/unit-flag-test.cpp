@@ -50,8 +50,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -66,9 +66,9 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
   UnitFlagRenderInfo expected;
-  e_unit_type        unit_type = {};
-  unit_orders        orders    = {};
-  e_nation           nation    = {};
+  e_unit_type unit_type = {};
+  unit_orders orders    = {};
+  e_nation nation       = {};
 
   auto f = [&] {
     return euro_unit_type_flag_info( unit_type, orders, nation );
@@ -131,11 +131,11 @@ TEST_CASE( "[unit-flag] euro_unit_type_orders_flag_info" ) {
 }
 
 TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
-  World              W;
+  World W;
   UnitFlagRenderInfo expected;
-  Unit               unit;
-  maybe<e_nation>    viewer;
-  UnitFlagOptions    options;
+  Unit unit;
+  maybe<e_nation> viewer;
+  UnitFlagOptions options;
 
   auto create = [&]( e_unit_type type ) {
     return create_unregistered_unit( W.default_player(), type );
@@ -237,9 +237,9 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
 }
 
 TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
-  World              W;
+  World W;
   UnitFlagRenderInfo expected;
-  UnitFlagOptions    options;
+  UnitFlagOptions options;
 
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::sioux );
@@ -290,9 +290,9 @@ TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
 }
 
 TEST_CASE( "[unit-flag] native_unit_type_flag_render_info" ) {
-  World              W;
+  World W;
   UnitFlagRenderInfo expected;
-  UnitFlagOptions    options;
+  UnitFlagOptions options;
 
   auto f = [&]( e_native_unit_type type ) {
     return native_unit_type_flag_info( type, e_tribe::sioux,

@@ -703,7 +703,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk no yield or error" ) {
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.status() == thread_status::ok );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
@@ -760,7 +760,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk, yield, no error" ) {
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.status() == thread_status::ok );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
@@ -823,7 +823,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with eager error" ) {
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.status() == thread_status::ok );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
@@ -880,7 +880,7 @@ LUA_TEST_CASE( "[lua-c-api] pcallk with late error" ) {
   REQUIRE( C.dostring( lua_script ) == valid );
 
   cthread L2 = C.newthread();
-  c_api   C2( L2 );
+  c_api C2( L2 );
   REQUIRE( C2.status() == thread_status::ok );
   REQUIRE( C2.coro_status() == coroutine_status::dead );
 
@@ -1694,7 +1694,7 @@ LUA_TEST_CASE( "[lua-c-api] rawlen" ) {
 LUA_TEST_CASE( "[lua-c-api] checkinteger" ) {
   C.push( []( lua_State* L ) -> int {
     c_api C( L );
-    int   n = C.checkinteger( 1 );
+    int n = C.checkinteger( 1 );
     C.push( fmt::format( "hello {}", n ) );
     return 1;
   } );

@@ -25,7 +25,7 @@ using namespace std;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/pixel] from_hex_rgba" ) {
-  pixel    expected;
+  pixel expected;
   uint32_t hex = {};
 
   auto f = [&] { return pixel::from_hex_rgba( hex ); };
@@ -48,7 +48,7 @@ TEST_CASE( "[gfx/pixel] from_hex_rgba" ) {
 }
 
 TEST_CASE( "[gfx/pixel] from_hex_rgb" ) {
-  pixel    expected;
+  pixel expected;
   uint32_t hex = {};
 
   auto f = [&] { return pixel::from_hex_rgb( hex ); };

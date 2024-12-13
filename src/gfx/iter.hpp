@@ -25,7 +25,7 @@ namespace gfx {
 // multiple of the chunks then some subrects may be smaller than
 // the chunk size. In other words, all subrects generated will be
 // inside the main rect.
-base::generator<rn::Rect> subrects( rn::Rect  rect,
+base::generator<rn::Rect> subrects( rn::Rect rect,
                                     rn::Delta chunk = rn::Delta{
                                       .w = 1, .h = 1 } );
 
@@ -50,7 +50,7 @@ struct rect_iterator {
   // right edge or bottom edge will be yielded.
   struct const_iterator {
    private:
-    rect  r_      = {};
+    rect r_       = {};
     point cursor_ = {};
 
    public:
@@ -63,8 +63,8 @@ struct rect_iterator {
     const_iterator( rect r, point cursor );
     bool operator==( const_iterator const& ) const = default;
     value_type const& operator*() const { return cursor_; }
-    const_iterator&   operator++();
-    const_iterator    operator++( int );
+    const_iterator& operator++();
+    const_iterator operator++( int );
   };
 
   using iterator = const_iterator;

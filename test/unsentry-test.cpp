@@ -42,8 +42,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, //
       L, L, L, L, L, L, //
@@ -185,7 +185,7 @@ TEST_CASE( "[unsentry] unsentry_units_next_to_foreign_units" ) {
 TEST_CASE(
     "[unsentry] unsentry_units_next_to_foreign_units "
     "(native)" ) {
-  World    W;
+  World W;
   e_nation nation = {};
 
   Dwelling const& dwelling =

@@ -29,7 +29,7 @@ namespace rn {
 ** Public API
 *****************************************************************/
 maybe<e_nation> player_for_role( SSConst const& ss,
-                                 e_player_role  role ) {
+                                 e_player_role role ) {
   switch( role ) {
     case e_player_role::viewer: {
       SWITCH( ss.land_view.map_revealed ) {

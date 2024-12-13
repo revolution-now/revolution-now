@@ -50,8 +50,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -67,17 +67,17 @@ struct World : testing::World {
 TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::make_squares_fogged" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected_buffers;
-  e_nation const         nation = W.default_nation();
-  PlayerTerrain&         player_terrain =
+  e_nation const nation = W.default_nation();
+  PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
               nation );
   Coord const tile = { .x = 1, .y = 1 };
 
-  MapSquare&   real_square = W.square( tile );
+  MapSquare& real_square = W.square( tile );
   PlayerSquare expected_fog_square;
 
   auto f = [&] {
@@ -167,17 +167,17 @@ TEST_CASE(
 TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::make_squares_visible" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected_buffers;
-  e_nation               nation = W.default_nation();
-  PlayerTerrain&         player_terrain =
+  e_nation nation = W.default_nation();
+  PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
               nation );
   Coord const tile = { .x = 1, .y = 1 };
 
-  MapSquare&   real_square = W.square( tile );
+  MapSquare& real_square = W.square( tile );
   PlayerSquare expected_fog_square;
 
   auto f = [&] {
@@ -253,15 +253,15 @@ TEST_CASE(
 
 TEST_CASE(
     "[map-updater] NonRenderingMapUpdater::modify_map_square" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
-  e_nation const         nation = e_nation::dutch;
-  BuffersUpdated         expected_buffers;
-  auto*                  mutator = +[]( MapSquare& ) {};
-  Coord const            tile    = { .x = 1, .y = 1 };
+  e_nation const nation = e_nation::dutch;
+  BuffersUpdated expected_buffers;
+  auto* mutator    = +[]( MapSquare& ) {};
+  Coord const tile = { .x = 1, .y = 1 };
 
   MapSquare& real_square = W.square( tile );
-  MapSquare  expected_real_square;
+  MapSquare expected_real_square;
 
   auto f = [&] {
     return map_updater.modify_map_square( tile, mutator );
@@ -387,12 +387,12 @@ TEST_CASE(
 TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::modify_entire_square" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
-  Coord const            tile = { .x = 1, .y = 1 };
+  Coord const tile = { .x = 1, .y = 1 };
 
   MapSquare& real_square = W.square( tile );
-  MapSquare  expected_real_square;
+  MapSquare expected_real_square;
 
   auto f = [&]( auto&& mutator ) {
     map_updater.modify_entire_map_no_redraw( mutator );
@@ -432,11 +432,11 @@ TEST_CASE(
 // testing on the transitioning of tiles to and from various
 // states of visible, hidden, and fog.
 TEST_CASE( "[map-updater] fog of war" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected;
-  e_nation const         nation = W.default_nation();
-  PlayerTerrain&         player_terrain =
+  e_nation const nation = W.default_nation();
+  PlayerTerrain& player_terrain =
       W.ss()
           .mutable_terrain_use_with_care.mutable_player_terrain(
               nation );
@@ -571,11 +571,11 @@ TEST_CASE( "[map-updater] fog of war" ) {
 TEST_CASE(
     "[map-updater] "
     "NonRenderingMapUpdater::force_redraw_tiles" ) {
-  World                  W;
+  World W;
   NonRenderingMapUpdater map_updater( W.ss() );
   vector<BuffersUpdated> expected;
-  Coord const            coord1 = { .x = 0, .y = 0 };
-  Coord const            coord2 = { .x = 1, .y = 0 };
+  Coord const coord1 = { .x = 0, .y = 0 };
+  Coord const coord2 = { .x = 1, .y = 0 };
 
   expected = {};
   REQUIRE( map_updater.force_redraw_tiles(

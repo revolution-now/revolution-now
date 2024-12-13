@@ -49,8 +49,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, //
       _, _, _, //
@@ -71,10 +71,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World       W;
-  Player&     player = W.default_player();
-  e_commodity type   = {};
-  wait<>      w      = make_wait<>();
+  World W;
+  Player& player   = W.default_player();
+  e_commodity type = {};
+  wait<> w         = make_wait<>();
 
   player.old_world.taxes.tax_rate = 7;
 
@@ -169,10 +169,10 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 }
 
 TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
-  World       W;
-  Player&     player   = W.default_player();
-  e_commodity type     = {};
-  int         expected = 0;
+  World W;
+  Player& player   = W.default_player();
+  e_commodity type = {};
+  int expected     = 0;
 
   player.old_world.taxes.tax_rate = 7;
 
@@ -201,9 +201,9 @@ TEST_CASE( "[tax] back_tax_for_boycotted_commodity" ) {
 }
 
 TEST_CASE( "[tax] apply_tax_result" ) {
-  World           W;
-  Player&         player              = W.default_player();
-  int             next_tax_event_turn = 0;
+  World W;
+  Player& player          = W.default_player();
+  int next_tax_event_turn = 0;
   TaxChangeResult change;
 
   W.turn().time_point.turns       = 5;
@@ -219,7 +219,7 @@ TEST_CASE( "[tax] apply_tax_result" ) {
   }
   colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
 
-  Colony            colony_saved = colony;
+  Colony colony_saved            = colony;
   PlayerMarketState market_saved = player.old_world.market;
 
   auto f = [&] {
@@ -279,10 +279,10 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World             W;
-  Player&           player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   TaxChangeProposal proposal;
-  TaxChangeResult   expected;
+  TaxChangeResult expected;
 
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );
@@ -403,7 +403,7 @@ TEST_CASE( "[tax] prompt_for_tax_change_result" ) {
 TEST_CASE( "[tax] compute_tax_change" ) {
   World W;
   W.update_terrain_connectivity();
-  Player&              player = W.default_player();
+  Player& player = W.default_player();
   TaxUpdateComputation expected;
 
   auto f = [&] {
@@ -575,7 +575,7 @@ TEST_CASE(
     "access" ) {
   World W;
   W.update_terrain_connectivity();
-  Player&              player = W.default_player();
+  Player& player = W.default_player();
   TaxUpdateComputation expected;
 
   auto f = [&] {
@@ -694,9 +694,9 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
   // Worth: 1*16 = 16.
   colony2.commodities[e_commodity::muskets] = 1;
 
-  Colony            colony1_saved = colony1;
-  Colony            colony2_saved = colony2;
-  PlayerMarketState market_saved  = player.old_world.market;
+  Colony colony1_saved           = colony1;
+  Colony colony2_saved           = colony2;
+  PlayerMarketState market_saved = player.old_world.market;
 
   // Rebels bump.
   W.rand().EXPECT__between_doubles( 0.0, 1.0 ).returns( .7 );
@@ -749,8 +749,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
 }
 
 TEST_CASE( "[tax] compute_tax_change when over max" ) {
-  World                W;
-  Player&              player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   TaxUpdateComputation expected;
 
   auto f = [&] {

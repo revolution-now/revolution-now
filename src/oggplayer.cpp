@@ -53,7 +53,7 @@ class OggTune {
   }
 
   ::Mix_Music* ptr() { return ptr_; }
-  TuneId       id() { return id_; }
+  TuneId id() { return id_; }
 
   // TODO: add duration support. SDL_Mixer doesn't seem to have
   // anything in its API to get the duration of music, so it may
@@ -68,7 +68,7 @@ class OggTune {
 
  private:
   ::Mix_Music* ptr_;
-  TuneId       id_;
+  TuneId id_;
 };
 NOTHROW_MOVE( OggTune );
 
@@ -82,7 +82,7 @@ enum class e_ogg_state {
 ** Global State
 *****************************************************************/
 expect<OggMusicPlayer, string> g_ogg_player = "uninitialized";
-maybe<OggTune>                 g_current_music{};
+maybe<OggTune> g_current_music{};
 // Note that this state may not be updated when a tune stops
 // playing on its own (but before the next one is played). If
 // this turns out to be a problem then we would either need to

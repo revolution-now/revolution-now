@@ -36,24 +36,24 @@ struct SSConst;
 // ensure a consistent UI/UX.
 
 // Top unit will be first in the vector.
-void sort_unit_stack( SSConst const&              ss,
+void sort_unit_stack( SSConst const& ss,
                       std::vector<GenericUnitId>& units );
 
 // Top unit will be first in the vector.
-void sort_native_unit_stack( SSConst const&             ss,
+void sort_native_unit_stack( SSConst const& ss,
                              std::vector<NativeUnitId>& units );
 
 // Top unit will be first in the vector.
-void sort_euro_unit_stack( SSConst const&       ss,
+void sort_euro_unit_stack( SSConst const& ss,
                            std::vector<UnitId>& units );
 
 UnitId select_euro_unit_defender( SSConst const& ss,
-                                  Coord          tile );
+                                  Coord tile );
 
 NativeUnitId select_native_unit_defender( SSConst const& ss,
-                                          Coord          tile );
+                                          Coord tile );
 
 UnitId select_colony_defender( SSConst const& ss,
-                               Colony const&  colony );
+                               Colony const& colony );
 
 } // namespace rn

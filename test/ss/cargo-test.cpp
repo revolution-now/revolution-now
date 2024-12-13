@@ -54,7 +54,7 @@ struct World : testing::World {
   World() : Base() {
     add_player( e_nation::english );
     set_default_player( e_nation::english );
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -132,7 +132,7 @@ TEST_CASE( "CargoHold slot bounds six" ) {
 }
 
 TEST_CASE( "CargoHold zero size" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 0 );
   REQUIRE_GOOD_INVARIANTS;
 
@@ -179,7 +179,7 @@ TEST_CASE( "CargoHold has slots but empty" ) {
 }
 
 TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 0 );
 
   auto unit_id = create_unit( W, e_nation::english,
@@ -202,7 +202,7 @@ TEST_CASE( "CargoHold add/remove to/from size-0 cargo hold" ) {
 }
 
 TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 1 );
 
   UnitId id = create_unit( W, e_nation::english,
@@ -296,7 +296,7 @@ TEST_CASE( "CargoHold add/remove from size-1 cargo hold" ) {
 TEST_CASE(
     "CargoHold add/remove size-1 cargo from size-6 cargo "
     "hold" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   UnitId id = create_unit( W, e_nation::english,
@@ -424,7 +424,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold add/remove size-6 cargo from size-8 cargo "
     "hold" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id =
@@ -509,9 +509,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold add item too large for cargo hold" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 4 );
-  auto            unit_id1 =
+  auto unit_id1 =
       create_unit( W, e_nation::english, e_unit_type::treasure );
   REQUIRE_FALSE(
       ch.fits( W.units(), Cargo::unit{ unit_id1 }, 0 ) );
@@ -531,7 +531,7 @@ TEST_CASE( "CargoHold add item too large for cargo hold" ) {
 }
 
 TEST_CASE( "CargoHold try to add too many things" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 7 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -573,7 +573,7 @@ TEST_CASE( "CargoHold try to add too many things" ) {
 }
 
 TEST_CASE( "CargoHold add multiple units" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -646,7 +646,7 @@ TEST_CASE( "CargoHold remove from empty slot" ) {
 }
 
 TEST_CASE( "CargoHold remove from overflow slot" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 =
@@ -664,7 +664,7 @@ TEST_CASE( "CargoHold remove from overflow slot" ) {
 }
 
 TEST_CASE( "CargoHold remove large cargo" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 =
@@ -700,7 +700,7 @@ TEST_CASE( "CargoHold remove large cargo" ) {
 }
 
 TEST_CASE( "CargoHold clear" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 14 );
 
   auto unit_id1 =
@@ -735,7 +735,7 @@ TEST_CASE( "CargoHold clear" ) {
 }
 
 TEST_CASE( "CargoHold try add as available from invalid" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -753,7 +753,7 @@ TEST_CASE( "CargoHold try add as available from invalid" ) {
 
 TEST_CASE(
     "CargoHold try add as available from beginning (units)" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 14 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -825,7 +825,7 @@ TEST_CASE(
 
 TEST_CASE(
     "CargoHold try add as available from middle (units)" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 12 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -960,7 +960,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold try add as available from all (units)" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto start = GENERATE( 0, 1, 2, 3, 4, 5 );
@@ -990,7 +990,7 @@ TEST_CASE( "CargoHold try add as available from all (units)" ) {
 }
 
 TEST_CASE( "CargoHold check broken invariants" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
   REQUIRE_GOOD_INVARIANTS;
 
@@ -1124,7 +1124,7 @@ TEST_CASE( "CargoHold check broken invariants" ) {
 }
 
 TEST_CASE( "CargoHold commodity consolidation like types" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
@@ -1215,7 +1215,7 @@ TEST_CASE( "CargoHold commodity consolidation like types" ) {
 }
 
 TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
@@ -1320,7 +1320,7 @@ TEST_CASE( "CargoHold commodity consolidation unlike types" ) {
 
 TEST_CASE(
     "CargoHold commodity consolidation try add as available" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
@@ -1499,7 +1499,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold compactify empty" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 0 );
   REQUIRE_NOTHROW( ch.compactify( W.units() ) );
   REQUIRE( ch.slots_total() == 0 );
@@ -1510,7 +1510,7 @@ TEST_CASE( "CargoHold compactify empty" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-1 with unit" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 1 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -1538,7 +1538,7 @@ TEST_CASE( "CargoHold compactify size-1 with unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -1580,7 +1580,7 @@ TEST_CASE( "CargoHold compactify size-6 with small unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-8 with size-6 unit" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 =
@@ -1641,7 +1641,7 @@ TEST_CASE( "CargoHold compactify size-8 with size-6 unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto unit_id1 =
@@ -1683,7 +1683,7 @@ TEST_CASE( "CargoHold compactify size-6 with size-6 unit" ) {
 }
 
 TEST_CASE( "CargoHold compactify multiple units" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 24 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -1760,7 +1760,7 @@ TEST_CASE( "CargoHold compactify multiple units" ) {
 }
 
 TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 1 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
@@ -1790,7 +1790,7 @@ TEST_CASE( "CargoHold compactify size-1 with commodity" ) {
 
 TEST_CASE(
     "CargoHold compactify size-6 single commodity partial" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_part = Commodity{ /*type=*/e_commodity::food,
@@ -1837,7 +1837,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities same type "
     "full" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_full = Commodity{ /*type=*/e_commodity::food,
@@ -1911,7 +1911,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities same type "
     "partial" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food_full        = Commodity{ /*type=*/e_commodity::food,
@@ -1982,7 +1982,7 @@ TEST_CASE(
 TEST_CASE(
     "CargoHold compactify multiple commodities different "
     "types" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 7 );
 
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
@@ -2068,7 +2068,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold compactify units and commodities" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 28 );
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -2156,7 +2156,7 @@ TEST_CASE( "CargoHold compactify units and commodities" ) {
 
 TEST_CASE(
     "CargoHold compactify units and commodities shuffle" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 28 );
   auto food_full      = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
@@ -2303,7 +2303,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "CargoHold find_unit" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -2345,7 +2345,7 @@ TEST_CASE( "CargoHold find_unit" ) {
 }
 
 TEST_CASE( "CargoHold fits_with_item_removed" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -2422,7 +2422,7 @@ TEST_CASE( "CargoHold fits_with_item_removed" ) {
 }
 
 TEST_CASE( "CargoHold fits_somewhere_with_item_removed" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -2491,7 +2491,7 @@ TEST_CASE( "CargoHold fits_somewhere_with_item_removed" ) {
 }
 
 TEST_CASE( "CargoHold cago_starting_at_slot" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -2532,7 +2532,7 @@ TEST_CASE( "CargoHold cago_starting_at_slot" ) {
 }
 
 TEST_CASE( "CargoHold cago_covering_slot" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 8 );
 
   auto unit_id1 = create_unit( W, e_nation::english,
@@ -2588,13 +2588,13 @@ TEST_CASE( "CargoHold cago_covering_slot" ) {
 
 TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
   World W;
-  auto  food_full  = Commodity{ /*type=*/e_commodity::food,
+  auto food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
-  auto  food_part  = Commodity{ /*type=*/e_commodity::food,
+  auto food_part  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/66 };
-  auto  sugar_part = Commodity{ /*type=*/e_commodity::sugar,
+  auto sugar_part = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/33 };
-  auto  unit_id1 =
+  auto unit_id1 =
       create_unit( W, e_nation::english, e_unit_type::treasure );
 
   SECTION( "size zero" ) {
@@ -2680,7 +2680,7 @@ TEST_CASE( "CargoHold max_commodity_quantity_that_fits" ) {
 }
 
 TEST_CASE( "CargoHold slot_holds_cargo_type" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 10 );
 
   auto food = Commodity{ /*type=*/e_commodity::food,
@@ -2729,7 +2729,7 @@ TEST_CASE( "CargoHold max_commodity_per_cargo_slot" ) {
 }
 
 TEST_CASE( "CargoHold::clear_commodities" ) {
-  World           W;
+  World W;
   CargoHoldTester ch( 6 );
 
   auto food     = Commodity{ /*type=*/e_commodity::food,

@@ -373,8 +373,8 @@ struct AdderTracker {
     destroyed_ = exchange( rhs.destroyed_, nullptr );
   }
 
-  int   x_;
-  int   y_;
+  int x_;
+  int y_;
   bool* destroyed_;
 };
 

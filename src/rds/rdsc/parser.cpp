@@ -41,7 +41,7 @@ void blankify_comments( string& text ) {
   bool in_comment     = false;
   bool in_dquoted_str = false;
   bool in_squoted_str = false;
-  int  i              = 0;
+  int i               = 0;
   for( ; i < int( text.size() ); ++i ) {
     char c = text[i];
     if( c == '\n' || c == '\r' ) {
@@ -111,7 +111,7 @@ void add_enum( string_view ns, string_view name, lua::table tbl,
       continue;
     }
 
-    lua::any   item_fn = tbl[i].as<lua::rfunction>();
+    lua::any item_fn = tbl[i].as<lua::rfunction>();
     lua::table item_tbl =
         item_fn.as<lua::rfunction>()().as<lua::table>();
     lua::any name = item_tbl["name"];
@@ -174,13 +174,13 @@ void add_sumtype( string_view ns, string_view name,
 
     expr::Alternative alt;
 
-    string     alt_name    = alt_tbl["name"].as<string>();
+    string alt_name        = alt_tbl["name"].as<string>();
     lua::table alt_members = alt_tbl["obj"].as<lua::table>();
     alt.name               = alt_name;
     for( int j = 1; alt_members[j] != lua::nil; ++j ) {
-      lua::table         var = alt_members[j].as<lua::table>();
-      string             var_name = var["name"].as<string>();
-      string             var_type = var["obj"].as<string>();
+      lua::table var  = alt_members[j].as<lua::table>();
+      string var_name = var["name"].as<string>();
+      string var_type = var["obj"].as<string>();
       expr::StructMember alt_member{ .type = var_type,
                                      .var  = var_name };
       alt.members.push_back( alt_member );
@@ -210,9 +210,9 @@ void add_interface( string_view ns, string_view name,
       lua::table context = method_tbl["obj"].as<lua::table>();
       for( int j = 1; context[j] != lua::nil; ++j ) {
         expr::MethodArg method_arg;
-        lua::table      var = context[j].as<lua::table>();
-        method_arg.var      = var["name"].as<string>();
-        method_arg.type     = var["obj"].as<string>();
+        lua::table var  = context[j].as<lua::table>();
+        method_arg.var  = var["name"].as<string>();
+        method_arg.type = var["obj"].as<string>();
         interface.context.members.push_back( method_arg );
       }
       continue;
@@ -235,14 +235,14 @@ void add_interface( string_view ns, string_view name,
 
     expr::Method method;
 
-    string     method_name = method_tbl["name"].as<string>();
+    string method_name = method_tbl["name"].as<string>();
     lua::table method_members =
         method_tbl["obj"].as<lua::table>();
     method.name = method_name;
     for( int j = 1; method_members[j] != lua::nil; ++j ) {
-      lua::table var      = method_members[j].as<lua::table>();
-      string     var_name = var["name"].as<string>();
-      string     var_type = var["obj"].as<string>();
+      lua::table var  = method_members[j].as<lua::table>();
+      string var_name = var["name"].as<string>();
+      string var_type = var["obj"].as<string>();
       if( var_name == "returns" ) {
         method.return_type = var_type;
         continue;
@@ -351,11 +351,11 @@ expr::Rds parse( string_view filename,
     lua::any v = entities[i];
     CHECK( lua::type_of( v ) == lua::type::table,
            "type of entity is not table." );
-    lua::table tbl  = v.as<lua::table>();
-    string     name = tbl["name"].as<string>();
-    string     type = tbl["type"].as<string>();
-    string     ns   = tbl["ns"].as<string>();
-    lua::table obj  = tbl["obj"].as<lua::table>();
+    lua::table tbl = v.as<lua::table>();
+    string name    = tbl["name"].as<string>();
+    string type    = tbl["type"].as<string>();
+    string ns      = tbl["ns"].as<string>();
+    lua::table obj = tbl["obj"].as<lua::table>();
     // fmt::print( "name: {}, type: {}\n", name, type );
     if( type == "enum" )
       add_enum( ns, name, obj, rds );

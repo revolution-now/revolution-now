@@ -65,8 +65,8 @@ auto key_func( SSConst const& ss, GenericUnitId id ) {
 // unit stack. It sorts so that the top unit will be first in the
 // resulting sorted list.
 bool unit_stack_ordering_cmp( SSConst const& ss,
-                              GenericUnitId  left,
-                              GenericUnitId  right ) {
+                              GenericUnitId left,
+                              GenericUnitId right ) {
   return key_func( ss, left ) > key_func( ss, right );
 }
 
@@ -123,7 +123,7 @@ maybe<NativeUnitId> highest_defense_native_unit_on_square(
 /****************************************************************
 ** Public API
 *****************************************************************/
-void sort_unit_stack( SSConst const&         ss,
+void sort_unit_stack( SSConst const& ss,
                       vector<GenericUnitId>& units ) {
   sort( units.begin(), units.end(),
         [&]( GenericUnitId left, GenericUnitId right ) {
@@ -131,7 +131,7 @@ void sort_unit_stack( SSConst const&         ss,
         } );
 }
 
-void sort_native_unit_stack( SSConst const&        ss,
+void sort_native_unit_stack( SSConst const& ss,
                              vector<NativeUnitId>& units ) {
   sort( units.begin(), units.end(),
         [&]( NativeUnitId left, NativeUnitId right ) {
@@ -139,7 +139,7 @@ void sort_native_unit_stack( SSConst const&        ss,
         } );
 }
 
-void sort_euro_unit_stack( SSConst const&  ss,
+void sort_euro_unit_stack( SSConst const& ss,
                            vector<UnitId>& units ) {
   sort( units.begin(), units.end(),
         [&]( UnitId left, UnitId right ) {
@@ -148,7 +148,7 @@ void sort_euro_unit_stack( SSConst const&  ss,
 }
 
 UnitId select_euro_unit_defender( SSConst const& ss,
-                                  Coord          tile ) {
+                                  Coord tile ) {
   // There should not be a colony on this square; if there is
   // then we're supposed to use the other dedicated function.
   CHECK( !ss.colonies.maybe_from_coord( tile ).has_value() );
@@ -158,7 +158,7 @@ UnitId select_euro_unit_defender( SSConst const& ss,
 }
 
 NativeUnitId select_native_unit_defender( SSConst const& ss,
-                                          Coord          tile ) {
+                                          Coord tile ) {
   UNWRAP_CHECK(
       defender_id,
       highest_defense_native_unit_on_square( ss, tile ) );
@@ -166,7 +166,7 @@ NativeUnitId select_native_unit_defender( SSConst const& ss,
 }
 
 UnitId select_colony_defender( SSConst const& ss,
-                               Colony const&  colony ) {
+                               Colony const& colony ) {
   // Attacking a colony first attacks all military units, then
   // once those are gone, the next attack will attack either a
   // non-military unit at the gate (if there is one) or a

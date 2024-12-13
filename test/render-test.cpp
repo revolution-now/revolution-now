@@ -24,14 +24,11 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[render] tile_for_colony" ) {
-}
+TEST_CASE( "[render] tile_for_colony" ) {}
 
-TEST_CASE( "[render] dwelling_tile_for_tribe" ) {
-}
+TEST_CASE( "[render] dwelling_tile_for_tribe" ) {}
 
-TEST_CASE( "[render] tile_for_dwelling" ) {
-}
+TEST_CASE( "[render] tile_for_dwelling" ) {}
 
 } // namespace
 } // namespace rn

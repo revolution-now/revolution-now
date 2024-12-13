@@ -73,7 +73,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
   World w;
   w.update_terrain_connectivity();
   Player& player = w.default_player();
-  Coord   coord{ .x = 8, .y = 5 };
+  Coord coord{ .x = 8, .y = 5 };
 
   UnitId caravel =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
@@ -141,7 +141,7 @@ TEST_CASE( "[harbor-units] is_unit_?" ) {
 }
 
 TEST_CASE( "[harbor-units] harbor_units_?" ) {
-  World   w;
+  World w;
   Player& player = w.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
@@ -190,9 +190,9 @@ TEST_CASE( "[harbor-units] harbor_units_?" ) {
 }
 
 TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
-  World   w;
+  World w;
   Player& player = w.default_player();
-  UnitId  id1 =
+  UnitId id1 =
       create_unit_in_harbor( w.ss(), w.player( e_nation::dutch ),
                              e_unit_type::soldier );
   UnitId id2 =
@@ -220,7 +220,7 @@ TEST_CASE( "[harbor-units] create_unit_in_harbor" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
-  World   w;
+  World w;
   Player& player = w.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
@@ -239,10 +239,10 @@ TEST_CASE( "[harbor-units] unit_sail_to_new_world" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
-  World       w;
-  Player&     player = w.default_player();
+  World w;
+  Player& player = w.default_player();
   Coord const coord{ .x = 8, .y = 5 };
-  UnitId      caravel1 =
+  UnitId caravel1 =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( caravel1 ) ==
            nothing );
@@ -256,7 +256,7 @@ TEST_CASE( "[harbor-units] unit_sail_to_harbor" ) {
 }
 
 TEST_CASE( "[harbor-units] unit_move_to_port" ) {
-  World   w;
+  World w;
   Player& player = w.default_player();
 
   // Add units.
@@ -286,7 +286,7 @@ TEST_CASE( "[harbor-units] unit_move_to_port" ) {
   UnitId free_colonist2 =
       w.add_unit_in_port( e_unit_type::free_colonist ).id();
 
-  Coord  coord{ .x = 4, .y = 4 };
+  Coord coord{ .x = 4, .y = 4 };
   UnitId soldier1 =
       w.add_unit_on_map( e_unit_type::soldier, coord ).id();
   UnitId soldier2 =
@@ -395,7 +395,7 @@ TEST_CASE( "[harbor-units] advance_unit_on_high_seas" ) {
   World w;
   w.update_terrain_connectivity();
   Player& player = w.default_player();
-  Coord   coord{ .x = 8, .y = 5 };
+  Coord coord{ .x = 8, .y = 5 };
 
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
@@ -586,7 +586,7 @@ TEST_CASE(
 
   SECTION( "friendly unit" ) {
     Coord const ship_loc{ .x = 8, .y = 5 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -612,7 +612,7 @@ TEST_CASE(
 
   SECTION( "foreign unit" ) {
     Coord const ship_loc{ .x = 8, .y = 5 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -639,7 +639,7 @@ TEST_CASE(
 
   SECTION( "map edge + foreign units" ) {
     Coord const ship_loc{ .x = 0, .y = 0 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -659,7 +659,7 @@ TEST_CASE(
 
   SECTION( "map edge + a lot foreign units" ) {
     Coord const ship_loc{ .x = 0, .y = 0 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -709,7 +709,7 @@ TEST_CASE(
 
   SECTION( "no squares available due to foreign units" ) {
     Coord const ship_loc{ .x = 0, .y = 0 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -735,7 +735,7 @@ TEST_CASE(
 
   SECTION( "no squares available due to inland lake" ) {
     Coord const ship_loc{ .x = 0, .y = 0 };
-    UnitId      dutch_caravel =
+    UnitId dutch_caravel =
         w.add_unit_on_map( e_unit_type::caravel, ship_loc,
                            e_nation::dutch )
             .id();
@@ -774,9 +774,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "[harbor-units] sail west edge" ) {
-  World       w;
+  World w;
   Coord const coord{ .x = 0, .y = 0 };
-  UnitId      id =
+  UnitId id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            nothing );
@@ -820,9 +820,9 @@ TEST_CASE( "[harbor-units] sail west edge" ) {
 }
 
 TEST_CASE( "[harbor-units] sail east edge" ) {
-  World       w;
+  World w;
   Coord const coord{ .x = 9, .y = 0 };
-  UnitId      id =
+  UnitId id =
       w.add_unit_on_map( e_unit_type::caravel, coord ).id();
   REQUIRE( w.units().maybe_harbor_view_state_of( id ) ==
            nothing );
@@ -911,7 +911,7 @@ TEST_CASE(
 TEST_CASE(
     "[harbor-units] update_harbor_selected_unit unit "
     "destruction" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );

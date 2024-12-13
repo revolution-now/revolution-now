@@ -54,11 +54,11 @@ constexpr W kDividerWidth  = 1;
 
 struct ConsolePlane::Impl : public IPlane {
   // State.
-  Terminal&                    terminal_;
-  bool                         show_{ false };
-  double                       show_percent_{ 0.0 };
+  Terminal& terminal_;
+  bool show_{ false };
+  double show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
-  int                          history_index_{ 0 };
+  int history_index_{ 0 };
 
   Impl( Terminal& terminal ) : terminal_( terminal ) {
     // FIXME: move this into method that gets called when logical
@@ -129,7 +129,7 @@ struct ConsolePlane::Impl : public IPlane {
 
     // Render edit box.
     Delta const edit_box_delta = le_view_.get().delta();
-    auto        console_edit_rect =
+    auto console_edit_rect =
         Rect::from( console_rect.lower_left() -
                         Delta{ .h = edit_box_delta.h },
                     edit_box_delta );
@@ -156,7 +156,7 @@ struct ConsolePlane::Impl : public IPlane {
 
     // Render the log
     int const max_lines = text_rect.h / kFontHeight;
-    auto      log_px_start =
+    auto log_px_start =
         text_rect.lower_left() - Delta{ .h = H{ kFontHeight } };
     for( auto i = 0; i < max_lines; ++i ) {
       auto maybe_line = terminal_.line( i );

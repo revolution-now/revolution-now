@@ -99,11 +99,11 @@ namespace rr {
 ** RendererConfig
 *****************************************************************/
 struct RendererConfig {
-  gfx::size                             logical_screen_size = {};
-  gfx::size                             max_atlas_size      = {};
+  gfx::size logical_screen_size = {};
+  gfx::size max_atlas_size      = {};
   std::vector<SpriteSheetConfig> const& sprite_sheets;
   std::vector<AsciiFontSheetConfig> const& font_sheets;
-  base::maybe<std::string>                 dump_atlas_png = {};
+  base::maybe<std::string> dump_atlas_png = {};
 };
 
 /****************************************************************
@@ -115,7 +115,7 @@ struct BufferInfo {
 
 struct RendererMods {
   PainterMods painter_mods = {};
-  BufferInfo  buffer_mods  = {};
+  BufferInfo buffer_mods   = {};
 };
 
 template<typename Func>
@@ -184,7 +184,7 @@ struct Renderer : IRenderer {
   long buffer_vertex_cur_pos(
       base::maybe<e_render_buffer> buffer = base::nothing );
 
-  long   buffer_vertex_count( e_render_buffer buffer );
+  long buffer_vertex_count( e_render_buffer buffer );
   double buffer_size_mb( e_render_buffer buffer );
 
   // Will run the function and return the range corresponding to

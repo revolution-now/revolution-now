@@ -42,8 +42,8 @@ base::maybe<table> try_get_metatable(
 
 void setmetatable( table tbl, table meta ) {
   cthread L = tbl.this_cthread();
-  c_api   C( L );
-  int     start = C.stack_size();
+  c_api C( L );
+  int start = C.stack_size();
   lua::push( L, tbl );
   lua::push( L, meta );
   C.setmetatable( -2 );

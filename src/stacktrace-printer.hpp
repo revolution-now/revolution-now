@@ -47,13 +47,13 @@ struct StackTracePrinter {
   using InclFrameCallback =
       std::function<bool( std::string const& )>;
 
-  bool                snippet;
+  bool snippet;
   bw::ColorMode::type color_mode;
-  bool                address;
-  bool                object;
-  int                 inliner_context_size;
-  int                 trace_context_size;
-  InclFrameCallback   include_frame_callback;
+  bool address;
+  bool object;
+  int inliner_context_size;
+  int trace_context_size;
+  InclFrameCallback include_frame_callback;
 
   StackTracePrinter()
     : snippet( true ),
@@ -67,7 +67,7 @@ struct StackTracePrinter {
   template<typename ST>
   FILE* print( ST& st, FILE* fp = stderr ) {
     bw::cfile_streambuf obuf( fp );
-    std::ostream        os( &obuf );
+    std::ostream os( &obuf );
     print_stacktrace( st, os );
     return fp;
   }
@@ -82,7 +82,7 @@ struct StackTracePrinter {
   FILE* print( IT begin, IT end, FILE* fp = stderr,
                size_t thread_id = 0 ) {
     bw::cfile_streambuf obuf( fp );
-    std::ostream        os( &obuf );
+    std::ostream os( &obuf );
     print_stacktrace( begin, end, os, thread_id );
     return fp;
   }
@@ -97,7 +97,7 @@ struct StackTracePrinter {
   bw::TraceResolver const& resolver() const { return _resolver; }
 
  private:
-  bw::TraceResolver  _resolver;
+  bw::TraceResolver _resolver;
   bw::SnippetFactory _snippets;
 
   template<typename ST>
@@ -123,7 +123,7 @@ struct StackTracePrinter {
     os << ":\n";
   }
 
-  void print_trace( std::ostream&            os,
+  void print_trace( std::ostream& os,
                     const bw::ResolvedTrace& trace ) {
     if( include_frame_callback )
       if( trace.source.filename.size() )
@@ -195,7 +195,7 @@ struct StackTracePrinter {
   void print_source_loc(
       std::ostream& os, const char* indent,
       const bw::ResolvedTrace::SourceLoc& source_loc,
-      void*                               addr = nullptr ) {
+      void* addr = nullptr ) {
     os << indent << "Source \"" << source_loc.filename
        << "\", line " << source_loc.line << ", in "
        << source_loc.function;

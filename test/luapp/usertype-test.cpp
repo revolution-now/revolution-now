@@ -30,7 +30,7 @@ using namespace std;
 using ::base::valid;
 
 struct CppOwnedType {
-  int    n = 5;
+  int n    = 5;
   double d = 9.9;
   string s = "hello";
 
@@ -54,7 +54,7 @@ LUA_USERDATA_TRAITS( CppOwnedType, owned_by_cpp ){};
 static_assert( HasUserdataOwnershipModel<CppOwnedType> );
 
 struct LuaOwnedType {
-  int    n = 5;
+  int n    = 5;
   double d = 9.9;
   string s = "hello";
 
@@ -89,7 +89,7 @@ struct HasMemberFunctionsWithCppTypesAsArgs {
 
   // For return values, these are the only two that will work
   // with return values.
-  LuaOwnedType  lua_owned_r() const { return {}; }
+  LuaOwnedType lua_owned_r() const { return {}; }
   CppOwnedType& cpp_owned_ref_r() const {
     static CppOwnedType o;
     return o;

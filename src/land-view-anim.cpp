@@ -117,9 +117,9 @@ double depixelation_delta_from_stage( double initial_delta,
 // TODO: move this into a dedicated pixelation module and unit
 // test it.
 wait<> pixelation_stage_throttler( co::latch& hold,
-                                   double&    stage,
+                                   double& stage,
                                    bool negative = false ) {
-  double const        sign = negative ? -1.0 : 1.0;
+  double const sign = negative ? -1.0 : 1.0;
   static double const pixelation_per_frame =
       config_gfx.pixelation_curve.pixelation_per_frame
           [config_gfx.pixelation_curve.curve_type];
@@ -359,18 +359,18 @@ wait<> LandViewAnimator::slide_throttler_impl(
 wait<> LandViewAnimator::slide_throttler_slide( co::latch& hold,
                                                 GenericUnitId id,
                                                 e_direction d ) {
-  using Anim   = UnitAnimationState::slide;
-  auto  popper = add_unit_animation<Anim>( id );
-  Anim& slide  = popper.get();
+  using Anim  = UnitAnimationState::slide;
+  auto popper = add_unit_animation<Anim>( id );
+  Anim& slide = popper.get();
   co_await slide_throttler_impl( hold, d, slide.slide );
 }
 
 wait<> LandViewAnimator::slide_throttler_talk( co::latch& hold,
                                                GenericUnitId id,
                                                e_direction d ) {
-  using Anim   = UnitAnimationState::talk;
-  auto  popper = add_unit_animation<Anim>( id );
-  Anim& slide  = popper.get();
+  using Anim  = UnitAnimationState::talk;
+  auto popper = add_unit_animation<Anim>( id );
+  Anim& slide = popper.get();
   co_await slide_throttler_impl( hold, d, slide.slide );
 }
 
@@ -588,7 +588,7 @@ wait<> LandViewAnimator::animate_sequence_impl(
     AnimationSequence const& seq, bool hold_last ) {
   for( size_t i = 0; i < seq.sequence.size(); ++i ) {
     vector<AnimationAction> const& sub_seq = seq.sequence[i];
-    vector<wait<>>                 ws;
+    vector<wait<>> ws;
     ws.reserve( sub_seq.size() );
     // The latch is to synchronize the animations so that they
     // all end at the same time. If one is shorter than the other
@@ -607,10 +607,10 @@ wait<> LandViewAnimator::animate_sequence_impl(
     // tended to be cancelled at some point by the caller.
     bool const is_last     = ( i == seq.sequence.size() - 1 );
     bool const should_hold = ( is_last && hold_last );
-    int const  latch_count = should_hold
+    int const latch_count  = should_hold
                                  ? numeric_limits<int>::max()
                                  : sub_seq.size();
-    co::latch  hold( latch_count );
+    co::latch hold( latch_count );
     for( AnimationAction const& action : sub_seq )
       ws.push_back( animate_action_primitive( action, hold ) );
     co_await co::all( std::move( ws ) );

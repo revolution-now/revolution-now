@@ -41,7 +41,7 @@ namespace rn {
 /****************************************************************
 ** UnitOwnershipChanger
 *****************************************************************/
-UnitOwnershipChanger::UnitOwnershipChanger( SS&    ss,
+UnitOwnershipChanger::UnitOwnershipChanger( SS& ss,
                                             UnitId unit_id )
   : ss_( ss ),
     unit_( ss.units.unit_for( unit_id ) ),
@@ -141,7 +141,7 @@ void UnitOwnershipChanger::change_to_colony(
 
 void UnitOwnershipChanger::change_to_harbor(
     PortStatus const& port_status,
-    maybe<Coord>      sailed_from ) const {
+    maybe<Coord> sailed_from ) const {
   change_to_free();
   ss_.units.change_to_harbor_view( unit_id_, port_status,
                                    sailed_from );

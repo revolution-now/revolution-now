@@ -106,7 +106,7 @@ valid_or<generic_err> CargoHold::validate(
       if( auto* u =
               get_if<Cargo::unit>( &( cargo->contents ) ) ) {
         auto const& unit = units_state.unit_for( u->id );
-        auto        occupies =
+        auto occupies =
             unit.desc().cargo_slots_occupies.value_or( 0 );
         TRUE_OR_RETURN_GENERIC_ERR( occupies > 0 );
         // Check for overflow slots.
@@ -237,7 +237,7 @@ void CargoHold::compactify( UnitsState const& units_state ) {
   auto like_types =
       rl::all( comms ).group_by_L( _1.type == _2.type );
   for( auto group : like_types ) {
-    auto              type = group.begin()->type;
+    auto type = group.begin()->type;
     vector<Commodity> new_comms;
     new_comms.push_back(
         Commodity{ /*type=*/type, /*quantity=*/0 } );
@@ -357,7 +357,7 @@ ND bool CargoHold::fits_somewhere_with_item_removed(
 }
 
 bool CargoHold::fits_somewhere( UnitsState const& units_state,
-                                Cargo const&      cargo,
+                                Cargo const& cargo,
                                 int starting_slot ) const {
   CargoHold new_hold = *this;
   // Do this so that this tmp cargo hold does not get destroyed
@@ -369,7 +369,7 @@ bool CargoHold::fits_somewhere( UnitsState const& units_state,
 }
 
 bool CargoHold::try_add_somewhere( UnitsState const& units_state,
-                                   Cargo const&      cargo,
+                                   Cargo const& cargo,
                                    int starting_from ) {
   if( slots_total() == 0 ) return false;
   CHECK( starting_from >= 0 && starting_from < slots_total() );
@@ -464,8 +464,8 @@ bool CargoHold::try_add( UnitsState const& units_state,
   auto was_added = overload_visit(
       cargo,
       [&]( Cargo::unit u ) {
-        UnitId id             = u.id;
-        auto   maybe_occupied = units_state.unit_for( id )
+        UnitId id           = u.id;
+        auto maybe_occupied = units_state.unit_for( id )
                                   .desc()
                                   .cargo_slots_occupies;
         if( !maybe_occupied ) return false;

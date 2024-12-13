@@ -146,7 +146,7 @@ int RealGui::total_windows_created() const {
 }
 
 wait<unordered_map<int, bool>> RealGui::check_box_selector(
-    string const&                           title,
+    string const& title,
     unordered_map<int, CheckBoxInfo> const& items ) {
   using namespace ui;
 
@@ -191,13 +191,13 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
 
   // Create window.
   WindowManager& wm = window_plane().manager();
-  Window         window( wm );
+  Window window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();
   // Must be done after auto-padding.
   window.center_me();
 
-  ui::e_ok_cancel const    finished = co_await buttons->next();
+  ui::e_ok_cancel const finished = co_await buttons->next();
   unordered_map<int, bool> res;
   for( auto& [item, info] : items ) res[item] = info.on;
   if( finished == ui::e_ok_cancel::cancel ) co_return res;

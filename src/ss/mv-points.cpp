@@ -87,7 +87,7 @@ void lua_push( lua::cthread L, MovementPoints mv_pts ) {
 /****************************************************************
 ** Cdr
 *****************************************************************/
-cdr::value to_canonical( cdr::converter&       conv,
+cdr::value to_canonical( cdr::converter& conv,
                          MovementPoints const& o,
                          cdr::tag_t<MovementPoints> ) {
   cdr::table tbl;

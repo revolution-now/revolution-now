@@ -27,9 +27,9 @@ struct ResolutionTolerance {
 };
 
 struct ResolutionRatingOptions {
-  bool                prefer_fullscreen   = {};
-  ResolutionTolerance tolerance           = {};
-  double              ideal_pixel_size_mm = {};
+  bool prefer_fullscreen        = {};
+  ResolutionTolerance tolerance = {};
+  double ideal_pixel_size_mm    = {};
   // When this is true, only one of each logical resolution will
   // be retained, namely the one with the best score. In practice
   // this means that, for a given logical resolution, only the
@@ -39,10 +39,10 @@ struct ResolutionRatingOptions {
 };
 
 struct ResolutionAnalysisOptions {
-  Monitor                 monitor                      = {};
-  size                    physical_window              = {};
-  ResolutionRatingOptions rating_options               = {};
-  std::span<size const>   supported_logical_dimensions = {};
+  Monitor monitor                                    = {};
+  size physical_window                               = {};
+  ResolutionRatingOptions rating_options             = {};
+  std::span<size const> supported_logical_dimensions = {};
 };
 
 /****************************************************************

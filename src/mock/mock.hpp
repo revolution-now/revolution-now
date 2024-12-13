@@ -163,7 +163,7 @@ struct RetHolder<void> {
 template<typename T>
 struct exhaust_checker {
   std::string queue_name_;
-  T*          p_;
+  T* p_;
 
   exhaust_checker( std::string_view queue_name, T* p )
     : queue_name_( queue_name ), p_( p ) {}
@@ -263,7 +263,7 @@ struct Responder<RetT, std::tuple<Args...>,
     auto check_argument [[maybe_unused]] =
         [&]<size_t ArgIdx>(
             std::integral_constant<size_t, ArgIdx> ) {
-          auto&&      arg = std::get<ArgIdx>( args );
+          auto&& arg = std::get<ArgIdx>( args );
           auto const& matcher_wrapper =
               std::get<ArgIdx>( matchers_ );
           auto const& matcher = matcher_wrapper.matcher();
@@ -363,7 +363,7 @@ struct Responder<RetT, std::tuple<Args...>,
   }
 
   bool finished() const { return times_expected_ == 0; }
-  int  times_remaining() const { return times_expected_; }
+  int times_remaining() const { return times_expected_; }
 
   void clear_expectations() { times_expected_ = 0; }
 
@@ -446,22 +446,22 @@ struct Responder<RetT, std::tuple<Args...>,
 
  private:
   base::maybe<base::unique_func<void()>> invokes_ = {};
-  base::maybe<RetHolder<RetT>>           ret_     = {};
+  base::maybe<RetHolder<RetT>> ret_               = {};
   // setters_t and array_setters_t are wrapped in a maybe for ef-
   // ficiency purposes; in most cases there will be no parameter
   // setting, and so then they will remain `nothing` and when the
   // mock is called, we will not have to iterate through the
   // tuple members to check if there are any that need to be set.
-  base::maybe<setters_t>       setters_       = {};
+  base::maybe<setters_t> setters_             = {};
   base::maybe<array_setters_t> array_setters_ = {};
-  std::string                  fn_name_;
-  matchers_t                   matchers_;
-  int                          times_expected_;
+  std::string fn_name_;
+  matchers_t matchers_;
+  int times_expected_;
 };
 
 template<typename R>
 struct ResponderQueue {
-  std::string   fn_name_ = {};
+  std::string fn_name_   = {};
   std::queue<R> answers_ = {};
 
   exhaust_checker<std::queue<R>> checker_ = { fn_name_,

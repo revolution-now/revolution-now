@@ -24,10 +24,10 @@
 namespace gl {
 
 struct DriverInfo {
-  std::string vendor           = {};
-  std::string version          = {};
-  std::string renderer         = {};
-  gfx::size   max_texture_size = {};
+  std::string vendor         = {};
+  std::string version        = {};
+  std::string renderer       = {};
+  gfx::size max_texture_size = {};
 
   std::string pretty_print() const;
 };
@@ -45,7 +45,7 @@ struct InitResult {
 struct InitOptions {
   // Setting this to true will allow for logging, but it will be
   // off by default.
-  bool      include_glfunc_logging             = false;
+  bool include_glfunc_logging                  = false;
   gfx::size initial_window_physical_pixel_size = {};
 };
 

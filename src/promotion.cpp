@@ -66,7 +66,7 @@ maybe<e_unit_type> cleared_expertise( e_unit_type type ) {
 // behind this function is a bit complicated; see the comments in
 // the Rds definition for UnitPromotion as well as the function
 // implementation for more info.
-maybe<UnitType> promoted_unit_type( UnitType        ut,
+maybe<UnitType> promoted_unit_type( UnitType ut,
                                     e_unit_activity activity ) {
   if( ut.type() == ut.base_type() ) {
     UNWRAP_RETURN( promo,

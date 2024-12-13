@@ -153,8 +153,8 @@ struct table {
   bool contains( std::string const& key ) const;
 
   size_t size() const;
-  long   ssize() const;
-  bool   empty() const;
+  long ssize() const;
+  bool empty() const;
 
   bool operator==( table const& rhs ) const;
 
@@ -209,7 +209,7 @@ struct list {
 
   list( std::vector<value>&& v );
 
-  value&       operator[]( size_t idx );
+  value& operator[]( size_t idx );
   value const& operator[]( size_t idx ) const;
 
   auto begin() { return o_.begin(); }
@@ -269,7 +269,7 @@ struct value : public value_base {
   value( MapTo<value> const& m ) : value( table( m ) ) {}
   value( MapTo<value>&& m ) : value( table( std::move( m ) ) ) {}
 
-  value_base&       as_base() { return *this; }
+  value_base& as_base() { return *this; }
   value_base const& as_base() const { return *this; }
 };
 
@@ -350,7 +350,7 @@ struct key_proxy {
 
 // This allows using syntax like table{ "one"_key=123 } syntax
 // when manually constructing tables from initializer lists.
-inline detail::key_proxy operator""_key( char const*   key,
+inline detail::key_proxy operator""_key( char const* key,
                                          unsigned long len ) {
   return detail::key_proxy( key, len );
 }

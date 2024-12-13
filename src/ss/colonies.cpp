@@ -33,7 +33,7 @@ namespace rn {
 ** wrapped::ColoniesState
 *****************************************************************/
 base::valid_or<string> wrapped::ColoniesState::validate() const {
-  unordered_set<Coord>  used_coords;
+  unordered_set<Coord> used_coords;
   unordered_set<string> used_names;
 
   auto const kFirstColonyId = rn::ColoniesState::kFirstColonyId;
@@ -106,7 +106,7 @@ base::valid_or<std::string> ColoniesState::validate() const {
                    colony.id );
 
     // Colony location matches coord.
-    Coord const&          coord = colony.location;
+    Coord const& coord = colony.location;
     base::maybe<ColonyId> actual_colony_id =
         base::lookup( colony_from_coord_, coord );
     REFL_VALIDATE(

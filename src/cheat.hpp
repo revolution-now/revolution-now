@@ -46,7 +46,7 @@ bool cheat_mode_enabled( SSConst const& ss );
 // to operate should use this function to get it, for a uniform
 // user experience.
 maybe<gfx::point> cheat_target_square( SSConst const& ss,
-                                       TS&            ts );
+                                       TS& ts );
 
 // Ask the user which map they want to reveal.
 wait<> cheat_reveal_map( SS& ss, TS& ts );
@@ -102,9 +102,9 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
                                 Player const& player,
                                 Colony const& colony );
 
-void cheat_increase_commodity( Colony&     colony,
+void cheat_increase_commodity( Colony& colony,
                                e_commodity type );
-void cheat_decrease_commodity( Colony&     colony,
+void cheat_decrease_commodity( Colony& colony,
                                e_commodity type );
 
 // This will perform all of the actions on the colony that are

@@ -83,7 +83,7 @@ struct ColonyLandView : public ui::View,
   // Implement IDragSink.
   maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int,
-      Coord const&         where ) const override;
+      Coord const& where ) const override;
 
   // Implement IDragSinkCheck.
   wait<base::valid_or<DragRejection>> sink_check(
@@ -91,7 +91,7 @@ struct ColonyLandView : public ui::View,
 
   // Implement IDragSink.
   wait<> drop( ColViewObject const& o,
-               Coord const&         where ) override;
+               Coord const& where ) override;
 
   ColonyJob make_job_for_square( e_direction d ) const;
 
@@ -100,7 +100,7 @@ struct ColonyLandView : public ui::View,
       Coord const& where ) const override;
 
   struct Draggable {
-    e_direction   d   = {};
+    e_direction d     = {};
     e_outdoor_job job = {};
   };
 
@@ -115,15 +115,15 @@ struct ColonyLandView : public ui::View,
   wait<> disown_dragged_object() override;
 
   void draw_land_3x3( rr::Renderer& renderer,
-                      Coord         coord ) const;
+                      Coord coord ) const;
 
   void draw_land_6x6( rr::Renderer& renderer,
-                      Coord         coord ) const;
+                      Coord coord ) const;
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
-  e_render_mode    mode_;
+  e_render_mode mode_;
   maybe<Draggable> dragging_;
   // These are squares that are occupied by colonists from other
   // colonies, either friendly or foreign. In the original game,

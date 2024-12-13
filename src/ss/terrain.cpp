@@ -266,7 +266,7 @@ LUA_STARTUP( lua::state& st ) {
     u["for_nation"] = [&]( U& obj, e_nation c )
         -> base::maybe<PlayerTerrain&> { return obj[c]; };
 
-    u["add_nation"] = [&]( U&       obj,
+    u["add_nation"] = [&]( U& obj,
                            e_nation c ) -> PlayerTerrain& {
       if( !obj[c].has_value() ) obj[c].emplace();
       return *obj[c];

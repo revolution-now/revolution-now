@@ -68,13 +68,13 @@ AnimationSequence anim_seq_for_naval_battle(
 // colony, or lose and not capture it). Note that this will not
 // include the final march into the colony.
 AnimationSequence anim_seq_for_undefended_colony(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat );
 
 // For when a dwelling gets burned.
 AnimationSequence anim_seq_for_dwelling_burn(
     SSConst const& ss, IVisibility const& viz,
-    UnitId                       attacker_id,
+    UnitId attacker_id,
     EuroUnitCombatOutcome const& attacker_outcome,
     NativeUnitId defender_id, DwellingId dwelling_id,
     DwellingCombatOutcome const& dwelling_destruction );

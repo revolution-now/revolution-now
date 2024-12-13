@@ -54,16 +54,16 @@ MovingAverage frame_rate( chrono::seconds( 3 ) );
 EventCountMap g_event_counts;
 
 struct FrameSubscriptionTick {
-  bool       done = false; // for one-time notifications
+  bool done = false; // for one-time notifications
   FrameCount interval{ 1 };
-  uint64_t   last_message{ 0 };
+  uint64_t last_message{ 0 };
   FrameSubscriptionFunc func;
 };
 
 struct FrameSubscriptionTime {
   bool done = false; // for one-time notifications
-  chrono::microseconds  interval;
-  Time_t                last_message{};
+  chrono::microseconds interval;
+  Time_t last_message{};
   FrameSubscriptionFunc func;
 };
 
@@ -79,7 +79,7 @@ struct FrameSubscription {
   }
 
   FrameSubscriptionData data;
-  int64_t               id = 0;
+  int64_t id = 0;
 };
 
 vector<FrameSubscription>& subscriptions() {
@@ -123,7 +123,7 @@ void notify_subscribers() {
 }
 
 struct DeferredEvents {
-  vector<input::win_event_t>        window;
+  vector<input::win_event_t> window;
   vector<input::resolution_event_t> resolution;
 };
 
@@ -132,9 +132,9 @@ using FrameLoopBodyFunc = base::function_ref<void(
     rr::Renderer&, Planes&, DeferredEvents&,
     InputReceivedFunc )>;
 
-void frame_loop_scheduler( wait<> const&     what,
-                           rr::Renderer&     renderer,
-                           Planes&           planes,
+void frame_loop_scheduler( wait<> const& what,
+                           rr::Renderer& renderer,
+                           Planes& planes,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
 
@@ -170,7 +170,7 @@ void frame_loop_scheduler( wait<> const&     what,
   }
 }
 
-static bool try_defer( DeferredEvents&       deferred_events,
+static bool try_defer( DeferredEvents& deferred_events,
                        input::event_t const& e ) {
   using namespace input;
   SWITCH( e ) {
@@ -191,7 +191,7 @@ static bool try_defer( DeferredEvents&       deferred_events,
 
 // Called once per frame.
 void frame_loop_body( rr::Renderer& renderer, Planes& planes,
-                      DeferredEvents&   deferred_events,
+                      DeferredEvents& deferred_events,
                       InputReceivedFunc input_received ) {
   // ----------------------------------------------------------
   // Step: Notify
@@ -262,7 +262,7 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   for( auto& q = input::event_queue(); !q.empty(); ) {
     input_received();
     input::event_t const& event = q.front();
-    bool const            was_deferred =
+    bool const was_deferred =
         try_defer( deferred_events, event );
     if( !was_deferred ) planes.get().input( event );
     q.pop();
@@ -302,7 +302,7 @@ int64_t subscribe_to_frame_tick( FrameSubscriptionFunc func,
 }
 
 int64_t subscribe_to_frame_tick( FrameSubscriptionFunc func,
-                                 chrono::microseconds  n,
+                                 chrono::microseconds n,
                                  bool repeating ) {
   auto& vec =
       ( repeating ? subscriptions : subscriptions_oneoff )();
@@ -326,7 +326,7 @@ void unsubscribe_frame_tick( int64_t id ) {
 EventCountMap& event_counts() { return g_event_counts; }
 
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
-double   avg_frame_rate() { return frame_rate.average(); }
+double avg_frame_rate() { return frame_rate.average(); }
 
 void frame_loop( Planes& planes, wait<> const& what,
                  rr::Renderer& renderer ) {

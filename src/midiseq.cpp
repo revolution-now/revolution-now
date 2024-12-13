@@ -174,7 +174,7 @@ class MidiIO {
  private:
   MidiIO() = default;
 
-  double             master_volume_{ 1.0 };
+  double master_volume_{ 1.0 };
   array<uint8_t, 16> midi_requested_volumes_{}; // init to zeros
 
   vector<unsigned char> last_message_;
@@ -236,7 +236,7 @@ class MidiIO {
   }
 
   void send_midi_message_impl( unsigned char* bytes,
-                               size_t         size ) {
+                               size_t size ) {
     // Save the message for debugging purposes.
     last_message_.resize( size );
     for( size_t i = 0; i < size; ++i )
@@ -320,7 +320,7 @@ void rtmidi_error_callback( RtMidiError::Type,
       return;
     }
     MidiIO& mio = g_midi.value();
-    string  lms = "last message sent:";
+    string lms  = "last message sent:";
     for( size_t i = 0; i < mio.last_message_.size(); i++ )
       lms += fmt::format( " {:<3x}", mio.last_message_[i] );
     lg.debug( "{}", lms );
@@ -421,10 +421,10 @@ class MidiCommunication {
   // The midi thread holds its state here and updates this when-
   // ever it changes.
   e_midiseq_state state_{ e_midiseq_state::stopped };
-  string          last_error_{};
-  queue<command>  commands_{};
-  maybe<double>   progress_{};
-  bool            running_commands_{ false };
+  string last_error_{};
+  queue<command> commands_{};
+  maybe<double> progress_{};
+  bool running_commands_{ false };
 };
 
 // Shared state between main thread and midi thread.
@@ -439,12 +439,12 @@ MidiCommunication g_midi_comm;
 // small intervals to avoid blocking.
 struct MidiPlayInfo {
   smf::MidiFile midifile;
-  int           current_event;
-  int           track;
-  Time_t        start_time;
+  int current_event;
+  int track;
+  Time_t start_time;
   maybe<Time_t> last_pause_time;
-  Duration_t    stoppage;
-  milliseconds  tune_duration;
+  Duration_t stoppage;
+  milliseconds tune_duration;
 };
 
 // May fail to load the file. NOTE: this method must be callable
@@ -576,9 +576,9 @@ void midi_thread_record_failure( FmtStr const& fmt_str,
 // lifetime until it is terminated.
 void midi_thread_impl() {
   maybe<MidiPlayInfo> maybe_info;
-  maybe<command>      cmd;
-  maybe<fs::path>     stem;
-  bool                time_to_go = false;
+  maybe<command> cmd;
+  maybe<fs::path> stem;
+  bool time_to_go = false;
   while( true ) {
     // If there are commands to process then mark that we are
     // running commands. Need to do this before entering into the

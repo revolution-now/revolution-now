@@ -61,12 +61,12 @@ namespace base {
 // to keep the checking.
 template<typename... Args>
 struct FmtStrAndLoc {
-  consteval FmtStrAndLoc( char const*          s,
+  consteval FmtStrAndLoc( char const* s,
                           std::source_location loc =
                               std::source_location::current() )
     : fs( s ), loc( loc ) {}
   fmt::format_string<Args...> fs;
-  std::source_location        loc;
+  std::source_location loc;
 };
 
 } // namespace base

@@ -26,7 +26,7 @@ namespace mock {
 ** Helpers.
 *****************************************************************/
 template<typename T>
-std::string stringify( T const&         o,
+std::string stringify( T const& o,
                        std::string_view unformattable ) {
   if constexpr( base::Show<T> ) {
     static bool constexpr kNeedQuotes =

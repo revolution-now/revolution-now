@@ -33,9 +33,9 @@ namespace lua {
 // `push` overload.
 
 // Pushes as a plane function with no upvalues.
-void push_stateless_lua_c_function( cthread       L,
+void push_stateless_lua_c_function( cthread L,
                                     LuaCFunction* func,
-                                    int           upvalues = 0 );
+                                    int upvalues = 0 );
 
 // Pushes the function as a Lua closure, where the upvalue is
 // function object.
@@ -157,8 +157,8 @@ void push_cpp_function_impl(
         -> std::tuple_element_t<Index, StorageArgs> {
       using elem_t =
           typename std::tuple_element_t<Index, StorageArgs>;
-      int  lua_idx = Index + 1;
-      auto m       = lua::get<elem_t>( L, lua_idx );
+      int lua_idx = Index + 1;
+      auto m      = lua::get<elem_t>( L, lua_idx );
       if( !m.has_value() )
         throw_lua_error(
             L,

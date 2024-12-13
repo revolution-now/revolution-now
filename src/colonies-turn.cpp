@@ -74,7 +74,7 @@ wait<bool> present_blocking_colony_update(
 // lect yes (if they ever do) then subsequent messages will still
 // be displayed but will not ask them.
 wait<bool> present_blocking_colony_updates(
-    IGui&                                    gui,
+    IGui& gui,
     vector<ColonyNotificationMessage> const& messages ) {
   bool should_zoom = false;
   for( ColonyNotificationMessage const& message : messages ) {

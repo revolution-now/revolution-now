@@ -136,15 +136,15 @@ struct World {
   // ------------------------------------------------------------
   // Creating units.
   // ------------------------------------------------------------
-  Unit& add_unit_in_port( e_unit_type     type,
+  Unit& add_unit_in_port( e_unit_type type,
                           maybe<e_nation> nation = nothing );
 
   NativeUnit& add_native_unit_on_map( e_native_unit_type type,
-                                      gfx::point         tile,
+                                      gfx::point tile,
                                       DwellingId dwelling_id );
 
   Unit& add_unit_on_map( UnitComposition const& comp,
-                         gfx::point             where,
+                         gfx::point where,
                          maybe<e_nation> nation = nothing );
 
   Unit& add_missionary_in_dwelling(
@@ -156,7 +156,7 @@ struct World {
 
   // This will create a unit that is registered in the game but
   // without any ownership.
-  Unit& add_free_unit( e_unit_type     type,
+  Unit& add_free_unit( e_unit_type type,
                        maybe<e_nation> nation = nothing );
 
   // Create a unit and add give it the specified indoor job in
@@ -166,7 +166,7 @@ struct World {
       e_unit_type type = e_unit_type::free_colonist );
 
   // Same as above but adds the expert colonist type for the job.
-  Unit& add_expert_unit_indoors( ColonyId     colony_id,
+  Unit& add_expert_unit_indoors( ColonyId colony_id,
                                  e_indoor_job indoor_job );
 
   // Create a unit and add give it the specified outdoor job in
@@ -174,11 +174,11 @@ struct World {
   Unit& add_unit_outdoors(
       ColonyId colony_id, e_direction d,
       e_outdoor_job outdoor_job,
-      e_unit_type   type = e_unit_type::free_colonist );
+      e_unit_type type = e_unit_type::free_colonist );
 
   // Same as above but adds the expert colonist type for the job.
-  Unit& add_expert_unit_outdoors( ColonyId      colony_id,
-                                  e_direction   d,
+  Unit& add_expert_unit_outdoors( ColonyId colony_id,
+                                  e_direction d,
                                   e_outdoor_job outdoor_job );
 
   // ------------------------------------------------------------
@@ -187,7 +187,7 @@ struct World {
   // Try to add the commodity into the cargo and fail if it
   // cannot be added.
   void add_commodity_in_cargo( Commodity const& comm,
-                               UnitId           holder,
+                               UnitId holder,
                                int starting_slot = 0 );
   // Adds a quantity of 100.
   void add_commodity_in_cargo( e_commodity type, UnitId holder,
@@ -208,7 +208,7 @@ struct World {
   // a valid colony therefore, but should be fine for testing.
   // This one should be preferred where it works, since it is
   // fastest.
-  Colony& add_colony( Coord           where,
+  Colony& add_colony( Coord where,
                       maybe<e_nation> nation = nothing );
 
   // Create a colony using the founder unit on the same square as
@@ -269,14 +269,14 @@ struct World {
   // starting bid price or any volumes, so the equilibrium price
   // won't be affected.
   void set_current_bid_price( e_commodity type,
-                              int         price_in_hundreds );
+                              int price_in_hundreds );
 
   // This will set both the current price and the starting price,
   // effectively setting the equilibrium price as well. But note
   // that this won't work for the processed goods which are in a
   // price group, and so this will check fail for those.
   void set_stable_bid_price( e_commodity type,
-                             int         price_in_hundreds );
+                             int price_in_hundreds );
 
   // This will set the price of the commodity to the middle of
   // its range, rounded down.
@@ -313,19 +313,19 @@ struct World {
   // state and return an error if any of them fail.
   base::valid_or<std::string> validate_colonies() const;
 
-  Player&       dutch();
-  Player&       english();
-  Player&       spanish();
-  Player&       french();
+  Player& dutch();
+  Player& english();
+  Player& spanish();
+  Player& french();
   Player const& dutch() const;
   Player const& english() const;
   Player const& spanish() const;
   Player const& french() const;
 
-  Player&       default_player();
+  Player& default_player();
   Player const& default_player() const;
 
-  Player&       player( maybe<e_nation> nation = nothing );
+  Player& player( maybe<e_nation> nation = nothing );
   Player const& player( maybe<e_nation> nation = nothing ) const;
 
   // ------------------------------------------------------------
@@ -338,53 +338,53 @@ struct World {
   // ------------------------------------------------------------
   FormatVersion& version();
   SettingsState& settings();
-  EventsState&   events();
-  UnitsState&    units();
-  PlayersState&  players();
-  TurnState&     turn();
+  EventsState& events();
+  UnitsState& units();
+  PlayersState& players();
+  TurnState& turn();
   ColoniesState& colonies();
-  NativesState&  natives();
+  NativesState& natives();
   LandViewState& land_view();
-  MapState&      map();
-  TerrainState&  terrain();
+  MapState& map();
+  TerrainState& terrain();
 
   FormatVersion const& version() const;
   SettingsState const& settings() const;
-  EventsState const&   events() const;
-  UnitsState const&    units() const;
-  PlayersState const&  players() const;
-  TurnState const&     turn() const;
+  EventsState const& events() const;
+  UnitsState const& units() const;
+  PlayersState const& players() const;
+  TurnState const& turn() const;
   ColoniesState const& colonies() const;
-  NativesState const&  natives() const;
+  NativesState const& natives() const;
   LandViewState const& land_view() const;
-  MapState const&      map() const;
-  TerrainState const&  terrain() const;
+  MapState const& map() const;
+  TerrainState const& terrain() const;
 
-  RootState&       root();
+  RootState& root();
   RootState const& root() const;
 
-  SS&            ss();
+  SS& ss();
   SSConst const& ss() const;
-  SS&            ss_saved();
+  SS& ss_saved();
 
   TerrainConnectivity const& connectivity() const;
-  TerrainConnectivity&       connectivity();
+  TerrainConnectivity& connectivity();
 
   MockINativeMind& native_mind( e_tribe tribe );
-  MockIEuroMind&   euro_mind( maybe<e_nation> nation = nothing );
+  MockIEuroMind& euro_mind( maybe<e_nation> nation = nothing );
 
   NativeMinds& native_minds();
-  EuroMinds&   euro_minds();
+  EuroMinds& euro_minds();
 
   // These will initialize their respective objects the first
   // time they are called, so they should always be used.
-  Planes&            planes();
-  lua::state&        lua();
-  MockIGui&          gui();
-  MockIRand&         rand();
-  MockICombat&       combat();
+  Planes& planes();
+  lua::state& lua();
+  MockIGui& gui();
+  MockIRand& rand();
+  MockICombat& combat();
   MockIColonyViewer& colony_viewer();
-  TS&                ts();
+  TS& ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
 
@@ -407,23 +407,23 @@ struct World {
   // These are unique_ptrs so that we can forward declare them.
   // Otherwise every unit test would have to pull in all of these
   // headers.
-  std::unique_ptr<SS>                  ss_;
-  std::unique_ptr<SSConst const>       ss_const_;
-  std::unique_ptr<SS>                  ss_saved_;
+  std::unique_ptr<SS> ss_;
+  std::unique_ptr<SSConst const> ss_const_;
+  std::unique_ptr<SS> ss_saved_;
   std::unique_ptr<TerrainConnectivity> connectivity_;
-  std::unique_ptr<IMapUpdater>         map_updater_;
+  std::unique_ptr<IMapUpdater> map_updater_;
   // These should not be accessed directly since they are ini-
   // tially nullptr.
-  std::unique_ptr<Planes>      uninitialized_planes_;
-  std::unique_ptr<lua::state>  uninitialized_lua_;
-  std::unique_ptr<MockIGui>    uninitialized_gui_;
-  std::unique_ptr<MockIRand>   uninitialized_rand_;
+  std::unique_ptr<Planes> uninitialized_planes_;
+  std::unique_ptr<lua::state> uninitialized_lua_;
+  std::unique_ptr<MockIGui> uninitialized_gui_;
+  std::unique_ptr<MockIRand> uninitialized_rand_;
   std::unique_ptr<MockICombat> uninitialized_combat_;
   std::unique_ptr<MockIColonyViewer>
-                               uninitialized_colony_viewer_;
+      uninitialized_colony_viewer_;
   std::unique_ptr<NativeMinds> uninitialized_native_minds_;
-  std::unique_ptr<EuroMinds>   uninitialized_euro_minds_;
-  std::unique_ptr<TS>          uninitialized_ts_;
+  std::unique_ptr<EuroMinds> uninitialized_euro_minds_;
+  std::unique_ptr<TS> uninitialized_ts_;
 
   std::unique_ptr<base::random> uninitialized_random_;
 };

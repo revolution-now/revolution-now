@@ -58,8 +58,8 @@ vector<pair<TuneId, int>> tune_difference_scores(
     TuneVecDimensions dims ) {
   vector<pair<TuneId, int /*score*/>> scores;
   for( auto const& [id, tune_ptr] : g_tunes ) {
-    auto const& tune  = *tune_ptr;
-    int         score = 0;
+    auto const& tune = *tune_ptr;
+    int score        = 0;
     EVAL( PP_MAP_SEMI( TUNE_DIMENSION_ADD_IF_DIFFERENT,
                        TUNE_DIMENSION_LIST ) )
     scores.emplace_back( id, score );
@@ -81,9 +81,9 @@ void init_tunes() {
   }
   unordered_set<string> stems;
 
-  int    idx = 0;
-  string rx  = "[a-z0-9-]*";
-  regex  rx_compiled( rx );
+  int idx   = 0;
+  string rx = "[a-z0-9-]*";
+  regex rx_compiled( rx );
   for( auto const& tune : config_music.tunes ) {
     g_tunes.emplace( gen_tune_id(), &tune );
     CHECK( regex_match( tune.stem, rx_compiled ),

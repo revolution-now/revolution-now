@@ -54,15 +54,15 @@ namespace rcl {
 //
 template<cdr::Canonical T>
 struct Golden {
-  Golden( T const& ref         ATTR_LIFETIMEBOUND,
-          std::string const&   tag,
+  Golden( T const& ref ATTR_LIFETIMEBOUND,
+          std::string const& tag,
           std::source_location loc =
               std::source_location::current() );
 
   base::valid_or<std::string> is_golden() const;
 
  private:
-  T    load_from_golden() const;
+  T load_from_golden() const;
   void save_to_golden( fs::path const& p ) const;
 
  private:
@@ -76,7 +76,7 @@ struct Golden {
 // This should be called from a unit test module and will return
 // the golden file to use given a tag/stem. The aforementioned
 // tag/stem should be unique to a given test case.
-fs::path golden_file( std::string const&          tag,
+fs::path golden_file( std::string const& tag,
                       std::source_location const& loc );
 
 /****************************************************************

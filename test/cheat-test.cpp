@@ -104,8 +104,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
-    Unit&           unit =
+    Colony& colony = w.add_colony( w.kLand );
+    Unit& unit =
         w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     expected = UnitComposition( wrapped::UnitComposition{
@@ -124,7 +124,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "free_colonist fishing" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
+    Colony& colony = w.add_colony( w.kLand );
     Unit& unit = w.add_unit_outdoors( colony.id, e_direction::ne,
                                       e_outdoor_job::fish );
     expected   = UnitComposition( wrapped::UnitComposition{
@@ -143,7 +143,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
-    Unit&           unit =
+    Unit& unit =
         w.add_unit_on_map( e_unit_type::expert_farmer, w.kLand );
     expected = UnitComposition( wrapped::UnitComposition{
       .type      = e_unit_type::expert_farmer,
@@ -243,7 +243,7 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "dragoon" ) {
     UnitComposition expected;
-    Unit&           unit =
+    Unit& unit =
         w.add_unit_on_map( e_unit_type::dragoon, w.kLand );
     {
       UNWRAP_CHECK(
@@ -364,8 +364,8 @@ TEST_CASE( "[cheat] cheat_{up,down}grade_unit_expertise" ) {
 
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = w.add_colony( w.kLand );
-    Unit&           unit =
+    Colony& colony = w.add_colony( w.kLand );
+    Unit& unit =
         w.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     expected = UnitComposition( wrapped::UnitComposition{
@@ -551,7 +551,7 @@ TEST_CASE( "[cheat] cheat change commodity quantity" ) {
 }
 
 TEST_CASE( "[cheat] kill_natives" ) {
-  world             w;
+  world w;
   MockLandViewPlane mock_land_view;
   w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
@@ -761,7 +761,7 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
 }
 
 TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
-  world              w;
+  world w;
   MockIColonyEvolver mock_colony_evolver;
 
   Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
@@ -779,7 +779,7 @@ TEST_CASE( "[cheat] cheat_advance_colony_one_turn" ) {
 }
 
 TEST_CASE( "[cheat] cheat_target_square" ) {
-  world        w;
+  world w;
   maybe<point> expected;
 
   MockLandViewPlane mock_land_view;

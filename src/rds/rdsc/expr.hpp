@@ -57,25 +57,25 @@ base::maybe<e_feature> feature_from_str(
 ** sumtype
 *****************************************************************/
 struct Alternative {
-  std::string               name;
+  std::string name;
   std::vector<StructMember> members;
 };
 
 struct Sumtype {
-  std::string                name;
+  std::string name;
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
   base::maybe<std::unordered_set<e_feature>> features;
-  std::vector<Alternative>                   alternatives;
+  std::vector<Alternative> alternatives;
 };
 
 /****************************************************************
 ** interface
 *****************************************************************/
 struct Method {
-  std::string            name;
-  std::string            return_type;
+  std::string name;
+  std::string return_type;
   std::vector<MethodArg> args;
 };
 
@@ -84,8 +84,8 @@ struct InterfaceContext {
 };
 
 struct Interface {
-  std::string         name;
-  InterfaceContext    context;
+  std::string name;
+  InterfaceContext context;
   std::vector<Method> methods;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
@@ -103,7 +103,7 @@ struct Config {
 ** enum
 *****************************************************************/
 struct Enum {
-  std::string              name;
+  std::string name;
   std::vector<std::string> values;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
@@ -114,12 +114,12 @@ struct Enum {
 ** struct
 *****************************************************************/
 struct Struct {
-  std::string                name;
+  std::string name;
   std::vector<TemplateParam> tmpl_params;
   // A specified-but-empty feature list means something different
   // from one that was not specified at all.
   base::maybe<std::unordered_set<e_feature>> features;
-  std::vector<StructMember>                  members;
+  std::vector<StructMember> members;
 };
 
 /****************************************************************
@@ -137,13 +137,13 @@ std::string to_str( Construct const& construct,
                     std::string_view spaces = "" );
 
 struct Item {
-  std::string            ns;
+  std::string ns;
   std::vector<Construct> constructs;
 };
 
 struct Rds {
   std::vector<std::string> includes;
-  std::vector<Item>        items;
+  std::vector<Item> items;
 };
 
 } // namespace rds::expr

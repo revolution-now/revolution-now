@@ -47,8 +47,8 @@ bool file_contents_same( fs::path const& f1,
 }
 
 fs::path output_folder() {
-  error_code ec  = {};
-  fs::path   res = fs::temp_directory_path( ec );
+  error_code ec = {};
+  fs::path res  = fs::temp_directory_path( ec );
   BASE_CHECK( ec.value() == 0,
               "failed to get temp folder path." );
   return res;
@@ -58,8 +58,8 @@ bool json_round_trip( fs::path const& folder,
                       fs::path const& file,
                       fs::path const& tmp ) {
   static ColonySAV sav;
-  fs::path const   in  = folder / file;
-  fs::path const   out = tmp / file;
+  fs::path const in  = folder / file;
+  fs::path const out = tmp / file;
   CHECK_HAS_VALUE( load_rcl_from_file( in, sav ) );
   CHECK_HAS_VALUE(
       save_rcl_to_file( out, sav, e_rcl_dialect::json ) );
@@ -69,7 +69,7 @@ bool json_round_trip( fs::path const& folder,
 template<typename T>
 T const& pick_one( vector<T> const& v ) {
   BASE_CHECK( !v.empty() );
-  random_device         r;
+  random_device r;
   default_random_engine e1( r() );
 
   uniform_int_distribution<int> uniform_dist( 0, v.size() - 1 );

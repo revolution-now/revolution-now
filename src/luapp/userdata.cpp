@@ -365,7 +365,7 @@ void setup_special_members(
   // Stack:
   //   metatable
   c_api C( L );
-  bool  is_owned_by_lua = false;
+  bool is_owned_by_lua = false;
   switch( semantics ) {
     case e_userdata_ownership_model::owned_by_cpp:
       is_owned_by_lua = false;
@@ -384,9 +384,9 @@ void setup_special_members(
 }
 
 // Expects metatable to be at the top of the stack.
-void setup_new_metatable( cthread                    L,
+void setup_new_metatable( cthread L,
                           e_userdata_ownership_model semantics,
-                          LuaCFunction*              fmt,
+                          LuaCFunction* fmt,
                           LuaCFunction* call_destructor ) {
   c_api C( L );
   // Check metatable.
@@ -474,7 +474,7 @@ void push_string( cthread L, std::string const& s ) {
 void push_existing_userdata_metatable_impl(
     cthread L, std::string const& type_name ) {
   c_api C( L );
-  bool  metatable_created =
+  bool metatable_created =
       C.udata_newmetatable( type_name.c_str() );
   // Stack:
   //   metatable
@@ -487,9 +487,9 @@ void push_existing_userdata_metatable_impl(
 void push_userdata_impl(
     cthread L, int object_size,
     base::function_ref<void( void* )> placement_new,
-    std::string const&                type_name ) {
+    std::string const& type_name ) {
   c_api C( L );
-  int   initial_stack_size = C.stack_size();
+  int initial_stack_size = C.stack_size();
 
   // 1. Create userdata to hold unique_func.
   void* ud = C.newuserdata( object_size );

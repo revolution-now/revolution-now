@@ -205,7 +205,7 @@ wait<EntitiesOnTile> disband_selection_dialog(
       make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
   // Add buttons.
-  auto buttons_view = make_unique<ui::OkCancelView2>();
+  auto buttons_view          = make_unique<ui::OkCancelView2>();
   ui::OkCancelView2* buttons = buttons_view.get();
   top_array->add_view( std::move( buttons_view ) );
 
@@ -374,9 +374,9 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   auto ask_one =
       [&]( string_view const q ) -> wait<maybe<ui::e_confirm>> {
     co_return co_await ts.gui.optional_yes_no(
-        { .msg = string( q ),
-          .yes_label = "Yes",
-          .no_label = "No",
+        { .msg            = string( q ),
+          .yes_label      = "Yes",
+          .no_label       = "No",
           .no_comes_first = true } );
   };
 

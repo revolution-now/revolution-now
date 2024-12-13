@@ -53,10 +53,10 @@ TEST_CASE( "[base/function-ref] function/function*" ) {
 }
 
 TEST_CASE( "[base/function-ref] object" ) {
-  callable                  c;
+  callable c;
   function_ref<char( int )> f1 = c;
 
-  const_callable const            cc;
+  const_callable const cc;
   function_ref<char( int ) const> f2 = cc;
 
   REQUIRE( f1( 1 ) == 'd' );

@@ -196,7 +196,7 @@ struct state : base::zero<state, cthread> {
 
    private:
     lua_valid load_file_safe( std::string_view file );
-    void      load_file( std::string_view file );
+    void load_file( std::string_view file );
 
     cthread L;
   } script;
@@ -214,7 +214,7 @@ struct state : base::zero<state, cthread> {
   ***************************************************************/
   template<typename To, typename From>
   requires Castable<From, To>
-  [[nodiscard]] To as( From&&               from,
+  [[nodiscard]] To as( From&& from,
                        std::source_location loc =
                            std::source_location::current() ) {
     cthread L = resource();

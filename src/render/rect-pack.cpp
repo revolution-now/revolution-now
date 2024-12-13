@@ -46,7 +46,7 @@ struct packer {
       if( cur_ == end_ ) return e_status::good;
 
       // Try to pack the first rect.
-      rect&    first  = **cur_;
+      rect& first     = **cur_;
       e_status status = pack_rect( first, allowed );
       if( status == e_status::failed ) return status;
 
@@ -119,9 +119,9 @@ struct packer {
     return pack_rows( allowed );
   }
 
-  vector<rect*>::iterator       cur_       = {};
-  vector<rect*>::iterator const end_       = {};
-  size                          size_used_ = {};
+  vector<rect*>::iterator cur_       = {};
+  vector<rect*>::iterator const end_ = {};
+  size size_used_                    = {};
 };
 
 } // namespace

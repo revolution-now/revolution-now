@@ -51,8 +51,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -398,7 +398,7 @@ TEST_CASE(
   W.settings().difficulty = e_difficulty::explorer;
 
   e_tribe const tribe_type = e_tribe::arawak;
-  Tribe&        tribe      = W.add_tribe( tribe_type );
+  Tribe& tribe             = W.add_tribe( tribe_type );
 
   auto f = [&] {
     evolve_dwellings_for_tribe( W.ss(), W.ts(), tribe_type );
@@ -478,7 +478,7 @@ TEST_CASE( "[tribe-evolve] evolves horse breeding" ) {
   World W;
 
   e_tribe const tribe_type = e_tribe::iroquois;
-  Tribe&        tribe      = W.add_tribe( tribe_type );
+  Tribe& tribe             = W.add_tribe( tribe_type );
 
   auto f = [&] {
     evolve_tribe_common( W.ss(), W.ts(), tribe_type );

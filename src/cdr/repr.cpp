@@ -44,7 +44,7 @@ value& table::operator[]( string const& key ) {
 base::maybe<value const&> table::operator[](
     string const& key ) const {
   auto& impl = o_.get();
-  auto  it   = impl.find( key );
+  auto it    = impl.find( key );
   if( it == impl.end() ) return base::nothing;
   return it->second;
 }

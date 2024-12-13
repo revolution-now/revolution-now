@@ -42,8 +42,8 @@ struct DumpHandler : public CommandHandler {
     : ss_( ss ), ts_( ts ), unit_id_( unit_id ) {}
 
   wait<bool> confirm() override {
-    Unit const& unit      = ss_.units.unit_for( unit_id_ );
-    int const   num_slots = unit.desc().cargo_slots;
+    Unit const& unit    = ss_.units.unit_for( unit_id_ );
+    int const num_slots = unit.desc().cargo_slots;
     if( num_slots == 0 ) {
       // The UI shouldn't really allow this to happen for
       // non-cargo units, but let's just be defensive.
@@ -55,7 +55,7 @@ struct DumpHandler : public CommandHandler {
 
     // We use a std::map because we want to be able to iterate in
     // increasing slot order.
-    map<int, Commodity>        commodities;
+    map<int, Commodity> commodities;
     unordered_map<string, int> keys;
 
     for( int i = 0; i < num_slots; ++i ) {
@@ -114,11 +114,11 @@ struct DumpHandler : public CommandHandler {
     co_return;
   }
 
-  SS&    ss_;
-  TS&    ts_;
+  SS& ss_;
+  TS& ts_;
   UnitId unit_id_;
   // These are only relevant if the action is confirmed.
-  int       slot_      = 0;
+  int slot_            = 0;
   Commodity to_remove_ = {};
 };
 

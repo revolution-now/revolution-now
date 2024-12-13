@@ -20,9 +20,9 @@
 namespace lua {
 
 struct harness {
-  state   st;
+  state st;
   cthread L = st.thread.main().cthread();
-  c_api   C = L;
+  c_api C   = L;
 
   ~harness() {
     // As a sanity check, we want to check that when each test

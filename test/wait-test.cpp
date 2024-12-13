@@ -36,7 +36,7 @@ using ::Catch::Equals;
 static_assert( is_same_v<wait<>, wait<monostate>> );
 
 TEST_CASE( "[wait] future api basic" ) {
-  auto  ss   = make_unique<detail::wait_state<int>>();
+  auto ss    = make_unique<detail::wait_state<int>>();
   auto* p_ss = ss.get();
 
   wait<int> s_future( std::move( ss ) );
@@ -145,7 +145,7 @@ struct co_lift {
 };
 
 wait<string> wait_string() {
-  int    n = co_await wait_sum();
+  int n    = co_await wait_sum();
   double d = co_await wait_double();
 
   int m = co_await wait_sum();
@@ -168,7 +168,7 @@ wait<string> wait_string() {
 
 TEST_CASE( "[wait] coro" ) {
   wait<string> ws = wait_string();
-  int          i  = 0;
+  int i           = 0;
   while( !ws.ready() ) {
     ++i;
     deliver_promise();
@@ -194,8 +194,8 @@ void log_str( string const& s ) {
 }
 
 wait_promise<string> p;
-wait_promise<int>    p0;
-wait_promise<int>    p1;
+wait_promise<int> p0;
+wait_promise<int> p1;
 
 wait<string> coro() {
   LogDestructionStr lds( "coro" );
@@ -224,7 +224,7 @@ wait<string> coro2() {
   }
   LogDestructionStr lds1( "coro2-2" );
   log_str( "coro2-2" );
-  string            res = to_string( n + co_await coro1() );
+  string res = to_string( n + co_await coro1() );
   LogDestructionStr lds2( "coro2-3" );
   log_str( "coro2-3" );
   co_return res;
@@ -233,7 +233,7 @@ wait<string> coro2() {
 wait<string> coro3() {
   LogDestructionStr lds1( "coro3-1" );
   log_str( "coro3-1" );
-  string            s = co_await coro2();
+  string s = co_await coro2();
   LogDestructionStr lds2( "coro3-2" );
   log_str( "coro3-2" );
   s += co_await coro();
@@ -600,7 +600,7 @@ TEST_CASE( "[wait] coro cancel by wait out-of-scope" ) {
 
 TEST_CASE( "[wait] simple exception" ) {
   wait_promise<> p;
-  wait<>         w = p.wait();
+  wait<> w = p.wait();
 
   REQUIRE( !w.ready() );
   p.set_exception( runtime_error( "test" ) );
@@ -640,7 +640,7 @@ TEST_CASE( "[wait] eager co_await'd exception" ) {
 
 wait_promise<> exception_p0;
 wait_promise<> exception_p1;
-string         places;
+string places;
 
 wait<> exception_coro_early_level_2() {
   places += 'c';

@@ -79,8 +79,8 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[meet-natives] check_meet_tribes" ) {
-  World             W;
-  Coord             square;
+  World W;
+  Coord square;
   vector<MeetTribe> expected;
 
   auto f = [&] {
@@ -280,7 +280,7 @@ TEST_CASE( "[meet-natives] check_meet_tribes" ) {
 }
 
 TEST_CASE( "[meet-natives] check_meet_europeans" ) {
-  World             W;
+  World W;
   vector<MeetTribe> expected;
   // S . b d . .
   // D E F . . .
@@ -330,12 +330,12 @@ TEST_CASE( "[meet-natives] check_meet_europeans" ) {
 }
 
 TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
-  World                    W;
-  Player const&            player = W.default_player();
-  MeetTribe                meet_tribe;
+  World W;
+  Player const& player = W.default_player();
+  MeetTribe meet_tribe;
   e_declare_war_on_natives declare_war = {};
-  e_tribe const            tribe       = e_tribe::cherokee;
-  e_nation const           nation      = W.default_nation();
+  e_tribe const tribe                  = e_tribe::cherokee;
+  e_nation const nation                = W.default_nation();
 
   auto f = [&] {
     perform_meet_tribe( W.ss(), W.default_player(), meet_tribe,
@@ -414,12 +414,12 @@ TEST_CASE( "[meet-natives] perform_meet_tribe" ) {
 // This one tests that when the relationship object is created
 // the tribal alarm is initialized with the minimum value.
 TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
-  World                    W;
-  MeetTribe                meet_tribe;
+  World W;
+  MeetTribe meet_tribe;
   e_declare_war_on_natives declare_war = {};
-  e_tribe const            tribe       = e_tribe::arawak;
-  Tribe const&             tribe_obj   = W.add_tribe( tribe );
-  e_nation const           nation      = W.default_nation();
+  e_tribe const tribe                  = e_tribe::arawak;
+  Tribe const& tribe_obj               = W.add_tribe( tribe );
+  e_nation const nation                = W.default_nation();
 
   auto f = [&] {
     perform_meet_tribe( W.ss(), W.default_player(), meet_tribe,
@@ -437,7 +437,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe arawak" ) {
 }
 
 TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
-  World                    w;
+  World w;
   e_declare_war_on_natives expected = {};
 
   MeetTribe meet_tribe;

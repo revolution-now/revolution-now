@@ -31,7 +31,7 @@ struct FixClangFormat1 {};
 
 namespace detail {
 
-void        as_pop( cthread L, int n );
+void as_pop( cthread L, int n );
 std::string as_type_name( cthread L, int idx );
 
 } // namespace detail
@@ -42,14 +42,14 @@ requires Castable<From, To>
                      std::source_location loc =
                          std::source_location::current() ) {
   int n_pushed = lua::push( L, FWD( from ) );
-  To  to       = get_or_luaerr<To>( L, -1, loc );
+  To to        = get_or_luaerr<To>( L, -1, loc );
   detail::as_pop( L, n_pushed );
   return to;
 }
 
 template<typename To, typename From>
 requires Castable<From, To> && HasCthread<From>
-[[nodiscard]] To as( From&&               from,
+[[nodiscard]] To as( From&& from,
                      std::source_location loc =
                          std::source_location::current() ) {
   cthread L = from.this_cthread();

@@ -122,7 +122,7 @@ MusicPlayerDesc MidiSeqMusicPlayer::info() const {
 
 MusicPlayerState MidiSeqMusicPlayer::state() const {
   maybe<TunePlayerInfo> maybe_tune_info;
-  bool                  is_paused =
+  bool is_paused =
       ( midiseq::state() == midiseq::e_midiseq_state::paused );
   if( midiseq::state() == midiseq::e_midiseq_state::playing ||
       midiseq::state() == midiseq::e_midiseq_state::paused ) {

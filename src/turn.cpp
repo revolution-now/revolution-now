@@ -200,22 +200,22 @@ wait<base::NoDiscard<bool>> check_if_not_dirty_or_can_proceed(
       co_await select_save_slot( ts, storage_save );
   if( !slot.has_value() ) co_return false;
   RealGameSaver const game_saver( ss, ts, storage_save );
-  bool const          saved =
+  bool const saved =
       co_await game_saver.save_to_slot_interactive( *slot );
   co_return saved;
 }
 
 wait<> proceed_to_exit( SSConst const& ss, TS& ts ) {
-  YesNoConfig const          config{ .msg       = "Exit to DOS?",
-                                     .yes_label = "Yes",
-                                     .no_label  = "No",
-                                     .no_comes_first = true };
+  YesNoConfig const config{ .msg            = "Exit to DOS?",
+                            .yes_label      = "Yes",
+                            .no_label       = "No",
+                            .no_comes_first = true };
   maybe<ui::e_confirm> const answer =
       co_await ts.gui.optional_yes_no( config );
   if( answer != ui::e_confirm::yes ) co_return;
   // TODO: we may want to inject these somewhere higher up.
   RclGameStorageSave const storage_save( ss );
-  bool const               can_proceed =
+  bool const can_proceed =
       co_await check_if_not_dirty_or_can_proceed( ss, ts,
                                                   storage_save );
   if( can_proceed ) throw game_quit_interrupt{};
@@ -273,7 +273,7 @@ bool should_remove_unit_from_queue( Unit const& unit ) {
 }
 
 vector<UnitId> euro_units_all( UnitsState const& units_state,
-                               e_nation          n ) {
+                               e_nation n ) {
   vector<UnitId> res;
   res.reserve( units_state.all().size() );
   for( auto const& p : units_state.euro_all() )
@@ -284,7 +284,7 @@ vector<UnitId> euro_units_all( UnitsState const& units_state,
 // Apply a function to all european units. The function may mu-
 // tate the units.
 void map_all_euro_units(
-    UnitsState&                       units_state,
+    UnitsState& units_state,
     base::function_ref<void( Unit& )> func ) {
   for( auto& p : units_state.euro_all() )
     func( units_state.unit_for( p.first ) );
@@ -337,7 +337,7 @@ void autosave_if_needed( SS& ss, TS& ts ) {
   if( autosave_slots.empty() ) return;
   // TODO: we may want to inject these somewhere higher up.
   RclGameStorageSave const storage_save( ss );
-  RealGameSaver const      game_saver( ss, ts, storage_save );
+  RealGameSaver const game_saver( ss, ts, storage_save );
   // This will do the save.
   expect<std::vector<fs::path>> const paths_saved =
       autosave( ss.as_const, game_saver, ss.turn.autosave,
@@ -349,7 +349,7 @@ void autosave_if_needed( SS& ss, TS& ts ) {
 /****************************************************************
 ** Common Player Input Handling.
 *****************************************************************/
-wait<> open_colony( TS&                                ts,
+wait<> open_colony( TS& ts,
                     LandViewPlayerInput::colony const& colony ) {
   e_colony_abandoned const abandoned =
       co_await ts.colony_viewer.show( ts, colony.id );
@@ -401,7 +401,7 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
       // TODO: we may want to inject these somewhere higher up.
       RclGameStorageSave const storage_save( ss );
       RealGameSaver const game_saver( ss, ts, storage_save );
-      maybe<int> const    slot =
+      maybe<int> const slot =
           co_await select_save_slot( ts, storage_save );
       if( slot.has_value() ) {
         bool const saved =
@@ -414,7 +414,7 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
     case e_menu_item::load: {
       // TODO: we may want to inject these somewhere higher up.
       RclGameStorageSave const storage_save( ss );
-      bool const               can_proceed =
+      bool const can_proceed =
           co_await check_if_not_dirty_or_can_proceed(
               ss, ts, storage_save );
       if( !can_proceed ) break;
@@ -740,7 +740,7 @@ wait<LandViewPlayerInput> landview_player_input(
 }
 
 wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
-                         Player&                 player,
+                         Player& player,
                          NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
@@ -769,7 +769,7 @@ wait<> process_player_input_view_mode( SS& ss, TS& ts,
 
 wait<> process_player_input_view_mode(
     SS& ss, TS& ts, Player& player,
-    NationTurnState::units&    nat_units,
+    NationTurnState::units& nat_units,
     LandViewPlayerInput const& input ) {
   SWITCH( input ) {
     CASE( toggle_view_mode ) { break; }
@@ -860,7 +860,7 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
 wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
                          UnitId id ) {
   IEuroMind& euro_mind = ts.euro_minds()[player.nation];
-  Unit&      unit      = ss.units.unit_for( id );
+  Unit& unit           = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
 
   if( unit.orders().holds<unit_orders::fortifying>() ) {
@@ -935,7 +935,7 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
             plow_result.get_if<PlowResult::cleared_forest>();
         o.has_value() && o->yield.has_value() ) {
       LumberYield const& yield = *o->yield;
-      string const       msg   = fmt::format(
+      string const msg         = fmt::format(
           "Forest cleared near [{}].  [{}] lumber "
                   "added to colony's stockpile.",
           ss.colonies.colony_for( yield.colony_id ).name,
@@ -1024,7 +1024,7 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
 
 wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
                             NationTurnState::units& nat_units,
-                            deque<UnitId>&          q ) {
+                            deque<UnitId>& q ) {
   while( !q.empty() ) {
     // lg.trace( "q: {}", q );
     UnitId id = q.front();
@@ -1202,7 +1202,7 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 
 // Processes the current state and returns the next state.
 wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
-                                        e_nation         nation,
+                                        e_nation nation,
                                         NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
@@ -1335,8 +1335,8 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
     CASE( nation ) {
       recompute_fog_for_all_nations( ss, ts );
       co_await nation_turn( ss, ts, nation.nation, nation.st );
-      auto& ns   = refl::enum_values<e_nation>;
-      auto  next = base::find( ns, nation.nation ) + 1;
+      auto& ns  = refl::enum_values<e_nation>;
+      auto next = base::find( ns, nation.nation ) + 1;
       if( next != ns.end() )
         co_return TurnCycle::nation{ .nation = *next };
       co_return TurnCycle::end_cycle{};

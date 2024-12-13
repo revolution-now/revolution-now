@@ -57,7 +57,7 @@ TEST_CASE( "[string] capitalize_initials" ) {
 TEST_CASE( "[string] str_replace" ) {
   SECTION( "input.size() == 0" ) {
     string const input = "";
-    auto         f = [&]( string_view from, string_view to ) {
+    auto f = [&]( string_view from, string_view to ) {
       return str_replace( input, from, to );
     };
 
@@ -69,7 +69,7 @@ TEST_CASE( "[string] str_replace" ) {
   }
   SECTION( "input.size() == 1" ) {
     string const input = "x";
-    auto         f = [&]( string_view from, string_view to ) {
+    auto f = [&]( string_view from, string_view to ) {
       return str_replace( input, from, to );
     };
 
@@ -82,7 +82,7 @@ TEST_CASE( "[string] str_replace" ) {
   }
   SECTION( "input.size() == 2" ) {
     string const input = "xx";
-    auto         f = [&]( string_view from, string_view to ) {
+    auto f = [&]( string_view from, string_view to ) {
       return str_replace( input, from, to );
     };
 
@@ -95,7 +95,7 @@ TEST_CASE( "[string] str_replace" ) {
   }
   SECTION( "input.size() == 5" ) {
     string const input = "abcbc";
-    auto         f = [&]( string_view from, string_view to ) {
+    auto f = [&]( string_view from, string_view to ) {
       return str_replace( input, from, to );
     };
 
@@ -105,7 +105,7 @@ TEST_CASE( "[string] str_replace" ) {
   }
   SECTION( "input.size() == 20" ) {
     string const input = "this is a test";
-    auto         f = [&]( string_view from, string_view to ) {
+    auto f = [&]( string_view from, string_view to ) {
       return str_replace( input, from, to );
     };
 

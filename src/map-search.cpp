@@ -53,7 +53,7 @@ using ::gfx::point;
 //
 YIELD( point ) outward_spiral_search( point const start ) {
   point curr = start;
-  int   len  = 1;
+  int len    = 1;
   co_yield curr;
   while( true ) {
     --curr.x;
@@ -125,7 +125,7 @@ maybe<Colony const&> find_any_close_colony(
   if( !last.has_value() ) return nothing;
   struct ColonyWithDistance {
     ColonyId colony_id = {};
-    double   distance  = {};
+    double distance    = {};
   };
   maybe<ColonyWithDistance> state;
   // Iterate through colonies by ID so that we get a determin-
@@ -134,7 +134,7 @@ maybe<Colony const&> find_any_close_colony(
   for( ColonyId colony_id = ColoniesState::kFirstColonyId;
        colony_id <= *last; ++colony_id ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    double const  distance =
+    double const distance =
         ( colony.location - Coord::from_gfx( location ) )
             .diagonal();
     if( distance > max_distance ) continue;
@@ -152,7 +152,7 @@ maybe<Colony const&> find_any_close_colony(
 maybe<Colony const&> find_close_explored_colony(
     SSConst const& ss, e_nation nation, point location,
     double max_distance ) {
-  VisibilityForNation const    viz( ss, nation );
+  VisibilityForNation const viz( ss, nation );
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );
@@ -168,10 +168,10 @@ maybe<Colony const&> find_close_explored_colony(
 // from the starting point that are within a radius of
 // `max_distance` to the start.
 vector<ColonyId> close_friendly_colonies( SSConst const& ss,
-                                          e_nation       nation,
+                                          e_nation nation,
                                           gfx::point const start,
                                           double max_distance ) {
-  vector<ColonyId>      res;
+  vector<ColonyId> res;
   generator<gfx::point> points =
       outward_spiral_pythdist_search_existing_gen(
           ss, start, max_distance );

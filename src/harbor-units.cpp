@@ -106,7 +106,7 @@ vector<UnitId> units_in_harbor_filtered(
 }
 
 bool is_unit_on_dock( UnitsState const& units_state,
-                      UnitId            id ) {
+                      UnitId id ) {
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
@@ -167,7 +167,7 @@ base::generator<Coord> search_from_square( Coord const start,
 ** Public API
 *****************************************************************/
 void update_harbor_selected_unit( UnitsState const& units,
-                                  Player&           player ) {
+                                  Player& player ) {
   maybe<UnitId>& selected_unit =
       player.old_world.harbor_state.selected_unit;
   if( selected_unit.has_value() ) {
@@ -222,7 +222,7 @@ maybe<Coord> find_new_world_arrival_square(
 }
 
 bool is_unit_inbound( UnitsState const& units_state,
-                      UnitId            id ) {
+                      UnitId id ) {
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   auto is_inbound =
@@ -235,7 +235,7 @@ bool is_unit_inbound( UnitsState const& units_state,
 }
 
 bool is_unit_outbound( UnitsState const& units_state,
-                       UnitId            id ) {
+                       UnitId id ) {
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   auto is_outbound =
@@ -248,7 +248,7 @@ bool is_unit_outbound( UnitsState const& units_state,
 }
 
 bool is_unit_in_port( UnitsState const& units_state,
-                      UnitId            id ) {
+                      UnitId id ) {
   auto harbor_status =
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
@@ -292,7 +292,7 @@ vector<UnitId> harbor_units_outbound(
 }
 
 void unit_move_to_port( SS& ss, UnitId id ) {
-  Unit&   unit = ss.units.unit_for( id );
+  Unit& unit = ss.units.unit_for( id );
   Player& player =
       player_for_nation_or_die( ss.players, unit.nation() );
   UnitOwnership::harbor new_state;
@@ -422,9 +422,9 @@ void unit_sail_to_new_world( SS& ss, UnitId id ) {
       new_state.port_status, new_state.sailed_from );
 }
 
-e_high_seas_result advance_unit_on_high_seas( SS&     ss,
+e_high_seas_result advance_unit_on_high_seas( SS& ss,
                                               Player& player,
-                                              UnitId  id ) {
+                                              UnitId id ) {
   CHECK( ss.units.unit_for( id )
              .orders()
              .holds<unit_orders::none>() );

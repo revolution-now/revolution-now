@@ -76,7 +76,7 @@ e_tile tile_for_outdoor_job( e_outdoor_job job ) {
 void render_glow( rr::Renderer& renderer, Coord unit_coord,
                   e_unit_type type ) {
   UnitTypeAttributes const& desc = unit_attr( type );
-  e_tile const              tile = desc.tile;
+  e_tile const tile              = desc.tile;
   render_sprite_silhouette(
       renderer, unit_coord + Delta{ .w = 1 }, tile,
       config_colony.colors.outdoor_unit_glow_color );
@@ -193,7 +193,7 @@ wait<> ColonyLandView::perform_click(
 
 maybe<CanReceiveDraggable<ColViewObject>>
 ColonyLandView::can_receive( ColViewObject const& o, int,
-                             Coord const&         where ) const {
+                             Coord const& where ) const {
   // Verify that the dragged object is a unit.
   maybe<UnitId> unit_id = o.get_if<ColViewObject::unit>().member(
       &ColViewObject::unit::id );
@@ -276,7 +276,7 @@ ColonyJob ColonyLandView::make_job_for_square(
 }
 
 wait<> ColonyLandView::drop( ColViewObject const& o,
-                             Coord const&         where ) {
+                             Coord const& where ) {
   UNWRAP_CHECK( unit_id, o.get_if<ColViewObject::unit>().member(
                              &ColViewObject::unit::id ) );
   Colony& colony = ss_.colonies.colony_for( colony_.id );
@@ -321,7 +321,7 @@ wait<> ColonyLandView::disown_dragged_object() {
 }
 
 void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
-                                    Coord         coord ) const {
+                                    Coord coord ) const {
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation,
       gfx::size( coord.distance_from_origin() ).to_double() );
@@ -333,14 +333,14 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
 
   // FIXME: Should not be duplicating land-view rendering code
   // here.
-  rr::Painter               painter       = renderer.painter();
-  Coord const               colony_square = colony_.location;
+  rr::Painter painter       = renderer.painter();
+  Coord const colony_square = colony_.location;
   VisibilityForNation const viz( ss_, player_.nation );
   // Render terrain.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord  = local_rect.upper_left();
-    Coord       world_square = colony_square +
+    Coord const local_coord = local_rect.upper_left();
+    Coord world_square      = colony_square +
                          local_coord.distance_from_origin() -
                          Delta{ .w = 1, .h = 1 };
     painter.draw_solid_rect(
@@ -367,8 +367,8 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // Render colonies.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord  = local_rect.upper_left();
-    auto        world_square = colony_square +
+    Coord const local_coord = local_rect.upper_left();
+    auto world_square       = colony_square +
                         local_coord.distance_from_origin() -
                         Delta{ .w = 1, .h = 1 };
     auto maybe_col_id =
@@ -386,8 +386,8 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // Render native dwellings.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const local_coord  = local_rect.upper_left();
-    auto        world_square = colony_square +
+    Coord const local_coord = local_rect.upper_left();
+    auto world_square       = colony_square +
                         local_coord.distance_from_origin() -
                         Delta{ .w = 1, .h = 1 };
     // We always render the real thing when directly visible by a
@@ -405,7 +405,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // Render native-owned land markers (totem poles).
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {
-    Coord const        local_coord = local_rect.upper_left();
+    Coord const local_coord = local_rect.upper_left();
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
     auto world_square = colony_square +
@@ -430,7 +430,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
 }
 
 void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
-                                    Coord         coord ) const {
+                                    Coord coord ) const {
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 2.0 );
     draw_land_3x3( renderer, coord );
@@ -439,7 +439,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
 
   // Render units.
   Colony const& colony = ss_.colonies.colony_for( colony_.id );
-  Coord const   center = Coord{ .x = 1, .y = 1 };
+  Coord const center   = Coord{ .x = 1, .y = 1 };
 
   for( auto const& [direction, outdoor_unit] :
        colony.outdoor_jobs ) {
@@ -454,7 +454,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         square_coord +
         ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
     UnitId const unit_id = outdoor_unit->unit_id;
-    Unit const&  unit    = ss_.units.unit_for( unit_id );
+    Unit const& unit     = ss_.units.unit_for( unit_id );
     UnitTypeAttributes const& desc = unit_attr( unit.type() );
     render_glow( renderer, unit_coord, unit.type() );
     render_unit_type(
@@ -462,15 +462,15 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         UnitRenderOptions{ .shadow = UnitShadow{} } );
     e_outdoor_job const job   = outdoor_unit->job;
     e_tile const product_tile = tile_for_outdoor_job( job );
-    Coord const  product_coord =
+    Coord const product_coord =
         square_coord + Delta{ .w = 4, .h = 4 };
     render_sprite( renderer, product_coord, product_tile );
     Delta const product_tile_size = sprite_size( product_tile );
     SquareProduction const& production =
         colview_production().land_production[direction];
-    int const    quantity = production.quantity;
-    string const q_str    = fmt::format( "x {}", quantity );
-    Coord const  text_coord =
+    int const quantity = production.quantity;
+    string const q_str = fmt::format( "x {}", quantity );
+    Coord const text_coord =
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
@@ -492,10 +492,10 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     Coord const product_coord =
         square_coord + Delta{ .w = 12, .h = 4 };
     render_sprite( renderer, product_coord, product_tile );
-    Delta const  product_tile_size = sprite_size( product_tile );
-    int          quantity = production.center_food_production;
-    string const q_str    = fmt::format( "x {}", quantity );
-    Coord const  text_coord =
+    Delta const product_tile_size = sprite_size( product_tile );
+    int quantity       = production.center_food_production;
+    string const q_str = fmt::format( "x {}", quantity );
+    Coord const text_coord =
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
@@ -509,14 +509,14 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     e_outdoor_job const job =
         production.center_extra_production->what;
     e_tile const product_tile = tile_for_outdoor_job( job );
-    Coord const  product_coord =
+    Coord const product_coord =
         square_coord + Delta{ .w = 12, .h = 32 };
     render_sprite( renderer, product_coord, product_tile );
     Delta const product_tile_size = sprite_size( product_tile );
-    int const   quantity =
+    int const quantity =
         production.center_extra_production->quantity;
     string const q_str = fmt::format( "x {}", quantity );
-    Coord const  text_coord =
+    Coord const text_coord =
         product_coord + Delta{ .w = product_tile_size.w };
     render_text_markup(
         renderer, text_coord, {},
@@ -527,7 +527,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
 }
 
 void ColonyLandView::draw( rr::Renderer& renderer,
-                           Coord         coord ) const {
+                           Coord coord ) const {
   rr::Painter painter = renderer.painter();
   switch( mode_ ) {
     case e_render_mode::_3x3:
@@ -552,7 +552,7 @@ unique_ptr<ColonyLandView> ColonyLandView::create(
 }
 
 ColonyLandView::ColonyLandView( SS& ss, TS& ts, Player& player,
-                                Colony&       colony,
+                                Colony& colony,
                                 e_render_mode mode )
   : ColonySubView( ss, ts, player, colony ),
     mode_( mode ),

@@ -24,7 +24,7 @@ namespace rn {
 struct IMapUpdater;
 struct SS;
 
-void generate_terrain( lua::state&  st,
+void generate_terrain( lua::state& st,
                        IMapUpdater& map_updater );
 
 void ascii_map_gen( lua::state& st, SS& ss );

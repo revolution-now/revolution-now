@@ -49,14 +49,14 @@ bool can_plow( TerrainState const& terrain_state, Coord tile );
 
 // This applies only to irrigation, not clearing.
 bool can_irrigate( TerrainState const& terrain_state,
-                   Coord               tile );
+                   Coord tile );
 
 // This includes *only* irrigation and not forest-clearing. Will
 // return false if the square already has irrigation.
 bool can_irrigate( MapSquare const& square );
 
 bool has_irrigation( TerrainState const& terrain_state,
-                     Coord               tile );
+                     Coord tile );
 
 bool has_irrigation( MapSquare const& square );
 
@@ -82,7 +82,7 @@ bool has_pioneer_working( SSConst const& ss, Coord tile );
 // the result so that a message can be displayed to the user.
 [[nodiscard]] PlowResult perform_plow_work( SS& ss, TS& ts,
                                             Player const& player,
-                                            Unit&         unit );
+                                            Unit& unit );
 
 bool can_plow( Unit const& unit );
 

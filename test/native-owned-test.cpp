@@ -52,8 +52,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, L, L, L, L, //
       L, L, L, L, L, L, L, L, L, L, //
@@ -76,12 +76,12 @@ struct World : testing::World {
 TEST_CASE(
     "[native-owned] "
     "is_land_native_owned_after_meeting_without_colonies" ) {
-  World           W;
-  Coord const     loc = { .x = 1, .y = 1 };
+  World W;
+  Coord const loc = { .x = 1, .y = 1 };
   Dwelling const& dwelling =
       W.add_dwelling( loc, e_tribe::cherokee );
   Player& player = W.default_player();
-  Tribe&  tribe  = W.natives().tribe_for( e_tribe::cherokee );
+  Tribe& tribe   = W.natives().tribe_for( e_tribe::cherokee );
 
   auto f = [&] {
     return is_land_native_owned_after_meeting_without_colonies(
@@ -105,12 +105,12 @@ TEST_CASE(
 
 TEST_CASE(
     "[native-owned] is_land_native_owned_after_meeting" ) {
-  World           W;
-  Coord const     loc = { .x = 1, .y = 1 };
+  World W;
+  Coord const loc = { .x = 1, .y = 1 };
   Dwelling const& dwelling =
       W.add_dwelling( loc, e_tribe::cherokee );
   Player& player = W.default_player();
-  Tribe&  tribe  = W.natives().tribe_for( e_tribe::cherokee );
+  Tribe& tribe   = W.natives().tribe_for( e_tribe::cherokee );
 
   auto f = [&] {
     return is_land_native_owned_after_meeting( W.ss(), player,
@@ -133,12 +133,12 @@ TEST_CASE(
 }
 
 TEST_CASE( "[native-owned] is_land_native_owned" ) {
-  World           W;
-  Coord const     loc = { .x = 1, .y = 1 };
+  World W;
+  Coord const loc = { .x = 1, .y = 1 };
   Dwelling const& dwelling =
       W.add_dwelling( loc, e_tribe::cherokee );
   Player& player = W.default_player();
-  Tribe&  tribe  = W.natives().tribe_for( e_tribe::cherokee );
+  Tribe& tribe   = W.natives().tribe_for( e_tribe::cherokee );
 
   auto f = [&] {
     return is_land_native_owned( W.ss(), player, loc );
@@ -160,12 +160,12 @@ TEST_CASE( "[native-owned] is_land_native_owned" ) {
 }
 
 TEST_CASE( "[native-owned] native_owned_land_around_square" ) {
-  World           W;
-  Coord const     loc = { .x = 1, .y = 1 };
+  World W;
+  Coord const loc = { .x = 1, .y = 1 };
   Dwelling const& dwelling =
       W.add_dwelling( loc, e_tribe::cherokee );
   Player& player = W.default_player();
-  Tribe&  tribe  = W.natives().tribe_for( e_tribe::cherokee );
+  Tribe& tribe   = W.natives().tribe_for( e_tribe::cherokee );
   refl::enum_map<e_direction, maybe<DwellingId>> expected;
 
   auto f = [&] {
@@ -201,11 +201,11 @@ TEST_CASE( "[native-owned] native_owned_land_around_square" ) {
 }
 
 TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
-  World            W;
-  Player const&    player = W.default_player();
-  Coord            tile;
+  World W;
+  Player const& player = W.default_player();
+  Coord tile;
   maybe<LandPrice> expected;
-  Coord const      kDwellingLoc{ .x = 3, .y = 3 };
+  Coord const kDwellingLoc{ .x = 3, .y = 3 };
 
   SECTION( "semi-nomadic" ) {
     Dwelling& dwelling =
@@ -915,12 +915,12 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
 
 TEST_CASE(
     "[native-owned] prompt_player_for_taking_native_land" ) {
-  World                   W;
-  Player&                 player = W.default_player();
-  Coord                   tile;
+  World W;
+  Player& player = W.default_player();
+  Coord tile;
   e_native_land_grab_type type = {};
-  Coord const             kDwellingLoc{ .x = 3, .y = 3 };
-  Dwelling&               dwelling =
+  Coord const kDwellingLoc{ .x = 3, .y = 3 };
+  Dwelling& dwelling =
       W.add_dwelling( kDwellingLoc, e_tribe::cherokee );
   W.settings().difficulty = e_difficulty::conquistador;
   Tribe& tribe            = W.natives().tribe_for( dwelling.id );

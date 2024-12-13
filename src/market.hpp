@@ -40,11 +40,11 @@ bool is_in_processed_goods_price_group( e_commodity type );
 // price from the current price up by `price_change` (which can
 // be negative for a price drop).
 PriceChange create_price_change( Player const& player,
-                                 e_commodity   comm,
-                                 int           price_change );
+                                 e_commodity comm,
+                                 int price_change );
 
 CommodityPrice market_price( Player const& player,
-                             e_commodity   commodity );
+                             e_commodity commodity );
 
 // The prices are in hundreds.
 int ask_from_bid( e_commodity type, int bid );

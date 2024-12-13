@@ -38,7 +38,7 @@ raw_table_iterator::raw_table_iterator( table t, bool is_end )
   // This is a begin iterator, so we need to advance to the first
   // item, if any.
   cthread L = tbl_.this_cthread();
-  c_api   C( L );
+  c_api C( L );
   SCOPE_CHECK_STACK_UNCHANGED;
   push( L, tbl_ );
   push( L, nil );
@@ -79,7 +79,7 @@ raw_table_iterator& raw_table_iterator::operator++() {
   CHECK( curr_pair_.has_value(),
          "attempt to iterate beyond the end of a table." );
   cthread L = tbl_.this_cthread();
-  c_api   C( L );
+  c_api C( L );
   SCOPE_CHECK_STACK_UNCHANGED;
   push( L, tbl_ );
   push( L, curr_pair_->first );

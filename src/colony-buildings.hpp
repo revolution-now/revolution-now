@@ -48,7 +48,7 @@ maybe<e_colony_building> building_for_slot(
 // of thing, since it is not really specified whether e.g. a
 // colony that has a shipyard needs to also have docks in its
 // representation.
-bool colony_has_building_level( Colony const&     colony,
+bool colony_has_building_level( Colony const& colony,
                                 e_colony_building building );
 
 // Note that this does not apply to food.
@@ -74,7 +74,7 @@ int max_workers_for_building( e_colony_building building );
 // made will be made. It also ensures that the buildings remain
 // in a state consistent with the OG's rules, in that e.g. having
 // a Cathedral implies that you also have a Church.
-void add_colony_building( Colony&           colony,
+void add_colony_building( Colony& colony,
                           e_colony_building building );
 
 e_colony_building barricade_type_to_colony_building(

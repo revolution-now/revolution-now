@@ -96,7 +96,7 @@ class unique_func<R( Args... ) UNIQUE_FUNC_CONST> {
         std::forward<RealArgs>( args )... );
   }
 
-  func_base*       get() noexcept { return func_.get(); }
+  func_base* get() noexcept { return func_.get(); }
   func_base const* get() const noexcept { return func_.get(); }
 };
 

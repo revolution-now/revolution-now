@@ -134,8 +134,8 @@ struct IdentityCursor {
   IdentityCursor( Data const& ) {}
   void init( InputView const& input ) { it_ = input.begin(); }
   decltype( auto ) get( InputView const& ) const { return *it_; }
-  void             next( InputView const& ) { ++it_; }
-  bool             end( InputView const& input ) const {
+  void next( InputView const& ) { ++it_; }
+  bool end( InputView const& input ) const {
     return it_ == input.end();
   }
   iterator pos() const { return it_; }
@@ -156,8 +156,8 @@ struct BidirectionalIdentityCursor {
   // Forward
   void init( InputView const& input ) { it_ = input.begin(); }
   decltype( auto ) get( InputView const& ) const { return *it_; }
-  void             next( InputView const& ) { ++it_; }
-  bool             end( InputView const& input ) const {
+  void next( InputView const& ) { ++it_; }
+  bool end( InputView const& input ) const {
     return it_ == input.end();
   }
   iterator pos() const { return it_; }
@@ -173,7 +173,7 @@ struct BidirectionalIdentityCursor {
   }
   riterator rpos() const { return rit_; }
 
-  iterator  it_;
+  iterator it_;
   riterator rit_;
 };
 
@@ -323,7 +323,7 @@ class IntsView {
     }
 
     IntsView const* view_ = nullptr;
-    int             cursor_;
+    int cursor_;
   };
 
   iterator begin() const { return iterator( this ); }
@@ -340,7 +340,7 @@ class IntsView {
 // func- tion.
 template<typename Func>
 class GenerateView {
-  Func      func_;
+  Func func_;
   const int count_;
 
  public:
@@ -403,9 +403,9 @@ class GenerateView {
       return !( *this == rhs );
     }
 
-    GenerateView const* view_    = nullptr;
-    int                 n_to_go_ = 0;
-    value_type          cache_   = {};
+    GenerateView const* view_ = nullptr;
+    int n_to_go_              = 0;
+    value_type cache_         = {};
   };
 
   iterator begin() const { return iterator( this ); }
@@ -475,7 +475,7 @@ struct ChildView {
     }
 
     Cursor cursor_;
-    bool   finished_ = true;
+    bool finished_ = true;
   };
 
   ChildView() = default;
@@ -507,7 +507,7 @@ class ChainView {
   using data_t = typename Cursor::Data;
 
   InputView input_;
-  data_t    data_;
+  data_t data_;
 
  public:
   ChainView( InputView&& input, data_t&& data )
@@ -573,7 +573,7 @@ class ChainView {
 
   class iterator {
     ChainView const* view_ = nullptr;
-    Cursor           cursor_;
+    Cursor cursor_;
 
    public:
     using iterator_category = std::input_iterator_tag;
@@ -632,7 +632,7 @@ class ChainView {
   template<typename Defer = void>
   class riterator_defer {
     ChainView const* view_ = nullptr;
-    Cursor           cursor_;
+    Cursor cursor_;
 
    public:
     using iterator_category = std::input_iterator_tag;
@@ -760,7 +760,7 @@ class ChainView {
   auto min_by( Func&& f ) const {
     using KeyType = std::invoke_result_t<Func, ValueType>;
     maybe<ValueType> res{};
-    maybe<KeyType>   min_key{};
+    maybe<KeyType> min_key{};
     for( auto const& elem : *this ) {
       auto key = f( elem );
       if( !min_key.has_value() || key < *min_key ) {
@@ -775,7 +775,7 @@ class ChainView {
   auto max_by( Func&& f ) const {
     using KeyType = std::invoke_result_t<Func, ValueType>;
     maybe<ValueType> res{};
-    maybe<KeyType>   max_key{};
+    maybe<KeyType> max_key{};
     for( auto const& elem : *this ) {
       auto key = f( elem );
       if( !max_key.has_value() || key > *max_key ) {
@@ -819,7 +819,7 @@ class ChainView {
   template<typename Op = std::plus<>>
   maybe<value_type> accumulate_monoid( Op&& op = {} ) {
     maybe<value_type> res;
-    auto              it = this->begin();
+    auto it = this->begin();
     if( it == this->end() ) return res;
     res = *it;
     ++it;
@@ -1079,7 +1079,7 @@ class ChainView {
       iterator pos() const { return it_; }
 
       func_storage_t<Func> const* func_;
-      bool                        finished_;
+      bool finished_;
     };
     return make_chain<TakeWhileCursor>(
         std::forward<Func>( func ) );
@@ -1229,7 +1229,7 @@ class ChainView {
       }
 
       std::decay_t<SndView> const* snd_view_;
-      iterator2                    it2_ = {};
+      iterator2 it2_ = {};
     };
     return make_chain<ZipCursor>(
         std::forward<SndView>( snd_view ) );
@@ -1337,7 +1337,7 @@ class ChainView {
       }
 
       ValueType val_;
-      bool      should_give_val_;
+      bool should_give_val_;
     };
     return make_chain<IntersperseCursor>(
         std::forward<T>( val ) );
@@ -1495,9 +1495,9 @@ class ChainView {
           finished_group_ = true;
       }
 
-      func_storage_t<Func> const*    func_;
-      ChainView const*               input_;
-      bool                           finished_group_ = false;
+      func_storage_t<Func> const* func_;
+      ChainView const* input_;
+      bool finished_group_ = false;
       typename ChainView::value_type cache_;
     };
     return make_chain<GroupByCursor>(
@@ -1635,10 +1635,10 @@ class ChainView {
         }
       }
 
-      ChainView const* input_          = {};
-      bool             finished_group_ = false;
-      int              max_            = 0;
-      int              n_              = max_;
+      ChainView const* input_ = {};
+      bool finished_group_    = false;
+      int max_                = 0;
+      int n_                  = max_;
     };
     return make_chain<ChunkCursor>( n );
   }

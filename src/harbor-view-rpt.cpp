@@ -41,7 +41,7 @@ Delta HarborRptButtons::button_size() {
 
 // This will be relative to the upper left of this view.
 Rect HarborRptButtons::button_rect( e_rpt_button button ) {
-  Coord   upper_left;
+  Coord upper_left;
   H const button_height = button_size().h;
   switch( button ) {
     case e_rpt_button::recruit:
@@ -137,7 +137,7 @@ wait<bool> HarborRptButtons::perform_key(
 }
 
 void HarborRptButtons::draw( rr::Renderer& renderer,
-                             Coord         coord ) const {
+                             Coord coord ) const {
   rr::Painter painter = renderer.painter();
   for( e_rpt_button button : refl::enum_values<e_rpt_button> ) {
     Rect const rect =
@@ -152,9 +152,9 @@ void HarborRptButtons::draw( rr::Renderer& renderer,
           gfx::pixel::wood() );
     string const text_markup = button_text_markup( button );
     string const no_markup   = remove_markup( text_markup );
-    Delta const  text_size   = Delta::from_gfx(
+    Delta const text_size    = Delta::from_gfx(
         rr::rendered_text_line_size_pixels( no_markup ) );
-    Coord const    text_upper_left = centered( text_size, rect );
+    Coord const text_upper_left = centered( text_size, rect );
     TextMarkupInfo markup_info;
     if( mouse_inside )
       markup_info = {
@@ -173,11 +173,11 @@ void HarborRptButtons::draw( rr::Renderer& renderer,
 
 PositionedHarborSubView<HarborRptButtons>
 HarborRptButtons::create( SS& ss, TS& ts, Player& player,
-                          Rect const            canvas,
+                          Rect const canvas,
                           HarborBackdrop const& backdrop ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborRptButtons> view;
-  HarborSubView*               harbor_sub_view = nullptr;
+  HarborSubView* harbor_sub_view = nullptr;
 
   Coord const lower_right{
     .x = canvas.right_edge() - 1 - 4,

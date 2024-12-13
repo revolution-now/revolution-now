@@ -101,7 +101,7 @@ TEST_CASE( "[production] outdoor_job_for_expertise" ) {
 
 TEST_CASE( "[production] activity_for_outdoor_job" ) {
   unordered_set<e_outdoor_job> used;
-  auto                         f = [&]( e_outdoor_job job ) {
+  auto f = [&]( e_outdoor_job job ) {
     used.insert( job );
     return activity_for_outdoor_job( job );
   };
@@ -2001,10 +2001,10 @@ TEST_CASE( "[production] production_on_square/fish" ) {
 }
 
 TEST_CASE( "[production] food_production_on_center_square" ) {
-  World            W;
-  MapSquare const* square     = nullptr;
-  e_difficulty     difficulty = {};
-  int              expected   = 0;
+  World W;
+  MapSquare const* square = nullptr;
+  e_difficulty difficulty = {};
+  int expected            = 0;
 
   auto f = [&] {
     return food_production_on_center_square( *square,
@@ -2234,11 +2234,11 @@ TEST_CASE( "[production] food_production_on_center_square" ) {
 
 TEST_CASE(
     "[production] commodity_production_on_center_square" ) {
-  World                           W;
-  MapSquare const*                square     = nullptr;
-  e_difficulty                    difficulty = {};
-  e_outdoor_commons_secondary_job job        = {};
-  int                             expected   = 0;
+  World W;
+  MapSquare const* square             = nullptr;
+  e_difficulty difficulty             = {};
+  e_outdoor_commons_secondary_job job = {};
+  int expected                        = 0;
 
   auto f = [&] {
     return commodity_production_on_center_square(

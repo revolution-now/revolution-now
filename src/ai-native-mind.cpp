@@ -75,7 +75,7 @@ NativeUnitCommand AiNativeMind::command_for(
   NativeUnitOwnership const& ownership =
       as_const( ss_.units ).ownership_of( native_unit_id );
   NativeUnit const& unit = ss_.units.unit_for( native_unit_id );
-  Tribe const&      tribe =
+  Tribe const& tribe =
       ss_.natives.tribe_for( ownership.dwelling_id );
   CHECK_GT( unit.movement_points, 0 );
 

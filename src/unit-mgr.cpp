@@ -87,14 +87,14 @@ maybe<ColonyId> colony_for_unit_who_is_worker(
 ** Units
 *****************************************************************/
 maybe<e_unit_activity> current_activity_for_unit(
-    UnitsState const&    units_state,
+    UnitsState const& units_state,
     ColoniesState const& colonies_state, UnitId id ) {
   UnitOwnership const& ownership =
       units_state.ownership_of( id );
   switch( ownership.to_enum() ) {
     case UnitOwnership::e::colony: {
-      auto&         o = ownership.get<UnitOwnership::colony>();
-      ColonyId      colony_id = o.id;
+      auto& o = ownership.get<UnitOwnership::colony>();
+      ColonyId colony_id = o.id;
       Colony const& colony =
           colonies_state.colony_for( colony_id );
       // First check outdoor jobs.
@@ -133,14 +133,14 @@ string debug_string( UnitsState const& units_state, UnitId id ) {
   return debug_string( units_state.unit_for( id ) );
 }
 
-UnitId create_free_unit( UnitsState&            units_state,
-                         Player const&          player,
+UnitId create_free_unit( UnitsState& units_state,
+                         Player const& player,
                          UnitComposition const& comp ) {
   return units_state.add_unit(
       create_unregistered_unit( player, comp ) );
 }
 
-Unit create_unregistered_unit( Player const&          player,
+Unit create_unregistered_unit( Player const& player,
                                UnitComposition const& comp ) {
   wrapped::Unit refl_unit{
     .id          = UnitId{ 0 }, // will be set later.
@@ -223,7 +223,7 @@ void change_unit_nation( SS& ss, TS& ts, Unit& unit,
 
 void change_unit_nation_and_move( SS& ss, TS& ts, Unit& unit,
                                   e_nation new_nation,
-                                  Coord    target ) {
+                                  Coord target ) {
   unit.change_nation( ss.units, new_nation );
   UnitOwnershipChanger( ss, unit.id() )
       .change_to_map_non_interactive( ts, target );
@@ -281,7 +281,7 @@ ND Coord coord_for_unit_indirect_or_die(
 }
 
 maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
-                                      GenericUnitId     id ) {
+                                      GenericUnitId id ) {
   switch( units.unit_kind( id ) ) {
     case e_unit_kind::euro: {
       CHECK( units.exists( id ) );
@@ -312,7 +312,7 @@ maybe<Coord> coord_for_unit_indirect( UnitsState const& units,
 }
 
 bool is_unit_on_map_indirect( UnitsState const& units_state,
-                              UnitId            id ) {
+                              UnitId id ) {
   return coord_for_unit_indirect( units_state, id ).has_value();
 }
 
@@ -327,7 +327,7 @@ bool is_unit_on_map( UnitsState const& units_state, UnitId id ) {
 // If the unit is being held as cargo then it will return the id
 // of the unit that is holding it; nothing otherwise.
 maybe<UnitId> is_unit_onboard( UnitsState const& units_state,
-                               UnitId            id ) {
+                               UnitId id ) {
   return units_state.maybe_holder_of( id );
 }
 
@@ -364,7 +364,7 @@ vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
   }
   vector<UnitId> res;
   for( UnitId const holder_id : ships ) {
-    Unit&                holder = ss.units.unit_for( holder_id );
+    Unit& holder = ss.units.unit_for( holder_id );
     vector<UnitId> const removed =
         offboard_units_on_ship( ss, ts, holder );
     res.insert( res.end(), removed.begin(), removed.end() );
@@ -375,7 +375,7 @@ vector<UnitId> offboard_units_on_ships( SS& ss, TS& ts,
 /****************************************************************
 ** Native-specific
 *****************************************************************/
-Tribe const& tribe_for_unit( SSConst const&    ss,
+Tribe const& tribe_for_unit( SSConst const& ss,
                              NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
@@ -388,7 +388,7 @@ Tribe& tribe_for_unit( SS& ss, NativeUnit const& native_unit ) {
   return ss.natives.tribe_for( ownership.dwelling_id );
 }
 
-e_tribe tribe_type_for_unit( SSConst const&    ss,
+e_tribe tribe_type_for_unit( SSConst const& ss,
                              NativeUnit const& native_unit ) {
   NativeUnitOwnership const& ownership =
       ss.units.ownership_of( native_unit.id );
@@ -463,8 +463,8 @@ namespace {
 
 LUA_FN( create_unit_on_map, Unit&, e_nation nation,
         UnitComposition& comp, Coord const& coord ) {
-  SS&                  ss     = st["SS"].as<SS&>();
-  TS&                  ts     = st["TS"].as<TS&>();
+  SS& ss                      = st["SS"].as<SS&>();
+  TS& ts                      = st["TS"].as<TS&>();
   maybe<Player const&> player = ss.players.players[nation];
   LUA_CHECK( st, player.has_value(),
              "player for nation {} does not exist.", nation );
@@ -497,7 +497,7 @@ LUA_FN( add_unit_to_cargo, void, UnitId held, UnitId holder ) {
 
 LUA_FN( create_unit_in_cargo, Unit&, e_nation nation,
         UnitComposition& comp, UnitId holder ) {
-  SS&                  ss     = st["SS"].as<SS&>();
+  SS& ss                      = st["SS"].as<SS&>();
   maybe<Player const&> player = ss.players.players[nation];
   LUA_CHECK( st, player.has_value(),
              "player for nation {} does not exist.", nation );

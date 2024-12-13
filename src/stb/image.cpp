@@ -61,7 +61,7 @@ base::expect<gfx::image> load_image( fs::path const& p ) {
   // may be less if the image file does not contain e.g. alpha.
   // But either way, the result we get will have four bytes per
   // pixel because we are requesting it below.
-  int            num_channels = 0;
+  int num_channels = 0;
   unsigned char* data =
       ::stbi_load( p.c_str(), &width_pixels, &height_pixels,
                    &num_channels, gfx::image::kBytesPerPixel );

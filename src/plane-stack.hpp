@@ -28,9 +28,9 @@ struct Planes {
     ~PlaneGroupOwner() noexcept;
     PlaneGroupOwner( PlaneGroupOwner&& ) = delete;
 
-    Planes&          planes_;
+    Planes& planes_;
     PlaneGroupOwner* prev_owner_ = nullptr;
-    PlaneGroup       group;
+    PlaneGroup group;
   };
 
   Planes();
@@ -39,7 +39,7 @@ struct Planes {
   PlaneGroupOwner push();
 
   PlaneGroup const& get() const;
-  PlaneGroup&       get();
+  PlaneGroup& get();
 
   void on_logical_resolution_changed( e_resolution resolution );
 

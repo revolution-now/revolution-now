@@ -60,10 +60,10 @@ struct UnitOwnershipChanger {
   void destroy() const;
 
   // Map.
-  wait<maybe<UnitDeleted>> change_to_map( TS&   ts,
+  wait<maybe<UnitDeleted>> change_to_map( TS& ts,
                                           Coord target ) const;
 
-  void change_to_map_non_interactive( TS&   ts,
+  void change_to_map_non_interactive( TS& ts,
                                       Coord target ) const;
 
   // If the unit is on the map it will remove it from the map and
@@ -75,7 +75,7 @@ struct UnitOwnershipChanger {
 
   // Cargo.
   void change_to_cargo( UnitId new_holder,
-                        int    starting_slot ) const;
+                        int starting_slot ) const;
 
   // Colony.
   void change_to_colony( TS& ts, Colony& colony,
@@ -87,15 +87,15 @@ struct UnitOwnershipChanger {
   // the parameters of this method should be in a given situa-
   // tion, including looking at the previous state of the unit.
   void change_to_harbor( PortStatus const& port_status,
-                         maybe<Coord>      sailed_from ) const;
+                         maybe<Coord> sailed_from ) const;
 
   // Dwelling (for missionaries).
   void change_to_dwelling( DwellingId dwelling_id ) const;
 
  private:
-  SS&          ss_;
-  Unit&        unit_;
-  Player&      player_;
+  SS& ss_;
+  Unit& unit_;
+  Player& player_;
   UnitId const unit_id_ = {};
 };
 
@@ -108,7 +108,7 @@ struct NativeUnitOwnershipChanger {
   void destroy() const;
 
  private:
-  SS&                ss_;
+  SS& ss_;
   NativeUnitId const unit_id_ = {};
 };
 

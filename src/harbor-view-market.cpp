@@ -255,9 +255,9 @@ wait<> HarborMarketCommodities::drop(
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,
-                                    Coord         coord ) const {
+                                    Coord coord ) const {
   rr::Painter painter = renderer.painter();
-  auto        bds     = rect( coord );
+  auto bds            = rect( coord );
   // Our delta for this view has one extra pixel added to the
   // width and height to allow for the border, and so we need to
   // remove that otherwise the subrects method below will create
@@ -299,14 +299,14 @@ PositionedHarborSubView<HarborMarketCommodities>
 HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
                                  Rect canvas ) {
   Delta const size = canvas.delta();
-  W           comm_block_width =
+  W comm_block_width =
       size.w / SX{ refl::enum_count<e_commodity> };
   comm_block_width =
       clamp( comm_block_width, kCommodityTileSize.w, 32 );
   unique_ptr<HarborMarketCommodities> view;
-  HarborSubView*                      harbor_sub_view = nullptr;
-  Coord                               pos;
-  bool                                stacked = false;
+  HarborSubView* harbor_sub_view = nullptr;
+  Coord pos;
+  bool stacked = false;
   if( size.w >= HarborMarketCommodities::single_layer_width &&
       size.h >= HarborMarketCommodities::single_layer_height ) {
     stacked = false;

@@ -110,8 +110,8 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
   template<size_t... Idxs>
   void register_attribs_for_all_buffers(
       std::index_sequence<Idxs...> ) const {
-    auto binder           = bind();
-    int  attrib_idx_start = 0;
+    auto binder          = bind();
+    int attrib_idx_start = 0;
     ( ( attrib_idx_start +=
         register_attribs_for_single_buffer<Idxs>(
             attrib_idx_start ) ),
@@ -122,8 +122,8 @@ struct VertexArray<VertexBuffer<VertexTypes>...>
   template<size_t BufferIdx>
   int register_attribs_for_single_buffer(
       int const attrib_idx_start ) const {
-    auto const& buffer        = std::get<BufferIdx>( buffers_ );
-    auto        buffer_binder = buffer.bind();
+    auto const& buffer = std::get<BufferIdx>( buffers_ );
+    auto buffer_binder = buffer.bind();
 
     using VertexType = typename std::remove_cvref_t<
         decltype( buffer )>::vertex_type;

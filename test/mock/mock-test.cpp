@@ -69,7 +69,7 @@ struct IPoint {
   virtual double length() const = 0;
 
   virtual void output_c_array( size_t* size_written,
-                               int*    arr ) const = 0;
+                               int* arr ) const = 0;
 
   virtual int& returns_lvalue_ref() const = 0;
 
@@ -127,14 +127,14 @@ struct PointUser {
   }
 
   std::string repeat_str( std::string const& s,
-                          int                count ) const {
+                          int count ) const {
     return p_->repeat_str( s, count );
   }
 
   void set_xy( int x, int y ) { p_->set_xy( x, y ); }
 
   int output_c_array() const {
-    int    buf[10];
+    int buf[10];
     size_t n_written;
     p_->output_c_array( &n_written, buf );
     int res = 0;

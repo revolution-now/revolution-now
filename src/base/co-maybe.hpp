@@ -28,7 +28,7 @@
 namespace base::detail {
 
 struct maybe_await_bool {
-  bool           b_ = {};
+  bool b_ = {};
   constexpr bool await_ready() noexcept { return b_; }
   void await_suspend( std::coroutine_handle<> h ) noexcept {
     // See corresponding comments in maybe_await.

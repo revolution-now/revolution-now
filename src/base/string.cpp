@@ -62,7 +62,7 @@ string str_replace( string_view sv, string_view from,
 }
 
 string str_replace_all(
-    string_view                            sv,
+    string_view sv,
     initializer_list<pair<string, string>> pairs ) {
   string res( sv );
   for( auto const& [from, to] : pairs )
@@ -89,7 +89,7 @@ vector<string> str_split_on_any( string_view sv,
 }
 
 string str_join( vector<string> const& v,
-                 string_view const     sep ) {
+                 string_view const sep ) {
   std::string res;
   if( !v.size() ) return res;
   // First attempt to compute how much space we need, which  we

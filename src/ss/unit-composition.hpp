@@ -53,7 +53,7 @@ struct UnitComposition {
   // Implement refl::WrapsReflected.
   UnitComposition( wrapped::UnitComposition&& o )
     : o_( std::move( o ) ) {}
-  wrapped::UnitComposition const&   refl() const { return o_; }
+  wrapped::UnitComposition const& refl() const { return o_; }
   static constexpr std::string_view refl_ns = "rn";
   static constexpr std::string_view refl_name =
       "UnitComposition";

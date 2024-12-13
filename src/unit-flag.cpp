@@ -233,7 +233,7 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
 UnitFlagRenderInfo native_unit_flag_render_info(
     SSConst const& ss, NativeUnit const& unit,
     UnitFlagOptions const& options ) {
-  e_tribe const    tribe_type = tribe_type_for_unit( ss, unit );
+  e_tribe const tribe_type = tribe_type_for_unit( ss, unit );
   gfx::pixel const background_color =
       config_natives.tribes[tribe_type].flag_color;
   UnitFlagContents const flag_contents = [&] {

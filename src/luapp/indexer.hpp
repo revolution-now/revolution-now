@@ -219,7 +219,7 @@ struct indexer<metatable_key_t const&, Predecessor>
     return type_of( this_cthread(), *this );
   }
 
-  friend void lua_push( cthread                     L,
+  friend void lua_push( cthread L,
                         indexer<metatable_key_t const&,
                                 Predecessor> const& idxr ) {
     push( L, idxr.pred_ );

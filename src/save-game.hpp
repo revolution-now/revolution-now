@@ -54,7 +54,7 @@ wait<base::NoDiscard<bool>> save_to_slot_interactive(
 
 expect<fs::path> save_to_slot( SSConst const& ss, TS& ts,
                                IGameStorageSave const& saver,
-                               int                     slot );
+                               int slot );
 
 expect<fs::path> save_to_slot_no_checkpoint(
     SSConst const& ss, TS& ts, IGameStorageSave const& saver,
@@ -82,6 +82,6 @@ wait<base::NoDiscard<bool>> load_from_slot_interactive(
 
 expect<fs::path> load_from_slot( SS& ss, TS& ts,
                                  IGameStorageLoad const& loader,
-                                 int                     slot );
+                                 int slot );
 
 } // namespace rn

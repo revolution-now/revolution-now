@@ -32,7 +32,7 @@ struct Tracker {
   static inline int copied           = 0;
   static inline int move_constructed = 0;
   static inline int move_assigned    = 0;
-  static void       reset() {
+  static void reset() {
     constructed = destructed = copied = move_constructed =
         move_assigned                 = 0;
   }
@@ -84,8 +84,8 @@ struct MovedFromCounter {
 ** Formattable
 *****************************************************************/
 struct Formattable {
-  int         n = 5;
-  double      d = 7.7;
+  int n         = 5;
+  double d      = 7.7;
   std::string s = "hello";
 
   friend void to_str( Formattable const& o, std::string& out,
@@ -125,12 +125,12 @@ inline void to_str( Empty const&, std::string& out,
 *****************************************************************/
 struct NoCopy {
   explicit NoCopy( char c_ ) : c( c_ ) {}
-  NoCopy( NoCopy const& )                        = delete;
-  NoCopy( NoCopy&& )                             = default;
-  NoCopy&     operator=( NoCopy const& )         = delete;
-  NoCopy&     operator=( NoCopy&& )              = default;
-  bool        operator==( NoCopy const& ) const& = default;
-  char        c;
+  NoCopy( NoCopy const& )                 = delete;
+  NoCopy( NoCopy&& )                      = default;
+  NoCopy& operator=( NoCopy const& )      = delete;
+  NoCopy& operator=( NoCopy&& )           = default;
+  bool operator==( NoCopy const& ) const& = default;
+  char c;
   friend void to_str( NoCopy const& o, std::string& out,
                       base::tag<NoCopy> ) {
     out += fmt::format( "NoCopy{{c={}}}", o.c );
@@ -207,7 +207,7 @@ struct Trivial {
   }
 
   double d = 0;
-  int    n = 0;
+  int n    = 0;
 };
 
 /****************************************************************

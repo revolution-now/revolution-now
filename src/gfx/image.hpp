@@ -39,17 +39,17 @@ struct image : base::zero<image, unsigned char*> {
   image& operator=( image&& ) = default;
 
   gfx::pixel const& at( point p ) const;
-  gfx::pixel&       at( point p );
+  gfx::pixel& at( point p );
 
   gfx::pixel const& operator[]( point p ) const;
-  gfx::pixel&       operator[]( point p );
+  gfx::pixel& operator[]( point p );
 
   size size_pixels() const;
   rect rect_pixels() const;
-  int  height_pixels() const;
-  int  width_pixels() const;
-  int  size_bytes() const;
-  int  total_pixels() const;
+  int height_pixels() const;
+  int width_pixels() const;
+  int size_bytes() const;
+  int total_pixels() const;
 
   operator std::span<std::byte const>() const;
   operator std::span<char const>() const;
@@ -97,7 +97,7 @@ bool image_equals(
     image const& img, std::span<pixel const> sp,
     std::source_location loc = std::source_location::current() );
 
-image new_image_from_pixels( size                   dimensions,
+image new_image_from_pixels( size dimensions,
                              std::span<pixel const> sp );
 
 }

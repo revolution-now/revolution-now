@@ -347,14 +347,14 @@ struct TravelHandler : public CommandHandler {
   wait<e_travel_verdict> analyze_unload() const;
 
   wait<maybe<ui::e_confirm>> ask_sail_high_seas() const;
-  wait<e_travel_verdict>     confirm_sail_high_seas() const;
+  wait<e_travel_verdict> confirm_sail_high_seas() const;
   wait<e_travel_verdict> confirm_sail_high_seas_map_edge() const;
 
   SS& ss_;
   TS& ts_;
 
   // The unit that is moving.
-  UnitId      unit_id;
+  UnitId unit_id;
   e_direction direction;
 
   vector<UnitId> prioritize = {};
@@ -398,7 +398,7 @@ struct TravelHandler : public CommandHandler {
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::analyze_unload() const {
   std::vector<UnitId> to_offload;
-  auto&               unit = ss_.units.unit_for( unit_id );
+  auto& unit = ss_.units.unit_for( unit_id );
   for( auto unit_item :
        unit.cargo().items_of_type<Cargo::unit>() ) {
     auto const& cargo_unit = ss_.units.unit_for( unit_item.id );
@@ -515,7 +515,7 @@ TravelHandler::confirm_sail_high_seas_map_edge() const {
 
 wait<TravelHandler::e_travel_verdict>
 TravelHandler::confirm_travel_impl() {
-  UnitId      id   = unit_id;
+  UnitId id        = unit_id;
   Unit const& unit = ss_.units.unit_for( id );
   move_src = coord_for_unit_indirect_or_die( ss_.units, id );
   move_dst = move_src.moved( direction );
@@ -878,7 +878,7 @@ TravelHandler::confirm_travel_impl() {
 }
 
 wait<> TravelHandler::perform() {
-  auto  id   = unit_id;
+  auto id    = unit_id;
   auto& unit = ss_.units.unit_for( id );
 
   CHECK( !unit.mv_pts_exhausted() );
@@ -1197,21 +1197,21 @@ struct NativeDwellingHandler : public CommandHandler {
     // scout was used a target practice or scout lost an attack.
   }
 
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
 
   // The unit doing the attacking. We need to record the unit id
   // so that we can test if the unit has been destroyed.
-  UnitId    unit_id_;
-  Unit&     unit_;
-  Tribe&    tribe_;
+  UnitId unit_id_;
+  Unit& unit_;
+  Tribe& tribe_;
   Dwelling& dwelling_;
 
   // Source and destination squares of the move.
   e_direction direction_;
-  Coord       move_src_;
-  Coord       move_dst_;
+  Coord move_src_;
+  Coord move_dst_;
 
   // In case we are attacking the village.
   EnterDwellingOutcome outcome_;
@@ -1221,13 +1221,13 @@ struct NativeDwellingHandler : public CommandHandler {
 ** Dispatch
 *****************************************************************/
 unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
-                                     Player&     player,
-                                     UnitId      attacker_id,
+                                     Player& player,
+                                     UnitId attacker_id,
                                      e_direction d ) {
   Coord const src =
       coord_for_unit_indirect_or_die( ss.units, attacker_id );
-  Coord const dst      = src.moved( d );
-  Unit&       attacker = ss.units.unit_for( attacker_id );
+  Coord const dst = src.moved( d );
+  Unit& attacker  = ss.units.unit_for( attacker_id );
 
   if( !dst.is_inside( ss.terrain.world_rect_tiles() ) )
     // This is an invalid move, but the TravelHandler is the one

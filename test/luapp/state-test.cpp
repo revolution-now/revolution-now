@@ -125,7 +125,7 @@ LUA_TEST_CASE( "[lua-state] script run unsafe void" ) {
 
 LUA_TEST_CASE( "[lua-state] script run safe" ) {
   C.openlibs();
-  lua_valid   v = st.script.run_safe( R"lua(
+  lua_valid v = st.script.run_safe( R"lua(
     assert( 1 == 2 )
   )lua" );
   char const* err =
@@ -147,10 +147,10 @@ LUA_TEST_CASE( "[lua-state] thread create" ) {
 
 LUA_TEST_CASE( "[lua-state] thread create coro" ) {
   st.script.run( "function f() end" );
-  rfunction f      = st["f"].as<rfunction>();
-  rthread   coro   = st.thread.create_coro( f );
-  cthread   L_coro = coro.cthread();
-  c_api     C_coro( L_coro );
+  rfunction f    = st["f"].as<rfunction>();
+  rthread coro   = st.thread.create_coro( f );
+  cthread L_coro = coro.cthread();
+  c_api C_coro( L_coro );
   REQUIRE( C_coro.stack_size() == 1 );
   REQUIRE( C_coro.type_of( -1 ) == type::function );
   rfunction f2( coro.cthread(), C_coro.ref_registry() );
@@ -177,7 +177,7 @@ LUA_TEST_CASE( "[lua-state] cast" ) {
 LUA_TEST_CASE( "[lua-state] function" ) {
   rfunction f1 =
       st.function.create( []( int n ) { return n + 1; } );
-  int       m = 5;
+  int m = 5;
   rfunction f2 =
       st.function.create( [m]( int n ) { return n + m; } );
 

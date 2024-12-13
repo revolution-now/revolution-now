@@ -126,38 +126,38 @@ struct IGui {
 
   template<refl::ReflectedEnum E>
   wait<maybe<E>> optional_enum_choice(
-      EnumChoiceConfig const&               enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, std::string> const& names,
-      refl::enum_map<E, bool> const&        disabled );
+      refl::enum_map<E, bool> const& disabled );
 
   template<refl::ReflectedEnum E>
   wait<E> required_enum_choice(
-      EnumChoiceConfig const&               enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, std::string> const& names,
-      refl::enum_map<E, bool> const&        disabled );
+      refl::enum_map<E, bool> const& disabled );
 
   // All items enabled.
   template<refl::ReflectedEnum E>
   wait<maybe<E>> optional_enum_choice(
-      EnumChoiceConfig const&               enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, std::string> const& names );
 
   // All items enabled.
   template<refl::ReflectedEnum E>
   wait<E> required_enum_choice(
-      EnumChoiceConfig const&               enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, std::string> const& names );
 
   // This one just uses the names of the enums as display names.
   // This is mostly for debug related UIs.
   template<refl::ReflectedEnum E>
   wait<maybe<E>> optional_enum_choice(
-      EnumChoiceConfig const&        enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, bool> const& disabled );
 
   template<refl::ReflectedEnum E>
   wait<E> required_enum_choice(
-      EnumChoiceConfig const&        enum_config,
+      EnumChoiceConfig const& enum_config,
       refl::enum_map<E, bool> const& disabled );
 
   template<refl::ReflectedEnum E>
@@ -174,12 +174,12 @@ struct IGui {
   template<refl::ReflectedEnum E>
   wait<maybe<E>> optional_enum_choice(
       refl::enum_map<E, bool> const& disabled,
-      bool                           sort = false );
+      bool sort = false );
 
   template<refl::ReflectedEnum E>
   wait<E> required_enum_choice(
       refl::enum_map<E, bool> const& disabled,
-      bool                           sort = false );
+      bool sort = false );
 
   template<refl::ReflectedEnum E>
   wait<maybe<E>> optional_enum_choice( bool sort = false );
@@ -200,7 +200,7 @@ struct IGui {
 
   template<typename Enum>
   wait<> enum_check_boxes(
-      std::string_view                    title,
+      std::string_view title,
       refl::enum_map<Enum, CheckBoxInfo>& items ) {
     std::unordered_map<int, CheckBoxInfo> int_items;
     for( auto& [item, info] : items )
@@ -240,7 +240,7 @@ struct IGui {
   // and will let the user check or uncheck them, then will re-
   // turn the updated map.
   virtual wait<std::unordered_map<int, bool>> check_box_selector(
-      std::string const&                           title,
+      std::string const& title,
       std::unordered_map<int, CheckBoxInfo> const& items ) = 0;
 
   /* ============================================================
@@ -274,9 +274,9 @@ struct IGui {
 
 template<refl::ReflectedEnum E>
 wait<maybe<E>> IGui::optional_enum_choice(
-    EnumChoiceConfig const&               enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, std::string> const& names,
-    refl::enum_map<E, bool> const&        disabled ) {
+    refl::enum_map<E, bool> const& disabled ) {
   ChoiceConfig config{
     .msg            = enum_config.msg,
     .cancel_actions = enum_config.cancel_actions,
@@ -295,9 +295,9 @@ wait<maybe<E>> IGui::optional_enum_choice(
 
 template<refl::ReflectedEnum E>
 wait<E> IGui::required_enum_choice(
-    EnumChoiceConfig const&               enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, std::string> const& names,
-    refl::enum_map<E, bool> const&        disabled ) {
+    refl::enum_map<E, bool> const& disabled ) {
   ChoiceConfig config{
     .msg            = enum_config.msg,
     .cancel_actions = enum_config.cancel_actions,
@@ -314,7 +314,7 @@ wait<E> IGui::required_enum_choice(
 
 template<refl::ReflectedEnum E>
 wait<maybe<E>> IGui::optional_enum_choice(
-    EnumChoiceConfig const&               enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, std::string> const& names ) {
   co_return co_await optional_enum_choice(
       enum_config, names,
@@ -323,7 +323,7 @@ wait<maybe<E>> IGui::optional_enum_choice(
 
 template<refl::ReflectedEnum E>
 wait<E> IGui::required_enum_choice(
-    EnumChoiceConfig const&               enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, std::string> const& names ) {
   co_return co_await required_enum_choice(
       enum_config, names,
@@ -332,7 +332,7 @@ wait<E> IGui::required_enum_choice(
 
 template<refl::ReflectedEnum E>
 wait<maybe<E>> IGui::optional_enum_choice(
-    EnumChoiceConfig const&        enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, bool> const& disabled ) {
   refl::enum_map<E, std::string> names;
   for( E item : refl::enum_values<E> )
@@ -344,7 +344,7 @@ wait<maybe<E>> IGui::optional_enum_choice(
 
 template<refl::ReflectedEnum E>
 wait<E> IGui::required_enum_choice(
-    EnumChoiceConfig const&        enum_config,
+    EnumChoiceConfig const& enum_config,
     refl::enum_map<E, bool> const& disabled ) {
   refl::enum_map<E, std::string> names;
   for( E item : refl::enum_values<E> )

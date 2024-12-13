@@ -102,9 +102,9 @@ void add_outdoor_weights_around_square(
 refl::enum_map<e_native_skill, int> dwelling_expertise_weights(
     SSConst const& ss, Dwelling const& dwelling ) {
   refl::enum_map<e_native_skill, int> weights;
-  int                                 num_forest_squares = 0;
-  int                                 total_squares      = 0;
-  Coord const location = ss.natives.coord_for( dwelling.id );
+  int num_forest_squares = 0;
+  int total_squares      = 0;
+  Coord const location   = ss.natives.coord_for( dwelling.id );
   add_outdoor_weights_around_square(
       ss, location, weights, total_squares, num_forest_squares );
   CHECK_GT( total_squares, 0 );
@@ -171,8 +171,8 @@ namespace {
 
 LUA_FN( select_expertise_for_dwelling, e_native_skill,
         Dwelling& dwelling ) {
-  SS&                                 ss = st["SS"].as<SS&>();
-  TS&                                 ts = st["TS"].as<TS&>();
+  SS& ss = st["SS"].as<SS&>();
+  TS& ts = st["TS"].as<TS&>();
   refl::enum_map<e_native_skill, int> weights =
       dwelling_expertise_weights( ss, dwelling );
   return select_expertise_for_dwelling( ts, weights );

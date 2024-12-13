@@ -79,8 +79,8 @@ TEST_CASE(
 
   SECTION( "expert_farmer carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
-    Unit&           unit =
+    Colony& colony = W.add_colony( W.kLand );
+    Unit& unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::expert_farmer );
     expected = UnitComposition( wrapped::UnitComposition{
@@ -95,8 +95,8 @@ TEST_CASE(
 
   SECTION( "petty_criminal carpentry" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
-    Unit&           unit =
+    Colony& colony = W.add_colony( W.kLand );
+    Unit& unit =
         W.add_unit_indoors( colony.id, e_indoor_job::hammers,
                             e_unit_type::petty_criminal );
     expected = UnitComposition( wrapped::UnitComposition{
@@ -136,8 +136,8 @@ TEST_CASE(
 
   SECTION( "petty_criminal farmer" ) {
     UnitComposition expected;
-    Colony&         colony = W.add_colony( W.kLand );
-    Unit&           unit   = W.add_unit_outdoors(
+    Colony& colony = W.add_colony( W.kLand );
+    Unit& unit     = W.add_unit_outdoors(
         colony.id, e_direction::w, e_outdoor_job::food,
         e_unit_type::petty_criminal );
     expected = UnitComposition( wrapped::UnitComposition{
@@ -191,7 +191,7 @@ TEST_CASE(
 
   SECTION( "expert_farmer no job" ) {
     UnitComposition expected;
-    Unit&           unit =
+    Unit& unit =
         W.add_unit_on_map( e_unit_type::expert_farmer, W.kLand );
     expected = UnitComposition( wrapped::UnitComposition{
       .type      = e_unit_type::expert_farmer,
@@ -345,7 +345,7 @@ TEST_CASE( "[unit-type] promoted_from_activity" ) {
   };
   using UT  = e_unit_type;
   using Act = e_unit_activity;
-  UnitType        ut;
+  UnitType ut;
   UnitComposition uc;
   UnitComposition expected;
   e_unit_activity act;
@@ -1006,7 +1006,7 @@ TEST_CASE( "[unit-type] expert_for_activity" ) {
 
 TEST_CASE( "[unit-type] promoted_by_natives" ) {
   UnitComposition comp, expected;
-  e_native_skill  skill = {};
+  e_native_skill skill = {};
 
   auto f = [&] { return promoted_by_natives( comp, skill ); };
 

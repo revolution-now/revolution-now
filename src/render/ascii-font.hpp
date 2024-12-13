@@ -25,7 +25,7 @@ namespace rr {
 *****************************************************************/
 struct AsciiFont {
   AsciiFont( std::unique_ptr<std::array<int, 256>> ids,
-             gfx::size                             char_size )
+             gfx::size char_size )
     : atlas_ids_( std::move( ids ) ), char_size_{ char_size } {}
 
   gfx::size char_size() const { return char_size_; }
@@ -36,7 +36,7 @@ struct AsciiFont {
 
  private:
   std::unique_ptr<std::array<int, 256>> atlas_ids_;
-  gfx::size                             char_size_;
+  gfx::size char_size_;
 };
 
 } // namespace rr

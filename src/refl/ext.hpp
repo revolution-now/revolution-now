@@ -105,7 +105,7 @@ struct StructField {
                               : OffsetType{} ) {}
 
   std::string_view name;
-  Accessor         accessor;
+  Accessor accessor;
   // This is optionally present because only "standard layout"
   // types support using the offsetof macro to get offsets of
   // fields, and offsetof seems to be the only way to get it, so

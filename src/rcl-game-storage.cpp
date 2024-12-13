@@ -59,7 +59,7 @@ using ::base::valid_or;
 string construct_rcl_title( SSConst const& ss ) {
   string const difficulty = base::capitalize_initials(
       refl::enum_value_name( ss.root.settings.difficulty ) );
-  string const    name = "SomeName"; // FIXME: temporary
+  string const name = "SomeName"; // FIXME: temporary
   maybe<e_nation> human;
   // Use the first human nation.
   for( e_nation nation : refl::enum_values<e_nation> ) {
@@ -73,7 +73,7 @@ string construct_rcl_title( SSConst const& ss ) {
                               .possessive_pre_declaration
                         : "(AI only)";
   TurnState const& turn_state = ss.root.turn;
-  string const     time_point = fmt::format(
+  string const time_point     = fmt::format(
       "{} {}",
       base::capitalize_initials( refl::enum_value_name(
           turn_state.time_point.season ) ),
@@ -97,7 +97,7 @@ bool should_write_fields_with_default_values(
 }
 
 string save_game_to_rcl(
-    RootState const&                   root,
+    RootState const& root,
     RclGameStorageSave::options const& opts ) {
   cdr::converter::options const cdr_opts{
     .write_fields_with_default_value =
@@ -121,8 +121,8 @@ string save_game_to_rcl(
 }
 
 // The filename is only used for error reporting.
-valid_or<string> load_game_from_rcl( RootState&    out_root,
-                                     string_view   filename,
+valid_or<string> load_game_from_rcl( RootState& out_root,
+                                     string_view filename,
                                      string const& in ) {
   cdr::converter::options const cdr_opts{
     .allow_unrecognized_fields        = false,

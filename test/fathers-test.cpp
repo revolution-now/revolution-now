@@ -66,8 +66,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       // clang-format off
         L, L, L, L, L, L,
@@ -83,8 +83,8 @@ struct World : testing::World {
   }
 
   void create_large_map() {
-    MapSquare const   O = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const O = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles;
     tiles.reserve( 20 * 20 );
     for( int y = 0; y < 20; ++y ) {
@@ -103,7 +103,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[fathers] has_all_fathers" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   REQUIRE_FALSE( has_all_fathers( player ) );
@@ -120,7 +120,7 @@ TEST_CASE( "[fathers] has_all_fathers" ) {
 }
 
 TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   auto f = [&] {
@@ -201,7 +201,7 @@ TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
 }
 
 TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   auto f = [&] {
@@ -445,7 +445,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
 }
 
 TEST_CASE( "[fathers] check_founding_fathers" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   auto f = [&] {
@@ -497,7 +497,7 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
 TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
   World W;
   W.update_terrain_connectivity();
-  Player&                 player = W.default_player();
+  Player& player = W.default_player();
   e_founding_father const father =
       e_founding_father::john_paul_jones;
 
@@ -518,8 +518,8 @@ TEST_CASE( "[fathers] on_father_received: john_paul_jones" ) {
 
 TEST_CASE(
     "[fathers] on_father_received: bartolome_de_las_casas" ) {
-  World                   W;
-  Player&                 player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   e_founding_father const father =
       e_founding_father::bartolome_de_las_casas;
 
@@ -575,8 +575,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
-  World                   W;
-  Player&                 player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   e_founding_father const father =
       e_founding_father::jakob_fugger;
   player.old_world.market.commodities[e_commodity::food]
@@ -603,8 +603,8 @@ TEST_CASE( "[fathers] on_father_received: jakob_fugger" ) {
 
 TEST_CASE(
     "[fathers] on_father_received: francisco_de_coronado" ) {
-  World                   W;
-  Player&                 dutch = W.dutch();
+  World W;
+  Player& dutch = W.dutch();
   e_founding_father const father =
       e_founding_father::francisco_de_coronado;
   W.create_large_map();
@@ -654,8 +654,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
-  World                   W;
-  Player&                 dutch = W.dutch();
+  World W;
+  Player& dutch = W.dutch();
   e_founding_father const father =
       e_founding_father::sieur_de_la_salle;
   Coord const kDutchColony1{ .x = 0, .y = 0 };
@@ -697,12 +697,12 @@ TEST_CASE( "[fathers] on_father_received: sieur_de_la_salle" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
-  World              W;
-  Player&            player = W.default_player();
-  Tribe&             inca   = W.add_tribe( e_tribe::inca );
-  Tribe&             arawak = W.add_tribe( e_tribe::arawak );
-  Tribe&             tupi   = W.add_tribe( e_tribe::tupi );
-  Tribe&             aztec  = W.add_tribe( e_tribe::aztec );
+  World W;
+  Player& player = W.default_player();
+  Tribe& inca    = W.add_tribe( e_tribe::inca );
+  Tribe& arawak  = W.add_tribe( e_tribe::arawak );
+  Tribe& tupi    = W.add_tribe( e_tribe::tupi );
+  Tribe& aztec   = W.add_tribe( e_tribe::aztec );
   TribeRelationship& inca_relationship =
       inca.relationship[player.nation];
   inca_relationship.encountered = true;
@@ -738,9 +738,9 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
 
 TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
   World W;
-  W.settings().difficulty  = e_difficulty::conquistador;
-  Player&           player = W.default_player();
-  ImmigrationState& state  = player.old_world.immigration;
+  W.settings().difficulty = e_difficulty::conquistador;
+  Player& player          = W.default_player();
+  ImmigrationState& state = player.old_world.immigration;
   player.fathers.has[e_founding_father::william_brewster] = true;
 
   auto f = [&] {
@@ -778,7 +778,7 @@ TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
 }
 
 TEST_CASE( "[fathers] on_father_received: hernando_de_soto" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   auto f = [&] {

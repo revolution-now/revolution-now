@@ -48,9 +48,9 @@ struct World : testing::World {
 TEST_CASE( "[src/mv-calc] can_unit_move_based_on_mv_points" ) {
   World W;
 
-  Unit                   unit;
+  Unit unit;
   MovementPointsAnalysis res, expected;
-  MovementPoints         needed;
+  MovementPoints needed;
 
   auto f = [&] {
     return can_unit_move_based_on_mv_points(
@@ -256,9 +256,9 @@ TEST_CASE(
     "[src/mv-calc] can_native_unit_move_based_on_mv_points" ) {
   World W;
 
-  NativeUnit             unit;
+  NativeUnit unit;
   MovementPointsAnalysis res, expected;
-  MovementPoints         needed;
+  MovementPoints needed;
 
   auto f = [&] {
     return can_native_unit_move_based_on_mv_points( W.ts(), unit,

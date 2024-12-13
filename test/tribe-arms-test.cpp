@@ -50,7 +50,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, L, L, L, //
       L, L, L, L, L, L, L, //
@@ -79,7 +79,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[tribe-arms] retain_muskets_from_destroyed_brave" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] { retain_muskets_from_destroyed_brave( tribe ); };
@@ -105,7 +105,7 @@ TEST_CASE( "[tribe-arms] retain_muskets_from_destroyed_brave" ) {
 }
 
 TEST_CASE( "[tribe-arms] retain_horses_from_destroyed_brave" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] {
@@ -133,7 +133,7 @@ TEST_CASE( "[tribe-arms] retain_horses_from_destroyed_brave" ) {
 }
 
 TEST_CASE( "[tribe-arms] gain_horses_from_winning_combat" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] { gain_horses_from_winning_combat( tribe ); };
@@ -159,7 +159,7 @@ TEST_CASE( "[tribe-arms] gain_horses_from_winning_combat" ) {
 }
 
 TEST_CASE( "[tribe-arms] acquire_muskets_from_colony_raid" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&]( int q ) {
@@ -207,7 +207,7 @@ TEST_CASE( "[tribe-arms] acquire_muskets_from_colony_raid" ) {
 }
 
 TEST_CASE( "[tribe-arms] acquire_horses_from_colony_raid" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::cherokee );
 
   auto f = [&]( int q ) {
@@ -257,7 +257,7 @@ TEST_CASE( "[tribe-arms] acquire_horses_from_colony_raid" ) {
 TEST_CASE(
     "[tribe-arms] retain_horses_from_destroyed_brave max "
     "value" ) {
-  World  W;
+  World W;
   Tribe* tribe = nullptr;
 
   auto f = [&] {
@@ -373,8 +373,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
-  World         W;
-  Tribe&        tribe = W.add_tribe( e_tribe::cherokee );
+  World W;
+  Tribe& tribe = W.add_tribe( e_tribe::cherokee );
   EquippedBrave expected;
 
   auto f = [&] {
@@ -510,9 +510,9 @@ TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
 }
 
 TEST_CASE( "[tribe-arms] select_existing_brave_equip" ) {
-  World              W;
-  Tribe&             tribe = W.add_tribe( e_tribe::cherokee );
-  EquippedBrave      expected;
+  World W;
+  Tribe& tribe = W.add_tribe( e_tribe::cherokee );
+  EquippedBrave expected;
   e_native_unit_type type = {};
 
   auto f = [&] {
@@ -761,7 +761,7 @@ TEST_CASE( "[tribe-arms] select_existing_brave_equip" ) {
 }
 
 TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] { evolve_tribe_horse_breeding( W.ss(), tribe ); };
@@ -805,7 +805,7 @@ TEST_CASE( "[tribe-arms] evolve_tribe_horse_breeding" ) {
 }
 
 TEST_CASE( "[tribe-arms] adjust_arms_on_dwelling_destruction" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] {
@@ -1018,7 +1018,7 @@ TEST_CASE( "[tribe-arms] adjust_arms_on_dwelling_destruction" ) {
 }
 
 TEST_CASE( "[tribe-arms] tribe_arms_for_advisor_report" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   ArmsReportForIndianAdvisorReport expected;
@@ -1122,7 +1122,7 @@ TEST_CASE( "[tribe-arms] tribe_arms_for_advisor_report" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_muskets_sold_to_tribe" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&]( int quantity ) {
@@ -1174,7 +1174,7 @@ TEST_CASE( "[tribe-arms] on_muskets_sold_to_tribe" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_muskets_gifted_to_tribe" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::sioux );
 
   auto f = [&] { return on_muskets_gifted_to_tribe( tribe ); };
@@ -1200,7 +1200,7 @@ TEST_CASE( "[tribe-arms] on_muskets_gifted_to_tribe" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_horses_sold_to_tribe" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::arawak );
 
   auto f = [&]( int quantity ) {
@@ -1264,7 +1264,7 @@ TEST_CASE( "[tribe-arms] on_horses_sold_to_tribe" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_horses_gifted_to_tribe" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::arawak );
 
   auto f = [&]( int quantity ) {
@@ -1323,7 +1323,7 @@ TEST_CASE( "[tribe-arms] on_horses_gifted_to_tribe" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_receive_muskets_via_reparations" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::arawak );
 
   DwellingId const dwelling_id =
@@ -1366,7 +1366,7 @@ TEST_CASE( "[tribe-arms] on_receive_muskets_via_reparations" ) {
 }
 
 TEST_CASE( "[tribe-arms] on_receive_horses_via_reparations" ) {
-  World  W;
+  World W;
   Tribe& tribe = W.add_tribe( e_tribe::arawak );
 
   DwellingId const dwelling_id =

@@ -17,7 +17,7 @@ namespace gfx {
 /****************************************************************
 ** Public API
 *****************************************************************/
-base::generator<rn::Rect> subrects( rn::Rect  rect,
+base::generator<rn::Rect> subrects( rn::Rect rect,
                                     rn::Delta chunk ) {
   for( int y = rect.top_edge(); y < rect.bottom_edge();
        y += chunk.h )

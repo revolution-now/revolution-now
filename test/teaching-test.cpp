@@ -70,7 +70,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[teaching] max_teachers_allowed" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( World::kColonySquare );
 
   REQUIRE( max_teachers_allowed( colony ) == 0 );
@@ -86,7 +86,7 @@ TEST_CASE( "[teaching] max_teachers_allowed" ) {
 }
 
 TEST_CASE( "[teaching] sync_colony_teachers" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( World::kColonySquare );
   colony.buildings[e_colony_building::university] = true;
 
@@ -208,7 +208,7 @@ TEST_CASE( "[teaching] can_unit_teach" ) {
 }
 
 TEST_CASE( "[teaching] evolve_teachers" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( World::kColonySquare );
   colony.buildings[e_colony_building::university] = true;
 

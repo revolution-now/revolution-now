@@ -84,7 +84,7 @@ namespace {
 
 using ::gfx::point;
 
-bool can_remove_building( Colony const&     colony,
+bool can_remove_building( Colony const& colony,
                           e_colony_building building ) {
   if( !colony.buildings[building] ) return true;
   e_colony_building_slot slot = slot_for_building( building );
@@ -355,7 +355,7 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
 
   // Create window.
   WindowManager& wm = ts.planes.get().window.typed().manager();
-  Window         window( wm );
+  Window window( wm );
   window.set_view( std::move( top_array ) );
   window.autopad_me();
   // Must be done after auto-padding.
@@ -710,14 +710,14 @@ void cheat_create_new_colonist( SS& ss, TS& ts,
                                       colony.location );
 }
 
-void cheat_increase_commodity( Colony&     colony,
+void cheat_increase_commodity( Colony& colony,
                                e_commodity type ) {
   int& quantity = colony.commodities[type];
   quantity += 50;
   quantity = quantity - ( quantity % 50 );
 }
 
-void cheat_decrease_commodity( Colony&     colony,
+void cheat_decrease_commodity( Colony& colony,
                                e_commodity type ) {
   int& quantity = colony.commodities[type];
   if( quantity % 50 != 0 )
@@ -743,7 +743,7 @@ void cheat_advance_colony_one_turn(
 
 wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
                                  e_nation const nation,
-                                 point const    tile ) {
+                                 point const tile ) {
   static refl::enum_map<e_cheat_unit_creation_categories,
                         vector<e_unit_type>> const categories{
     { e_cheat_unit_creation_categories::basic_colonists,

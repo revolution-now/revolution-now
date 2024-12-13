@@ -30,8 +30,8 @@ using namespace std;
 using namespace ::mock::matchers;
 
 struct Vertex {
-  vec3    v;
-  float   y;
+  vec3 v;
+  float y;
   int32_t i;
 };
 

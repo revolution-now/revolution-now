@@ -44,11 +44,11 @@ struct NonRenderingMapUpdater : IMapUpdater {
                                     SquareUpdateFunc ) override;
 
   std::vector<BuffersUpdated> make_squares_visible(
-      e_nation                  nation,
+      e_nation nation,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation                  nation,
+      e_nation nation,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> force_redraw_tiles(
@@ -83,11 +83,11 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
       Coord tile, SquareUpdateFunc mutator ) override;
 
   std::vector<BuffersUpdated> make_squares_visible(
-      e_nation                  nation,
+      e_nation nation,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation                  nation,
+      e_nation nation,
       std::vector<Coord> const& tiles ) override;
 
   std::vector<BuffersUpdated> force_redraw_tiles(
@@ -110,17 +110,17 @@ struct RenderingMapUpdater : NonRenderingMapUpdater {
   struct BufferTracking {
     BufferTracking( Delta size ) : tile_bounds( size ) {}
 
-    int                          tiles_redrawn = 0;
+    int tiles_redrawn = 0;
     gfx::Matrix<rr::VertexRange> tile_bounds;
   };
 
   void redraw_square_single_buffer(
       Coord tile, BufferTracking& buffer_tracking,
-      rr::e_render_buffer        annex_buffer,
+      rr::e_render_buffer annex_buffer,
       base::function_ref<void()> render_square,
       base::function_ref<void()> redraw_buffer );
 
-  rr::Renderer&  renderer_;
+  rr::Renderer& renderer_;
   BufferTracking landscape_tracking_;
   BufferTracking obfuscation_tracking_;
 };

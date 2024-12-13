@@ -82,7 +82,7 @@ struct ProcessedGoodsPriceGroup {
   auto const& traded_volumes() const { return traded_volumes_; }
 
   friend void to_str( ProcessedGoodsPriceGroup const& o,
-                      std::string&                    out,
+                      std::string& out,
                       base::tag<ProcessedGoodsPriceGroup> );
 
  private:
@@ -90,7 +90,7 @@ struct ProcessedGoodsPriceGroup {
 
   void evolve_intrinsic_volume( e_processed_good good );
 
-  ProcessedGoodsPriceGroupConfig const  config_;
+  ProcessedGoodsPriceGroupConfig const config_;
   refl::enum_map<e_processed_good, int> intrinsic_volumes_;
   refl::enum_map<e_processed_good, int> traded_volumes_;
 };

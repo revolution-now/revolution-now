@@ -82,7 +82,7 @@ enum class e_action {
 };
 
 struct ToolbarItem {
-  e_tile                 tile = {};
+  e_tile tile                 = {};
   editor::e_toolbar_item item = {};
 };
 
@@ -135,7 +135,7 @@ struct MapEditPlane::Impl : public IPlane {
   SS& ss_;
   TS& ts_;
 
-  co::stream<input::event_t>    input_;
+  co::stream<input::event_t> input_;
   maybe<editor::e_toolbar_item> selected_tool_;
 
   MenuPlane::Deregistrar zoom_in_dereg_;
@@ -187,9 +187,9 @@ struct MapEditPlane::Impl : public IPlane {
     return e_input_handled::yes;
   }
 
-  Rect   toolbar_rect() const;
+  Rect toolbar_rect() const;
   wait<> click_on_toolbar( Coord tile );
-  Rect   viewport_rect() const;
+  Rect viewport_rect() const;
 
   void render_toolbar( rr::Renderer& renderer ) const;
   void render_sidebar( rr::Renderer& renderer ) const;
@@ -314,7 +314,7 @@ struct MapEditPlane::Impl : public IPlane {
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
   maybe<wait<>> drag_thread;
-  bool          drag_finished = true;
+  bool drag_finished = true;
 
   wait<> dragging( input::e_mouse_button button,
                    Coord /*coord*/ ) {
@@ -405,7 +405,7 @@ Rect MapEditPlane::Impl::viewport_rect() const {
 /****************************************************************
 ** Land Canvas
 *****************************************************************/
-wait<> MapEditPlane::Impl::click_on_tile( Coord    tile,
+wait<> MapEditPlane::Impl::click_on_tile( Coord tile,
                                           e_action action ) {
   if( !selected_tool_.has_value() ) co_return;
   MapSquare new_square = ss_.terrain.square_at( tile );
@@ -630,8 +630,8 @@ wait<> MapEditPlane::run_map_editor() {
 *****************************************************************/
 wait<> run_map_editor_standalone( Planes& planes ) {
   // FIXME: this duplicates initialization code in app-ctrl.
-  SS                  ss;
-  Delta               size{ .w = 100, .h = 100 };
+  SS ss;
+  Delta size{ .w = 100, .h = 100 };
   RenderingMapUpdater map_updater(
       ss, global_renderer_use_only_when_needed(),
       MapUpdaterOptions{} );
@@ -644,16 +644,16 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   SCOPE_EXIT { set_console_terminal( nullptr ); };
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
-  WindowPlane         window_plane;
-  RealGui             gui( planes );
-  Rand                rand;
-  TrappingCombat      combat;
-  ColonyViewer        colony_viewer( ss );
+  WindowPlane window_plane;
+  RealGui gui( planes );
+  Rand rand;
+  TrappingCombat combat;
+  ColonyViewer colony_viewer( ss );
   TerrainConnectivity connectivity;
-  NativeMinds         native_minds;
-  EuroMinds           euro_minds;
-  TS   ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
-           connectivity );
+  NativeMinds native_minds;
+  EuroMinds euro_minds;
+  TS ts( planes, st, gui, rand, combat, colony_viewer, ss.root,
+         connectivity );
   auto _1 = ts.set_map_updater( map_updater );
   auto _2 = ts.set_native_minds( native_minds );
   auto _3 = ts.set_euro_minds( euro_minds );
@@ -661,12 +661,12 @@ wait<> run_map_editor_standalone( Planes& planes ) {
 }
 
 wait<> run_map_editor( SS& ss, TS& ts ) {
-  MenuPlane    menu_plane;
+  MenuPlane menu_plane;
   MapEditPlane map_edit_plane( ss, ts );
-  WindowPlane  window_plane;
+  WindowPlane window_plane;
 
-  Planes&     planes    = ts.planes;
-  auto        owner     = planes.push();
+  Planes& planes        = ts.planes;
+  auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
 
   new_group.menu = menu_plane;

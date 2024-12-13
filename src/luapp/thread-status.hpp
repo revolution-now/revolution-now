@@ -46,7 +46,7 @@ void to_str( resume_status status, std::string& out,
 // This is used to communicate the results from lua_resume.
 struct [[nodiscard]] resume_result {
   resume_status status;
-  int           nresults;
+  int nresults;
 
   bool operator==( resume_result const& ) const = default;
 };
@@ -57,10 +57,10 @@ void to_str( resume_result result, std::string& out,
 template<typename R>
 struct [[nodiscard]] resume_result_with_value {
   resume_status status;
-  R             value;
+  R value;
 
   friend void to_str( resume_result_with_value result,
-                      std::string&             out,
+                      std::string& out,
                       base::tag<resume_result_with_value> ) {
     using base::to_str; // two-step
     to_str( "{status=", out );

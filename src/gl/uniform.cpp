@@ -24,7 +24,7 @@ namespace gl {
 /****************************************************************
 ** UniformNonTyped
 *****************************************************************/
-UniformNonTyped::UniformNonTyped( ObjId       pgrm_id,
+UniformNonTyped::UniformNonTyped( ObjId pgrm_id,
                                   string_view name )
   : pgrm_id_{ pgrm_id }, location_{} {
   location_ = GL_CHECK( CALL_GL( gl_GetUniformLocation, pgrm_id_,

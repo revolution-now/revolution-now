@@ -55,7 +55,7 @@ bool read_binary( base::IBinaryIO& b, array_string<N>& o ) {
 }
 
 template<size_t N>
-bool write_binary( base::IBinaryIO&       b,
+bool write_binary( base::IBinaryIO& b,
                    array_string<N> const& o ) {
   for( unsigned char const c : o.a )
     if( !b.write( c ) ) return false;

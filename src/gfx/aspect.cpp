@@ -70,7 +70,7 @@ maybe<e_named_aspect_ratio> find_close_named_aspect_ratio(
     size const target, double const tolerance_ ) {
   double const tolerance = clamp( tolerance_, 0.0, 1.0 );
   struct Closest {
-    double               delta        = {};
+    double delta                      = {};
     e_named_aspect_ratio aspect_ratio = {};
   };
   maybe<Closest> closest;

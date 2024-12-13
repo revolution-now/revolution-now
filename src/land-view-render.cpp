@@ -124,7 +124,7 @@ void LandViewRenderer::render_single_unit(
   switch( ss_.units.unit_kind( id ) ) {
     case e_unit_kind::euro: {
       UnitId const unit_id{ to_underlying( id ) };
-      Unit const&  unit = ss_.units.unit_for( unit_id );
+      Unit const& unit = ss_.units.unit_for( unit_id );
       maybe<UnitFlagRenderInfo> flag_info;
       if( flag_options.has_value() )
         flag_info = euro_unit_flag_render_info(
@@ -136,7 +136,7 @@ void LandViewRenderer::render_single_unit(
     }
     case e_unit_kind::native: {
       NativeUnitId const unit_id{ to_underlying( id ) };
-      NativeUnit const&  native_unit =
+      NativeUnit const& native_unit =
           ss_.units.unit_for( unit_id );
       maybe<UnitFlagRenderInfo> flag_info;
       if( flag_options.has_value() )
@@ -170,10 +170,10 @@ void LandViewRenderer::render_units_on_square(
   GenericUnitId const max_defense = sorted[0];
 
   Coord const where = render_rect_for_tile( tile ).upper_left();
-  bool const  multiple_units        = ( sorted.size() > 1 );
-  e_flag_count const     flag_count = !multiple_units
-                                          ? e_flag_count::single
-                                          : e_flag_count::multiple;
+  bool const multiple_units     = ( sorted.size() > 1 );
+  e_flag_count const flag_count = !multiple_units
+                                      ? e_flag_count::single
+                                      : e_flag_count::multiple;
   maybe<UnitFlagOptions> flag_options;
   if( flags )
     flag_options =
@@ -189,8 +189,8 @@ LandViewRenderer::units_to_render() const {
   // tiles, whereas the reverse is true when zoomed in.
   unordered_map<GenericUnitId, UnitState> const& all =
       ss_.units.all();
-  int const                          num_units = all.size();
-  int const                          num_tiles = covered_.area();
+  int const num_units = all.size();
+  int const num_tiles = covered_.area();
   vector<pair<Coord, GenericUnitId>> res;
   res.reserve( num_units );
   // FIXME: Not urgent, but when zooming in, at some point we
@@ -232,12 +232,12 @@ void LandViewRenderer::render_units_default() const {
 void LandViewRenderer::render_single_unit_depixelate_to(
     Coord where, UnitId unit_id, bool multiple_units,
     double stage, e_unit_type target_type ) const {
-  e_flag_count const    flag_count = multiple_units
-                                         ? e_flag_count::multiple
-                                         : e_flag_count::single;
+  e_flag_count const flag_count = multiple_units
+                                      ? e_flag_count::multiple
+                                      : e_flag_count::single;
   UnitFlagOptions const flag_options{
     .flag_count = flag_count, .type = e_flag_char_type::normal };
-  Unit const&              unit = ss_.units.unit_for( unit_id );
+  Unit const& unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
       euro_unit_flag_render_info( unit, viz_->nation(),
                                   flag_options );
@@ -258,12 +258,12 @@ void LandViewRenderer::render_single_unit_depixelate_to(
 void LandViewRenderer::render_single_native_unit_depixelate_to(
     Coord where, NativeUnitId unit_id, bool multiple_units,
     double stage, e_native_unit_type target_type ) const {
-  e_flag_count const    flag_count = multiple_units
-                                         ? e_flag_count::multiple
-                                         : e_flag_count::single;
+  e_flag_count const flag_count = multiple_units
+                                      ? e_flag_count::multiple
+                                      : e_flag_count::single;
   UnitFlagOptions const flag_options{
     .flag_count = flag_count, .type = e_flag_char_type::normal };
-  NativeUnit const&        unit = ss_.units.unit_for( unit_id );
+  NativeUnit const& unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
       native_unit_flag_render_info( ss_, unit, flag_options );
   e_tribe const tribe_type =
@@ -318,7 +318,7 @@ void LandViewRenderer::render_units_impl() const {
        lv_animator_.unit_animations() ) {
     CHECK( !anim_stack.empty() );
     UnitAnimationState const& anim = anim_stack.top();
-    Coord const               tile =
+    Coord const tile =
         coord_for_unit_multi_ownership_or_die( ss_, id );
     switch( anim.to_enum() ) {
       case UnitAnimationState::e::front:
@@ -393,16 +393,16 @@ void LandViewRenderer::render_units_impl() const {
         render_rect_for_tile( tile ).upper_left();
     bool const multiple_units =
         ss_.units.from_coord( tile ).size() > 1;
-    e_flag_count const    flag_count = multiple_units
-                                           ? e_flag_count::multiple
-                                           : e_flag_count::single;
+    e_flag_count const flag_count = multiple_units
+                                        ? e_flag_count::multiple
+                                        : e_flag_count::single;
     UnitFlagOptions const flag_options{
       .flag_count = flag_count,
       .type       = e_flag_char_type::normal };
     f( where, flag_options );
   };
 
-  auto render_slide = [&]( GenericUnitId    id,
+  auto render_slide = [&]( GenericUnitId id,
                            UnitSlide const& slide ) {
     Coord const mover_coord =
         coord_for_unit_indirect_or_die( ss_.units, id );
@@ -412,7 +412,7 @@ void LandViewRenderer::render_units_impl() const {
             mover_coord ) *
           g_tile_delta )
             .multiply_and_round( slide.percent );
-    render_impl( id, [&]( Coord                 where,
+    render_impl( id, [&]( Coord where,
                           UnitFlagOptions const flag_options ) {
       render_single_unit(
           where + pixel_delta, id,
@@ -422,7 +422,7 @@ void LandViewRenderer::render_units_impl() const {
   };
 
   auto render_front = [&]( GenericUnitId id ) {
-    render_impl( id, [&]( Coord                  where,
+    render_impl( id, [&]( Coord where,
                           UnitFlagOptions const& flag_options ) {
       render_single_unit( where, id, flag_options );
     } );
@@ -434,7 +434,7 @@ void LandViewRenderer::render_units_impl() const {
   // #. Render units that are blinking.
   for( auto const& [id, anim] : blink ) {
     if( !anim->visible ) continue;
-    render_impl( id, [&]( Coord                 where,
+    render_impl( id, [&]( Coord where,
                           UnitFlagOptions const flag_options ) {
       render_single_unit(
           where, id,
@@ -467,7 +467,7 @@ void LandViewRenderer::render_units_impl() const {
       SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                                anim->stage );
       render_impl(
-          id, [&]( Coord                 where,
+          id, [&]( Coord where,
                    UnitFlagOptions const flag_options ) {
             render_single_unit(
                 where, id,
@@ -502,7 +502,7 @@ void LandViewRenderer::render_units_impl() const {
       SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
                                anim->stage );
       render_impl(
-          id, [&]( Coord                 where,
+          id, [&]( Coord where,
                    UnitFlagOptions const flag_options ) {
             render_single_unit(
                 where, id,
@@ -596,7 +596,7 @@ void LandViewRenderer::render_input_overrun_indicator() const {
                              .hourglass_hold_time;
   auto const kFadeTime = config_land_view.input_overrun_detection
                              .hourglass_fade_time;
-  double     alpha = 1.0;
+  double alpha     = 1.0;
   auto const delta = Clock_t::now() - indicator.start_time;
   if( delta > kHoldTime ) {
     auto fade_time = clamp(
@@ -669,9 +669,9 @@ void LandViewRenderer::render_colony_depixelate(
 void LandViewRenderer::render_backdrop() const {
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
   auto const [shortest_side, longest_side] = [&] {
-    Delta const delta         = viewport_rect_pixels_.delta();
-    int         shortest_side = std::min( delta.w, delta.h );
-    int         longest_side  = std::max( delta.w, delta.h );
+    Delta const delta = viewport_rect_pixels_.delta();
+    int shortest_side = std::min( delta.w, delta.h );
+    int longest_side  = std::max( delta.w, delta.h );
     return pair{ shortest_side, longest_side };
   }();
   if( shortest_side == 0 )
@@ -689,9 +689,9 @@ void LandViewRenderer::render_backdrop() const {
           .centered_on( Coord{} );
   Delta const shift = viewport_rect_pixels_.center() -
                       viewport_rect_pixels_.upper_left();
-  double       scale      = 1.00;
-  double const kScaleInc  = .014;
-  int const    kNumLayers = 4;
+  double scale           = 1.00;
+  double const kScaleInc = .014;
+  int const kNumLayers   = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
     SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
@@ -714,7 +714,7 @@ void LandViewRenderer::render_units() const {
 
 void LandViewRenderer::render_dwellings() const {
   for( gfx::point const p : gfx::rect_iterator( covered_ ) ) {
-    Coord const            tile     = Coord::from_gfx( p );
+    Coord const tile                = Coord::from_gfx( p );
     maybe<Dwelling const&> dwelling = viz_->dwelling_at( tile );
     if( !dwelling.has_value() ) continue;
     if( auto anim = lv_animator_.dwelling_animation( tile );
@@ -776,7 +776,7 @@ void LandViewRenderer::render_colonies() const {
   // we need to render colonies that are beyond the `covered`
   // rect.
   for( gfx::point const p : gfx::rect_iterator( covered_ ) ) {
-    Coord const          tile   = Coord::from_gfx( p );
+    Coord const tile            = Coord::from_gfx( p );
     maybe<Colony const&> colony = viz_->colony_at( tile );
     if( !colony.has_value() ) continue;
     if( auto anim = lv_animator_.colony_animation( tile );
@@ -799,11 +799,11 @@ void LandViewRenderer::render_colonies() const {
 *****************************************************************/
 LandViewRenderer::LandViewRenderer(
     SSConst const& ss, rr::Renderer& renderer_arg,
-    LandViewAnimator const&              lv_animator,
+    LandViewAnimator const& lv_animator,
     unique_ptr<IVisibility const> const& viz,
     maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
     maybe<InputOverrunIndicator> input_overrun_indicator,
-    SmoothViewport const&        viewport )
+    SmoothViewport const& viewport )
   : ss_( ss ),
     renderer_( renderer_arg ),
     renderer( renderer_arg ),
@@ -923,9 +923,9 @@ void LandViewRenderer::render_non_entities() const {
     {
       // This is the shadow behind the land rectangle.
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
-      double const zoom          = viewport_.get_zoom();
-      int          shadow_offset = 6;
-      gfx::dpoint  corner =
+      double const zoom = viewport_.get_zoom();
+      int shadow_offset = 6;
+      gfx::dpoint corner =
           viewport_.landscape_buffer_render_upper_left();
       corner.x += shadow_offset;
       corner.y += shadow_offset;
@@ -942,7 +942,7 @@ void LandViewRenderer::render_non_entities() const {
   }
 
   // Set camera.
-  double const      zoom = viewport_.get_zoom();
+  double const zoom = viewport_.get_zoom();
   gfx::dpoint const translation =
       viewport_.landscape_buffer_render_upper_left();
   renderer.set_camera( translation.distance_from_origin(),

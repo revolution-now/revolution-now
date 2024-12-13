@@ -51,8 +51,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, //
       L, L, L, L, L, //
@@ -71,7 +71,7 @@ TEST_CASE( "[command-build] build colony" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World       W;
+  World W;
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
@@ -119,7 +119,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
 #ifdef COMPILER_GCC
   return;
 #endif
-  World       W;
+  World W;
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
@@ -150,7 +150,7 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
 }
 
 TEST_CASE( "[command-build] build colony by ship" ) {
-  World       W;
+  World W;
   Coord const tile{ .x = 0, .y = 0 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::caravel, tile );

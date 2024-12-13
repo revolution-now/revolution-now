@@ -79,7 +79,7 @@ struct generator_promise {
   }
 
  private:
-  T const*           value_     = nullptr;
+  T const* value_               = nullptr;
   std::exception_ptr exception_ = {};
 };
 

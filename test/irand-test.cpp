@@ -26,7 +26,7 @@ using namespace std;
 
 TEST_CASE( "[irand] shuffle" ) {
   MockIRand impl;
-  IRand&    irand = impl;
+  IRand& irand = impl;
 
   vector<string> v, expected;
 
@@ -98,11 +98,11 @@ TEST_CASE( "[irand] shuffle" ) {
 
 TEST_CASE( "[irand] expect_shuffle" ) {
   MockIRand impl;
-  IRand&    irand = impl;
+  IRand& irand = impl;
 
   vector<string> to_be_shuffled{ "0", "1", "2", "3", "4",
                                  "5", "6", "7", "8", "9" };
-  vector<int>    final_indices{ 9, 0, 4, 7, 6, 8, 3, 1, 2, 5 };
+  vector<int> final_indices{ 9, 0, 4, 7, 6, 8, 3, 1, 2, 5 };
   vector<string> expected{ "9", "0", "4", "7", "6",
                            "8", "3", "1", "2", "5" };
 

@@ -305,7 +305,7 @@ vector<e_colony_building> const& buildings_for_slot(
   }
 }
 
-bool colony_has_building_level( Colony const&     colony,
+bool colony_has_building_level( Colony const& colony,
                                 e_colony_building building ) {
   e_colony_building_slot const slot =
       slot_for_building( building );
@@ -400,7 +400,7 @@ int max_workers_for_building( e_colony_building building ) {
   return config_colony.max_workers_per_building;
 }
 
-void add_colony_building( Colony&           colony,
+void add_colony_building( Colony& colony,
                           e_colony_building building ) {
   if( colony.buildings[building] ) return;
   vector<e_colony_building> const& buildings =

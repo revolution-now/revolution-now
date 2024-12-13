@@ -104,7 +104,7 @@ struct RenderBuffer {
   // emitter needs to refer to it, and we don't want to make
   // this struct immovable.
   unique_ptr<vector<GenericVertex>> vertices = {};
-  Emitter                           emitter;
+  Emitter emitter;
   // If this is false then it will be assumed dirty always and
   // rerendered on every frame. Otherwise, it will only be ren-
   // dered when dirty, after which the dirty flag will be set to
@@ -127,11 +127,11 @@ struct Renderer::Impl {
   Impl( PresentFn present_fn_arg, ProgramType program_arg,
         RenderBufferMap buffers_arg, AtlasMap atlas_map_arg,
         size atlas_size_arg, gl::Texture atlas_tx_arg,
-        unordered_map<string, int>       atlas_ids_arg,
-        unordered_map<string_view, int>  atlas_ids_fast_arg,
+        unordered_map<string, int> atlas_ids_arg,
+        unordered_map<string_view, int> atlas_ids_fast_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
-                  ascii_fonts_fast_arg,
+            ascii_fonts_fast_arg,
         gfx::size logical_screen_size_arg )
     : mod_stack{},
       present_fn( std::move( present_fn_arg ) ),
@@ -150,7 +150,7 @@ struct Renderer::Impl {
   };
 
   static Impl* create( RendererConfig const& config,
-                       PresentFn             present_fn ) {
+                       PresentFn present_fn ) {
     fs::path shaders = "src/render";
 
     UNWRAP_CHECK( vertex_shader_source,
@@ -169,7 +169,7 @@ struct Renderer::Impl {
     RenderBufferMap buffers;
     for( e_render_buffer const buffer :
          refl::enum_values<e_render_buffer> ) {
-      auto  vertices   = make_unique<vector<GenericVertex>>();
+      auto vertices    = make_unique<vector<GenericVertex>>();
       auto* p_vertices = vertices.get();
       using ERB        = e_render_buffer;
       bool const track_dirty =
@@ -211,7 +211,7 @@ struct Renderer::Impl {
     pgrm["u_screen_size"_t] =
         gl::vec2::from_size( logical_screen_size );
 
-    AtlasBuilder               atlas_builder;
+    AtlasBuilder atlas_builder;
     unordered_map<string, int> atlas_ids;
 
     for( SpriteSheetConfig const& sheet :
@@ -235,7 +235,7 @@ struct Renderer::Impl {
     // reference the keys in their associated std::string maps,
     // so those maps should not be changed after constructing
     // this fast version.
-    unordered_map<string_view, int>        atlas_ids_fast;
+    unordered_map<string_view, int> atlas_ids_fast;
     unordered_map<string_view, AsciiFont*> ascii_fonts_fast;
     for( auto const& [name, id] : atlas_ids )
       atlas_ids_fast[name] = id;
@@ -255,7 +255,7 @@ struct Renderer::Impl {
           stb::save_image( *config.dump_atlas_png, atlas.img ) );
     }
 
-    size        atlas_size = atlas.img.size_pixels();
+    size atlas_size = atlas.img.size_pixels();
     gl::Texture atlas_tx( std::move( atlas.img ) );
 
     pgrm["u_atlas_size"_t] = gl::vec2::from_size( atlas_size );
@@ -440,7 +440,7 @@ struct Renderer::Impl {
     // render pass.
     if( !is_buffer_dirty( rng.buffer ) ) {
       // Re-upload only this segment to the GPU.
-      span const           segment{ start_iter, end_iter };
+      span const segment{ start_iter, end_iter };
       VertexArray_t const& vertex_array =
           get_vertex_array( rng.buffer );
       vertex_array.buffer<0>().upload_data_modify( segment,
@@ -450,8 +450,8 @@ struct Renderer::Impl {
 
   void render_buffer( e_render_buffer buffer ) {
     auto const& vertex_array = buffers[buffer]->vertex_array;
-    auto&       vertices     = *buffers[buffer]->vertices;
-    bool&       dirty        = buffers[buffer]->dirty;
+    auto& vertices           = *buffers[buffer]->vertices;
+    bool& dirty              = buffers[buffer]->dirty;
     if( !buffers[buffer]->track_dirty || dirty )
       vertex_array.buffer<0>().upload_data_replace(
           vertices, gl::e_draw_mode::stat1c );
@@ -465,17 +465,17 @@ struct Renderer::Impl {
   // tack, instead we can keep them in the popper object since
   // those will be stored on the stack and popped in reverse
   // order as they were applied, which should do the same job.
-  stack<RendererMods>                          mod_stack;
-  PresentFn                                    present_fn;
-  ProgramType                                  program;
-  RenderBufferMap                              buffers;
-  AtlasMap const                               atlas_map;
-  size const                                   atlas_size;
-  gl::Texture const                            atlas_tx;
-  TextureBinder                                atlas_tx_binder;
-  unordered_map<string, int> const             atlas_ids;
-  unordered_map<string_view, int> const        atlas_ids_fast;
-  unordered_map<string, AsciiFont> const       ascii_fonts;
+  stack<RendererMods> mod_stack;
+  PresentFn present_fn;
+  ProgramType program;
+  RenderBufferMap buffers;
+  AtlasMap const atlas_map;
+  size const atlas_size;
+  gl::Texture const atlas_tx;
+  TextureBinder atlas_tx_binder;
+  unordered_map<string, int> const atlas_ids;
+  unordered_map<string_view, int> const atlas_ids_fast;
+  unordered_map<string, AsciiFont> const ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   gfx::size logical_screen_size;
 };
@@ -582,7 +582,7 @@ void Renderer::set_uniform_depixelation_stage( double stage ) {
 }
 
 void Renderer::set_camera( gfx::dsize translation,
-                           double     zoom ) {
+                           double zoom ) {
   impl_->program["u_camera_translation"_t] =
       gl::vec2::from_dsize( translation );
   impl_->program["u_camera_zoom"_t] = zoom;

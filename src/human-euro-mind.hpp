@@ -39,7 +39,7 @@ struct HumanEuroMind final : IEuroMind {
   wait<> show_woodcut( e_woodcut woodcut ) override;
 
  private:
-  SS&   ss_;
+  SS& ss_;
   IGui& gui_;
 };
 

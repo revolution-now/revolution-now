@@ -44,7 +44,7 @@ constexpr std::string_view enum_value_name( E val ) {
 template<ReflectedEnum E, std::integral Int>
 constexpr base::maybe<E> enum_from_integral( Int val ) {
   base::maybe<E> res;
-  int            intval = static_cast<int>( val );
+  int intval = static_cast<int>( val );
   if( intval < 0 || intval >= enum_count<E> ) return res;
   res = static_cast<E>( intval );
   return res;
@@ -54,7 +54,7 @@ template<ReflectedEnum E>
 constexpr base::maybe<E> enum_from_string(
     std::string_view name ) {
   base::maybe<E> res;
-  int            i = 0;
+  int i = 0;
   for( std::string_view sv : traits<E>::value_names ) {
     if( name == sv ) {
       res = static_cast<E>( i );

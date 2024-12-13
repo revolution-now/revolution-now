@@ -141,7 +141,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
     // This appears to bump the tribal alarm toward the player to
     // 100 on every difficulty level.
     e_tribe const tribe_type = *burial_grounds;
-    Tribe&        tribe = ss.natives.tribe_for( tribe_type );
+    Tribe& tribe = ss.natives.tribe_for( tribe_type );
     co_await ts.gui.message_box(
         "You have treaded on the sacred resting places of the "
         "ancestors of the [{}] tribe. Your irreverence shall be "
@@ -264,7 +264,7 @@ wait<LostCityRumorUnitChange> run_rumor_result(
     }
     CASE( holy_shrines ) {
       e_tribe const tribe_type = holy_shrines.tribe;
-      Tribe&        tribe = ss.natives.tribe_for( tribe_type );
+      Tribe& tribe = ss.natives.tribe_for( tribe_type );
       co_await ts.gui.message_box(
           "You are wondering dangerously close to the holy "
           "shrines of the [{}] tribe... the [{}] tribe has been "
@@ -374,9 +374,9 @@ maybe<e_tribe> pick_burial_grounds_result(
              : maybe<e_tribe>();
 }
 
-BurialMounds compute_mounds( e_burial_mounds_type    type,
+BurialMounds compute_mounds( e_burial_mounds_type type,
                              e_lcr_explorer_category explorer,
-                             IRand&                  rand ) {
+                             IRand& rand ) {
   switch( type ) {
     case e_burial_mounds_type::cold_and_empty:
       return BurialMounds::cold_and_empty{};
@@ -403,7 +403,7 @@ BurialMounds compute_mounds( e_burial_mounds_type    type,
 }
 
 LostCityRumor compute_rumor_type(
-    e_difficulty const            difficulty,
+    e_difficulty const difficulty,
     e_lcr_explorer_category const explorer,
     e_rumor_type const rumor_type, Player const& player,
     Coord const tile, IRand& rand,

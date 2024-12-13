@@ -72,7 +72,7 @@ struct standard_emitter {
     CHECK( opts_.flatten_keys );
     CHECK( o.size() == 1 );
     string const& nested_key = o.begin()->first;
-    value const&  nested_val = o.begin()->second;
+    value const& nested_val  = o.begin()->second;
 
     out += '.';
     out += escape_and_quote_table_key( nested_key );
@@ -133,8 +133,8 @@ struct standard_emitter {
       parent.emit( o, out, indent );
     }
     standard_emitter& parent;
-    string&           out;
-    int               indent;
+    string& out;
+    int indent;
   };
 
   void emit( list const& o, string& out, int indent ) {
@@ -199,7 +199,7 @@ struct json_emitter {
   }
 
   void emit_table_with_key_order( table const& o,
-                                  list const&  key_order,
+                                  list const& key_order,
                                   string& out, int indent ) {
     // In this function we need to use key_order's size instead
     // of the table's size because the table contains an extra
@@ -270,8 +270,8 @@ struct json_emitter {
       parent.emit( o, out, indent );
     }
     json_emitter& parent;
-    string&       out;
-    int           indent;
+    string& out;
+    int indent;
   };
 
   void emit( list const& o, string& out, int indent ) {
@@ -312,7 +312,7 @@ string emit( doc const& document, EmitOptions const& options ) {
   return res;
 }
 
-string emit_json( doc const&      document,
+string emit_json( doc const& document,
                   JsonEmitOptions options ) {
   string res;
   json_emitter{ options }.emit( document.top_tbl(), res,

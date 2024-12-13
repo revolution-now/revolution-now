@@ -67,8 +67,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -87,7 +87,7 @@ TEST_CASE(
   // These remain empty for this test.
   unordered_map<e_commodity, int> comms;
 
-  UnitComposition            comp{};
+  UnitComposition comp{};
   vector<UnitTransformation> res;
   vector<UnitTransformation> expected;
 
@@ -470,7 +470,7 @@ TEST_CASE(
   for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 100;
 
-  UnitComposition            comp{};
+  UnitComposition comp{};
   vector<UnitTransformation> res;
   vector<UnitTransformation> expected;
 
@@ -1240,7 +1240,7 @@ TEST_CASE(
   for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 40;
 
-  UnitComposition            comp{};
+  UnitComposition comp{};
   vector<UnitTransformation> res;
   vector<UnitTransformation> expected;
 
@@ -1722,7 +1722,7 @@ TEST_CASE(
   for( e_commodity c : refl::enum_values<e_commodity> )
     comms[c] = 100;
 
-  UnitComposition            comp{};
+  UnitComposition comp{};
   vector<UnitTransformation> res;
   vector<UnitTransformation> expected;
 
@@ -1848,8 +1848,8 @@ TEST_CASE(
 }
 
 TEST_CASE( "[unit-transformation] unit_receive_commodity" ) {
-  UnitComposition                         comp{};
-  Commodity                               comm;
+  UnitComposition comp{};
+  Commodity comm;
   vector<UnitTransformationFromCommodity> res;
   vector<UnitTransformationFromCommodity> expected;
 
@@ -2306,7 +2306,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
-  UnitComposition    comp{};
+  UnitComposition comp{};
   UnitTransformation res;
   UnitTransformation expected;
 
@@ -2405,8 +2405,8 @@ TEST_CASE( "[unit-transformation] strip_to_base_type " ) {
 }
 
 TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
-  UnitComposition           from{};
-  UnitComposition           to{};
+  UnitComposition from{};
+  UnitComposition to{};
   maybe<UnitTransformation> res;
   maybe<UnitTransformation> expected;
 
@@ -2745,8 +2745,8 @@ TEST_CASE( "[unit-transformation] query_unit_transformation" ) {
 }
 
 TEST_CASE( "[unit-transformation] unit_lose_commodity" ) {
-  UnitComposition                         comp{};
-  Commodity                               comm;
+  UnitComposition comp{};
+  Commodity comm;
   vector<UnitTransformationFromCommodity> res;
   vector<UnitTransformationFromCommodity> expected;
 
@@ -2805,7 +2805,7 @@ TEST_CASE( "[unit-transformation] unit_lose_commodity" ) {
 }
 
 TEST_CASE( "[unit-transformation] consume_20_tools pioneer" ) {
-  World           W;
+  World W;
   UnitComposition comp = e_unit_type::pioneer;
 
   Unit& unit = W.units().unit_for(
@@ -2837,7 +2837,7 @@ TEST_CASE( "[unit-transformation] consume_20_tools pioneer" ) {
 }
 
 TEST_CASE( "[unit] consume_20_tools hardy_pioneer" ) {
-  World           W;
+  World W;
   UnitComposition comp = e_unit_type::hardy_pioneer;
 
   Unit& unit = W.units().unit_for(

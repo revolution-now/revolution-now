@@ -316,8 +316,8 @@ cdr::value cdr_game_state_default =
 
 TEST_CASE( "[game-state] some test" ) {
   cdr::converter conv;
-  RootState      root_def;
-  cdr::value     v = conv.to( root_def );
+  RootState root_def;
+  cdr::value v = conv.to( root_def );
   REQUIRE( v == cdr_game_state_default );
   // Round trip.
   REQUIRE( conv_from_bt<RootState>( conv, v ) == root_def );

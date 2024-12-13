@@ -75,7 +75,7 @@ using error_type_for_return_type =
 *****************************************************************/
 namespace detail {
 
-[[noreturn]] void throw_lua_error_impl( cthread          L,
+[[noreturn]] void throw_lua_error_impl( cthread L,
                                         std::string_view msg );
 
 }

@@ -130,13 +130,13 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 ** Colony IPlane
 *****************************************************************/
 struct ColonyPlane : public IPlane {
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
   Colony& colony_;
 
-  ColonyId                        colony_id_  = {};
-  co::stream<input::event_t>      input_      = {};
+  ColonyId colony_id_                         = {};
+  co::stream<input::event_t> input_           = {};
   maybe<DragState<ColViewObject>> drag_state_ = {};
 
   ColonyPlane( SS& ss, TS& ts, Colony& colony )
@@ -330,8 +330,8 @@ struct ColonyPlane : public IPlane {
 ColonyViewer::ColonyViewer( SS& ss ) : ss_( ss ) {}
 
 wait<> ColonyViewer::show_impl( TS& ts, Colony& colony ) {
-  Planes&     planes    = ts.planes;
-  auto        owner     = planes.push();
+  Planes& planes        = ts.planes;
+  auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
 
   ColonyPlane colony_plane( ss_, ts, colony );

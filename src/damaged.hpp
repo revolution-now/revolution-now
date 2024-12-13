@@ -57,14 +57,14 @@ std::string ship_still_damaged_message(
     int turns_until_repaired );
 
 // Will be either a colony name or the harbor city name.
-std::string ship_repair_port_name( SSConst const&        ss,
-                                   e_nation              nation,
+std::string ship_repair_port_name( SSConst const& ss,
+                                   e_nation nation,
                                    ShipRepairPort const& port );
 
 // Produces the message that is displayed when a ship is damaged.
 std::string ship_damaged_message( SSConst const& ss,
-                                  e_nation       nation,
-                                  e_unit_type    ship_type,
+                                  e_nation nation,
+                                  e_unit_type ship_type,
                                   e_ship_damaged_reason reason,
                                   ShipRepairPort const& port );
 
@@ -92,6 +92,6 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
 // case the unit is not damaged but instead is immediately ready
 // that same turn, and can move if it hasn't yet.
 int repair_turn_count_for_unit( ShipRepairPort const& port,
-                                e_unit_type           type );
+                                e_unit_type type );
 
 } // namespace rn

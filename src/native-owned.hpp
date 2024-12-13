@@ -45,8 +45,8 @@ struct TS;
 // player has encountered the relevant tribe, and also whether
 // there is a friendly colony on the square.
 maybe<DwellingId> is_land_native_owned( SSConst const& ss,
-                                        Player const&  player,
-                                        Coord          coord );
+                                        Player const& player,
+                                        Coord coord );
 
 // Same as above but returns the result that would be returned
 // assuming that the player has already encountered the tribe.
@@ -63,8 +63,8 @@ is_land_native_owned_after_meeting_without_colonies(
 // native-owned and, if so, which dwellings own them.
 refl::enum_map<e_direction, maybe<DwellingId>>
 native_owned_land_around_square( SSConst const& ss,
-                                 Player const&  player,
-                                 Coord          loc );
+                                 Player const& player,
+                                 Coord loc );
 
 // If the square is owned by a native tribe the it will return
 // the tribe and price. The player must have met the tribe in

@@ -62,8 +62,8 @@ e_combat_winner choose_winner( IRand& rand,
 }
 
 maybe<UnitType> should_promote_euro_unit( SSConst const& ss,
-                                          IRand&         rand,
-                                          Unit const&    unit ) {
+                                          IRand& rand,
+                                          Unit const& unit ) {
   if( maybe<e_unit_activity> const activity =
           current_activity_for_unit( ss.units, ss.colonies,
                                      unit.id() );
@@ -304,7 +304,7 @@ CombatEuroAttackEuro RealCombat::euro_attack_euro(
   CHECK( !attacker.desc().ship );
   double const attack_points  = attacker.desc().combat;
   double const defense_points = defender.desc().combat;
-  Coord const  attacker_coord =
+  Coord const attacker_coord =
       ss_.units.coord_for( attacker.id() );
   Coord const defender_coord =
       ss_.units.coord_for( defender.id() );
@@ -540,10 +540,10 @@ CombatShipAttackShip RealCombat::ship_attack_ship(
       Unit const& other_ship = ss_.units.unit_for( unit_id );
       UNWRAP_CHECK( other_ship_combat,
                     other_ship.desc().ship_combat_extra );
-      int const  other_hull = other_ship_combat.hull;
+      int const other_hull = other_ship_combat.hull;
       auto const sinking =
           Sinking{ .guns = guns, .hull = other_hull };
-      bool const                 sinks = does_sink( sinking );
+      bool const sinks = does_sink( sinking );
       EuroNavalUnitCombatOutcome outcome;
       set_sunk_or_damaged( other_ship, defender_coord, outcome,
                            sinks );
@@ -564,9 +564,9 @@ RealCombat::euro_attack_undefended_colony(
   // By assumption here the colony is undefended, so we should
   // not be fighting against a military unit.
   CHECK( !is_military_unit( defender.type() ) );
-  double const          attack_points  = attacker.desc().combat;
-  double const          defense_points = defender.desc().combat;
-  Coord const           defender_coord = colony.location;
+  double const attack_points  = attacker.desc().combat;
+  double const defense_points = defender.desc().combat;
+  Coord const defender_coord  = colony.location;
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
   EuroUnitCombatOutcome const attacker_outcome =
@@ -633,7 +633,7 @@ CombatBraveAttackEuro RealCombat::brave_attack_euro(
     NativeUnit const& attacker, Unit const& defender ) {
   double const attack_points = unit_attr( attacker.type ).combat;
   double const defense_points = defender.desc().combat;
-  Coord const  attacker_coord =
+  Coord const attacker_coord =
       ss_.units.coord_for( attacker.id );
   e_combat_winner const winner =
       choose_winner( rand_, attack_points, defense_points );
@@ -726,7 +726,7 @@ CombatBraveAttackColony RealCombat::brave_attack_colony(
   // colony the brave can destroy the colony or demote a soldier.
   double const attack_points  = 0; // OG has this zero.
   double const defense_points = defender.desc().combat;
-  Coord const  attacker_coord =
+  Coord const attacker_coord =
       ss_.units.coord_for( attacker.id );
   NativeUnitCombatOutcome const attacker_outcome =
       native_unit_lost_combat_outcome( rand_, attacker );

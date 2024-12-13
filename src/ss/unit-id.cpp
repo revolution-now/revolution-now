@@ -39,7 +39,7 @@ cdr::value to_canonical( cdr::converter& conv, UnitId o,
                        cdr::tag_t<int>{} );
 }
 
-cdr::result<UnitId> from_canonical( cdr::converter&   conv,
+cdr::result<UnitId> from_canonical( cdr::converter& conv,
                                     cdr::value const& v,
                                     cdr::tag_t<UnitId> ) {
   UNWRAP_RETURN( int_res, conv.from<int>( v ) );

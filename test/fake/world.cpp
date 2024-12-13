@@ -70,17 +70,17 @@ using ::gfx::point;
 }
 
 FormatVersion& World::version() { return root().version; }
-EventsState&   World::events() { return root().events; }
+EventsState& World::events() { return root().events; }
 SettingsState& World::settings() { return root().settings; }
-UnitsState&    World::units() { return root().units; }
-PlayersState&  World::players() { return root().players; }
-TurnState&     World::turn() { return root().turn; }
+UnitsState& World::units() { return root().units; }
+PlayersState& World::players() { return root().players; }
+TurnState& World::turn() { return root().turn; }
 ColoniesState& World::colonies() { return root().colonies; }
-NativesState&  World::natives() { return root().natives; }
+NativesState& World::natives() { return root().natives; }
 LandViewState& World::land_view() { return root().land_view; }
-MapState&      World::map() { return root().map; }
-TerrainState&  World::terrain() { return root().zzz_terrain; }
-RootState&     World::root() { return ss_->root; }
+MapState& World::map() { return root().map; }
+TerrainState& World::terrain() { return root().zzz_terrain; }
+RootState& World::root() { return ss_->root; }
 
 FormatVersion const& World::version() const {
   return root().version;
@@ -91,11 +91,11 @@ EventsState const& World::events() const {
 SettingsState const& World::settings() const {
   return root().settings;
 }
-UnitsState const&   World::units() const { return root().units; }
+UnitsState const& World::units() const { return root().units; }
 PlayersState const& World::players() const {
   return root().players;
 }
-TurnState const&     World::turn() const { return root().turn; }
+TurnState const& World::turn() const { return root().turn; }
 ColoniesState const& World::colonies() const {
   return root().colonies;
 }
@@ -110,9 +110,9 @@ TerrainState const& World::terrain() const {
 }
 RootState const& World::root() const { return ss_->root; }
 
-SS&            World::ss() { return *ss_; }
+SS& World::ss() { return *ss_; }
 SSConst const& World::ss() const { return *ss_const_; }
-SS&            World::ss_saved() { return *ss_saved_; }
+SS& World::ss_saved() { return *ss_saved_; }
 
 TerrainConnectivity const& World::connectivity() const {
   return *connectivity_;
@@ -322,7 +322,7 @@ void World::add_major_river( point const p ) {
       } );
 }
 
-Unit& World::add_unit_in_port( e_unit_type     type,
+Unit& World::add_unit_in_port( e_unit_type type,
                                maybe<e_nation> nation ) {
   return units().unit_for( create_unit_in_harbor(
       ss(), player( nation.value_or( default_nation_ ) ),
@@ -337,8 +337,8 @@ NativeUnit& World::add_native_unit_on_map(
 }
 
 Unit& World::add_unit_on_map( UnitComposition const& comp,
-                              point const            tile,
-                              maybe<e_nation>        nation ) {
+                              point const tile,
+                              maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   UnitId const unit_id = create_unit_on_map_non_interactive(
       ss(), ts(), player( *nation ), comp, tile );
@@ -358,16 +358,16 @@ Unit& World::add_missionary_in_dwelling(
 }
 
 Unit& World::add_unit_in_cargo( e_unit_type type,
-                                UnitId      holder ) {
+                                UnitId holder ) {
   e_nation const nation = units().unit_for( holder ).nation();
-  UnitId         held =
+  UnitId held =
       create_free_unit( units(), player( nation ), type );
   UnitOwnershipChanger( ss(), held )
       .change_to_cargo( holder, /*starting_slot=*/0 );
   return units().unit_for( held );
 }
 
-Unit& World::add_free_unit( e_unit_type     type,
+Unit& World::add_free_unit( e_unit_type type,
                             maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
   UnitId const id =
@@ -375,19 +375,19 @@ Unit& World::add_free_unit( e_unit_type     type,
   return units().unit_for( id );
 }
 
-Unit& World::add_unit_indoors( ColonyId     colony_id,
+Unit& World::add_unit_indoors( ColonyId colony_id,
                                e_indoor_job indoor_job,
-                               e_unit_type  type ) {
-  Colony&     colony = colonies().colony_for( colony_id );
-  Coord const loc    = colonies().coord_for( colony_id );
-  Unit&       unit = add_unit_on_map( type, loc, colony.nation );
+                               e_unit_type type ) {
+  Colony& colony  = colonies().colony_for( colony_id );
+  Coord const loc = colonies().coord_for( colony_id );
+  Unit& unit      = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::indoor const job{ .job = indoor_job };
   UnitOwnershipChanger( ss(), unit.id() )
       .change_to_colony( ts(), colony, job );
   return unit;
 }
 
-Unit& World::add_expert_unit_indoors( ColonyId     colony_id,
+Unit& World::add_expert_unit_indoors( ColonyId colony_id,
                                       e_indoor_job indoor_job ) {
   return add_unit_indoors( colony_id, indoor_job,
                            config_production.indoor_production
@@ -400,13 +400,13 @@ void World::ship_to_outbound( UnitId id ) {
   unit_sail_to_new_world( ss(), id );
 }
 
-Unit& World::add_unit_outdoors( ColonyId      colony_id,
-                                e_direction   d,
+Unit& World::add_unit_outdoors( ColonyId colony_id,
+                                e_direction d,
                                 e_outdoor_job outdoor_job,
-                                e_unit_type   type ) {
+                                e_unit_type type ) {
   Colony& colony = colonies().colony_for( colony_id );
-  Coord   loc    = colonies().coord_for( colony_id );
-  Unit&   unit   = add_unit_on_map( type, loc, colony.nation );
+  Coord loc      = colonies().coord_for( colony_id );
+  Unit& unit     = add_unit_on_map( type, loc, colony.nation );
   ColonyJob::outdoor job{ .direction = d, .job = outdoor_job };
   UnitOwnershipChanger( ss(), unit.id() )
       .change_to_colony( ts(), colony, job );
@@ -424,7 +424,7 @@ Unit& World::add_expert_unit_outdoors(
 // Try to add the commodity into the cargo and fail if it
 // cannot be added. Returns slot where it was placed.
 void World::add_commodity_in_cargo( Commodity const& comm,
-                                    UnitId           holder,
+                                    UnitId holder,
                                     int starting_slot ) {
   add_commodity_to_cargo( units(), comm, holder, starting_slot,
                           /*try_other_slots=*/true );
@@ -432,8 +432,8 @@ void World::add_commodity_in_cargo( Commodity const& comm,
 
 // Adds a quantity of 100.
 void World::add_commodity_in_cargo( e_commodity type,
-                                    UnitId      holder,
-                                    int         starting_slot ) {
+                                    UnitId holder,
+                                    int starting_slot ) {
   add_commodity_in_cargo(
       Commodity{ .type = type, .quantity = 100 }, holder,
       starting_slot );
@@ -469,7 +469,7 @@ Colony& World::found_colony( UnitId founder ) {
   return colonies().colony_for( id );
 }
 
-Colony& World::add_colony( Coord           where,
+Colony& World::add_colony( Coord where,
                            maybe<e_nation> nation ) {
   string name = fmt::to_string(
       colonies().last_colony_id().value_or( 0 ) + 1 );
@@ -485,9 +485,9 @@ Colony& World::add_colony( Coord           where,
 pair<Colony&, Unit&> World::found_colony_with_new_unit(
     Coord where, maybe<e_nation> nation ) {
   if( !nation ) nation = default_nation_;
-  Unit&   founder = add_unit_on_map( e_unit_type::free_colonist,
-                                     where, *nation );
-  Colony& colony  = this->found_colony( founder.id() );
+  Unit& founder  = add_unit_on_map( e_unit_type::free_colonist,
+                                    where, *nation );
+  Colony& colony = this->found_colony( founder.id() );
   return { colony, founder };
 }
 
@@ -512,7 +512,7 @@ void World::kill_all_colonies( maybe<e_nation> const nation ) {
 // Creating Native Dwellings.
 // --------------------------------------------------------------
 Dwelling& World::add_dwelling( point const tile,
-                               e_tribe     tribe ) {
+                               e_tribe tribe ) {
   natives().create_or_get_tribe( tribe );
   DwellingId const id = natives().add_dwelling(
       tribe, Coord::from_gfx( tile ),
@@ -527,8 +527,8 @@ Dwelling& World::add_dwelling( point const tile,
 pair<Dwelling&, NativeUnit&> World::add_dwelling_and_brave(
     Coord where, e_tribe tribe,
     maybe<e_native_unit_type> type ) {
-  Dwelling&   dwelling = add_dwelling( where, tribe );
-  NativeUnit& unit     = add_native_unit_on_map(
+  Dwelling& dwelling = add_dwelling( where, tribe );
+  NativeUnit& unit   = add_native_unit_on_map(
       type.value_or( e_native_unit_type::brave ), where,
       dwelling.id );
   return pair<Dwelling&, NativeUnit&>{ dwelling, unit };

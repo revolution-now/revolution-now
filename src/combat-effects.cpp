@@ -56,7 +56,7 @@ namespace {
 ** Helpers.
 *****************************************************************/
 void append_effects_msgs(
-    UnitCombatEffectsMessages&       to,
+    UnitCombatEffectsMessages& to,
     UnitCombatEffectsMessages const& from ) {
   auto append = []( auto& to, auto const& from ) {
     to.insert( to.end(), from.begin(), from.end() );
@@ -222,7 +222,7 @@ UnitCombatEffectsMessages native_unit_combat_effects_msg(
 std::string naval_battle_opponent_clause(
     SSConst const& ss, NavalBattleOpponent const& opponent ) {
   e_nation nation = {};
-  string   unit_part;
+  string unit_part;
   SWITCH( opponent ) {
     CASE( colony ) {
       Colony const& opposing_colony =
@@ -262,7 +262,7 @@ std::string naval_battle_opponent_clause(
 
 UnitCombatEffectsMessages naval_unit_combat_effects_msg(
     SSConst const& ss, Unit const& unit,
-    NavalBattleOpponent const&        opponent,
+    NavalBattleOpponent const& opponent,
     EuroNavalUnitCombatOutcome const& outcome ) {
   UnitCombatEffectsMessages res;
 
@@ -545,7 +545,7 @@ CombatEffectsSummaries summarize_combat_outcome(
 }
 
 CombatEffectsSummaries summarize_combat_outcome(
-    SSConst const&                         ss,
+    SSConst const& ss,
     CombatColonyArtilleryAttackShip const& combat ) {
   Colony const& colony =
       ss.colonies.colony_for( combat.attacker.id );
@@ -575,7 +575,7 @@ CombatEffectsSummaries summarize_combat_outcome(
   Player const& attacking_player =
       player_for_nation_or_die( ss.players, attacker.nation() );
   DwellingId const dwelling_id = combat.defender.id;
-  e_tribe const    tribe_type =
+  e_tribe const tribe_type =
       ss.natives.tribe_for( dwelling_id ).type;
   e_native_level const level =
       config_natives.tribes[tribe_type].level;
@@ -588,7 +588,7 @@ CombatEffectsSummaries summarize_combat_outcome(
   string_view const nation_adj =
       nation_possessive( attacking_player );
   string_view const euro_unit_name = attacker.desc().name;
-  Coord const       attacker_coord =
+  Coord const attacker_coord =
       coord_for_unit_multi_ownership_or_die( ss, attacker.id() );
   maybe<Colony const&> const closest_colony =
       find_close_explored_colony(
@@ -615,7 +615,7 @@ CombatEffectsSummaries summarize_combat_outcome(
 }
 
 CombatEffectsSummaries summarize_combat_outcome(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat ) {
   if( combat.winner == e_combat_winner::attacker ) {
     // The colony has been overtaken. For the most part these
@@ -703,7 +703,7 @@ CombatEffectsMessages combat_effects_msg(
 }
 
 CombatEffectsMessages combat_effects_msg(
-    SSConst const&                         ss,
+    SSConst const& ss,
     CombatColonyArtilleryAttackShip const& combat ) {
   // In the OG there is no summary (as defined here) and no mes-
   // sage from the attacker (fort/fortress); there is only a
@@ -794,7 +794,7 @@ CombatEffectsMessages combat_effects_msg(
 }
 
 CombatEffectsMessages combat_effects_msg(
-    SSConst const&                          ss,
+    SSConst const& ss,
     CombatEuroAttackUndefendedColony const& combat ) {
   auto& attacker = ss.units.unit_for( combat.attacker.id );
   Player const& attacking_player =
@@ -837,7 +837,7 @@ FilteredMixedCombatEffectsMessages filter_combat_effects_msgs(
     to.push_back( msg );
   };
 
-  auto show_msgs = [&]( vector<string>&       to,
+  auto show_msgs = [&]( vector<string>& to,
                         vector<string> const& msgs ) {
     for( string const& msg : msgs ) {
       // Empty messages should have been filtered out in the
@@ -895,7 +895,7 @@ void perform_euro_unit_combat_effects(
     SS& ss, TS& ts, Unit& unit,
     EuroUnitCombatOutcome const& outcome ) {
   auto capture_unit = [&]( e_nation new_nation,
-                           Coord    new_coord ) {
+                           Coord new_coord ) {
     // We need to use this special function to do the nation
     // change and the move at the same time. If we did the move
     // first then there would be an intermediate state where we'd

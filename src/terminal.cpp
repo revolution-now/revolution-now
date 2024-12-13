@@ -181,7 +181,7 @@ maybe<string const&> Terminal::history( int idx ) {
 
 vector<string> Terminal::autocomplete( string_view fragment ) {
   vector<string> res;
-  auto           is_autocomplete_char = []( char c ) {
+  auto is_autocomplete_char = []( char c ) {
     return std::isalnum( c ) || ( c == ':' ) || ( c == '.' ) ||
            ( c == '_' );
   };
@@ -209,7 +209,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
       segments.begin(),
       segments.empty() ? segments.end() : segments.end() - 1 );
 
-  auto sep_for_parent_child = [&]( lua::any      parent,
+  auto sep_for_parent_child = [&]( lua::any parent,
                                    string const& key ) {
     if( lua::type_of( parent ) == lua::type::userdata &&
         lua::type_of( parent[key] ) == lua::type::function ) {
@@ -244,7 +244,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   };
 
   auto table_count_if = [&]( lua::table t, auto&& func ) {
-    int  size   = 0;
+    int size    = 0;
     auto lifted = lifted_pairs_for_table( t );
     for( auto p : lifted )
       if( func( lua::any( lifted ), p.first ) ) ++size;
@@ -274,7 +274,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
   };
 
   lua::table curr_table = st_.table.global();
-  lua::any   curr_obj   = lua::any( st_.table.global() );
+  lua::any curr_obj     = lua::any( st_.table.global() );
 
   for( auto piece : initial_segments ) {
     lg.trace( "piece: {}", piece );
@@ -381,7 +381,7 @@ vector<string> Terminal::autocomplete( string_view fragment ) {
 vector<string> Terminal::autocomplete_iterative(
     string_view fragment ) {
   vector<string> res;
-  string         single_result( fragment );
+  string single_result( fragment );
   do {
     lg.trace( "single_result: {}", single_result );
     auto try_res = autocomplete( single_result );

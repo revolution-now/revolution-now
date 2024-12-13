@@ -81,7 +81,7 @@ struct converter {
 
   template<FromCanonical T>
   result<std::remove_const_t<T>> from_index( list const& lst,
-                                             int         idx ) {
+                                             int idx ) {
     auto _ = frame( "index {}", idx );
     return from<T>( lst[idx] );
   }

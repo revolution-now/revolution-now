@@ -91,7 +91,7 @@ LUA_TEST_CASE( "[indexer] construct" ) {
 
   indexer idxr1 = mt[5];
   indexer idxr2 = mt["5"];
-  int     n     = 2;
+  int n         = 2;
   indexer idxr3 = mt[n];
 
   (void)idxr1;
@@ -297,12 +297,12 @@ LUA_TEST_CASE( "[indexer] casting to maybe" ) {
   }
 
   SECTION( "from double" ) {
-    auto   mb  = as<maybe<bool>>( mt[5][1][2] );
-    auto   mi  = as<maybe<int>>( mt[5][1][2] );
-    auto   ms  = as<maybe<string>>( mt[5][1][2] );
-    auto   md  = as<maybe<double>>( mt[5][1][2] );
+    auto mb    = as<maybe<bool>>( mt[5][1][2] );
+    auto mi    = as<maybe<int>>( mt[5][1][2] );
+    auto ms    = as<maybe<string>>( mt[5][1][2] );
+    auto md    = as<maybe<double>>( mt[5][1][2] );
     double md2 = as<double>( mt[5][1][2] );
-    auto   t   = as<maybe<table>>( mt[5][1][2] );
+    auto t     = as<maybe<table>>( mt[5][1][2] );
     REQUIRE( mb == true );
     REQUIRE( mi == nothing );
     REQUIRE( ms == "7.7" );

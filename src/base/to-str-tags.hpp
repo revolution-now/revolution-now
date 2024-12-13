@@ -41,7 +41,7 @@ concept FormattableSizedRange =
 // them.
 namespace detail {
 void json_style_list_impl( std::vector<std::string> const& vec,
-                           std::string&                    out );
+                           std::string& out );
 }
 
 template<FormattableRange R>
@@ -83,7 +83,7 @@ struct FmtVerticalJsonList {
   }
 
   friend void to_str( FmtVerticalJsonList const& o,
-                      std::string&               out,
+                      std::string& out,
                       tag<FmtVerticalJsonList> ) {
     std::vector<std::string> items;
     if constexpr( std::ranges::sized_range<R> )

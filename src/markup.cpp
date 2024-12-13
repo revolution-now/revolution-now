@@ -32,14 +32,14 @@ using ::base::unexpected;
 *****************************************************************/
 expect<MarkedUpText> parse_markup( string_view text ) {
   vector<string> lines = base::str_split( text, '\n' );
-  MarkedUpText   res;
-  auto&          line_frags = res.chunks;
+  MarkedUpText res;
+  auto& line_frags = res.chunks;
   line_frags.reserve( lines.size() );
   MarkupStyle curr_style{};
   for( string_view const line : lines ) {
     vector<MarkedUpChunk> line_mkup;
-    auto                  start = line.begin();
-    auto                  end   = line.end();
+    auto start = line.begin();
+    auto end   = line.end();
     while( true ) {
       auto left_bracket = find( start, end, '[' );
       if( left_bracket - start > 0 )

@@ -110,7 +110,7 @@ LUA_TEST_CASE( "[iter] iterate with numbers" ) {
     INFO( fmt::format( "str_keys: {}", str_keys ) );
     REQUIRE( it != end( tbl ) );
     type key_type = type_of( it->first );
-    int  val      = as<int>( it->second );
+    int val       = as<int>( it->second );
     switch( key_type ) {
       case type::number: {
         int key = as<int>( it->first );

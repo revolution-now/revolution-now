@@ -27,7 +27,7 @@ enum class e_rcl_dialect {
 };
 
 std::string save_rcl_to_string( ColonySAV const& in,
-                                e_rcl_dialect    dialect );
+                                e_rcl_dialect dialect );
 
 base::valid_or<std::string> save_rcl_to_file(
     std::string const& path, ColonySAV const& in,

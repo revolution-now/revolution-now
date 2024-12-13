@@ -47,7 +47,7 @@ using ::gfx::size;
 
 // Unit only, no flag.
 void render_unit_no_flag( rr::Renderer& renderer, Coord where,
-                          e_tile                   tile,
+                          e_tile tile,
                           UnitRenderOptions const& options ) {
   if( options.shadow.has_value() )
     render_sprite_silhouette(
@@ -86,7 +86,7 @@ void render_unit_flag_single(
   SWITCH( flag_info.contents ) {
     CASE( character ) {
       string const text( 1, character.value );
-      Delta        char_size =
+      Delta char_size =
           rr::rendered_text_line_size_pixels( text );
       render_text( renderer, centered( char_size, rect ),
                    font::nat_icon(), character.color, text );
@@ -151,7 +151,7 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
 }
 
 void depixelate_from_to( rr::Renderer& renderer, double stage,
-                         gfx::point                 hash_anchor,
+                         gfx::point hash_anchor,
                          base::function_ref<void()> from,
                          base::function_ref<void()> to ) {
   SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
@@ -190,7 +190,7 @@ void render_unit_depixelate_to_impl(
 // We really don't want to compute the dulled colors everytime we
 // render a dwelling, so we will cache it.
 gfx::pixel missionary_cross_color( e_nation nation,
-                                   bool     is_jesuit ) {
+                                   bool is_jesuit ) {
   static auto dulled = [] {
     refl::enum_map<e_nation, gfx::pixel> m;
     for( e_nation nation : refl::enum_values<e_nation> ) {
@@ -223,7 +223,7 @@ W UnitShadow::default_offset() { return W{ -3 }; }
 ** Unit Rendering.
 *****************************************************************/
 void render_unit( rr::Renderer& renderer, Coord where,
-                  Unit const&              unit,
+                  Unit const& unit,
                   UnitRenderOptions const& options ) {
   render_unit_with_tile(
       renderer, where, unit.desc().tile,
@@ -231,7 +231,7 @@ void render_unit( rr::Renderer& renderer, Coord where,
 }
 
 void render_native_unit( rr::Renderer& renderer, Coord where,
-                         NativeUnit const&        native_unit,
+                         NativeUnit const& native_unit,
                          UnitRenderOptions const& options ) {
   render_unit_with_tile( renderer, where,
                          unit_attr( native_unit.type ).tile,
@@ -239,7 +239,7 @@ void render_native_unit( rr::Renderer& renderer, Coord where,
 }
 
 void render_unit_type( rr::Renderer& renderer, Coord where,
-                       e_unit_type              unit_type,
+                       e_unit_type unit_type,
                        UnitRenderOptions const& options ) {
   render_unit_with_tile( renderer, where,
                          unit_attr( unit_type ).tile,
@@ -247,7 +247,7 @@ void render_unit_type( rr::Renderer& renderer, Coord where,
 }
 
 void render_unit_type( rr::Renderer& renderer, Coord where,
-                       e_native_unit_type       unit_type,
+                       e_native_unit_type unit_type,
                        UnitRenderOptions const& options ) {
   render_unit_with_tile( renderer, where,
                          unit_attr( unit_type ).tile,
@@ -313,8 +313,8 @@ void render_colony( rr::Renderer& renderer, Coord where,
   e_tile const tile = tile_for_colony( colony );
   FrozenColony const frozen_colony =
       colony_to_frozen_colony( ss, colony );
-  int const   population = colony_population( colony );
-  rr::Painter painter    = renderer.painter();
+  int const population = colony_population( colony );
+  rr::Painter painter  = renderer.painter();
   render_sprite( renderer, where, tile );
   auto const& nation = nation_obj( colony.nation );
   if( options.render_flag )
@@ -363,9 +363,9 @@ e_tile tile_for_dwelling( SSConst const& ss,
 }
 
 void render_dwelling( rr::Renderer& renderer, Coord where,
-                      SSConst const&  ss,
+                      SSConst const& ss,
                       Dwelling const& dwelling ) {
-  rr::Painter          painter = renderer.painter();
+  rr::Painter painter = renderer.painter();
   FrozenDwelling const frozen_dwelling =
       dwelling_to_frozen_dwelling( ss, dwelling );
   // NOTE: !! From here on we must not use ss to look up anything
@@ -374,13 +374,13 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
   // ist. All info needed should be available either in `d-
   // welling` or `frozen_dwelling`.
   e_tribe const tribe_type = frozen_dwelling.tribe;
-  auto& tribe_conf = config_natives.tribes[tribe_type];
+  auto& tribe_conf         = config_natives.tribes[tribe_type];
   e_tile const dwelling_tile =
       dwelling_tile_for_tribe( tribe_type );
   render_sprite( renderer, where, dwelling_tile );
   // Flags.
   e_native_level const native_level = tribe_conf.level;
-  gfx::pixel const     flag_color   = tribe_conf.flag_color;
+  gfx::pixel const flag_color       = tribe_conf.flag_color;
   for( gfx::rect flag : config_natives.flag_rects[native_level] )
     painter.draw_solid_rect( flag.origin_becomes_point( where ),
                              flag_color );

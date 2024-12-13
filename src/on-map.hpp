@@ -46,7 +46,7 @@ struct UnitOnMapMover {
  private:
   static void to_map_non_interactive( SS& ss, TS& ts,
                                       UnitId unit_id,
-                                      Coord  tile );
+                                      Coord tile );
 
   static wait<maybe<UnitDeleted>> to_map_interactive(
       SS& ss, TS& ts, UnitId unit_id, Coord tile );

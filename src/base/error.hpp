@@ -286,11 +286,11 @@
 /****************************************************************
 ** Variants
 *****************************************************************/
-#define ASSIGN_CHECK_V( ref, v_expr, type )                  \
-  auto&& STRING_JOIN( __x, __LINE__ )   = v_expr;            \
-  auto*  STRING_JOIN( __ptr, __LINE__ ) = std::get_if<type>( \
+#define ASSIGN_CHECK_V( ref, v_expr, type )                 \
+  auto&& STRING_JOIN( __x, __LINE__ )  = v_expr;            \
+  auto* STRING_JOIN( __ptr, __LINE__ ) = std::get_if<type>( \
       &STRING_JOIN( __x, __LINE__ ).as_std() );             \
-  BASE_CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );   \
+  BASE_CHECK( STRING_JOIN( __ptr, __LINE__ ) != nullptr );  \
   auto& BASE_IDENTITY( ref ) = *STRING_JOIN( __ptr, __LINE__ )
 
 /****************************************************************
@@ -356,13 +356,13 @@ namespace detail {
 
 // Format the message output on a CHECK-fail; just makes it look
 // nice regardless of whether the message is empty or not.
-std::string check_msg( char const*        expr,
+std::string check_msg( char const* expr,
                        std::string const& msg );
 
 } // namespace detail
 
 [[noreturn]] void abort_with_msg(
-    std::string_view     msg,
+    std::string_view msg,
     std::source_location loc = std::source_location::current() );
 
 struct GenericError {
@@ -371,18 +371,18 @@ struct GenericError {
   // expected that they will only get created when errors happen
   // anyway.
   static std::unique_ptr<GenericError> create(
-      std::string_view     what,
+      std::string_view what,
       std::source_location loc =
           std::source_location::current() ) {
     return std::unique_ptr<GenericError>(
         new GenericError( what, loc ) );
   }
 
-  std::string          what;
+  std::string what;
   std::source_location loc;
 
  private:
-  GenericError( std::string_view     what_,
+  GenericError( std::string_view what_,
                 std::source_location loc_ =
                     std::source_location::current() )
     : what( what_ ), loc( loc_ ) {}
@@ -409,7 +409,7 @@ struct fmt::formatter<::base::generic_err>
   : fmt::formatter<std::string> {
   template<typename FormatContext>
   auto format( ::base::generic_err const& o,
-               FormatContext&             ctx ) const {
+               FormatContext& ctx ) const {
     std::string out;
     to_str( o, out );
     return fmt::formatter<std::string>::format( out, ctx );

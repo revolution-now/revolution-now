@@ -127,7 +127,7 @@ Matrix<int> make_m_2x4() {
 *****************************************************************/
 TEST_CASE( "[gfx/cdr-matrix] cdr/empty matrix" ) {
   cdr::converter conv;
-  Matrix<int>    m_empty( rn::Delta{} );
+  Matrix<int> m_empty( rn::Delta{} );
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_empty ) == cdr_empty );
   }
@@ -139,7 +139,7 @@ TEST_CASE( "[gfx/cdr-matrix] cdr/empty matrix" ) {
 
 TEST_CASE( "[gfx/cdr-matrix] cdr/include-defaults" ) {
   cdr::converter conv;
-  Matrix<int>    m_2x4 = make_m_2x4();
+  Matrix<int> m_2x4 = make_m_2x4();
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_2x4 ) == cdr_2x4_with_default_elem );
   }
@@ -154,7 +154,7 @@ TEST_CASE( "[gfx/cdr-matrix] cdr/no-include-defaults" ) {
     .write_fields_with_default_value  = false,
     .default_construct_missing_fields = true,
   } );
-  Matrix<int>    m_2x4 = make_m_2x4();
+  Matrix<int> m_2x4 = make_m_2x4();
   SECTION( "to_canonical" ) {
     REQUIRE( conv.to( m_2x4 ) == cdr_2x4_missing_default_elem );
   }

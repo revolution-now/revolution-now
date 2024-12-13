@@ -135,7 +135,7 @@ TEST_CASE( "[on-map] non-interactive: moves the unit" ) {
 TEST_CASE( "[on-map] interactive: discovers new world" ) {
   World W;
   W.create_default_map();
-  Player&      player = W.default_player();
+  Player& player = W.default_player();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 0 } )
@@ -276,7 +276,7 @@ TEST_CASE(
     "woodcut" ) {
   World W;
   W.create_default_map();
-  Coord       to   = { .x = 1, .y = 1 };
+  Coord to         = { .x = 1, .y = 1 };
   Unit const& unit = W.add_unit_on_map(
       e_unit_type::free_colonist, { .x = 1, .y = 0 } );
   MapSquare& square      = W.square( { .x = 1, .y = 1 } );
@@ -417,7 +417,7 @@ TEST_CASE(
   W.create_default_map();
 
   auto mv_unit = [&]( NativeUnit const& native_unit,
-                      e_direction       d ) {
+                      e_direction d ) {
     Coord const curr = W.units().coord_for( native_unit.id );
     Coord const dst  = curr.moved( d );
     UnitOnMapMover::native_unit_to_map_non_interactive(
@@ -506,7 +506,7 @@ TEST_CASE(
     "[on-map] interactive: discovers new world on island" ) {
   World W;
   W.create_island_map();
-  Player&      player = W.default_player();
+  Player& player = W.default_player();
   UnitId const unit_id =
       W.add_unit_on_map( e_unit_type::treasure,
                          { .x = 1, .y = 1 } )

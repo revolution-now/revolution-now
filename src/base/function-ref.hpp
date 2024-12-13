@@ -54,7 +54,7 @@ struct function_ref<R( Args... ) const /*noexcept*/> {
   using Signature = R( Args... );
   using Thunk     = R( void const*, Args... );
 
-  Thunk*      p_thunk_      = nullptr;
+  Thunk* p_thunk_           = nullptr;
   void const* bound_entity_ = nullptr;
 
  public:
@@ -124,8 +124,8 @@ struct function_ref<R( Args... ) /*const*/ /*noexcept*/> {
   using Signature = R( Args... );
   using Thunk     = R( void*, Args... );
 
-  Thunk* p_thunk_      = nullptr;
-  void*  bound_entity_ = nullptr;
+  Thunk* p_thunk_     = nullptr;
+  void* bound_entity_ = nullptr;
 
  public:
   function_ref() = delete;

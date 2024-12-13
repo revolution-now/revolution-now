@@ -43,7 +43,7 @@ struct World : testing::World {
     add_player( e_nation::dutch );
     add_player( e_nation::french );
     set_default_player( e_nation::dutch );
-    MapSquare const   L = make_terrain( terrain );
+    MapSquare const L = make_terrain( terrain );
     vector<MapSquare> tiles{
       // clang-format off
         L,L,L,L,L,L,L,
@@ -67,7 +67,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[lumber-yield] pioneer" ) {
-  World       W;
+  World W;
   Coord const plow_loc = { .x = 1, .y = 1 };
   W.initialize( e_unit_type::pioneer, e_terrain::conifer,
                 plow_loc );
@@ -232,7 +232,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
 }
 
 TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
-  World       W;
+  World W;
   Coord const plow_loc = { .x = 1, .y = 1 };
   W.initialize( e_unit_type::hardy_pioneer, e_terrain::conifer,
                 plow_loc );
@@ -394,7 +394,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
 
 TEST_CASE( "[lumber-yield] best_lumber_yield" ) {
   vector<LumberYield> input;
-  maybe<LumberYield>  expected;
+  maybe<LumberYield> expected;
 
   auto f = [&] { return best_lumber_yield( input ); };
 

@@ -750,7 +750,7 @@ TEST_CASE( "[unit-type] lua bindings" ) {
 }
 
 TEST_CASE( "[unit-type] unit colonist status" ) {
-  bool     expected;
+  bool expected;
   UnitType ut;
 
   ut       = e_unit_type::free_colonist;
@@ -783,7 +783,7 @@ TEST_CASE( "[unit-type] unit colonist status" ) {
 }
 
 TEST_CASE( "[unit-type] unit can_found status" ) {
-  bool     expected;
+  bool expected;
   UnitType ut;
 
   ut       = e_unit_type::free_colonist;
@@ -816,7 +816,7 @@ TEST_CASE( "[unit-type] unit can_found status" ) {
 }
 
 TEST_CASE( "[unit-type] movement_points" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   REQUIRE(

@@ -73,7 +73,7 @@ ColorBuckets hsl_bucket( std::vector<gfx::pixel> const& colors );
 // colors may have a bit more or less. Also, the order of colors
 // returned is unspecified.
 std::vector<gfx::pixel> extract_palette(
-    fs::path const&  glob,
+    fs::path const& glob,
     base::maybe<int> target = base::nothing );
 
 // Will remove colors that are redundant or approximately
@@ -105,12 +105,12 @@ void dump_palette( ColorBuckets const& colors,
                    fs::path const& schema, fs::path const& rcl );
 
 // Display an array of colors.
-void show_palette( rr::Renderer&                  renderer,
+void show_palette( rr::Renderer& renderer,
                    std::vector<gfx::pixel> const& colors );
 
 // Preview color shading and highlighting.  This will render
 // a color gradient to the screen.
 void show_color_adjustment( rr::Renderer& renderer,
-                            gfx::pixel    center );
+                            gfx::pixel center );
 
 } // namespace rn

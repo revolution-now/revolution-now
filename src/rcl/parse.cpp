@@ -200,8 +200,8 @@ bool parse_table( table* out ) {
   table tbl;
   while( true ) {
     eat_blanks();
-    char const* sav     = g_cur;
-    bool        success = parse_key_val( &tbl );
+    char const* sav = g_cur;
+    bool success    = parse_key_val( &tbl );
     if( !success ) {
       if( g_cur != sav )
         // We failed but parsed some non-blank characters,
@@ -374,7 +374,7 @@ bool parse_value( value* out ) {
 
   // Assume string.
   string s;
-  bool   unquoted;
+  bool unquoted;
   if( !parse_string( &s, &unquoted ) ) return false;
 
   if( unquoted ) {
@@ -426,7 +426,7 @@ void blankify_comments( string& text ) {
   bool in_comment     = false;
   bool in_dquoted_str = false;
   bool in_squoted_str = false;
-  int  i              = 0;
+  int i               = 0;
   for( ; i < int( text.size() ); ++i ) {
     char c = text[i];
     if( c == '\n' || c == '\r' ) {
@@ -504,7 +504,7 @@ base::expect<doc, string> parse(
   return doc::create( std::move( tbl ), opts );
 }
 
-base::expect<doc> parse_file( string_view              filename,
+base::expect<doc> parse_file( string_view filename,
                               ProcessingOptions const& opts ) {
   auto buffer = base::read_text_file_as_string( filename );
   if( !buffer )

@@ -50,7 +50,7 @@ struct World : testing::World {
 
   void initialize( e_unit_type unit_type ) {
     add_default_player();
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
 
@@ -66,8 +66,8 @@ TEST_CASE( "[road] perform_road_work 100 tools" ) {
   W.initialize( e_unit_type::pioneer );
 
   UnitId id{ 1 };
-  Unit&  unit     = W.units().unit_for( id );
-  Coord  location = W.units().coord_for( id );
+  Unit& unit     = W.units().unit_for( id );
+  Coord location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -118,8 +118,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer" ) {
   W.initialize( e_unit_type::hardy_pioneer );
 
   UnitId id{ 1 };
-  Unit&  unit     = W.units().unit_for( id );
-  Coord  location = W.units().coord_for( id );
+  Unit& unit     = W.units().unit_for( id );
+  Coord location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
@@ -170,8 +170,8 @@ TEST_CASE( "[road] perform_road_work 20 tools" ) {
   W.initialize( e_unit_type::pioneer );
 
   UnitId id{ 1 };
-  Unit&  unit     = W.units().unit_for( id );
-  Coord  location = W.units().coord_for( id );
+  Unit& unit     = W.units().unit_for( id );
+  Coord location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 
@@ -227,8 +227,8 @@ TEST_CASE( "[road] perform_road_work hardy_pioneer 20 tools" ) {
   W.initialize( e_unit_type::hardy_pioneer );
 
   UnitId id{ 1 };
-  Unit&  unit     = W.units().unit_for( id );
-  Coord  location = W.units().coord_for( id );
+  Unit& unit     = W.units().unit_for( id );
+  Coord location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::hardy_pioneer );
   REQUIRE( location == kSquare );
 
@@ -284,8 +284,8 @@ TEST_CASE( "[road] perform_road_work with cancel" ) {
   W.initialize( e_unit_type::pioneer );
 
   UnitId id{ 1 };
-  Unit&  unit     = W.units().unit_for( id );
-  Coord  location = W.units().coord_for( id );
+  Unit& unit     = W.units().unit_for( id );
+  Coord location = W.units().coord_for( id );
   REQUIRE( unit.type() == e_unit_type::pioneer );
   REQUIRE( location == kSquare );
 

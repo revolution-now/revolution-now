@@ -23,8 +23,8 @@ namespace {
 
 // Get all units in the eight squares that surround coord.
 bool has_surrounding_foreign_unit( SSConst const& ss,
-                                   e_nation       nation,
-                                   Coord          coord ) {
+                                   e_nation nation,
+                                   Coord coord ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const moved = coord.moved( d );
     for( GenericUnitId id : ss.units.from_coord( moved ) ) {

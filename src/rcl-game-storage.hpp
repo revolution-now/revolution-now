@@ -72,7 +72,7 @@ struct RclGameStorageSave : public IGameStorageSave,
 
  private:
   SSConst const& ss_;
-  options        opts_ = {};
+  options opts_ = {};
 };
 
 /****************************************************************
@@ -99,7 +99,7 @@ struct RclGameStorageLoad : public IGameStorageLoad,
   }
 
  private:
-  SS&     ss_;
+  SS& ss_;
   options opts_ = {};
 };
 

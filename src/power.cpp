@@ -20,7 +20,7 @@ namespace {} // namespace
 MachinePowerInfo machine_power_info() {
   MachinePowerInfo info;
 
-  int  seconds_left, battery_percent;
+  int seconds_left, battery_percent;
   auto status =
       ::SDL_GetPowerInfo( &seconds_left, &battery_percent );
   switch( status ) {

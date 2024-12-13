@@ -53,7 +53,7 @@ namespace base {
 // For types that satisfy refl::ReflectedEnum.
 template<refl::ReflectedEnum E>
 void to_str( E const& o, std::string& out, tag<E> ) {
-  auto  idx   = static_cast<int>( o );
+  auto idx    = static_cast<int>( o );
   auto& names = refl::traits<E>::value_names;
   DCHECK( idx >= 0 );
   DCHECK( idx < int( names.size() ) );

@@ -25,9 +25,9 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[stacktrace] path filter" ) {
-  fs::path             p;
+  fs::path p;
   e_stack_trace_frames mode{};
-  auto                 f = should_include_filepath_in_stacktrace;
+  auto f = should_include_filepath_in_stacktrace;
 
   // All
   mode = e_stack_trace_frames::all;

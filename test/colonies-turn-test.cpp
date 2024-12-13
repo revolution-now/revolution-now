@@ -50,8 +50,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, //
       L, L, L, L, L, L, //
@@ -71,7 +71,7 @@ struct World : testing::World {
 // dencies and so it probably should be replaced with more thor-
 // ough unit tests.
 TEST_CASE( "[colonies-turn] presents transient updates." ) {
-  World              W;
+  World W;
   MockIColonyEvolver mock_colony_evolver;
   MockIColonyNotificationGenerator
       mock_colony_notification_generator;

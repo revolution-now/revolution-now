@@ -31,14 +31,14 @@ struct TerrainState {
 
   // Implement refl::WrapsReflected.
   TerrainState( wrapped::TerrainState&& o );
-  wrapped::TerrainState const&      refl() const { return o_; }
+  wrapped::TerrainState const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "TerrainState";
 
   gfx::Matrix<MapSquare> const& world_map() const;
 
   Delta world_size_tiles() const;
-  Rect  world_rect_tiles() const;
+  Rect world_rect_tiles() const;
 
   bool square_exists( Coord coord ) const;
   bool square_exists( gfx::point tile ) const;
@@ -50,7 +50,7 @@ struct TerrainState {
   base::maybe<MapSquare const&> maybe_square_at(
       gfx::point tile ) const;
 
-  int  placement_seed() const { return o_.placement_seed; }
+  int placement_seed() const { return o_.placement_seed; }
   void set_placement_seed( int seed ) {
     o_.placement_seed = seed;
   }
@@ -63,7 +63,7 @@ struct TerrainState {
   // making them visible (otherwise all squares will be
   // non-visible).
   void initialize_player_terrain( e_nation nation,
-                                  bool     visible );
+                                  bool visible );
 
   // This essentially returns what square_at does, except it also
   // returns valid values for any squares outside of the map, in
@@ -113,9 +113,9 @@ struct TerrainState {
   // want to redraw a map (e.g. you are in unit tests) then just
   // use the non-rendering map updater.
 
-  MapSquare&              mutable_square_at( Coord coord );
+  MapSquare& mutable_square_at( Coord coord );
   base::maybe<MapSquare&> mutable_maybe_square_at( Coord coord );
-  MapSquare&              mutable_square_at( gfx::point tile );
+  MapSquare& mutable_square_at( gfx::point tile );
   base::maybe<MapSquare&> mutable_maybe_square_at(
       gfx::point tile );
   PlayerTerrain& mutable_player_terrain( e_nation nation );
@@ -133,7 +133,7 @@ struct TerrainState {
 
  private:
   base::valid_or<std::string> validate() const;
-  void                        validate_or_die() const;
+  void validate_or_die() const;
 
   // ----- Serializable state.
   wrapped::TerrainState o_;

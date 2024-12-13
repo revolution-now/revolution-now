@@ -61,9 +61,9 @@ void Emitter::set_position( long new_pos ) {
 
 void Emitter::emit( span<GenericVertex const> vertices ) {
   if( vertices.empty() ) return;
-  long       capacity_before = buffer_->capacity();
-  long       current_size    = buffer_->size();
-  long const needed_size     = pos_ + vertices.size();
+  long capacity_before   = buffer_->capacity();
+  long current_size      = buffer_->size();
+  long const needed_size = pos_ + vertices.size();
   if( current_size <= needed_size )
     buffer_->resize( needed_size );
   long capacity_after = buffer_->capacity();

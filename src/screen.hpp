@@ -53,11 +53,11 @@ gfx::rect main_window_logical_rect();
 void on_main_window_resized( rr::Renderer& renderer );
 
 void on_logical_resolution_changed(
-    rr::Renderer&             renderer,
+    rr::Renderer& renderer,
     SelectedResolution const& resolution );
 
-void       cycle_resolution( int delta );
-void       set_resolution_idx_to_optimal();
+void cycle_resolution( int delta );
+void set_resolution_idx_to_optimal();
 maybe<int> get_resolution_idx();
 maybe<int> get_resolution_cycle_size();
 

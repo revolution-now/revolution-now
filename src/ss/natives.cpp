@@ -115,7 +115,7 @@ base::valid_or<std::string> NativesState::validate() const {
 
   // Dwelling location matches coord.
   for( auto const& [dwelling_id, state] : o_.dwellings ) {
-    Coord const&            coord = state.ownership.location;
+    Coord const& coord = state.ownership.location;
     base::maybe<DwellingId> actual_dwelling_id =
         base::lookup( dwelling_from_coord_, coord );
     REFL_VALIDATE( actual_dwelling_id == dwelling_id,
@@ -147,7 +147,7 @@ NativesState::NativesState( wrapped::NativesState&& o )
   // Populate dwellings_from_tribe_;
   for( auto const& [id, state] : o_.dwellings ) {
     Dwelling const& dwelling = state.dwelling;
-    e_tribe const   tribe    = state.ownership.tribe;
+    e_tribe const tribe      = state.ownership.tribe;
     CHECK(
         !dwellings_from_tribe_[tribe].contains( dwelling.id ) );
     dwellings_from_tribe_[tribe].insert( dwelling.id );
@@ -255,8 +255,8 @@ NativesState::dwellings_for_tribe( e_tribe tribe ) const {
   return *res;
 }
 
-DwellingId NativesState::add_dwelling( e_tribe    tribe,
-                                       Coord      location,
+DwellingId NativesState::add_dwelling( e_tribe tribe,
+                                       Coord location,
                                        Dwelling&& dwelling ) {
   CHECK( tribe_exists( tribe ), "tribe {} does not exist.",
          tribe );
@@ -279,12 +279,12 @@ DwellingId NativesState::add_dwelling( e_tribe    tribe,
 }
 
 void NativesState::destroy_dwelling( DwellingId id ) {
-  DwellingState&     state     = state_for( id );
+  DwellingState& state         = state_for( id );
   DwellingOwnership& ownership = state.ownership;
   CHECK( dwelling_from_coord_.contains( ownership.location ) );
   dwelling_from_coord_.erase( ownership.location );
-  Dwelling&     dwelling = dwelling_for( id );
-  e_tribe const tribe    = tribe_for( dwelling.id ).type;
+  Dwelling& dwelling  = dwelling_for( id );
+  e_tribe const tribe = tribe_for( dwelling.id ).type;
   CHECK( tribe_exists( tribe ), "the {} tribe does not exist.",
          tribe );
   CHECK( dwellings_from_tribe_.contains( tribe ) );
@@ -341,7 +341,7 @@ NativesState::testing_only_owned_land_without_minuit() const {
 }
 
 void NativesState::mark_land_owned( DwellingId dwelling_id,
-                                    Coord      where ) {
+                                    Coord where ) {
   o_.owned_land_without_minuit[where] = dwelling_id;
 }
 
@@ -377,7 +377,7 @@ LUA_STARTUP( lua::state& st ) {
 
   u["last_dwelling_id"] = &U::last_dwelling_id;
   u["dwelling_exists"]  = &U::dwelling_exists;
-  u["dwelling_for_id"]  = [&]( U&         o,
+  u["dwelling_for_id"]  = [&]( U& o,
                               DwellingId id ) -> Dwelling& {
     LUA_CHECK( st, o.dwelling_exists( id ),
                 "dwelling {} does not exist.", id );

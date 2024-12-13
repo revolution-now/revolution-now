@@ -80,8 +80,8 @@ TEST_CASE( "[society] flag_color_for_society" ) {
 }
 
 TEST_CASE( "[society] society_on_square" ) {
-  World          W;
-  Coord          where;
+  World W;
+  Coord where;
   maybe<Society> expected;
 
   auto f = [&] { return society_on_square( W.ss(), where ); };

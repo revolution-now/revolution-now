@@ -31,7 +31,7 @@ value to_canonical( converter& conv, base::maybe<T> const& o,
 }
 
 template<FromCanonical T>
-result<base::maybe<T>> from_canonical( converter&   conv,
+result<base::maybe<T>> from_canonical( converter& conv,
                                        value const& v,
                                        tag_t<base::maybe<T>> ) {
   if( v == null ) return base::nothing;
@@ -43,7 +43,7 @@ result<base::maybe<T>> from_canonical( converter&   conv,
 ** base::heap_value
 *****************************************************************/
 template<ToCanonical T>
-value to_canonical( converter&                 conv,
+value to_canonical( converter& conv,
                     base::heap_value<T> const& o,
                     tag_t<base::heap_value<T>> ) {
   return conv.to( *o );
@@ -71,7 +71,7 @@ result<base::heap_value<T>> from_canonical(
 // hopefully that one will be selected in the relevant cases
 // since it is more constrained.
 template<typename... Ts>
-value to_canonical( converter&                  conv,
+value to_canonical( converter& conv,
                     base::variant<Ts...> const& o,
                     tag_t<base::variant<Ts...>> ) = delete;
 

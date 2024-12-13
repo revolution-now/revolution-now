@@ -208,7 +208,7 @@ class SilentMusicPlayer : public MusicPlayer {
  private:
   SilentMusicPlayer() = default;
 
-  bool          is_paused_{ false };
+  bool is_paused_{ false };
   maybe<TuneId> id_{};
 };
 

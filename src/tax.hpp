@@ -32,8 +32,8 @@ struct TS;
 // event it will provide all of the precomputed results of it for
 // each choice that the player makes.
 TaxUpdateComputation compute_tax_change( SSConst const& ss,
-                                         TS&            ts,
-                                         Player const&  player );
+                                         TS& ts,
+                                         Player const& player );
 
 // This function will take a tax change proposal (which gives
 // possible outcomes) and translate it to a final result that in-
@@ -57,7 +57,7 @@ wait<> start_of_turn_tax_check( SS& ss, TS& ts, Player& player );
 // If this commodity were currently boycotted then how much back-
 // taxes would the player have to pay to remove it?
 int back_tax_for_boycotted_commodity( Player const& player,
-                                      e_commodity   type );
+                                      e_commodity type );
 
 // This will run through the UI routine that happens when a
 // player tries to trade a boycotted commodity. It will present
@@ -66,6 +66,6 @@ int back_tax_for_boycotted_commodity( Player const& player,
 // check-fail.
 wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
                                       e_commodity type,
-                                      int         back_taxes );
+                                      int back_taxes );
 
 } // namespace rn

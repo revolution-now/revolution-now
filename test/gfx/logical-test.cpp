@@ -65,9 +65,9 @@ vector<size> const kSupportedResolutions{
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/logical] monitor_properties" ) {
-  size              physical = {};
+  size physical = {};
   maybe<MonitorDpi> dpi;
-  Monitor           expected;
+  Monitor expected;
 
   auto f = [&] { return monitor_properties( physical, dpi ); };
 
@@ -90,7 +90,7 @@ TEST_CASE( "[gfx/logical] monitor_properties" ) {
 
 TEST_CASE( "[gfx/logical] resolution_analysis empty options" ) {
   ResolutionAnalysisOptions const options{};
-  ResolutionRatings const         analysis =
+  ResolutionRatings const analysis =
       resolution_analysis( options );
   REQUIRE( analysis == ResolutionRatings{} );
 }

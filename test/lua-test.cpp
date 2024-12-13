@@ -52,7 +52,7 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     add_player( e_nation::dutch );
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -63,7 +63,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[lua] run trivial script" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     local x = 5+6
   )lua";
   REQUIRE( st.script.run_safe( script ) == valid );
@@ -71,7 +71,7 @@ TEST_CASE( "[lua] run trivial script" ) {
 
 TEST_CASE( "[lua] syntax error" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     local x =
   )lua";
 
@@ -82,7 +82,7 @@ TEST_CASE( "[lua] syntax error" ) {
 
 TEST_CASE( "[lua] semantic error" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     local a, b
     local x = a + b
   )lua";
@@ -105,7 +105,7 @@ TEST_CASE( "[lua] has base lib" ) {
 
 TEST_CASE( "[lua] no implicit conversions from double to int" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     return 5+8.5
   )lua";
   REQUIRE( st.script.run_safe<maybe<int>>( script ) == nothing );
@@ -113,7 +113,7 @@ TEST_CASE( "[lua] no implicit conversions from double to int" ) {
 
 TEST_CASE( "[lua] returns double" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     return 5+8.5
   )lua";
   REQUIRE( st.script.run_safe<double>( script ) == 13.5 );
@@ -121,7 +121,7 @@ TEST_CASE( "[lua] returns double" ) {
 
 TEST_CASE( "[lua] returns string" ) {
   lua::state st;
-  auto       script = R"lua(
+  auto script = R"lua(
     local function f( s )
       return s .. '!'
     end

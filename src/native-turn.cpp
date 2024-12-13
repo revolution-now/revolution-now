@@ -72,7 +72,7 @@ namespace {
 // This is for non-attack moves. Attack moves are handled else-
 // where, and they just rely on whether the viewing player can
 // see one of the squares in question.
-bool should_animate_native_travel( SSConst const&     ss,
+bool should_animate_native_travel( SSConst const& ss,
                                    IVisibility const& viz,
                                    Coord src, Coord dst ) {
   if( !ss.settings.game_options
@@ -90,12 +90,12 @@ bool should_animate_native_travel( SSConst const&     ss,
 
 wait<> handle_native_unit_attack( SS& ss, TS& ts,
                                   IRaid const& raid,
-                                  NativeUnit&  native_unit,
-                                  e_direction  direction,
-                                  e_nation     nation ) {
-  Coord const        src = ss.units.coord_for( native_unit.id );
-  Coord const        dst = src.moved( direction );
-  NativeUnit&        attacker    = native_unit;
+                                  NativeUnit& native_unit,
+                                  e_direction direction,
+                                  e_nation nation ) {
+  Coord const src      = ss.units.coord_for( native_unit.id );
+  Coord const dst      = src.moved( direction );
+  NativeUnit& attacker = native_unit;
   NativeUnitId const attacker_id = attacker.id;
 
   Player& player =
@@ -122,7 +122,7 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
 wait<> handle_native_unit_talk( SS& ss, TS& ts,
                                 NativeUnit& native_unit,
                                 e_direction direction,
-                                e_nation    nation ) {
+                                e_nation nation ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
   IEuroMind& euro_mind = ts.euro_minds()[nation];
@@ -147,7 +147,7 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
 
 wait<> handle_native_unit_travel( SS& ss, TS& ts,
                                   IVisibility const& viz,
-                                  NativeUnit&        native_unit,
+                                  NativeUnit& native_unit,
                                   e_direction direction ) {
   Coord const src = ss.units.coord_for( native_unit.id );
   Coord const dst = src.moved( direction );

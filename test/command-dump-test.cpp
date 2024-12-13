@@ -54,16 +54,16 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[command-dump] galleon" ) {
-  World  W;
+  World W;
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 0, .y = 0 } )
                   .id();
   unique_ptr<CommandHandler> handler = handle_command(
       W.ss(), W.ts(), W.default_player(), id, command::dump{} );
-  Unit&      unit  = W.units().unit_for( id );
+  Unit& unit       = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
-  Commodity  comm;
-  int        slot = 0;
+  Commodity comm;
+  int slot = 0;
 
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
@@ -350,16 +350,16 @@ TEST_CASE( "[command-dump] galleon" ) {
 }
 
 TEST_CASE( "[command-dump] wagon train" ) {
-  World  W;
+  World W;
   UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
   unique_ptr<CommandHandler> handler = handle_command(
       W.ss(), W.ts(), W.default_player(), id, command::dump{} );
-  Unit&      unit  = W.units().unit_for( id );
+  Unit& unit       = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
-  Commodity  comm;
-  int        slot = 0;
+  Commodity comm;
+  int slot = 0;
 
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
@@ -422,7 +422,7 @@ TEST_CASE( "[command-dump] wagon train" ) {
 }
 
 TEST_CASE( "[command-dump] non-cargo unit" ) {
-  World  W;
+  World W;
   UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();

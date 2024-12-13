@@ -41,7 +41,7 @@ struct [[nodiscard]] set_and_restore_pointer {
 
  private:
   T** pp_;
-  T*  old_;
+  T* old_;
 };
 
 #define TS_FIELD( type, var )                      \
@@ -73,11 +73,11 @@ struct TS {
 
   TS( TS&& ) = delete;
 
-  Planes&        planes;
-  lua::state&    lua;
-  IGui&          gui;
-  IRand&         rand;
-  ICombat&       combat;
+  Planes& planes;
+  lua::state& lua;
+  IGui& gui;
+  IRand& rand;
+  ICombat& combat;
   IColonyViewer& colony_viewer;
 
   TS_FIELD( IMapUpdater, map_updater );

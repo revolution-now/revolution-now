@@ -83,14 +83,14 @@ struct RawInput {
   RawInput( LandViewRawInput input_ )
     : input( std::move( input_ ) ), when( Clock_t::now() ) {}
   LandViewRawInput input;
-  Time_t           when;
+  Time_t when;
 };
 
 struct PlayerInput {
   PlayerInput( LandViewPlayerInput input_, Time_t when_ )
     : input( std::move( input_ ) ), when( when_ ) {}
   LandViewPlayerInput input;
-  Time_t              when;
+  Time_t when;
 };
 
 // Holds info about the previous unit that was asking for orders,
@@ -104,7 +104,7 @@ struct PlayerInput {
 // to track otherwise.
 struct LastUnitInput {
   [[maybe_unused]] explicit LastUnitInput( SSConst const& ss,
-                                           UnitId const   id )
+                                           UnitId const id )
     : ss_( ss ), unit_id_( id ) {}
 
   maybe<UnitId> unit_id() const {
@@ -132,16 +132,16 @@ struct LastUnitInput {
 } // namespace
 
 struct LandViewPlane::Impl : public IPlane {
-  SS&                           ss_;
-  TS&                           ts_;
+  SS& ss_;
+  TS& ts_;
   unique_ptr<IVisibility const> viz_;
-  LandViewAnimator              animator_;
+  LandViewAnimator animator_;
 
   vector<MenuPlane::Deregistrar> dereg;
 
   co::stream<RawInput> raw_input_stream_;
-  queue<PlayerInput>   translated_input_stream_;
-  LandViewMode         mode_ = LandViewMode::none{};
+  queue<PlayerInput> translated_input_stream_;
+  LandViewMode mode_ = LandViewMode::none{};
 
   maybe<co::stream<point>> white_box_stream_;
 
@@ -324,7 +324,7 @@ struct LandViewPlane::Impl : public IPlane {
       // Decide which units are selected and for what actions.
       vector<UnitSelection> selections;
       if( units.size() == 1 ) {
-        auto          id = *units.begin();
+        auto id = *units.begin();
         UnitSelection selection{
           id, e_unit_selection::clear_orders };
         if( !ss_.units.unit_for( id ).has_orders() )
@@ -603,7 +603,7 @@ struct LandViewPlane::Impl : public IPlane {
     }
   }
 
-  maybe<command> try_orders_from_lua( int  keycode,
+  maybe<command> try_orders_from_lua( int keycode,
                                       bool ctrl_down,
                                       bool shf_down ) {
     lua::state& st = ts_.lua;
@@ -622,7 +622,7 @@ struct LandViewPlane::Impl : public IPlane {
     // And it should do the correct conversion and error
     // checking.
     lua::table tbl = lua_orders.as<lua::table>();
-    command    command;
+    command command;
     if( false )
       ;
     else if( tbl["wait"] )
@@ -1170,7 +1170,7 @@ struct LandViewPlane::Impl : public IPlane {
   // The waitable will be waiting on the drag_stream, so it must
   // come after so that it gets destroyed first.
   maybe<wait<>> drag_thread;
-  bool          drag_finished = true;
+  bool drag_finished = true;
 
   wait<> dragging( input::e_mouse_button /*button*/,
                    Coord /*origin*/ ) {
@@ -1381,7 +1381,7 @@ struct LandViewPlane::Impl : public IPlane {
     SCOPE_EXIT { white_box_stream_.reset(); };
     set_white_box_tile( ss_, initial );
     while( true ) {
-      point const  tile    = white_box_tile( ss_ );
+      point const tile     = white_box_tile( ss_ );
       wait<> const blinker = animator_.animate_white_box();
       wait<> const panner  = animator_.ensure_visible( tile );
       set_white_box_tile( ss_, co_await stream.next() );

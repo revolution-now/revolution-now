@@ -66,7 +66,7 @@ struct NoCopy {
   operator T&&() && noexcept { return std::move( val ); }
 
   T const* operator->() const noexcept { return &val; }
-  T*       operator->() noexcept { return &val; }
+  T* operator->() noexcept { return &val; }
 
   /**************************************************************
   ** Comparison, just for convenience.
@@ -101,9 +101,9 @@ struct [[nodiscard]] NoDiscard {
   template<typename U>
   NoDiscard( U&& val_ ) : val( std::forward<U>( val_ ) ){};
   operator T&() { return val; }
-  T&       get() { return val; }
+  T& get() { return val; }
   T const& get() const { return val; }
-  T        val;
+  T val;
 };
 
 } // namespace base

@@ -56,31 +56,31 @@ result<uint8_t> from_canonical( converter& conv, value const& v,
 /****************************************************************
 ** uint16_t
 *****************************************************************/
-value            to_canonical( converter& conv, uint16_t o,
-                               tag_t<uint16_t> );
+value to_canonical( converter& conv, uint16_t o,
+                    tag_t<uint16_t> );
 result<uint16_t> from_canonical( converter& conv, value const& v,
                                  tag_t<uint16_t> );
 
 /****************************************************************
 ** uint32_t
 *****************************************************************/
-value            to_canonical( converter& conv, uint32_t o,
-                               tag_t<uint32_t> );
+value to_canonical( converter& conv, uint32_t o,
+                    tag_t<uint32_t> );
 result<uint32_t> from_canonical( converter& conv, value const& v,
                                  tag_t<uint32_t> );
 
 /****************************************************************
 ** uint64_t
 *****************************************************************/
-value            to_canonical( converter& conv, uint64_t o,
-                               tag_t<uint64_t> );
+value to_canonical( converter& conv, uint64_t o,
+                    tag_t<uint64_t> );
 result<uint64_t> from_canonical( converter& conv, value const& v,
                                  tag_t<uint64_t> );
 
 /****************************************************************
 ** int
 *****************************************************************/
-value       to_canonical( converter& conv, int o, tag_t<int> );
+value to_canonical( converter& conv, int o, tag_t<int> );
 result<int> from_canonical( converter& conv, value const& v,
                             tag_t<int> );
 

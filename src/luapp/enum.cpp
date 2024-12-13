@@ -20,7 +20,7 @@ namespace lua {
 namespace detail {
 
 base::maybe<std::string> get_str_from_stack( cthread L,
-                                             int     idx ) {
+                                             int idx ) {
   return ::lua::get<std::string>( L, idx );
 }
 

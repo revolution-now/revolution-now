@@ -58,7 +58,7 @@ bool is_tile_land( terrain_5bit_type tile ) {
 // reachable from the source in a certain number of jumps.
 bool has_path( point const src, point const dst, int upper_bound,
                auto&& are_tiles_connected ) {
-  unordered_map<point, /*distance=*/int>     explore;
+  unordered_map<point, /*distance=*/int> explore;
   unordered_map<point, /*min_distance=*/int> explored;
   explore[src] = 0;
   while( !explore.empty() ) {
@@ -69,7 +69,7 @@ bool has_path( point const src, point const dst, int upper_bound,
       // that this will be the optimal strategy to get to the
       // destination as quickly as possible (it usually is).
       double shortest_distance = numeric_limits<double>::max();
-      auto   shortest_it       = explore.begin();
+      auto shortest_it         = explore.begin();
       for( auto it = explore.begin(); it != explore.end();
            ++it ) {
         auto [p, _] = *it;
@@ -92,7 +92,7 @@ bool has_path( point const src, point const dst, int upper_bound,
     for( int dy = -1; dy <= 1; ++dy ) {
       for( int dx = -1; dx <= 1; ++dx ) {
         if( dx == 0 && dy == 0 ) continue;
-        size const  d{ .w = dx, .h = dy };
+        size const d{ .w = dx, .h = dy };
         point const new_p = p + d;
         if( !are_tiles_connected( p, new_p ) ) continue;
         if( explored.contains( new_p ) ) {
@@ -291,8 +291,8 @@ void ConnectivityFinder::populate_connectivity(
 *****************************************************************/
 void populate_connectivity( vector<TILE> const& tiles,
                             vector<PATH> const& path,
-                            size                map_size,
-                            CONNECTIVITY&       connectivity ) {
+                            size map_size,
+                            CONNECTIVITY& connectivity ) {
   CHECK_EQ( int( tiles.size() % map_size.w ), 0 );
   CHECK_EQ( int( tiles.size() ), map_size.area() );
   ConnectivityFinder finder{ .tiles      = tiles,
@@ -326,7 +326,7 @@ void populate_connectivity( vector<TILE> const& tiles,
 }
 
 void populate_region_ids( vector<TILE> const& tiles,
-                          vector<PATH>&       path ) {
+                          vector<PATH>& path ) {
   path.resize( tiles.size() );
   static PATH const kEmpty{};
   fill( path.begin(), path.end(), kEmpty );

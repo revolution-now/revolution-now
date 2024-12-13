@@ -42,7 +42,7 @@ using ::mock::matchers::HasSize;
 *****************************************************************/
 TEST_CASE( "[color-cycle] cycle_map_colors_thread" ) {
   rr::MockRenderer renderer;
-  MockIGui         gui;
+  MockIGui gui;
 
   bool enabled = {};
 

@@ -41,7 +41,7 @@ namespace rn {
 
 namespace {
 
-int king_transport_cost_percent( int          tax_rate,
+int king_transport_cost_percent( int tax_rate,
                                  e_difficulty difficulty ) {
   auto const& config = config_old_world.treasure[difficulty];
   return clamp( tax_rate * config.king_transport_tax_multiplier,
@@ -50,7 +50,7 @@ int king_transport_cost_percent( int          tax_rate,
 }
 
 bool player_has_galleons( SSConst const& ss,
-                          Player const&  player ) {
+                          Player const& player ) {
   unordered_map<UnitId, UnitState::euro const*> const&
       units_all = ss.units.euro_all();
   for( auto& [unit_id, state] : units_all ) {
@@ -201,15 +201,15 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
   co_await ts.gui.message_box( msg );
 }
 
-maybe<int> treasure_from_dwelling( SSConst const&  ss,
-                                   IRand&          rand,
-                                   Player const&   player,
+maybe<int> treasure_from_dwelling( SSConst const& ss,
+                                   IRand& rand,
+                                   Player const& player,
                                    Dwelling const& dwelling ) {
   e_tribe const tribe_type =
       ss.natives.tribe_for( dwelling.id ).type;
   e_native_level const level =
       config_natives.tribes[tribe_type].level;
-  auto&      conf = config_natives.treasure.yield[level];
+  auto& conf = config_natives.treasure.yield[level];
   bool const has_cortes =
       player.fathers.has[e_founding_father::hernan_cortes];
   bool const capital = dwelling.is_capital;

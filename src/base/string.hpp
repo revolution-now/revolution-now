@@ -37,7 +37,7 @@ std::string str_replace_all(
 
 // Split a string on a character.
 std::vector<std::string> str_split( std::string_view sv,
-                                    char             c );
+                                    char c );
 
 // Split a string on any character from the list. This does not
 // split on the `chars` string as a whole, it splits on any of
@@ -47,7 +47,7 @@ std::vector<std::string> str_split_on_any(
 
 // Joins the elements in `what` with `sep` between them.
 std::string str_join( std::vector<std::string> const& v,
-                      std::string_view const          sep );
+                      std::string_view const sep );
 
 // Is `needle` in `haystack`.
 bool str_contains( std::string_view haystack,

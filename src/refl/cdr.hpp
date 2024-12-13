@@ -109,7 +109,7 @@ result<S> from_canonical( converter& conv, value const& v,
   S res{};
   UNWRAP_RETURN( tbl, conv.ensure_type<table>( v ) );
   std::set<std::string> used_keys;
-  base::maybe<error>    err;
+  base::maybe<error> err;
   FOR_CONSTEXPR_IDX( Idx, kNumFields ) {
     CHECK( !err.has_value() );
     auto& field_desc = std::get<Idx>( Tr::fields );
@@ -158,13 +158,13 @@ result<T> from_canonical( converter& conv, value const& v,
 // Reflected variants are variants whose member alternatives are
 // all reflected structs.
 template<refl::ReflectedStruct... Ts>
-value to_canonical( converter&                  conv,
+value to_canonical( converter& conv,
                     base::variant<Ts...> const& o,
                     tag_t<base::variant<Ts...>> ) {
   auto visitor = [&]<typename T>( T const& alt ) {
     using Tr = refl::traits<T>;
     static const std::string kName{ Tr::name };
-    table                    res;
+    table res;
     if( o.index() == 0 ) {
       // If we're in the first alternative then let the converter
       // policy decide whether to write the field depending on
@@ -229,8 +229,8 @@ result<base::variant<Ts...>> from_canonical(
   // Make sure that there is precisely one key in the table.
   HAS_VALUE_OR_RET(
       conv.ensure_table_size( tbl, /*expected_size=*/1 ) );
-  std::string const&                key = tbl.begin()->first;
-  base::maybe<error>                err;
+  std::string const& key = tbl.begin()->first;
+  base::maybe<error> err;
   base::maybe<base::variant<Ts...>> res;
   FOR_CONSTEXPR_IDX( Idx, sizeof...( Ts ) ) {
     using alt_t =

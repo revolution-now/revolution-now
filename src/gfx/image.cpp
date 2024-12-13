@@ -118,8 +118,8 @@ unsigned char* image::data_for( point const p ) const {
 }
 
 void image::blit_from( image const& other,
-                       rect const   src_unclipped,
-                       point const  dst_origin ) {
+                       rect const src_unclipped,
+                       point const dst_origin ) {
   maybe<rect> src =
       src_unclipped.clipped_by( other.rect_pixels() );
   if( !src.has_value() ) return;
@@ -134,9 +134,9 @@ void image::blit_from( image const& other,
   dst->size = copied_size;
   if( copied_size.area() == 0 ) return;
 
-  point     src_point = src->origin;
-  point     dst_point = dst->origin;
-  int const num_rows  = copied_size.h;
+  point src_point    = src->origin;
+  point dst_point    = dst->origin;
+  int const num_rows = copied_size.h;
   for( int i = 0; i < num_rows; ++i ) {
     memcpy( data_for( dst_point ), other.data_for( src_point ),
             kBytesPerPixel * copied_size.w );
@@ -174,9 +174,9 @@ bool image_equals( image const& img, span<pixel const> sp,
                 loc, img.size_pixels().area(), sp.size() );
     return false;
   }
-  span<pixel const> l       = img;
-  span<pixel const> r       = sp;
-  bool              success = true;
+  span<pixel const> l = img;
+  span<pixel const> r = sp;
+  bool success        = true;
   for( int i = 0; i < int( l.size() ); ++i ) {
     if( l[i] != r[i] ) {
       fmt::print(
@@ -188,11 +188,11 @@ bool image_equals( image const& img, span<pixel const> sp,
   return success;
 }
 
-image new_image_from_pixels( size                   dimensions,
+image new_image_from_pixels( size dimensions,
                              std::span<pixel const> sp ) {
   CHECK( dimensions.area() == int( sp.size() ) );
   image img = new_empty_image( dimensions );
-  int   i   = 0;
+  int i     = 0;
   for( pixel& p : span<pixel>( img ) ) p = sp[i++];
   return img;
 }

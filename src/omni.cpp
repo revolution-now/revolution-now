@@ -92,7 +92,7 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
       return fmt::format( "{}",
                           named_ratio_canonical_name( nar ) );
     },
-    []<typename T>( auto const&    self,
+    []<typename T>( auto const& self,
                     maybe<T> const m ) -> string {
       if( !m.has_value() )
         return base::to_str( m );
@@ -228,7 +228,7 @@ struct OmniPlane::Impl : public IPlane {
 
   void render_framerate( rr::Renderer& renderer ) const {
     vector<string> lines;
-    auto const     log = line_logger( lines );
+    auto const log = line_logger( lines );
 
     log( "f/s: {}", fmt::format( "{:.1f}", avg_frame_rate() ) );
 
@@ -261,7 +261,7 @@ struct OmniPlane::Impl : public IPlane {
     }
 
     vector<string> lines;
-    auto const     log = line_logger( lines );
+    auto const log = line_logger( lines );
 
     CHECK( resolution.has_value() );
     auto const monitor = monitor_properties(
@@ -272,7 +272,7 @@ struct OmniPlane::Impl : public IPlane {
     // since it is not used to filter results, just to describe
     // them.
     double const RATIO_TOLERANCE = 0.04;
-    auto const   logical_aspect =
+    auto const logical_aspect =
         gfx::find_close_named_aspect_ratio( resolution->logical,
                                             RATIO_TOLERANCE );
 
@@ -312,7 +312,7 @@ struct OmniPlane::Impl : public IPlane {
                     get_global_resolution() );
 
     vector<string> lines;
-    auto const     log = line_logger( lines );
+    auto const log = line_logger( lines );
 
     log( "{}", resolution.logical );
 

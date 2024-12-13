@@ -25,15 +25,15 @@ using PlayersMap = refl::enum_map<e_nation, maybe<Player>>;
 using HumansMap = refl::enum_map<e_nation, bool>;
 
 // FIXME: remove
-void reset_players( PlayersState&                players_state,
+void reset_players( PlayersState& players_state,
                     std::vector<e_nation> const& nations,
-                    base::maybe<e_nation>        human );
+                    base::maybe<e_nation> human );
 
-void set_unique_human_player( PlayersState&         players,
+void set_unique_human_player( PlayersState& players,
                               base::maybe<e_nation> nation );
 
 Player& player_for_nation_or_die( PlayersState& players,
-                                  e_nation      nation );
+                                  e_nation nation );
 
 Player const& player_for_nation_or_die(
     PlayersState const& players, e_nation nation );

@@ -120,7 +120,7 @@ void Unit::fortify() {
 }
 
 void Unit::change_nation( UnitsState& units_state,
-                          e_nation    nation ) {
+                          e_nation nation ) {
   // This could happen if we capture a colony containing a ship
   // that itself has units in its cargo.
   for( Cargo::unit u : o_.cargo.items_of_type<Cargo::unit>() )
@@ -130,7 +130,7 @@ void Unit::change_nation( UnitsState& units_state,
   o_.nation = nation;
 }
 
-void Unit::change_type( Player const&   player,
+void Unit::change_type( Player const& player,
                         UnitComposition new_comp ) {
   UnitType const& new_type = new_comp.type_obj();
   CHECK( o_.cargo.slots_occupied() == 0,

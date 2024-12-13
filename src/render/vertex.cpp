@@ -26,7 +26,7 @@ enum class vertex_type {
 };
 
 GenericVertex proto_vertex( vertex_type type,
-                            gfx::point  position ) {
+                            gfx::point position ) {
   return GenericVertex{
     .type                = static_cast<int32_t>( type ),
     .flags               = 0,
@@ -199,7 +199,7 @@ bool VertexBase::get_uniform_depixelation() const {
 *****************************************************************/
 SpriteVertex::SpriteVertex( gfx::point position,
                             gfx::point atlas_position,
-                            gfx::rect  atlas_rect )
+                            gfx::rect atlas_rect )
   : VertexBase( proto_vertex( vertex_type::sprite, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
   this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
@@ -218,8 +218,8 @@ SolidVertex::SolidVertex( gfx::point position, gfx::pixel color )
 *****************************************************************/
 StencilVertex::StencilVertex( gfx::point position,
                               gfx::point atlas_position,
-                              gfx::rect  atlas_rect,
-                              gfx::size  atlas_target_offset,
+                              gfx::rect atlas_rect,
+                              gfx::size atlas_target_offset,
                               gfx::pixel key_color )
   : VertexBase(
         proto_vertex( vertex_type::stencil, position ) ) {

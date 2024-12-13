@@ -171,7 +171,7 @@ maybe<Dwelling const&> VisibilityEntire::dwelling_at(
 ** VisibilityForNation
 *****************************************************************/
 VisibilityForNation::VisibilityForNation( SSConst const& ss,
-                                          e_nation       nation )
+                                          e_nation nation )
   : IVisibility( ss ),
     ss_( ss ),
     entire_( ss ),
@@ -317,15 +317,15 @@ std::unique_ptr<IVisibility const> create_visibility_for(
 }
 
 vector<Coord> unit_visible_squares( SSConst const& ss,
-                                    e_nation       nation,
-                                    e_unit_type    type,
-                                    point const    tile ) {
+                                    e_nation nation,
+                                    e_unit_type type,
+                                    point const tile ) {
   TerrainState const& terrain = ss.terrain;
-  int const  radius = unit_sight_radius( ss, nation, type );
+  int const radius = unit_sight_radius( ss, nation, type );
   Rect const possible =
       Rect::from( tile, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius );
-  bool const    ship = unit_attr( type ).ship;
+  bool const ship = unit_attr( type ).ship;
   vector<Coord> res;
   // 6x6 should be largest sighting block size in the game, which
   // will happen when e.g. a Galleon (whose radius is normally 2
@@ -334,7 +334,7 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
       largest_possible_sighting_radius() * 2 + 1;
   res.reserve( largest_block_size * largest_block_size );
   for( Rect rect : gfx::subrects( possible ) ) {
-    point const             coord = rect.upper_left();
+    point const coord = rect.upper_left();
     maybe<MapSquare const&> square =
         terrain.maybe_square_at( coord );
     if( !square.has_value() ) continue;
@@ -352,7 +352,7 @@ vector<Coord> unit_visible_squares( SSConst const& ss,
 }
 
 bool does_nation_have_fog_removed_on_square( SSConst const& ss,
-                                             e_nation    nation,
+                                             e_nation nation,
                                              point const tile ) {
   if( !ss.players.players[nation].has_value() ) return false;
   UNWRAP_CHECK( player_terrain,
@@ -433,7 +433,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
       ss.colonies.for_nation( nation );
   for( ColonyId const colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
-    Coord const   coord  = colony.location;
+    Coord const coord    = colony.location;
     fogged.erase( coord );
     for( e_direction const d1 :
          refl::enum_values<e_direction> ) {
@@ -447,7 +447,7 @@ void recompute_fog_for_nation( SS& ss, TS& ts,
       nation, vector<Coord>( fogged.begin(), fogged.end() ) );
 }
 
-void update_map_visibility( TS&                   ts,
+void update_map_visibility( TS& ts,
                             maybe<e_nation> const nation ) {
   ts.map_updater().mutate_options_and_redraw(
       [&]( MapUpdaterOptions& options ) {

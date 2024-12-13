@@ -78,7 +78,7 @@ valid_or<string> validate_interaction(
 // ColoniesState & TerrainState
 valid_or<string> validate_interaction(
     ColoniesState const& colonies,
-    TerrainState const&  terrain ) {
+    TerrainState const& terrain ) {
   for( auto const& [colony_id, colony] : colonies.all() ) {
     // Colony is on land.
     REFL_VALIDATE(
@@ -113,10 +113,10 @@ valid_or<string> validate_interaction(
   // on it.
   for( auto& [tile, counter] : map.depletion.counters ) {
     MapSquare const& square = terrain.real_terrain.map[tile];
-    auto const       resource =
+    auto const resource =
         ( square.overlay == e_land_overlay::forest )
-                  ? square.forest_resource
-                  : square.ground_resource;
+            ? square.forest_resource
+            : square.ground_resource;
     REFL_VALIDATE(
         resource.has_value(),
         "tile {} has an entry in the depletion counters map but "

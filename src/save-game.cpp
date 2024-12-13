@@ -52,14 +52,14 @@ fs::path stem_for_slot( int slot ) {
 }
 
 fs::path query_file_for_slot( IGameStorageQuery const& query,
-                              int                      slot ) {
+                              int slot ) {
   auto p = stem_for_slot( slot );
   p.replace_extension( query.extension() );
   return p;
 }
 
 bool query_slot_exists( IGameStorageQuery const& query,
-                        int                      slot ) {
+                        int slot ) {
   return fs::exists( query_file_for_slot( query, slot ) );
 }
 
@@ -100,7 +100,7 @@ static wait<maybe<int>> select_save_slot_impl(
     .msg  = "Select a slot:",
     .sort = false,
   };
-  int const    num_slots  = number_of_normal_slots();
+  int const num_slots     = number_of_normal_slots();
   string const kEmptyName = "(none)";
   for( int i = 0; i < num_slots; ++i ) {
     string summary = kEmptyName;
@@ -160,11 +160,11 @@ wait<maybe<int>> select_load_slot(
     .msg  = "Select a slot:",
     .sort = false,
   };
-  int const    num_slots  = number_of_total_slots();
+  int const num_slots     = number_of_total_slots();
   string const kEmptyName = "(none)";
   for( int i = 0; i < num_slots; ++i ) {
-    string summary  = kEmptyName;
-    bool   disabled = true;
+    string summary = kEmptyName;
+    bool disabled  = true;
     if( slots.contains( i ) ) {
       summary  = slots[i];
       disabled = false;
@@ -230,7 +230,7 @@ wait<base::NoDiscard<bool>> save_to_slot_interactive(
 
 expect<fs::path> save_to_slot( SSConst const& ss, TS& ts,
                                IGameStorageSave const& saver,
-                               int                     slot ) {
+                               int slot ) {
   auto const p = query_file_for_slot( saver, slot );
   HAS_VALUE_OR_RET( saver.store( p ) );
   record_checkpoint( ss, ts );
@@ -268,7 +268,7 @@ wait<base::NoDiscard<bool>> load_from_slot_interactive(
 
 expect<fs::path> load_from_slot( SS& ss, TS& ts,
                                  IGameStorageLoad const& loader,
-                                 int                     slot ) {
+                                 int slot ) {
   fs::path const p = query_file_for_slot( loader, slot );
   if( !fs::exists( p ) )
     return fmt::format( "save file not found for slot {}.",

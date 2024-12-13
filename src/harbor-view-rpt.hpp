@@ -43,12 +43,12 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Override ui::AwaitView.
   virtual wait<> perform_click(
@@ -64,7 +64,7 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   static Delta button_size();
   static Delta total_size();
 
-  static Rect        button_rect( e_rpt_button button );
+  static Rect button_rect( e_rpt_button button );
   static std::string button_text_markup( e_rpt_button button );
 
   static maybe<e_rpt_button> button_for_coord( Coord where );

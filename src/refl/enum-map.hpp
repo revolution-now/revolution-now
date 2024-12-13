@@ -50,7 +50,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
 
   static constexpr int kSize = refl::enum_count<Enum>;
 
-  Base&       as_base() { return *this; }
+  Base& as_base() { return *this; }
   Base const& as_base() const { return *this; }
 
   friend void to_str( enum_map const& o, std::string& out,
@@ -89,7 +89,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
     : enum_map( Base( il.begin(), il.end() ) ) {}
 
   consteval size_t size() const { return kSize; }
-  consteval int    ssize() const { return kSize; }
+  consteval int ssize() const { return kSize; }
 
   bool operator==( enum_map const& ) const = default;
 
@@ -115,7 +115,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
   // the default-constructed value. This is the closest thing
   // that we get to a concept of a "size" with this container.
   int count_non_default_values() const {
-    int               count = 0;
+    int count               = 0;
     static ValT const empty = {};
     for( auto const& [k, v] : *this )
       if( v != empty ) //
@@ -164,7 +164,7 @@ struct enum_map : public std::vector<std::pair<Enum, ValT>> {
       cdr::tag_t<enum_map> ) {
     UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
     std::set<std::string> used_keys;
-    enum_map              res;
+    enum_map res;
     // Here we can use from_field to allow the converter to con-
     // trol default field value behavior because, for this data
     // structure, we know the complete set of possible keys and

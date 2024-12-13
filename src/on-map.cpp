@@ -64,9 +64,9 @@ string new_world_name_for( Player const& player ) {
 }
 
 wait<> try_discover_new_world( SSConst const& ss, TS& ts,
-                               Player&    player,
+                               Player& player,
                                IEuroMind& euro_mind,
-                               Coord      world_square ) {
+                               Coord world_square ) {
   // This field holds the name of the new world given by the
   // player if it has a value (meaning, if the new world has been
   // discovered).
@@ -99,8 +99,8 @@ wait<> try_discover_new_world( SSConst const& ss, TS& ts,
 }
 
 wait<> try_discover_pacific_ocean( SSConst const& ss,
-                                   Player&        player,
-                                   IEuroMind&     euro_mind,
+                                   Player& player,
+                                   IEuroMind& euro_mind,
                                    Coord world_square ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const coord = world_square.moved( d );
@@ -123,7 +123,7 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
   bool const has_lost_city_rumor =
       ss.terrain.square_at( tile ).lost_city_rumor;
   if( !has_lost_city_rumor ) co_return false;
-  Unit const&         unit  = ss.units.unit_for( id );
+  Unit const& unit          = ss.units.unit_for( id );
   LostCityRumor const rumor = compute_lcr(
       ss.as_const, player, ts.rand, RealMapSearch( ss.as_const ),
       unit.type(), tile );
@@ -139,7 +139,7 @@ wait<base::NoDiscard<bool>> try_lost_city_rumor(
 // Returns true if the treasure was transported by the king and
 // thus deleted.
 wait<bool> try_king_transport_treasure( SS& ss, TS& ts,
-                                        Player&     player,
+                                        Player& player,
                                         Unit const& unit,
                                         Coord world_square ) {
   if( unit.type() != e_unit_type::treasure ) co_return false;
@@ -184,8 +184,8 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
 
 [[nodiscard]] bool try_perform_inter_tribe_trade_impl(
     SS& ss, Tribe& unit_tribe, Coord center_tile ) {
-  Tribe& tribe1          = unit_tribe;
-  bool   trade_performed = false;
+  Tribe& tribe1        = unit_tribe;
+  bool trade_performed = false;
   for( e_direction d : refl::enum_values<e_direction> ) {
     Coord const surrounding_tile = center_tile.moved( d );
     maybe<MapSquare const&> square =
@@ -325,7 +325,7 @@ wait<maybe<UnitDeleted>> UnitOnMapMover::to_map_interactive(
 wait<> UnitOnMapMover::native_unit_to_map_interactive(
     SS& ss, TS& ts, NativeUnitId id, Coord dst_tile ) {
   NativeUnit const& native_unit = ss.units.unit_for( id );
-  e_tribe const     tribe_type =
+  e_tribe const tribe_type =
       tribe_type_for_unit( ss, native_unit );
   native_unit_to_map_non_interactive( ss, id, dst_tile );
 

@@ -151,15 +151,15 @@ struct BuildHandler : public CommandHandler {
     co_return;
   }
 
-  SS&        ss_;
-  TS&        ts_;
-  Player&    player_;
+  SS& ss_;
+  TS& ts_;
+  Player& player_;
   IEuroMind& euro_mind_;
 
   UnitId unit_id;
 
   maybe<string> colony_name;
-  ColonyId      colony_id;
+  ColonyId colony_id;
 };
 
 } // namespace

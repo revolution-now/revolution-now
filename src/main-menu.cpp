@@ -40,8 +40,8 @@ namespace {
 *****************************************************************/
 struct MainMenuPlane : public IPlane {
   // State
-  Planes&          planes_;
-  IGui&            gui_;
+  Planes& planes_;
+  IGui& gui_;
   e_main_menu_item curr_item_ = {};
 
  public:
@@ -90,7 +90,7 @@ struct MainMenuPlane : public IPlane {
                           .disallow_escape_key       = false },
     };
     refl::enum_map<e_main_menu_item, std::string> names;
-    refl::enum_map<e_main_menu_item, bool>        disabled;
+    refl::enum_map<e_main_menu_item, bool> disabled;
 
     using enum e_main_menu_item;
     names[new_random]       = "Start a Game in NEW WORLD";
@@ -121,7 +121,7 @@ struct MainMenuPlane : public IPlane {
 ** API
 *****************************************************************/
 wait<> run_main_menu( Planes& planes, IGui& gui ) {
-  auto        owner = planes.push();
+  auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
   MainMenuPlane main_menu_plane( planes, gui );

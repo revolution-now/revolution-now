@@ -29,7 +29,7 @@ struct SSConst;
 // the horses, that is done by the caller ahead of time, and this
 // is only called when the result is in the affirmative.
 void retain_horses_from_destroyed_brave( SSConst const& ss,
-                                         Tribe&         tribe );
+                                         Tribe& tribe );
 
 // Called when a brave with muskets is defeated in combat (de-
 // stroyed) and the tribe retains the muskets. Note: although
@@ -48,7 +48,7 @@ void gain_horses_from_winning_combat( Tribe& tribe );
 // When a brave raids a colony and steals `quantity` muskets from
 // the colony's stock.
 void acquire_muskets_from_colony_raid( Tribe& tribe,
-                                       int    quantity );
+                                       int quantity );
 
 // When a brave raids a colony and steals some quantity of horses
 // from the colony's stock. Experiments seem to have indicated
@@ -56,8 +56,8 @@ void acquire_muskets_from_colony_raid( Tribe& tribe,
 // quantity stolen, though we still pass it in just to check if
 // it is zero.
 void acquire_horses_from_colony_raid( SSConst const& ss,
-                                      Tribe&         tribe,
-                                      int            quantity );
+                                      Tribe& tribe,
+                                      int quantity );
 
 // Choose if/how to equip a newly-created brave based on the
 // availability of muskets and horses in the tribe and return the
@@ -82,7 +82,7 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
 
 // Called each turn to breed horses.
 void evolve_tribe_horse_breeding( SSConst const& ss,
-                                  Tribe&         tribe );
+                                  Tribe& tribe );
 
 // Each time a dwelling is destroyed (even the last one) this
 // should be called to adjust the tribe's stockpile of muskets
@@ -90,7 +90,7 @@ void evolve_tribe_horse_breeding( SSConst const& ss,
 //
 // NOTE: this must be called before the dwelling is destroyed.
 void adjust_arms_on_dwelling_destruction( SSConst const& ss,
-                                          Tribe&         tribe );
+                                          Tribe& tribe );
 
 // NOTE: this is an expensive call, so should probably not be
 // called every frame.
@@ -115,13 +115,13 @@ void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
 
 // This is called when a brave demands muskets via reparations
 // and the european nation concedes.
-void on_receive_muskets_via_reparations( Tribe&      tribe,
+void on_receive_muskets_via_reparations( Tribe& tribe,
                                          NativeUnit& demander );
 
 // This is called when a brave demands horses via reparations and
 // the european nation concedes.
 void on_receive_horses_via_reparations( SSConst const& ss,
-                                        Tribe&         tribe,
+                                        Tribe& tribe,
                                         NativeUnit& demander );
 
 // In the OG, this is done when a brave of one tribe becomes ad-

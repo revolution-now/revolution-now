@@ -210,7 +210,7 @@ int compute_sons_of_liberty_bonus(
 }
 
 int compute_tory_penalty_level( e_difficulty difficulty,
-                                int          tory_number ) {
+                                int tory_number ) {
   int const penalty_population =
       config_colony.tory_penalty_population[difficulty];
   // For each multiple of the penalty population that the colony
@@ -222,15 +222,15 @@ int compute_tory_penalty_level( e_difficulty difficulty,
 }
 
 int compute_tory_penalty( e_difficulty difficulty,
-                          int          tory_number ) {
+                          int tory_number ) {
   return config_colony.tory_production_penalty *
          compute_tory_penalty_level( difficulty, tory_number );
 }
 
 ColonySonsOfLiberty compute_colony_sons_of_liberty(
     Player const& player, Colony const& colony ) {
-  SonsOfLiberty const& sol        = colony.sons_of_liberty;
-  int const            population = colony_population( colony );
+  SonsOfLiberty const& sol = colony.sons_of_liberty;
+  int const population     = colony_population( colony );
   CHECK_GE( population, 0 );
 
   int const sons_of_liberty_integral_percent =

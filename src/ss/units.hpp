@@ -44,7 +44,7 @@ struct UnitsState {
 
   // Implement refl::WrapsReflected.
   UnitsState( wrapped::UnitsState&& o );
-  wrapped::UnitsState const&        refl() const { return o_; }
+  wrapped::UnitsState const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "UnitsState";
 
@@ -68,45 +68,45 @@ struct UnitsState {
 
   // Verify that the id represents a unit of the given kind and
   // return that unit's casted ID.
-  UnitId       check_euro_unit( GenericUnitId id ) const;
+  UnitId check_euro_unit( GenericUnitId id ) const;
   NativeUnitId check_native_unit( GenericUnitId id ) const;
 
   // For these we allow non-const access to publicly. The unit
   // must exist.
-  Unit const&       unit_for( UnitId id ) const;
-  Unit&             unit_for( UnitId id );
+  Unit const& unit_for( UnitId id ) const;
+  Unit& unit_for( UnitId id );
   NativeUnit const& unit_for( NativeUnitId id ) const;
-  NativeUnit&       unit_for( NativeUnitId id );
+  NativeUnit& unit_for( NativeUnitId id );
   // These will check if the unit is in fact of the requested
   // type and if so return it (otherwise check fail). This is for
   // convenience so that the caller doesn't have to convert IDs
   // when they know what type of unit it is.
-  Unit const&       euro_unit_for( GenericUnitId id ) const;
-  Unit&             euro_unit_for( GenericUnitId id );
+  Unit const& euro_unit_for( GenericUnitId id ) const;
+  Unit& euro_unit_for( GenericUnitId id );
   NativeUnit const& native_unit_for( GenericUnitId id ) const;
-  NativeUnit&       native_unit_for( GenericUnitId id );
+  NativeUnit& native_unit_for( GenericUnitId id );
 
   base::maybe<Unit const&> maybe_euro_unit_for(
       GenericUnitId id ) const;
   base::maybe<Unit&> maybe_euro_unit_for( GenericUnitId id );
 
   // Unit must exist.
-  UnitState const&           state_of( GenericUnitId id ) const;
-  UnitState::euro const&     state_of( UnitId id ) const;
-  UnitState::native const&   state_of( NativeUnitId id ) const;
-  UnitOwnership const&       ownership_of( UnitId id ) const;
+  UnitState const& state_of( GenericUnitId id ) const;
+  UnitState::euro const& state_of( UnitId id ) const;
+  UnitState::native const& state_of( NativeUnitId id ) const;
+  UnitOwnership const& ownership_of( UnitId id ) const;
   NativeUnitOwnership const& ownership_of(
       NativeUnitId id ) const;
 
   maybe<Coord> maybe_coord_for( UnitId id ) const;
-  Coord        coord_for( UnitId id ) const;
+  Coord coord_for( UnitId id ) const;
   maybe<Coord> maybe_coord_for( GenericUnitId id ) const;
-  Coord        coord_for( GenericUnitId id ) const;
+  Coord coord_for( GenericUnitId id ) const;
   // Always succeeds.
   Coord coord_for( NativeUnitId id ) const;
 
   maybe<UnitId> maybe_holder_of( UnitId id ) const;
-  UnitId        holder_of( UnitId id ) const;
+  UnitId holder_of( UnitId id ) const;
 
   DwellingId dwelling_for( NativeUnitId id ) const;
 
@@ -175,7 +175,7 @@ struct UnitsState {
 
   // Again, probably only to be used in unit tests.
   valid_or<std::string> validate() const;
-  void                  validate_or_die() const;
+  void validate_or_die() const;
 
  private:
   // ------------------------------------------------------------
@@ -210,11 +210,11 @@ struct UnitsState {
   void change_to_cargo( UnitId new_holder, UnitId held,
                         int slot );
 
-  void change_to_harbor_view( UnitId            id,
+  void change_to_harbor_view( UnitId id,
                               PortStatus const& port_status,
-                              maybe<Coord>      sailed_from );
+                              maybe<Coord> sailed_from );
 
-  void change_to_dwelling( UnitId     unit_id,
+  void change_to_dwelling( UnitId unit_id,
                            DwellingId dwelling_id );
 
   // This will erase any ownership that is had over the given
@@ -226,10 +226,10 @@ struct UnitsState {
  private:
   [[nodiscard]] GenericUnitId next_unit_id();
 
-  UnitState&           state_of( GenericUnitId id );
-  UnitState::euro&     state_of( UnitId id );
-  UnitState::native&   state_of( NativeUnitId id );
-  UnitOwnership&       ownership_of( UnitId id );
+  UnitState& state_of( GenericUnitId id );
+  UnitState::euro& state_of( UnitId id );
+  UnitState::native& state_of( NativeUnitId id );
+  UnitOwnership& ownership_of( UnitId id );
   NativeUnitOwnership& ownership_of( NativeUnitId id );
 
   // ----- Serializable state.

@@ -152,7 +152,7 @@ wait<> open_game_options_box( SS& ss, TS& ts ) {
 
 bool disable_game_option( SS& ss, TS& ts,
                           e_game_flag_option option ) {
-  auto&      flags     = ss.settings.game_options.flags;
+  auto& flags          = ss.settings.game_options.flags;
   bool const old_value = flags[option];
   flags[option]        = false;
   if( flags[option] != old_value )
@@ -167,7 +167,7 @@ namespace {
 
 LUA_FN( list_flags, lua::table ) {
   lua::table lst = st.table.create();
-  int        i   = 1;
+  int i          = 1;
   for( auto const flag : refl::enum_values<e_game_flag_option> )
     lst[i++] = fmt::to_string( flag );
   return lst;

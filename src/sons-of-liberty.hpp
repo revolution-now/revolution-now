@@ -75,12 +75,12 @@ int compute_sons_of_liberty_bonus(
 // with. E.g. on Viceroy, 5 rebels will be at level 0, meaning no
 // penalty; 6 will be at level 1, 12 at level 2, etc.
 int compute_tory_penalty_level( e_difficulty difficulty,
-                                int          tory_number );
+                                int tory_number );
 
 // This will compute the production penalty to subtract as a re-
 // sult of the tory penalty.
 int compute_tory_penalty( e_difficulty difficulty,
-                          int          tory_number );
+                          int tory_number );
 
 // This will take the (fractional) number of rebels in a colony
 // as computed without the Bolivar bonus and will evolve it one

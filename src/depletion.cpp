@@ -72,10 +72,10 @@ maybe<DepletionEvent> advance_tile_depletion_state(
   Coord const tile = colony.location.moved( d );
   auto const& square =
       co_await ss.terrain.maybe_square_at( tile );
-  auto const  resource = co_await effective_resource( square );
+  auto const resource = co_await effective_resource( square );
   auto const& outdoor_unit = co_await colony.outdoor_jobs[d];
   e_outdoor_job const job  = outdoor_unit.job;
-  auto const&         counter_bump = conf.counter_bump;
+  auto const& counter_bump = conf.counter_bump;
   auto& by_resource = co_await lookup( counter_bump, job );
   auto& bump        = co_await lookup( by_resource, resource );
   if( bump == 0 ) co_await nothing;
@@ -114,7 +114,7 @@ vector<DepletionEvent> advance_depletion_state(
 }
 
 void update_depleted_tiles(
-    IMapUpdater&                       map_updater,
+    IMapUpdater& map_updater,
     std::vector<DepletionEvent> const& events ) {
   for( DepletionEvent const& event : events ) {
     auto mutator = [&]( MapSquare& square ) {

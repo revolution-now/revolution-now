@@ -33,7 +33,7 @@ namespace rn {
 namespace {
 
 vector<UnitId> teachable_colonists( SSConst const& ss,
-                                    Colony const&  colony ) {
+                                    Colony const& colony ) {
   vector<UnitId> units = colony_units_all( colony );
   // Erase the units that cannot be taught.
   erase_if( units, [&]( UnitId unit_id ) {
@@ -107,7 +107,7 @@ ColonyTeachingEvolution evolve_teachers( SS& ss, TS& ts,
   // Iterate over indoor_jobs since the order is deterministic.
   for( UnitId teacher_id :
        colony.indoor_jobs[e_indoor_job::teacher] ) {
-    auto&            turns = colony.teachers[teacher_id];
+    auto& turns = colony.teachers[teacher_id];
     TeacherEvolution tev;
     tev.teacher_unit_id = teacher_id;
     Unit const& teacher = ss.units.unit_for( teacher_id );

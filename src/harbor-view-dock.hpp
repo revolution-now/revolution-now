@@ -45,7 +45,7 @@ struct HarborDockUnits
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -53,7 +53,7 @@ struct HarborDockUnits
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::AwaitView.
   wait<> perform_click(
@@ -61,7 +61,7 @@ struct HarborDockUnits
 
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
-                 Coord const&                 where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -76,12 +76,12 @@ struct HarborDockUnits
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
-               Coord const&                 where ) override;
+               Coord const& where ) override;
 
  private:
   struct UnitWithPosition {
     UnitId id;
-    Coord  pixel_coord;
+    Coord pixel_coord;
   };
 
   std::vector<UnitWithPosition> units( Coord origin ) const;
@@ -99,7 +99,7 @@ struct HarborDockUnits
   };
 
   maybe<Draggable> dragging_;
-  Delta            size_blocks_ = {};
+  Delta size_blocks_ = {};
 };
 
 } // namespace rn

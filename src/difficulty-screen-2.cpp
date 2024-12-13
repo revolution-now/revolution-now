@@ -198,8 +198,8 @@ auto const kLayout_640x360 = [] {
 struct DifficultyScreen : public IPlane {
   // State
   wait_promise<maybe<e_difficulty>> result_ = {};
-  Layout const*                     layout_ = {};
-  e_difficulty        selected_    = e_difficulty::conquistador;
+  Layout const* layout_                     = {};
+  e_difficulty selected_           = e_difficulty::conquistador;
   maybe<e_difficulty> highlighted_ = nothing;
 
  public:
@@ -231,7 +231,7 @@ struct DifficultyScreen : public IPlane {
   }
 
   void write_centered( rr::Renderer& renderer,
-                       pixel const   color_fg,
+                       pixel const color_fg,
                        pixel const color_bg, point const center,
                        string_view const text ) const {
     size const text_size =
@@ -245,13 +245,13 @@ struct DifficultyScreen : public IPlane {
   }
 
   void draw( rr::Renderer& renderer, Layout const& l,
-             e_difficulty const    difficulty,
+             e_difficulty const difficulty,
              DifficultyCell const& cell ) const {
     bool const this_selected    = ( selected_ == difficulty );
     bool const this_highlighted = ( highlighted_ == difficulty );
     render_sprite( renderer, cell.scroll_origin,
                    e_tile::difficulty_scroll );
-    auto const write = [&]( size const        center,
+    auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
         write_centered( renderer, cell.selected_color,
@@ -266,7 +266,7 @@ struct DifficultyScreen : public IPlane {
     write( l.center_for_description_label,
            cell.description_label );
     if( this_selected ) {
-      rr::Painter       painter = renderer.painter();
+      rr::Painter painter = renderer.painter();
       static size const kScrollSize =
           sprite_size( e_tile::difficulty_scroll );
       rect const selected_rect{
@@ -311,8 +311,8 @@ struct DifficultyScreen : public IPlane {
       return e_input_handled::no;
     if( input::has_mod_key( event ) ) return e_input_handled::no;
     if( !layout_ ) return e_input_handled::no;
-    auto const& l       = *layout_;
-    auto        handled = e_input_handled::no;
+    auto const& l = *layout_;
+    auto handled  = e_input_handled::no;
     switch( event.keycode ) {
       case ::SDLK_SPACE:
       case ::SDLK_RETURN:
@@ -404,7 +404,7 @@ struct DifficultyScreen : public IPlane {
 ** Public API.
 *****************************************************************/
 wait<e_difficulty> choose_difficulty_screen_2( Planes& planes ) {
-  auto        owner = planes.push();
+  auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
   DifficultyScreen difficulty_screen;

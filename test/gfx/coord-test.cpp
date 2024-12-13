@@ -196,7 +196,7 @@ TEST_CASE( "[coord] lexical ordering*" ) {
 }
 
 TEST_CASE( "[coord] centered*" ) {
-  Rect  rect;
+  Rect rect;
   Delta delta;
   Coord expect;
 
@@ -218,8 +218,8 @@ TEST_CASE( "[coord] Delta::abs" ) {
 
 TEST_CASE( "[coord] centered_on" ) {
   Coord coord;
-  Rect  rect;
-  Rect  expect;
+  Rect rect;
+  Rect expect;
 
   // Zero size.
   rect   = Rect{ .x = 0, .y = 0, .w = 0, .h = 0 };
@@ -274,7 +274,7 @@ TEST_CASE( "[coord] as_if_origin_were" ) {
 
 TEST_CASE( "[coord] Rect::with_new_right_edge" ) {
   auto rect = Rect{ .x = 5, .y = 5, .w = 7, .h = 9 };
-  X    new_edge{};
+  X new_edge{};
   Rect expect{};
 
   new_edge = 7;
@@ -288,7 +288,7 @@ TEST_CASE( "[coord] Rect::with_new_right_edge" ) {
 
 TEST_CASE( "[coord] Rect::with_new_left_edge" ) {
   auto rect = Rect{ .x = 5, .y = 5, .w = 7, .h = 9 };
-  X    new_edge{};
+  X new_edge{};
   Rect expect{};
 
   new_edge = 7;
@@ -302,7 +302,7 @@ TEST_CASE( "[coord] Rect::with_new_left_edge" ) {
 
 TEST_CASE( "[coord] Rect::with_new_top_edge" ) {
   auto rect = Rect{ .x = 5, .y = 5, .w = 7, .h = 9 };
-  Y    new_edge{};
+  Y new_edge{};
   Rect expect{};
 
   new_edge = 7;
@@ -316,7 +316,7 @@ TEST_CASE( "[coord] Rect::with_new_top_edge" ) {
 
 TEST_CASE( "[coord] Rect::with_new_bottom_edge" ) {
   auto rect = Rect{ .x = 5, .y = 5, .w = 7, .h = 9 };
-  Y    new_edge{};
+  Y new_edge{};
   Rect expect{};
 
   new_edge = 7;
@@ -507,8 +507,8 @@ TEST_CASE( "[coord] rounded_to_multiple_to_plus_inf" ) {
 TEST_CASE( "[coord] to gfx" ) {
   Delta const d{ .w = 5, .h = 6 };
   Coord const c{ .x = 5, .y = 6 };
-  Rect const  r = Rect::from( Coord{ .x = 1, .y = 2 },
-                              Delta{ .w = 5, .h = 6 } );
+  Rect const r = Rect::from( Coord{ .x = 1, .y = 2 },
+                             Delta{ .w = 5, .h = 6 } );
 
   gfx::size const s = d;
   REQUIRE( s == gfx::size{ .w = 5, .h = 6 } );
@@ -527,13 +527,13 @@ TEST_CASE( "[coord] to gfx" ) {
 TEST_CASE( "[coord] from gfx" ) {
   Delta d{ .w = 5, .h = 6 };
   Coord c{ .x = 5, .y = 6 };
-  Rect  r = Rect::from( Coord{ .x = 1, .y = 2 },
-                        Delta{ .w = 5, .h = 6 } );
+  Rect r = Rect::from( Coord{ .x = 1, .y = 2 },
+                       Delta{ .w = 5, .h = 6 } );
 
-  gfx::size  d_gfx{ .w = 5, .h = 6 };
+  gfx::size d_gfx{ .w = 5, .h = 6 };
   gfx::point c_gfx{ .x = 5, .y = 6 };
-  gfx::rect  r_gfx = gfx::rect{ .origin = { .x = 1, .y = 2 },
-                                .size   = { .w = 5, .h = 6 } };
+  gfx::rect r_gfx = gfx::rect{ .origin = { .x = 1, .y = 2 },
+                               .size   = { .w = 5, .h = 6 } };
 
   REQUIRE( Delta::from_gfx( d_gfx ) == d );
   REQUIRE( Coord::from_gfx( c_gfx ) == c );
@@ -541,17 +541,17 @@ TEST_CASE( "[coord] from gfx" ) {
 }
 
 TEST_CASE( "[coord] Rect::with_new_origin" ) {
-  Rect  rect = Rect::from( Coord{ .x = 4, .y = 5 },
-                           Delta{ .w = 2, .h = 3 } );
+  Rect rect = Rect::from( Coord{ .x = 4, .y = 5 },
+                          Delta{ .w = 2, .h = 3 } );
   Coord new_origin{ .x = 1, .y = 3 };
-  Rect  expected = Rect::from( Coord{ .x = 3, .y = 2 },
-                               Delta{ .w = 2, .h = 3 } );
+  Rect expected = Rect::from( Coord{ .x = 3, .y = 2 },
+                              Delta{ .w = 2, .h = 3 } );
   REQUIRE( rect.with_new_origin( new_origin ) == expected );
 }
 
 TEST_CASE( "[coord] Coord::concentric_square_distance" ) {
   Coord const src{ .x = 3, .y = 4 };
-  Coord       other;
+  Coord other;
 
   auto f = [&] {
     return src.concentric_square_distance( other );
@@ -576,7 +576,7 @@ TEST_CASE( "[coord] Coord::concentric_square_distance" ) {
 }
 
 TEST_CASE( "[coord] std::hash<Coord>" ) {
-  Coord                 input = {};
+  Coord input = {};
   unordered_set<size_t> answers;
 
   auto f = [&] { return std::hash<Coord>{}( input ); };

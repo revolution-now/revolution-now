@@ -49,8 +49,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, //
       L, L, L, L, //
@@ -64,7 +64,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
-  World        W;
+  World W;
   UnitId const free_colonist_id =
       W.add_unit_on_map( e_unit_type::free_colonist,
                          { .x = 1, .y = 1 } )
@@ -452,7 +452,7 @@ TEST_CASE( "[unit-ownership] UnitOwnershipChanger" ) {
 }
 
 TEST_CASE( "[unit-ownership] missionary_from_dwelling" ) {
-  World         W;
+  World W;
   maybe<UnitId> expected;
 
   Dwelling const& dwelling1 =
@@ -496,11 +496,11 @@ TEST_CASE( "[unit-ownership] missionary_from_dwelling" ) {
 }
 
 TEST_CASE( "[unit-ownership] change_to_map" ) {
-  World       W;
+  World W;
   Unit const& unit =
       W.add_free_unit( e_unit_type::free_colonist );
   UnitOwnership expected;
-  Coord         target;
+  Coord target;
 
   auto ownership = [&] {
     return as_const( W.units() ).ownership_of( unit.id() );
@@ -533,7 +533,7 @@ TEST_CASE( "[unit-ownership] reinstate_on_map_if_on_map" ) {
 
   Coord const coord       = { .x = 1, .y = 1 };
   Coord const other_coord = { .x = 2, .y = 1 };
-  Colony&     colony      = W.add_colony( coord );
+  Colony& colony          = W.add_colony( coord );
   using OutdoorJobsT      = decltype( colony.outdoor_jobs );
 
   UnitId const worker_id =
@@ -619,7 +619,7 @@ TEST_CASE( "[unit-ownership] reinstate_on_map_if_on_map" ) {
 }
 
 TEST_CASE( "[unit-ownership] destroy (native)" ) {
-  World            W;
+  World W;
   DwellingId const dwelling_id =
       W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::tupi ).id;
   NativeUnitId const brave_id =

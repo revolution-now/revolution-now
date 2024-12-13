@@ -137,7 +137,7 @@ bool can_build_road( Unit const& unit ) {
 *****************************************************************/
 void render_road_if_present( rr::Renderer& renderer, Coord where,
                              IVisibility const& viz,
-                             Coord              world_tile ) {
+                             Coord world_tile ) {
   auto has_road = [&]( Coord tile ) {
     return viz.visible( tile ) != e_tile_visibility::hidden &&
            rn::has_road( viz.square_at( tile ) );

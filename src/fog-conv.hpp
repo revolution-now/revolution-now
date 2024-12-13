@@ -39,6 +39,6 @@ FrozenDwelling dwelling_to_frozen_dwelling(
 // For when you want to just convert a single colony to the
 // frozen version. Will use the builtin one if available.
 FrozenColony colony_to_frozen_colony( SSConst const& ss,
-                                      Colony const&  colony );
+                                      Colony const& colony );
 
 } // namespace rn

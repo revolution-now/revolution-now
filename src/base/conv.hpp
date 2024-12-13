@@ -39,8 +39,8 @@ maybe<double> stod( std::string const& s );
 // entire string.
 template<std::integral T>
 maybe<T> from_chars( std::string_view sv,
-                     int              base = default_base ) {
-  maybe<T>               res{ T{ 0 } };
+                     int base = default_base ) {
+  maybe<T> res{ T{ 0 } };
   std::from_chars_result fc_res =
       std::from_chars( sv.begin(), sv.end(), *res, base );
   if( fc_res.ec != std::errc{} || fc_res.ptr != sv.end() )

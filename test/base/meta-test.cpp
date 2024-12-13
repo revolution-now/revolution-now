@@ -115,15 +115,15 @@ using F12 = A( B ) const;
 
 struct Stateful {
   [[maybe_unused]] void operator()() {}
-  int                   x;
-  [[maybe_unused]] int  foo() const { return 0; }
+  int x;
+  [[maybe_unused]] int foo() const { return 0; }
 };
 
 struct HasMembers {
   [[maybe_unused]] void operator()() {}
-  int                   x;
-  int const             y;
-  [[maybe_unused]] int  foo() const { return 0; }
+  int x;
+  int const y;
+  [[maybe_unused]] int foo() const { return 0; }
 };
 
 using get_x_t = decltype( &HasMembers::x );

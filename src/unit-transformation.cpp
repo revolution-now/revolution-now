@@ -114,7 +114,7 @@ maybe<Commodity> commodity_from_modifier(
 
 unordered_map<e_commodity, int> commodities_in_unit(
     UnitComposition const& comp ) {
-  unordered_map<e_commodity, int>            res;
+  unordered_map<e_commodity, int> res;
   unordered_set<e_unit_type_modifier> const& mods =
       comp.type_obj().unit_type_modifiers();
   for( e_unit_type_modifier mod : mods ) {
@@ -138,7 +138,7 @@ unordered_map<e_commodity, int> commodities_in_unit(
 
 maybe<int> max_valid_inventory_quantity(
     ModifierAssociation::inventory const& inventory,
-    int                                   max_available ) {
+    int max_available ) {
   UnitInventoryTraits const& inv_traits =
       config_unit_type.composition
           .inventory_traits[inventory.type];
@@ -161,7 +161,7 @@ void remove_commodities_from_inventory(
 ** Transformations
 *****************************************************************/
 vector<UnitTransformation> possible_unit_transformations(
-    UnitComposition const&                 comp,
+    UnitComposition const& comp,
     unordered_map<e_commodity, int> const& commodity_store ) {
   // 1. If current unit is a derived type, convert all of its
   // modifiers and inventory to commodities where possible.
@@ -244,7 +244,7 @@ vector<UnitTransformation> possible_unit_transformations(
                                              new_inventory ) );
       refl::enum_map<e_unit_type_modifier,
                      e_unit_type_modifier_delta>
-                                                 modifier_deltas;
+          modifier_deltas;
       unordered_set<e_unit_type_modifier> const& new_mods =
           new_unit_type_obj.unit_type_modifiers();
       for( auto mod : refl::enum_values<e_unit_type_modifier> ) {
@@ -382,7 +382,7 @@ bool requires_independence( T const& utr ) {
 
 void adjust_for_independence_status(
     vector<UnitTransformation>& input,
-    bool                        independence_declared ) {
+    bool independence_declared ) {
   if( independence_declared ) return;
   erase_if( input, L( requires_independence( _ ) ) );
 }

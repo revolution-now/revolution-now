@@ -36,7 +36,7 @@ struct SSConst;
 // by the map, so in that case this will always return the tribe
 // of the native dwelling.
 maybe<Society> society_on_square( SSConst const& ss,
-                                  Coord          coord );
+                                  Coord coord );
 
 // Gets the color associated with the society. E.g. this is the
 // one that will be used to paint the flag color of a unit and

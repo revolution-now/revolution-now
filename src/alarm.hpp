@@ -35,9 +35,9 @@ struct TribeRelationship;
 // fective alarm for a particular dwelling. This is used when a
 // single dwelling needs to decide how to act/react to the
 // player.
-int effective_dwelling_alarm( SSConst const&  ss,
+int effective_dwelling_alarm( SSConst const& ss,
                               Dwelling const& dwelling,
-                              e_nation        nation );
+                              e_nation nation );
 
 // This is the method that all other code should call in order to
 // increase tribal alarm, since it ensures that modifiers get ap-

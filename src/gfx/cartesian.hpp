@@ -229,8 +229,8 @@ inline auto point::to_double() const {
 //
 // Note: this type should be passed by value for efficiency.
 struct rect {
-  point     origin = {}; // upper left when normalized.
-  gfx::size size   = {};
+  point origin   = {}; // upper left when normalized.
+  gfx::size size = {};
 
   // Do some delayed type stuff so that we can break the circular
   // reference of point<-->Rect since they both need to be inter-
@@ -328,7 +328,7 @@ struct rect {
 // Same as above (see comments) but with doubles.
 struct drect {
   dpoint origin = {}; // upper left when normalized.
-  dsize  size   = {};
+  dsize size    = {};
 
   // Will clip off any parts of this rect that fall outside of
   // `other`. If the entire rect falls outside of `other` then it

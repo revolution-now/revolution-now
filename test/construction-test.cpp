@@ -67,7 +67,7 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
   World W;
   W.update_terrain_connectivity();
   Colony& colony = W.add_colony( World::kBordersOcean );
-  wait<>  w      = make_wait<>();
+  wait<> w       = make_wait<>();
 
   auto f = [&] {
     return select_colony_construction( W.ss(), W.ts(), colony );
@@ -605,9 +605,9 @@ TEST_CASE(
 
 TEST_CASE(
     "[construction] select building, doesn't border water" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( World::kNoBordersWater );
-  wait<>  w      = make_wait<>();
+  wait<> w       = make_wait<>();
 
   auto f = [&] {
     return select_colony_construction( W.ss(), W.ts(), colony );
@@ -901,10 +901,10 @@ TEST_CASE( "[construction] rush_construction_prompt" ) {
       W.found_colony_with_new_unit( Coord{ .x = 1, .y = 1 } );
   Player& player = W.default_player();
 
-  Construction     project;
+  Construction project;
   RushConstruction invoice;
-  string           msg;
-  ChoiceConfig     config;
+  string msg;
+  ChoiceConfig config;
 
   auto f = [&] {
     return rush_construction_prompt( player, colony, W.gui(),

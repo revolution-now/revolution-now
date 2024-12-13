@@ -65,12 +65,12 @@ struct Terminal {
  private:
   void trim();
 
-  lua::state&              st_;
+  lua::state& st_;
   std::vector<std::string> history_;
   // The g_buffer MUST ONLY be accessed while holding the below
   // mutex because it can be modified by multiple threads by way
   // of the logging framework.
-  std::mutex               buffer_mutex_;
+  std::mutex buffer_mutex_;
   std::vector<std::string> buffer_;
 };
 

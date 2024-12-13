@@ -79,13 +79,13 @@ TEST_CASE( "[base/random] pick_one" ) {
 }
 
 TEST_CASE( "[base/random] bernoulli" ) {
-  random     r;
+  random r;
   bool const b = r.bernoulli( .7 );
   REQUIRE( ( b == true || b == false ) );
 }
 
 TEST_CASE( "[base/random] uniform" ) {
-  random    r;
+  random r;
   int const i = r.uniform( 5, 8 );
   REQUIRE( ( i >= 5 && i <= 8 ) );
   double const d = r.uniform( 5.5, 8.3 );

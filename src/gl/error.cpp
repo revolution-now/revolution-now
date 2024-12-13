@@ -27,7 +27,7 @@ namespace gl {
 
 vector<string> has_errors() {
   vector<string> errors;
-  GLenum         err_code;
+  GLenum err_code;
   while( true ) {
     err_code = CALL_GL( gl_GetError );
     if( err_code == GL_NO_ERROR ) break;

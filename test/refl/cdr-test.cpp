@@ -59,8 +59,8 @@ namespace my_ns {
 namespace {
 
 struct Address {
-  int    street_number = {};
-  string state         = {};
+  int street_number = {};
+  string state      = {};
 
   friend void to_str( Address const& o, string& out,
                       base::tag<Address> ) {
@@ -85,10 +85,10 @@ struct Address {
 template<>
 struct traits<my_ns::Address> {
   using type                        = ::refl::my_ns::Address;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Address";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -136,7 +136,7 @@ void to_str( e_pet const& o, string& out, base::tag<e_pet> ) {
 template<>
 struct traits<my_ns::e_pet> {
   using type                        = my_ns::e_pet;
-  static constexpr type_kind   kind = type_kind::enum_kind;
+  static constexpr type_kind kind   = type_kind::enum_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "e_pet";
 
@@ -159,11 +159,11 @@ namespace my_ns {
 namespace {
 
 struct Person {
-  string                    name   = {};
-  double                    height = {};
-  bool                      male   = {};
-  vector<Address>           houses = {};
-  unordered_map<e_pet, int> pets   = {};
+  string name                    = {};
+  double height                  = {};
+  bool male                      = {};
+  vector<Address> houses         = {};
+  unordered_map<e_pet, int> pets = {};
 
   friend void to_str( Person const& o, string& out,
                       base::tag<Person> ) {
@@ -181,10 +181,10 @@ struct Person {
 template<>
 struct traits<my_ns::Person> {
   using type                        = ::refl::my_ns::Person;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Person";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -215,7 +215,7 @@ struct PersonWrapper {
     : wrapped( std::move( person ) ) {}
 
   // Implement refl::WrapsReflected.
-  Person const&                refl() const { return wrapped; }
+  Person const& refl() const { return wrapped; }
   static constexpr string_view refl_ns   = "my_ns";
   static constexpr string_view refl_name = "PersonWrapper";
 
@@ -244,8 +244,8 @@ namespace my_ns {
 namespace {
 
 struct Rolodex {
-  PersonWrapper                 self     = {};
-  string                        updated  = {};
+  PersonWrapper self                     = {};
+  string updated                         = {};
   unordered_map<string, Person> contacts = {};
 
   friend void to_str( Rolodex const& o, string& out,
@@ -264,10 +264,10 @@ struct Rolodex {
 template<>
 struct traits<my_ns::Rolodex> {
   using type                        = ::refl::my_ns::Rolodex;
-  static constexpr type_kind   kind = type_kind::struct_kind;
+  static constexpr type_kind kind   = type_kind::struct_kind;
   static constexpr string_view ns   = "my_ns";
   static constexpr string_view name = "Rolodex";
-  static constexpr bool        is_sumtype_alternative = false;
+  static constexpr bool is_sumtype_alternative = false;
 
   // Struct specific.
   using template_types = tuple<>;
@@ -698,7 +698,7 @@ TEST_CASE( "[refl] default options" ) {
 
 TEST_CASE( "[refl] missing field" ) {
   using namespace ::refl::my_ns;
-  converter  conv;
+  converter conv;
   cdr::error expected = conv.err(
       "key 'houses' not found in table.\n"
       "frame trace (most recent frame last):\n"
@@ -716,7 +716,7 @@ TEST_CASE( "[refl] missing field" ) {
 
 TEST_CASE( "[refl] extra field" ) {
   using namespace ::refl::my_ns;
-  converter  conv;
+  converter conv;
   cdr::error expected = conv.err( //
       "unrecognized key 'xyz' in table.\n"
       "frame trace (most recent frame last):\n"

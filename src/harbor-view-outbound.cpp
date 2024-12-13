@@ -101,8 +101,8 @@ HarborOutboundShips::object_here( Coord const& where ) const {
 vector<HarborOutboundShips::UnitWithPosition>
 HarborOutboundShips::units( Coord origin ) const {
   vector<UnitWithPosition> units;
-  Rect const               r = rect( origin );
-  Coord coord                = r.lower_right() - g_tile_delta;
+  Rect const r = rect( origin );
+  Coord coord  = r.lower_right() - g_tile_delta;
   for( UnitId id :
        harbor_units_outbound( ss_.units, player_.nation ) ) {
     units.push_back( { .id = id, .pixel_coord = coord } );
@@ -116,7 +116,7 @@ HarborOutboundShips::units( Coord origin ) const {
 
 wait<> HarborOutboundShips::click_on_unit( UnitId unit_id ) {
   if( get_active_unit() == unit_id ) {
-    Unit const&  unit = ss_.units.unit_for( unit_id );
+    Unit const& unit = ss_.units.unit_for( unit_id );
     ChoiceConfig config{
       .msg = fmt::format( "European harbor options for [{}]:",
                           unit.desc().name ),
@@ -193,9 +193,9 @@ wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
 }
 
 void HarborOutboundShips::draw( rr::Renderer& renderer,
-                                Coord         coord ) const {
+                                Coord coord ) const {
   rr::Painter painter = renderer.painter();
-  auto        r       = rect( coord );
+  auto r              = rect( coord );
   painter.draw_empty_rect( r, rr::Painter::e_border_mode::inside,
                            gfx::pixel::white() );
   rr::Typer typer =
@@ -224,13 +224,13 @@ PositionedHarborSubView<HarborOutboundShips>
 HarborOutboundShips::create(
     SS& ss, TS& ts, Player& player, Rect,
     HarborMarketCommodities const& market_commodities,
-    Coord                          harbor_inport_upper_left ) {
+    Coord harbor_inport_upper_left ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborOutboundShips> view;
-  HarborSubView*                  harbor_sub_view = nullptr;
+  HarborSubView* harbor_sub_view = nullptr;
 
-  bool const  is_wide = !market_commodities.stacked();
-  Delta const size    = size_pixels( is_wide );
+  bool const is_wide = !market_commodities.stacked();
+  Delta const size   = size_pixels( is_wide );
   Coord const pos =
       harbor_inport_upper_left - Delta{ .w = size.w };
 
@@ -246,7 +246,7 @@ HarborOutboundShips::create(
 
 HarborOutboundShips::HarborOutboundShips( SS& ss, TS& ts,
                                           Player& player,
-                                          bool    is_wide )
+                                          bool is_wide )
   : HarborSubView( ss, ts, player ), is_wide_( is_wide ) {}
 
 } // namespace rn

@@ -111,7 +111,7 @@ NonRenderingMapUpdater::make_squares_visible(
       CASE( explored ) {
         SWITCH( explored.fog_status ) {
           CASE( fogged ) {
-            auto&            frozen_square = fogged.contents;
+            auto& frozen_square = fogged.contents;
             MapSquare const& real_square =
                 ss_.terrain.square_at( tile );
             if( frozen_square.square != real_square )
@@ -223,7 +223,7 @@ RenderingMapUpdater::RenderingMapUpdater(
 // game is in a single draw call.
 void RenderingMapUpdater::redraw_square_single_buffer(
     Coord tile, BufferTracking& buffer_tracking,
-    rr::e_render_buffer        annex_buffer,
+    rr::e_render_buffer annex_buffer,
     base::function_ref<void()> render_square,
     base::function_ref<void()> redraw_buffer ) {
   auto& renderer = renderer_;

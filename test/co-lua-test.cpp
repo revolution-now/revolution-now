@@ -47,7 +47,7 @@ using ::Catch::Matches;
 
 string to_lower_str( string_view c ) {
   BASE_CHECK( c.size() == 1 );
-  char   cl = (char)std::tolower( c[0] );
+  char cl = (char)std::tolower( c[0] );
   string res;
   res += cl;
   return res;
@@ -151,9 +151,9 @@ namespace scenario_1 {
 
 wait_promise<int> p1;
 wait_promise<int> p2;
-wait_promise<>    p3;
-string            shown_int;
-string            trace_log;
+wait_promise<> p3;
+string shown_int;
+string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
@@ -494,9 +494,9 @@ TEST_CASE( "[co-lua] scenario 1 coroutine.create" ) {
 *****************************************************************/
 namespace scenario_2 {
 
-wait_promise<int>    p1;
+wait_promise<int> p1;
 wait_promise<string> p2;
-string               trace_log;
+string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
@@ -712,11 +712,11 @@ TEST_CASE( "[co-lua] scenario 2 cancellation" ) {
 *****************************************************************/
 namespace scenario_3 {
 
-wait_promise<>    p1;
-wait_promise<>    p2;
+wait_promise<> p1;
+wait_promise<> p2;
 wait_promise<int> p3;
-wait_promise<>    p4;
-string            trace_log;
+wait_promise<> p4;
+string trace_log;
 
 void trace( string_view msg ) { trace_log += string( msg ); }
 
@@ -889,8 +889,8 @@ TEST_CASE( "[co-lua] wait auto registration" ) {
     end
   )lua" );
 
-  wait_promise<>       p1;
-  wait_promise<int>    p2;
+  wait_promise<> p1;
+  wait_promise<int> p2;
   wait_promise<string> p3;
   wait_promise<MyType> p4;
 

@@ -83,7 +83,7 @@ struct bad_expect_access : public std::exception {
   }
 
   std::source_location loc_;
-  std::string          error_msg_;
+  std::string error_msg_;
 };
 
 /****************************************************************
@@ -923,7 +923,7 @@ class [[nodiscard]] expect { /* clang-format on */
   ** Deference operators
   ***************************************************************/
   constexpr T const& operator*() const& noexcept { return val_; }
-  constexpr T&       operator*() & noexcept { return val_; }
+  constexpr T& operator*() & noexcept { return val_; }
 
   constexpr T const&& operator*() const&& noexcept {
     return std::move( val_ );
@@ -1753,7 +1753,7 @@ struct fmt::formatter<base::expect<T, E>>
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::expect<T, E> const& e,
-               FormatContext&            ctx ) const {
+               FormatContext& ctx ) const {
     if( e.has_value() )
       return formatter_base::format( fmt::format( "{}", *e ),
                                      ctx );

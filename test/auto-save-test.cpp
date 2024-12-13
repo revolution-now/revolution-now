@@ -52,8 +52,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, L, //
       L, L, L, //
@@ -67,7 +67,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[auto-save] should_autosave" ) {
-  World    w;
+  World w;
   set<int> expected;
 
   auto f = [&] { return should_autosave( w.ss().as_const ); };
@@ -156,8 +156,8 @@ TEST_CASE( "[auto-save] should_autosave" ) {
 }
 
 TEST_CASE( "[auto-save] autosave" ) {
-  World                         w;
-  set<int>                      slots;
+  World w;
+  set<int> slots;
   expect<std::vector<fs::path>> expected = "";
 
   MockIGameSaver mock_game_saver;

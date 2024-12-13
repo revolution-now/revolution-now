@@ -480,7 +480,7 @@ void operator-=( Coord& coord, Delta delta );
 Coord operator*( Coord const& coord, Delta const& delta );
 Coord operator*( Coord const& coord, int scale );
 inline constexpr Delta operator*( Delta const& delta,
-                                  int          scale ) {
+                                  int scale ) {
   Delta res = delta;
   res.w *= scale;
   res.h *= scale;
@@ -488,11 +488,11 @@ inline constexpr Delta operator*( Delta const& delta,
 }
 Coord operator*( Delta const& delta, Coord const& coord );
 Delta operator*( Delta const& lhs, Delta const& rhs );
-Rect  operator*( Rect const& rect, Delta const& delta );
-Rect  operator*( Rect const& rect, int scale );
-Rect  operator*( Delta const& delta, Rect const& rect );
+Rect operator*( Rect const& rect, Delta const& delta );
+Rect operator*( Rect const& rect, int scale );
+Rect operator*( Delta const& delta, Rect const& rect );
 // FIXME: deprecated
-Rect  operator/( Rect const& rect, Delta const& delta );
+Rect operator/( Rect const& rect, Delta const& delta );
 Coord operator/( Coord const& coord, Delta const& delta );
 Delta operator/( Delta const& delta, int scale );
 Delta operator/( Delta const& lhs, Delta const& rhs );

@@ -147,10 +147,10 @@ TEST_CASE(
 TEST_CASE(
     "[hidden-terrain] anim_seq_for_hidden_terrain, all "
     "invisible" ) {
-  World                          W;
+  World W;
   HiddenTerrainAnimationSequence expected;
   W.create_map( { .w = 4, .h = 4 } );
-  e_nation const            nation = W.default_nation();
+  e_nation const nation = W.default_nation();
   VisibilityForNation const viz( W.ss(), nation );
 
   auto const seq =

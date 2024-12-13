@@ -104,9 +104,9 @@ bool is_menu_plane_enabled() { return true; }
 // advance_state to do that.
 maybe<Rect> section( e_section sec ) {
   maybe<Rect> res;
-  auto        menu_height = is_menu_plane_enabled()
-                                ? config_ui.menus.menu_bar_height
-                                : 0;
+  auto menu_height = is_menu_plane_enabled()
+                         ? config_ui.menus.menu_bar_height
+                         : 0;
   switch( sec ) {
     case e_section::menu_bar: {
       if( !is_menu_plane_enabled() ) break;

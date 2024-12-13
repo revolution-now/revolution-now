@@ -52,7 +52,7 @@ struct ColonyViewer : IColonyViewer {
   ColonyViewer( SS& ss );
 
   // Implement IColonyViewer.
-  wait<e_colony_abandoned> show( TS&      ts,
+  wait<e_colony_abandoned> show( TS& ts,
                                  ColonyId colony_id ) override;
 
  private:

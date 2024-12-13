@@ -42,13 +42,13 @@ struct Stateful1 {
 };
 struct Stateful2 {
   [[maybe_unused]] void operator()() {}
-  int                   x;
+  int x;
 };
 
 [[maybe_unused]] void takes_params( int, char ) {}
 
-[[maybe_unused]] void  normal() {}
-[[maybe_unused]] auto  lambda              = []() {};
+[[maybe_unused]] void normal() {}
+[[maybe_unused]] auto lambda               = []() {};
 [[maybe_unused]] auto* pointer_to_normal   = normal;
 [[maybe_unused]] auto* pointer_to_lambda   = &lambda;
 [[maybe_unused]] auto& reference_to_normal = normal;
@@ -155,7 +155,7 @@ static_assert( !NonOverloadedStatefulCallable<
 ** Member Functions
 *****************************************************************/
 struct HasMembers {
-  int                     n;
+  int n;
   [[maybe_unused]] double foo() { return 0; }
   [[maybe_unused]] int bar( string const& ) const { return 0; }
 };

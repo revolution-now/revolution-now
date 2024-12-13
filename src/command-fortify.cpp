@@ -48,8 +48,8 @@ struct FortifyHandler : public CommandHandler {
     co_return;
   }
 
-  SS&    ss_;
-  TS&    ts_;
+  SS& ss_;
+  TS& ts_;
   UnitId unit_id_;
 };
 
@@ -64,7 +64,7 @@ struct SentryHandler : public CommandHandler {
     co_return;
   }
 
-  SS&    ss_;
+  SS& ss_;
   UnitId unit_id_;
 };
 

@@ -56,7 +56,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -66,7 +66,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[market] market_price" ) {
-  World   W;
+  World W;
   Player& french = W.player( e_nation::french );
 
   french.old_world.market.commodities[e_commodity::ore]
@@ -99,10 +99,10 @@ TEST_CASE( "[market] create_price_change" ) {
 }
 
 TEST_CASE( "[market] display_price_change_notification" ) {
-  World         W;
+  World W;
   Player const& player = W.default_player();
-  PriceChange   change;
-  wait<>        w = make_wait<>();
+  PriceChange change;
+  wait<> w = make_wait<>();
 
   W.set_current_bid_price( e_commodity::ore, 10 );
 
@@ -145,7 +145,7 @@ TEST_CASE( "[market] ask_from_bid" ) {
 }
 
 TEST_CASE( "[market] apply_invoice" ) {
-  World   W;
+  World W;
   Invoice invoice;
 
   W.set_current_bid_price( e_commodity::silver, 10 );
@@ -1051,9 +1051,9 @@ TEST_CASE(
 }
 
 TEST_CASE( "[market] transaction_invoice buy" ) {
-  World     W;
+  World W;
   Commodity to_buy;
-  Invoice   expected;
+  Invoice expected;
   e_immediate_price_change_allowed
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;
@@ -1578,9 +1578,9 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
 }
 
 TEST_CASE( "[market] transaction_invoice sell" ) {
-  World     W;
+  World W;
   Commodity to_sell;
-  Invoice   expected;
+  Invoice expected;
   e_immediate_price_change_allowed
       immediate_price_change_allowed =
           e_immediate_price_change_allowed::allowed;

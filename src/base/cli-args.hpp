@@ -31,13 +31,13 @@ struct ProgramArguments {
   }
 
   std::unordered_map<std::string, std::string> key_val_args;
-  std::unordered_set<std::string>              flag_args;
-  std::vector<std::string>                     positional_args;
+  std::unordered_set<std::string> flag_args;
+  std::vector<std::string> positional_args;
 
   bool operator==( ProgramArguments const& ) const = default;
 
   friend void to_str( ProgramArguments const& pa,
-                      std::string&            out,
+                      std::string& out,
                       base::tag<ProgramArguments> );
 };
 

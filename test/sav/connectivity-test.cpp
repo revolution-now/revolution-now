@@ -57,8 +57,8 @@ fs::path classic_sav_dir() {
   for( int qy = 0; qy < 18; ++qy ) {
     fmt::print( "    " );
     for( int qx = 0; qx < 15; ++qx ) {
-      int const     offset = qx * 18 + qy;
-      auto const    val    = board[offset];
+      int const offset     = qx * 18 + qy;
+      auto const val       = board[offset];
       uint8_t const casted = bit_field_to_uint( val );
       fmt::print( "{:02x} ", casted );
     }
@@ -104,7 +104,7 @@ void de_bug_land( auto& connectivity ) {
 auto reproduces_sav_connectivity_with_bug_removed(
     fs::path const& folder, fs::path const& file ) {
   static ColonySAV sav;
-  fs::path const   in = folder / file;
+  fs::path const in = folder / file;
   CHECK_HAS_VALUE( load_binary( in, sav ) );
   CONNECTIVITY new_connectivity;
   populate_connectivity( sav.tile, sav.path,
@@ -134,9 +134,9 @@ auto reproduces_sav_connectivity_with_bug_removed(
 
 void produce_connectivity_for_sav( fs::path const& folder,
                                    fs::path const& file,
-                                   CONNECTIVITY&   out ) {
+                                   CONNECTIVITY& out ) {
   static ColonySAV sav;
-  fs::path const   in = folder / file;
+  fs::path const in = folder / file;
   CHECK_HAS_VALUE( load_binary( in, sav ) );
   populate_connectivity( sav.tile, sav.path,
                          { .w = 58, .h = 72 }, out );

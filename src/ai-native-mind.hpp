@@ -49,7 +49,7 @@ struct AiNativeMind final : INativeMind {
       CombatBraveAttackEuro const& ) override;
 
  private:
-  SS&    ss_; // can this be SSConst?
+  SS& ss_; // can this be SSConst?
   IRand& rand_;
 };
 

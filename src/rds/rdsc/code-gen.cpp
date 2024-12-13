@@ -52,7 +52,7 @@ string template_params( vector<expr::TemplateParam> const& tmpls,
   string res;
   if( tmpls.empty() ) return res;
   vector<string> names;
-  string         tp_name = put_typename ? "typename " : "";
+  string tp_name = put_typename ? "typename " : "";
   for( expr::TemplateParam const& param : tmpls )
     names.push_back( tp_name + param.param );
   string sep = ",";
@@ -70,8 +70,8 @@ bool item_has_feature( T const& item, expr::e_feature feature ) {
 }
 
 string trim_trailing_spaces( string s ) {
-  string_view sv             = s;
-  auto        last_non_space = sv.find_last_not_of( ' ' );
+  string_view sv      = s;
+  auto last_non_space = sv.find_last_not_of( ' ' );
   if( last_non_space != string_view::npos ) {
     auto trim_start = last_non_space + 1;
     sv.remove_suffix( sv.size() - trim_start );
@@ -81,7 +81,7 @@ string trim_trailing_spaces( string s ) {
 
 struct CodeGenerator {
   struct Options {
-    int  indent_level     = 0;
+    int indent_level      = 0;
     bool quotes           = false;
     bool trailing_slash   = false;
     bool drop_empty_lines = false;
@@ -91,7 +91,7 @@ struct CodeGenerator {
 
   ostringstream oss_;
   maybe<string> curr_line_;
-  Options       default_options_ = {};
+  Options default_options_ = {};
 
   stack<Options> options_;
 
@@ -221,7 +221,7 @@ struct CodeGenerator {
   }
 
   void emit_vert_list( vector<string> const& lines,
-                       string_view           sep ) {
+                       string_view sep ) {
     int count = lines.size();
     for( string const& l : lines ) {
       if( count-- == 1 ) sep = "";
@@ -230,7 +230,7 @@ struct CodeGenerator {
   }
 
   void emit_vert_list_frag( vector<string> const& lines,
-                            string_view           sep ) {
+                            string_view sep ) {
     int count = lines.size();
     for( string const& l : lines ) {
       --count;
@@ -283,7 +283,7 @@ struct CodeGenerator {
       line( "struct {} {{", alt.name );
       {
         auto cleanup = indent();
-        int  max_type_len =
+        int max_type_len =
             max_of( alt.members, L( _.type.size() ), 0 );
         for( expr::StructMember const& alt_mem : alt.members )
           line( "{: <{}} {} = {{}};", alt_mem.type, max_type_len,
@@ -412,8 +412,8 @@ struct CodeGenerator {
   void emit_reflection_for_struct(
       string_view ns, string_view ns_display,
       vector<expr::TemplateParam> const& tmpl_params,
-      string const&                      name,
-      vector<expr::StructMember> const&  members,
+      string const& name,
+      vector<expr::StructMember> const& members,
       bool wants_offsets, bool is_sumtype_alternative ) {
     comment( "Reflection info for struct {}.", name );
     string tmpl_brackets =
@@ -480,7 +480,7 @@ struct CodeGenerator {
     emit_template_decl( strukt.tmpl_params );
     bool comparable =
         item_has_feature( strukt, expr::e_feature::equality );
-    bool         has_members = !strukt.members.empty();
+    bool has_members = !strukt.members.empty();
     string const nodiscard_str =
         item_has_feature( strukt, expr::e_feature::nodiscard )
             ? "[[nodiscard]] "
@@ -693,7 +693,7 @@ struct CodeGenerator {
     auto emit_init_list_with_types =
         [&]( vector<expr::MethodArg> const& args ) {
           vector<string> arg_lines;
-          string         init = ": ";
+          string init = ": ";
           for( auto& arg : args ) {
             arg_lines.push_back( fmt::format(
                 "{}{}_( {} )", init, arg.var, arg.var ) );
@@ -778,7 +778,7 @@ struct CodeGenerator {
             flush();
           } else {
             flush();
-            auto           _ = indent();
+            auto _ = indent();
             vector<string> vars;
             for( expr::MethodArg const& arg :
                  interface.context.members )
@@ -838,7 +838,7 @@ struct CodeGenerator {
               flush();
             } else {
               flush();
-              auto           _ = indent();
+              auto _ = indent();
               vector<string> arg_names;
               for( expr::MethodArg const& arg : mth.args )
                 arg_names.push_back( arg.type );

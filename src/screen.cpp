@@ -51,9 +51,9 @@ namespace rn {
 namespace {
 
 struct DisplayMode {
-  gfx::size size         = {};
-  uint32_t  format       = 0;
-  int       refresh_rate = 0;
+  gfx::size size   = {};
+  uint32_t format  = 0;
+  int refresh_rate = 0;
 };
 
 DisplayMode current_display_mode() {
@@ -69,8 +69,8 @@ DisplayMode current_display_mode() {
 
 Resolutions& g_resolutions() {
   static Resolutions r = [] {
-    auto const         display_mode    = current_display_mode();
-    gfx::size const    physical_screen = display_mode.size;
+    auto const display_mode         = current_display_mode();
+    gfx::size const physical_screen = display_mode.size;
     gfx::Monitor const monitor =
         monitor_properties( physical_screen, monitor_dpi() );
     return compute_resolutions( monitor,
@@ -316,7 +316,7 @@ gfx::size logical_resolution_for_invalid_window_size() {
 }
 
 void on_logical_resolution_changed(
-    rr::Renderer&      renderer,
+    rr::Renderer& renderer,
     Resolutions const& new_resolutions ) {
   if( new_resolutions.selected.available ) {
     auto const old_selected_resolution =
@@ -335,8 +335,8 @@ void on_logical_resolution_changed(
   } else {
     lg.info( "no logical resolution found." );
   }
-  g_resolutions()          = new_resolutions;
-  auto const&     selected = g_resolutions().selected;
+  g_resolutions()      = new_resolutions;
+  auto const& selected = g_resolutions().selected;
   gfx::rect const viewport =
       selected.available
           ? selected.rated.resolution.viewport
@@ -571,7 +571,7 @@ void shrink_window_to_fit() {
 }
 
 void on_logical_resolution_changed(
-    rr::Renderer&             renderer,
+    rr::Renderer& renderer,
     SelectedResolution const& selected_resolution ) {
   auto new_resolutions     = g_resolutions();
   new_resolutions.selected = selected_resolution;

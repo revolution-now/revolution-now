@@ -25,8 +25,8 @@ using namespace std;
 ** Helpers.
 *****************************************************************/
 fs::path output_folder() {
-  error_code ec  = {};
-  fs::path   res = fs::temp_directory_path( ec );
+  error_code ec = {};
+  fs::path res  = fs::temp_directory_path( ec );
   BASE_CHECK( ec.value() == 0,
               "failed to get temp folder path." );
   return res;
@@ -42,7 +42,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write] [builtin]" ) {
   MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
-  uint8_t const  i1 = 0x05;
+  uint8_t const i1  = 0x05;
   uint16_t const i2 = 0x80ff;
   uint32_t const i3 = 0x10002000;
   uint64_t const i4 = 0x1234567890987654;
@@ -133,7 +133,7 @@ TEST_CASE( "[base/binary-data] IBinaryIO [write_bytes]" ) {
   MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
-  uint8_t const  i1 = 0x05;
+  uint8_t const i1  = 0x05;
   uint16_t const i2 = 0x80ff;
   uint32_t const i3 = 0x10002000;
   uint64_t const i4 = 0x1234567890987654;
@@ -256,7 +256,7 @@ TEST_CASE(
   array<uint64_t, 2> i1 = { 0x1234567801234567,
                             0xaaaaaaaaaaaaaaaa };
   array<uint32_t, 3> i2 = { 0xabcdef01, 0xbcdef987, 0xbbbbbbbb };
-  array<uint8_t, 2>  i3 = { 0x34, 0x56 };
+  array<uint8_t, 2> i3  = { 0x34, 0x56 };
 
   REQUIRE_FALSE( b.eof() );
   REQUIRE( b.remaining() == 31 );
@@ -322,12 +322,12 @@ TEST_CASE( "[base/binary-data] IBinaryIO [read] [builtin]" ) {
   MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
-  uint8_t const  expected_i1 = 0x05;
+  uint8_t const expected_i1  = 0x05;
   uint16_t const expected_i2 = 0x80ff;
   uint32_t const expected_i3 = 0x10002000;
   uint64_t const expected_i4 = 0x1234567890987654;
 
-  uint8_t  i1 = 0;
+  uint8_t i1  = 0;
   uint16_t i2 = 0;
   uint32_t i3 = 0;
   uint64_t i4 = 0;
@@ -403,10 +403,10 @@ TEST_CASE( "[base/binary-data] IBinaryIO [read_bytes]" ) {
   MemBufferBinaryIO b( buffer );
   REQUIRE( b.size() == 16 );
 
-  uint8_t const  expected_i1 = 0x05;
+  uint8_t const expected_i1  = 0x05;
   uint64_t const expected_i4 = 0x1234567890987654;
 
-  uint8_t  i1 = 0;
+  uint8_t i1  = 0;
   uint16_t i2 = 0;
   uint32_t i3 = 0;
   uint64_t i4 = 0;
@@ -509,11 +509,11 @@ TEST_CASE( "[base/binary-data] IBinaryIO [read] [std::array]" ) {
                                            0x0020 };
   array<uint32_t, 2> const expected_i1 = { 0x98765410,
                                            0x34567890 };
-  array<uint8_t, 2> const  expected_i2 = { 0x12, 0x06 };
+  array<uint8_t, 2> const expected_i2  = { 0x12, 0x06 };
 
   array<uint16_t, 3> i0 = { 0, 0, 0 };
   array<uint32_t, 2> i1 = { 0, 0 };
-  array<uint8_t, 2>  i2 = { 0, 0 };
+  array<uint8_t, 2> i2  = { 0, 0 };
 
   REQUIRE_FALSE( b.eof() );
   REQUIRE( b.remaining() == 16 );

@@ -36,11 +36,11 @@ enum class e_conductor_event {
 };
 
 struct ConductorInfo {
-  e_music_player        mplayer;
-  e_music_state         music_state;
+  e_music_player mplayer;
+  e_music_state music_state;
   maybe<TunePlayerInfo> playing_now;
-  maybe<double>         volume;
-  bool                  autoplay;
+  maybe<double> volume;
+  bool autoplay;
 
   void log() const;
 };
@@ -48,9 +48,9 @@ NOTHROW_MOVE( ConductorInfo );
 
 struct MusicPlayerInfo {
   valid_or<std::string> enabled = "uninitialized";
-  std::string           name;
-  std::string           description;
-  std::string           how_it_works;
+  std::string name;
+  std::string description;
+  std::string how_it_works;
 
   void log() const;
 };
@@ -74,7 +74,7 @@ using ConductorEventFunc = std::function<void( void )>;
 // ductor performs certain events. It will always send the noti-
 // fication after the event. All functions are called in the
 // game's main thread.
-void subscribe_to_conductor_event( e_conductor_event  event,
+void subscribe_to_conductor_event( e_conductor_event event,
                                    ConductorEventFunc func );
 
 // If this is off then the conductor will never automatically ad-

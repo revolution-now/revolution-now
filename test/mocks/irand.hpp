@@ -41,7 +41,7 @@ static_assert( !std::is_abstract_v<MockIRand> );
 // This will take a vector of indices representing how we'd like
 // a vector shuffled and will generate all of the mock expect
 // calls to make that happen.
-void expect_shuffle( MockIRand&              rand,
+void expect_shuffle( MockIRand& rand,
                      std::vector<int> const& indices );
 
 } // namespace rn

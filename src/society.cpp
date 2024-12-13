@@ -37,7 +37,7 @@ namespace {} // namespace
 ** Public API
 *****************************************************************/
 maybe<Society> society_on_square( SSConst const& ss,
-                                  Coord          coord ) {
+                                  Coord coord ) {
   // Check for European colony.
   if( auto id = ss.colonies.maybe_from_coord( coord ); id ) {
     e_nation const nation = ss.colonies.colony_for( *id ).nation;

@@ -309,7 +309,7 @@ TEST_CASE( "[parse] table with duplicate keys" ) {
 
 TEST_CASE( "[parse] parse empty document." ) {
   string const input;
-  auto         doc = parse( "fake-file", input );
+  auto doc = parse( "fake-file", input );
   REQUIRE( doc );
   cdr::table expected;
   REQUIRE( doc->top_tbl() == expected );

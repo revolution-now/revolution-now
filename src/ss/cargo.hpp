@@ -82,7 +82,7 @@ class CargoHold {
 
   maybe<CargoSlot const&> at( int slot ) const;
 
-  CargoSlot const&              operator[]( int idx ) const;
+  CargoSlot const& operator[]( int idx ) const;
   std::vector<CargoSlot> const& slots() const {
     return o_.slots;
   }
@@ -148,7 +148,7 @@ class CargoHold {
   // exception will be thrown, since this likely reflects a logic
   // error on the part of the caller.
   ND bool fits_somewhere( UnitsState const& units_state,
-                          Cargo const&      cargo,
+                          Cargo const& cargo,
                           int starting_slot = 0 ) const;
 
   // Optimizes the arrangement of cargo items. Places units occu-
@@ -160,7 +160,7 @@ class CargoHold {
 
   // Implement refl::WrapsReflected.
   CargoHold( wrapped::CargoHold&& o ) : o_( std::move( o ) ) {}
-  wrapped::CargoHold const&         refl() const { return o_; }
+  wrapped::CargoHold const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "CargoHold";
 
@@ -201,7 +201,7 @@ class CargoHold {
   // cargo then an exception will be thrown, since this likely
   // reflects a logic error on the part of the caller.
   ND bool try_add_somewhere( UnitsState const& units_state,
-                             Cargo const&      cargo,
+                             Cargo const& cargo,
                              int starting_slot = 0 );
 
   // Add the cargo item into the given slot index. Returns true

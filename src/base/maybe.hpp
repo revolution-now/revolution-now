@@ -105,7 +105,7 @@ struct bad_maybe_access : public std::exception {
   }
 
   std::source_location loc_;
-  std::string          error_msg_;
+  std::string error_msg_;
 };
 
 /****************************************************************
@@ -1564,7 +1564,7 @@ struct fmt::
   using formatter_base = fmt::formatter<std::string>;
   template<typename FormatContext>
   auto format( base::maybe<T> const& o,
-               FormatContext&        ctx ) const {
+               FormatContext& ctx ) const {
     static const std::string nothing_str( "nothing" );
     return formatter_base::format(
         o.has_value() ? fmt::format( "{}", *o ) : nothing_str,

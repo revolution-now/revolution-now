@@ -32,7 +32,7 @@ using namespace ::mock::matchers;
 using ::base::unexpected;
 
 struct Vertex {
-  vec3  some_vec3;
+  vec3 some_vec3;
   float some_float;
 };
 

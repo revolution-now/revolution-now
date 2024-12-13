@@ -67,7 +67,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[alarm] effective_dwelling_alarm" ) {
-  World     W;
+  World W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
   Tribe& tribe = W.natives().tribe_for( e_tribe::arawak );
@@ -116,7 +116,7 @@ TEST_CASE( "[alarm] effective_dwelling_alarm" ) {
 }
 
 TEST_CASE( "[alarm] reaction_for_dwelling" ) {
-  World     W;
+  World W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::arawak );
   Tribe& tribe = W.natives().tribe_for( e_tribe::arawak );
@@ -183,7 +183,7 @@ TEST_CASE( "[alarm] reaction_for_dwelling" ) {
 }
 
 TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
-  World           W;
+  World W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 2, .y = 2 }, e_tribe::inca );
   Tribe& tribe = W.natives().tribe_for( e_tribe::inca );
@@ -370,7 +370,7 @@ TEST_CASE(
     "[alarm] increase_tribal_alarm_from_attacking_brave" ) {
   World W;
 
-  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  Tribe& tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered = true;
@@ -426,7 +426,7 @@ TEST_CASE(
     "[alarm] increase_tribal_alarm_from_attacking_dwelling" ) {
   World W;
 
-  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  Tribe& tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered = true;
@@ -526,10 +526,10 @@ TEST_CASE( "[alarm] tribe_alarm_category" ) {
 }
 
 TEST_CASE( "[alarm] increase_tribal_alarm" ) {
-  World   w;
-  Player& player       = w.default_player();
-  int     tribal_alarm = 0;
-  double  delta        = 0;
+  World w;
+  Player& player   = w.default_player();
+  int tribal_alarm = 0;
+  double delta     = 0;
 
   auto f = [&] {
     increase_tribal_alarm( player, delta, tribal_alarm );
@@ -595,11 +595,11 @@ TEST_CASE( "[alarm] increase_tribal_alarm" ) {
 TEST_CASE(
     "[alarm] "
     "increase_tribal_alarm_from_burial_ground_trespass" ) {
-  World   w;
+  World w;
   Player& player = w.default_player();
 
   TribeRelationship relationship;
-  int&              tribal_alarm = relationship.tribal_alarm;
+  int& tribal_alarm = relationship.tribal_alarm;
 
   auto f = [&] {
     increase_tribal_alarm_from_burial_ground_trespass(

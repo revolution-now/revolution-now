@@ -66,7 +66,7 @@ struct bytes {
   }
 
   friend bool write_binary( base::IBinaryIO& b,
-                            bytes const&     o ) {
+                            bytes const& o ) {
     for( uint8_t const c : o.a )
       if( !b.write( c ) ) return false;
     return true;

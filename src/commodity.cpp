@@ -140,7 +140,7 @@ string commodity_number_to_markup( int value ) {
 ** Commodity
 *****************************************************************/
 Commodity with_quantity( Commodity const& in,
-                         int              new_quantity ) {
+                         int new_quantity ) {
   Commodity res = in;
   res.quantity  = new_quantity;
   return res;
@@ -170,7 +170,7 @@ string uppercase_commodity_display_name( e_commodity type ) {
       lowercase_commodity_display_name( type ) );
 }
 
-void add_commodity_to_cargo( UnitsState&      units_state,
+void add_commodity_to_cargo( UnitsState& units_state,
                              Commodity const& comm,
                              UnitId holder, int slot,
                              bool try_other_slots ) {
@@ -204,13 +204,13 @@ int move_commodity_as_much_as_possible(
     UnitId dst, int dst_slot, maybe<int> max_quantity,
     bool try_other_dst_slots ) {
   auto const& src_cargo = units_state.unit_for( src ).cargo();
-  auto        maybe_src_comm =
+  auto maybe_src_comm =
       src_cargo.slot_holds_cargo_type<Cargo::commodity>(
           src_slot );
   CHECK( maybe_src_comm.has_value() );
 
   auto const& dst_cargo = units_state.unit_for( dst ).cargo();
-  auto        maybe_dst_comm =
+  auto maybe_dst_comm =
       dst_cargo.slot_holds_cargo_type<Cargo::commodity>(
           dst_slot );
   if( maybe_dst_comm.has_value() && !try_other_dst_slots ) {
@@ -313,8 +313,8 @@ void render_commodity_annotated(
 }
 
 // Will use quantity as label.
-void render_commodity_annotated( rr::Renderer&    renderer,
-                                 Coord            where,
+void render_commodity_annotated( rr::Renderer& renderer,
+                                 Coord where,
                                  Commodity const& comm ) {
   bool const dulled = ( comm.quantity < 100 );
   render_commodity_annotated(

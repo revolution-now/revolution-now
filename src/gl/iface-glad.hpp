@@ -29,7 +29,7 @@ struct OpenGLGlad : IOpenGL {
                       void const* data, GLenum usage ) override;
 
   void gl_BufferSubData( GLenum target, GLintptr offset,
-                         GLsizeiptr  size,
+                         GLsizeiptr size,
                          void const* data ) override;
 
   void gl_CompileShader( GLuint shader ) override;
@@ -38,14 +38,14 @@ struct OpenGLGlad : IOpenGL {
 
   GLuint gl_CreateShader( GLenum type ) override;
 
-  void gl_DeleteBuffers( GLsizei       n,
+  void gl_DeleteBuffers( GLsizei n,
                          GLuint const* buffers ) override;
 
   void gl_DeleteProgram( GLuint program ) override;
 
   void gl_DeleteShader( GLuint shader ) override;
 
-  void gl_DeleteVertexArrays( GLsizei       n,
+  void gl_DeleteVertexArrays( GLsizei n,
                               GLuint const* arrays ) override;
 
   void gl_DetachShader( GLuint program, GLuint shader ) override;
@@ -64,7 +64,7 @@ struct OpenGLGlad : IOpenGL {
                            GLint* size, GLenum* type,
                            GLchar* name ) override;
 
-  GLint gl_GetAttribLocation( GLuint        program,
+  GLint gl_GetAttribLocation( GLuint program,
                               GLchar const* name ) override;
 
   GLenum gl_GetError() override;
@@ -73,26 +73,26 @@ struct OpenGLGlad : IOpenGL {
 
   void gl_GetProgramInfoLog( GLuint program, GLsizei bufSize,
                              GLsizei* length,
-                             GLchar*  infoLog ) override;
+                             GLchar* infoLog ) override;
 
   void gl_GetProgramiv( GLuint program, GLenum pname,
                         GLint* params ) override;
 
   void gl_GetShaderInfoLog( GLuint shader, GLsizei bufSize,
                             GLsizei* length,
-                            GLchar*  infoLog ) override;
+                            GLchar* infoLog ) override;
 
   void gl_GetShaderiv( GLuint shader, GLenum pname,
                        GLint* params ) override;
 
-  GLint gl_GetUniformLocation( GLuint        program,
+  GLint gl_GetUniformLocation( GLuint program,
                                GLchar const* name ) override;
 
   void gl_LinkProgram( GLuint program ) override;
 
   void gl_ShaderSource( GLuint shader, GLsizei count,
                         GLchar const* const* string,
-                        const GLint*         length ) override;
+                        const GLint* length ) override;
 
   void gl_Uniform1f( GLint location, GLfloat v0 ) override;
 
@@ -113,7 +113,7 @@ struct OpenGLGlad : IOpenGL {
 
   void gl_VertexAttribPointer( GLuint index, GLint size,
                                GLenum type, GLboolean normalized,
-                               GLsizei     stride,
+                               GLsizei stride,
                                void const* pointer ) override;
 
   void gl_VertexAttribIPointer( GLuint index, GLint size,
@@ -122,7 +122,7 @@ struct OpenGLGlad : IOpenGL {
 
   void gl_GenTextures( GLsizei n, GLuint* textures ) override;
 
-  void gl_DeleteTextures( GLsizei       n,
+  void gl_DeleteTextures( GLsizei n,
                           GLuint const* textures ) override;
 
   void gl_BindTexture( GLenum target, GLuint texture ) override;

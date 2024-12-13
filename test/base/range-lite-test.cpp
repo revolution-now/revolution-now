@@ -94,7 +94,7 @@ TEST_CASE( "[range-lite] move-only" ) {
     A& operator=( A const& a ) = delete;
     A( A&& a ) { n = a.n; }
     bool operator==( A const& ) const = default;
-    int  n;
+    int n;
   };
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -128,7 +128,7 @@ TEST_CASE( "[range-lite] move-over-copy" ) {
       moved = true;
     }
     bool operator==( A const& ) const = default;
-    int  n;
+    int n;
   };
   vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
@@ -175,7 +175,7 @@ TEST_CASE( "[range-lite] static create" ) {
     static_assert( sizeof( type ) == 48 );
 
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    auto        view = type::create( input );
+    auto view = type::create( input );
     static_assert( sizeof( decltype( view ) ) == 48 );
 
     REQUIRE_THAT( view.to_vector(),
@@ -186,7 +186,7 @@ TEST_CASE( "[range-lite] static create" ) {
     static_assert( sizeof( type ) == 24 );
 
     vector<int> input{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    auto        view = type::create( input );
+    auto view = type::create( input );
     static_assert( sizeof( decltype( view ) ) == 24 );
 
     for( int& i : view ) i *= 10;
@@ -398,23 +398,23 @@ TEST_CASE( "[range-lite] accumulate" ) {
 TEST_CASE( "[range-lite] accumulate_monoid" ) {
   SECTION( "empty" ) {
     vector<int> input{};
-    auto        res = rl::all( input ).accumulate_monoid();
+    auto res = rl::all( input ).accumulate_monoid();
     REQUIRE( res == nothing );
   }
   SECTION( "single" ) {
     vector<int> input{ 10 };
-    auto        res = rl::all( input ).accumulate_monoid();
+    auto res = rl::all( input ).accumulate_monoid();
     REQUIRE( res == 10 );
   }
   SECTION( "multiple" ) {
     vector<int> input{ 1, 2, 3, 4, 5 };
-    auto        res =
+    auto res =
         rl::all( input ).accumulate_monoid( std::multiplies{} );
     REQUIRE( res == 1 * 2 * 3 * 4 * 5 );
   }
   SECTION( "string" ) {
     vector<int> input{ 1, 2, 3, 4, 5 };
-    auto        res = rl::all( input )
+    auto res = rl::all( input )
                    .map_L( to_string( _ ) )
                    .accumulate_monoid();
     REQUIRE( res == "12345" );
@@ -436,7 +436,7 @@ TEST_CASE( "[range-lite] mixing" ) {
 TEST_CASE( "[range-lite] min_by" ) {
   struct A {
     bool operator==( A const& ) const = default;
-    int  n;
+    int n;
   };
   vector<A> input{ { 5 }, { 4 }, { 3 }, { 10 } };
 
@@ -449,7 +449,7 @@ TEST_CASE( "[range-lite] min_by" ) {
 TEST_CASE( "[range-lite] max_by" ) {
   struct A {
     bool operator==( A const& ) const = default;
-    int  n;
+    int n;
   };
   vector<A> input{ { 5 }, { 4 }, { 3 }, { 10 }, { 8 } };
 
@@ -461,13 +461,13 @@ TEST_CASE( "[range-lite] max_by" ) {
 
 TEST_CASE( "[range-lite] min" ) {
   vector<int> input{ 5, 4, 3, 10 };
-  auto        res = rl::all( input ).min();
+  auto res = rl::all( input ).min();
   REQUIRE( res == 3 );
 }
 
 TEST_CASE( "[range-lite] max" ) {
   vector<int> input{ 5, 4, 3, 10, 8 };
-  auto        res = rl::all( input ).max();
+  auto res = rl::all( input ).max();
   REQUIRE( res == 10 );
 }
 
@@ -581,7 +581,7 @@ TEST_CASE( "[range-lite] zip" ) {
                    .to_vector();
 
     REQUIRE( vec.size() == 4 );
-    int    n;
+    int n;
     string m;
 
     // `vec` is a vector of pairs of references, which are a pain
@@ -835,7 +835,7 @@ TEST_CASE( "[range-lite] ints" ) {
 }
 
 TEST_CASE( "[range-lite] generate_n" ) {
-  int  n = 9;
+  int n  = 9;
   auto f = [&] { return n--; };
 
   REQUIRE_THAT( rl::generate_n( f, 0 ).to_vector(),
@@ -979,7 +979,7 @@ TEST_CASE( "[range-lite] knuth-mcelroy with map" ) {
 TEST_CASE( "[range-lite] free-standing zip" ) {
   SECTION( "free-zip: vectors" ) {
     vector<string> input1{ "hello", "world", "one", "two" };
-    vector<int>    input2{ 4, 6, 2, 7, 3 };
+    vector<int> input2{ 4, 6, 2, 7, 3 };
 
     auto vec = rl::zip( input1, input2 ).take( 3 ).to_vector();
 
@@ -1188,7 +1188,7 @@ TEST_CASE( "[range-lite] intersperse" ) {
 
 TEST_CASE( "[range-lite] dereference pointer" ) {
   SECTION( "just dereference" ) {
-    vector<int>  v{ 1, 2, 3, 4, 5 };
+    vector<int> v{ 1, 2, 3, 4, 5 };
     vector<int*> v_ptr{ &v[0], &v[1], &v[2], &v[3], &v[4] };
 
     auto view = rl::all( v_ptr ).dereference();
@@ -1199,7 +1199,7 @@ TEST_CASE( "[range-lite] dereference pointer" ) {
     REQUIRE_THAT( v, Equals( vector<int>{ 2, 3, 4, 5, 6 } ) );
   }
   SECTION( "dereference ptr after map" ) {
-    vector<int>  v{ 1, 2, 3, 4, 5 };
+    vector<int> v{ 1, 2, 3, 4, 5 };
     vector<int*> v_ptr{ &v[0], &v[1], &v[2], &v[3], &v[4] };
 
     auto view = rl::all( v_ptr ).map_L( _ ).dereference();
@@ -1245,12 +1245,12 @@ TEST_CASE( "[range-lite] cat_maybes" ) {
 TEST_CASE( "[range-lite] tail" ) {
   SECTION( "tail: some" ) {
     vector<int> input{ 1, 2, 3, 4 };
-    auto        vec = rl::all( input ).tail().to_vector();
+    auto vec = rl::all( input ).tail().to_vector();
     REQUIRE_THAT( vec, Equals( vector<int>{ 2, 3, 4 } ) );
   }
   SECTION( "tail: empty" ) {
     vector<int> input{};
-    auto        vec = rl::all( input ).tail().to_vector();
+    auto vec = rl::all( input ).tail().to_vector();
     REQUIRE_THAT( vec, Equals( vector<int>{} ) );
   }
 }
@@ -1388,7 +1388,7 @@ TEST_CASE( "[range-lite] group_by complicated" ) {
                                    { "six", "two" },
                                    { "three", "hello", "world" },
                                    { "four" } };
-  auto                   view2 = view;
+  auto view2 = view;
   REQUIRE_THAT(
       std::move( view2 ).map_L( _.to_vector() ).to_vector(),
       Equals( expected ) );

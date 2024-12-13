@@ -48,7 +48,7 @@ namespace {
 using namespace std;
 
 void check_selected_unit_in_harbor( SSConst const& ss,
-                                    Player const&  player ) {
+                                    Player const& player ) {
   // In case the unit that was selected
   HarborState const& hb_state = player.old_world.harbor_state;
   if( !hb_state.selected_unit.has_value() ) return;
@@ -63,12 +63,12 @@ void check_selected_unit_in_harbor( SSConst const& ss,
 ** Harbor IPlane
 *****************************************************************/
 struct HarborPlane::Impl : public IPlane {
-  SS&     ss_;
-  TS&     ts_;
+  SS& ss_;
+  TS& ts_;
   Player& player_;
 
-  Rect                                    canvas_;
-  co::stream<input::event_t>              input_      = {};
+  Rect canvas_;
+  co::stream<input::event_t> input_                   = {};
   maybe<DragState<HarborDraggableObject>> drag_state_ = {};
 
   HarborViewComposited composition_;
@@ -129,8 +129,8 @@ struct HarborPlane::Impl : public IPlane {
   void draw_stats( rr::Renderer& renderer ) const {
     UNWRAP_CHECK( canvas, compositor::section(
                               compositor::e_section::normal ) );
-    auto&        nation = nation_obj( player_.nation );
-    string const stats  = fmt::format(
+    auto& nation       = nation_obj( player_.nation );
+    string const stats = fmt::format(
         "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
         nation.harbor_city_name, nation.country_name,
         // FIXME
@@ -375,9 +375,9 @@ wait<> HarborPlane::show_harbor_view() {
 *****************************************************************/
 wait<> show_harbor_view( SS& ss, TS& ts, Player& player,
                          maybe<UnitId> selected_unit ) {
-  Planes&     planes = ts.planes;
-  auto        owner  = planes.push();
-  PlaneGroup& group  = owner.group;
+  Planes& planes    = ts.planes;
+  auto owner        = planes.push();
+  PlaneGroup& group = owner.group;
 
   HarborPlane harbor_plane( ss, ts, player );
   check_selected_unit_in_harbor( ss, player );

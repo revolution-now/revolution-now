@@ -22,7 +22,7 @@ using namespace std;
 
 namespace base {
 
-string error_read_text_file_msg( string_view            filename,
+string error_read_text_file_msg( string_view filename,
                                  e_error_read_text_file e ) {
   switch( e ) {
     case e_error_read_text_file::file_does_not_exist:
@@ -83,7 +83,7 @@ read_text_file( fs::path const& file, maybe<size_t&> o_size ) {
   char* p = buffer.get();
 
   constexpr size_t kStackBufferSize = 4096;
-  char             stack_buffer[kStackBufferSize];
+  char stack_buffer[kStackBufferSize];
   // This algo probably won't work unless char has size 1.
   static_assert( sizeof( char ) == 1 );
   while( size_t read =
@@ -116,12 +116,12 @@ read_text_file_as_string( fs::path const& p ) {
   expect<std::string, e_error_read_text_file> res = "";
 
   size_t size;
-  auto   buf = read_text_file( p, size );
+  auto buf = read_text_file( p, size );
   if( !buf ) {
     res = buf.error();
   } else {
     char const* src = buf->get();
-    string      s;
+    string s;
     s.resize( size, ' ' );
     memcpy( s.data(), src, size );
     res.emplace( std::move( s ) );

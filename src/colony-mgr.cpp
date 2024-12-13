@@ -82,7 +82,7 @@ namespace {
 unordered_set<UnitId> units_at_or_in_colony(
     Colony const& colony, UnitsState const& units_state ) {
   unordered_set<UnitId> all = units_state.from_colony( colony );
-  Coord                 colony_loc = colony.location;
+  Coord colony_loc          = colony.location;
   for( GenericUnitId map_id :
        units_state.from_coord( colony_loc ) )
     all.insert( units_state.check_euro_unit( map_id ) );
@@ -90,7 +90,7 @@ unordered_set<UnitId> units_at_or_in_colony(
 }
 
 ColonyJob find_job_for_initial_colonist( SSConst const& ss,
-                                         Player const&  player,
+                                         Player const& player,
                                          Colony const& colony ) {
   refl::enum_map<e_direction, bool> const occupied_squares =
       find_occupied_surrounding_colony_squares( ss, colony );
@@ -142,8 +142,8 @@ void create_initial_buildings( Colony& colony ) {
 }
 
 void clear_abandoned_colony_road( SSConst const& ss,
-                                  IMapUpdater&   map_updater,
-                                  Coord          location ) {
+                                  IMapUpdater& map_updater,
+                                  Coord location ) {
   MapSquare const& square = ss.terrain.square_at( location );
   // Depending on how the colony is being destroyed, the road may
   // have already been removed (e.g. for animation purposes), and
@@ -271,9 +271,9 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
     FATAL( "Cannot found colony, error code: {}.",
            refl::enum_value_name( res.error() ) );
 
-  Unit&    unit   = ss.units.unit_for( founder );
+  Unit& unit      = ss.units.unit_for( founder );
   e_nation nation = unit.nation();
-  Coord    where  = ss.units.coord_for( founder );
+  Coord where     = ss.units.coord_for( founder );
 
   // Create colony object.
   ColonyId col_id =
@@ -342,8 +342,8 @@ void strip_unit_to_base_type( SS& ss, TS& ts, Unit& unit,
 }
 
 void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
-                                       Colony&          colony,
-                                       Unit&            unit,
+                                       Colony& colony,
+                                       Unit& unit,
                                        ColonyJob const& job ) {
   CHECK( unit.nation() == colony.nation );
   UnitId const unit_id = unit.id();
@@ -369,9 +369,9 @@ void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
   }
 }
 
-void remove_unit_from_colony_obj_low_level( SS&     ss,
+void remove_unit_from_colony_obj_low_level( SS& ss,
                                             Colony& colony,
-                                            UnitId  unit_id ) {
+                                            UnitId unit_id ) {
   CHECK( ss.units.unit_for( unit_id ).nation() ==
          colony.nation );
   CHECK( as_const( ss.units )
@@ -415,9 +415,9 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
                                          Colony& colony ) {
   ColonyDestructionOutcome outcome;
   // Before the colony is destroyed.
-  string const   colony_name     = colony.name;
-  Coord const    colony_location = colony.location;
-  e_nation const colony_nation   = colony.nation;
+  string const colony_name     = colony.name;
+  Coord const colony_location  = colony.location;
+  e_nation const colony_nation = colony.nation;
   // These are the units working in the colony, not those at the
   // gate or in cargo.
   vector<UnitId> units = colony_units_all( colony );
@@ -486,11 +486,11 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
 
 wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
                                e_ship_damaged_reason reason,
-                               maybe<string>         msg ) {
+                               maybe<string> msg ) {
   // Must extract this info before destroying the colony.
-  string const   colony_name   = colony.name;
+  string const colony_name     = colony.name;
   e_nation const colony_nation = colony.nation;
-  IEuroMind&     mind          = ts.euro_minds()[colony.nation];
+  IEuroMind& mind              = ts.euro_minds()[colony.nation];
   // In case it hasn't already been done...
   ColonyDestructionOutcome const outcome =
       destroy_colony( ss, ts, colony );
@@ -543,7 +543,7 @@ refl::enum_map<e_direction, bool>
 find_occupied_surrounding_colony_squares(
     SSConst const& ss, Colony const& colony ) {
   refl::enum_map<e_direction, bool> res;
-  Coord const                       loc = colony.location;
+  Coord const loc = colony.location;
   // We need to search the space of squares just large enough to
   // get any colonies that are two squares away, since those are
   // the only one's whose land squares could overlap with ours.
@@ -577,7 +577,7 @@ find_occupied_surrounding_colony_squares(
 }
 
 void give_stockade_if_needed( Player const& player,
-                              Colony&       colony ) {
+                              Colony& colony ) {
   // Even if the player has a fort (but not a stockade), which
   // could happen via cheat mode or save-file editing, we'll
   // still just test for the stockade anyway.

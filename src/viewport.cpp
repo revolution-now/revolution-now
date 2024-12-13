@@ -119,7 +119,7 @@ void SmoothViewport::set_point_seek_from_screen_pixel(
 
 void SmoothViewport::advance_zoom_point_seek(
     DissipativeVelocity const& actual_zoom_vel ) {
-  maybe<Coord>        point_to_seek;
+  maybe<Coord> point_to_seek;
   DissipativeVelocity vel_to_use = actual_zoom_vel;
   if( point_seek_.has_value() ) {
     // We want to let the actual zoom velocity dictate the pan-
@@ -216,7 +216,7 @@ constexpr TargetingRates zoom_seeking_parameters{
 // stop.
 template<typename T>
 bool advance_target_seeking( T target_T, double& val,
-                             DissipativeVelocity&  vel,
+                             DissipativeVelocity& vel,
                              TargetingRates const& params ) {
   double target = double( target_T );
   if( val == target ) return true;
@@ -285,7 +285,7 @@ void SmoothViewport::advance_state(
   // "smooth zoom target" mechanism above. Therefore we just com-
   // pute the effective zoom velocity (which, unlike cartesian
   // coordinates, is not the difference but the ratio).
-  double const        new_zoom           = o_.zoom;
+  double const new_zoom                  = o_.zoom;
   DissipativeVelocity effective_zoom_vel = zoom_vel_;
   // new_zoom = old_zoom * (1 + zoom_vel);
   effective_zoom_vel.set_velocity( new_zoom / old_zoom - 1.0 );
@@ -307,7 +307,7 @@ void SmoothViewport::set_y_push( e_push_direction push ) {
 
 void SmoothViewport::set_zoom_push(
     e_push_direction push,
-    maybe<Coord>     maybe_seek_screen_coord ) {
+    maybe<Coord> maybe_seek_screen_coord ) {
   zoom_push_ = push;
 
   zoom_point_seek_ = nothing;
@@ -469,7 +469,7 @@ Rect SmoothViewport::covered_tiles() const {
   // This needs to be consistent with covered_pixels(), hence we
   // compute it based on that.
   gfx::drect const pixels = covered_pixels();
-  Rect             res;
+  Rect res;
   res.x = int( pixels.origin.x / 32.0 );
   res.y = int( pixels.origin.y / 32.0 );
   res.w = int( pixels.right() / 32.0 ) - res.x;
@@ -619,8 +619,8 @@ maybe<Coord> SmoothViewport::screen_pixel_to_world_pixel(
 }
 
 double SmoothViewport::optimal_min_zoom() const {
-  Delta  world_pixels    = world_size_pixels();
-  Delta  viewport_pixels = viewport_rect_pixels_.delta();
+  Delta world_pixels    = world_size_pixels();
+  Delta viewport_pixels = viewport_rect_pixels_.delta();
   double optimal_zoom_for_x =
       double( viewport_pixels.w ) / world_pixels.w;
   double optimal_zoom_for_y =
@@ -767,7 +767,7 @@ bool SmoothViewport::is_tile_fully_visible(
 // respect to the coordinate in the C-dimension.
 template<typename C>
 bool is_tile_fully_visible( SmoothViewport const& vp,
-                            Coord const&          coords ) {
+                            Coord const& coords ) {
   auto tile_rect = Rect::from( coords, Delta{ .w = 1, .h = 1 } );
   auto tile_pixel_rect = tile_rect * g_tile_delta;
   auto covered         = vp.covered_pixels_rounded();

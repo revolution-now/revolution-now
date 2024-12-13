@@ -18,7 +18,7 @@ namespace sav {
 namespace {
 
 cdr::result<uint8_t> parse_nibbles( cdr::converter& conv,
-                                    int             idx,
+                                    int idx,
                                     string const& two_nibbles ) {
   if( two_nibbles.size() != 2 )
     return conv.err(

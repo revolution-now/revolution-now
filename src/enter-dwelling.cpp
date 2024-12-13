@@ -149,7 +149,7 @@ vector<e_enter_dwelling_option> const& options_for_unit(
   TribeRelationship const& relationship =
       tribe.relationship[player.nation];
   bool const at_war = relationship.at_war;
-  auto       switch_war =
+  auto switch_war =
       [&]( auto const& options,
            auto const& options_war ) -> decltype( auto ) {
     return at_war ? options_war : options;
@@ -360,7 +360,7 @@ LiveAmongTheNatives compute_live_among_the_natives(
       ss.natives.tribe_for( dwelling.id )
           .relationship[unit.nation()];
   e_unit_type const base_type = unit.base_type();
-  auto const&       attr      = unit_attr( base_type );
+  auto const& attr            = unit_attr( base_type );
   if( !is_unit_a_colonist( unit.type_obj() ) )
     return LiveAmongTheNatives::generally_ineligible{};
   if( attr.expertise.has_value() )
@@ -499,12 +499,12 @@ static vector<Coord> compute_tales_of_nearby_lands_tiles(
   // the following should lead to a square centered on the
   // dwelling radius.
   Coord const location = ss.natives.coord_for( dwelling.id );
-  Rect const  rect =
+  Rect const rect =
       Rect::from( location, Delta{ .w = 1, .h = 1 } )
           .with_border_added( radius / 2 );
   VisibilityForNation const viz( ss, unit.nation() );
   for( auto r : gfx::subrects( rect ) ) {
-    Coord const             coord = r.upper_left();
+    Coord const coord = r.upper_left();
     maybe<MapSquare const&> square =
         ss.terrain.maybe_square_at( coord );
     // Square must exist on the map.
@@ -580,8 +580,8 @@ static ChiefAction compute_speak_with_chief_action(
       // If there are not enough non-visible tiles in the radius
       // then don't bother otherwise it might be confusing to the
       // player.
-      int const     tales_size = conf.tales_of_nearby_land_size;
-      vector<Coord> tiles = compute_tales_of_nearby_lands_tiles(
+      int const tales_size = conf.tales_of_nearby_land_size;
+      vector<Coord> tiles  = compute_tales_of_nearby_lands_tiles(
           ss, dwelling, unit, tales_size );
       if( ssize( tiles ) <= conf.min_invisible_tiles_for_tales )
         return ChiefAction::none{};

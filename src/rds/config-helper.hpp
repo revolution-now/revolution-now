@@ -46,7 +46,7 @@ namespace detail {
 struct empty_registrar {};
 
 void register_config_erased( std::string const& name,
-                             PopulatorFunc      populator );
+                             PopulatorFunc populator );
 
 } // namespace detail
 

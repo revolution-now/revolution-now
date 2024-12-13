@@ -83,8 +83,8 @@ struct World : testing::World {
       kAttackerDwellingCoord;
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, L, //
       L, L, L, L, L, L, L, //
@@ -103,7 +103,7 @@ struct World : testing::World {
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackEuro" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -115,13 +115,13 @@ TEST_CASE(
   };
 
   struct Params {
-    UnitType              attacker = {};
-    UnitType              defender = {};
-    e_combat_winner       winner   = {};
+    UnitType attacker      = {};
+    UnitType defender      = {};
+    e_combat_winner winner = {};
     EuroUnitCombatOutcome attacker_outcome;
     EuroUnitCombatOutcome defender_outcome;
-    e_colony              attacker_colony = {};
-    e_colony              defender_colony = {};
+    e_colony attacker_colony = {};
+    e_colony defender_colony = {};
   } params;
 
   Player& attacking_player = W.player( W.kAttackerNation );
@@ -948,7 +948,7 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatBraveAttackEuro" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -959,12 +959,12 @@ TEST_CASE(
   };
 
   struct Params {
-    e_native_unit_type      attacker = {};
-    UnitType                defender = {};
-    e_combat_winner         winner   = {};
+    e_native_unit_type attacker = {};
+    UnitType defender           = {};
+    e_combat_winner winner      = {};
     NativeUnitCombatOutcome attacker_outcome;
-    EuroUnitCombatOutcome   defender_outcome;
-    e_colony                defender_colony = {};
+    EuroUnitCombatOutcome defender_outcome;
+    e_colony defender_colony = {};
   } params;
 
   Player& defending_player = W.player( W.kDefenderNation );
@@ -1281,7 +1281,7 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatShipAttackShip" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -1293,21 +1293,21 @@ TEST_CASE(
   };
 
   struct Affected {
-    e_unit_type                type    = {};
+    e_unit_type type                   = {};
     EuroNavalUnitCombatOutcome outcome = {};
   };
 
   struct Params {
-    e_unit_type                attacker           = {};
-    e_unit_type                defender           = {};
-    maybe<e_combat_winner>     winner             = {};
-    EuroNavalUnitCombatOutcome attacker_outcome   = {};
-    EuroNavalUnitCombatOutcome defender_outcome   = {};
-    e_colony                   attacker_colony    = {};
-    e_colony                   defender_colony    = {};
-    int                        units_on_attacker  = 0;
-    int                        units_on_defender  = 0;
-    vector<Affected>           affected_defenders = {};
+    e_unit_type attacker                        = {};
+    e_unit_type defender                        = {};
+    maybe<e_combat_winner> winner               = {};
+    EuroNavalUnitCombatOutcome attacker_outcome = {};
+    EuroNavalUnitCombatOutcome defender_outcome = {};
+    e_colony attacker_colony                    = {};
+    e_colony defender_colony                    = {};
+    int units_on_attacker                       = 0;
+    int units_on_defender                       = 0;
+    vector<Affected> affected_defenders         = {};
   } params;
 
   auto run = [&] {
@@ -1618,16 +1618,16 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatColonyArtilleryAttackShip" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   struct Params {
-    e_unit_type                  defender = {};
-    e_combat_winner              winner   = {};
+    e_unit_type defender   = {};
+    e_combat_winner winner = {};
     ColonyArtilleryCombatOutcome attacker_outcome;
-    EuroNavalUnitCombatOutcome   defender_outcome;
-    int                          units_on_defender = 0;
-    e_colony_building            building          = {};
+    EuroNavalUnitCombatOutcome defender_outcome;
+    int units_on_defender      = 0;
+    e_colony_building building = {};
   } params;
 
   // Make sure that the defending ship is adjacent to the attack-
@@ -1796,16 +1796,16 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatBraveAttackColony" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   struct Params {
-    e_native_unit_type      attacker         = {};
-    maybe<e_unit_type>      defender_at_gate = {};
-    e_combat_winner         winner           = {};
+    e_native_unit_type attacker         = {};
+    maybe<e_unit_type> defender_at_gate = {};
+    e_combat_winner winner              = {};
     NativeUnitCombatOutcome attacker_outcome;
-    EuroUnitCombatOutcome   defender_outcome;
-    bool                    burned = false;
+    EuroUnitCombatOutcome defender_outcome;
+    bool burned = false;
   } params;
 
   BASE_CHECK(
@@ -2023,7 +2023,7 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackBrave" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -2034,12 +2034,12 @@ TEST_CASE(
   };
 
   struct Params {
-    UnitType                attacker = {};
-    e_native_unit_type      defender = {};
-    e_combat_winner         winner   = {};
-    EuroUnitCombatOutcome   attacker_outcome;
+    UnitType attacker           = {};
+    e_native_unit_type defender = {};
+    e_combat_winner winner      = {};
+    EuroUnitCombatOutcome attacker_outcome;
     NativeUnitCombatOutcome defender_outcome;
-    e_colony                attacker_colony = {};
+    e_colony attacker_colony = {};
   } params;
 
   auto run = [&] {
@@ -2190,7 +2190,7 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackDwelling" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -2201,11 +2201,11 @@ TEST_CASE(
   };
 
   struct Params {
-    UnitType              attacker = {};
-    e_combat_winner       winner   = {};
+    UnitType attacker      = {};
+    e_combat_winner winner = {};
     EuroUnitCombatOutcome attacker_outcome;
     DwellingCombatOutcome defender_outcome;
-    e_colony              attacker_colony = {};
+    e_colony attacker_colony = {};
   } params;
 
   auto run = [&] {
@@ -2308,7 +2308,7 @@ TEST_CASE(
 TEST_CASE(
     "[combat-effects] combat_effects_msg, "
     "CombatEuroAttackUndefendedColony" ) {
-  World                 W;
+  World W;
   CombatEffectsMessages expected;
 
   enum class e_colony {
@@ -2320,12 +2320,12 @@ TEST_CASE(
   };
 
   struct Params {
-    UnitType                      attacker = {};
-    e_unit_type                   defender = {};
-    e_combat_winner               winner   = {};
-    EuroUnitCombatOutcome         attacker_outcome;
+    UnitType attacker      = {};
+    e_unit_type defender   = {};
+    e_combat_winner winner = {};
+    EuroUnitCombatOutcome attacker_outcome;
     EuroColonyWorkerCombatOutcome defender_outcome;
-    e_colony                      attacker_colony = {};
+    e_colony attacker_colony = {};
   } params;
 
   auto run = [&] {
@@ -2426,7 +2426,7 @@ TEST_CASE(
     "[combat-effects] perform_euro_unit_combat_effects" ) {
   World W;
 
-  UnitId                unit_id = {};
+  UnitId unit_id = {};
   EuroUnitCombatOutcome outcome;
 
   auto f = [&] {
@@ -2570,7 +2570,7 @@ TEST_CASE(
     "[combat-effects] perform_native_unit_combat_effects" ) {
   World W;
 
-  NativeUnitId            unit_id = {};
+  NativeUnitId unit_id = {};
   NativeUnitCombatOutcome outcome;
 
   Tribe& tribe = W.add_tribe( e_tribe::cherokee );
@@ -2757,8 +2757,8 @@ TEST_CASE(
     "[combat-effects] perform_naval_unit_combat_effects" ) {
   World W;
 
-  UnitId                     unit_id          = {};
-  UnitId                     opponent_unit_id = {};
+  UnitId unit_id          = {};
+  UnitId opponent_unit_id = {};
   EuroNavalUnitCombatOutcome outcome;
 
   auto f = [&] {
@@ -2959,8 +2959,8 @@ TEST_CASE(
     "perform_naval_affected_unit_combat_effects" ) {
   World W;
 
-  UnitId                unit_id          = {};
-  UnitId                opponent_unit_id = {};
+  UnitId unit_id          = {};
+  UnitId opponent_unit_id = {};
   AffectedNavalDefender affected;
 
   auto f = [&] {
@@ -3112,7 +3112,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[combat-effects] mix_combat_effects_msgs" ) {
-  CombatEffectsMessages      msgs;
+  CombatEffectsMessages msgs;
   MixedCombatEffectsMessages expected;
 
   auto f = [&] { return mix_combat_effects_msgs( msgs ); };
@@ -3142,7 +3142,7 @@ TEST_CASE( "[combat-effects] mix_combat_effects_msgs" ) {
 }
 
 TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
-  MixedCombatEffectsMessages         msgs;
+  MixedCombatEffectsMessages msgs;
   FilteredMixedCombatEffectsMessages expected;
 
   auto f = [&] { return filter_combat_effects_msgs( msgs ); };
@@ -3189,7 +3189,7 @@ TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
 }
 
 TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
-  World          W;
+  World W;
   MockIEuroMind& attacker_mind = W.euro_mind( e_nation::dutch );
   MockIEuroMind& defender_mind = W.euro_mind( e_nation::french );
 

@@ -38,12 +38,12 @@ struct HarborExitButton : public ui::View, public HarborSubView {
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::AwaitView.
   virtual wait<> perform_click(

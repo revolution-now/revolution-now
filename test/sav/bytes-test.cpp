@@ -78,7 +78,7 @@ TEST_CASE( "[sav/bytes] to_canonical" ) {
 
 TEST_CASE( "[sav/bytes] from_canonical" ) {
   cdr::converter conv;
-  cdr::value     v;
+  cdr::value v;
   SECTION( "empty" ) {
     bytes<0> const expected = {};
 
@@ -191,8 +191,8 @@ TEST_CASE( "[sav/bytes] read_binary" ) {
                                         1, 1, 1, 1, 1, 1, 1, 1 };
 
     MemBufferBinaryIO b( buffer );
-    bytes<0> const    expected = {};
-    bytes<0>          as;
+    bytes<0> const expected = {};
+    bytes<0> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 16 );
@@ -203,8 +203,8 @@ TEST_CASE( "[sav/bytes] read_binary" ) {
     array<unsigned char, 16> buffer = {
       128, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
-    bytes<1> const    expected = { 128 };
-    bytes<1>          as;
+    bytes<1> const expected = { 128 };
+    bytes<1> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 15 );
@@ -215,8 +215,8 @@ TEST_CASE( "[sav/bytes] read_binary" ) {
     array<unsigned char, 16> buffer = {
       128, 200, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
-    bytes<2> const    expected = { 128, 200 };
-    bytes<2>          as;
+    bytes<2> const expected = { 128, 200 };
+    bytes<2> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 14 );
@@ -227,8 +227,8 @@ TEST_CASE( "[sav/bytes] read_binary" ) {
     array<unsigned char, 16> buffer = {
       128, 200, 1, 2, 3, 4, 5, 6, 1, 1, 1, 1, 1, 1, 1, 1 };
     MemBufferBinaryIO b( buffer );
-    bytes<5> const    expected = { 128, 200, 1, 2, 3 };
-    bytes<5>          as;
+    bytes<5> const expected = { 128, 200, 1, 2, 3 };
+    bytes<5> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 11 );

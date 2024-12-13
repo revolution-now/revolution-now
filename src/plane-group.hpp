@@ -61,7 +61,7 @@ struct TypedIPlane {
   }
 
  private:
-  T*      typed_   = {};
+  T* typed_        = {};
   IPlane* untyped_ = {};
 };
 
@@ -83,17 +83,17 @@ concept IsTypedBottomType =
 // This holds a group of planes. Order is from top to bottom,
 // i.e. [0] is above [1], and header is above midtier.
 struct PlaneGroup : IPlaneGroup {
-  TypedIPlane<OmniPlane>    omni;
+  TypedIPlane<OmniPlane> omni;
   TypedIPlane<ConsolePlane> console;
-  TypedIPlane<WindowPlane>  window;
+  TypedIPlane<WindowPlane> window;
 
-  TypedIPlane<MenuPlane>  menu;
+  TypedIPlane<MenuPlane> menu;
   TypedIPlane<PanelPlane> panel;
 
   // This one basically defines which general view we're in.
   BottomPlaneVariant bottom;
 
-  void    set_bottom( IPlane& p ATTR_LIFETIMEBOUND );
+  void set_bottom( IPlane& p ATTR_LIFETIMEBOUND );
   IPlane* get_bottom() const;
 
   bool menus_enabled = false;

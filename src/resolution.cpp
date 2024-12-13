@@ -61,7 +61,7 @@ gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
 *****************************************************************/
 gfx::ResolutionRatings compute_logical_resolution_ratings(
     gfx::Monitor const& monitor,
-    gfx::size const     physical_window ) {
+    gfx::size const physical_window ) {
   gfx::ResolutionAnalysisOptions const options{
     .monitor                      = monitor,
     .physical_window              = physical_window,
@@ -88,7 +88,7 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
 *****************************************************************/
 Resolutions compute_resolutions(
     gfx::Monitor const& monitor,
-    gfx::size const     physical_window ) {
+    gfx::size const physical_window ) {
   auto ratings = compute_logical_resolution_ratings(
       monitor, physical_window );
   // This should be guaranteed by the method that produces the
@@ -116,7 +116,7 @@ Resolutions compute_resolutions(
 SelectedResolution create_selected_available_resolution(
     gfx::ResolutionRatings const& ratings, int const idx ) {
   SelectedResolution selected;
-  auto const&        available = ratings.available;
+  auto const& available = ratings.available;
   CHECK_LT( idx, ssize( available ) );
   selected.rated     = available[idx];
   selected.idx       = idx;

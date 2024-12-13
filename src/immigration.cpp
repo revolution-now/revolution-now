@@ -66,7 +66,7 @@ struct UnitCounts {
 };
 
 UnitCounts unit_counts( UnitsState const& units_state,
-                        e_nation          nation ) {
+                        e_nation nation ) {
   UnitCounts counts;
   for( auto const& [id, state] : units_state.euro_all() ) {
     Unit const& unit = state->unit;
@@ -219,8 +219,8 @@ CrossesCalculation compute_crosses(
 }
 
 void add_player_crosses( Player& player,
-                         int     total_colonies_cross_production,
-                         int     dock_crosses_bonus ) {
+                         int total_colonies_cross_production,
+                         int dock_crosses_bonus ) {
   // This bit of logic is important: the total colonies' produc-
   // tion must be added to the dock bonus before adding them to
   // the player's total so that we can make sure that the differ-

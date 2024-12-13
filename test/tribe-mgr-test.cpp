@@ -57,8 +57,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, L, //
       L, L, L, L, L, L, //
@@ -201,7 +201,7 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
 
 TEST_CASE(
     "[tribe-mgr] clears road after destroying dwelling" ) {
-  World           W;
+  World W;
   MockIMapUpdater mock_map_updater;
 
   W.add_tribe( e_tribe::iroquois );
@@ -451,8 +451,7 @@ TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
   REQUIRE( W.natives().tribe_exists( e_tribe::aztec ) );
 }
 
-TEST_CASE( "[tribe-mgr] tribe_for_dwelling" ) {
-}
+TEST_CASE( "[tribe-mgr] tribe_for_dwelling" ) {}
 
 } // namespace
 } // namespace rn

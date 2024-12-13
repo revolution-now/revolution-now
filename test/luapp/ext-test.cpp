@@ -57,7 +57,7 @@ struct Point {
 // This type gets pushed as two Lua values.
 template<typename First, typename Second>
 struct Pair {
-  First  first  = {};
+  First first   = {};
   Second second = {};
 
   bool operator<=>( Pair const& ) const = default;
@@ -76,7 +76,7 @@ struct Both {
 struct ReffableViaAdl {
   int x = 9;
 
-  friend void lua_push( lua::cthread          L,
+  friend void lua_push( lua::cthread L,
                         ReffableViaAdl const& r ) {
     lua::c_api C( L );
     push( L, (void*)&r );
@@ -104,7 +104,7 @@ template<>
 struct type_traits<my_ns::ReffableViaTraits> {
   static constexpr int nvalues = 1;
 
-  static void push( cthread                         L,
+  static void push( cthread L,
                     my_ns::ReffableViaTraits const& r ) {
     lua::c_api C( L );
     lua::push( L, (void*)&r );
@@ -134,7 +134,7 @@ struct type_traits<my_ns::Pair<First, Second>> {
   }
 
   static base::maybe<P> get( cthread L, int idx, tag<P> ) {
-    base::maybe<First>  fst = lua::get<First>( L, idx - 1 );
+    base::maybe<First> fst  = lua::get<First>( L, idx - 1 );
     base::maybe<Second> snd = lua::get<Second>( L, idx );
     if( !fst.has_value() || !snd.has_value() )
       return base::nothing;

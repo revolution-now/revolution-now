@@ -55,8 +55,8 @@ using ::base::valid;
   for( int qy = 0; qy < height_quads; ++qy ) {
     fmt::print( "    " );
     for( int qx = 0; qx < width_quads; ++qx ) {
-      int const     offset = qx * height_quads + qy;
-      auto const    val    = board[offset];
+      int const offset     = qx * height_quads + qy;
+      auto const val       = board[offset];
       uint8_t const casted = bit_field_to_uint( val );
       fmt::print( "{:02x} ", casted );
     }
@@ -461,7 +461,7 @@ TEST_CASE( "[sav/bridge] OG to NG [MapFile]" ) {
                         .map_size_y = 6 + 2 };
   classic.tile.resize( ( 5 + 2 ) * ( 6 + 2 ) );
 
-  rn::MapSquare   expected;
+  rn::MapSquare expected;
   rn::RealTerrain modern;
   modern.map.reset( { .w = 5, .h = 6 } );
 
@@ -622,7 +622,7 @@ TEST_CASE( "[sav/bridge] NG to OG [MapFile]" ) {
   using hr3 = sav::hills_river_3bit_type;
   using MS  = rn::MapSquare;
 
-  sav::TILE    expected;
+  sav::TILE expected;
   sav::MapFile classic;
 
   rn::RealTerrain modern;

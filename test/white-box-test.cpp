@@ -21,9 +21,9 @@
 
 // ss
 #include "src/ss/land-view.rds.hpp"
+#include "src/ss/ref.hpp"
 #include "src/ss/unit-composition.hpp"
 #include "src/ss/unit.hpp"
-#include "src/ss/ref.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
@@ -50,8 +50,8 @@ struct world : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, //
       L, _, L, //
@@ -91,10 +91,10 @@ TEST_CASE( "[white-box] set_white_box_tile" ) {
 }
 
 TEST_CASE( "[white-box] find_a_good_white_box_location" ) {
-  world         w;
-  rect          covered_tiles;
+  world w;
+  rect covered_tiles;
   maybe<UnitId> last_unit_input;
-  point         expected;
+  point expected;
 
   auto f = [&] {
     return find_a_good_white_box_location(
@@ -141,7 +141,7 @@ TEST_CASE( "[white-box] find_a_good_white_box_location" ) {
   // With unit that doesn't exist.
   last_unit_input = unit_id;
   UnitOwnershipChanger( w.ss(), unit_id ).destroy();
-  expected        = { .x = 2, .y = 4 };
+  expected = { .x = 2, .y = 4 };
   REQUIRE( f() == expected );
 
   // Move white box out of visibility.

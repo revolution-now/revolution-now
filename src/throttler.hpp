@@ -45,10 +45,10 @@ constexpr auto kAlmostStandardFrame =
 struct AnimThrottler {
   using microseconds = std::chrono::microseconds;
   microseconds const gap;
-  microseconds       accum;
+  microseconds accum;
 
   explicit AnimThrottler( microseconds gap_,
-                          bool         initial_delay = false )
+                          bool initial_delay = false )
     : gap( gap_ ),
       accum( initial_delay ? microseconds{} : gap_ ) {}
 

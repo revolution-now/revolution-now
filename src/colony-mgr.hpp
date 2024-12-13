@@ -104,7 +104,7 @@ wait<> run_animated_colony_destruction(
 // Same as above but for when the animation is done separately.
 wait<> run_colony_destruction( SS& ss, TS& ts, Colony& colony,
                                e_ship_damaged_reason reason,
-                               maybe<std::string>    msg );
+                               maybe<std::string> msg );
 
 // Given a colony, find the squares in its surroundings that are
 // being worked by units in other colonies, either friendly or
@@ -119,19 +119,19 @@ find_occupied_surrounding_colony_squares( SSConst const& ss,
 // has Sieur de La Salle and its population >= 3 then it will be
 // given a stockade.
 void give_stockade_if_needed( Player const& player,
-                              Colony&       colony );
+                              Colony& colony );
 
 // This is a low-level method that shouldn't be used directly;
 // instead, one should use the unit-ownership module API.
 void add_unit_to_colony_obj_low_level( SS& ss, TS& ts,
-                                       Colony&          colony,
-                                       Unit&            unit,
+                                       Colony& colony,
+                                       Unit& unit,
                                        ColonyJob const& job );
 
 // This is a low-level method that shouldn't be used directly;
 // instead, one should use the unit-ownership module API.
-void remove_unit_from_colony_obj_low_level( SS&     ss,
+void remove_unit_from_colony_obj_low_level( SS& ss,
                                             Colony& colony,
-                                            UnitId  unit_id );
+                                            UnitId unit_id );
 
 } // namespace rn

@@ -350,7 +350,7 @@ LUA_TEST_CASE( "[types] equality" ) {
 
   SECTION( "boolean with lightuserdata" ) {
     lightuserdata lud = C.newuserdata( 10 );
-    boolean       b   = true;
+    boolean b         = true;
     REQUIRE( lud != b );
     REQUIRE( b != lud );
     REQUIRE( lud != true );
@@ -376,7 +376,7 @@ LUA_TEST_CASE( "[types] equality" ) {
   // prevent Catch's expression templates from messing up our
   // comparison overload selection.
   SECTION( "boolean with floating" ) {
-    boolean  b = true;
+    boolean b  = true;
     floating f = 1.;
     REQUIRE( ( b != f ) );
     REQUIRE( ( f != b ) );
@@ -385,8 +385,8 @@ LUA_TEST_CASE( "[types] equality" ) {
   SECTION( "lightuserdata with self" ) {
     lightuserdata lud1 = C.newuserdata( 10 );
     lightuserdata lud2 = C.newuserdata( 10 );
-    void*         p1   = lud1.get();
-    void*         p2   = lud2.get();
+    void* p1           = lud1.get();
+    void* p2           = lud2.get();
     REQUIRE( lud1 == lud1 );
     REQUIRE( lud2 == lud2 );
     REQUIRE( lud1 != lud2 );
@@ -404,7 +404,7 @@ LUA_TEST_CASE( "[types] equality" ) {
 
   SECTION( "lightuserdata with integer" ) {
     lightuserdata lud = C.newuserdata( 10 );
-    integer       i   = 1;
+    integer i         = 1;
     REQUIRE( lud != i );
     REQUIRE( i != lud );
     REQUIRE( lud != 1 );
@@ -414,7 +414,7 @@ LUA_TEST_CASE( "[types] equality" ) {
 
   SECTION( "lightuserdata with floating" ) {
     lightuserdata lud = C.newuserdata( 10 );
-    floating      f   = 1.;
+    floating f        = 1.;
     REQUIRE( lud != f );
     REQUIRE( f != lud );
     REQUIRE( lud != 1. );
@@ -436,15 +436,15 @@ LUA_TEST_CASE( "[types] equality" ) {
   }
 
   SECTION( "integer with floating" ) {
-    integer  i1 = 1;
-    integer  i2 = -4;
+    integer i1  = 1;
+    integer i2  = -4;
     floating f1 = 1.0;
     floating f2 = -4.3;
     REQUIRE( i1 == f1 );
     REQUIRE( f1 == i1 );
     REQUIRE( i2 != f2 );
     REQUIRE( f2 != i2 );
-    integer  iz = 0;
+    integer iz  = 0;
     floating fz = 0.;
     REQUIRE( iz == fz );
     REQUIRE( fz == iz );

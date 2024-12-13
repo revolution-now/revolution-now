@@ -78,7 +78,7 @@ rthread state::Thread::main() noexcept {
 }
 
 rthread state::Thread::create() noexcept {
-  c_api   C( L );
+  c_api C( L );
   cthread NL = C.newthread();
   rthread res( L, C.ref_registry() );
   CHECK( res.this_cthread() == NL );
@@ -170,7 +170,7 @@ lua_valid state::Script::load_file_safe(
 }
 
 void state::Script::load_file( std::string_view file ) {
-  c_api     C( L );
+  c_api C( L );
   lua_valid res = load_file_safe( file );
   if( !res ) throw_lua_error( L, "{}", res );
 }

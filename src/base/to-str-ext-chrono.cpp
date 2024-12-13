@@ -46,9 +46,9 @@ string format_duration( chrono::nanoseconds ns ) {
   static constexpr int64_t kNanosInMicro =
       microseconds{ 1 } / nanoseconds{ 1 };
 
-  static constexpr hours        kSmallEnoughForMinutes{ 20 };
-  static constexpr minutes      kSmallEnoughForSeconds{ 20 };
-  static constexpr seconds      kSmallEnoughForMillis{ 10 };
+  static constexpr hours kSmallEnoughForMinutes{ 20 };
+  static constexpr minutes kSmallEnoughForSeconds{ 20 };
+  static constexpr seconds kSmallEnoughForMillis{ 10 };
   static constexpr milliseconds kSmallEnoughForMicros{ 10 };
   static constexpr microseconds kSmallEnoughForNanos{ 10 };
 

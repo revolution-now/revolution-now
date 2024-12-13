@@ -148,7 +148,7 @@ class ND MovementPoints {
       lua::cthread L, int idx, lua::tag<MovementPoints> );
   friend void lua_push( lua::cthread L, MovementPoints mv_pts );
 
-  friend cdr::value to_canonical( cdr::converter&       conv,
+  friend cdr::value to_canonical( cdr::converter& conv,
                                   MovementPoints const& o,
                                   cdr::tag_t<MovementPoints> );
 

@@ -43,8 +43,8 @@ void PopulationView::draw_sons_of_liberty(
   int constexpr kIconPadding = 4;
   ColonySonsOfLiberty const info =
       compute_colony_sons_of_liberty( player_, colony_ );
-  gfx::pixel text_color         = gfx::pixel::white();
-  int const  tory_penalty_level = compute_tory_penalty_level(
+  gfx::pixel text_color        = gfx::pixel::white();
+  int const tory_penalty_level = compute_tory_penalty_level(
       ss_.settings.difficulty, info.tories );
   switch( tory_penalty_level ) {
     case 0: {
@@ -103,15 +103,15 @@ void PopulationView::draw_sons_of_liberty(
 }
 
 void PopulationView::draw( rr::Renderer& renderer,
-                           Coord         coord ) const {
+                           Coord coord ) const {
   draw_sons_of_liberty( renderer, coord );
   // Draw colonists.
   rr::Painter painter = renderer.painter();
   painter.draw_empty_rect( rect( coord ).with_inc_size(),
                            rr::Painter::e_border_mode::inside,
                            gfx::pixel::black() );
-  vector<UnitId> units    = colony_units_all( colony_ );
-  auto           unit_pos = coord + Delta{ .h = 16 };
+  vector<UnitId> units = colony_units_all( colony_ );
+  auto unit_pos        = coord + Delta{ .h = 16 };
   unit_pos.x -= 3;
   for( UnitId unit_id : units ) {
     render_unit( renderer, unit_pos,

@@ -58,7 +58,7 @@ bool has_all_fathers( Player const& player );
 // player already has. Will return nothing if all fathers have
 // been obtained.
 maybe<int> bells_needed_for_next_father( SSConst const& ss,
-                                         Player const&  player );
+                                         Player const& player );
 
 // If the player has some bells and is not currently working to-
 // ward a founding father then this will pop up a menu allowing

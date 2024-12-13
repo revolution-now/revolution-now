@@ -49,7 +49,7 @@ class variant : public std::variant<Args...> {
   using base_t = Base;
 
   constexpr Base const& as_std() const& { return *this; }
-  constexpr Base&       as_std() & { return *this; }
+  constexpr Base& as_std() & { return *this; }
 
   constexpr Base const&& as_std() const&& {
     return std::move( *this );

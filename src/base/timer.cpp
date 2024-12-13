@@ -27,7 +27,7 @@ using ::std::chrono::nanoseconds;
 /****************************************************************
 ** ScopedTimer
 *****************************************************************/
-ScopedTimer::ScopedTimer( string                 total_label,
+ScopedTimer::ScopedTimer( string total_label,
                           source_location const& loc ) {
   if( options_.disable ) return;
   total_.emplace();
@@ -35,7 +35,7 @@ ScopedTimer::ScopedTimer( string                 total_label,
 }
 
 void ScopedTimer::log_segment_result( Segment const& segment,
-                                      string_view    prefix ) {
+                                      string_view prefix ) {
   nanoseconds const d =
       std::max( 0ns, duration_cast<nanoseconds>(
                          segment.end - segment.start ) );
@@ -60,7 +60,7 @@ ScopedTimer::~ScopedTimer() noexcept {
     log_segment_result( segment, prefix );
 }
 
-void ScopedTimer::checkpoint( string                 label,
+void ScopedTimer::checkpoint( string label,
                               source_location const& loc ) {
   if( options_.disable ) return;
   flush_latest_segment();

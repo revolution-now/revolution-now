@@ -246,7 +246,7 @@ LUA_TEST_CASE( "[ext-userdata] cpp owned non copyable" ) {
       valid );
 
   st["foo"] = []( CppOwnedNonCopyable const& o0,
-                  CppOwnedNonCopyable&       o1 ) {
+                  CppOwnedNonCopyable& o1 ) {
     return o0.n + o1.n;
   };
   REQUIRE( as<int>( st["foo"]( o, o ) ) == 5 * 2 );
@@ -390,7 +390,7 @@ LUA_TEST_CASE( "[ext-userdata] lua owned non copyable" ) {
            valid );
 
   st["foo"] = []( LuaOwnedNonCopyable const& o0,
-                  LuaOwnedNonCopyable&       o1 ) {
+                  LuaOwnedNonCopyable& o1 ) {
     return o0.n + o1.n;
   };
   REQUIRE( as<int>( st["foo"]( LuaOwnedNonCopyable{},

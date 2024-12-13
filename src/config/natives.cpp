@@ -23,8 +23,8 @@ namespace {
 // by the validation code which cannot access it via the global
 // config_natives object because that hasn't been populated yet.
 maybe<e_native_unit_type> find_brave_impl( auto const& equipment,
-                                           bool        muskets,
-                                           bool        horses ) {
+                                           bool muskets,
+                                           bool horses ) {
   for( auto const& [brave, eq] : equipment )
     if( eq[e_brave_equipment::muskets] == muskets &&
         eq[e_brave_equipment::horses] == horses )

@@ -220,7 +220,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
     unordered_map<int, double> empty;
     REQUIRE( conv.to( empty ) == list{} );
     unordered_map<int, double> m1{ { 3, 5.5 }, { 4, 7.7 } };
-    value                      v1 = conv.to( m1 );
+    value v1 = conv.to( m1 );
     REQUIRE(
         ( ( v1 ==
             list{ table{ { "key", 3 }, { "val", 5.5 } },
@@ -233,7 +233,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (list)" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the list version.
     using M = unordered_map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
+    M expected{ { "one", 1 }, { "two", 2 } };
     value v = list{ table{ { "key", "one" }, { "val", 1 } },
                     table{ { "key", "two" }, { "val", 2 } } };
     REQUIRE( conv_from_bt<M>( conv, v ) == expected );
@@ -261,7 +261,7 @@ TEST_CASE( "[cdr/ext-std] unordered_map (table)" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the table version.
     using M = unordered_map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
+    M expected{ { "one", 1 }, { "two", 2 } };
     value v = table{ { "one", 1 }, { "two", 2 } };
     REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
@@ -272,7 +272,7 @@ TEST_CASE( "[cdr/ext-std] map (list)" ) {
     map<int, double> empty;
     REQUIRE( conv.to( empty ) == list{} );
     map<int, double> m1{ { 3, 5.5 }, { 4, 7.7 } };
-    value            v1 = conv.to( m1 );
+    value v1 = conv.to( m1 );
     REQUIRE(
         ( ( v1 ==
             list{ table{ { "key", 3 }, { "val", 5.5 } },
@@ -285,7 +285,7 @@ TEST_CASE( "[cdr/ext-std] map (list)" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the list version.
     using M = map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
+    M expected{ { "one", 1 }, { "two", 2 } };
     value v = list{ table{ { "key", "one" }, { "val", 1 } },
                     table{ { "key", "two" }, { "val", 2 } } };
     REQUIRE( conv_from_bt<M>( conv, v ) == expected );
@@ -311,7 +311,7 @@ TEST_CASE( "[cdr/ext-std] map (table)" ) {
     // Here we can convert from either a table or a list, but
     // here we are testing the table version.
     using M = map<string, int>;
-    M     expected{ { "one", 1 }, { "two", 2 } };
+    M expected{ { "one", 1 }, { "two", 2 } };
     value v = table{ { "one", 1 }, { "two", 2 } };
     REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
@@ -322,32 +322,32 @@ TEST_CASE( "[cdr/ext-std] unordered_set" ) {
     unordered_set<string> empty;
     REQUIRE( conv.to( empty ) == list{} );
     unordered_set<string> m1{ "hello", "world" };
-    value                 v1 = conv.to( m1 );
+    value v1 = conv.to( m1 );
     REQUIRE( v1 == list{ "hello", "world" } );
     unordered_set<string> m2{ "9", "0", "8", "1", "7",
                               "2", "6", "3", "5", "4" };
-    value                 v2 = conv.to( m2 );
+    value v2 = conv.to( m2 );
     REQUIRE( v2 == list{ "0", "1", "2", "3", "4", "5", "6", "7",
                          "8", "9" } );
   }
   SECTION( "from_canonical" ) {
     using M = unordered_set<int>;
-    M     expected{ 1, 2, 3 };
+    M expected{ 1, 2, 3 };
     value v = list{ 2, 3, 3, 1, 2, 1, 1 };
     REQUIRE( conv_from_bt<M>( conv, v ) == expected );
   }
 }
 
 TEST_CASE( "[cdr/ext-std] unordered_set invalid element" ) {
-  using M        = unordered_set<int>;
-  value v        = list{ 2, 3, 3, 1, "2", 1, 1 };
-  auto  expected = conv.err(
+  using M       = unordered_set<int>;
+  value v       = list{ 2, 3, 3, 1, "2", 1, 1 };
+  auto expected = conv.err(
       "failed to convert value of type string to int.\n"
-       "frame trace (most recent frame last):\n"
-       "std::unordered_set<int, std::hash<int>, "
-       "std::equal_to<int>, st...\n"
-       " \\-index 4\n"
-       "  \\-int" );
+      "frame trace (most recent frame last):\n"
+      "std::unordered_set<int, std::hash<int>, "
+      "std::equal_to<int>, st...\n"
+      " \\-index 4\n"
+      "  \\-int" );
   REQUIRE( conv_from_bt<M>( conv, v ) == expected );
 }
 
@@ -355,14 +355,14 @@ TEST_CASE( "[cdr/ext-std] unique_ptr" ) {
   SECTION( "to_canonical" ) {
     unique_ptr<string> empty;
     REQUIRE( conv.to( empty ) == null );
-    auto  u = make_unique<string>( "hello" );
+    auto u  = make_unique<string>( "hello" );
     value v = conv.to( u );
     REQUIRE( v == "hello" );
   }
   SECTION( "from_canonical" ) {
     REQUIRE( conv_from_bt<unique_ptr<string>>( conv, null ) ==
              unique_ptr<string>( nullptr ) );
-    value                      v = "hello";
+    value v = "hello";
     result<unique_ptr<string>> res =
         conv_from_bt<unique_ptr<string>>( conv, v );
     REQUIRE( res.has_value() );

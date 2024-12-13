@@ -53,7 +53,7 @@ struct Typer {
   gfx::point line_start() const { return line_start_; }
 
   gfx::pixel color() const { return color_; }
-  gfx::size  scale() const;
+  gfx::size scale() const;
 
   void set_color( gfx::pixel color ) { color_ = color; }
   void set_scale( gfx::size scale ) { scale_ = scale; }
@@ -103,7 +103,7 @@ struct Typer {
   // calling newline().
   void write_char_impl( Painter& painter, char c );
 
-  Painter          painter_;
+  Painter painter_;
   AsciiFont const& ascii_font_;
   // Pixel position of the upper-left of the start of the current
   // line.

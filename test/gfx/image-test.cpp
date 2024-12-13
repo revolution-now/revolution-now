@@ -155,7 +155,7 @@ TEST_CASE( "[image] new_filled_image" ) {
   };
   REQUIRE( testing::image_equals( img1, expected_img1 ) );
 
-  image         img2 = new_filled_image( { .w = 5, .h = 7 }, G );
+  image img2 = new_filled_image( { .w = 5, .h = 7 }, G );
   vector<pixel> expected_img2 = {
     G, G, G, G, G, //
     G, G, G, G, G, //

@@ -64,7 +64,7 @@ struct RealGui : IGui {
 
   // Implement IGui.
   wait<std::unordered_map<int, bool>> check_box_selector(
-      std::string const&                           title,
+      std::string const& title,
       std::unordered_map<int, CheckBoxInfo> const& items )
       override;
 

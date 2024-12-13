@@ -55,7 +55,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[rpt] click_purchase" ) {
-  World   W;
+  World W;
   Player& player             = W.default_player();
   player.money               = 2000;
   player.artillery_purchases = 2;
@@ -131,7 +131,7 @@ TEST_CASE( "[rpt] click_purchase" ) {
 }
 
 TEST_CASE( "[rpt] click_train" ) {
-  World   W;
+  World W;
   Player& player             = W.default_player();
   player.money               = 1010;
   player.artillery_purchases = 2;
@@ -221,7 +221,7 @@ TEST_CASE( "[rpt] click_train" ) {
 }
 
 TEST_CASE( "[rpt] click_recruit" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
 
   W.settings().difficulty = e_difficulty::conquistador;

@@ -60,8 +60,8 @@ void add_to_horse_breeding( SSConst const& ss,
 }
 
 EquippedBrave select_brave_equip_impl( SSConst const& ss,
-                                       IRand&         rand,
-                                       Tribe const&   tribe,
+                                       IRand& rand,
+                                       Tribe const& tribe,
                                        bool has_muskets,
                                        bool has_horses ) {
   bool const take_muskets =
@@ -103,7 +103,7 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
 ** Public API.
 *****************************************************************/
 void retain_horses_from_destroyed_brave( SSConst const& ss,
-                                         Tribe&         tribe ) {
+                                         Tribe& tribe ) {
   int const& delta =
       config_natives.arms.internal_horses_per_mounted_brave;
   add_to_horse_breeding( ss, tribe.type, delta,
@@ -119,7 +119,7 @@ void gain_horses_from_winning_combat( Tribe& tribe ) {
 }
 
 void acquire_muskets_from_colony_raid( Tribe& tribe,
-                                       int    quantity ) {
+                                       int quantity ) {
   if( quantity == 0 ) return;
   int const& delta =
       config_natives.arms.internal_muskets_per_armed_brave;
@@ -129,8 +129,8 @@ void acquire_muskets_from_colony_raid( Tribe& tribe,
 }
 
 void acquire_horses_from_colony_raid( SSConst const& ss,
-                                      Tribe&         tribe,
-                                      int            quantity ) {
+                                      Tribe& tribe,
+                                      int quantity ) {
   if( quantity == 0 ) return;
   ++tribe.horse_herds;
   int const& delta =
@@ -140,8 +140,8 @@ void acquire_horses_from_colony_raid( SSConst const& ss,
 }
 
 EquippedBrave select_new_brave_equip( SSConst const& ss,
-                                      IRand&         rand,
-                                      Tribe const&   tribe ) {
+                                      IRand& rand,
+                                      Tribe const& tribe ) {
   return select_brave_equip_impl( ss, rand, tribe,
                                   /*has_muskets=*/false,
                                   /*has_horses=*/false );
@@ -161,7 +161,7 @@ EquippedBrave select_existing_brave_equip(
 }
 
 void evolve_tribe_horse_breeding( SSConst const& ss,
-                                  Tribe&         tribe ) {
+                                  Tribe& tribe ) {
   int const delta = tribe.horse_herds;
   // Not strictly needed, but just to save time so that we don't
   // need to compute max horse breeding.
@@ -281,7 +281,7 @@ void on_horses_gifted_to_tribe( SSConst const& ss, Tribe& tribe,
                          tribe.horse_breeding );
 }
 
-void on_receive_muskets_via_reparations( Tribe&      tribe,
+void on_receive_muskets_via_reparations( Tribe& tribe,
                                          NativeUnit& demander ) {
   bool const has_muskets =
       config_natives.arms
@@ -297,7 +297,7 @@ void on_receive_muskets_via_reparations( Tribe&      tribe,
 }
 
 void on_receive_horses_via_reparations( SSConst const& ss,
-                                        Tribe&         tribe,
+                                        Tribe& tribe,
                                         NativeUnit& demander ) {
   bool const has_muskets =
       config_natives.arms

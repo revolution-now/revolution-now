@@ -32,7 +32,7 @@ namespace rn {
 
 maybe<string_view> env_var( char const* name ) {
   maybe<string_view> res;
-  auto const*        value = getenv( name );
+  auto const* value = getenv( name );
   if( value != nullptr ) res = value;
   return res;
 }

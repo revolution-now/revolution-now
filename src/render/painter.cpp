@@ -98,7 +98,7 @@ Painter Painter::without_mods() {
   return res;
 }
 
-void Painter::add_mods( VertexBase&        vert,
+void Painter::add_mods( VertexBase& vert,
                         PainterMods const& mods ) {
   if( mods.depixelate.stage.has_value() )
     vert.set_depixelation_stage( *mods.depixelate.stage );
@@ -223,8 +223,8 @@ Painter& Painter::draw_solid_rect( rect r, pixel color ) {
   return *this;
 }
 
-Painter& Painter::draw_sprite_impl( rect        total_src,
-                                    point       dst_origin,
+Painter& Painter::draw_sprite_impl( rect total_src,
+                                    point dst_origin,
                                     maybe<size> dst_size,
                                     maybe<rect> section ) {
   rect const src =
@@ -257,14 +257,14 @@ Painter& Painter::draw_sprite_impl( rect        total_src,
   return *this;
 }
 
-Painter& Painter::draw_sprite( int const   atlas_id,
+Painter& Painter::draw_sprite( int const atlas_id,
                                point const where ) {
   return draw_sprite_impl( atlas_.lookup( atlas_id ), where,
                            /*dst_size=*/nothing,
                            /*section=*/nothing );
 }
 
-Painter& Painter::draw_sprite_scale( int const  atlas_id,
+Painter& Painter::draw_sprite_scale( int const atlas_id,
                                      rect const dst ) {
   return draw_sprite_impl( atlas_.lookup( atlas_id ), dst.origin,
                            dst.size,

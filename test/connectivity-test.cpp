@@ -43,17 +43,17 @@ struct World : testing::World {
   // the create_map function allows better code formatting from
   // clang-format.
   void set_width( int width ) { width_ = width; }
-  int  width_ = -1;
+  int width_ = -1;
 };
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[connectivity] compute_terrain_connectivity" ) {
-  World               W;
+  World W;
   TerrainConnectivity expected;
-  MapSquare const     _ = W.make_ocean();
-  MapSquare const     L = W.make_grassland();
+  MapSquare const _ = W.make_ocean();
+  MapSquare const L = W.make_grassland();
 
   auto f = [&] {
     return compute_terrain_connectivity( W.ss() );
@@ -432,7 +432,7 @@ TEST_CASE( "[connectivity] water_square_has_ocean_access" ) {
 }
 
 TEST_CASE( "[connectivity] colony_has_ocean_access" ) {
-  World           W;
+  World W;
   MapSquare const _ = W.make_ocean();
   MapSquare const L = W.make_grassland();
   W.set_width( 5 );

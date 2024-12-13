@@ -42,7 +42,7 @@ struct HarborCargo
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -50,11 +50,11 @@ struct HarborCargo
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
-                 Coord const&                 where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -73,7 +73,7 @@ struct HarborCargo
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
-               Coord const&                 where ) override;
+               Coord const& where ) override;
 
  private:
   maybe<UnitId> get_active_unit() const;
@@ -84,7 +84,7 @@ struct HarborCargo
   maybe<int> slot_under_cursor( Coord where ) const;
 
   struct Draggable {
-    int        slot = {};
+    int slot = {};
     maybe<int> quantity; // if it's a commodity.
   };
 

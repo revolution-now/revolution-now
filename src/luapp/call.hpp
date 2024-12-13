@@ -253,7 +253,7 @@ template<GettableOrVoid R, Pushable... Args>
 lua_expect<resume_result_with_value<R>>
 call_lua_resume_safe_and_get( cthread L_toresume,
                               Args&&... args ) {
-  static constexpr int      nresults_needed = nvalues_for<R>();
+  static constexpr int nresults_needed = nvalues_for<R>();
   lua_expect<resume_result> res =
       call_lua_resume_safe( L_toresume, FWD( args )... );
   HAS_VALUE_OR_RET( res );

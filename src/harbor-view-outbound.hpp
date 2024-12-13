@@ -35,7 +35,7 @@ struct HarborOutboundShips
   static PositionedHarborSubView<HarborOutboundShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborMarketCommodities const& market_commodities,
-      Coord                          harbor_inport_upper_left );
+      Coord harbor_inport_upper_left );
 
   HarborOutboundShips( SS& ss, TS& ts, Player& player,
                        bool is_wide );
@@ -46,7 +46,7 @@ struct HarborOutboundShips
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -54,7 +54,7 @@ struct HarborOutboundShips
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::AwaitView.
   virtual wait<> perform_click(
@@ -62,7 +62,7 @@ struct HarborOutboundShips
 
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
-                 Coord const&                 where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSource.
   void cancel_drag() override;
@@ -77,12 +77,12 @@ struct HarborOutboundShips
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
-               Coord const&                 where ) override;
+               Coord const& where ) override;
 
  private:
   struct UnitWithPosition {
     UnitId id;
-    Coord  pixel_coord;
+    Coord pixel_coord;
   };
 
   std::vector<UnitWithPosition> units( Coord origin ) const;
@@ -91,7 +91,7 @@ struct HarborOutboundShips
   maybe<UnitWithPosition> unit_at_location( Coord where ) const;
 
   maybe<UnitId> get_active_unit() const;
-  void          set_active_unit( UnitId unit_id );
+  void set_active_unit( UnitId unit_id );
 
   wait<> click_on_unit( UnitId unit_id );
 
@@ -103,7 +103,7 @@ struct HarborOutboundShips
   };
 
   maybe<Draggable> dragging_;
-  bool             is_wide_ = false;
+  bool is_wide_ = false;
 };
 
 } // namespace rn

@@ -52,9 +52,9 @@ TEST_CASE( "[woodcut] display_woodcut" ) {
 }
 
 TEST_CASE( "[woodcut] display_woodcut_if_needed" ) {
-  World     W;
-  Player&   player = W.default_player();
-  e_woodcut cut    = {};
+  World W;
+  Player& player = W.default_player();
+  e_woodcut cut  = {};
 
   auto f = [&] {
     wait<> w =

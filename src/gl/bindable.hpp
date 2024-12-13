@@ -43,7 +43,7 @@ struct bindable {
 
    private:
     Derived const& derived_;
-    ObjId          prev_;
+    ObjId prev_;
   };
 
  public:

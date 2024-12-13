@@ -128,7 +128,7 @@ unordered_map<e_init_routine, vector<e_init_routine>>
 
 } // namespace
 
-void register_init_routine( e_init_routine      routine,
+void register_init_routine( e_init_routine routine,
                             InitFunction const& init_func,
                             InitFunction const& cleanup_func ) {
   CHECK( !init_functions().contains( routine ) );
@@ -140,7 +140,7 @@ void register_init_routine( e_init_routine      routine,
 }
 
 void run_all_init_routines(
-    maybe<e_log_level>                    level,
+    maybe<e_log_level> level,
     std::initializer_list<e_init_routine> top_level ) {
   // Logger must be initialized first, since we actually need it
   // in this function itself.

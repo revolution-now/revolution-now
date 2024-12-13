@@ -50,8 +50,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -69,7 +69,7 @@ TEST_CASE( "[command-road] native-owned land" ) {
   W.settings().difficulty = e_difficulty::conquistador;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
-  Tribe&      tribe = W.natives().tribe_for( e_tribe::tupi );
+  Tribe& tribe = W.natives().tribe_for( e_tribe::tupi );
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& pioneer =
       W.add_unit_on_map( e_unit_type::pioneer, tile );

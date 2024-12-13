@@ -39,7 +39,7 @@ advance_depletion_state( SS& ss, IRand& rand,
 
 // Makes tile changes in response to depletion events.
 void update_depleted_tiles(
-    IMapUpdater&                       map_updater,
+    IMapUpdater& map_updater,
     std::vector<DepletionEvent> const& events );
 
 // Remove the depletion counter for the tile if the tile has con-

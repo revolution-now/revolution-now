@@ -71,7 +71,7 @@ TEST_CASE(
     "[gfx/aspect] find_close_named_aspect_ratio works on steam "
     "numbers" ) {
   using enum e_named_aspect_ratio;
-  double const        kTolerance  = 0.04;
+  double const kTolerance         = 0.04;
   vector<size> const& resolutions = testing::steam_resolutions();
 
   using MR = maybe<e_named_aspect_ratio>;

@@ -81,7 +81,7 @@ enum class e_stack_trace_frames {
 
 // Options for customizing how stack traces are printing.
 struct StackTraceOptions {
-  int                  skip_frames = 0;
+  int skip_frames             = 0;
   e_stack_trace_frames frames = e_stack_trace_frames::rn_only;
 };
 
@@ -91,7 +91,7 @@ bool should_include_filepath_in_stacktrace(
 // Print stack trace to stderr with sensible options and skip
 // the latest `skip` number of frames.  That is, if stack
 // traces have been enabled in the build.
-void print_stack_trace( StackTrace const&        st,
+void print_stack_trace( StackTrace const& st,
                         StackTraceOptions const& options = {} );
 
 } // namespace rn

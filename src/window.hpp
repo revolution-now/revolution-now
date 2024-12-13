@@ -85,7 +85,7 @@ struct Window {
   Coord view_pos( Coord origin ) const;
 
   std::unique_ptr<ui::View> const& view() const { return view_; }
-  std::unique_ptr<ui::View>&       view() { return view_; }
+  std::unique_ptr<ui::View>& view() { return view_; }
 
   WindowCancelActions const& cancel_actions() const {
     return cancel_actions_;
@@ -96,25 +96,25 @@ struct Window {
   }
 
  private:
-  WindowManager&            window_manager_;
+  WindowManager& window_manager_;
   std::unique_ptr<ui::View> view_;
-  WindowCancelActions       cancel_actions_ = {};
+  WindowCancelActions cancel_actions_ = {};
 };
 
 /****************************************************************
 ** Helper Configs.
 *****************************************************************/
 struct IntInputBoxOptions {
-  std::string_view    msg            = "";
-  maybe<int>          min            = nothing;
-  maybe<int>          max            = nothing;
+  std::string_view msg               = "";
+  maybe<int> min                     = nothing;
+  maybe<int> max                     = nothing;
   WindowCancelActions cancel_actions = {};
-  maybe<int>          initial        = nothing;
+  maybe<int> initial                 = nothing;
 };
 
 struct SelectBoxOption {
-  std::string name    = {};
-  bool        enabled = {};
+  std::string name = {};
+  bool enabled     = {};
 };
 
 /****************************************************************
@@ -151,15 +151,15 @@ struct WindowPlane {
   // lection will be set to the first enabled item. If there are
   // no enabled items then nothing will be selected.
   wait<maybe<int>> select_box(
-      std::string_view                    msg,
+      std::string_view msg,
       std::vector<SelectBoxOption> const& options,
-      WindowCancelActions const&          cancel_actions,
-      maybe<int>                          initial_selection );
+      WindowCancelActions const& cancel_actions,
+      maybe<int> initial_selection );
 
   wait<maybe<std::string>> str_input_box(
-      std::string_view           msg,
+      std::string_view msg,
       WindowCancelActions const& cancel_actions,
-      std::string_view           initial_text );
+      std::string_view initial_text );
 
   wait<maybe<int>> int_input_box(
       IntInputBoxOptions const& options );
@@ -180,7 +180,7 @@ enum class e_unit_selection {
 };
 
 struct UnitSelection {
-  UnitId           id;
+  UnitId id;
   e_unit_selection what;
 };
 NOTHROW_MOVE( UnitSelection );

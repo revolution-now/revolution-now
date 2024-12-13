@@ -29,9 +29,9 @@ namespace {
 TerrainConnectivity compute_terrain_connectivity_impl(
     SSConst const& ss ) {
   TerrainConnectivity res;
-  int const           y_size = ss.terrain.world_size_tiles().h;
-  int const           x_size = ss.terrain.world_size_tiles().w;
-  int const           total_tiles = y_size * x_size;
+  int const y_size      = ss.terrain.world_size_tiles().h;
+  int const x_size      = ss.terrain.world_size_tiles().w;
+  int const total_tiles = y_size * x_size;
 
   res.x_size = x_size;
 
@@ -75,7 +75,7 @@ TerrainConnectivity compute_terrain_connectivity_impl(
   auto next_q = [&]() -> Coord {
     CHECK( !q.empty() );
     RastorCoord const next = *q.begin();
-    Coord const       res  = unrastor( next );
+    Coord const res        = unrastor( next );
     q.erase( next );
     return res;
   };
@@ -139,7 +139,7 @@ TerrainConnectivity compute_terrain_connectivity_impl(
   return res;
 }
 
-bool contains_segment_index( vector<int> const&        indices,
+bool contains_segment_index( vector<int> const& indices,
                              unordered_set<int> const& s,
                              int x_size, Coord coord ) {
   CHECK( !indices.empty(),
@@ -185,7 +185,7 @@ bool water_square_has_ocean_access(
 }
 
 bool is_inland_lake( TerrainConnectivity const& conn,
-                     Coord                      tile ) {
+                     Coord tile ) {
   return !water_square_has_ocean_access( conn, tile );
 }
 

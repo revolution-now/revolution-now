@@ -48,7 +48,7 @@ struct MenuPlane {
 
    private:
     MenuPlane* menu_plane_ = nullptr;
-    IPlane*    plane_      = nullptr;
+    IPlane* plane_         = nullptr;
 
     friend Base;
     // Implement base::zero.

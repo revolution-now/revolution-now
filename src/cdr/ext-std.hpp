@@ -38,7 +38,7 @@ namespace cdr {
 value to_canonical( converter& conv, std::string const& o,
                     tag_t<std::string> );
 
-result<std::string> from_canonical( converter&   conv,
+result<std::string> from_canonical( converter& conv,
                                     value const& v,
                                     tag_t<std::string> );
 
@@ -66,7 +66,7 @@ result<fs::path> from_canonical( converter& conv, value const& v,
 /****************************************************************
 ** std::chrono::seconds
 *****************************************************************/
-value to_canonical( converter&                  conv,
+value to_canonical( converter& conv,
                     std::chrono::seconds const& o,
                     tag_t<std::chrono::seconds> );
 
@@ -77,7 +77,7 @@ result<std::chrono::seconds> from_canonical(
 /****************************************************************
 ** std::chrono::milliseconds
 *****************************************************************/
-value to_canonical( converter&                       conv,
+value to_canonical( converter& conv,
                     std::chrono::milliseconds const& o,
                     tag_t<std::chrono::milliseconds> );
 
@@ -88,7 +88,7 @@ result<std::chrono::milliseconds> from_canonical(
 /****************************************************************
 ** std::chrono::microseconds
 *****************************************************************/
-value to_canonical( converter&                       conv,
+value to_canonical( converter& conv,
                     std::chrono::microseconds const& o,
                     tag_t<std::chrono::microseconds> );
 
@@ -100,7 +100,7 @@ result<std::chrono::microseconds> from_canonical(
 ** std::pair
 *****************************************************************/
 template<ToCanonical Fst, ToCanonical Snd>
-value to_canonical( converter&                 conv,
+value to_canonical( converter& conv,
                     std::pair<Fst, Snd> const& o,
                     tag_t<std::pair<Fst, Snd>> ) {
   table tbl;
@@ -146,7 +146,7 @@ value to_canonical( converter& conv, R const& o, tag_t<R> ) {
 // to_canonical will use the std::ranges::range overload.
 
 template<FromCanonical T>
-result<std::vector<T>> from_canonical( converter&   conv,
+result<std::vector<T>> from_canonical( converter& conv,
                                        value const& v,
                                        tag_t<std::vector<T>> ) {
   UNWRAP_RETURN( lst, conv.ensure_type<list>( v ) );
@@ -176,7 +176,7 @@ value to_canonical( converter& conv, std::queue<T> const& o,
 }
 
 template<FromCanonical T>
-result<std::queue<T>> from_canonical( converter&   conv,
+result<std::queue<T>> from_canonical( converter& conv,
                                       value const& v,
                                       tag_t<std::queue<T>> ) {
   UNWRAP_RETURN( data, conv.from<std::vector<T>>( v ) );
@@ -189,7 +189,7 @@ result<std::queue<T>> from_canonical( converter&   conv,
 ** std::deque
 *****************************************************************/
 template<FromCanonical T>
-result<std::deque<T>> from_canonical( converter&   conv,
+result<std::deque<T>> from_canonical( converter& conv,
                                       value const& v,
                                       tag_t<std::deque<T>> ) {
   UNWRAP_RETURN( data, conv.from<std::vector<T>>( v ) );
@@ -226,7 +226,7 @@ result<std::array<T, N>> from_canonical(
 // unordered_maps with any other key type must be converted to a
 // list of pairs.
 template<ToCanonical K, ToCanonical V>
-value to_canonical( converter&                      conv,
+value to_canonical( converter& conv,
                     std::unordered_map<K, V> const& o,
                     tag_t<std::unordered_map<K, V>> ) {
   // This will test once up front if the key type
@@ -284,7 +284,7 @@ namespace detail {
 
 template<typename K, typename V>
 result<std::unordered_map<K, V>>
-unordered_map_from_canonical_list( converter&  conv,
+unordered_map_from_canonical_list( converter& conv,
                                    list const& lst ) {
   std::unordered_map<K, V> res;
   res.reserve( lst.size() );
@@ -293,7 +293,7 @@ unordered_map_from_canonical_list( converter&  conv,
   for( int idx = 0; idx < lst.ssize(); ++idx ) {
     UNWRAP_RETURN( val,
                    conv.from_index<value_type>( lst, idx ) );
-    auto&       key = val.first;
+    auto& key = val.first;
     std::string key_str;
     if constexpr( base::Show<K> )
       key_str = base::to_str( key );
@@ -311,7 +311,7 @@ unordered_map_from_canonical_list( converter&  conv,
 // keys in a Cdr table are always strings.
 template<typename K, typename V>
 result<std::unordered_map<K, V>>
-unordered_map_from_canonical_table( converter&   conv,
+unordered_map_from_canonical_table( converter& conv,
                                     table const& tbl ) {
   std::unordered_map<K, V> res;
   res.reserve( tbl.size() );
@@ -356,7 +356,7 @@ result<std::unordered_map<K, V>> from_canonical(
 ** unordered_set
 *****************************************************************/
 template<ToCanonical T>
-value to_canonical( converter&                   conv,
+value to_canonical( converter& conv,
                     std::unordered_set<T> const& o,
                     tag_t<std::unordered_set<T>> ) {
   static_assert( std::totally_ordered<T> );
@@ -443,7 +443,7 @@ result<std::map<K, V>> map_from_canonical_list(
   for( int idx = 0; idx < lst.ssize(); ++idx ) {
     UNWRAP_RETURN( val,
                    conv.from_index<value_type>( lst, idx ) );
-    auto&       key = val.first;
+    auto& key = val.first;
     std::string key_str;
     if constexpr( base::Show<K> )
       key_str = base::to_str( key );
@@ -533,7 +533,7 @@ result<std::unique_ptr<T>> from_canonical(
 // hopefully that one will be selected in the relevant cases
 // since it is more constrained.
 template<typename... Ts>
-value to_canonical( converter&                 conv,
+value to_canonical( converter& conv,
                     std::variant<Ts...> const& o,
                     tag_t<std::variant<Ts...>> ) = delete;
 

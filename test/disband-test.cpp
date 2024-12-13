@@ -34,8 +34,8 @@ struct world : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, //
       L, _, L, //
@@ -52,13 +52,9 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   world w;
 }
 
-TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
-  world w;
-}
+TEST_CASE( "[disband] disband_tile_ui_interaction" ) { world w; }
 
-TEST_CASE( "[disband] execute_disband" ) {
-  world w;
-}
+TEST_CASE( "[disband] execute_disband" ) { world w; }
 
 } // namespace
 } // namespace rn

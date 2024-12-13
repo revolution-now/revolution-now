@@ -57,7 +57,7 @@ namespace {
 
 struct DifficultyLayout {
   Matrix<maybe<e_difficulty>> grid;
-  point                       selected = {};
+  point selected = {};
 
   e_difficulty selected_difficulty() const {
     CHECK( grid[selected].has_value() );
@@ -228,8 +228,8 @@ struct CenteredTyper {
 
  private:
   rr::Renderer& renderer_;
-  gfx::pixel    color_   = {};
-  gfx::rect     cur_box_ = {};
+  gfx::pixel color_  = {};
+  gfx::rect cur_box_ = {};
 };
 
 void draw_difficulty_box_contents(
@@ -257,10 +257,10 @@ void draw_difficulty_box_contents(
       "({})", description_for_difficulty( difficulty ) ) );
 }
 
-void draw_info_box_contents( rr::Renderer&   renderer,
+void draw_info_box_contents( rr::Renderer& renderer,
                              gfx::rect const box ) {
   gfx::pixel const text_color = config_ui.dialog_text.normal;
-  int const        text_height =
+  int const text_height =
       rr::rendered_text_line_size_pixels( "X" ).h;
 
   gfx::rect cur_box = box;
@@ -281,7 +281,7 @@ void draw_info_box_contents( rr::Renderer&   renderer,
 struct DifficultyScreen : public IPlane {
   // State
   wait_promise<maybe<e_difficulty>> result_ = {};
-  DifficultyLayout                  layout_ = {};
+  DifficultyLayout layout_                  = {};
 
   int const kBorderWidth  = 6;
   int const kPaddingWidth = 4;
@@ -321,8 +321,8 @@ struct DifficultyScreen : public IPlane {
 
   rect outer_square_for_block( point block ) const {
     gfx::size const subrect_size = get_subrect_size();
-    auto const      p            = block * subrect_size;
-    rect const      outer_r{ .origin = p, .size = subrect_size };
+    auto const p                 = block * subrect_size;
+    rect const outer_r{ .origin = p, .size = subrect_size };
     return outer_r;
   }
 
@@ -339,7 +339,7 @@ struct DifficultyScreen : public IPlane {
         compositor::section( compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return nothing;
     gfx::size const subrect_size = get_subrect_size();
-    point const     block        = p / subrect_size;
+    point const block            = p / subrect_size;
     if( !block.is_inside( layout_.grid.rect() ) ) return nothing;
     rect const inner_r = inner_square_for_block( block );
     if( !p.is_inside( inner_r ) ) return nothing;
@@ -454,7 +454,7 @@ struct DifficultyScreen : public IPlane {
                                     *difficulty );
       if( block == layout_.selected ) {
         CHECK( difficulty.has_value() );
-        auto      color   = color_for_difficulty( *difficulty );
+        auto color        = color_for_difficulty( *difficulty );
         int const padding = 2;
         rr::draw_empty_rect_no_corners(
             painter,
@@ -563,7 +563,7 @@ struct DifficultyScreen : public IPlane {
 ** Public API.
 *****************************************************************/
 wait<e_difficulty> choose_difficulty_screen( Planes& planes ) {
-  auto        owner = planes.push();
+  auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
   DifficultyScreen difficulty_screen;

@@ -75,9 +75,9 @@ int turns_required( e_unit_type unit_type, e_terrain terrain ) {
 // Applies the yield to the colony and displays a message to the
 // player.
 void apply_lumber_yield( SS& ss, LumberYield const& yield ) {
-  Colony&   colony   = ss.colonies.colony_for( yield.colony_id );
+  Colony& colony     = ss.colonies.colony_for( yield.colony_id );
   int const capacity = colony_warehouse_capacity( colony );
-  int&      lumber   = colony.commodities[e_commodity::lumber];
+  int& lumber        = colony.commodities[e_commodity::lumber];
   lumber += yield.yield_to_add_to_colony;
   CHECK_LE( lumber, capacity );
 }
@@ -122,13 +122,13 @@ bool can_irrigate( MapSquare const& square ) {
 }
 
 bool can_irrigate( TerrainState const& terrain_state,
-                   Coord               tile ) {
+                   Coord tile ) {
   MapSquare const& square = terrain_state.square_at( tile );
   return can_irrigate( square );
 }
 
 bool has_irrigation( TerrainState const& terrain_state,
-                     Coord               tile ) {
+                     Coord tile ) {
   MapSquare const& square = terrain_state.square_at( tile );
   return has_irrigation( square );
 }
@@ -154,7 +154,7 @@ bool has_pioneer_working( SSConst const& ss, Coord tile ) {
 *****************************************************************/
 PlowResult perform_plow_work( SS& ss, TS& ts,
                               Player const& player,
-                              Unit&         unit ) {
+                              Unit& unit ) {
   Coord location = ss.units.coord_for( unit.id() );
   UNWRAP_CHECK( plow_orders,
                 unit.orders().get_if<unit_orders::plow>() );

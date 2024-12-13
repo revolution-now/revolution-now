@@ -54,7 +54,7 @@ struct World : testing::World {
     add_player( e_nation::english );
     set_default_player( e_nation::dutch );
     set_default_player_as_human();
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, L, //
       L, L, L, L, L, //
@@ -71,7 +71,7 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE(
     "[map-search] outward_spiral_pythdist_search_existing" ) {
-  World  W;
+  World W;
   double max_distance = 0;
 
   SECTION( "zero distance" ) {
@@ -192,10 +192,10 @@ TEST_CASE(
 }
 
 TEST_CASE( "[map-search] find_any_close_colony" ) {
-  World           W;
-  Coord           start        = {};
-  double          max_distance = {};
-  maybe<ColonyId> expected     = {};
+  World W;
+  Coord start              = {};
+  double max_distance      = {};
+  maybe<ColonyId> expected = {};
 
   base::function_ref<bool( Colony const& )> const pred_default =
       +[]( Colony const& ) { return true; };
@@ -305,7 +305,7 @@ TEST_CASE( "[map-search] find_any_close_colony" ) {
 }
 
 TEST_CASE( "[map-search] find_close_explored_colony" ) {
-  World         W;
+  World W;
   maybe<Colony> expected;
 
   auto f = [&] {
@@ -489,7 +489,7 @@ TEST_CASE( "[map-search] find_close_explored_colony" ) {
 }
 
 TEST_CASE( "[map-search] close_friendly_colonies" ) {
-  World            W;
+  World W;
   vector<ColonyId> expected;
 
   auto f = [&] {
@@ -527,11 +527,11 @@ TEST_CASE( "[map-search] close_friendly_colonies" ) {
 }
 
 TEST_CASE( "[map-search] find_close_encountered_tribe" ) {
-  World            w;
-  gfx::point const start    = { .x = 3, .y = 3 };
-  double           distance = 0;
-  maybe<e_tribe>   expected;
-  e_nation const   nation = w.default_nation();
+  World w;
+  gfx::point const start = { .x = 3, .y = 3 };
+  double distance        = 0;
+  maybe<e_tribe> expected;
+  e_nation const nation = w.default_nation();
 
   w.add_tribe( e_tribe::inca );
   w.add_tribe( e_tribe::aztec );

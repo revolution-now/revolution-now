@@ -30,12 +30,12 @@ struct SSConst;
 // both produced and consumed in the same turn, and so those will
 // have to be subtracted to get the net change.
 ColonyProduction production_for_colony( SSConst const& ss,
-                                        Colony const&  colony );
+                                        Colony const& colony );
 
 // Given a building slot, will extract the quantity of the thing
 // currently being produced there.
 maybe<int> production_for_slot( ColonyProduction const& pr,
-                                e_colony_building_slot  slot );
+                                e_colony_building_slot slot );
 
 // If a product can be made from this raw material, return it.
 maybe<e_commodity> product_from_raw( e_commodity raw );

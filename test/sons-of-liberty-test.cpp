@@ -52,8 +52,8 @@ struct World : testing::World {
 TEST_CASE(
     "[sons-of-liberty] compute_sons_of_liberty_percent" ) {
   double num_rebels_from_bells_only = 0.0;
-  int    colony_population          = 0;
-  bool   has_simon_bolivar          = false;
+  int colony_population             = 0;
+  bool has_simon_bolivar            = false;
 
   auto f = [&] {
     return compute_sons_of_liberty_percent(
@@ -584,10 +584,10 @@ TEST_CASE(
 // uses. So in our case, our asymptotic behavior is different,
 // but still ok.
 TEST_CASE( "[sons-of-liberty] asymptotic evolution" ) {
-  double num_rebels_from_bells_only       = 0.0;
-  int    sons_of_liberty_integral_percent = 0;
-  int    bells_produced                   = 0;
-  int    colony_population                = 0;
+  double num_rebels_from_bells_only    = 0.0;
+  int sons_of_liberty_integral_percent = 0;
+  int bells_produced                   = 0;
+  int colony_population                = 0;
 
   int turns = 0;
 
@@ -801,7 +801,7 @@ TEST_CASE( "[sons-of-liberty] compute_colony_sons_of_liberty" ) {
   W.add_unit_indoors( colony.id, e_indoor_job::hammers );
   W.add_unit_indoors( colony.id, e_indoor_job::hammers );
   W.add_unit_indoors( colony.id, e_indoor_job::hammers );
-  Player&             player = W.default_player();
+  Player& player = W.default_player();
   ColonySonsOfLiberty expected;
 
   auto f = [&] {

@@ -61,11 +61,11 @@ maybe<Atlas> AtlasBuilder::build( size max_size ) const {
 
   // Now copy them to a large image.
   image atlas_img = gfx::new_empty_image( packed_size );
-  int   id        = 0;
+  int id          = 0;
   for( AtlasImage const& img_and_count : images_ ) {
     image const& src_img = img_and_count.img;
     for( int j = 0; j < img_and_count.count; ++j ) {
-      rect const&       src       = rects_[id];
+      rect const& src             = rects_[id];
       gfx::point const& dst_point = packed_rects[id].origin;
       DCHECK( src.is_inside( rect{
         .origin = {}, .size = src_img.size_pixels() } ) );

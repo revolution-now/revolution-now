@@ -97,17 +97,17 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
-  World     W;
+  World W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
-  Tribe&      tribe = W.natives().tribe_for( e_tribe::iroquois );
+  Tribe& tribe = W.natives().tribe_for( e_tribe::iroquois );
   Unit const& missionary = W.add_free_unit(
       e_unit_type::jesuit_missionary, e_nation::english );
   Unit const& foreign_missionary = W.add_free_unit(
       e_unit_type::jesuit_missionary, e_nation::french );
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
-  e_unit_type                unit_type = {};
+  e_unit_type unit_type = {};
   EnterNativeDwellingOptions expected;
 
   auto f = [&] {
@@ -335,11 +335,11 @@ TEST_CASE( "[enter-dwelling] enter_native_dwelling_options" ) {
 }
 
 TEST_CASE( "[enter-dwelling] dwelling entry not encountered" ) {
-  World           W;
+  World W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   EnterNativeDwellingOptions options;
-  e_enter_dwelling_option    expected = {};
+  e_enter_dwelling_option expected = {};
 
   auto f = [&] {
     wait<e_enter_dwelling_option> w =
@@ -363,11 +363,11 @@ TEST_CASE( "[enter-dwelling] dwelling entry not encountered" ) {
 }
 
 TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
-  World           W;
+  World W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois );
   EnterNativeDwellingOptions options;
-  e_enter_dwelling_option    expected = {};
+  e_enter_dwelling_option expected = {};
   W.iroquois().relationship[W.default_nation()].encountered =
       true;
 
@@ -410,7 +410,7 @@ TEST_CASE( "[enter-dwelling] present_dwelling_entry_options" ) {
 }
 
 TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
-  World     W;
+  World W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
   dwelling.teaches = e_native_skill::ore_mining;
@@ -419,7 +419,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   LiveAmongTheNatives expected;
-  UnitComposition     comp;
+  UnitComposition comp;
 
   auto f = [&] {
     Unit const unit =
@@ -513,7 +513,7 @@ TEST_CASE( "[enter-dwelling] compute_live_among_the_natives" ) {
 
 #ifndef COMPILER_GCC
 TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Dwelling& dwelling =
@@ -563,8 +563,8 @@ TEST_CASE( "[enter-dwelling] do_live_among_the_natives" ) {
 #endif
 
 TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
-  World         W;
-  Unit const*   p_unit = nullptr;
+  World W;
+  Unit const* p_unit = nullptr;
   vector<Coord> expected_tiles;
   expected_tiles.reserve( 15 * 15 ); // should be enough.
   Dwelling& dwelling_tupi =
@@ -764,13 +764,13 @@ TEST_CASE( "[enter-dwelling] compute_speak_with_chief" ) {
 }
 
 TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
-  Player&              player = W.default_player();
+  Player& player = W.default_player();
   SpeakWithChiefResult outcome;
-  Unit*                p_unit = nullptr;
-  Dwelling&            dwelling =
+  Unit* p_unit = nullptr;
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 4, .y = 4 }, e_tribe::tupi );
   W.add_tribe( e_tribe::tupi )
       .relationship[W.default_nation()]
@@ -922,10 +922,10 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
 }
 
 TEST_CASE( "[enter-dwelling] compute_establish_mission" ) {
-  World                  W;
+  World W;
   EstablishMissionResult expected;
-  Tribe&                 tribe = W.add_tribe( e_tribe::sioux );
-  TribeRelationship&     relationship =
+  Tribe& tribe = W.add_tribe( e_tribe::sioux );
+  TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered = true;
   Dwelling& dwelling =
@@ -954,9 +954,9 @@ TEST_CASE( "[enter-dwelling] compute_establish_mission" ) {
 }
 
 TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
-  World                  W;
+  World W;
   EstablishMissionResult outcome;
-  Dwelling&              dwelling =
+  Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::inca );
   Unit& missionary = W.add_unit_on_map( e_unit_type::missionary,
                                         { .x = 1, .y = 0 } );

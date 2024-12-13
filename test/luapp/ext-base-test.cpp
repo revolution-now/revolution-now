@@ -114,7 +114,7 @@ LUA_TEST_CASE( "[ext-base] maybe get" ) {
 }
 
 LUA_TEST_CASE( "[ext-base] maybe ref" ) {
-  Reffable         r;
+  Reffable r;
   maybe<Reffable&> m = r;
 
   push( L, m );

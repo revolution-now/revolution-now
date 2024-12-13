@@ -52,19 +52,19 @@ TEST_CASE( "[sav/string] to_str" ) {
 TEST_CASE( "[sav/string] to_canonical" ) {
   SECTION( "null zero" ) {
     array_string<5> const as = { 'y', 'e', 's', 0, 0 };
-    cdr::converter        conv;
+    cdr::converter conv;
     REQUIRE( conv.to( as ) == "yes" );
   }
   SECTION( "no null zero" ) {
     array_string<5> const as = { 'h', 'e', 'l', 'l', 'o' };
-    cdr::converter        conv;
+    cdr::converter conv;
     REQUIRE( conv.to( as ) == "hello" );
   }
 }
 
 TEST_CASE( "[sav/string] from_canonical" ) {
   cdr::converter conv;
-  cdr::value     v;
+  cdr::value v;
   SECTION( "null zero" ) {
     array_string<5> const expected = { 'y', 'e', 's', 0, 0 };
     v                              = "yes";
@@ -94,7 +94,7 @@ TEST_CASE( "[sav/string] write_binary" ) {
   array<unsigned char, 16> buffer   = { 1, 1, 1, 1, 1, 1, 1, 1,
                                         1, 1, 1, 1, 1, 1, 1, 1 };
   array<unsigned char, 16> expected = {};
-  MemBufferBinaryIO        b( buffer );
+  MemBufferBinaryIO b( buffer );
 
   SECTION( "null zero" ) {
     array_string<5> const as = { 'y', 'e', 's', 3, 2 };
@@ -122,9 +122,9 @@ TEST_CASE( "[sav/string] read_binary" ) {
   SECTION( "null zero" ) {
     array<unsigned char, 16> buffer = {
       'y', 'e', 's', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    MemBufferBinaryIO     b( buffer );
+    MemBufferBinaryIO b( buffer );
     array_string<5> const expected = { 'y', 'e', 's', 0, 1 };
-    array_string<5>       as;
+    array_string<5> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 11 );
@@ -134,9 +134,9 @@ TEST_CASE( "[sav/string] read_binary" ) {
   SECTION( "no null zero" ) {
     array<unsigned char, 16> buffer = {
       'h', 'e', 'l', 'l', 'o', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };
-    MemBufferBinaryIO     b( buffer );
+    MemBufferBinaryIO b( buffer );
     array_string<5> const expected = { 'h', 'e', 'l', 'l', 'o' };
-    array_string<5>       as;
+    array_string<5> as;
     read_binary( b, as );
     REQUIRE_FALSE( b.eof() );
     REQUIRE( b.remaining() == 11 );

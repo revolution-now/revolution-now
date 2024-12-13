@@ -36,7 +36,7 @@ struct HarborInPortShips
   static PositionedHarborSubView<HarborInPortShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborMarketCommodities const& market_commodities,
-      Coord                          harbor_cargo_upper_left );
+      Coord harbor_cargo_upper_left );
 
   HarborInPortShips( SS& ss, TS& ts, Player& player,
                      bool is_wide );
@@ -47,7 +47,7 @@ struct HarborInPortShips
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -55,7 +55,7 @@ struct HarborInPortShips
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement ui::AwaitView.
   virtual wait<> perform_click(
@@ -63,7 +63,7 @@ struct HarborInPortShips
 
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
-                 Coord const&                 where ) override;
+                 Coord const& where ) override;
 
   // Implement IDragSourceCheck.
   wait<base::valid_or<DragRejection>> source_check(
@@ -82,12 +82,12 @@ struct HarborInPortShips
 
   // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
-               Coord const&                 where ) override;
+               Coord const& where ) override;
 
  private:
   struct UnitWithPosition {
     UnitId id;
-    Coord  pixel_coord;
+    Coord pixel_coord;
   };
 
   std::vector<UnitWithPosition> units( Coord origin ) const;
@@ -96,7 +96,7 @@ struct HarborInPortShips
   maybe<UnitWithPosition> unit_at_location( Coord where ) const;
 
   maybe<UnitId> get_active_unit() const;
-  void          set_active_unit( UnitId unit_id );
+  void set_active_unit( UnitId unit_id );
 
   wait<> click_on_unit( UnitId unit_id );
 
@@ -108,7 +108,7 @@ struct HarborInPortShips
   };
 
   maybe<Draggable> dragging_;
-  bool             is_wide_ = false;
+  bool is_wide_ = false;
 };
 
 } // namespace rn

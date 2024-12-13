@@ -33,7 +33,7 @@ struct block {
   // parent.
   using PositionedBlock = std::pair<Coord, block>;
 
-  block( Delta                        size_,
+  block( Delta size_,
          std::vector<PositionedBlock> subdivisions_ )
     : size( size_ ), subdivisions( std::move( subdivisions_ ) ) {
     static int next_id = 0;
@@ -50,7 +50,7 @@ struct block {
       for( Rect const r :
            gfx::subrects( Rect::from( origin, b.size ) ) ) {
         Coord const coord = r.upper_left();
-        auto        i = matrix[coord.with_new_origin( origin )];
+        auto i = matrix[coord.with_new_origin( origin )];
         if( i == -1 || res[coord] == -1 )
           res[coord] = -1;
         else
@@ -78,7 +78,7 @@ struct block {
     return res;
   }
 
-  int   id{};
+  int id{};
   Delta size{};
 
   // Flags indicating whether padding is needed on which side
@@ -152,8 +152,8 @@ void compute_merged_padding_impl( block& b ) {
       auto start = rect.left_edge() + 1;
       auto end   = rect.right_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges   = horizontal_edges[rect.top_edge()];
-        bool  overlaps = false;
+        auto& ranges  = horizontal_edges[rect.top_edge()];
+        bool overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
@@ -167,8 +167,8 @@ void compute_merged_padding_impl( block& b ) {
       auto start = rect.left_edge() + 1;
       auto end   = rect.right_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges = horizontal_edges[rect.bottom_edge() - 1];
-        bool  overlaps = false;
+        auto& ranges  = horizontal_edges[rect.bottom_edge() - 1];
+        bool overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
@@ -182,8 +182,8 @@ void compute_merged_padding_impl( block& b ) {
       auto start = rect.top_edge() + 1;
       auto end   = rect.bottom_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges   = vertical_edges[rect.left_edge()];
-        bool  overlaps = false;
+        auto& ranges  = vertical_edges[rect.left_edge()];
+        bool overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
@@ -197,8 +197,8 @@ void compute_merged_padding_impl( block& b ) {
       auto start = rect.top_edge() + 1;
       auto end   = rect.bottom_edge() - 1 - 1;
       if( start < end ) {
-        auto& ranges   = vertical_edges[rect.right_edge() - 1];
-        bool  overlaps = false;
+        auto& ranges  = vertical_edges[rect.right_edge() - 1];
+        bool overlaps = false;
         for( auto [x1, x2] : ranges )
           overlaps |= overlap( x1, x2, start, end );
         if( !overlaps ) {
@@ -227,7 +227,7 @@ block derive_blocks_impl_composite(
     ui::CompositeView const& view ) {
   block res( view.delta(), {} );
   for( int i = 0; i < view.count(); ++i ) {
-    auto  p_view    = view.at( i );
+    auto p_view     = view.at( i );
     block sub_block = derive_blocks_impl( p_view.view );
     block::PositionedBlock p_block{ view.pos_of( i ),
                                     sub_block };
@@ -304,7 +304,7 @@ void insert_padding_views_fancy( ui::View& view, block const& b,
 void insert_padding_views_simple( ui::View& view, int pixels );
 
 void autopad_simple_impl_composite( ui::CompositeView& view,
-                                    int                pixels ) {
+                                    int pixels ) {
   for( int i = 0; i < view.count(); ++i ) {
     auto& sub_view = view.mutable_at( i );
     // Always try padding the sub views themselves, even if this

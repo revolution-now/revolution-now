@@ -28,7 +28,7 @@ namespace sav {
 // convention as the OG. Note that the other field
 // (visitor_nation) must be populated separately.
 void populate_region_ids( std::vector<TILE> const& tiles,
-                          std::vector<PATH>&       path );
+                          std::vector<PATH>& path );
 
 // This function populates the connectivity sections the way they
 // were likely intended to be populated, namely without what ap-
@@ -64,7 +64,7 @@ void populate_region_ids( std::vector<TILE> const& tiles,
 // region IDs) being present and populated correctly.
 void populate_connectivity( std::vector<TILE> const& tiles,
                             std::vector<PATH> const& path,
-                            gfx::size                map_size,
+                            gfx::size map_size,
                             CONNECTIVITY& connectivity );
 
 } // namespace sav

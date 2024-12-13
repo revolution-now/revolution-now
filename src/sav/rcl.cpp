@@ -81,7 +81,7 @@ valid_or<string> load_rcl_from_string(
 }
 
 valid_or<string> load_rcl_from_file( std::string const& path,
-                                     ColonySAV&         out ) {
+                                     ColonySAV& out ) {
   return load_rcl_impl(
       out, [&]( rcl::ProcessingOptions const& proc_opts ) {
         return rcl::parse_file( path, proc_opts );
@@ -89,7 +89,7 @@ valid_or<string> load_rcl_from_file( std::string const& path,
 }
 
 string save_rcl_to_string( ColonySAV const& in,
-                           e_rcl_dialect    dialect ) {
+                           e_rcl_dialect dialect ) {
   cdr::converter::options const cdr_opts{
     .write_fields_with_default_value = true };
   base::ScopedTimer timer( "save-ColonySAV-to-rcl" );
@@ -118,11 +118,11 @@ string save_rcl_to_string( ColonySAV const& in,
   }
 }
 
-valid_or<string> save_rcl_to_file( string const&    path,
+valid_or<string> save_rcl_to_file( string const& path,
                                    ColonySAV const& in,
-                                   e_rcl_dialect    dialect ) {
+                                   e_rcl_dialect dialect ) {
   string const rcl_output = save_rcl_to_string( in, dialect );
-  ofstream     out{ path };
+  ofstream out{ path };
   if( !out.good() )
     return fmt::format( "failed to open {} for writing.", path );
   out << rcl_output;

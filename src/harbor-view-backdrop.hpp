@@ -35,16 +35,16 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   // Implement IDraggableObjectsView.
   maybe<int> entity() const override;
 
-  ui::View&       view() noexcept override;
+  ui::View& view() noexcept override;
   ui::View const& view() const noexcept override;
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   struct DockUnitsLayout {
     Coord units_start_floor = {};
-    W     dock_length       = {};
+    W dock_length           = {};
   };
 
   // Returns the lower right pixel of the l
@@ -59,10 +59,10 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   static W const kDockSegmentWidth  = 32;
   struct Layout {
     // Distance from the bottom to the horizon.
-    H     horizon           = {};
-    X     land_tip          = {};
-    Coord dock_lower_right  = {};
-    int   num_dock_segments = {};
+    H horizon              = {};
+    X land_tip             = {};
+    Coord dock_lower_right = {};
+    int num_dock_segments  = {};
   };
 
  public:
@@ -73,7 +73,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   static Layout recomposite( Delta size, Coord cargo_upper_right,
                              Coord inport_upper_right );
 
-  Delta  size_;
+  Delta size_;
   Layout layout_;
 };
 

@@ -49,8 +49,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, //
       _, L, L, L, L, //
@@ -66,11 +66,11 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[anim-builders] anim_seq_for_unit_move" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id   = {};
-  e_direction       direction = {};
-  Coord             coord     = {};
+  UnitId unit_id        = {};
+  e_direction direction = {};
+  Coord coord           = {};
 
   auto f = [&] {
     return anim_seq_for_unit_move( W.ss(), unit_id, direction );
@@ -97,11 +97,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_move" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_unit_move off map" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id   = {};
-  e_direction       direction = {};
-  Coord             coord     = {};
+  UnitId unit_id        = {};
+  e_direction direction = {};
+  Coord coord           = {};
 
   auto f = [&] {
     return anim_seq_for_unit_move( W.ss(), unit_id, direction );
@@ -128,11 +128,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_move off map" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_unit_talk" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id   = {};
-  e_direction       direction = {};
-  Coord             coord     = {};
+  UnitId unit_id        = {};
+  e_direction direction = {};
+  Coord coord           = {};
 
   auto f = [&] {
     return anim_seq_for_unit_talk( W.ss(), unit_id, direction );
@@ -159,13 +159,13 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_talk" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_boarding_ship" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id    = {};
-  UnitId            ship_id    = {};
-  e_direction       direction  = {};
-  Coord             unit_coord = {};
-  Coord             ship_coord = {};
+  UnitId unit_id        = {};
+  UnitId ship_id        = {};
+  e_direction direction = {};
+  Coord unit_coord      = {};
+  Coord ship_coord      = {};
 
   auto f = [&] {
     return anim_seq_for_boarding_ship( W.ss(), unit_id, ship_id,
@@ -198,10 +198,10 @@ TEST_CASE( "[anim-builders] anim_seq_for_boarding_ship" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_unit_depixelation" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id = {};
-  Coord             coord   = {};
+  UnitId unit_id = {};
+  Coord coord    = {};
 
   auto f = [&] {
     return anim_seq_for_unit_depixelation( W.ss(), unit_id );
@@ -227,11 +227,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_depixelation" ) {
 TEST_CASE(
     "[anim-builders] anim_seq_for_unit_depixelation with "
     "target" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id     = {};
-  e_unit_type       target_type = {};
-  Coord             coord       = {};
+  UnitId unit_id          = {};
+  e_unit_type target_type = {};
+  Coord coord             = {};
 
   auto f = [&] {
     return anim_seq_for_unit_depixelation( W.ss(), unit_id,
@@ -256,11 +256,11 @@ TEST_CASE(
 
 TEST_CASE(
     "[anim-builders] anim_seq_for_unit_depixelation (native)" ) {
-  World              W;
-  AnimationSequence  expected;
-  NativeUnitId       unit_id     = {};
+  World W;
+  AnimationSequence expected;
+  NativeUnitId unit_id           = {};
   e_native_unit_type target_type = {};
-  Coord              coord       = {};
+  Coord coord                    = {};
 
   auto f = [&] {
     return anim_seq_for_unit_depixelation( W.ss(), unit_id,
@@ -286,10 +286,10 @@ TEST_CASE(
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_unit_enpixelation" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id = {};
-  Coord             coord   = {};
+  UnitId unit_id = {};
+  Coord coord    = {};
 
   auto f = [&] {
     return anim_seq_for_unit_enpixelation( W.ss(), unit_id );
@@ -310,10 +310,10 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_enpixelation" ) {
 
 TEST_CASE(
     "[anim-builders] anim_seq_for_treasure_enpixelation" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id = {};
-  Coord             coord   = {};
+  UnitId unit_id = {};
+  Coord coord    = {};
 
   auto f = [&] {
     return anim_seq_for_treasure_enpixelation( W.ss(), unit_id );
@@ -337,11 +337,11 @@ TEST_CASE(
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_convert_produced" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  UnitId            unit_id   = {};
-  e_direction       direction = {};
-  Coord             coord     = {};
+  UnitId unit_id        = {};
+  e_direction direction = {};
+  Coord coord           = {};
 
   auto f = [&] {
     return anim_seq_for_convert_produced( W.ss(), unit_id,
@@ -371,9 +371,9 @@ TEST_CASE( "[anim-builders] anim_seq_for_convert_produced" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  ColonyId          colony_id = {};
+  ColonyId colony_id = {};
 
   VisibilityEntire const viz( W.ss() );
 
@@ -420,7 +420,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_colony_depixelation" ) {
 
 TEST_CASE( "[anim-builders] anim_seq_unit_to_front" ) {
   AnimationSequence expected;
-  UnitId            unit_id = {};
+  UnitId unit_id = {};
 
   auto f = [&] { return anim_seq_unit_to_front( unit_id ); };
 
@@ -431,7 +431,7 @@ TEST_CASE( "[anim-builders] anim_seq_unit_to_front" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
   Unit const& attacker = W.add_unit_on_map( e_unit_type::soldier,
                                             { .x = 1, .y = 0 } );
@@ -539,7 +539,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_euro" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
 
   Dwelling& dwelling =
@@ -639,7 +639,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_euro_attack_brave" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
 
   Dwelling& dwelling =
@@ -738,7 +738,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_euro" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
 
   Unit const& defender = W.add_unit_on_map( e_unit_type::soldier,
@@ -918,9 +918,9 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  Unit const&       attacker = W.add_unit_on_map(
+  Unit const& attacker = W.add_unit_on_map(
       e_unit_type::privateer, { .x = 0, .y = 0 } );
   Unit const& defender = W.add_unit_on_map( e_unit_type::frigate,
                                             { .x = 0, .y = 1 } );
@@ -1032,12 +1032,12 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
   Unit const& attacker = W.add_unit_on_map( e_unit_type::soldier,
                                             { .x = 1, .y = 0 } );
   Colony const& colony = W.add_colony( { .x = 1, .y = 1 } );
-  Unit const&   defender = W.add_unit_outdoors(
+  Unit const& defender = W.add_unit_outdoors(
       colony.id, e_direction::n, e_outdoor_job::food );
   CombatEuroAttackUndefendedColony combat{
     .colony_id = colony.id,
@@ -1107,7 +1107,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_undefended_colony" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
   Unit const& attacker = W.add_unit_on_map( e_unit_type::soldier,
                                             { .x = 1, .y = 0 } );
@@ -1185,9 +1185,9 @@ TEST_CASE( "[anim-builders] anim_seq_for_dwelling_burn" ) {
 }
 
 TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
-  World             W;
+  World W;
   AnimationSequence expected;
-  set<e_tribe>      tribes = {};
+  set<e_tribe> tribes = {};
 
   W.add_tribe( e_tribe::inca ); // no dwellings.
 
@@ -1508,7 +1508,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
 
 TEST_CASE( "[anim-builders] anim_seq_for_sfx" ) {
   AnimationSequence expected;
-  e_sfx             sound = {};
+  e_sfx sound = {};
 
   auto f = [&] { return anim_seq_for_sfx( sound ); };
 

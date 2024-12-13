@@ -54,7 +54,7 @@ bool is_military_unit( e_unit_type type );
 // query a unit's movement points, since it will take into ac-
 // count bonuses.
 MvPoints movement_points( Player const& player,
-                          e_unit_type   type );
+                          e_unit_type type );
 
 /****************************************************************
 ** UnitType
@@ -96,7 +96,7 @@ struct UnitType {
 
   // Implement refl::WrapsReflected.
   UnitType( wrapped::UnitType&& o ) : o_( std::move( o ) ) {}
-  wrapped::UnitType const&          refl() const { return o_; }
+  wrapped::UnitType const& refl() const { return o_; }
   static constexpr std::string_view refl_ns   = "rn";
   static constexpr std::string_view refl_name = "UnitType";
 
@@ -126,14 +126,14 @@ bool can_unit_found( UnitType ut );
 // Try to add the modifiers to the type and return the resulting
 // type if it works out.
 maybe<UnitType> add_unit_type_modifiers(
-    UnitType                                        ut,
+    UnitType ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 // Try to remove the modifiers from the type and return the re-
 // sulting type if it works out. The unit must have all of the
 // modifiers in order for this to be successful.
 maybe<UnitType> rm_unit_type_modifiers(
-    UnitType                                        ut,
+    UnitType ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 // Given a base unit type and a set of proposed modifiers, this
@@ -141,7 +141,7 @@ maybe<UnitType> rm_unit_type_modifiers(
 // If there is, it is guaranteed to be unique since config vali-
 // dation should have verified that.
 maybe<UnitType> find_unit_type_modifiers(
-    e_unit_type                                     base_type,
+    e_unit_type base_type,
     std::unordered_set<e_unit_type_modifier> const& modifiers );
 
 } // namespace rn

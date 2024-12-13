@@ -67,8 +67,8 @@ struct Emitter {
   void emit( std::span<GenericVertex const> vertices );
 
   std::vector<GenericVertex>* buffer_;
-  long                        pos_;
-  bool                        log_capacity_changes_;
+  long pos_;
+  bool log_capacity_changes_;
 };
 
 } // namespace rr

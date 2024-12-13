@@ -22,7 +22,7 @@ namespace detail {
 ** FmtJsonStyleList
 *****************************************************************/
 void json_style_list_impl( vector<string> const& items,
-                           string&               out ) {
+                           string& out ) {
   out += '[';
   out += base::str_join( items, "," );
   out += ']';
@@ -32,7 +32,7 @@ void json_style_list_impl( vector<string> const& items,
 ** FmtVerticalJsonList
 *****************************************************************/
 void vertical_json_list_impl( vector<string> const& items,
-                              string&               out ) {
+                              string& out ) {
   out += '[';
   if( items.empty() ) {
     out += ']';
@@ -41,7 +41,7 @@ void vertical_json_list_impl( vector<string> const& items,
   out += '\n';
   for( int i = 0; i < int( items.size() ); ++i ) {
     string formatted = fmt::to_string( items[i] );
-    auto   lines     = base::str_split( formatted, '\n' );
+    auto lines       = base::str_split( formatted, '\n' );
     for( string_view line : lines )
       out += fmt::format( "  {}\n", line );
     if( i != int( items.size() ) - 1 ) {
@@ -72,7 +72,7 @@ void vertical_map_impl(
     out += formatted_k;
     out += '=';
     std::string formatted_v = fmt::to_string( v );
-    auto        lines = base::str_split( formatted_v, '\n' );
+    auto lines = base::str_split( formatted_v, '\n' );
     for( int j = 0; j < int( lines.size() ); ++j ) {
       if( j != 0 ) out += "  ";
       out += lines[j];

@@ -50,9 +50,9 @@ namespace rn::input {
 // All event types must inherit either directly or indirectly
 // from this type.
 struct event_base_t {
-  mod_keys mod          = {};
-  bool     l_mouse_down = false;
-  bool     r_mouse_down = false;
+  mod_keys mod      = {};
+  bool l_mouse_down = false;
+  bool r_mouse_down = false;
 };
 
 /****************************************************************
@@ -84,7 +84,7 @@ struct mouse_wheel_event_t : public mouse_event_base_t {
 
 struct mouse_move_event_t : public mouse_event_base_t {
   Coord prev{}; // previous mouse position
-  auto  delta() const { return pos - prev; }
+  auto delta() const { return pos - prev; }
 };
 
 // In logical coordinates. Note that this is not actually the
@@ -130,7 +130,7 @@ void update_mouse_pos_with_viewport_change(
 // NOTE: this derives from the move event and not the base event.
 struct mouse_drag_event_t : public mouse_move_event_t {
   e_mouse_button button{};
-  drag_state_t   state{};
+  drag_state_t state{};
 };
 
 /****************************************************************
@@ -142,8 +142,8 @@ enum class e_key_change {
 };
 
 struct key_event_t : public event_base_t {
-  e_key_change   change;
-  ::SDL_Keycode  keycode  = ::SDLK_UNKNOWN;
+  e_key_change change;
+  ::SDL_Keycode keycode   = ::SDLK_UNKNOWN;
   ::SDL_Scancode scancode = ::SDL_SCANCODE_UNKNOWN;
   // If the key in question happens to correspond to a
   // directional motion then this will be populated. It will be

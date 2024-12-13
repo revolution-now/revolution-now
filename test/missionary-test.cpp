@@ -46,7 +46,7 @@ struct World : testing::World {
     add_player( e_nation::dutch );
     add_player( e_nation::french );
     set_default_player( e_nation::dutch );
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, L, //
       L, L, L, L, //
@@ -219,7 +219,7 @@ TEST_CASE( "[missionary] is_missionary" ) {
 TEST_CASE(
     "[missionary] "
     "probability_dwelling_produces_convert_on_attack" ) {
-  World           W;
+  World W;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::cherokee );
   maybe<double> expected;
@@ -298,7 +298,7 @@ TEST_CASE(
 
 TEST_CASE( "[missionary] should_burn_mission_on_attack" ) {
   World W;
-  auto  f = [&]( int alarm ) {
+  auto f = [&]( int alarm ) {
     return should_burn_mission_on_attack( W.rand(), alarm );
   };
 
@@ -440,8 +440,8 @@ TEST_CASE( "[missionary] player_missionaries_in_tribe" ) {
 }
 
 TEST_CASE( "[missionary] tribe_reaction_to_missionary" ) {
-  World              W;
-  Tribe&             tribe = W.add_tribe( e_tribe::inca );
+  World W;
+  Tribe& tribe = W.add_tribe( e_tribe::inca );
   TribeRelationship& relationship =
       tribe.relationship[W.default_nation()];
   relationship.encountered = true;

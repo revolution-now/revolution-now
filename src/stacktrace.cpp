@@ -102,7 +102,7 @@ bool should_include_filepath_in_stacktrace(
   }
 }
 
-void print_stack_trace( StackTrace const&        st_,
+void print_stack_trace( StackTrace const& st_,
                         StackTraceOptions const& options ) {
 #ifdef STACK_TRACE_ON
   backward::StackTrace st = *( st_.st );

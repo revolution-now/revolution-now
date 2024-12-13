@@ -39,7 +39,7 @@ struct PositionedView {
 NOTHROW_MOVE( PositionedView );
 struct PositionedViewConst {
   View const* view;
-  Coord       coord;
+  Coord coord;
 
   Rect rect() const { return view->rect( coord ); }
 };
@@ -48,7 +48,7 @@ NOTHROW_MOVE( PositionedViewConst );
 // Same as above, but owns the view.  The
 struct OwningPositionedView {
   std::unique_ptr<View> view;
-  Coord                 coord;
+  Coord coord;
 
   Rect rect() const { return view->rect( coord ); }
 };

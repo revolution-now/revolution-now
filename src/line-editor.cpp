@@ -113,8 +113,8 @@ void LineEditor::clear() {
 }
 
 void LineEditor::set( std::string_view new_buffer,
-                      maybe<int>       maybe_pos ) {
-  int  requested_cursor_pos = maybe_pos.value_or( pos_ );
+                      maybe<int> maybe_pos ) {
+  int requested_cursor_pos = maybe_pos.value_or( pos_ );
   auto new_cursor_closed_upper_bound = int( new_buffer.size() );
   auto new_cursor_closed_lower_bound =
       int( -new_buffer.size() - 1 );
@@ -149,7 +149,7 @@ void LineEditor::set( std::string_view new_buffer,
   ASSERT_INVARIANTS_POS   \
   ASSERT_INVARIANTS_BUF
 
-string LineEditorInputView::render( int           abs_cursor_pos,
+string LineEditorInputView::render( int abs_cursor_pos,
                                     string const& buffer ) {
   int pos = abs_cursor_pos;
 

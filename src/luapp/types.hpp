@@ -45,8 +45,8 @@ void to_str( type t, std::string& out, base::tag<type> );
 inline constexpr int kNumLuaTypes = 9;
 
 char const* type_name( cthread L, int idx ) noexcept;
-type        type_of_idx( cthread L, int idx ) noexcept;
-void        pop_stack( cthread L, int n ) noexcept;
+type type_of_idx( cthread L, int idx ) noexcept;
+void pop_stack( cthread L, int n ) noexcept;
 
 // clang-format off
 template<typename T>
@@ -150,20 +150,20 @@ struct type_traits<std::string_view> {
 /****************************************************************
 ** extension point: lua_get
 *****************************************************************/
-base::maybe<bool>    lua_get( cthread L, int idx, tag<bool> );
-base::maybe<int>     lua_get( cthread L, int idx, tag<int> );
-base::maybe<double>  lua_get( cthread L, int idx, tag<double> );
-base::maybe<void*>   lua_get( cthread L, int idx, tag<void*> );
+base::maybe<bool> lua_get( cthread L, int idx, tag<bool> );
+base::maybe<int> lua_get( cthread L, int idx, tag<int> );
+base::maybe<double> lua_get( cthread L, int idx, tag<double> );
+base::maybe<void*> lua_get( cthread L, int idx, tag<void*> );
 base::maybe<boolean> lua_get( cthread L, int idx, tag<boolean> );
 base::maybe<integer> lua_get( cthread L, int idx, tag<integer> );
-base::maybe<floating>      lua_get( cthread L, int idx,
-                                    tag<floating> );
+base::maybe<floating> lua_get( cthread L, int idx,
+                               tag<floating> );
 base::maybe<lightuserdata> lua_get( cthread L, int idx,
                                     tag<lightuserdata> );
-base::maybe<std::string>   lua_get( cthread L, int idx,
-                                    tag<std::string> );
-void                       lua_get( cthread L, int idx,
-                                    tag<std::string_view> ) = delete;
+base::maybe<std::string> lua_get( cthread L, int idx,
+                                  tag<std::string> );
+void lua_get( cthread L, int idx,
+              tag<std::string_view> )                = delete;
 void lua_get( cthread L, int idx, tag<char const*> ) = delete;
 
 } // namespace lua

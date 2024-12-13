@@ -67,8 +67,8 @@ maybe<DwellingId> is_land_native_owned_after_meeting(
 }
 
 maybe<DwellingId> is_land_native_owned( SSConst const& ss,
-                                        Player const&  player,
-                                        Coord          coord ) {
+                                        Player const& player,
+                                        Coord coord ) {
   maybe<DwellingId> const dwelling_id =
       is_land_native_owned_after_meeting( ss, player, coord );
   if( !dwelling_id.has_value() ) return nothing;
@@ -86,8 +86,8 @@ maybe<DwellingId> is_land_native_owned( SSConst const& ss,
 
 refl::enum_map<e_direction, maybe<DwellingId>>
 native_owned_land_around_square( SSConst const& ss,
-                                 Player const&  player,
-                                 Coord          loc ) {
+                                 Player const& player,
+                                 Coord loc ) {
   refl::enum_map<e_direction, maybe<DwellingId>> res;
   for( e_direction d : refl::enum_values<e_direction> )
     res[d] = is_land_native_owned( ss, player, loc.moved( d ) );
@@ -109,7 +109,7 @@ maybe<LandPrice> price_for_native_owned_land(
     // there is still a dwelling there.
     return nothing;
   e_tribe const tribe = ss.natives.tribe_for( dwelling_id ).type;
-  LandPrice     res{ .owner = tribe };
+  LandPrice res{ .owner = tribe };
   e_native_level const level =
       config_natives.tribes[tribe].level;
   Tribe const& tribe_obj = ss.natives.tribe_for( tribe );
@@ -117,7 +117,7 @@ maybe<LandPrice> price_for_native_owned_land(
       tribe_obj.relationship[player.nation];
   int const num_colonies =
       ss.colonies.for_nation( player.nation ).size();
-  auto&        conf = config_natives.land_prices;
+  auto& conf = config_natives.land_prices;
   double const base_price =
       conf.anchor_price +
       ( std::min( num_colonies,
@@ -173,7 +173,7 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
     e_native_land_grab_type context ) {
   UNWRAP_CHECK(
       price, price_for_native_owned_land( ss, player, tile ) );
-  Tribe&             tribe = ss.natives.tribe_for( price.owner );
+  Tribe& tribe = ss.natives.tribe_for( price.owner );
   TribeRelationship& relationship =
       tribe.relationship[player.nation];
   if( relationship.at_war ) {
@@ -186,9 +186,9 @@ wait<base::NoDiscard<bool>> prompt_player_for_taking_native_land(
     co_return true;
   }
 
-  EnumChoiceConfig                                  config;
+  EnumChoiceConfig config;
   refl::enum_map<e_native_land_grab_result, string> names;
-  refl::enum_map<e_native_land_grab_result, bool>   disabled;
+  refl::enum_map<e_native_land_grab_result, bool> disabled;
 
   names[e_native_land_grab_result::cancel] =
       "Very well, we will respect your wishes.";

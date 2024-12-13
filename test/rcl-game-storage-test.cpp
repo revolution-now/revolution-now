@@ -85,8 +85,8 @@ void expect_rands( World& W ) {
 }
 
 void create_new_game_from_lua( World& world ) {
-  lua::state& st       = world.lua();
-  lua::table  new_game = st["new_game"].as<lua::table>();
+  lua::state& st      = world.lua();
+  lua::table new_game = st["new_game"].as<lua::table>();
   UNWRAP_CHECK(
       options, new_game["default_options"].pcall<lua::table>() );
   options["map"]["world_size"] = Delta{ .w = 8, .h = 8 };

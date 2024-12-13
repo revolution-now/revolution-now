@@ -68,7 +68,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{ L };
     build_map( std::move( tiles ), 1 );
   }
@@ -78,10 +78,10 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[lcr] de soto means no negative results" ) {
-  World          W;
-  Player&        player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   MockIMapSearch mock_map_search;
-  e_unit_type    unit_type = e_unit_type::scout;
+  e_unit_type unit_type = e_unit_type::scout;
 
   auto f = [&] {
     return compute_lcr( W.ss(), player, W.rand(),
@@ -184,7 +184,7 @@ TEST_CASE( "[lcr] run_lcr, chief gift" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, ruins" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -223,7 +223,7 @@ TEST_CASE( "[lcr] run_lcr, ruins" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -298,7 +298,7 @@ TEST_CASE( "[lcr] run_lcr, fountain of youth" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, free colonist" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -341,7 +341,7 @@ TEST_CASE( "[lcr] run_lcr, free colonist" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, unit lost" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -381,7 +381,7 @@ TEST_CASE( "[lcr] run_lcr, unit lost" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, cibola" ) {
-  World             W;
+  World W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
@@ -439,7 +439,7 @@ TEST_CASE( "[lcr] run_lcr, cibola" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
-  World             W;
+  World W;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player = W.default_player();
@@ -499,7 +499,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, treasure" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -540,7 +540,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, cold and empty" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -586,7 +586,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, trinkets" ) {
 }
 
 TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -626,7 +626,7 @@ TEST_CASE( "[lcr] run_lcr, burial mounds, no explore" ) {
 TEST_CASE(
     "[lcr] run_lcr, burial mounds, trinkets with burial "
     "grounds" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -683,7 +683,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
-  World   W;
+  World W;
   Player& player = W.default_player();
   REQUIRE( player.money == 0 );
 
@@ -732,11 +732,11 @@ TEST_CASE( "[lcr] run_lcr, holy shrines" ) {
 }
 
 TEST_CASE( "[lcr] compute_lcr, type=none" ) {
-  World          W;
-  Player&        player = W.default_player();
+  World W;
+  Player& player = W.default_player();
   MockIMapSearch mock_map_search;
-  e_unit_type    unit_type = e_unit_type::scout;
-  LostCityRumor  expected;
+  e_unit_type unit_type = e_unit_type::scout;
+  LostCityRumor expected;
 
   W.settings().difficulty = e_difficulty::conquistador;
 

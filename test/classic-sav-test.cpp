@@ -44,9 +44,9 @@ fs::path classic_map_dir() { return classic_sav_dir() / "map"; }
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[classic-sav] load_classic_map_file" ) {
-  Coord     coord;
+  Coord coord;
   MapSquare expected;
-  fs::path  input;
+  fs::path input;
 
   SECTION( "old" ) {
     // This one tests the original America map file that ships

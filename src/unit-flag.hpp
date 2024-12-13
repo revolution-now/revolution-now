@@ -52,8 +52,8 @@ enum class e_flag_char_type {
 };
 
 struct UnitFlagOptions {
-  e_flag_count     flag_count = {};
-  e_flag_char_type type       = {};
+  e_flag_count flag_count = {};
+  e_flag_char_type type   = {};
 
   // TODO: consider adding an rds feature to add these for each
   // field. The feature could be called "field_builders."

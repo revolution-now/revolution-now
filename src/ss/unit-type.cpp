@@ -98,7 +98,7 @@ bool is_military_unit( e_unit_type type ) {
 }
 
 MvPoints movement_points( Player const& player,
-                          e_unit_type   type ) {
+                          e_unit_type type ) {
   UnitTypeAttributes const& attr = unit_attr( type );
   if( attr.ship &&
       player.fathers.has[e_founding_father::ferdinand_magellan] )
@@ -229,7 +229,7 @@ UnitTypeAttributes const& unit_attr( UnitType type ) {
 }
 
 maybe<UnitType> find_unit_type_modifiers(
-    e_unit_type                                base_type,
+    e_unit_type base_type,
     unordered_set<e_unit_type_modifier> const& modifiers ) {
   if( modifiers.empty() ) return UnitType( base_type );
   auto& base_modifiers = unit_attr( base_type ).modifiers;
@@ -302,7 +302,7 @@ UnitType::unit_type_modifiers() const {
 }
 
 maybe<UnitType> add_unit_type_modifiers(
-    UnitType                                   ut,
+    UnitType ut,
     unordered_set<e_unit_type_modifier> const& modifiers ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =
       ut.unit_type_modifiers();
@@ -320,7 +320,7 @@ maybe<UnitType> add_unit_type_modifiers(
 }
 
 maybe<UnitType> rm_unit_type_modifiers(
-    UnitType                                        ut,
+    UnitType ut,
     std::unordered_set<e_unit_type_modifier> const& modifiers ) {
   unordered_set<e_unit_type_modifier> const& current_modifiers =
       ut.unit_type_modifiers();

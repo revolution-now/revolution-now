@@ -39,8 +39,8 @@ using ::gfx::rect;
 using ::gfx::size;
 
 TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
-  AtlasBuilder                       builder;
-  unordered_map<string, int>         atlas_ids;
+  AtlasBuilder builder;
+  unordered_map<string, int> atlas_ids;
   unordered_map<string, point> const names{
     // These are arbitrary names.
     { "_1", point{ .x = 2, .y = 0 } },
@@ -67,7 +67,7 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
   REQUIRE( atlas->img.size_pixels() ==
            size{ .w = 3 * 16, .h = 2 * 16 } );
   AtlasMap& m = atlas->dict;
-  rect      r{ .origin = {}, .size = { .w = 16, .h = 16 } };
+  rect r{ .origin = {}, .size = { .w = 16, .h = 16 } };
 
   r.origin = point{ .x = 0, .y = 0 };
   REQUIRE( m.lookup( 0 ) == r );
@@ -85,8 +85,8 @@ TEST_CASE( "[render/sprite-sheet] load_sprite_sheet" ) {
 
 TEST_CASE(
     "[render/sprite-sheet] load_sprite_sheet out of bounds" ) {
-  AtlasBuilder                       builder;
-  unordered_map<string, int>         atlas_ids;
+  AtlasBuilder builder;
+  unordered_map<string, int> atlas_ids;
   unordered_map<string, point> const names{
     // These are arbitrary names.
     { "_1", point{ .x = 10, .y = 0 } },
@@ -110,7 +110,7 @@ TEST_CASE(
 
 TEST_CASE(
     "[render/sprite-sheet] load_sprite_sheet repeat name" ) {
-  AtlasBuilder               builder;
+  AtlasBuilder builder;
   unordered_map<string, int> atlas_ids;
   atlas_ids["_0"] = 0;
   unordered_map<string, point> const names{
@@ -132,7 +132,7 @@ TEST_CASE(
 
 TEST_CASE( "[render/sprite-sheet] load_font_sheet" ) {
   AtlasBuilder builder;
-  image        img = new_empty_image( size{ .w = 32, .h = 48 } );
+  image img = new_empty_image( size{ .w = 32, .h = 48 } );
   expect<AsciiFont> res =
       load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( builder.rects().size() == 256 );
@@ -169,7 +169,7 @@ TEST_CASE( "[render/sprite-sheet] load_font_sheet" ) {
 TEST_CASE(
     "[render/sprite-sheet] load_font_sheet wrong dimensions" ) {
   AtlasBuilder builder;
-  image        img = new_empty_image( size{ .w = 33, .h = 48 } );
+  image img = new_empty_image( size{ .w = 33, .h = 48 } );
   expect<AsciiFont> res =
       load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( !res.has_value() );
@@ -181,7 +181,7 @@ TEST_CASE(
 
 TEST_CASE( "[render/sprite-sheet] load_font_sheet too small" ) {
   AtlasBuilder builder;
-  image        img = new_empty_image( size{ .w = 0, .h = 48 } );
+  image img = new_empty_image( size{ .w = 0, .h = 48 } );
   expect<AsciiFont> res =
       load_ascii_font_sheet( builder, std::move( img ) );
   REQUIRE( !res.has_value() );

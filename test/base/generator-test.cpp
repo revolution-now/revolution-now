@@ -47,7 +47,7 @@ generator<int> fibonacci() {
 
 generator<int> first_n_fibs( int n ) {
   generator<int> fibs = fibonacci();
-  auto           iter = fibs.begin();
+  auto iter           = fibs.begin();
   for( int i = 0; i < n; ++i ) {
     co_yield *iter;
     ++iter;
@@ -62,14 +62,14 @@ TEST_CASE( "[generator] yield nothing" ) {
 
 TEST_CASE( "[generator] yield one" ) {
   generator<int> one = yields_one();
-  vector<int>    ns;
+  vector<int> ns;
   for( int n : one ) ns.push_back( n );
   REQUIRE( ns == vector<int>{ 5 } );
 }
 
 TEST_CASE( "[generator] basic generator" ) {
   generator<int> fibs = fibonacci();
-  auto           iter = fibs.begin();
+  auto iter           = fibs.begin();
   REQUIRE( iter != fibs.end() );
   REQUIRE( *iter == 0 );
   REQUIRE( fibs.value() == 0 );

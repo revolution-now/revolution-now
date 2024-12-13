@@ -84,7 +84,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[colony-evolve] spoilage" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( { .x = 1, .y = 1 } );
   for( e_commodity c : refl::enum_values<e_commodity> )
     colony.commodities[c] = 101;
@@ -199,7 +199,7 @@ TEST_CASE( "[colony-evolve] spoilage" ) {
 }
 
 TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Add this so no one starves.
   colony.commodities[e_commodity::food] = 20;
@@ -230,12 +230,12 @@ TEST_CASE( "[colony-evolve] ran out of raw materials" ) {
 }
 
 TEST_CASE( "[colony-evolve] warns when colony starving" ) {
-  World                      W;
+  World W;
   vector<ColonyNotification> expected_notifications;
-  ColonyEvolution            ev;
-  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
-  int&    food   = colony.commodities[e_commodity::food];
-  int     expected_food = 0;
+  ColonyEvolution ev;
+  Colony& colony    = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  int& food         = colony.commodities[e_commodity::food];
+  int expected_food = 0;
   // The center square (grassland) should produce three food per
   // turn on conquistador.
   W.settings().difficulty = e_difficulty::conquistador;
@@ -536,7 +536,7 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
 
 TEST_CASE(
     "[colony-evolve] does not promote unit producing nothing" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Make sure no one starves.
   colony.commodities[e_commodity::food] = 100;
@@ -566,7 +566,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-evolve] promotes units" ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Make sure no one starves.
   colony.commodities[e_commodity::food] = 100;
@@ -692,7 +692,7 @@ TEST_CASE( "[colony-evolve] promotes units" ) {
 }
 
 TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
-  World   W;
+  World W;
   Player& dutch = W.dutch();
   // _, L, _,
   // L, L, L,
@@ -716,9 +716,9 @@ TEST_CASE( "[colony-evolve] gives stockade if needed" ) {
 }
 
 TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
-  World                      W;
+  World W;
   vector<ColonyNotification> expected;
-  map<Coord, int>            expected_counters;
+  map<Coord, int> expected_counters;
 
   Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
 

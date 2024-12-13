@@ -70,7 +70,7 @@ maybe<UnitId> HarborCargo::get_active_unit() const {
 maybe<HarborDraggableObject>
 HarborCargo::draggable_in_cargo_slot( int slot ) const {
   maybe<UnitId> const active_unit = get_active_unit();
-  Unit const&         unit = ss_.units.unit_for( *active_unit );
+  Unit const& unit = ss_.units.unit_for( *active_unit );
   if( slot >= unit.cargo().slots_total() ) return nothing;
   CargoSlot const& cargo = unit.cargo()[slot];
   switch( cargo.to_enum() ) {
@@ -100,8 +100,8 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
 maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return nothing;
-  Unit const& unit  = ss_.units.unit_for( *active_unit );
-  auto        boxes = rect( Coord{} ) / g_tile_delta;
+  Unit const& unit = ss_.units.unit_for( *active_unit );
+  auto boxes       = rect( Coord{} ) / g_tile_delta;
   UNWRAP_RETURN( slot, boxes.rasterize( where / g_tile_delta ) );
   if( slot >= unit.cargo().slots_total() ) return nothing;
   return slot;
@@ -173,8 +173,8 @@ HarborCargo::user_edit_object() const {
   auto cargo_commodity =
       draggable.get_if<HarborDraggableObject::cargo_commodity>();
   if( !cargo_commodity.has_value() ) co_return nothing;
-  Commodity const& comm        = cargo_commodity->comm;
-  int const        max_allowed = comm.quantity;
+  Commodity const& comm = cargo_commodity->comm;
+  int const max_allowed = comm.quantity;
   CHECK_GT( max_allowed, 0 );
   // FIXME: need to find the right verb here; could be "move" if
   // we're moving to another ship, or could be "sell" if we are
@@ -245,7 +245,7 @@ wait<> HarborCargo::disown_dragged_object() {
 
 maybe<CanReceiveDraggable<HarborDraggableObject>>
 HarborCargo::can_receive( HarborDraggableObject const& o,
-                          int          from_entity,
+                          int from_entity,
                           Coord const& where ) const {
   if( !get_active_unit().has_value() ) return nothing;
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
@@ -256,7 +256,7 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
   UNWRAP_RETURN( slot, slot_under_cursor( where ) );
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
-      auto const&  alt = o.get<HarborDraggableObject::unit>();
+      auto const& alt = o.get<HarborDraggableObject::unit>();
       UnitId const dragged_id = alt.id;
       if( entity_enum == e_harbor_view_entity::cargo ) {
         UNWRAP_CHECK( from_slot, active_unit.cargo().find_unit(
@@ -278,9 +278,9 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
     case HarborDraggableObject::e::market_commodity: {
       auto const& alt =
           o.get<HarborDraggableObject::market_commodity>();
-      Commodity const& comm      = alt.comm;
-      Commodity        corrected = comm;
-      corrected.quantity         = std::min(
+      Commodity const& comm = alt.comm;
+      Commodity corrected   = comm;
+      corrected.quantity    = std::min(
           corrected.quantity,
           active_unit.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
@@ -292,9 +292,9 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
           o.get<HarborDraggableObject::cargo_commodity>();
-      Commodity const& comm      = alt.comm;
-      Commodity        corrected = comm;
-      corrected.quantity         = std::min(
+      Commodity const& comm = alt.comm;
+      Commodity corrected   = comm;
+      corrected.quantity    = std::min(
           corrected.quantity,
           active_unit.cargo().max_commodity_quantity_that_fits(
               comm.type ) );
@@ -307,12 +307,12 @@ HarborCargo::can_receive( HarborDraggableObject const& o,
 }
 
 wait<> HarborCargo::drop( HarborDraggableObject const& o,
-                          Coord const&                 where ) {
+                          Coord const& where ) {
   UNWRAP_CHECK( slot, slot_under_cursor( where ) );
   UNWRAP_CHECK( active_unit_id, get_active_unit() );
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
-      auto const&  alt = o.get<HarborDraggableObject::unit>();
+      auto const& alt = o.get<HarborDraggableObject::unit>();
       UnitId const dragged_id = alt.id;
       UnitOwnershipChanger( ss_, dragged_id )
           .change_to_cargo( active_unit_id, slot );
@@ -340,9 +340,9 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
 }
 
 void HarborCargo::draw( rr::Renderer& renderer,
-                        Coord         coord ) const {
+                        Coord coord ) const {
   rr::Painter painter = renderer.painter();
-  auto        r       = rect( coord );
+  auto r              = rect( coord );
   // Our delta for this view has one extra pixel added to the
   // width and height to allow for the border, and so we need to
   // remove that otherwise the to-grid method below will create
@@ -360,7 +360,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
 
   // Draw the contents of the cargo since we have a selected ship
   // in port.
-  auto&       unit        = ss_.units.unit_for( *active_unit );
+  auto& unit              = ss_.units.unit_for( *active_unit );
   auto const& cargo_slots = unit.cargo().slots();
   base::generator<Rect> grid = gfx::subrects( r, g_tile_delta );
   auto zipped = rl::zip( rl::ints(), cargo_slots, grid );
@@ -370,8 +370,8 @@ void HarborCargo::draw( rr::Renderer& renderer,
         gfx::pixel::wood() );
     if( dragging_.has_value() && dragging_->slot == idx )
       continue;
-    Coord const dst_coord       = rect.upper_left();
-    auto const  cargo_slot_copy = cargo_slot;
+    Coord const dst_coord      = rect.upper_left();
+    auto const cargo_slot_copy = cargo_slot;
     SWITCH( cargo_slot_copy ) {
       CASE( empty ) { break; }
       CASE( overflow ) { break; }
@@ -401,8 +401,8 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
     SS& ss, TS& ts, Player& player, Rect canvas ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborCargo> view;
-  HarborSubView*          harbor_sub_view = nullptr;
-  Coord                   pos;
+  HarborSubView* harbor_sub_view = nullptr;
+  Coord pos;
 
   // This is the size without the bottom/right border.
   Delta const size_pixels = { .w = 32 * 6, .h = 32 * 1 };

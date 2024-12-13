@@ -41,7 +41,7 @@ TEST_CASE( "[colony-buildings] slot_for_building" ) {
   using IN  = e_colony_building;
   using OUT = e_colony_building_slot;
 
-  OUT               expected = {};
+  OUT expected = {};
   unordered_set<IN> used;
 
   auto f = [&]( IN o ) {
@@ -95,7 +95,7 @@ TEST_CASE( "[colony-buildings] indoor_job_for_slot" ) {
   using IN  = e_colony_building_slot;
   using OUT = maybe<e_indoor_job>;
 
-  OUT               expected = {};
+  OUT expected = {};
   unordered_set<IN> used;
 
   auto f = [&]( IN o ) {
@@ -127,7 +127,7 @@ TEST_CASE( "[colony-buildings] slot_for_indoor_job" ) {
   using IN  = e_indoor_job;
   using OUT = e_colony_building_slot;
 
-  OUT               expected = {};
+  OUT expected = {};
   unordered_set<IN> used;
 
   auto f = [&]( IN o ) {
@@ -154,7 +154,7 @@ TEST_CASE( "[colony-buildings] buildings_for_slot" ) {
   using OUT   = vector<e_colony_building>;
   using OUT_E = e_colony_building;
 
-  OUT               expected = {};
+  OUT expected = {};
   unordered_set<IN> used;
 
   auto f = [&]( IN o ) {
@@ -204,7 +204,7 @@ TEST_CASE( "[colony-buildings] building_for_slot" ) {
   using OUT   = maybe<e_colony_building>;
   using OUT_E = e_colony_building;
 
-  OUT               expected = {};
+  OUT expected = {};
   unordered_set<IN> used;
 
   Colony colony;
@@ -427,7 +427,7 @@ TEST_CASE( "[colony-buildings] barricade_for_colony" ) {
 }
 
 TEST_CASE( "[colony-buildings] add_colony_building" ) {
-  Colony                                  colony;
+  Colony colony;
   refl::enum_map<e_colony_building, bool> expected;
 
   REQUIRE( colony.buildings == expected );

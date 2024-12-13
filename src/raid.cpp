@@ -53,11 +53,11 @@ namespace rn {
 namespace {
 
 wait<> surprise_raid_msg( SSConst const& ss,
-                          IEuroMind&     euro_mind,
-                          Coord          defender_loc,
-                          e_tribe        tribe_type ) {
-  e_nation const       friendly_nation = euro_mind.nation();
-  string               where;
+                          IEuroMind& euro_mind,
+                          Coord defender_loc,
+                          e_tribe tribe_type ) {
+  e_nation const friendly_nation = euro_mind.nation();
+  string where;
   maybe<Colony const&> closest = find_close_explored_colony(
       ss, friendly_nation, defender_loc,
       /*max_distance=*/
@@ -88,13 +88,13 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
-  INativeMind&  native_mind = ts.native_minds()[tribe_type];
-  Unit&         defender    = ss.units.unit_for( defender_id );
+  INativeMind& native_mind = ts.native_minds()[tribe_type];
+  Unit& defender           = ss.units.unit_for( defender_id );
   CombatBraveAttackEuro const combat =
       ts.combat.brave_attack_euro( as_const( attacker ),
                                    as_const( defender ) );
-  Coord const src       = ss.units.coord_for( attacker.id );
-  IEuroMind&  euro_mind = ts.euro_minds()[defender.nation()];
+  Coord const src      = ss.units.coord_for( attacker.id );
+  IEuroMind& euro_mind = ts.euro_minds()[defender.nation()];
 
   // Note that for attacks the "show indian moves" game flag is
   // not relevant, since there is really no natural way to show
@@ -143,7 +143,7 @@ static wait<> raid_colony_battle(
     Tribe& tribe, CombatBraveAttackColony const& combat ) {
   CHECK( !combat.colony_destroyed );
   IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
-  Unit&      defender  = ss.units.unit_for( combat.defender.id );
+  Unit& defender       = ss.units.unit_for( combat.defender.id );
   // Note: there are there still side effects if the brave
   // loses. We only suppress the side effect if the colony is
   // destroyed, because many of those effects don't really make
@@ -180,10 +180,10 @@ static wait<> raid_colony_burn(
     SS& ss, TS& ts, NativeUnit& attacker, Colony& colony,
     e_tribe tribe_type, CombatBraveAttackColony const& combat ) {
   IEuroMind& euro_mind = ts.euro_minds()[colony.nation];
-  Player&    player =
+  Player& player =
       player_for_nation_or_die( ss.players, colony.nation );
   Unit& defender = ss.units.unit_for( combat.defender.id );
-  UnitId const                defender_id = defender.id();
+  UnitId const defender_id = defender.id();
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss, combat );
 
@@ -249,9 +249,9 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   CombatBraveAttackColony const combat =
       ts.combat.brave_attack_colony( attacker, defender,
                                      colony );
-  IEuroMind&    euro_mind  = ts.euro_minds()[colony.nation];
+  IEuroMind& euro_mind     = ts.euro_minds()[colony.nation];
   e_tribe const tribe_type = tribe_type_for_unit( ss, attacker );
-  Tribe&        tribe      = ss.natives.tribe_for( tribe_type );
+  Tribe& tribe             = ss.natives.tribe_for( tribe_type );
   unique_ptr<IVisibility const> const viz =
       create_visibility_for(
           ss, player_for_role( ss, e_player_role::viewer ) );

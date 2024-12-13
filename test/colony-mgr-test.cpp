@@ -81,7 +81,7 @@ TEST_CASE( "[colony-mgr] found_colony on land successful" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  Unit&       unit =
+  Unit& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, coord );
   REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
            base::valid );
@@ -98,7 +98,7 @@ TEST_CASE( "[colony-mgr] native convert cannot found" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  Unit&       unit =
+  Unit& unit =
       W.add_unit_on_map( e_unit_type::native_convert, coord );
   REQUIRE( unit_can_found_colony( W.ss(), unit.id() ) ==
            e_found_colony_err::native_convert_cannot_found );
@@ -108,10 +108,10 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
   World W;
 
   SECTION( "dragoon" ) {
-    Coord const coord   = { .x = 1, .y = 1 };
-    Unit&       founder = W.add_unit_on_map(
+    Coord const coord = { .x = 1, .y = 1 };
+    Unit& founder     = W.add_unit_on_map(
         UnitType::create( e_unit_type::dragoon,
-                                e_unit_type::petty_criminal )
+                              e_unit_type::petty_criminal )
             .value(),
         coord );
     REQUIRE( founder.type() == e_unit_type::dragoon );
@@ -142,7 +142,7 @@ TEST_CASE( "[colony-mgr] found_colony strips unit" ) {
 
   SECTION( "hardy_pioneer" ) {
     Coord const coord = { .x = 1, .y = 1 };
-    Unit&       founder =
+    Unit& founder =
         W.add_unit_on_map( e_unit_type::hardy_pioneer, coord );
     REQUIRE( founder.type() == e_unit_type::hardy_pioneer );
     REQUIRE(
@@ -173,7 +173,7 @@ TEST_CASE(
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  UnitId      id =
+  UnitId id =
       W.add_unit_on_map( e_unit_type::free_colonist, coord )
           .id();
   REQUIRE( unit_can_found_colony( W.ss(), id ).valid() );
@@ -196,7 +196,7 @@ TEST_CASE(
     "fails" ) {
   World W;
 
-  Coord  coord = { .x = 1, .y = 1 };
+  Coord coord = { .x = 1, .y = 1 };
   UnitId id =
       W.add_unit_on_map( e_unit_type::free_colonist, coord )
           .id();
@@ -266,7 +266,7 @@ TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
   World W;
 
   Coord const coord = { .x = 1, .y = 1 };
-  UnitId      id =
+  UnitId id =
       W.add_unit_on_map( e_unit_type::wagon_train, coord ).id();
   REQUIRE( unit_can_found_colony( W.ss(), id ) ==
            invalid( e_found_colony_err::
@@ -274,7 +274,7 @@ TEST_CASE( "[colony-mgr] found_colony by non-colonist fails" ) {
 }
 
 TEST_CASE( "[colony-mgr] create, query, destroy" ) {
-  World   W;
+  World W;
   Colony& colony =
       W.add_colony( Coord{ .x = 1, .y = 2 }, e_nation::english );
   REQUIRE( colony.id == ColonyId{ 1 } );
@@ -342,7 +342,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
   // found_colony specifically.
   ColonyId id = found_colony( W.ss(), W.ts(), W.default_player(),
                               founder.id(), "my colony" );
-  Colony&  colony = W.colonies().colony_for( id );
+  Colony& colony = W.colonies().colony_for( id );
 
   REQUIRE( colony.outdoor_jobs[e_direction::nw] == nothing );
   REQUIRE( colony.outdoor_jobs[e_direction::ne] == nothing );
@@ -359,7 +359,7 @@ TEST_CASE( "[colony-mgr] found_colony places initial unit." ) {
 }
 
 TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
-  World   W;
+  World W;
   Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   // Note that the founding colonist will have been placed on the
   // north tile.
@@ -389,12 +389,12 @@ TEST_CASE( "[colony-mgr] change_unit_outdoor_job." ) {
 }
 
 TEST_CASE( "[colony-mgr] colony destruction" ) {
-  World       W;
+  World W;
   Coord const loc        = { .x = 1, .y = 1 };
   auto [colony, founder] = W.found_colony_with_new_unit( loc );
   vector<UnitId> const units = colony_units_all( colony );
   REQUIRE( units.size() == 1 );
-  UnitId const          founder_id          = founder.id();
+  UnitId const founder_id                   = founder.id();
   e_ship_damaged_reason ship_damaged_reason = {};
 
   REQUIRE( W.units().exists( founder_id ) );
@@ -662,7 +662,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
 
 TEST_CASE(
     "[colony-mgr] find_occupied_surrounding_colony_squares" ) {
-  World   W;
+  World W;
   Colony& colony_nw = W.add_colony( Coord{ .x = 1, .y = 1 } );
   Colony& colony_ne = W.add_colony( Coord{ .x = 5, .y = 1 } );
   Colony& colony    = W.add_colony( Coord{ .x = 3, .y = 3 } );
@@ -693,7 +693,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
-  World   W;
+  World W;
   Player& dutch   = W.dutch();
   Player& english = W.english();
   // _, L, _, L, L, L,
@@ -778,7 +778,7 @@ TEST_CASE( "[colony-mgr] give_stockade_if_needed" ) {
 }
 
 TEST_CASE( "[colony-mgr] colony_workers" ) {
-  World   W;
+  World W;
   Colony& colony =
       W.add_colony( { .x = 1, .y = 1 }, e_nation::dutch );
   vector<UnitId> expected;

@@ -41,7 +41,7 @@ base::maybe<rthread> lua_get( cthread L, int idx,
 
 bool rthread::is_main() const noexcept {
   lua::c_api C( L_ );
-  bool       is_main_thread = C.pushthread();
+  bool is_main_thread = C.pushthread();
   C.pop();
   return is_main_thread;
 }

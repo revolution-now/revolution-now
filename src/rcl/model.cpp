@@ -163,10 +163,10 @@ void to_str( doc const& o, string& out, base::tag<doc> ) {
 namespace {
 
 table key_parser_table( table&& in );
-list  key_parser_list( list&& in );
+list key_parser_list( list&& in );
 
-constexpr char        kKeyDelimiterChar = 0x01;
-constexpr string_view kKeyDelimiterStr  = "\001";
+constexpr char kKeyDelimiterChar       = 0x01;
+constexpr string_view kKeyDelimiterStr = "\001";
 static_assert( kKeyDelimiterStr[0] == kKeyDelimiterChar );
 
 struct key_parser_visitor {
@@ -298,7 +298,7 @@ list key_parser_list( list&& in ) {
 namespace {
 
 table unflatten_table( table&& in );
-list  unflatten_list( list&& in );
+list unflatten_list( list&& in );
 
 struct unflatten_visitor {
   value operator()( null_t ) const { return value{ cdr::null }; }
@@ -349,7 +349,7 @@ table unflatten_table( table&& in ) {
 
 list unflatten_list( list&& in ) {
   static const unflatten_visitor vis;
-  list                           l;
+  list l;
   l.reserve( in.size() );
   for( value& v : in )
     l.push_back( fast_visit( vis, std::move( v ) ) );
@@ -388,7 +388,7 @@ base::expect<table, string> run_postprocessing(
 /****************************************************************
 ** Document
 *****************************************************************/
-expect<doc> doc::create( table&&                  tbl,
+expect<doc> doc::create( table&& tbl,
                          ProcessingOptions const& opts ) {
   UNWRAP_RETURN( postprocessed,
                  run_postprocessing( std::move( tbl ), opts ) );

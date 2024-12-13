@@ -45,12 +45,12 @@ wait<> revolution_now( Planes& planes ) {
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
 
-  auto         owner = planes.push();
-  PlaneGroup&  group = owner.group;
-  MenuPlane    menu_plane;
-  OmniPlane    omni_plane( menu_plane );
+  auto owner        = planes.push();
+  PlaneGroup& group = owner.group;
+  MenuPlane menu_plane;
+  OmniPlane omni_plane( menu_plane );
   ConsolePlane console_plane( terminal );
-  WindowPlane  window_plane;
+  WindowPlane window_plane;
   group.omni    = omni_plane;
   group.console = console_plane;
   group.window  = window_plane;

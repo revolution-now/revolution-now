@@ -84,7 +84,7 @@ EnumNameMap& enum_display_names() {
 namespace internal {
 
 string_view enum_to_display_name( string_view type_name,
-                                  int         index,
+                                  int index,
                                   string_view default_ ) {
   if( !enum_display_names().contains( type_name ) )
     return default_;

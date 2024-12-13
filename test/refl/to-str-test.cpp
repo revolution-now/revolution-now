@@ -35,7 +35,7 @@ struct MyStructWrapper {
     : wrapped( std::move( ms ) ) {}
 
   // Implement refl::WrapsReflected.
-  rn::MyStruct const&          refl() const { return wrapped; }
+  rn::MyStruct const& refl() const { return wrapped; }
   static constexpr string_view refl_ns   = "other";
   static constexpr string_view refl_name = "MyStructWrapper";
 
@@ -105,7 +105,7 @@ TEST_CASE( "[refl/to-str] wrapper" ) {
     .yyy     = 2.3,
     .zzz_map = { { "hello", "1" }, { "world", "2" } },
   } );
-  string          s = base::to_str( msw );
+  string s = base::to_str( msw );
   REQUIRE( ( s == "other::MyStructWrapper{xxx=5,yyy=2.3,zzz_map="
                   "{hello=1,world=2}}" ||
              s == "other::MyStructWrapper{xxx=5,yyy=2.3,zzz_map="

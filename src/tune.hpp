@@ -47,16 +47,16 @@ NOTHROW_MOVE( TuneVecDimensions );
   maybe<PP_JOIN( e_tune_, name )> name;
 
 struct TuneOptDimensions {
-  maybe<e_tune_tempo>     tempo;
-  maybe<e_tune_genre>     genre;
-  maybe<e_tune_culture>   culture;
-  maybe<e_tune_inst>      inst;
+  maybe<e_tune_tempo> tempo;
+  maybe<e_tune_genre> genre;
+  maybe<e_tune_culture> culture;
+  maybe<e_tune_inst> inst;
   maybe<e_tune_sentiment> sentiment;
-  maybe<e_tune_key>       key;
-  maybe<e_tune_tonality>  tonality;
-  maybe<e_tune_epoch>     epoch;
-  maybe<e_tune_purpose>   purpose;
-  TuneVecDimensions       to_vec_dims() const;
+  maybe<e_tune_key> key;
+  maybe<e_tune_tonality> tonality;
+  maybe<e_tune_epoch> epoch;
+  maybe<e_tune_purpose> purpose;
+  TuneVecDimensions to_vec_dims() const;
 };
 NOTHROW_MOVE( TuneOptDimensions );
 
@@ -79,7 +79,7 @@ static_assert( sizeof( TuneOptDimensions ) ==
 
 // This can only be populated by a music player.
 struct TunePlayerInfo {
-  TuneId            id;
+  TuneId id;
   maybe<Duration_t> length;
   // If the player is currently playing a tune then it will re-
   // turn a number in [0,1.0] representing the progress through

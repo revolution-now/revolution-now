@@ -495,21 +495,21 @@ TEST_CASE( "[maybe] copy construction" ) {
 TEST_CASE( "[maybe] converting copy construction" ) {
   SECTION( "int" ) {
     M<Intable> m1;
-    M<int>     m2( m1 );
+    M<int> m2( m1 );
     REQUIRE( !m2.has_value() );
 
     M<Intable> m3 = Intable{ 5 };
-    M<int>     m4( m3 );
+    M<int> m4( m3 );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == 5 );
   }
   SECTION( "string" ) {
     M<Stringable> m1;
-    M<string>     m2( m1 );
+    M<string> m2( m1 );
     REQUIRE( !m2.has_value() );
 
     M<Stringable> m3 = Stringable{ "hello" };
-    M<string>     m4( m3 );
+    M<string> m4( m3 );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == "hello" );
   }
@@ -602,21 +602,21 @@ TEST_CASE( "[maybe] move construction" ) {
 TEST_CASE( "[maybe] converting move construction" ) {
   SECTION( "int" ) {
     M<Intable> m1;
-    M<int>     m2( std::move( m1 ) );
+    M<int> m2( std::move( m1 ) );
     REQUIRE( !m2.has_value() );
 
     M<Intable> m3 = Intable{ 5 };
-    M<int>     m4( std::move( m3 ) );
+    M<int> m4( std::move( m3 ) );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == 5 );
   }
   SECTION( "string" ) {
     M<Stringable> m1;
-    M<string>     m2( std::move( m1 ) );
+    M<string> m2( std::move( m1 ) );
     REQUIRE( !m2.has_value() );
 
     M<Stringable> m3 = Stringable{ "hello" };
-    M<string>     m4( std::move( m3 ) );
+    M<string> m4( std::move( m3 ) );
     REQUIRE( m4.has_value() );
     REQUIRE( *m4 == "hello" );
   }
@@ -626,7 +626,7 @@ TEST_CASE( "[maybe] in place construction" ) {
   struct A {
     A( int n_, string s_, double d_ )
       : n( n_ ), s( s_ ), d( d_ ) {}
-    int    n;
+    int n;
     string s;
     double d;
   };
@@ -872,7 +872,7 @@ TEST_CASE( "[maybe] emplace" ) {
     struct A {
       [[maybe_unused]] A( int n_, string s_, double d_ )
         : n( n_ ), s( s_ ), d( d_ ) {}
-      int    n;
+      int n;
       string s;
       double d;
     };
@@ -885,7 +885,7 @@ TEST_CASE( "[maybe] emplace" ) {
     REQUIRE( m->d == 4.0 );
   }
   SECTION( "non-copy non-movable" ) {
-    NoCopyNoMove    ncnm( 'b' );
+    NoCopyNoMove ncnm( 'b' );
     M<NoCopyNoMove> m;
     REQUIRE( !m.has_value() );
     m.emplace( 'g' );
@@ -1235,7 +1235,7 @@ TEST_CASE( "[maybe] deduction guides" ) {
   // These would fail if we didn't have the explicit deduction
   // guide.
   SECTION( "explicit" ) {
-    int  arr[6];
+    int arr[6];
     auto m1 = maybe{ arr };
     ASSERT_VAR_TYPE( m1, M<int*> );
     auto m2 = maybe{ "hello" };
@@ -1517,8 +1517,8 @@ TEST_CASE( "[maybe] consteexpr" ) {
 }
 
 TEST_CASE( "[maybe] reference_wrapper" ) {
-  int        a = 5;
-  int        b = 7;
+  int a = 5;
+  int b = 7;
   M<RR<int>> m;
   REQUIRE( !m.has_value() );
   m = a;
@@ -1537,21 +1537,21 @@ TEST_CASE( "[maybe] reference_wrapper" ) {
 
   // Test implicit conversion.
   M<RR<int>> m3 = a;
-  M<int&>    m4 = m3;
+  M<int&> m4    = m3;
   REQUIRE( m4.has_value() );
   REQUIRE( m4 == 5 );
   ++a;
   REQUIRE( m4 == 6 );
 
   M<RR<int const>> m5 = a;
-  M<int const&>    m6 = m5;
+  M<int const&> m6    = m5;
   REQUIRE( m6.has_value() );
   REQUIRE( m6 == 6 );
   ++a;
   REQUIRE( m6 == 7 );
 
   M<RR<string>> m7 = nothing;
-  M<string&>    m8 = m7;
+  M<string&> m8    = m7;
   REQUIRE( !m8.has_value() );
 }
 
@@ -1596,7 +1596,7 @@ TEST_CASE( "[maybe] cat_maybes" ) {
 
 TEST_CASE( "[maybe] fmap" ) {
   SECTION( "int" ) {
-    auto   f = []( int n ) { return n + 1; };
+    auto f = []( int n ) { return n + 1; };
     M<int> m;
     REQUIRE( m.fmap( f ) == nothing );
     m = 7;
@@ -1605,7 +1605,7 @@ TEST_CASE( "[maybe] fmap" ) {
     REQUIRE( M<int>{ 3 }.fmap( f ) == 4 );
   }
   SECTION( "string" ) {
-    auto      f = []( string s ) { return s + s; };
+    auto f = []( string s ) { return s + s; };
     M<string> m;
     REQUIRE( m.fmap( f ) == nothing );
     m = "7";
@@ -1626,7 +1626,7 @@ TEST_CASE( "[maybe] fmap" ) {
   }
   SECTION( "Tracker" ) {
     Tracker::reset();
-    auto       f = []( Tracker const& nc ) { return nc; };
+    auto f = []( Tracker const& nc ) { return nc; };
     M<Tracker> m;
     REQUIRE( Tracker::constructed == 0 );
     REQUIRE( Tracker::destructed == 0 );
@@ -1715,7 +1715,7 @@ TEST_CASE( "[maybe] fmap" ) {
   SECTION( "pointer to member" ) {
     struct A {
       A( int m ) : n( m ) {}
-      int        get_n() const { return n + 1; }
+      int get_n() const { return n + 1; }
       maybe<int> maybe_get_n() const {
         return ( n > 5 ) ? just( n ) : nothing;
       }
@@ -1879,7 +1879,7 @@ TEST_CASE( "[maybe] just" ) {
   ASSERT_VAR_TYPE( m3, maybe<string> );
 
   string const& s1 = "hello";
-  auto          m4 = just( s1 );
+  auto m4          = just( s1 );
   ASSERT_VAR_TYPE( m4, maybe<string> );
 
   auto m5 = just( NoCopy{ 'a' } );
@@ -1942,7 +1942,7 @@ TEST_CASE( "[maybe-ref] construction" ) {
     REQUIRE( !bool( m1 ) );
     REQUIRE( !m1.is_value_truish() );
 
-    int     n  = 5;
+    int n      = 5;
     M<int&> m3 = n;
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == 5 );
@@ -1981,7 +1981,7 @@ TEST_CASE( "[maybe-ref] construction" ) {
     M<bool&> m7;
     REQUIRE( !m7.has_value() );
 
-    int     z  = 0;
+    int z      = 0;
     M<int&> m8 = z;
     REQUIRE( m8 == 0 );
     REQUIRE( !m8.is_value_truish() );
@@ -1989,12 +1989,12 @@ TEST_CASE( "[maybe-ref] construction" ) {
     REQUIRE( m8 == 2 );
     REQUIRE( m8.is_value_truish() );
 
-    NoCopyNoMove     ncnm{ 'a' };
+    NoCopyNoMove ncnm{ 'a' };
     M<NoCopyNoMove&> m9 = ncnm;
     REQUIRE( m9.has_value() );
     REQUIRE( m9->c == 'a' );
 
-    string     s   = "hello";
+    string s       = "hello";
     M<string&> m10 = s;
     REQUIRE( m10.has_value() );
     REQUIRE( m10 == "hello" );
@@ -2019,7 +2019,7 @@ TEST_CASE( "[maybe-ref] construction" ) {
     REQUIRE( !bool( m1 ) );
     REQUIRE( !m1.is_value_truish() );
 
-    int           n  = 5;
+    int n            = 5;
     M<int const&> m3 = n;
     REQUIRE( m3.has_value() );
     REQUIRE( *m3 == 5 );
@@ -2058,7 +2058,7 @@ TEST_CASE( "[maybe-ref] construction" ) {
     M<bool const&> m7;
     REQUIRE( !m7.has_value() );
 
-    int           z  = 0;
+    int z            = 0;
     M<int const&> m8 = z;
     REQUIRE( m8 == 0 );
     REQUIRE( !m8.is_value_truish() );
@@ -2066,12 +2066,12 @@ TEST_CASE( "[maybe-ref] construction" ) {
     REQUIRE( m8 == 2 );
     REQUIRE( m8.is_value_truish() );
 
-    NoCopyNoMove           ncnm{ 'a' };
+    NoCopyNoMove ncnm{ 'a' };
     M<NoCopyNoMove const&> m9 = ncnm;
     REQUIRE( m9.has_value() );
     REQUIRE( m9->c == 'a' );
 
-    string           s   = "hello";
+    string s             = "hello";
     M<string const&> m10 = s;
     REQUIRE( m10.has_value() );
     REQUIRE( m10 == "hello" );
@@ -2082,7 +2082,7 @@ TEST_CASE( "[maybe-ref] construction" ) {
 
 TEST_CASE( "[maybe-ref] fmap" ) {
   SECTION( "ref to value, int" ) {
-    int     n  = 5;
+    int n      = 5;
     M<int&> m1 = n;
 
     auto inc = []( int m ) { return m + 1; };
@@ -2093,7 +2093,7 @@ TEST_CASE( "[maybe-ref] fmap" ) {
     REQUIRE( m2 == 6 );
   }
   SECTION( "ref to value, string" ) {
-    string     n  = "hello";
+    string n      = "hello";
     M<string&> m1 = n;
 
     auto inc = []( string const& s ) { return s + s; };
@@ -2104,7 +2104,7 @@ TEST_CASE( "[maybe-ref] fmap" ) {
     REQUIRE( m2 == "hellohello" );
   }
   SECTION( "ref to ref, int" ) {
-    int     n  = 5;
+    int n      = 5;
     M<int&> m1 = n;
 
     auto inc = []( int ) -> int& {
@@ -2118,7 +2118,7 @@ TEST_CASE( "[maybe-ref] fmap" ) {
     REQUIRE( m2 == 8 );
   }
   SECTION( "ref to ref, string" ) {
-    string     n  = "hello";
+    string n      = "hello";
     M<string&> m1 = n;
 
     auto inc = []( string const& ) -> string const& {
@@ -2161,7 +2161,7 @@ TEST_CASE( "[maybe-ref] fmap" ) {
 
 TEST_CASE( "[maybe-ref] bind" ) {
   SECTION( "ref to value, int" ) {
-    int     n  = 5;
+    int n      = 5;
     M<int&> m1 = n;
 
     auto inc = []( int m ) -> maybe<int> {
@@ -2181,7 +2181,7 @@ TEST_CASE( "[maybe-ref] bind" ) {
     REQUIRE( m3 == nothing );
   }
   SECTION( "ref to value, string" ) {
-    string     n  = "hello";
+    string n      = "hello";
     M<string&> m1 = n;
 
     auto inc = []( string const& m ) -> maybe<string> {
@@ -2201,7 +2201,7 @@ TEST_CASE( "[maybe-ref] bind" ) {
     REQUIRE( m3 == nothing );
   }
   SECTION( "ref to ref, int" ) {
-    int     n  = 5;
+    int n      = 5;
     M<int&> m1 = n;
 
     auto inc = []( int m ) -> maybe<int const&> {
@@ -2223,7 +2223,7 @@ TEST_CASE( "[maybe-ref] bind" ) {
     REQUIRE( m3 == nothing );
   }
   SECTION( "ref to ref, string" ) {
-    string     n  = "hello";
+    string n      = "hello";
     M<string&> m1 = n;
 
     auto inc = []( string const& m ) -> maybe<string&> {
@@ -2290,7 +2290,7 @@ TEST_CASE( "[maybe-ref] bind" ) {
 
 TEST_CASE( "[maybe-ref] just-ref" ) {
   SECTION( "int" ) {
-    int  n  = 5;
+    int n   = 5;
     auto m1 = just_ref( n );
     ASSERT_VAR_TYPE( m1, maybe<int&> );
     REQUIRE( m1.has_value() );
@@ -2298,24 +2298,24 @@ TEST_CASE( "[maybe-ref] just-ref" ) {
     REQUIRE( *m1 == 5 );
     REQUIRE( m1 != nothing );
 
-    int const m  = 5;
-    auto      m2 = just_ref( m );
+    int const m = 5;
+    auto m2     = just_ref( m );
     ASSERT_VAR_TYPE( m2, maybe<int const&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == 5 );
     REQUIRE( *m2 == 5 );
   }
   SECTION( "string" ) {
-    string s  = "hello";
-    auto   m1 = just_ref( s );
+    string s = "hello";
+    auto m1  = just_ref( s );
     ASSERT_VAR_TYPE( m1, maybe<string&> );
     REQUIRE( m1.has_value() );
     REQUIRE( m1 == "hello" );
     REQUIRE( *m1 == "hello" );
     REQUIRE( m1 != nothing );
 
-    string const m  = "world";
-    auto         m2 = just_ref( m );
+    string const m = "world";
+    auto m2        = just_ref( m );
     ASSERT_VAR_TYPE( m2, maybe<string const&> );
     REQUIRE( m2.has_value() );
     REQUIRE( m2 == "world" );
@@ -2325,9 +2325,9 @@ TEST_CASE( "[maybe-ref] just-ref" ) {
 
 TEST_CASE( "[maybe-ref] comparison" ) {
   SECTION( "int" ) {
-    int           n  = 5;
-    M<int&>       m1 = n;
-    int           m  = 6;
+    int n            = 5;
+    M<int&> m1       = n;
+    int m            = 6;
     M<int const&> m2 = m;
 
     REQUIRE( m1.has_value() );
@@ -2340,9 +2340,9 @@ TEST_CASE( "[maybe-ref] comparison" ) {
     REQUIRE( m1 == m2 );
   }
   SECTION( "string" ) {
-    string     n  = "hello";
+    string n      = "hello";
     M<string&> m1 = n;
-    string     m  = "world";
+    string m      = "world";
     M<string&> m2 = m;
 
     REQUIRE( m1.has_value() );
@@ -2384,7 +2384,7 @@ TEST_CASE( "[maybe] ref to member" ) {
       int n;
     };
 
-    A     a{ 4 };
+    A a{ 4 };
     M<A&> m = a;
 
     auto m2 = m.member( &A::n );
@@ -2449,7 +2449,7 @@ TEST_CASE( "[maybe] ref to member" ) {
       maybe<int> n;
     };
 
-    A     a{};
+    A a{};
     M<A&> m = a;
 
     auto m1 = m.maybe_member( &A::n );
@@ -2539,9 +2539,9 @@ TEST_CASE( "[maybe] get_if" ) {
       REQUIRE( m.get_if<string>() == nothing );
     }
     SECTION( "int" ) {
-      V     v   = 3;
-      M<V&> m   = v;
-      auto  res = m.get_if<int>();
+      V v      = 3;
+      M<V&> m  = v;
+      auto res = m.get_if<int>();
       ASSERT_VAR_TYPE( res, maybe<int&> );
       REQUIRE( res.has_value() );
       *res = 4;
@@ -2549,9 +2549,9 @@ TEST_CASE( "[maybe] get_if" ) {
       REQUIRE( m.get_if<double>() == nothing );
     }
     SECTION( "string" ) {
-      V     v   = "hello";
-      M<V&> m   = v;
-      auto  res = m.get_if<string>();
+      V v      = "hello";
+      M<V&> m  = v;
+      auto res = m.get_if<string>();
       ASSERT_VAR_TYPE( res, maybe<string&> );
       REQUIRE( res.has_value() );
       REQUIRE( m.get_if<double>() == nothing );
@@ -2560,9 +2560,9 @@ TEST_CASE( "[maybe] get_if" ) {
   SECTION( "ref, base::variant" ) {
     using V = base::variant<int, string, double>;
     SECTION( "int" ) {
-      V     v   = 3;
-      M<V&> m   = v;
-      auto  res = m.get_if<int>();
+      V v      = 3;
+      M<V&> m  = v;
+      auto res = m.get_if<int>();
       ASSERT_VAR_TYPE( res, maybe<int&> );
       REQUIRE( res.has_value() );
       *res = 4;
@@ -2570,9 +2570,9 @@ TEST_CASE( "[maybe] get_if" ) {
       REQUIRE( m.get_if<double>() == nothing );
     }
     SECTION( "string" ) {
-      V const     v   = "hello";
-      M<V const&> m   = v;
-      auto        res = m.get_if<string>();
+      V const v     = "hello";
+      M<V const&> m = v;
+      auto res      = m.get_if<string>();
       ASSERT_VAR_TYPE( res, maybe<string const&> );
       REQUIRE( res.has_value() );
       REQUIRE( m.get_if<double>() == nothing );
@@ -2582,7 +2582,7 @@ TEST_CASE( "[maybe] get_if" ) {
 
 TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
   {
-    M<int>  m1;
+    M<int> m1;
     M<int&> m2 = m1;
     M<int&> m3 = static_cast<M<int&>>( m1 );
     (void)m2;
@@ -2596,7 +2596,7 @@ TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
     static_assert( !is_convertible_v<M<int> const, M<int&>> );
   }
   {
-    M<int>        m1;
+    M<int> m1;
     M<int const&> m2 = as_const( m1 );
     M<int const&> m3 =
         static_cast<M<int const&>>( as_const( m1 ) );
@@ -2608,8 +2608,8 @@ TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
 }
 
 TEST_CASE( "[maybe] stringification" ) {
-  int     n  = 3;
-  M<int>  m1 = 5;
+  int n      = 3;
+  M<int> m1  = 5;
   M<int&> m2 = n;
 
   REQUIRE( fmt::format( "{}", m1 ) == "5" );
@@ -2639,7 +2639,7 @@ TEST_CASE( "[maybe-ref] binding to rvalues" ) {
   // takes_empty_ref( Empty{} ); // error
   takes_empty_const_ref( Empty{} );
 
-  int  i{ 5 };
+  int i{ 5 };
   auto x = maybe<int const&>( i );
   (void)x;
   // uncommenting should yield a warning.
@@ -2661,16 +2661,16 @@ TEST_CASE( "[maybe-ref] binding to rvalues" ) {
 }
 
 TEST_CASE( "[maybe-ref] to_value" ) {
-  int               n = 4;
+  int n               = 4;
   maybe<int const&> i = n;
   ASSERT_VAR_TYPE( i.to_value(), maybe<int> );
   REQUIRE( i.to_value() == 4 );
 }
 
 TEST_CASE( "[maybe-ref] value_or" ) {
-  int               n  = 4;
-  maybe<int const&> i  = n;
-  maybe<int&>       i2 = n;
+  int n               = 4;
+  maybe<int const&> i = n;
+  maybe<int&> i2      = n;
   ASSERT_VAR_TYPE( i.value_or( 5 ), int );
   ASSERT_VAR_TYPE( i.value_or( n ), int const& );
   ASSERT_VAR_TYPE( i2.value_or( 5 ), int );
@@ -2698,7 +2698,7 @@ TEST_CASE( "[maybe] inner_if" ) {
           decltype( as_const( v ).inner_if<HasOneField>() ),
           maybe<int const&>> );
   SECTION( "value, base::variant" ) {
-    M<V>       m;
+    M<V> m;
     M<V> const m_const;
     static_assert(
         is_same_v<decltype( m.inner_if<HasOneField>() ),
@@ -2720,8 +2720,8 @@ TEST_CASE( "[maybe] inner_if" ) {
   }
   SECTION( "ref, base::variant" ) {
     v              = HasOneField{};
-    M<V&>       m0 = nothing;
-    M<V&>       m1 = v;
+    M<V&> m0       = nothing;
+    M<V&> m1       = v;
     M<V const&> m2 = v;
     static_assert(
         is_same_v<decltype( m0.inner_if<HasOneField>() ),

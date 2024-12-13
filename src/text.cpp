@@ -65,9 +65,9 @@ void render_line( rr::Typer& typer, gfx::pixel fg,
   return render_impl( typer, fg, text );
 }
 
-void render_line_markup( rr::Typer&                   typer,
+void render_line_markup( rr::Typer& typer,
                          vector<MarkedUpChunk> const& mks,
-                         TextMarkupInfo const&        info ) {
+                         TextMarkupInfo const& info ) {
   for( MarkedUpChunk const& mut : mks )
     if( !mut.text.empty() ) //
       render_markup( typer, mut, info );
@@ -82,9 +82,9 @@ void render_lines( rr::Typer& typer, gfx::pixel fg,
 }
 
 void render_lines_markup(
-    rr::Typer&                           typer,
+    rr::Typer& typer,
     vector<vector<MarkedUpChunk>> const& mk_text,
-    TextMarkupInfo const&                info ) {
+    TextMarkupInfo const& info ) {
   for( vector<MarkedUpChunk> const& muts : mk_text ) {
     render_line_markup( typer, muts, info );
     render_impl( typer, gfx::pixel{}, "\n" );
@@ -162,7 +162,7 @@ vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
       CHECK( remaining_after_consume >= 0 );
       CHECK( remaining_after_consume <= chunk_size );
       MarkedUpChunk new_mk_text = mk_text[mk_pos];
-      string_view   sv          = new_mk_text.text;
+      string_view sv            = new_mk_text.text;
       sv.remove_prefix( mk_char_pos );
       sv.remove_suffix( remaining_after_consume );
       new_mk_text.text = string( sv );
@@ -220,7 +220,7 @@ gfx::pixel TextMarkupInfo::default_highlight_color() {
 void render_text_markup( rr::Renderer& renderer,
                          gfx::point where, e_font font,
                          TextMarkupInfo const& info,
-                         std::string_view      text ) {
+                         std::string_view text ) {
   (void)font; // TODO
   // The color will be set later.
   rr::Typer typer = renderer.typer( where, gfx::pixel{} );
@@ -255,7 +255,7 @@ void render_text_markup_reflow(
 }
 
 Delta rendered_text_size( TextReflowInfo const& reflow_info,
-                          string_view           text ) {
+                          string_view text ) {
   vector<vector<MarkedUpChunk>> lines =
       text_markup_reflow_impl( reflow_info, text );
   gfx::size const kCharSize =
@@ -277,7 +277,7 @@ Delta rendered_text_size( TextReflowInfo const& reflow_info,
 }
 
 Delta rendered_text_size_no_reflow( string_view text ) {
-  string              no_markup = remove_markup( text );
+  string no_markup = remove_markup( text );
   vector<string_view> lines =
       util::split_on_any( no_markup, "\r\n" );
   gfx::size const kCharSize =

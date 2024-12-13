@@ -202,7 +202,7 @@ TEST_CASE(
     "type" ) {
   World W;
   W.create_default_map();
-  Colony&    colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
+  Colony& colony = W.add_colony( Coord{ .x = 1, .y = 1 } );
   gfx::point P{ .x = 0, .y = 1 };
 
   auto lum = [&] {
@@ -505,7 +505,7 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
   W.settings().difficulty = e_difficulty::discoverer;
 
   SECTION( "no lumberjack" ) {
-    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    Colony& colony = W.add_colony( W.kGrasslandTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -973,7 +973,7 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
   W.settings().difficulty = e_difficulty::discoverer;
 
   SECTION( "center square tobacco only" ) {
-    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    Colony& colony = W.add_colony( W.kGrasslandTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -1087,7 +1087,7 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
   }
 
   SECTION( "no tobacco center square" ) {
-    Colony&          colony = W.add_colony( W.kPrairieTile );
+    Colony& colony = W.add_colony( W.kPrairieTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -1767,7 +1767,7 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
   W.settings().difficulty = e_difficulty::explorer;
 
   SECTION( "center square cotton only" ) {
-    Colony&          colony = W.add_colony( W.kPrairieTile );
+    Colony& colony = W.add_colony( W.kPrairieTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -1880,7 +1880,7 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
   }
 
   SECTION( "no cotton center square" ) {
-    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    Colony& colony = W.add_colony( W.kGrasslandTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -2558,7 +2558,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
   int const bonus         = 2;
 
   SECTION( "no units no horses/arctic" ) {
-    Colony&          colony = W.add_colony( W.kArcticTile );
+    Colony& colony = W.add_colony( W.kArcticTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -2584,7 +2584,7 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
   }
 
   SECTION( "no units no horses" ) {
-    Colony&          colony = W.add_colony( W.kGrasslandTile );
+    Colony& colony = W.add_colony( W.kGrasslandTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -3429,7 +3429,7 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
   int const bonus         = 1;
 
   SECTION( "no units no horses/arctic" ) {
-    Colony&          colony = W.add_colony( W.kArcticTile );
+    Colony& colony = W.add_colony( W.kArcticTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -3511,7 +3511,7 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
   int const bonus         = 0;
 
   SECTION( "no units no horses/arctic" ) {
-    Colony&          colony = W.add_colony( W.kArcticTile );
+    Colony& colony = W.add_colony( W.kArcticTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.land_production == LP{} );
@@ -3589,7 +3589,7 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
   W.settings().difficulty = e_difficulty::conquistador;
 
   SECTION( "center square ore only" ) {
-    Colony&          colony = W.add_colony( W.kDesertTile );
+    Colony& colony = W.add_colony( W.kDesertTile );
     ColonyProduction pr =
         production_for_colony( W.ss(), colony );
     REQUIRE( pr.center_extra_production ==

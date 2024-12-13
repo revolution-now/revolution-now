@@ -57,7 +57,7 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   L = make_grassland();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       L, L, L, //
       L, L, L, //
@@ -71,14 +71,14 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[raid] raid_unit" ) {
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
 
   CombatBraveAttackEuro combat;
-  Coord const           defender_coord{ .x = 1, .y = 0 };
-  Coord const           attacker_coord{ .x = 0, .y = 0 };
-  MockINativeMind&      native_mind =
+  Coord const defender_coord{ .x = 1, .y = 0 };
+  Coord const attacker_coord{ .x = 0, .y = 0 };
+  MockINativeMind& native_mind =
       W.native_mind( e_tribe::arawak );
   MockIEuroMind& euro_mind = W.euro_mind( W.default_nation() );
 
@@ -201,8 +201,8 @@ TEST_CASE( "[raid] raid_unit" ) {
     // picked for the right reasons.
     Unit const& soldier = W.add_unit_on_map(
         e_unit_type::soldier, defender_coord );
-    UnitId const soldier_id     = soldier.id();
-    Unit const&  free_colonist2 = W.add_unit_on_map(
+    UnitId const soldier_id    = soldier.id();
+    Unit const& free_colonist2 = W.add_unit_on_map(
         e_unit_type::free_colonist, defender_coord );
     UnitId const free_colonist2_id = free_colonist2.id();
 
@@ -272,7 +272,7 @@ TEST_CASE( "[raid] raid_unit" ) {
         W.add_unit_on_map( e_unit_type::soldier, defender_coord,
                            e_nation::english );
     UnitId const soldier_id = soldier.id();
-    Unit const&  free_colonist2 =
+    Unit const& free_colonist2 =
         W.add_unit_on_map( e_unit_type::free_colonist,
                            defender_coord, e_nation::english );
     UnitId const free_colonist2_id = free_colonist2.id();
@@ -328,18 +328,18 @@ TEST_CASE( "[raid] raid_unit" ) {
 }
 
 TEST_CASE( "[raid] raid_colony" ) {
-  World             W;
+  World W;
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
-  e_tribe const   tribe_type     = e_tribe::arawak;
-  Coord const     attacker_coord = { .x = 0, .y = 0 };
-  Coord const     defender_coord = { .x = 1, .y = 0 };
+  e_tribe const tribe_type   = e_tribe::arawak;
+  Coord const attacker_coord = { .x = 0, .y = 0 };
+  Coord const defender_coord = { .x = 1, .y = 0 };
   Dwelling const& dwelling =
       W.add_dwelling( attacker_coord, tribe_type );
   DwellingId const dwelling_id = dwelling.id;
-  Colony&          colony      = W.add_colony( defender_coord );
-  Coord const      colony_location = colony.location;
-  Unit const&      worker =
+  Colony& colony               = W.add_colony( defender_coord );
+  Coord const colony_location  = colony.location;
+  Unit const& worker =
       W.add_unit_indoors( colony.id, e_indoor_job::bells );
   MockIEuroMind& mock_euro_mind =
       W.euro_mind( W.default_nation() );
@@ -373,11 +373,11 @@ TEST_CASE( "[raid] raid_colony" ) {
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.
     NativeUnitId const attacker_id = attacker.id;
-    ColonyId const     colony_id   = colony.id;
-    UnitId const       worker_id   = worker.id();
-    UnitId const       defender_id = defender.id();
-    UnitId const       caravel_id  = caravel.id();
-    UnitId const       frigate_id  = frigate.id();
+    ColonyId const colony_id       = colony.id;
+    UnitId const worker_id         = worker.id();
+    UnitId const defender_id       = defender.id();
+    UnitId const caravel_id        = caravel.id();
+    UnitId const frigate_id        = frigate.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
@@ -470,10 +470,10 @@ TEST_CASE( "[raid] raid_colony" ) {
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.
     NativeUnitId const attacker_id = attacker.id;
-    ColonyId const     colony_id   = colony.id;
-    UnitId const       worker_id   = worker.id();
-    UnitId const       defender_id = defender.id();
-    UnitId const       caravel_id  = caravel.id();
+    ColonyId const colony_id       = colony.id;
+    UnitId const worker_id         = worker.id();
+    UnitId const defender_id       = defender.id();
+    UnitId const caravel_id        = caravel.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
@@ -556,9 +556,9 @@ TEST_CASE( "[raid] raid_colony" ) {
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.
     NativeUnitId const attacker_id = attacker.id;
-    ColonyId const     colony_id   = colony.id;
-    UnitId const       worker_id   = worker.id();
-    UnitId const       defender_id = defender.id();
+    ColonyId const colony_id       = colony.id;
+    UnitId const worker_id         = worker.id();
+    UnitId const defender_id       = defender.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
@@ -622,9 +622,9 @@ TEST_CASE( "[raid] raid_colony" ) {
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.
     NativeUnitId const attacker_id = attacker.id;
-    ColonyId const     colony_id   = colony.id;
-    UnitId const       worker_id   = worker.id();
-    UnitId const       defender_id = defender.id();
+    ColonyId const colony_id       = colony.id;
+    UnitId const worker_id         = worker.id();
+    UnitId const defender_id       = defender.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.
@@ -689,15 +689,15 @@ TEST_CASE( "[raid] raid_colony" ) {
 
     // These are for after the raid when they may no longer exist
     // and thus the associated references might be dangling.
-    NativeUnitId const attacker_id    = attacker.id;
-    ColonyId const     colony_id      = colony.id;
-    UnitId const       worker_id      = worker.id();
-    UnitId const       defender_id    = defender.id();
-    UnitId const       wagon_train_id = wagon_train.id();
-    UnitId const       pioneer_id     = pioneer.id();
-    UnitId const       caravel_id     = caravel.id();
-    UnitId const       frigate_id     = frigate.id();
-    UnitId const       onboard_id     = onboard.id();
+    NativeUnitId const attacker_id = attacker.id;
+    ColonyId const colony_id       = colony.id;
+    UnitId const worker_id         = worker.id();
+    UnitId const defender_id       = defender.id();
+    UnitId const wagon_train_id    = wagon_train.id();
+    UnitId const pioneer_id        = pioneer.id();
+    UnitId const caravel_id        = caravel.id();
+    UnitId const frigate_id        = frigate.id();
+    UnitId const onboard_id        = onboard.id();
 
     // Note that, in the OG, the brave attacking a colony is al-
     // ways destroyed after an attack on a colony.

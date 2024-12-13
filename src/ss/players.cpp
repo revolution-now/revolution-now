@@ -42,9 +42,9 @@ base::valid_or<string> PlayersState::validate() const {
   return base::valid;
 }
 
-void reset_players( PlayersState&           players_state,
+void reset_players( PlayersState& players_state,
                     vector<e_nation> const& nations,
-                    base::maybe<e_nation>   human ) {
+                    base::maybe<e_nation> human ) {
   auto& players = players_state.players;
   for( e_nation nation : refl::enum_values<e_nation> )
     players[nation].reset();
@@ -56,7 +56,7 @@ void reset_players( PlayersState&           players_state,
   set_unique_human_player( players_state, human );
 }
 
-void set_unique_human_player( PlayersState&         players,
+void set_unique_human_player( PlayersState& players,
                               base::maybe<e_nation> nation ) {
   for( e_nation const n : refl::enum_values<e_nation> )
     players.humans[n] = ( n == nation );
@@ -64,7 +64,7 @@ void set_unique_human_player( PlayersState&         players,
 }
 
 Player& player_for_nation_or_die( PlayersState& players,
-                                  e_nation      nation ) {
+                                  e_nation nation ) {
   UNWRAP_CHECK_MSG( player, players.players[nation],
                     "player for nation {} does not exist.",
                     nation );
@@ -108,7 +108,7 @@ LUA_STARTUP( lua::state& st ) {
       return obj[nation];
     };
 
-    u["reset_player"] = []( U&       obj,
+    u["reset_player"] = []( U& obj,
                             e_nation nation ) -> Player& {
       obj[nation] = Player{};
       return *obj[nation];

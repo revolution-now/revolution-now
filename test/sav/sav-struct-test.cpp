@@ -106,7 +106,7 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
 }
 
 TEST_CASE( "[sav/sav-struct] unrecognized enum value" ) {
-  cdr::converter  conv;
+  cdr::converter conv;
   unit_type const o = static_cast<unit_type>( 255 );
   REQUIRE( base::to_str( o ) == "<unrecognized>" );
   REQUIRE( conv.to( o ) == cdr::null );

@@ -102,8 +102,8 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   SCOPE_EXIT { st["ROOT"] = lua::nil; };
   SCOPE_EXIT { st["SS"] = lua::nil; };
 
-  Rand         rand; // random seed.
-  RealCombat   combat( ss, rand );
+  Rand rand; // random seed.
+  RealCombat combat( ss, rand );
   ColonyViewer colony_viewer( ss );
 
   TerrainConnectivity connectivity;
@@ -120,12 +120,12 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
     co_return;
 
   NativeMinds native_minds = create_native_minds( ss, rand );
-  auto        _2           = ts.set_native_minds( native_minds );
+  auto _2                  = ts.set_native_minds( native_minds );
 
   // This one needs to run after the loader because it needs to
   // know which nations are human.
   EuroMinds euro_minds = create_euro_minds( ss, gui );
-  auto      _3         = ts.set_euro_minds( euro_minds );
+  auto _3              = ts.set_euro_minds( euro_minds );
 
   // After this, any changes to the map that change land to water
   // or vice versa (or change map size) need to be followed up by
@@ -159,7 +159,7 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
 
   ensure_human_player( ss.players );
 
-  auto        owner   = planes.push();
+  auto owner          = planes.push();
   PlaneGroup& group   = owner.group;
   group.menus_enabled = true;
 

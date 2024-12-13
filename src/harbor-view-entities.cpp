@@ -57,7 +57,7 @@ class HarborStatusBar : public ui::View, public HarborSubView {
  public:
   static unique_ptr<HarborStatusBar> create( SS& ss, TS& ts,
                                              Player& player,
-                                             Delta   size ) {
+                                             Delta size ) {
     return make_unique<HarborStatusBar>( ss, ts, player, size );
   }
 
@@ -71,7 +71,7 @@ class HarborStatusBar : public ui::View, public HarborSubView {
     return static_cast<int>( e_harbor_view_entity::status_bar );
   }
 
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
@@ -79,7 +79,7 @@ class HarborStatusBar : public ui::View, public HarborSubView {
   string status() const { return status_; }
 
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override {
+             Coord coord ) const override {
     rr::Painter painter = renderer.painter();
     painter.draw_solid_rect( rect( coord ), gfx::pixel::wood() );
     renderer
@@ -92,7 +92,7 @@ class HarborStatusBar : public ui::View, public HarborSubView {
   }
 
  private:
-  Delta  size_;
+  Delta size_;
   string status_;
 };
 
@@ -117,7 +117,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
   }
 
   // Implement HarborSubView.
-  ui::View&       view() noexcept override { return *this; }
+  ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }

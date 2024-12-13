@@ -42,7 +42,7 @@ namespace rn::co {
 // nators, you probably should not be using this outside of those
 // implementations.
 template<typename T, typename U>
-void disjunctive_link_to_promise( wait<T>&         w,
+void disjunctive_link_to_promise( wait<T>& w,
                                   wait_promise<U>& wp ) {
   w.state()->add_callback(
       [&wp]( typename wait<T>::value_type const& o ) {
@@ -63,7 +63,7 @@ void disjunctive_link_to_promise( wait<T>&         w,
 // variant using a specified index, although it will work for
 // variants with non-duplicate types as well.
 template<int Index, typename T, typename U>
-void disjunctive_link_to_variant_promise( wait<T>&         w,
+void disjunctive_link_to_variant_promise( wait<T>& w,
                                           wait_promise<U>& wp ) {
   static_assert( base::is_base_variant_v<U> );
   w.state()->add_callback(
@@ -376,7 +376,7 @@ struct stream {
   }
 
   wait_promise<> p;
-  std::queue<T>  q;
+  std::queue<T> q;
 };
 
 /****************************************************************
@@ -411,7 +411,7 @@ struct finite_stream {
   void set_exception() { s.set_exception(); }
 
  private:
-  bool               ended = false;
+  bool ended = false;
   stream<value_type> s;
 };
 
@@ -439,7 +439,7 @@ struct one_shot_stream_adapter {
 
  private:
   wait<T> w_;
-  bool    retrieved_ = false;
+  bool retrieved_ = false;
 };
 
 /****************************************************************
@@ -537,7 +537,7 @@ struct interleave {
 *****************************************************************/
 template<typename T>
 struct ResultWithSuspend {
-  T    result;
+  T result;
   bool suspended;
 };
 

@@ -42,7 +42,7 @@ constexpr uint64_t __prime_64_const = 0x100000001b3;
 
 inline constexpr uint64_t hash_64_fnv1a_const(
     char const* const str,
-    uint64_t const    value = __val_64_const ) noexcept {
+    uint64_t const value = __val_64_const ) noexcept {
   return ( str[0] == '\0' )
              ? value
              : hash_64_fnv1a_const(

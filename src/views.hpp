@@ -65,7 +65,7 @@ class CompositeView : public View {
  public:
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -94,8 +94,8 @@ class CompositeView : public View {
 
   virtual int count() const = 0;
 
-  virtual std::unique_ptr<View>& mutable_at( int idx )   = 0;
-  virtual Coord                  pos_of( int idx ) const = 0;
+  virtual std::unique_ptr<View>& mutable_at( int idx ) = 0;
+  virtual Coord pos_of( int idx ) const                = 0;
 
   // By default this view will be eligible for auto-padding be-
   // tween the views inside of it. However this is not always de-
@@ -108,7 +108,7 @@ class CompositeView : public View {
   }
 
   virtual PositionedViewConst at( int idx ) const;
-  virtual PositionedView      at( int idx );
+  virtual PositionedView at( int idx );
 
   // This should be called to notify all of the child views that
   // one of their children may have been updated and that they
@@ -117,23 +117,23 @@ class CompositeView : public View {
 
   struct iter {
     CompositeView* cview;
-    int            idx;
-    auto           operator*() { return cview->at( idx ); }
-    void           operator++() { ++idx; }
+    int idx;
+    auto operator*() { return cview->at( idx ); }
+    void operator++() { ++idx; }
     bool operator!=( iter const& rhs ) { return rhs.idx != idx; }
   };
   struct citer {
     CompositeView const* cview;
-    int                  idx;
-    auto                 operator*() { return cview->at( idx ); }
-    void                 operator++() { ++idx; }
-    bool                 operator!=( citer const& rhs ) {
+    int idx;
+    auto operator*() { return cview->at( idx ); }
+    void operator++() { ++idx; }
+    bool operator!=( citer const& rhs ) {
       return rhs.idx != idx;
     }
   };
 
-  iter  begin() { return iter{ this, 0 }; }
-  iter  end() { return iter{ this, count() }; }
+  iter begin() { return iter{ this, 0 }; }
+  iter end() { return iter{ this, count() }; }
   citer begin() const { return citer{ this, 0 }; }
   citer end() const { return citer{ this, count() }; }
 
@@ -176,7 +176,7 @@ class CompositeSingleView : public CompositeView {
   // Implement CompositeView
   int count() const override { return 1; }
 
-  View*       single() { return view_.get(); }
+  View* single() { return view_.get(); }
   View const* single() const { return view_.get(); }
 
   void set_view( std::unique_ptr<View> view, Coord coord ) {
@@ -186,7 +186,7 @@ class CompositeSingleView : public CompositeView {
 
  private:
   std::unique_ptr<View> view_;
-  Coord                 coord_;
+  Coord coord_;
 };
 
 class VectorView : public CompositeView {
@@ -224,7 +224,7 @@ class VectorView : public CompositeView {
 // has a fixed size and is invisible.
 class InvisibleView : public VectorView {
  public:
-  InvisibleView( Delta                             size,
+  InvisibleView( Delta size,
                  std::vector<OwningPositionedView> views )
     : VectorView( std::move( views ) ), size_( size ) {}
 
@@ -273,7 +273,7 @@ class SolidRectView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override { return delta_; }
 
@@ -281,7 +281,7 @@ class SolidRectView : public View {
 
  protected:
   gfx::pixel color_;
-  Delta      delta_;
+  Delta delta_;
 };
 
 class OneLineStringView : public View {
@@ -293,7 +293,7 @@ class OneLineStringView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -303,9 +303,9 @@ class OneLineStringView : public View {
 
  protected:
   std::string msg_;
-  Delta       view_size_;
-  Delta       text_size_; // rendered pixel size.
-  gfx::pixel  color_;
+  Delta view_size_;
+  Delta text_size_; // rendered pixel size.
+  gfx::pixel color_;
 };
 
 class TextView : public View {
@@ -317,7 +317,7 @@ class TextView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement Object
   Delta delta() const override;
@@ -325,8 +325,8 @@ class TextView : public View {
   bool needs_padding() const override { return true; }
 
  private:
-  std::string    msg_;
-  Delta          text_size_; // rendered pixel size.
+  std::string msg_;
+  Delta text_size_; // rendered pixel size.
   TextMarkupInfo markup_info_;
   TextReflowInfo reflow_info_;
 };
@@ -346,7 +346,7 @@ class ButtonBaseView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override final;
+             Coord coord ) const override final;
   // Implement Object
   Delta delta() const override final;
 
@@ -366,25 +366,25 @@ class ButtonBaseView : public View {
   // NOTE: It just so happens that it is safe to set the type
   // after creation, but that may change in the future if more
   // complicated types are added.
-  void   set_type( e_type type ) { type_ = type; }
+  void set_type( e_type type ) { type_ = type; }
   e_type type() const { return type_; }
 
  private:
   void render_disabled( rr::Renderer& renderer,
-                        gfx::point    where ) const;
+                        gfx::point where ) const;
   void render_pressed( rr::Renderer& renderer,
-                       gfx::point    where ) const;
+                       gfx::point where ) const;
   void render_unpressed( rr::Renderer& renderer,
-                         gfx::point    where ) const;
+                         gfx::point where ) const;
   void render_hover( rr::Renderer& renderer,
-                     gfx::point    where ) const;
+                     gfx::point where ) const;
 
   button_state state_ = button_state::up;
 
   std::string label_;
-  e_type      type_;
-  Delta       size_in_pixels_;
-  Delta       text_size_in_pixels_;
+  e_type type_;
+  Delta size_in_pixels_;
+  Delta text_size_in_pixels_;
 };
 
 class SpriteView : public View {
@@ -393,7 +393,7 @@ class SpriteView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -405,7 +405,7 @@ class LineEditorView : public View {
  public:
   using OnChangeFunc = std::function<void( std::string const& )>;
 
-  LineEditorView( int              chars_wide,
+  LineEditorView( int chars_wide,
                   std::string_view initial_text );
   LineEditorView( int chars_wide, std::string_view initial_text,
                   OnChangeFunc on_change );
@@ -416,7 +416,7 @@ class LineEditorView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -442,22 +442,22 @@ class LineEditorView : public View {
   // specified, it will always be clamped to the bounds of the
   // new string.
   void set( std::string_view new_string,
-            maybe<int>       cursor_pos = nothing );
+            maybe<int> cursor_pos = nothing );
 
  private:
   void render_background( rr::Renderer& renderer,
-                          Rect const&   r ) const;
+                          Rect const& r ) const;
   void update_visible_string();
 
-  std::string         prompt_;
-  gfx::pixel          fg_;
-  gfx::pixel          bg_;
-  e_font              font_;
-  OnChangeFunc        on_change_;
-  LineEditor          line_editor_;
+  std::string prompt_;
+  gfx::pixel fg_;
+  gfx::pixel bg_;
+  e_font font_;
+  OnChangeFunc on_change_;
+  LineEditor line_editor_;
   LineEditorInputView input_view_;
-  std::string         current_rendering_;
-  W                   cursor_width_;
+  std::string current_rendering_;
+  W cursor_width_;
 };
 
 /****************************************************************
@@ -473,7 +473,7 @@ class PlainMessageBoxView : public CompositeSingleView {
 
   // Should call the static create method instead.
   PlainMessageBoxView( std::unique_ptr<TextView> tview,
-                       wait_promise<>&           on_close );
+                       wait_promise<>& on_close );
 
   bool on_key( input::key_event_t const& event ) override;
 
@@ -497,8 +497,8 @@ class PaddingView : public CompositeSingleView {
   bool can_pad_immediate_children() const override;
 
  private:
-  int   pixels_;
-  bool  l_, r_, u_, d_;
+  int pixels_;
+  bool l_, r_, u_, d_;
   Delta delta_;
 };
 
@@ -617,7 +617,7 @@ class VerticalArrayView : public VectorView {
 
   // This will compute child positions.
   VerticalArrayView( std::vector<std::unique_ptr<View>> views,
-                     align                              how );
+                     align how );
 
   // Will add a view. After finished adding views, need to call
   // recompute_child_positions.
@@ -649,7 +649,7 @@ class HorizontalArrayView : public VectorView {
 
   // This will compute child positions.
   HorizontalArrayView( std::vector<std::unique_ptr<View>> views,
-                       align                              how );
+                       align how );
 
   // Will add a view. After finished adding views, need to call
   // recompute_child_positions.
@@ -669,7 +669,7 @@ struct CheckBoxView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   // Implement Object
   Delta delta() const override;
@@ -686,7 +686,7 @@ struct CheckBoxView : public View {
 
 struct LabeledCheckBoxView : public HorizontalArrayView {
   LabeledCheckBoxView( std::unique_ptr<View> label,
-                       bool                  on = false );
+                       bool on = false );
 
   bool on() const { return check_box_->on(); }
 
@@ -708,7 +708,7 @@ class OkCancelAdapterView : public VerticalArrayView {
  public:
   using OnClickFunc = std::function<void( e_ok_cancel )>;
   OkCancelAdapterView( std::unique_ptr<View> view,
-                       OnClickFunc           on_click );
+                       OnClickFunc on_click );
 };
 
 enum class e_option_active {
@@ -719,8 +719,8 @@ enum class e_option_active {
 class OptionSelectItemView : public CompositeView {
  public:
   struct Option {
-    std::string name    = {};
-    bool        enabled = {};
+    std::string name = {};
+    bool enabled     = {};
   };
 
   OptionSelectItemView( Option option );
@@ -749,12 +749,12 @@ class OptionSelectItemView : public CompositeView {
   bool enabled() const { return enabled_; }
 
  private:
-  e_option_active       active_;
+  e_option_active active_;
   std::unique_ptr<View> background_active_;
   std::unique_ptr<View> background_inactive_;
   std::unique_ptr<View> foreground_active_;
   std::unique_ptr<View> foreground_inactive_;
-  bool                  enabled_ = true;
+  bool enabled_ = true;
 };
 
 // TODO: reimplement this by inheriting from the VerticalAr-
@@ -793,9 +793,9 @@ class OptionSelectView : public VectorView {
  private:
   maybe<int> item_under_point( Coord coord ) const;
 
-  OptionSelectItemView*       get_view( int item );
+  OptionSelectItemView* get_view( int item );
   OptionSelectItemView const* get_view( int item ) const;
-  void                        update_selected();
+  void update_selected();
 
   maybe<int> selected_;
 };
@@ -810,7 +810,7 @@ class FakeUnitView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   unit_orders const& orders() const { return orders_; }
 
@@ -822,8 +822,8 @@ class FakeUnitView : public View {
 
  private:
   e_unit_type const type_;
-  e_nation const    nation_;
-  unit_orders       orders_;
+  e_nation const nation_;
+  unit_orders orders_;
 };
 
 class FakeNativeUnitView : public View {
@@ -835,19 +835,19 @@ class FakeNativeUnitView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   bool needs_padding() const override { return true; }
 
  private:
   e_native_unit_type const type_;
-  e_tribe const            tribe_;
+  e_tribe const tribe_;
 };
 
 // Should work for either a real or frozen colony.
 class RenderedColonyView : public View {
  public:
-  RenderedColonyView( SSConst const&       ss,
+  RenderedColonyView( SSConst const& ss,
                       Colony const& colony ATTR_LIFETIMEBOUND );
 
   // Implement Object
@@ -855,13 +855,13 @@ class RenderedColonyView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   bool needs_padding() const override { return true; }
 
  private:
-  SSConst const&  ss_;
-  Colony const&   colony_;
+  SSConst const& ss_;
+  Colony const& colony_;
   gfx::size const size_;
 };
 
@@ -877,12 +877,12 @@ class RenderedDwellingView : public View {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
 
   bool needs_padding() const override { return true; }
 
  private:
-  SSConst const&  ss_;
+  SSConst const& ss_;
   Dwelling const& dwelling_;
   gfx::size const size_;
 };
@@ -927,7 +927,7 @@ class BorderView : public CompositeSingleView {
 
   // Implement Object
   void draw( rr::Renderer& renderer,
-             Coord         coord ) const override;
+             Coord coord ) const override;
   // Implement Object
   Delta delta() const override;
 
@@ -948,8 +948,8 @@ class BorderView : public CompositeSingleView {
 
  private:
   gfx::pixel color_;
-  bool       on_;
-  int        padding_;
+  bool on_;
+  int padding_;
 };
 
 } // namespace rn::ui

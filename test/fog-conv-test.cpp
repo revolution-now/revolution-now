@@ -51,8 +51,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, //
       L, L, L, //
@@ -66,7 +66,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[fog-conv] colony_to_frozen_colony" ) {
-  World        W;
+  World W;
   FrozenColony expected = {};
 
   Colony& colony =
@@ -99,7 +99,7 @@ TEST_CASE( "[fog-conv] colony_to_frozen_colony" ) {
 }
 
 TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
-  World     W;
+  World W;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 1, .y = 0 }, e_tribe::cherokee );
   FrozenDwelling expected;
@@ -147,8 +147,8 @@ TEST_CASE( "[fog-conv] dwelling_to_frozen_dwelling" ) {
 }
 
 TEST_CASE( "[visibility] copy_real_square_to_frozen_square" ) {
-  World        W;
-  Coord        coord;
+  World W;
+  Coord coord;
   FrozenSquare output, expected;
 
   auto f = [&] {

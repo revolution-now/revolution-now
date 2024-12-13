@@ -47,8 +47,8 @@ struct World : testing::World {
   }
 
   void create_default_map() {
-    MapSquare const   _ = make_ocean();
-    MapSquare const   L = make_grassland();
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
       _, L, _, L, L, //
       L, L, L, L, L, //
@@ -106,9 +106,9 @@ TEST_CASE( "[native-expertise] select_expertise_for_dwelling" ) {
 }
 
 TEST_CASE( "[native-expertise] dwelling_expertise_weights" ) {
-  World                               W;
+  World W;
   refl::enum_map<e_native_skill, int> expected;
-  Dwelling*                           dwelling = nullptr;
+  Dwelling* dwelling = nullptr;
 
   auto f = [&] {
     return dwelling_expertise_weights( W.ss(), *dwelling );

@@ -25,9 +25,9 @@ namespace {
 using namespace std;
 
 TEST_CASE( "[gfx/iter] subrects even multiple" ) {
-  rect                  r = rect{ .origin = { .x = 64, .y = 32 },
-                                  .size = { .w = 32 * 3, .h = 32 * 2 } };
-  rect                  expected;
+  rect r = rect{ .origin = { .x = 64, .y = 32 },
+                 .size   = { .w = 32 * 3, .h = 32 * 2 } };
+  rect expected;
   base::generator<rect> iterable =
       subrects( r, size{ .w = 32, .h = 32 } );
 
@@ -75,9 +75,9 @@ TEST_CASE( "[gfx/iter] subrects non-even multiple" ) {
   // Add a little bit extra in each dimension to make sure that
   // this works for the case that it is not an even multiple of
   // the chunk size.
-  rect                  r = rect{ .origin = { .x = 64, .y = 32 },
-                                  .size = { .w = 32 * 3 + 3, .h = 32 * 2 + 4 } };
-  rect                  expected;
+  rect r = rect{ .origin = { .x = 64, .y = 32 },
+                 .size = { .w = 32 * 3 + 3, .h = 32 * 2 + 4 } };
+  rect expected;
   base::generator<rect> iterable =
       subrects( r, size{ .w = 32, .h = 32 } );
 
@@ -159,8 +159,8 @@ TEST_CASE( "[gfx/iter] subrects non-even multiple" ) {
 
 TEST_CASE( "[gfx/iter] rect_iterator" ) {
   SECTION( "0x0" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 0, .h = 0 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 0, .h = 0 } };
     rect_iterator ri( r );
 
     auto it = ri.begin();
@@ -168,8 +168,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "0x1" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 0, .h = 1 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 0, .h = 1 } };
     rect_iterator ri( r );
 
     auto it = ri.begin();
@@ -177,8 +177,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "0x2" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 0, .h = 2 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 0, .h = 2 } };
     rect_iterator ri( r );
 
     auto it = ri.begin();
@@ -186,8 +186,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "1x0" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 1, .h = 0 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 1, .h = 0 } };
     rect_iterator ri( r );
 
     auto it = ri.begin();
@@ -195,8 +195,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "2x0" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 2, .h = 0 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 2, .h = 0 } };
     rect_iterator ri( r );
 
     auto it = ri.begin();
@@ -204,8 +204,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "1x1" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 1, .h = 1 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 1, .h = 1 } };
     rect_iterator ri( r );
     using C = rn::Coord;
 
@@ -217,8 +217,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "2x2" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 2, .h = 2 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 2, .h = 2 } };
     rect_iterator ri( r );
     using C = rn::Coord;
 
@@ -239,8 +239,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "4x2" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 4, .h = 2 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 4, .h = 2 } };
     rect_iterator ri( r );
     using C = rn::Coord;
 
@@ -273,8 +273,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "2x4" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 2, .h = 4 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 2, .h = 4 } };
     rect_iterator ri( r );
     using C = rn::Coord;
 
@@ -307,8 +307,8 @@ TEST_CASE( "[gfx/iter] rect_iterator" ) {
   }
 
   SECTION( "postfix++" ) {
-    rect const    r = { .origin = { .x = 2, .y = 3 },
-                        .size   = { .w = 2, .h = 2 } };
+    rect const r = { .origin = { .x = 2, .y = 3 },
+                     .size   = { .w = 2, .h = 2 } };
     rect_iterator ri( r );
     using C = rn::Coord;
 

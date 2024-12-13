@@ -72,9 +72,9 @@ struct BellsModifiers {
 ** Helpers
 *****************************************************************/
 bool indoor_unit_is_expert( e_indoor_job job,
-                            e_unit_type  unit_type ) {
+                            e_unit_type unit_type ) {
   UnitTypeAttributes const& attr = unit_attr( unit_type );
-  e_unit_activity const     activity =
+  e_unit_activity const activity =
       activity_for_indoor_job( job );
   return ( attr.expertise == activity );
 }
@@ -277,7 +277,7 @@ int bells_production( UnitsState const& units_state,
 
   vector<UnitId> const& unit_ids =
       colony.indoor_jobs[e_indoor_job::bells];
-  int        units_quantity = 0;
+  int units_quantity = 0;
   bool const has_jefferson =
       player.fathers.has[e_founding_father::thomas_jefferson];
   bool const has_paine =
@@ -336,7 +336,7 @@ int bells_production( UnitsState const& units_state,
 
 int crosses_production_for_colony(
     UnitsState const& units_state, Player const& player,
-    Colony const&         colony,
+    Colony const& colony,
     BellsModifiers const& bells_modifiers ) {
   int const base_quantity = config_production.base_crosses;
 
@@ -373,11 +373,11 @@ int crosses_production_for_colony(
   // a per-colonist basis, and rounds down.
   vector<UnitId> const& unit_ids =
       colony.indoor_jobs[e_indoor_job::crosses];
-  int        units_quantity = 0;
+  int units_quantity = 0;
   bool const has_penn =
       player.fathers.has[e_founding_father::william_penn];
   for( UnitId id : unit_ids ) {
-    int               unit_quantity = 0;
+    int unit_quantity = 0;
     e_unit_type const unit_type =
         units_state.unit_for( id ).type();
     unit_quantity =
@@ -546,10 +546,10 @@ void compute_food_production(
 void compute_raw(
     Colony const& colony, TerrainState const& terrain_state,
     UnitsState const& units_state, Player const& player,
-    e_outdoor_job                  outdoor_job,
+    e_outdoor_job outdoor_job,
     maybe<SquareProduction const&> center_secondary,
-    BellsModifiers const&          bells_modifiers,
-    RawMaterialAndProduct&         out,
+    BellsModifiers const& bells_modifiers,
+    RawMaterialAndProduct& out,
     refl::enum_map<e_direction, SquareProduction>&
         out_land_production ) {
   for( e_direction d : refl::enum_values<e_direction> ) {
@@ -579,11 +579,11 @@ void compute_raw(
   out.raw_delta_theoretical = out.raw_produced;
 }
 
-void compute_product( Colony const&          colony,
-                      e_indoor_job           indoor_job,
-                      UnitsState const&      units_state,
-                      e_commodity            raw_commodity,
-                      BellsModifiers const&  bells_modifiers,
+void compute_product( Colony const& colony,
+                      e_indoor_job indoor_job,
+                      UnitsState const& units_state,
+                      e_commodity raw_commodity,
+                      BellsModifiers const& bells_modifiers,
                       RawMaterialAndProduct& out ) {
   e_colony_building_slot const building_slot =
       slot_for_indoor_job( indoor_job );
@@ -613,7 +613,7 @@ void compute_product( Colony const&          colony,
   //
   int units_quantity_put = 0;
   for( UnitId unit_id : colony.indoor_jobs[indoor_job] ) {
-    int               unit_quantity_put = 0;
+    int unit_quantity_put = 0;
     e_unit_type const unit_type =
         units_state.unit_for( unit_id ).type();
     unit_quantity_put +=
@@ -696,7 +696,7 @@ void compute_land_production(
             raw_and_product.product_produced_actual;
       };
 
-  auto compute = [&]( e_outdoor_job          outdoor_job,
+  auto compute = [&]( e_outdoor_job outdoor_job,
                       RawMaterialAndProduct& raw_and_product ) {
     compute_raw( colony, terrain_state, units_state, player,
                  outdoor_job, pr.center_extra_production,
@@ -782,7 +782,7 @@ void compute_land_production(
       colony_warehouse_capacity( colony_pristine );
 
   auto adjust_for_warehouse = [&]( e_commodity comm,
-                                   int&        delta_final ) {
+                                   int& delta_final ) {
     if( colony_pristine.commodities[comm] <=
             warehouse_capacity &&
         colony.commodities[comm] > warehouse_capacity )
@@ -985,7 +985,7 @@ int const& final_production_delta_for_commodity(
 }
 
 maybe<int> production_for_slot( ColonyProduction const& pr,
-                                e_colony_building_slot  slot ) {
+                                e_colony_building_slot slot ) {
   switch( slot ) {
     case e_colony_building_slot::muskets:
       return pr.tools_muskets.product_produced_theoretical;
@@ -1025,7 +1025,7 @@ maybe<int> production_for_slot( ColonyProduction const& pr,
 }
 
 ColonyProduction production_for_colony( SSConst const& ss,
-                                        Colony const&  colony ) {
+                                        Colony const& colony ) {
   ColonyProduction res;
   UNWRAP_CHECK( player, ss.players.players[colony.nation] );
 

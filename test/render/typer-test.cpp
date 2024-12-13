@@ -62,8 +62,8 @@ AtlasMap const& atlas_map() {
 
 TEST_CASE( "[render/typer] write_char" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
@@ -154,8 +154,8 @@ TEST_CASE( "[render/typer] write_char" ) {
 
 TEST_CASE( "[render/typer] write_char scaled" ) {
   vector<GenericVertex> v, expected;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
   typer.set_scale( size{ .w = 4, .h = 8 } );
 
@@ -187,8 +187,8 @@ TEST_CASE( "[render/typer] write_char scaled" ) {
 
 TEST_CASE( "[render/typer] dimensions_for_line" ) {
   vector<GenericVertex> v;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
 
   SECTION( "default scale" ) {
@@ -217,8 +217,8 @@ TEST_CASE( "[render/typer] dimensions_for_line" ) {
 
 TEST_CASE( "[render/typer] frame position" ) {
   vector<GenericVertex> v;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
 
   REQUIRE( typer.position() == point{ .x = 20, .y = 30 } );
@@ -243,8 +243,8 @@ TEST_CASE( "[render/typer] frame position" ) {
 
 TEST_CASE( "[render/typer] multiply_scale" ) {
   vector<GenericVertex> v;
-  Emitter               emitter( v );
-  Painter               painter( atlas_map(), emitter );
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
   Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
   REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
   typer.multiply_scale( 1 );

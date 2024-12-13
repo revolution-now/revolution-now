@@ -29,7 +29,7 @@ namespace detail {
 // FIXME: temporary until we move logging into the base module.
 // This needs to be available at link time somewhere in the bi-
 // nary.
-void timer_logger_hook( std::string_view            msg,
+void timer_logger_hook( std::string_view msg,
                         std::source_location const& loc );
 
 }
@@ -90,12 +90,12 @@ struct ScopedTimer {
 
  public:
   ScopedTimer() = default;
-  ScopedTimer( std::string                 total_label,
+  ScopedTimer( std::string total_label,
                std::source_location const& loc =
                    std::source_location::current() );
   ~ScopedTimer() noexcept;
 
-  void checkpoint( std::string                 label,
+  void checkpoint( std::string label,
                    std::source_location const& loc =
                        std::source_location::current() );
 
@@ -105,7 +105,7 @@ struct ScopedTimer {
                             std::remove_cvref_t<Arg>> )
   void checkpoint( FmtStrAndLoc<std::type_identity_t<Arg>,
                                 std::type_identity_t<Rest>...>
-                         fmt_str_and_loc,
+                       fmt_str_and_loc,
                    Arg&& arg, Rest&&... rest ) {
     return checkpoint(
         fmt::format( fmt_str_and_loc.fs,
@@ -118,10 +118,10 @@ struct ScopedTimer {
 
  private:
   struct Segment {
-    std::string          label      = {};
+    std::string label               = {};
     std::source_location source_loc = {};
-    time_point           start      = {};
-    time_point           end        = {};
+    time_point start                = {};
+    time_point end                  = {};
   };
 
   static void add_segment( Segment& segment, std::string label,
@@ -129,10 +129,10 @@ struct ScopedTimer {
 
   void flush_latest_segment();
 
-  static void log_segment_result( Segment const&   segment,
+  static void log_segment_result( Segment const& segment,
                                   std::string_view prefix = "" );
 
-  Options              options_ = {};
+  Options options_ = {};
   std::vector<Segment> segments_;
   // Measures the time from the creation of this object to the
   // destruction, but only if a name is provided upon construc-

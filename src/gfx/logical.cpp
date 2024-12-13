@@ -24,11 +24,11 @@ using ::base::nothing;
 
 struct LogicalResolution {
   size dimensions = {};
-  int  scale      = {};
+  int scale       = {};
 };
 
 LogicalResolution construct_logical( size const dimensions,
-                                     int const  scale ) {
+                                     int const scale ) {
   return LogicalResolution{ .dimensions = dimensions,
                             .scale      = scale };
 }
@@ -41,7 +41,7 @@ bool is_exact( Resolution const& resolution ) {
 vector<LogicalResolution> logical_resolutions_for_physical(
     size const physical_window ) {
   vector<LogicalResolution> resolutions;
-  auto const                min_dimension =
+  auto const min_dimension =
       std::min( physical_window.w, physical_window.h );
   for( int i = 1; i <= min_dimension; ++i )
     if( physical_window.w % i == 0 &&
@@ -79,7 +79,7 @@ double relative_diff_score_fn( double const x, double const y ) {
 }
 
 ResolutionScores score(
-    Resolution const&              r,
+    Resolution const& r,
     ResolutionRatingOptions const& options ) {
   ResolutionScores scores;
 
@@ -216,7 +216,7 @@ Monitor monitor_properties( size const physical_screen,
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options ) {
   vector<ScoredResolution> all;
-  auto const               resolutions =
+  auto const resolutions =
       find_resolutions( options.monitor, options.physical_window,
                         options.supported_logical_dimensions );
   for( auto const& r : resolutions )
@@ -260,7 +260,7 @@ ResolutionRatings resolution_analysis(
     } );
   }
 
-  ResolutionRatings   res;
+  ResolutionRatings res;
   unordered_set<size> seen;
   for( ScoredResolution const& rr : all ) {
     size const dimensions = rr.resolution.logical;

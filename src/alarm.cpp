@@ -76,9 +76,9 @@ constexpr int minimum_alarm_for_named_level(
 ** Public API
 *****************************************************************/
 // TODO: this may not be a relevant quantity in the OG.
-int effective_dwelling_alarm( SSConst const&  ss,
+int effective_dwelling_alarm( SSConst const& ss,
                               Dwelling const& dwelling,
-                              e_nation        nation ) {
+                              e_nation nation ) {
   Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
   if( !tribe.relationship[nation].encountered ) return 0;
   int const tribal_alarm =
