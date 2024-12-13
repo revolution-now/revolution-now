@@ -972,6 +972,7 @@ struct LandViewPlane::Impl : public IPlane {
               if( !cheat_mode_enabled( ss_ ) ) break;
               // Cheat mode.
               if( !mode_.holds<LandViewMode::unit_input>() &&
+                  !mode_.holds<LandViewMode::end_of_turn>() &&
                   !mode_.holds<LandViewMode::view_mode>() )
                 break;
               raw_input_stream_.send( RawInput(
