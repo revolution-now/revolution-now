@@ -17,6 +17,7 @@
 #include "fog-conv.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
+#include "tribe-mgr.hpp"
 
 // config
 #include "config/land-view.rds.hpp"
@@ -41,6 +42,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::size;
 
 // Unit only, no flag.
 void render_unit_no_flag( rr::Renderer& renderer, Coord where,
@@ -290,23 +293,24 @@ void render_native_unit_depixelate_to(
 /****************************************************************
 ** Colony Rendering.
 *****************************************************************/
+e_tile tile_for_colony( Colony const& colony ) {
+  maybe<e_colony_barricade_type> barricade_type =
+      barricade_for_colony( colony );
+  if( !barricade_type.has_value() ) return e_tile::colony_basic;
+  switch( *barricade_type ) {
+    case e_colony_barricade_type::stockade:
+      return e_tile::colony_stockade;
+    case e_colony_barricade_type::fort:
+      return e_tile::colony_fort;
+    case e_colony_barricade_type::fortress:
+      return e_tile::colony_fortress;
+  }
+}
+
 void render_colony( rr::Renderer& renderer, Coord where,
                     SSConst const& ss, Colony const& colony,
                     ColonyRenderOptions const& options ) {
-  e_tile const tile = [&]() {
-    maybe<e_colony_barricade_type> barricade_type =
-        barricade_for_colony( colony );
-    if( !barricade_type.has_value() )
-      return e_tile::colony_basic;
-    switch( *barricade_type ) {
-      case e_colony_barricade_type::stockade:
-        return e_tile::colony_stockade;
-      case e_colony_barricade_type::fort:
-        return e_tile::colony_fort;
-      case e_colony_barricade_type::fortress:
-        return e_tile::colony_fortress;
-    }
-  }();
+  e_tile const tile = tile_for_colony( colony );
   FrozenColony const frozen_colony =
       colony_to_frozen_colony( ss, colony );
   int const   population = colony_population( colony );
@@ -344,15 +348,35 @@ void render_colony( rr::Renderer& renderer, Coord where,
 /****************************************************************
 ** Dwelling Rendering.
 *****************************************************************/
+e_tile dwelling_tile_for_tribe( e_tribe const tribe_type ) {
+  return config_natives.tribes[tribe_type].dwelling_tile;
+}
+
+e_tile tile_for_dwelling( SSConst const& ss,
+                          Dwelling const& dwelling ) {
+  // Need to use the tribe_for_dwelling method because this may
+  // be a non-existent (fogged) dwelling in which case a lookup
+  // for its tribe would fail.
+  e_tribe const tribe_type =
+      tribe_type_for_dwelling( ss, dwelling );
+  return dwelling_tile_for_tribe( tribe_type );
+}
+
 void render_dwelling( rr::Renderer& renderer, Coord where,
                       SSConst const&  ss,
                       Dwelling const& dwelling ) {
   rr::Painter          painter = renderer.painter();
   FrozenDwelling const frozen_dwelling =
       dwelling_to_frozen_dwelling( ss, dwelling );
+  // NOTE: !! From here on we must not use ss to look up anything
+  // that would fail if the dwelling no longer exists, since we
+  // may in fact be rendering a fogged dwelling that does not ex-
+  // ist. All info needed should be available either in `d-
+  // welling` or `frozen_dwelling`.
   e_tribe const tribe_type = frozen_dwelling.tribe;
-  auto&         tribe_conf = config_natives.tribes[tribe_type];
-  e_tile const  dwelling_tile = tribe_conf.dwelling_tile;
+  auto& tribe_conf = config_natives.tribes[tribe_type];
+  e_tile const dwelling_tile =
+      dwelling_tile_for_tribe( tribe_type );
   render_sprite( renderer, where, dwelling_tile );
   // Flags.
   e_native_level const native_level = tribe_conf.level;

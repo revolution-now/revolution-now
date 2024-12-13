@@ -22,6 +22,7 @@
 #include "plane.hpp"
 #include "roles.hpp"
 #include "screen.hpp"
+#include "tiles.hpp"
 #include "ts.hpp" // FIXME
 #include "views.hpp"
 

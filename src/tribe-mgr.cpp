@@ -128,4 +128,13 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
   co_await tribe_wiped_out_message( ts, tribe );
 }
 
+e_tribe tribe_type_for_dwelling( SSConst const& ss,
+                                 Dwelling const& dwelling ) {
+  if( dwelling.id == DwellingId{} ) {
+    UNWRAP_CHECK( frozen, dwelling.frozen );
+    return frozen.tribe;
+  }
+  return ss.natives.tribe_for( dwelling.id ).type;
+}
+
 } // namespace rn

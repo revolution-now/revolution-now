@@ -37,6 +37,7 @@ struct Unit;
 enum class e_native_unit_type;
 enum class e_unit_type;
 enum class e_tile;
+enum class e_tribe;
 
 /****************************************************************
 ** Unit Rendering.
@@ -102,6 +103,8 @@ void render_native_unit_depixelate_to(
 /****************************************************************
 ** Colony Rendering.
 *****************************************************************/
+e_tile tile_for_colony( Colony const& colony );
+
 struct ColonyRenderOptions {
   bool render_name       = true;
   bool render_population = true;
@@ -115,6 +118,11 @@ void render_colony( rr::Renderer& renderer, Coord where,
 /****************************************************************
 ** Dwelling Rendering.
 *****************************************************************/
+e_tile dwelling_tile_for_tribe( e_tribe const tribe_type );
+
+e_tile tile_for_dwelling( SSConst const&  ss,
+                          Dwelling const& dwelling );
+
 void render_dwelling( rr::Renderer& renderer, Coord where,
                       SSConst const&  ss,
                       Dwelling const& dwelling );

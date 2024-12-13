@@ -16,7 +16,6 @@
 #include "co-combinator.hpp"
 #include "line-editor.hpp"
 #include "text.hpp"
-#include "tiles.hpp"
 #include "ui-enums.hpp"
 #include "ui.hpp"
 #include "view.hpp"
@@ -41,10 +40,15 @@
 
 namespace rn {
 
+struct Colony;
+struct Dwelling;
+struct SSConst;
+
 enum class e_native_unit_type;
 enum class e_tribe;
+enum class e_tile;
 
-}
+} // namespace rn
 
 namespace rn::ui {
 
@@ -385,15 +389,13 @@ class ButtonBaseView : public View {
 
 class SpriteView : public View {
  public:
-  SpriteView( e_tile tile ) : tile_( tile ) {}
+  SpriteView( e_tile const tile ) : tile_( tile ) {}
 
   // Implement Object
   void draw( rr::Renderer& renderer,
              Coord         coord ) const override;
   // Implement Object
-  Delta delta() const override {
-    return Delta{ .w = 1, .h = 1 } * sprite_size( tile_ );
-  }
+  Delta delta() const override;
 
  private:
   e_tile tile_;
@@ -840,6 +842,49 @@ class FakeNativeUnitView : public View {
  private:
   e_native_unit_type const type_;
   e_tribe const            tribe_;
+};
+
+// Should work for either a real or frozen colony.
+class RenderedColonyView : public View {
+ public:
+  RenderedColonyView( SSConst const&       ss,
+                      Colony const& colony ATTR_LIFETIMEBOUND );
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
+
+  bool needs_padding() const override { return true; }
+
+ private:
+  SSConst const&  ss_;
+  Colony const&   colony_;
+  gfx::size const size_;
+};
+
+// Should work for either a real or frozen dwelling.
+class RenderedDwellingView : public View {
+ public:
+  RenderedDwellingView( SSConst const& ss,
+                        Dwelling const& dwelling
+                            ATTR_LIFETIMEBOUND );
+
+  // Implement Object
+  Delta delta() const override;
+
+  // Implement Object
+  void draw( rr::Renderer& renderer,
+             Coord         coord ) const override;
+
+  bool needs_padding() const override { return true; }
+
+ private:
+  SSConst const&  ss_;
+  Dwelling const& dwelling_;
+  gfx::size const size_;
 };
 
 class ClickableView : public CompositeSingleView {

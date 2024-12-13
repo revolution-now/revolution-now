@@ -376,11 +376,15 @@ wait<> prioritize_units_during_turn(
 
 wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
                             point const tile ) {
-  auto const entities = disbandable_entities_on_tile(
-      ss.as_const, player.nation, tile );
+  auto const viz = create_visibility_for(
+      ss, player_for_role( ss, e_player_role::viewer ) );
+  if( viz->visible( tile ) == e_tile_visibility::hidden )
+    co_return;
+  auto const entities =
+      disbandable_entities_on_tile( ss.as_const, *viz, tile );
   auto const selected = co_await disband_tile_ui_interaction(
-      ss.as_const, ts, entities );
-  execute_disband( ss, ts, selected );
+      ss.as_const, ts, player, *viz, entities );
+  execute_disband( ss, ts, *viz, tile, selected );
 }
 
 /****************************************************************
@@ -815,7 +819,7 @@ wait<> process_player_input_view_mode(
 
 wait<> show_view_mode( SS& ss, TS& ts, Player& player,
                        NationTurnState::units& nat_units,
-                       ViewModeOptions const&  options ) {
+                       ViewModeOptions options ) {
   lg.info( "entering view mode." );
   SCOPE_EXIT { lg.info( "leaving view mode." ); };
   nat_units.view_mode = true;
@@ -838,6 +842,14 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
             .get_if<LandViewPlayerInput::prioritize>()
             .has_value();
     if( leave ) co_return;
+    // If we entered view mode targeting a specific tile then we
+    // should get rid of it at this point because the player may
+    // have moved the white box around while in view mode the
+    // first time and so when we circle around and re-enter view
+    // mode we don't want the white square to jump back to the
+    // initial target tile, which it would do if we keep it in
+    // the options argument.
+    options.initial_tile = nothing;
   }
 }
 

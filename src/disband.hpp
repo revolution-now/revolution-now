@@ -21,21 +21,23 @@
 
 namespace rn {
 
+struct Player;
 struct SS;
 struct SSConst;
 struct TS;
-
-enum class e_nation;
+struct IVisibility;
 
 DisbandingPermissions disbandable_entities_on_tile(
-    SSConst const& ss, e_nation const player_nation,
+    SSConst const& ss, IVisibility const& viz,
     gfx::point const tile );
 
 wait<EntitiesOnTile> disband_tile_ui_interaction(
-    SSConst const& ss, TS& ts,
+    SSConst const& ss, TS& ts, Player const& player,
+    IVisibility const& viz,
     DisbandingPermissions const& disbandable_units );
 
-void execute_disband( SS& ss, TS& ts,
+void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
+                      gfx::point const tile,
                       EntitiesOnTile const& units );
 
 } // namespace rn

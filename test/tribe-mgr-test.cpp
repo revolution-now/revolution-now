@@ -451,5 +451,8 @@ TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
   REQUIRE( W.natives().tribe_exists( e_tribe::aztec ) );
 }
 
+TEST_CASE( "[tribe-mgr] tribe_for_dwelling" ) {
+}
+
 } // namespace
 } // namespace rn

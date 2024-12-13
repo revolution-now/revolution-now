@@ -13,12 +13,16 @@
 // Revolution Now
 #include "render.hpp"
 #include "text.hpp"
+#include "tiles.hpp"
 #include "unit-flag.hpp"
 #include "util.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
+
+// ss
+#include "ss/natives.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
@@ -464,6 +468,10 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
 /****************************************************************
 ** SpriteView
 *****************************************************************/
+Delta SpriteView::delta() const {
+  return Delta{ .w = 1, .h = 1 } * sprite_size( tile_ );
+}
+
 void SpriteView::draw( rr::Renderer& renderer,
                        Coord         coord ) const {
   render_sprite( renderer, coord, tile_ );
@@ -1320,6 +1328,41 @@ void FakeNativeUnitView::draw( rr::Renderer& renderer,
                                   UnitFlagOptions{} );
   render_unit_type( renderer, coord, type_,
                     UnitRenderOptions{ .flag = flag_info } );
+}
+
+/****************************************************************
+** RenderedColonyView
+*****************************************************************/
+RenderedColonyView::RenderedColonyView( SSConst const& ss,
+                                        Colony const&  colony )
+  : ss_( ss ),
+    colony_( colony ),
+    size_( sprite_size( tile_for_colony( colony ) ) ) {}
+
+Delta RenderedColonyView::delta() const { return size_; }
+
+void RenderedColonyView::draw( rr::Renderer& renderer,
+                               Coord const   where ) const {
+  render_colony( renderer, where, ss_, colony_,
+                 ColonyRenderOptions{ .render_name       = false,
+                                      .render_population = true,
+                                      .render_flag = true } );
+}
+
+/****************************************************************
+** RenderedDwellingView
+*****************************************************************/
+RenderedDwellingView::RenderedDwellingView(
+    SSConst const& ss, Dwelling const& dwelling )
+  : ss_( ss ),
+    dwelling_( dwelling ),
+    size_( sprite_size( tile_for_dwelling( ss, dwelling ) ) ) {}
+
+Delta RenderedDwellingView::delta() const { return size_; }
+
+void RenderedDwellingView::draw( rr::Renderer& renderer,
+                                 Coord const   where ) const {
+  render_dwelling( renderer, where, ss_, dwelling_ );
 }
 
 /****************************************************************

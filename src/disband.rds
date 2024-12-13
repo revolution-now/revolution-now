@@ -10,8 +10,13 @@
 # ===============================================================
 # ss
 include "ss/colony-id.hpp"
+include "ss/colony.rds.hpp"
 include "ss/dwelling-id.hpp"
+include "ss/dwelling.rds.hpp"
 include "ss/unit-id.hpp"
+
+# base
+include "base/maybe.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -21,8 +26,8 @@ namespace "rn"
 # MAYBE: this could potentially be used more generally.
 struct.EntitiesOnTile {
   units 'std::vector<GenericUnitId>',
-  colonies 'std::vector<ColonyId>',
-  dwellings 'std::vector<DwellingId>',
+  colony 'base::maybe<Colony>',
+  dwelling 'base::maybe<Dwelling>',
 }
 
 struct.DisbandingPermissions {

@@ -35,6 +35,7 @@
 #include "road.hpp"
 #include "screen.hpp"
 #include "text.hpp"
+#include "tiles.hpp"
 #include "ts.hpp"
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"

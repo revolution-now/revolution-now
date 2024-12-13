@@ -18,8 +18,10 @@
 
 namespace rn {
 
+struct Dwelling;
 struct IMapUpdater;
 struct SS;
+struct SSConst;
 struct TS;
 
 enum class e_tribe;
@@ -54,5 +56,14 @@ wait<> destroy_tribe_interactive( SS& ss, TS& ts,
 
 // Displays the message that a tribe is gone.
 wait<> tribe_wiped_out_message( TS& ts, e_tribe tribe );
+
+// This is the way to get the tribe for a dwelling that will work
+// for both real dwelling and frozen dwellings that may no longer
+// exist. Generally, whenever we are dealing with dwellings on
+// the map that may not be directly adjacent to the player's
+// units, we need to make sure that what we're doing works for
+// both real dwellings and phantom ones.
+e_tribe tribe_type_for_dwelling( SSConst const& ss,
+                                 Dwelling const& dwelling );
 
 } // namespace rn
