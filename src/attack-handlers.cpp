@@ -927,16 +927,20 @@ wait<> AttackDwellingHandler::perform() {
   // Inc villages burned.
   ++attacking_player_.score_stats.dwellings_burned;
 
+  // Save the actual missionary in the dwelling which may be dif-
+  // ferent from the one to be released (if any are to be re-
+  // leased).
+  maybe<UnitId> const missionary_in_dwelling =
+      ss_.units.missionary_from_dwelling( dwelling_id_ );
+
   // If missionary needs releasing, release it under the
   // dwelling. It should continue to be hidden until the dwelling
   // starts depixelating, then it should gradually become visi-
   // ble.
-  maybe<UnitId> const missionary_in_dwelling =
-      ss_.units.missionary_from_dwelling( dwelling_id_ );
   if( destruction.missionary_to_release.has_value() ) {
-    CHECK( missionary_in_dwelling.has_value() );
     CHECK_EQ(
-        ss_.units.unit_for( *missionary_in_dwelling ).nation(),
+        ss_.units.unit_for( *destruction.missionary_to_release )
+            .nation(),
         attacking_player_.nation );
     // We need to use the non-interactive version here because,
     // at this point, the player is not aware that the missionary
