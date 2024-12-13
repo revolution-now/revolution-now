@@ -451,7 +451,7 @@ ColonyDestructionOutcome destroy_colony( SS& ss, TS& ts,
   outcome.port = find_repair_port_for_ship( ss, colony_nation,
                                             colony_location );
 
-  // We need to make s copy of this set because we cannot iterate
+  // We need to make a copy of this set because we cannot iterate
   // over it while mutating it, which will happen as we move
   // units off of the map and into the harbor.
   unordered_set<GenericUnitId> const at_gate =
