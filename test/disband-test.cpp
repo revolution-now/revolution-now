@@ -52,9 +52,13 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   world w;
 }
 
-TEST_CASE( "[disband] disband_tile_ui_interaction" ) { world w; }
+TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
+  world w;
+}
 
-TEST_CASE( "[disband] execute_disband" ) { world w; }
+TEST_CASE( "[disband] execute_disband" ) {
+  world w;
+}
 
 } // namespace
 } // namespace rn
