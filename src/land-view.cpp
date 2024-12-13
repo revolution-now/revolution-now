@@ -690,6 +690,7 @@ struct LandViewPlane::Impl : public IPlane {
       }
       case e_menu_item::cheat_reveal_map: {
         if( !mode_.holds<LandViewMode::unit_input>() &&
+            !mode_.holds<LandViewMode::view_mode>() &&
             !mode_.holds<LandViewMode::end_of_turn>() )
           break;
         auto handler = [this] {
