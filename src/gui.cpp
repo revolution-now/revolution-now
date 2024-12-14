@@ -149,17 +149,6 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
     string const& title,
     unordered_map<int, CheckBoxInfo> const& items ) {
   using namespace ui;
-
-  auto top_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::center );
-
-  // Add text.
-  auto text_view = make_unique<TextView>( title );
-  top_array->add_view( std::move( text_view ) );
-  // Add some space between title and check boxes.
-  top_array->add_view(
-      make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
-
   // Add check boxes.
   auto boxes_array = make_unique<VerticalArrayView>(
       VerticalArrayView::align::left );
@@ -176,33 +165,59 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
     boxes_array->add_view( std::move( labeled_box ) );
   }
   boxes_array->recompute_child_positions();
-  top_array->add_view( std::move( boxes_array ) );
+
+  unordered_map<int, bool> res;
+  for( auto& [item, info] : items ) res[item] = info.on;
+
+  auto on_ok = [&] {
+    for( auto [item, box] : boxes ) res[item] = box->on();
+  };
+
+  auto const _ = co_await ok_cancel_box(
+      title, std::move( boxes_array ), on_ok );
+  // !! At this point the view and all pointers into it above
+  // have been destroyed.
+
+  co_return res;
+}
+
+wait<> RealGui::ok_cancel_box(
+    string const& title, unique_ptr<ui::View> view,
+    base::function_ref<void()> const on_ok ) {
+  using namespace ui;
+  auto top = make_unique<VerticalArrayView>(
+      VerticalArrayView::align::center );
+  // Add text.
+  auto text_view = make_unique<TextView>( title );
+  top->add_view( std::move( text_view ) );
+  // Add some space between title and main view.
+  top->add_view(
+      make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
+  top->add_view( std::move( view ) );
   // Add some space between boxes and buttons.
-  top_array->add_view(
+  top->add_view(
       make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
   // Add buttons.
-  auto buttons_view          = make_unique<ui::OkCancelView2>();
-  ui::OkCancelView2* buttons = buttons_view.get();
-  top_array->add_view( std::move( buttons_view ) );
+  auto buttons_view      = make_unique<OkCancelView2>();
+  OkCancelView2* buttons = buttons_view.get();
+  top->add_view( std::move( buttons_view ) );
 
   // Finalize top-level array.
-  top_array->recompute_child_positions();
+  top->recompute_child_positions();
 
   // Create window.
   WindowManager& wm = window_plane().manager();
   Window window( wm );
-  window.set_view( std::move( top_array ) );
+  window.set_view( std::move( top ) );
   window.autopad_me();
   // Must be done after auto-padding.
   window.center_me();
 
-  ui::e_ok_cancel const finished = co_await buttons->next();
-  unordered_map<int, bool> res;
-  for( auto& [item, info] : items ) res[item] = info.on;
-  if( finished == ui::e_ok_cancel::cancel ) co_return res;
-  for( auto [item, box] : boxes ) res[item] = box->on();
-  co_return res;
+  // The window (and view that it contains) must be kept alive
+  // while we call the on_ok method, which typically needs to ex-
+  // tract info from the view.
+  if( co_await buttons->next() == e_ok_cancel::ok ) on_ok();
 }
 
 } // namespace rn

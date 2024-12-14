@@ -68,6 +68,11 @@ struct RealGui : IGui {
       std::unordered_map<int, CheckBoxInfo> const& items )
       override;
 
+  // Implement IGui.
+  wait<> ok_cancel_box(
+      std::string const& title, std::unique_ptr<ui::View> view,
+      base::function_ref<void()> on_ok ) override;
+
  private:
   WindowPlane& window_plane() const;
 
