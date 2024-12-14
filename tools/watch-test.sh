@@ -18,4 +18,8 @@ do_build() {
 }
 export -f do_build
 
-fd '.*' test | entr bash -c 'do_build'
+[[ -z "$fd" ]] && fd="$(which fd 2>/dev/null)"
+[[ -z "$fd" ]] && fd="$(which fdfind 2>/dev/null)"
+[[ -n "$fd" ]]
+
+$fd '.*' test | entr bash -c 'do_build'
