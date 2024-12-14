@@ -120,7 +120,7 @@ using UserInputEndOfTurn = base::variant< //
     >;
 
 /****************************************************************
-** Save-Game State
+** Helpers
 *****************************************************************/
 // To be called once per turn.
 wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
@@ -160,9 +160,6 @@ wait<> advance_time( IGui& gui, TurnTimePoint& time_point ) {
   }
 }
 
-/****************************************************************
-** Helpers
-*****************************************************************/
 // This is called when the user tries to do something that might
 // leave the current game. It will check if the current game has
 // unsaved changes and, if so, will ask the user if they want to
@@ -344,6 +341,28 @@ void autosave_if_needed( SS& ss, TS& ts ) {
                 autosave_slots );
   if( !paths_saved.has_value() )
     lg.error( "failed to auto-save: {}", paths_saved.error() );
+}
+
+// This is a bit costly, and so it is unfortunate that, for vi-
+// sual consistency, we have to call it at the start of each na-
+// tion's turn (and the start of the natives' turn). Actually, it
+// doesn't even work perfectly, because e.g. if nation A de-
+// stroy's nation B's unit during nation A's turn, nation B will
+// continue to have visibility in the unit's surroundings for the
+// remainder of nation A's turn. Maybe in the future we can im-
+// prove this mechanism by using a more incremental approach,
+// e.g. adding fog whenever a unit leaves the map, which we
+// should be able to hook into via the change_to_free method in
+// the unit-ownership module. Until then, we'll just call this
+// for all nations at the start and end of each turn, which for
+// the most part does the right thing despite being unnecessarily
+// costly. Actually, the cost of it may need to be reassessed;
+// for normal game map sizes with normal numbers of units on the
+// map, it actually may not be that bad at all.
+void recompute_fog_for_all_nations( SS& ss, TS& ts ) {
+  for( e_nation const nation : refl::enum_values<e_nation> )
+    if( ss.players.players[nation].has_value() )
+      recompute_fog_for_nation( ss, ts, nation );
 }
 
 /****************************************************************
@@ -1161,6 +1180,8 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
 // nation's turn but where the player can't save the game until
 // they are complete.
 wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
+  recompute_fog_for_all_nations( ss, ts );
+
   // Unsentry any units that are directly on the map and which
   // are sentry'd but have foreign units in an adjacent square.
   // Normally this isn't necessary, since if a unit is sentried
@@ -1285,28 +1306,6 @@ void start_of_turn_cycle( SS& ss ) {
   } );
 }
 
-// This is a bit costly, and so it is unfortunate that, for vi-
-// sual consistency, we have to call it at the start of each na-
-// tion's turn (and the start of the natives' turn). Actually, it
-// doesn't even work perfectly, because e.g. if nation A de-
-// stroy's nation B's unit during nation A's turn, nation B will
-// continue to have visibility in the unit's surroundings for the
-// remainder of nation A's turn. Maybe in the future we can im-
-// prove this mechanism by using a more incremental approach,
-// e.g. adding fog whenever a unit leaves the map, which we
-// should be able to hook into via the change_to_free method in
-// the unit-ownership module. Until then, we'll just call this
-// for all nations at the start and end of each turn, which for
-// the most part does the right thing despite being unnecessarily
-// costly. Actually, the cost of it may need to be reassessed;
-// for normal game map sizes with normal numbers of units on the
-// map, it actually may not be that bad at all.
-void recompute_fog_for_all_nations( SS& ss, TS& ts ) {
-  for( e_nation const nation : refl::enum_values<e_nation> )
-    if( ss.players.players[nation].has_value() )
-      recompute_fog_for_nation( ss, ts, nation );
-}
-
 // Processes teh current state and returns the next state.
 wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
   TurnState& turn  = ss.turn;
@@ -1328,12 +1327,12 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::natives{};
     }
     CASE( natives ) {
+      recompute_fog_for_all_nations( ss, ts );
       co_await natives_turn( ss, ts, RealRaid( ss, ts ),
                              RealTribeEvolve( ss, ts ) );
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {
-      recompute_fog_for_all_nations( ss, ts );
       co_await nation_turn( ss, ts, nation.nation, nation.st );
       auto& ns  = refl::enum_values<e_nation>;
       auto next = base::find( ns, nation.nation ) + 1;
@@ -1342,9 +1341,6 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {
-      // Do this here so that it will be done in preparation for
-      // the start of the native's turn in the next cycle.
-      recompute_fog_for_all_nations( ss, ts );
       co_await advance_time( ts.gui, turn.time_point );
       co_return TurnCycle::finished{};
     }
