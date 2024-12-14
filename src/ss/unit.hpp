@@ -39,7 +39,7 @@ struct ND Unit {
 
   /************************* Getters ***************************/
 
-  UnitId id() const { return o_.id; }
+  [[nodiscard]] UnitId id() const { return o_.id; }
   UnitTypeAttributes const& desc() const;
   // FIXME: luapp can only take this as non-const....
   UnitTypeAttributes& desc_non_const() const;

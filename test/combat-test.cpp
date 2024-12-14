@@ -1680,8 +1680,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
 
   SECTION( "soldier, attacker loses, with missionary" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
                             e_nation::english );
@@ -1707,8 +1706,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
       "soldier, attacker wins+promotion, with missionary, no "
       "convert" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
                             e_nation::english );
@@ -1738,8 +1736,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
   SECTION(
       "soldier, attacker wins, with missionary, with convert" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
                             e_nation::english );
@@ -1769,8 +1766,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
       "soldier, attacker loses, with missionary, no burn "
       "missions" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -1798,8 +1794,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
       "soldier, attacker loses, with missionary, burn "
       "missions" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -1827,8 +1822,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
       "soldier, attacker wins, with missionary, burn missions, "
       "no convert" ) {
     W.add_missionary_in_dwelling( e_unit_type::jesuit_missionary,
-                                  dwelling.id )
-        .id();
+                                  dwelling.id );
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
@@ -2129,11 +2123,10 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
       "dragoon, attacker wins, foreign missionary not released, "
       "no missions burned, with no convert" ) {
     W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::missionary,
-                           e_unit_type::indentured_servant )
-             .value(),
-         dwelling.id, e_nation::french )
-        .id();
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
+            .value(),
+        dwelling.id, e_nation::french );
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
                             e_nation::english );
@@ -2167,11 +2160,10 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
       "dragoon, attacker wins, missionary, missions burned" ) {
     relationship.tribal_alarm = 90;
     W.add_missionary_in_dwelling(
-         UnitType::create( e_unit_type::missionary,
-                           e_unit_type::indentured_servant )
-             .value(),
-         dwelling.id )
-        .id();
+        UnitType::create( e_unit_type::missionary,
+                          e_unit_type::indentured_servant )
+            .value(),
+        dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
                             e_nation::english );
