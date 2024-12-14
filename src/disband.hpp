@@ -37,6 +37,6 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
 
 void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
                       gfx::point const tile,
-                      EntitiesOnTile const& units );
+                      EntitiesOnTile const& entities );
 
 } // namespace rn
