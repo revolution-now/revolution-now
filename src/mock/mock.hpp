@@ -394,9 +394,9 @@ struct Responder<RetT, std::tuple<Args...>,
   }
 
   template<typename U = RetT>
-  requires std::is_convertible_v<U, RetT>
+  requires std::is_constructible_v<RetT, U>
   Responder& returns( U&& val ) {
-    ret_.emplace( static_cast<RetT>( std::forward<U>( val ) ) );
+    ret_.emplace( std::forward<U>( val ) );
     return *this;
   }
 
