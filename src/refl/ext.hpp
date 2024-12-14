@@ -12,6 +12,7 @@
 
 // base
 #include "base/fmt.hpp"
+#include "base/fs.hpp"
 #include "base/maybe.hpp"
 #include "base/meta.hpp"
 #include "base/valid.hpp"
@@ -125,14 +126,15 @@ concept ReflectedStruct = Reflected<T> && requires {
   } -> std::same_as<bool const&>;
 };
 
-#define REFL_VALIDATE( a, ... )                     \
-  {                                                 \
-    if( !( a ) ) {                                  \
-      auto loc = ::std::source_location::current(); \
-      return base::invalid( fmt::format(            \
-          "{}:{}: {}", loc.file_name(), loc.line(), \
-          fmt::format( "" __VA_ARGS__ ) ) );        \
-    }                                               \
+#define REFL_VALIDATE( a, ... )                            \
+  {                                                        \
+    if( !( a ) ) {                                         \
+      auto loc = ::std::source_location::current();        \
+      return base::invalid( fmt::format(                   \
+          "{}:{}: {}",                                     \
+          fs::path{ loc.file_name() }.filename().string(), \
+          loc.line(), fmt::format( "" __VA_ARGS__ ) ) );   \
+    }                                                      \
   }
 
 // This is specifically for structs that are reflected so that
