@@ -17,6 +17,7 @@
 
 // base
 #include "base/cc-specific.hpp"
+#include "base/fs.hpp"
 #include "base/maybe.hpp"
 
 // C++ standard library
@@ -261,12 +262,13 @@ template<Gettable T>
         std::source_location::current() ) {
   base::maybe<T> m = lua::get<T>( L, idx );
   if( m.has_value() ) return *m;
-  throw_lua_error( L,
-                   "{}:{}:error: failed to convert Lua type "
-                   "`{}' to native type `{}'.",
-                   loc.file_name(), loc.line(),
-                   internal::ext_type_name( L, idx ),
-                   base::demangled_typename<T>() );
+  throw_lua_error(
+      L,
+      "{}:{}:error: failed to convert Lua type "
+      "`{}' to native type `{}'.",
+      fs::path{ loc.file_name() }.filename().string(),
+      loc.line(), internal::ext_type_name( L, idx ),
+      base::demangled_typename<T>() );
 }
 
 } // namespace lua

@@ -321,5 +321,22 @@ LUA_TEST_CASE( "[ext-base] ref via traits" ) {
   C.pop();
 }
 
+LUA_TEST_CASE( "[ext-base] get_or_luaerr" ) {
+  auto _G = st.table.global();
+
+  _G["fn"] = [&]( ::lua_State* const L ) {
+    auto const _ = get_or_luaerr<rfunction>( L, -1 );
+    return 1;
+  };
+
+  char const* const err =
+      "ext-test.cpp:328:error: failed to convert Lua type "
+      "`number' to native type `lua::rfunction'.\n"
+      "stack traceback:\n"
+      "\t[C]: in ?";
+
+  REQUIRE( _G["fn"].pcall( 7 ) == lua_invalid( err ) );
+}
+
 } // namespace
 } // namespace lua
