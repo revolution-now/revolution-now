@@ -25,6 +25,7 @@
 #include "ss/map-square.rds.hpp"
 #include "ss/native-unit.rds.hpp"
 #include "ss/natives.hpp"
+#include "ss/ref.hpp"
 #include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
@@ -49,9 +50,9 @@ using ::mock::matchers::_;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_default_player();
     create_default_map();
   }
@@ -76,67 +77,67 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
-  World W;
+  world w;
 
-  Tribe& iroquois         = W.add_tribe( e_tribe::iroquois );
+  Tribe& iroquois         = w.add_tribe( e_tribe::iroquois );
   iroquois.muskets        = 9;
   iroquois.horse_herds    = 8;
   iroquois.horse_breeding = 7;
 
   DwellingId const dwelling1_id =
-      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois ).id;
   DwellingId const dwelling2_id =
-      W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 2, .y = 1 }, e_tribe::iroquois ).id;
   NativeUnitId const brave1_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 0 },
                                 dwelling1_id )
           .id;
   NativeUnitId const brave2_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 0 },
                                 dwelling2_id )
           .id;
   NativeUnitId const brave3_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 2 },
                                 dwelling2_id )
           .id;
   UnitId const missionary_id =
-      W.add_missionary_in_dwelling( e_unit_type::missionary,
+      w.add_missionary_in_dwelling( e_unit_type::missionary,
                                     dwelling1_id,
-                                    W.default_nation() )
+                                    w.default_nation() )
           .id();
-  W.square( { .x = 1, .y = 1 } ).road = true;
-  W.square( { .x = 2, .y = 1 } ).road = true;
-  W.natives().mark_land_owned( dwelling1_id,
+  w.square( { .x = 1, .y = 1 } ).road = true;
+  w.square( { .x = 2, .y = 1 } ).road = true;
+  w.natives().mark_land_owned( dwelling1_id,
                                { .x = 1, .y = 0 } );
-  W.natives().mark_land_owned( dwelling1_id,
+  w.natives().mark_land_owned( dwelling1_id,
                                { .x = 1, .y = 2 } );
-  W.natives().mark_land_owned( dwelling2_id,
+  w.natives().mark_land_owned( dwelling2_id,
                                { .x = 2, .y = 0 } );
-  W.natives().mark_land_owned( dwelling2_id,
+  w.natives().mark_land_owned( dwelling2_id,
                                { .x = 2, .y = 2 } );
 
   auto read_owned_land = [&]( Coord coord ) {
     return base::lookup(
-        W.natives().testing_only_owned_land_without_minuit(),
+        w.natives().testing_only_owned_land_without_minuit(),
         coord );
   };
 
   auto destroy = [&]( DwellingId dwelling_id ) {
-    destroy_dwelling( W.ss(), W.map_updater(), dwelling_id );
+    destroy_dwelling( w.ss(), w.map_updater(), dwelling_id );
   };
 
   // Sanity check.
-  REQUIRE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE( W.units().exists( brave1_id ) );
-  REQUIRE( W.units().exists( brave2_id ) );
-  REQUIRE( W.units().exists( brave3_id ) );
-  REQUIRE( W.units().exists( missionary_id ) );
-  REQUIRE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE( w.units().exists( brave1_id ) );
+  REQUIRE( w.units().exists( brave2_id ) );
+  REQUIRE( w.units().exists( brave3_id ) );
+  REQUIRE( w.units().exists( missionary_id ) );
+  REQUIRE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE( read_owned_land( { .x = 1, .y = 0 } ) ==
            dwelling1_id );
   REQUIRE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -151,14 +152,14 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
 
   destroy( dwelling1_id );
 
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave1_id ) );
-  REQUIRE( W.units().exists( brave2_id ) );
-  REQUIRE( W.units().exists( brave3_id ) );
-  REQUIRE_FALSE( W.units().exists( missionary_id ) );
-  REQUIRE_FALSE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave1_id ) );
+  REQUIRE( w.units().exists( brave2_id ) );
+  REQUIRE( w.units().exists( brave3_id ) );
+  REQUIRE_FALSE( w.units().exists( missionary_id ) );
+  REQUIRE_FALSE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 0 } ) ==
                  dwelling1_id );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -173,14 +174,14 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
 
   destroy( dwelling2_id );
 
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave1_id ) );
-  REQUIRE_FALSE( W.units().exists( brave2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave3_id ) );
-  REQUIRE_FALSE( W.units().exists( missionary_id ) );
-  REQUIRE_FALSE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE_FALSE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave1_id ) );
+  REQUIRE_FALSE( w.units().exists( brave2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave3_id ) );
+  REQUIRE_FALSE( w.units().exists( missionary_id ) );
+  REQUIRE_FALSE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE_FALSE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 0 } ) ==
                  dwelling1_id );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -193,31 +194,31 @@ TEST_CASE( "[tribe-mgr] destroy_dwelling" ) {
   REQUIRE( iroquois.horse_herds == 0 );
   REQUIRE( iroquois.horse_breeding == 0 );
 
-  REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
+  REQUIRE( w.natives().tribe_exists( e_tribe::iroquois ) );
   auto dwellings_for_tribe =
-      W.natives().dwellings_for_tribe( e_tribe::iroquois );
+      w.natives().dwellings_for_tribe( e_tribe::iroquois );
   REQUIRE( dwellings_for_tribe.empty() );
 }
 
 TEST_CASE(
     "[tribe-mgr] clears road after destroying dwelling" ) {
-  World W;
+  world w;
   MockIMapUpdater mock_map_updater;
 
-  W.add_tribe( e_tribe::iroquois );
+  w.add_tribe( e_tribe::iroquois );
   Coord const kTile{ .x = 1, .y = 1 };
 
   DwellingId const dwelling_id =
-      W.add_dwelling( kTile, e_tribe::iroquois ).id;
-  W.square( kTile ).road = true;
+      w.add_dwelling( kTile, e_tribe::iroquois ).id;
+  w.square( kTile ).road = true;
 
   auto destroy = [&]( DwellingId dwelling_id ) {
-    destroy_dwelling( W.ss(), mock_map_updater, dwelling_id );
+    destroy_dwelling( w.ss(), mock_map_updater, dwelling_id );
   };
 
   // Sanity check.
-  REQUIRE( W.natives().dwelling_exists( dwelling_id ) );
-  REQUIRE( W.square( kTile ).road );
+  REQUIRE( w.natives().dwelling_exists( dwelling_id ) );
+  REQUIRE( w.square( kTile ).road );
 
   bool cleared_road = false;
   mock_map_updater.EXPECT__modify_map_square( kTile, _ )
@@ -234,96 +235,96 @@ TEST_CASE(
         // with respect to the road and any prime resources that
         // might appear after the dwelling is gone.
         REQUIRE_FALSE(
-            W.natives().dwelling_exists( dwelling_id ) );
+            w.natives().dwelling_exists( dwelling_id ) );
         REQUIRE( cleared_road );
       } );
 
   destroy( dwelling_id );
 
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling_id ) );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling_id ) );
 }
 
 TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
-  World W;
+  world w;
 
-  Tribe& iroquois         = W.add_tribe( e_tribe::iroquois );
+  Tribe& iroquois         = w.add_tribe( e_tribe::iroquois );
   iroquois.muskets        = 9;
   iroquois.horse_herds    = 8;
   iroquois.horse_breeding = 7;
 
   // Iroquois.
   DwellingId const dwelling1_id =
-      W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 1, .y = 1 }, e_tribe::iroquois ).id;
   DwellingId const dwelling2_id =
-      W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::iroquois ).id;
+      w.add_dwelling( { .x = 2, .y = 1 }, e_tribe::iroquois ).id;
   NativeUnitId const brave1_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 0 },
                                 dwelling1_id )
           .id;
   NativeUnitId const brave2_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 0 },
                                 dwelling2_id )
           .id;
   NativeUnitId const brave3_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 2 },
                                 dwelling2_id )
           .id;
   UnitId const missionary_id =
-      W.add_missionary_in_dwelling( e_unit_type::missionary,
+      w.add_missionary_in_dwelling( e_unit_type::missionary,
                                     dwelling1_id,
-                                    W.default_nation() )
+                                    w.default_nation() )
           .id();
-  W.square( { .x = 1, .y = 1 } ).road = true;
-  W.square( { .x = 2, .y = 1 } ).road = true;
-  W.natives().mark_land_owned( dwelling1_id,
+  w.square( { .x = 1, .y = 1 } ).road = true;
+  w.square( { .x = 2, .y = 1 } ).road = true;
+  w.natives().mark_land_owned( dwelling1_id,
                                { .x = 1, .y = 0 } );
-  W.natives().mark_land_owned( dwelling1_id,
+  w.natives().mark_land_owned( dwelling1_id,
                                { .x = 1, .y = 2 } );
-  W.natives().mark_land_owned( dwelling2_id,
+  w.natives().mark_land_owned( dwelling2_id,
                                { .x = 2, .y = 0 } );
-  W.natives().mark_land_owned( dwelling2_id,
+  w.natives().mark_land_owned( dwelling2_id,
                                { .x = 2, .y = 2 } );
 
   // Sioux.
-  Tribe& sioux         = W.add_tribe( e_tribe::sioux );
+  Tribe& sioux         = w.add_tribe( e_tribe::sioux );
   sioux.muskets        = 1000;
   sioux.horse_herds    = 1000;
   sioux.horse_breeding = 1000;
   DwellingId const dwelling3_id =
-      W.add_dwelling( { .x = 0, .y = 5 }, e_tribe::sioux ).id;
+      w.add_dwelling( { .x = 0, .y = 5 }, e_tribe::sioux ).id;
   NativeUnitId const brave4_id =
-      W.add_native_unit_on_map( e_native_unit_type::brave,
+      w.add_native_unit_on_map( e_native_unit_type::brave,
                                 { .x = 1, .y = 4 },
                                 dwelling3_id )
           .id;
-  W.square( { .x = 0, .y = 5 } ).road = true;
-  W.natives().mark_land_owned( dwelling3_id,
+  w.square( { .x = 0, .y = 5 } ).road = true;
+  w.natives().mark_land_owned( dwelling3_id,
                                { .x = 0, .y = 4 } );
-  W.natives().mark_land_owned( dwelling3_id,
+  w.natives().mark_land_owned( dwelling3_id,
                                { .x = 0, .y = 6 } );
 
   auto read_owned_land = [&]( Coord coord ) {
     return base::lookup(
-        W.natives().testing_only_owned_land_without_minuit(),
+        w.natives().testing_only_owned_land_without_minuit(),
         coord );
   };
 
   auto destroy = [&]( e_tribe tribe ) {
-    destroy_tribe( W.ss(), W.map_updater(), tribe );
+    destroy_tribe( w.ss(), w.map_updater(), tribe );
   };
 
   // Sanity check.
-  REQUIRE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE( W.units().exists( brave1_id ) );
-  REQUIRE( W.units().exists( brave2_id ) );
-  REQUIRE( W.units().exists( brave3_id ) );
-  REQUIRE( W.units().exists( missionary_id ) );
-  REQUIRE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE( w.units().exists( brave1_id ) );
+  REQUIRE( w.units().exists( brave2_id ) );
+  REQUIRE( w.units().exists( brave3_id ) );
+  REQUIRE( w.units().exists( missionary_id ) );
+  REQUIRE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE( read_owned_land( { .x = 1, .y = 0 } ) ==
            dwelling1_id );
   REQUIRE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -332,19 +333,19 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
            dwelling2_id );
   REQUIRE( read_owned_land( { .x = 2, .y = 2 } ) ==
            dwelling2_id );
-  REQUIRE( W.natives().tribe_exists( e_tribe::iroquois ) );
-  REQUIRE( W.natives().dwelling_exists( dwelling3_id ) );
-  REQUIRE( W.units().exists( brave4_id ) );
-  REQUIRE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE( w.natives().tribe_exists( e_tribe::iroquois ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling3_id ) );
+  REQUIRE( w.units().exists( brave4_id ) );
+  REQUIRE( w.square( { .x = 0, .y = 5 } ).road );
   REQUIRE( read_owned_land( { .x = 0, .y = 4 } ) ==
            dwelling3_id );
   REQUIRE( read_owned_land( { .x = 0, .y = 6 } ) ==
            dwelling3_id );
-  REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE_FALSE( W.natives()
+  REQUIRE( w.natives().tribe_exists( e_tribe::sioux ) );
+  REQUIRE_FALSE( w.natives()
                      .dwellings_for_tribe( e_tribe::iroquois )
                      .empty() );
-  REQUIRE_FALSE( W.natives()
+  REQUIRE_FALSE( w.natives()
                      .dwellings_for_tribe( e_tribe::sioux )
                      .empty() );
   REQUIRE( iroquois.muskets == 9 );
@@ -353,14 +354,14 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
 
   destroy( e_tribe::iroquois );
 
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave1_id ) );
-  REQUIRE_FALSE( W.units().exists( brave2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave3_id ) );
-  REQUIRE_FALSE( W.units().exists( missionary_id ) );
-  REQUIRE_FALSE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE_FALSE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave1_id ) );
+  REQUIRE_FALSE( w.units().exists( brave2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave3_id ) );
+  REQUIRE_FALSE( w.units().exists( missionary_id ) );
+  REQUIRE_FALSE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE_FALSE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 0 } ) ==
                  dwelling1_id );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -369,19 +370,19 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
                  dwelling2_id );
   REQUIRE_FALSE( read_owned_land( { .x = 2, .y = 2 } ) ==
                  dwelling2_id );
-  REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::iroquois ) );
-  REQUIRE( W.natives().dwelling_exists( dwelling3_id ) );
-  REQUIRE( W.units().exists( brave4_id ) );
-  REQUIRE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE_FALSE( w.natives().tribe_exists( e_tribe::iroquois ) );
+  REQUIRE( w.natives().dwelling_exists( dwelling3_id ) );
+  REQUIRE( w.units().exists( brave4_id ) );
+  REQUIRE( w.square( { .x = 0, .y = 5 } ).road );
   REQUIRE( read_owned_land( { .x = 0, .y = 4 } ) ==
            dwelling3_id );
   REQUIRE( read_owned_land( { .x = 0, .y = 6 } ) ==
            dwelling3_id );
-  REQUIRE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE( W.natives()
+  REQUIRE( w.natives().tribe_exists( e_tribe::sioux ) );
+  REQUIRE( w.natives()
                .dwellings_for_tribe( e_tribe::iroquois )
                .empty() );
-  REQUIRE_FALSE( W.natives()
+  REQUIRE_FALSE( w.natives()
                      .dwellings_for_tribe( e_tribe::sioux )
                      .empty() );
   REQUIRE( iroquois.muskets == 0 );
@@ -393,14 +394,14 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
 
   destroy( e_tribe::sioux );
 
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling1_id ) );
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave1_id ) );
-  REQUIRE_FALSE( W.units().exists( brave2_id ) );
-  REQUIRE_FALSE( W.units().exists( brave3_id ) );
-  REQUIRE_FALSE( W.units().exists( missionary_id ) );
-  REQUIRE_FALSE( W.square( { .x = 1, .y = 1 } ).road );
-  REQUIRE_FALSE( W.square( { .x = 2, .y = 1 } ).road );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling1_id ) );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave1_id ) );
+  REQUIRE_FALSE( w.units().exists( brave2_id ) );
+  REQUIRE_FALSE( w.units().exists( brave3_id ) );
+  REQUIRE_FALSE( w.units().exists( missionary_id ) );
+  REQUIRE_FALSE( w.square( { .x = 1, .y = 1 } ).road );
+  REQUIRE_FALSE( w.square( { .x = 2, .y = 1 } ).road );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 0 } ) ==
                  dwelling1_id );
   REQUIRE_FALSE( read_owned_land( { .x = 1, .y = 2 } ) ==
@@ -409,19 +410,19 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
                  dwelling2_id );
   REQUIRE_FALSE( read_owned_land( { .x = 2, .y = 2 } ) ==
                  dwelling2_id );
-  REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::iroquois ) );
-  REQUIRE_FALSE( W.natives().dwelling_exists( dwelling3_id ) );
-  REQUIRE_FALSE( W.units().exists( brave4_id ) );
-  REQUIRE_FALSE( W.square( { .x = 0, .y = 5 } ).road );
+  REQUIRE_FALSE( w.natives().tribe_exists( e_tribe::iroquois ) );
+  REQUIRE_FALSE( w.natives().dwelling_exists( dwelling3_id ) );
+  REQUIRE_FALSE( w.units().exists( brave4_id ) );
+  REQUIRE_FALSE( w.square( { .x = 0, .y = 5 } ).road );
   REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 4 } ) ==
                  dwelling3_id );
   REQUIRE_FALSE( read_owned_land( { .x = 0, .y = 6 } ) ==
                  dwelling3_id );
-  REQUIRE_FALSE( W.natives().tribe_exists( e_tribe::sioux ) );
-  REQUIRE( W.natives()
+  REQUIRE_FALSE( w.natives().tribe_exists( e_tribe::sioux ) );
+  REQUIRE( w.natives()
                .dwellings_for_tribe( e_tribe::iroquois )
                .empty() );
-  REQUIRE( W.natives()
+  REQUIRE( w.natives()
                .dwellings_for_tribe( e_tribe::sioux )
                .empty() );
   REQUIRE( sioux.muskets == 0 );
@@ -432,26 +433,49 @@ TEST_CASE( "[tribe-mgr] destroy_tribe" ) {
 }
 
 TEST_CASE( "[tribe-mgr] destroy_tribe_interactive" ) {
-  World W;
-  W.add_tribe( e_tribe::aztec );
-  W.gui().EXPECT__message_box(
+  world w;
+  w.add_tribe( e_tribe::aztec );
+  w.gui().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
-  co_await_test( destroy_tribe_interactive( W.ss(), W.ts(),
+  co_await_test( destroy_tribe_interactive( w.ss(), w.ts(),
                                             e_tribe::aztec ) );
-  REQUIRE( !W.natives().tribe_exists( e_tribe::aztec ) );
+  REQUIRE( !w.natives().tribe_exists( e_tribe::aztec ) );
 }
 
 TEST_CASE( "[tribe-mgr] tribe_wiped_out_message" ) {
-  World W;
-  W.add_tribe( e_tribe::aztec );
-  W.gui().EXPECT__message_box(
+  world w;
+  w.add_tribe( e_tribe::aztec );
+  w.gui().EXPECT__message_box(
       "The [Aztec] tribe has been wiped out." );
   co_await_test(
-      tribe_wiped_out_message( W.ts(), e_tribe::aztec ) );
-  REQUIRE( W.natives().tribe_exists( e_tribe::aztec ) );
+      tribe_wiped_out_message( w.ts(), e_tribe::aztec ) );
+  REQUIRE( w.natives().tribe_exists( e_tribe::aztec ) );
 }
 
 TEST_CASE( "[tribe-mgr] tribe_for_dwelling" ) {
+  world w;
+  Dwelling dwelling;
+  e_tribe expected = {};
+
+  auto f = [&] {
+    return tribe_type_for_dwelling( w.ss(), dwelling );
+  };
+
+  // Test with a frozen dwelling.
+  dwelling = {
+    .id     = 0,
+    .frozen = FrozenDwelling{ .tribe = e_tribe::cherokee } };
+  expected = e_tribe::cherokee;
+  REQUIRE( f() == expected );
+
+  dwelling = w.add_dwelling( { .x = 1, .y = 2 }, e_tribe::tupi );
+  expected = e_tribe::tupi;
+  REQUIRE( f() == expected );
+
+  dwelling =
+      w.add_dwelling( { .x = 1, .y = 0 }, e_tribe::aztec );
+  expected = e_tribe::aztec;
+  REQUIRE( f() == expected );
 }
 
 } // namespace
