@@ -335,9 +335,8 @@ struct stream {
       update();
     };
     co_await p.wait();
-    T res = std::move( q.front() );
-    q.pop();
-    co_return res;
+    SCOPE_EXIT { q.pop(); };
+    co_return std::move( q.front() );
   }
 
   void send( T const& t ) {
