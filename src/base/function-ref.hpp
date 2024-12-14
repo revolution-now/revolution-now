@@ -172,7 +172,7 @@ struct function_ref<R( Args... ) /*const*/ /*noexcept*/> {
 
   bool operator==( std::nullptr_t ) const = delete;
 
-  R operator()( Args... args ) noexcept( kIsNoexcept ) {
+  R operator()( Args... args ) const noexcept( kIsNoexcept ) {
     DCHECK( p_thunk_ != nullptr );
     DCHECK( bound_entity_ != nullptr );
     return p_thunk_( bound_entity_,
