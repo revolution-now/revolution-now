@@ -19,23 +19,31 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/map-square.hpp"
 #include "src/mock/matchers.hpp"
 #include "src/unit-ownership.hpp"
-#include "src/views.hpp" // FIXME
 #include "src/visibility.hpp"
 
 // ss
+#include "src/ss/colonies.hpp"
 #include "src/ss/fog-square.rds.hpp"
 #include "src/ss/native-unit.rds.hpp"
+#include "src/ss/natives.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/terrain.hpp"
 #include "src/ss/unit-composition.hpp"
 #include "src/ss/unit.hpp"
+#include "src/ss/units.hpp"
+
+// gfx
+#include "src/gfx/iter.hpp"
 
 // refl
 #include "src/refl/to-str.hpp"
 
 // base
+#include "src/base/scope-exit.hpp"
 #include "src/base/to-str-ext-std.hpp"
 
 // Must be last.
@@ -47,6 +55,7 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::gfx::rect_iterator;
 using ::mock::matchers::_;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
@@ -71,6 +80,12 @@ struct world : testing::World {
       L, L, L, //
     };
     build_map( std::move( tiles ), 3 );
+  }
+
+  void mark_all_unexplored() {
+    for( point const p :
+         rect_iterator( terrain().world_rect_tiles() ) )
+      player_square( p ) = PlayerSquare::unexplored{};
   }
 };
 
@@ -453,16 +468,14 @@ TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
   DisbandingPermissions perms;
   EntitiesOnTile expected;
 
+  // Although this method uses viz, it does so only deep in a UI
+  // method that unfortunately we can't test here. See the end of
+  // this test case. So we just use a full visibility.
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const nation_viz( w.ss(),
-                                        e_nation::english );
-
-  IVisibility const* viz = &full_viz;
 
   auto f = [&] {
-    BASE_CHECK( viz );
     return co_await_test( disband_tile_ui_interaction(
-        w.ss(), w.ts(), w.default_player(), *viz, perms ) );
+        w.ss(), w.ts(), w.default_player(), full_viz, perms ) );
   };
 
   auto expect_ask_one = [&]( string const& fragment,
@@ -545,12 +558,268 @@ TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
   REQUIRE( f() == expected );
 
   // Multiple units, one selected.
-  // Unfortunately, can't test cases where things are selected.
+  // Unfortunately, can't test cases where things are selected
+  // since the code that builds the UI and computes results is
+  // not accessible from a unit test, i.e. we can't in any way
+  // simulate the clicking of the check boxes and we don't have a
+  // way to just inject the results.
 }
 
 TEST_CASE( "[disband] execute_disband" ) {
   world w;
-  // TODO
+  point tile = { .x = 2, .y = 1 };
+  EntitiesOnTile entities;
+
+  VisibilityEntire const full_viz( w.ss() );
+  VisibilityForNation const nation_viz( w.ss(),
+                                        e_nation::english );
+
+  IVisibility const* viz = &full_viz;
+
+  auto f = [&] {
+    BASE_CHECK( viz );
+    return execute_disband( w.ss(), w.ts(), *viz, tile,
+                            entities );
+  };
+
+  auto add_unit =
+      [&]( e_unit_type const type = e_unit_type::free_colonist,
+           maybe<e_nation> const nation = nothing ) -> auto& {
+    return w.add_unit_on_map(
+        type, tile, nation.value_or( w.default_nation() ) );
+  };
+
+  auto add_cargo_unit =
+      [&]( UnitId const holder,
+           e_unit_type const type =
+               e_unit_type::free_colonist ) -> auto& {
+    return w.add_unit_in_cargo( type, holder );
+  };
+
+  auto add_brave = [&]( Dwelling const& dwelling,
+                        maybe<point> const p =
+                            nothing ) -> auto& {
+    return w.add_native_unit_on_map(
+        e_native_unit_type::armed_brave, p.value_or( tile ),
+        dwelling.id );
+  };
+
+  auto add_colony = [&]( maybe<e_nation> const nation =
+                             nothing ) -> auto& {
+    return w.add_colony( tile,
+                         nation.value_or( w.default_nation() ) );
+  };
+
+  auto add_dwelling = [&]() -> auto& {
+    return w.add_dwelling( tile, e_tribe::sioux );
+  };
+
+  // Default.
+  f();
+
+  // One foreign euro unit.
+  {
+    UnitId const unit_id =
+        add_unit( e_unit_type::free_colonist, e_nation::french )
+            .id();
+    entities = { .units = { unit_id } };
+    f();
+    REQUIRE( !w.units().exists( unit_id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::unexplored>() );
+  }
+
+  // One euro unit.
+  {
+    w.mark_all_unexplored();
+    UnitId const unit_id = add_unit().id();
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+    entities = { .units = { unit_id } };
+    f();
+    REQUIRE( !w.units().exists( unit_id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+  }
+
+  // One brave.
+  {
+    w.mark_all_unexplored();
+    Dwelling const& dwelling          = add_dwelling();
+    NativeUnitId const native_unit_id = add_brave( dwelling ).id;
+    entities = { .units = { native_unit_id } };
+    f();
+    REQUIRE( !w.units().exists( native_unit_id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::unexplored>() );
+  }
+
+  // Two euro units.
+  {
+    UnitId const unit_id_1 = add_unit().id();
+    UnitId const unit_id_2 = add_unit().id();
+    UnitId const unit_id_3 = add_unit().id();
+    entities = { .units = { unit_id_1, unit_id_2 } };
+    f();
+    REQUIRE( !w.units().exists( unit_id_1 ) );
+    REQUIRE( !w.units().exists( unit_id_2 ) );
+    REQUIRE( w.units().exists( unit_id_3 ) );
+  }
+
+  // Ship with no cargo units.
+  {
+    UnitId const ship_id = add_unit( e_unit_type::galleon ).id();
+    UnitId const unit_id_1 = add_unit().id();
+    UnitId const unit_id_2 = add_unit().id();
+    entities               = { .units = { ship_id } };
+    f();
+    REQUIRE( !w.units().exists( ship_id ) );
+    REQUIRE( w.units().exists( unit_id_1 ) );
+    REQUIRE( w.units().exists( unit_id_2 ) );
+  }
+
+  // Ship with cargo units, disband only ship, units offloaded.
+  {
+    UnitId const ship_id = add_unit( e_unit_type::galleon ).id();
+    UnitId const unit_id_1 = add_cargo_unit( ship_id ).id();
+    UnitId const unit_id_2 = add_cargo_unit( ship_id ).id();
+    entities               = { .units = { ship_id } };
+    f();
+    REQUIRE( !w.units().exists( ship_id ) );
+    REQUIRE( w.units().exists( unit_id_1 ) );
+    REQUIRE( w.units().exists( unit_id_2 ) );
+    REQUIRE( as_const( w.units() )
+                 .ownership_of( unit_id_1 )
+                 .holds<UnitOwnership::world>() );
+    REQUIRE( as_const( w.units() )
+                 .ownership_of( unit_id_2 )
+                 .holds<UnitOwnership::world>() );
+  }
+
+  // Ship with cargo units, disband all.
+  {
+    UnitId const ship_id = add_unit( e_unit_type::galleon ).id();
+    UnitId const unit_id_1 = add_cargo_unit( ship_id ).id();
+    UnitId const unit_id_2 = add_cargo_unit( ship_id ).id();
+    entities = { .units = { ship_id, unit_id_1, unit_id_2 } };
+    f();
+    REQUIRE( !w.units().exists( ship_id ) );
+    REQUIRE( !w.units().exists( unit_id_1 ) );
+    REQUIRE( !w.units().exists( unit_id_2 ) );
+  }
+
+  // Ship with cargo units, disband only ship, units destroyed as
+  // part of ship disbanding since they can't be offloaded into
+  // water.
+  {
+    SCOPED_SET_AND_RESTORE( tile, point{ .x = 1, .y = 1 } );
+    BASE_CHECK( is_water( w.square( tile ) ) );
+    UnitId const ship_id = add_unit( e_unit_type::galleon ).id();
+    UnitId const unit_id_1 = add_cargo_unit( ship_id ).id();
+    UnitId const unit_id_2 = add_cargo_unit( ship_id ).id();
+    entities               = { .units = { ship_id } };
+    f();
+    REQUIRE( !w.units().exists( ship_id ) );
+    REQUIRE( !w.units().exists( unit_id_1 ) );
+    REQUIRE( !w.units().exists( unit_id_2 ) );
+  }
+
+  // Ship with cargo units, disband all units, tests that units
+  // don't attempt to be disbanded after they've already been
+  // disbanded as part of the ship (which has to disband them
+  // since it is over water in this section).
+  {
+    SCOPED_SET_AND_RESTORE( tile, point{ .x = 1, .y = 1 } );
+    BASE_CHECK( is_water( w.square( tile ) ) );
+    UnitId const ship_id = add_unit( e_unit_type::galleon ).id();
+    UnitId const unit_id_1 = add_cargo_unit( ship_id ).id();
+    UnitId const unit_id_2 = add_cargo_unit( ship_id ).id();
+    entities = { .units = { ship_id, unit_id_1, unit_id_2 } };
+    f();
+    REQUIRE( !w.units().exists( ship_id ) );
+    REQUIRE( !w.units().exists( unit_id_1 ) );
+    REQUIRE( !w.units().exists( unit_id_2 ) );
+  }
+
+  // Foreign colony.
+  {
+    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    w.mark_all_unexplored();
+    // The reference returned by add_colony will be dangling
+    // after the disbanding, so we just copy it straight away.
+    entities = { .colony = add_colony( e_nation::french ) };
+    f();
+    REQUIRE(
+        !w.colonies().exists( entities.colony.value().id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+  }
+
+  // Friendly colony.
+  {
+    entities = { .colony = add_colony() };
+    f();
+    REQUIRE(
+        !w.colonies().exists( entities.colony.value().id ) );
+  }
+
+  tile = { .x = 2, .y = 0 };
+  BASE_CHECK( is_land( w.square( tile ) ) );
+
+  // Dwelling, full visibility.
+  {
+    w.mark_all_unexplored();
+    entities = { .dwelling = add_dwelling() };
+    f();
+    REQUIRE( !w.natives().dwelling_exists(
+        entities.dwelling.value().id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::unexplored>() );
+  }
+
+  // Dwelling, nation visibility.
+  {
+    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    w.mark_all_unexplored();
+    entities = { .dwelling = add_dwelling() };
+    f();
+    REQUIRE( !w.natives().dwelling_exists(
+        entities.dwelling.value().id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+  }
+
+  // Fogged foreign colony, full visibility.
+  {
+    w.mark_all_unexplored();
+    Colony const fake_colony;
+    w.player_square( tile )
+        .emplace<PlayerSquare::explored>()
+        .fog_status.emplace<FogStatus::fogged>()
+        .contents.colony = fake_colony;
+    entities             = { .colony = fake_colony };
+    f();
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+    REQUIRE( w.player_square( tile )
+                 .get<PlayerSquare::explored>()
+                 .fog_status.holds<FogStatus::fogged>() );
+  }
+
+  // Fogged foreign colony, nation visibility.
+  {
+    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    w.mark_all_unexplored();
+    Colony const fake_colony;
+    w.player_square( tile )
+        .emplace<PlayerSquare::explored>()
+        .fog_status.emplace<FogStatus::fogged>()
+        .contents.colony = fake_colony;
+    entities             = { .colony = fake_colony };
+    f();
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+  }
 }
 
 } // namespace
