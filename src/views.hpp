@@ -531,6 +531,9 @@ class OkCancelView2 : public CompositeView {
  public:
   OkCancelView2();
 
+  // Must be immobile since it is self-referential.
+  OkCancelView2( OkCancelView2&& ) = delete;
+
   wait<e_ok_cancel> next();
 
   ButtonView* ok_button() { return ok_ref_; }
