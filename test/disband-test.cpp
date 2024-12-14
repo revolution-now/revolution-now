@@ -15,8 +15,13 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/mock/matchers.hpp"
+#include "src/unit-ownership.hpp"
+#include "src/views.hpp" // FIXME
 #include "src/visibility.hpp"
 
 // ss
@@ -42,6 +47,9 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::mock::matchers::_;
+using ::mock::matchers::Field;
+using ::mock::matchers::StrContains;
 
 /****************************************************************
 ** Fake World Setup
@@ -72,7 +80,7 @@ struct world : testing::World {
 TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   world w;
   DisbandingPermissions expected;
-  point tile = { .x = 2, .y = 1 };
+  point const tile = { .x = 2, .y = 1 };
 
   VisibilityEntire const full_viz( w.ss() );
   VisibilityForNation const nation_viz( w.ss(),
@@ -85,9 +93,9 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
     return disbandable_entities_on_tile( w.ss(), *viz, tile );
   };
 
-  using explored   = PlayerSquare::explored;
-  using fogged     = FogStatus::fogged;
-  using clear      = FogStatus::clear;
+  using explored = PlayerSquare::explored;
+  using fogged   = FogStatus::fogged;
+  using clear    = FogStatus::clear;
 
   auto add_unit = [&](
                       maybe<e_nation> const nation = nothing,
@@ -113,14 +121,6 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       expected.disbandable.units.push_back( native_unit.id );
     } };
 
-  auto expect_no_unit = overload{
-    [&]( Unit const& unit ) {
-      expected.non_disbandable.units.push_back( unit.id() );
-    },
-    [&]( NativeUnit const& native_unit ) {
-      expected.non_disbandable.units.push_back( native_unit.id );
-    } };
-
   auto add_colony = [&]( maybe<e_nation> const nation =
                              nothing ) -> auto& {
     return w.add_colony( tile,
@@ -131,20 +131,12 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
     expected.disbandable.colony = colony;
   };
 
-  auto expect_no_colony = [&]( Colony const& colony ) {
-    expected.non_disbandable.colony = colony;
-  };
-
   auto add_dwelling = [&]() -> auto& {
     return w.add_dwelling( tile, e_tribe::sioux );
   };
 
   auto expect_dwelling = [&]( Dwelling const& dwelling ) {
     expected.disbandable.dwelling = dwelling;
-  };
-
-  auto expect_no_dwelling = [&]( Dwelling const& dwelling ) {
-    expected.non_disbandable.dwelling = dwelling;
   };
 
   auto make_clear = [&] {
@@ -357,12 +349,10 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       }
       SECTION( "dwelling, fogged" ) {
         Dwelling const& dwelling = add_dwelling();
-        expect_no_dwelling( dwelling );
         make_fogged( dwelling );
         REQUIRE( f() == expected );
       }
       SECTION( "dwelling, clear" ) {
-        expect_no_dwelling( add_dwelling() );
         make_clear();
         REQUIRE( f() == expected );
       }
@@ -374,15 +364,12 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       SECTION( "dwelling+braves, fogged" ) {
         Dwelling const& dwelling = add_dwelling();
         make_fogged( dwelling );
-        expect_no_dwelling( dwelling );
         add_brave( dwelling );
         REQUIRE( f() == expected );
       }
       SECTION( "dwelling+braves, clear" ) {
         Dwelling const& dwelling = add_dwelling();
-        expect_no_dwelling( dwelling );
-        NativeUnit const& brave = add_brave( dwelling );
-        expect_no_unit( brave );
+        add_brave( dwelling );
         make_clear();
         REQUIRE( f() == expected );
       }
@@ -393,20 +380,18 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       }
       SECTION( "brave, clear" ) {
         Dwelling const& dwelling = add_dwelling();
-        expect_no_dwelling( dwelling );
-        NativeUnit const& brave = add_brave( dwelling );
-        expect_no_unit( brave );
+        add_brave( dwelling );
         make_clear();
         REQUIRE( f() == expected );
       }
       SECTION( "colony, friendly, no units" ) {
         make_clear();
-        expect_no_colony( add_colony() );
+        add_colony();
         REQUIRE( f() == expected );
       }
       SECTION( "colony, friendly, with units" ) {
         make_clear();
-        expect_no_colony( add_colony() );
+        add_colony();
         expect_unit( add_unit() );
         expect_unit( add_unit() );
         REQUIRE( f() == expected );
@@ -417,19 +402,18 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       }
       SECTION( "colony, foreign, fogged" ) {
         Colony const& colony = add_colony( e_nation::french );
-        expect_no_colony( colony );
         make_fogged( colony );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, clear" ) {
-        expect_no_colony( add_colony( e_nation::french ) );
+        add_colony( e_nation::french );
         make_clear();
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, with units" ) {
-        expect_no_colony( add_colony( e_nation::french ) );
-        expect_no_unit( add_unit( e_nation::french ) );
-        expect_no_unit( add_unit( e_nation::french ) );
+        add_colony( e_nation::french );
+        add_unit( e_nation::french );
+        add_unit( e_nation::french );
         make_clear();
         REQUIRE( f() == expected );
       }
@@ -449,13 +433,13 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       }
       SECTION( "one unit, foreign, clear" ) {
         make_clear();
-        expect_no_unit( add_unit( e_nation::french ) );
+        add_unit( e_nation::french );
         REQUIRE( f() == expected );
       }
       SECTION( "two units, foreign, clear" ) {
         make_clear();
-        expect_no_unit( add_unit( e_nation::french ) );
-        expect_no_unit( add_unit( e_nation::french ) );
+        add_unit( e_nation::french );
+        add_unit( e_nation::french );
         REQUIRE( f() == expected );
       }
     }
@@ -464,10 +448,109 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
 
 TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
   world w;
+  point const tile = { .x = 2, .y = 1 };
+
+  DisbandingPermissions perms;
+  EntitiesOnTile expected;
+
+  VisibilityEntire const full_viz( w.ss() );
+  VisibilityForNation const nation_viz( w.ss(),
+                                        e_nation::english );
+
+  IVisibility const* viz = &full_viz;
+
+  auto f = [&] {
+    BASE_CHECK( viz );
+    return co_await_test( disband_tile_ui_interaction(
+        w.ss(), w.ts(), w.default_player(), *viz, perms ) );
+  };
+
+  auto expect_ask_one = [&]( string const& fragment,
+                             maybe<string> const resp ) {
+    w.gui()
+        .EXPECT__choice( Field( &ChoiceConfig::msg,
+                                StrContains( fragment ) ) )
+        .returns( resp );
+  };
+
+  // Default.
+  expected = {};
+  REQUIRE( f() == expected );
+
+  UnitId const farmer_id =
+      w.add_unit_on_map( e_unit_type::expert_farmer, tile ).id();
+  UnitId const free_colonist =
+      w.add_unit_on_map( e_unit_type::free_colonist, tile ).id();
+
+  Colony& colony = w.add_colony( tile );
+  colony.name    = "abc";
+
+  Dwelling const& dwelling =
+      w.add_dwelling( tile, e_tribe::iroquois );
+
+  // One unit only, no disband.
+  perms = { .disbandable = { .units = { farmer_id } } };
+  expect_ask_one( "Expert Farmer", nothing );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One unit only, disbanded.
+  perms = { .disbandable = { .units = { farmer_id } } };
+  expect_ask_one( "Expert Farmer", "yes" );
+  expected = { .units = { farmer_id } };
+  REQUIRE( f() == expected );
+
+  // One colony, no disband.
+  perms = { .disbandable = { .colony = colony } };
+  expect_ask_one( "Really disband [abc]", nothing );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One colony, disbanded.
+  perms = { .disbandable = { .colony = colony } };
+  expect_ask_one( "Really disband [abc]", "yes" );
+  expected = { .colony = colony };
+  REQUIRE( f() == expected );
+
+  // One colony, ship in port.
+  {
+    UnitId const ship =
+        w.add_unit_on_map( e_unit_type::caravel, tile ).id();
+    perms = { .disbandable = { .colony = colony } };
+    w.gui().EXPECT__message_box(
+        StrContains( "has a ship in its port" ) );
+    expected = {};
+    REQUIRE( f() == expected );
+    UnitOwnershipChanger( w.ss(), ship ).destroy();
+  }
+
+  // One dwelling, no disband.
+  perms = { .disbandable = { .dwelling = dwelling } };
+  expect_ask_one( "Really disband [Iroquois] Village", nothing );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // One dwelling, disbanded.
+  perms = { .disbandable = { .dwelling = dwelling } };
+  expect_ask_one( "Really disband [Iroquois] Village", "yes" );
+  expected = { .dwelling = dwelling };
+  REQUIRE( f() == expected );
+
+  // Multiple units, none selected.
+  perms = {
+    .disbandable = { .units = { farmer_id, free_colonist } } };
+  expected = { .units = {} };
+  w.gui().EXPECT__ok_cancel_box( "Select unit(s) to disband:", _,
+                                 _ );
+  REQUIRE( f() == expected );
+
+  // Multiple units, one selected.
+  // Unfortunately, can't test cases where things are selected.
 }
 
 TEST_CASE( "[disband] execute_disband" ) {
   world w;
+  // TODO
 }
 
 } // namespace

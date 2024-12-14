@@ -16,9 +16,7 @@
 #include "colony-mgr.hpp"
 #include "gui.hpp"
 #include "imap-updater.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
-#include "plane-stack.hpp"
 #include "revolution-status.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
@@ -27,7 +25,6 @@
 #include "unit-stack.hpp"
 #include "views.hpp"
 #include "visibility.hpp"
-#include "window.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -119,22 +116,12 @@ auto& unit_type_name( SSConst const& ss,
   }
 }
 
-wait<EntitiesOnTile> disband_selection_dialog(
-    SSConst const& ss, TS& ts, Player const& player,
+wait<maybe<EntitiesOnTile>> disband_selection_dialog(
+    SSConst const& ss, IGui& gui, Player const& player,
     IVisibility const& viz, EntitiesOnTile const& entities ) {
   using namespace ui;
 
-  auto top_array = make_unique<VerticalArrayView>(
-      VerticalArrayView::align::center );
-
   string const title = "Select unit(s) to disband:";
-
-  // Add text.
-  auto text_view = make_unique<TextView>( title );
-  top_array->add_view( std::move( text_view ) );
-  // Add some space between title and check boxes.
-  top_array->add_view(
-      make_unique<EmptyView>( Delta{ .w = 1, .h = 2 } ) );
 
   // Add check boxes.
   auto boxes_array = make_unique<VerticalArrayView>(
@@ -199,44 +186,30 @@ wait<EntitiesOnTile> disband_selection_dialog(
     add_checkbox( label, std::move( icon_view ) );
   }
   boxes_array->recompute_child_positions();
-  top_array->add_view( std::move( boxes_array ) );
-  // Add some space between boxes and buttons.
-  top_array->add_view(
-      make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
-  // Add buttons.
-  auto buttons_view          = make_unique<ui::OkCancelView2>();
-  ui::OkCancelView2* buttons = buttons_view.get();
-  top_array->add_view( std::move( buttons_view ) );
+  auto on_ok = [&] {
+    EntitiesOnTile selected;
+    selected.units.reserve( entities.units.size() );
+    int checkbox_idx = 0;
+    // Must go in order of the checkboxes here so that the idx
+    // matches what we think it represents.
+    for( auto const id : entities.units )
+      if( boxes[checkbox_idx++]->on() ) //
+        selected.units.push_back( id );
+    if( entities.colony.has_value() )
+      if( boxes[checkbox_idx++]->on() ) //
+        selected.colony = entities.colony;
+    if( entities.dwelling.has_value() )
+      if( boxes[checkbox_idx++]->on() ) //
+        selected.dwelling = entities.dwelling;
+    return selected;
+  };
 
-  // Finalize top-level array.
-  top_array->recompute_child_positions();
-
-  // Create window.
-  WindowManager& wm = ts.planes.get().window.typed().manager();
-  Window window( wm );
-  window.set_view( std::move( top_array ) );
-  window.autopad_me();
-  // Must be done after auto-padding.
-  window.center_me();
-
-  ui::e_ok_cancel const finished = co_await buttons->next();
-  EntitiesOnTile selected;
-  if( finished == ui::e_ok_cancel::cancel ) co_return selected;
-  selected.units.reserve( entities.units.size() );
-  int checkbox_idx = 0;
-  // Must go in order of the checkboxes here so that the idx
-  // matches what we think it represents.
-  for( auto const id : entities.units )
-    if( boxes[checkbox_idx++]->on() ) //
-      selected.units.push_back( id );
-  if( entities.colony.has_value() )
-    if( boxes[checkbox_idx++]->on() ) //
-      selected.colony = entities.colony;
-  if( entities.dwelling.has_value() )
-    if( boxes[checkbox_idx++]->on() ) //
-      selected.dwelling = entities.dwelling;
-  co_return selected;
+  co_return co_await gui
+      .interactive_ok_cancel_box<EntitiesOnTile>(
+          title, std::move( boxes_array ), on_ok );
+  // !! At this point the view and all pointers into it above
+  // have been destroyed.
 }
 
 // NOTE regarding disbanding ships at sea carrying units. As
@@ -311,9 +284,8 @@ DisbandingPermissions disbandable_entities_on_tile(
       bool const disbandable =
           !viz.nation().has_value() ||
           can_disband_unit( ss, *viz.nation(), generic_unit_id );
-      auto& v = disbandable ? perms.disbandable.units
-                            : perms.non_disbandable.units;
-      v.push_back( generic_unit_id );
+      if( disbandable )
+        perms.disbandable.units.push_back( generic_unit_id );
     }
   }
 
@@ -328,8 +300,6 @@ DisbandingPermissions disbandable_entities_on_tile(
       colony.has_value() ) {
     if( can_disband_colonies( ss ) )
       perms.disbandable.colony = colony;
-    else
-      perms.non_disbandable.colony = colony;
   }
 
   // Dwellings. Cannot be disbanded outside of cheat mode.
@@ -337,8 +307,6 @@ DisbandingPermissions disbandable_entities_on_tile(
       dwelling.has_value() ) {
     if( can_disband_dwellings( ss ) )
       perms.disbandable.dwelling = dwelling;
-    else
-      perms.non_disbandable.dwelling = dwelling;
   }
 
   return perms;
@@ -348,21 +316,6 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
     SSConst const& ss, TS& ts, Player const& player,
     IVisibility const& viz,
     DisbandingPermissions const& perms ) {
-  if( ( !perms.disbandable.units.empty() &&
-        !perms.non_disbandable.units.empty() ) ||
-      ( perms.disbandable.colony.has_value() &&
-        perms.non_disbandable.colony.has_value() ) ||
-      ( perms.disbandable.dwelling.has_value() &&
-        perms.non_disbandable.dwelling.has_value() ) )
-    // We won't check-fail here even though this should never
-    // happen in the normal game because it is possible that the
-    // player might end up creating such a situation in cheat
-    // mode or mods, and we're not yet sure if we want to prevent
-    // it at that level.
-    lg.warn(
-        "there are both disbandable and non-disbandable "
-        "entities of the same type on a single tile." );
-
   EntitiesOnTile entities;
 
   if( perms.disbandable.units.empty() &&
@@ -452,8 +405,9 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
 
   // There are multiple entities, thus we must pop open a dialog
   // box and list them.
-  entities = co_await disband_selection_dialog(
-      ss, ts, player, viz, perms.disbandable );
+  entities = ( co_await disband_selection_dialog(
+                   ss, ts.gui, player, viz, perms.disbandable ) )
+                 .value_or( EntitiesOnTile{} );
 
   // Make sure that if we're disbanding a colony that it either
   // has no ships in port or those ships are also being disbanded

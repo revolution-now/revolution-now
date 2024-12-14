@@ -32,5 +32,4 @@ struct.EntitiesOnTile {
 
 struct.DisbandingPermissions {
   disbandable 'EntitiesOnTile',
-  non_disbandable 'EntitiesOnTile',
 }
