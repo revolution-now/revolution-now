@@ -53,9 +53,9 @@ namespace base {
 //   }
 //   REQUIRE( n == 6 );
 //
-#define SCOPED_SET_AND_RESTORE( var, new_val )               \
+#define SCOPED_SET_AND_RESTORE( var, ... )                   \
   base::ScopedSet STRING_JOIN( __scoped_setter_, __LINE__ )( \
-      var, new_val );
+      var, __VA_ARGS__ );
 
 #define SCOPED_SET_AND_CHANGE( var, new_val, restore_val )   \
   base::ScopedSet STRING_JOIN( __scoped_setter_, __LINE__ )( \
