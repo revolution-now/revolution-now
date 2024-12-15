@@ -62,4 +62,7 @@ sumtype.LandViewRawInput {
   reveal_map {},
   toggle_map_reveal {},
   cheat_create_unit {},
+  activate {
+    tile 'gfx::point',
+  },
 }

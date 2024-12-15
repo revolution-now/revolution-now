@@ -294,6 +294,11 @@ wait<vector<UnitId>> process_unit_prioritization_request(
     LandViewPlayerInput::prioritize const& request ) {
   // Move some units to the front of the queue.
   auto prioritize = request.units;
+  if( prioritize.empty() )
+    // We can sometimes get an empty prioritization list from the
+    // land view which just means "go back to asking units for
+    // orders if there are any, in whichever order you want."
+    co_return prioritize;
   erase_if( prioritize, [&]( UnitId id ) {
     return finished_turn( ss.units.unit_for( id ) );
   } );
@@ -307,7 +312,7 @@ wait<vector<UnitId>> process_unit_prioritization_request(
     co_await ts.gui.message_box(
         "Some of the selected units have already moved this "
         "turn." );
-  co_return std::move( prioritize );
+  co_return prioritize;
 }
 
 // It might seem to make sense to just autosave the game at the
@@ -575,7 +580,6 @@ wait<EndOfTurnResult> process_player_input_eot(
       vector<UnitId> const units =
           co_await process_unit_prioritization_request( ss, ts,
                                                         val );
-      if( units.empty() ) break;
       // Unlike during the turn, we don't actually prioritize the
       // list of units that are returned by this function here
       // because there is no active unit queue. So instead we
@@ -593,8 +597,9 @@ wait<EndOfTurnResult> process_player_input_eot(
       // would be selected to actually ask for orders first and
       // not the one that the player last clicked on. This would
       // seem strange to the player, and this avoids that.
-      co_return EndOfTurnResult::return_to_units{
-        .first_to_ask = units.back() };
+      EndOfTurnResult::return_to_units ret;
+      if( !units.empty() ) ret.first_to_ask = units.back();
+      co_return ret;
     }
   }
   co_return EndOfTurnResult::not_done_yet{};
@@ -1275,8 +1280,10 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
         }
         CASE( proceed ) { co_return NationTurnState::finish{}; }
         CASE( return_to_units ) {
-          co_return NationTurnState::units{
-            .q = { return_to_units.first_to_ask } };
+          NationTurnState::units units;
+          if( return_to_units.first_to_ask.has_value() )
+            units.q.push_back( *return_to_units.first_to_ask );
+          co_return units;
         }
       }
       SHOULD_NOT_BE_HERE; // for gcc.

@@ -11,6 +11,9 @@
 # ss
 include "ss/unit-id.hpp"
 
+# base
+include "base/maybe.hpp"
+
 namespace "rn"
 
 sumtype.EndOfTurnResult {
@@ -26,6 +29,6 @@ sumtype.EndOfTurnResult {
   # caused this action, that way it will be able to ask for or-
   # ders first.
   return_to_units {
-    first_to_ask 'UnitId',
+    first_to_ask 'base::maybe<UnitId>',
   },
 }

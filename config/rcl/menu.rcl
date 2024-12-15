@@ -97,7 +97,7 @@ items {
   zoom_in.name: Zoom In
   zoom_out.name: Zoom Out
   toggle_view_mode.name: Toggle View Mode
-  activate.name: Activate Unit
+  activate.name: Activate Units
   wait.name: Wait
   build_colony.name: Build Colony
   load_cargo.name: Load Cargo

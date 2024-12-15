@@ -30,6 +30,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "roles.hpp"
+#include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
 #include "unit-id.hpp"
@@ -196,6 +197,8 @@ struct LandViewPlane::Impl : public IPlane {
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::road, *this ) );
     dereg.push_back( menu_plane.register_handler(
+        e_menu_item::activate, *this ) );
+    dereg.push_back( menu_plane.register_handler(
         e_menu_item::hidden_terrain, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::toggle_view_mode, *this ) );
@@ -318,7 +321,7 @@ struct LandViewPlane::Impl : public IPlane {
         mode_.holds<LandViewMode::unit_input>() ||
         mode_.holds<LandViewMode::view_mode>() ||
         mode_.holds<LandViewMode::end_of_turn>();
-    auto const& units =
+    auto const units =
         euro_units_from_coord_recursive( ss_.units, coord );
     if( allow_unit_click && units.size() != 0 ) {
       // Decide which units are selected and for what actions.
@@ -416,6 +419,44 @@ struct LandViewPlane::Impl : public IPlane {
     co_return res;
   }
 
+  wait<vector<LandViewPlayerInput>> activate_tile(
+      point const tile ) {
+    vector<LandViewPlayerInput> res;
+    // It should not be possible to call this method at a time
+    // when there is no active player.
+    UNWRAP_CHECK_T(
+        e_nation const nation,
+        player_for_role( ss_, e_player_role::active ) );
+
+    // We are going to send this command even if the units array
+    // ends up empty (which it could be if e.g. the tile only
+    // contains foreign units or no units). This is because, like
+    // the OG, we want this command to always activate a unit. We
+    // will prioritize units at the tile location, but otherwise
+    // we just send the empty list which causes the turn module
+    // to just jump back to asking units for orders, if there are
+    // any available. This should apply also to eot mode.
+    auto& prioritize =
+        res.emplace_back()
+            .emplace<LandViewPlayerInput::prioritize>();
+
+    auto const society = society_on_square( ss_, tile );
+    if( society.has_value() &&
+        society->holds<Society::european>() ) {
+      auto const& units = ss_.units.from_coord( tile );
+      for( GenericUnitId const generic_id : units ) {
+        if( ss_.units.unit_kind( generic_id ) !=
+            e_unit_kind::euro )
+          continue;
+        Unit const& unit = ss_.units.euro_unit_for( generic_id );
+        if( unit.nation() != nation ) continue;
+        prioritize.units.push_back( unit.id() );
+      }
+    }
+
+    co_return res;
+  }
+
   /****************************************************************
   ** Input Processor
   *****************************************************************/
@@ -495,6 +536,21 @@ struct LandViewPlane::Impl : public IPlane {
               .options = o.options },
             raw_input.when ) );
         break;
+      }
+      case e::activate: {
+        auto& o =
+            raw_input.input.get<LandViewRawInput::activate>();
+        vector<LandViewPlayerInput> inputs =
+            co_await activate_tile( o.tile );
+        // Since we may have just popped open a box to ask the
+        // user to select units, just use the "now" time so
+        // that these events don't get disgarded. Also, mouse
+        // clicks are not likely to get buffered for too long
+        // anyway.
+        for( auto const& input : inputs )
+          translated_input_stream_.push(
+              PlayerInput( input, Clock_t::now() ) );
+        break; //
       }
       case e::tile_click: {
         auto& o =
@@ -706,6 +762,20 @@ struct LandViewPlane::Impl : public IPlane {
         auto handler = [this] {
           raw_input_stream_.send(
               RawInput( LandViewRawInput::toggle_view_mode{} ) );
+        };
+        return handler;
+      }
+      case e_menu_item::activate: {
+        if( !mode_.holds<LandViewMode::end_of_turn>() &&
+            !mode_.holds<LandViewMode::view_mode>() )
+          break;
+        // This menu item is only expected to be clicked when the
+        // white box tile is visible.
+        CHECK( white_box_stream_.has_value() );
+        auto handler = [this] {
+          raw_input_stream_.send(
+              RawInput( LandViewRawInput::activate{
+                .tile = white_box_tile( ss_ ) } ) );
         };
         return handler;
       }
@@ -998,6 +1068,15 @@ struct LandViewPlane::Impl : public IPlane {
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::cmd{
                   .what = command::sentry{} } ) );
+            break;
+          case ::SDLK_a:
+            if( key_event.mod.shf_down ) break;
+            if( !mode_.holds<LandViewMode::end_of_turn>() &&
+                !mode_.holds<LandViewMode::view_mode>() )
+              break;
+            raw_input_stream_.send(
+                RawInput( LandViewRawInput::activate{
+                  .tile = white_box_tile( ss_ ) } ) );
             break;
           case ::SDLK_f:
             if( key_event.mod.shf_down ) break;
