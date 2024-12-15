@@ -310,25 +310,43 @@ wait<vector<UnitId>> process_unit_prioritization_request(
   co_return std::move( prioritize );
 }
 
-// Unlike in the OG, which autosaves when the year changes, we
-// don't do that, because then when the player loads a sav file
-// that was saved by the auto save, the first thing they see
-// happen (immediately, without input) is that the natives start
-// moving, which seems strange. So in the NG we autosave at
-// points where the player is being prompted for some kind of in-
-// put, that way when they load that file they will that same
-// input being asked of them as the first thing, which feels
-// better for the player. Since the player is guaranteed to have
-// at least one of the following each turn: 1) a blinking unit
-// asking for input, or 2) the end-of-turn sign blinking waiting
-// for input, we therefore attempt to autosave at those two
-// points. Since sometimes both can happen (if end-of-turn is en-
-// abled in game settings), the autosave mechanism makes sure
-// never to save twice per turn. Note that there is also "view
-// mode" which the user can enter during a turn to inspect using
-// the white square. However, said mode cannot be entered unless
-// there is first a unit asking for orders, so this case is cov-
-// ered by autosaving when a unit asks for orders.
+// It might seem to make sense to just autosave the game at the
+// start of each turn or at least at the start of the player's
+// turn. However, like in the OG, we instead autosave the game
+// just before the player is asked for input (i.e., after the na-
+// tives have moved, after any other european nations before
+// them, and after the player's colonies have evolved). That way,
+// when they load that file they will see a unit asking for or-
+// ders as opposed to natives immediately moving, or colony mes-
+// sages popping up, which should make for a better experience.
+// If there are no units that ask for orders in a turn, then the
+// autosave will happen on the end of turn prompt when the player
+// is being asked for input to move the white box.
+//
+// Since the player is guaranteed to have at least one of the
+// following each turn: 1) a blinking unit asking for input, or
+// 2) the end-of-turn sign blinking waiting for input, it is suf-
+// ficient to attempt to autosave at those two points. Since
+// sometimes both can happen (if end-of-turn is enabled in game
+// settings), the autosave mechanism makes sure never to save
+// twice per turn. Note that there is also "view mode" which the
+// user can enter during a turn to inspect using the white
+// square. However, said mode cannot be entered unless there is
+// first a unit asking for orders, so this case is covered by au-
+// tosaving when a unit asks for orders.
+//
+// All of that said, note that the OG has a bug in game loading
+// that can cause confusion. There is a flag in the OG's SAV file
+// (that we've labeled manual_save_flag) that indicates whether a
+// sav file was produced manually or via autosave. When it is an
+// autosave file, and it is loaded just after the game program is
+// started, then things are fine. However, if that autosave file
+// is loaded after another game was already loaded, then it will
+// glitch and it will have the natives and other european nations
+// redo their turns, then do another autosave, before ending up
+// asking the player for input. Thus, if you just keep loading an
+// autosave file, you will see the year steadily increase just
+// from the loading. We of course are not reproducing that bug.
 void autosave_if_needed( SS& ss, TS& ts ) {
   set<int> const autosave_slots = should_autosave( ss.as_const );
   if( autosave_slots.empty() ) return;
