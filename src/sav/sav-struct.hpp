@@ -2635,7 +2635,7 @@ struct UNIT {
   Unknown15 unknown15 = {};
   uint8_t moves = {};
   uint8_t origin_settlement = {};
-  bytes<1> unknown16b = {};
+  array_string<1> ai_plan_mode = {};
   orders_type orders = {};
   uint8_t goto_x = {};
   uint8_t goto_y = {};

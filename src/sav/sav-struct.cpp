@@ -6158,7 +6158,7 @@ void to_str( UNIT const& o, std::string& out, base::tag<UNIT> ) {
   out += "unknown15="; base::to_str( o.unknown15, out ); out += ',';
   out += "moves="; base::to_str( o.moves, out ); out += ',';
   out += "origin_settlement="; base::to_str( o.origin_settlement, out ); out += ',';
-  out += "unknown16b="; base::to_str( o.unknown16b, out ); out += ',';
+  out += "ai_plan_mode="; base::to_str( o.ai_plan_mode, out ); out += ',';
   out += "orders="; base::to_str( o.orders, out ); out += ',';
   out += "goto_x="; base::to_str( o.goto_x, out ); out += ',';
   out += "goto_y="; base::to_str( o.goto_y, out ); out += ',';
@@ -6181,7 +6181,7 @@ bool read_binary( base::IBinaryIO& b, UNIT& o ) {
     && read_binary( b, o.unknown15 )
     && read_binary( b, o.moves )
     && read_binary( b, o.origin_settlement )
-    && read_binary( b, o.unknown16b )
+    && read_binary( b, o.ai_plan_mode )
     && read_binary( b, o.orders )
     && read_binary( b, o.goto_x )
     && read_binary( b, o.goto_y )
@@ -6203,7 +6203,7 @@ bool write_binary( base::IBinaryIO& b, UNIT const& o ) {
     && write_binary( b, o.unknown15 )
     && write_binary( b, o.moves )
     && write_binary( b, o.origin_settlement )
-    && write_binary( b, o.unknown16b )
+    && write_binary( b, o.ai_plan_mode )
     && write_binary( b, o.orders )
     && write_binary( b, o.goto_x )
     && write_binary( b, o.goto_y )
@@ -6227,7 +6227,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown15", o.unknown15 );
   conv.to_field( tbl, "moves", o.moves );
   conv.to_field( tbl, "origin_settlement", o.origin_settlement );
-  conv.to_field( tbl, "unknown16b", o.unknown16b );
+  conv.to_field( tbl, "ai_plan_mode", o.ai_plan_mode );
   conv.to_field( tbl, "orders", o.orders );
   conv.to_field( tbl, "goto_x", o.goto_x );
   conv.to_field( tbl, "goto_y", o.goto_y );
@@ -6245,7 +6245,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown15",
     "moves",
     "origin_settlement",
-    "unknown16b",
+    "ai_plan_mode",
     "orders",
     "goto_x",
     "goto_y",
@@ -6273,7 +6273,7 @@ cdr::result<UNIT> from_canonical(
   CONV_FROM_FIELD( "unknown15", unknown15 );
   CONV_FROM_FIELD( "moves", moves );
   CONV_FROM_FIELD( "origin_settlement", origin_settlement );
-  CONV_FROM_FIELD( "unknown16b", unknown16b );
+  CONV_FROM_FIELD( "ai_plan_mode", ai_plan_mode );
   CONV_FROM_FIELD( "orders", orders );
   CONV_FROM_FIELD( "goto_x", goto_x );
   CONV_FROM_FIELD( "goto_y", goto_y );
