@@ -27,6 +27,50 @@
 #include <tuple>
 
 /****************************************************************
+*                     Forward Declarations
+*****************************************************************/
+namespace rdstest {
+
+    template<typename T>
+    struct Maybe;
+    struct MyVariant1;
+    struct MyVariant2;
+
+} // namespace rdstest
+
+namespace rdstest::inner {
+
+    struct MyVariant3;
+    struct MyVariant4;
+    template<typename T, typename U>
+    struct TemplateTwoParams;
+    template<typename T, typename U>
+    struct CompositeTemplateTwo;
+
+} // namespace rdstest::inner
+
+namespace rn {
+
+    struct MySumtype;
+    struct OnOffState;
+    struct OnOffEvent;
+    struct EmptyStruct;
+    struct EmptyStruct2;
+    struct MyStructWithOffsets;
+    struct MyStruct;
+    struct StructWithValidation;
+
+} // namespace rn
+
+namespace rn::test {
+
+    template<typename T, typename U>
+    struct MyTemplateStruct;
+    struct config_testing_t;
+
+} // namespace rn::test
+
+/****************************************************************
 *                        Sum Type: Maybe
 *****************************************************************/
 namespace rdstest {

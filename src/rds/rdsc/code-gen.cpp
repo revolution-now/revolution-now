@@ -927,6 +927,46 @@ struct CodeGenerator {
     return false;
   }
 
+  void emit_fwd_decls( expr::Rds const& rds ) {
+    auto section_if_needed = [&, done = false]() mutable {
+      if( !done ) section( "Forward Declarations" );
+      done = true;
+    };
+    string curr_ns;
+    auto close_curr_ns = [&] {
+      if( curr_ns.empty() ) return;
+      newline();
+      close_ns( curr_ns );
+      curr_ns = "";
+      newline();
+    };
+    auto switch_ns = [&]( string const& to ) {
+      if( curr_ns == to ) return;
+      close_curr_ns();
+      open_ns( to );
+      curr_ns = to;
+    };
+    using namespace expr;
+    for( Item const& item : rds.items ) {
+      string const cpp_ns =
+          base::str_replace_all( item.ns, { { ".", "::" } } );
+      auto fwd_decl = [&]( auto const& o ) {
+        section_if_needed();
+        switch_ns( cpp_ns );
+        auto _ = indent();
+        emit_template_decl( o.tmpl_params );
+        line( "struct {};", o.name );
+      };
+      for( auto const& con : item.constructs ) {
+        if( auto const* const o = get_if<Struct>( &con ) )
+          fwd_decl( *o );
+        else if( auto const* const o = get_if<Sumtype>( &con ) )
+          fwd_decl( *o );
+      }
+    }
+    close_curr_ns();
+  }
+
   void emit_includes( expr::Rds const& rds ) {
     section( "Includes" );
     if( !rds.includes.empty() ) {
@@ -982,6 +1022,7 @@ struct CodeGenerator {
   void emit_rds( expr::Rds const& rds ) {
     emit_preamble();
     emit_includes( rds );
+    emit_fwd_decls( rds );
 
     for( expr::Item const& item : rds.items ) emit_item( item );
 

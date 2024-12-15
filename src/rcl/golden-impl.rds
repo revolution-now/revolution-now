@@ -8,6 +8,8 @@
 # Description: Rds definitions for the rcl/golden-impl module.
 #
 # ===============================================================
+namespace "rcl"
+
 struct.GoldenSampleNestedStruct {
   x 'int',
   y 'int',
