@@ -53,13 +53,20 @@ struct event_base_t {
   mod_keys mod      = {};
   bool l_mouse_down = false;
   bool r_mouse_down = false;
+
+  bool operator==( event_base_t const& ) const = default;
 };
 
 /****************************************************************
 ** Misc. Event Types
 *****************************************************************/
-struct unknown_event_t : public event_base_t {};
-struct quit_event_t : public event_base_t {};
+struct unknown_event_t : public event_base_t {
+  bool operator==( unknown_event_t const& ) const = default;
+};
+
+struct quit_event_t : public event_base_t {
+  bool operator==( quit_event_t const& ) const = default;
+};
 
 /****************************************************************
 ** Mouse
@@ -70,19 +77,24 @@ class mouse_event_base_t : public event_base_t {
     : event_base_t{}, pos( pos_ ) {}
   Coord pos;
 
+  bool operator==( mouse_event_base_t const& ) const = default;
+
  protected:
   mouse_event_base_t() = default;
 };
 
 struct mouse_button_event_t : public mouse_event_base_t {
+  bool operator==( mouse_button_event_t const& ) const = default;
   e_mouse_button_event buttons{};
 };
 
 struct mouse_wheel_event_t : public mouse_event_base_t {
+  bool operator==( mouse_wheel_event_t const& ) const = default;
   int wheel_delta{};
 };
 
 struct mouse_move_event_t : public mouse_event_base_t {
+  bool operator==( mouse_move_event_t const& ) const = default;
   Coord prev{}; // previous mouse position
   auto delta() const { return pos - prev; }
 };
@@ -150,6 +162,8 @@ struct key_event_t : public event_base_t {
   // populated both for key-up and key-down. It may not be useful
   // in many cases.
   maybe<e_direction> direction{};
+
+  bool operator==( key_event_t const& ) const = default;
 };
 
 /****************************************************************
@@ -162,6 +176,8 @@ enum class e_win_event_type {
 
 struct win_event_t : public event_base_t {
   e_win_event_type type = {};
+
+  bool operator==( win_event_t const& ) const = default;
 };
 
 /****************************************************************
@@ -176,6 +192,8 @@ struct resolution_event_t : public event_base_t {
   resolution_event_t& operator=( resolution_event_t&& ) noexcept;
   resolution_event_t( resolution_event_t const& );
   resolution_event_t& operator=( resolution_event_t const& );
+
+  bool operator==( resolution_event_t const& ) const;
 
   base::heap_value<SelectedResolution> resolution;
 };
@@ -195,6 +213,18 @@ using event_base = base::variant<
   win_event_t,
   resolution_event_t
 >;
+// clang-format on
+
+static_assert( std::equality_comparable<unknown_event_t> );
+static_assert( std::equality_comparable<quit_event_t> );
+static_assert( std::equality_comparable<key_event_t> );
+static_assert( std::equality_comparable<mouse_move_event_t> );
+static_assert( std::equality_comparable<mouse_button_event_t> );
+static_assert( std::equality_comparable<mouse_wheel_event_t> );
+static_assert( std::equality_comparable<mouse_drag_event_t> );
+static_assert( std::equality_comparable<win_event_t> );
+static_assert( std::equality_comparable<resolution_event_t> );
+static_assert( std::equality_comparable<event_base> );
 
 enum class e_input_event {
   unknown_event,
@@ -214,20 +244,21 @@ struct event_t : public event_base {
   event_base const& as_base() const { return *this; }
   event_base& as_base() { return *this; }
 
-  using unknown_event = unknown_event_t;
-  using quit_event = quit_event_t;
-  using key_event = key_event_t;
-  using mouse_move_event = mouse_move_event_t;
+  bool operator==( event_t const& ) const = default;
+
+  using unknown_event      = unknown_event_t;
+  using quit_event         = quit_event_t;
+  using key_event          = key_event_t;
+  using mouse_move_event   = mouse_move_event_t;
   using mouse_button_event = mouse_button_event_t;
-  using mouse_wheel_event = mouse_wheel_event_t;
-  using mouse_drag_event = mouse_drag_event_t;
-  using win_event = win_event_t;
-  using resolution_event = resolution_event_t;
+  using mouse_wheel_event  = mouse_wheel_event_t;
+  using mouse_drag_event   = mouse_drag_event_t;
+  using win_event          = win_event_t;
+  using resolution_event   = resolution_event_t;
 
   using e = e_input_event;
 };
 
-// clang-format on
 NOTHROW_MOVE( event_t );
 
 /****************************************************************

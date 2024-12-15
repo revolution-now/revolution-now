@@ -690,6 +690,9 @@ resolution_event_t::resolution_event_t(
 resolution_event_t& resolution_event_t::operator=(
     resolution_event_t const& ) = default;
 
+bool resolution_event_t::operator==(
+    resolution_event_t const& ) const = default;
+
 /****************************************************************
 ** For Testing
 *****************************************************************/
