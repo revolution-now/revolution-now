@@ -317,10 +317,10 @@ struct OmniPlane::Impl : public IPlane {
     log( "{}", resolution.logical );
 
     gfx::point const info_region_anchor =
-        main_window_logical_rect().sw();
+        main_window_logical_rect().ne();
 
     render_text_overlay_with_anchor(
-        renderer, lines, info_region_anchor, e_cdirection::sw,
+        renderer, lines, info_region_anchor, e_cdirection::ne,
         overlay_fg, overlay_bg, /*scale=*/1 );
   }
 
