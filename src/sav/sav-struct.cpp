@@ -5170,7 +5170,9 @@ void to_str( HEADER const& o, std::string& out, base::tag<HEADER> ) {
   out += "unknown43a="; base::to_str( o.unknown43a, out ); out += ',';
   out += "unknown43b="; base::to_str( o.unknown43b, out ); out += ',';
   out += "founding_father="; base::to_str( o.founding_father, out ); out += ',';
-  out += "unknown44a="; base::to_str( o.unknown44a, out ); out += ',';
+  out += "unknown44aa="; base::to_str( o.unknown44aa, out ); out += ',';
+  out += "manual_save_flag="; base::to_str( o.manual_save_flag, out ); out += ',';
+  out += "unknown44ab="; base::to_str( o.unknown44ab, out ); out += ',';
   out += "end_of_turn_sign="; base::to_str( o.end_of_turn_sign, out ); out += ',';
   out += "nation_relation="; base::to_str( o.nation_relation, out ); out += ',';
   out += "rebel_sentiment_report="; base::to_str( o.rebel_sentiment_report, out ); out += ',';
@@ -5215,7 +5217,9 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.unknown43a )
     && read_binary( b, o.unknown43b )
     && read_binary( b, o.founding_father )
-    && read_binary( b, o.unknown44a )
+    && read_binary( b, o.unknown44aa )
+    && read_binary( b, o.manual_save_flag )
+    && read_binary( b, o.unknown44ab )
     && read_binary( b, o.end_of_turn_sign )
     && read_binary( b, o.nation_relation )
     && read_binary( b, o.rebel_sentiment_report )
@@ -5259,7 +5263,9 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.unknown43a )
     && write_binary( b, o.unknown43b )
     && write_binary( b, o.founding_father )
-    && write_binary( b, o.unknown44a )
+    && write_binary( b, o.unknown44aa )
+    && write_binary( b, o.manual_save_flag )
+    && write_binary( b, o.unknown44ab )
     && write_binary( b, o.end_of_turn_sign )
     && write_binary( b, o.nation_relation )
     && write_binary( b, o.rebel_sentiment_report )
@@ -5305,7 +5311,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown43a", o.unknown43a );
   conv.to_field( tbl, "unknown43b", o.unknown43b );
   conv.to_field( tbl, "founding_father", o.founding_father );
-  conv.to_field( tbl, "unknown44a", o.unknown44a );
+  conv.to_field( tbl, "unknown44aa", o.unknown44aa );
+  conv.to_field( tbl, "manual_save_flag", o.manual_save_flag );
+  conv.to_field( tbl, "unknown44ab", o.unknown44ab );
   conv.to_field( tbl, "end_of_turn_sign", o.end_of_turn_sign );
   conv.to_field( tbl, "nation_relation", o.nation_relation );
   conv.to_field( tbl, "rebel_sentiment_report", o.rebel_sentiment_report );
@@ -5345,7 +5353,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "unknown43a",
     "unknown43b",
     "founding_father",
-    "unknown44a",
+    "unknown44aa",
+    "manual_save_flag",
+    "unknown44ab",
     "end_of_turn_sign",
     "nation_relation",
     "rebel_sentiment_report",
@@ -5395,7 +5405,9 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "unknown43a", unknown43a );
   CONV_FROM_FIELD( "unknown43b", unknown43b );
   CONV_FROM_FIELD( "founding_father", founding_father );
-  CONV_FROM_FIELD( "unknown44a", unknown44a );
+  CONV_FROM_FIELD( "unknown44aa", unknown44aa );
+  CONV_FROM_FIELD( "manual_save_flag", manual_save_flag );
+  CONV_FROM_FIELD( "unknown44ab", unknown44ab );
   CONV_FROM_FIELD( "end_of_turn_sign", end_of_turn_sign );
   CONV_FROM_FIELD( "nation_relation", nation_relation );
   CONV_FROM_FIELD( "rebel_sentiment_report", rebel_sentiment_report );

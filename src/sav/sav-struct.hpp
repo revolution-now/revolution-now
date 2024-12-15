@@ -2314,7 +2314,9 @@ struct HEADER {
   bytes<1> unknown43a = {};
   bytes<1> unknown43b = {};
   bytes<25> founding_father = {};
-  bytes<4> unknown44a = {};
+  bytes<2> unknown44aa = {};
+  bytes<1> manual_save_flag = {};
+  bytes<1> unknown44ab = {};
   end_of_turn_sign_type end_of_turn_sign = {};
   bytes<8> nation_relation = {};
   int16_t rebel_sentiment_report = {};
