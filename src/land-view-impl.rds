@@ -65,4 +65,8 @@ sumtype.LandViewRawInput {
   activate {
     tile 'gfx::point',
   },
+  context_menu {
+    where 'gfx::point',
+    tile 'gfx::point',
+  },
 }

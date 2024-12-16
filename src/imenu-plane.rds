@@ -1,0 +1,46 @@
+# ===============================================================
+# imenu-plane.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-15.
+#
+# Description: Rds definitions for the imenu-plane module.
+#
+# ===============================================================
+# config
+include "config/menu-item-fwd.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# base
+include "base/heap-value.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+struct.MenuPosition {
+  where 'gfx::point',
+  corner 'e_direction',
+}
+
+sumtype.MenuElement {
+  leaf {
+    item 'e_menu_item',
+  },
+  node {
+    item 'e_menu_item',
+    menu 'base::heap_value<MenuLayout>',
+  },
+}
+
+struct.MenuItemGroup {
+  elems 'std::vector<MenuElement>',
+}
+
+struct.MenuLayout {
+  groups 'std::vector<MenuItemGroup>',
+}

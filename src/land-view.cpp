@@ -22,6 +22,7 @@
 #include "compositor.hpp"
 #include "hidden-terrain.hpp"
 #include "imap-updater.hpp"
+#include "imenu-plane.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "logger.hpp"
@@ -392,6 +393,44 @@ struct LandViewPlane::Impl : public IPlane {
     co_return res;
   }
 
+  wait<> context_menu( point const where, point const tile ) {
+    MenuLayout const layout{
+      .groups = {
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::leaf{ .item =
+                                       e_menu_item::fortify },
+                MenuElement::leaf{ .item = e_menu_item::sentry },
+                MenuElement::leaf{ .item =
+                                       e_menu_item::disband },
+              } },
+      } };
+    MenuPosition const position{ .where  = where,
+                                 .corner = e_direction::nw };
+    auto const selected_item =
+        co_await ts_.planes.get().menu2.typed().open_menu(
+            layout, position );
+    if( !selected_item.has_value() ) co_return;
+    switch( *selected_item ) {
+      case e_menu_item::sentry:
+        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
+          .what = command::sentry{} } ) );
+        break;
+      case e_menu_item::fortify:
+        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
+          .what = command::fortify{} } ) );
+        break;
+      case e_menu_item::disband:
+        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
+          .what = command::disband{ .tile = tile } } ) );
+        break;
+      default:
+        SHOULD_NOT_BE_HERE;
+    }
+    co_return;
+  }
+
   /****************************************************************
   ** Tile Entering
   *****************************************************************/
@@ -601,6 +640,12 @@ struct LandViewPlane::Impl : public IPlane {
         // For this one, we just perform the action right here.
         auto const tile = find_tile_to_center_on();
         if( tile.has_value() ) co_await center_on_tile( *tile );
+        break;
+      }
+      case e::context_menu: {
+        auto& o = raw_input.input
+                      .get<LandViewRawInput::context_menu>();
+        co_await context_menu( o.where, o.tile );
         break;
       }
     }
@@ -1220,6 +1265,12 @@ struct LandViewPlane::Impl : public IPlane {
             break;
           }
           case input::e_mouse_button_event::right_up: {
+            if( val.mod.shf_down ) {
+              raw_input_stream_.send(
+                  RawInput( LandViewRawInput::context_menu{
+                    .where = val.pos, .tile = tile } ) );
+              break;
+            }
             raw_input_stream_.send(
                 RawInput( LandViewRawInput::tile_right_click{
                   .coord = tile, .mods = val.mod } ) );

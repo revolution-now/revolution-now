@@ -17,6 +17,7 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
+#include "menu-plane.hpp"
 #include "menu.hpp"
 #include "omni.hpp"
 #include "plane-stack.hpp"
@@ -48,6 +49,7 @@ wait<> revolution_now( Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   MenuPlane menu_plane;
+  Menu2Plane menu2_plane;
   OmniPlane omni_plane( menu_plane );
   ConsolePlane console_plane( terminal );
   WindowPlane window_plane;
@@ -55,6 +57,7 @@ wait<> revolution_now( Planes& planes ) {
   group.console = console_plane;
   group.window  = window_plane;
   group.menu    = menu_plane;
+  group.menu2   = menu2_plane;
 
   RealGui gui( planes );
 

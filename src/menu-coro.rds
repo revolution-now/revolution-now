@@ -1,0 +1,27 @@
+# ===============================================================
+# menu-coro.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-15.
+#
+# Description: Rds definitions for the menu-coro module.
+#
+# ===============================================================
+# Revolution Now
+include "input.hpp"
+
+# config
+include "config/menu-item-fwd.hpp"
+
+namespace "rn"
+
+sumtype.MenuEventRaw {
+  device {
+    event 'input::event_t',
+  },
+  click {
+    item 'e_menu_item',
+  },
+  close_all {},
+}

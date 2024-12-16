@@ -1,0 +1,24 @@
+# ===============================================================
+# menu-coro-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-15.
+#
+# Description: Rds definitions for the menu-coro-impl module.
+#
+# ===============================================================
+# config
+include "config/menu-item-fwd.hpp"
+
+namespace "rn"
+
+sumtype.MenuEvent {
+  close {},
+  hover {
+    item 'e_menu_item',
+  },
+  click {
+    item 'e_menu_item',
+  },
+}
