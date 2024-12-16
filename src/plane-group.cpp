@@ -54,8 +54,8 @@ vector<IPlane*> PlaneGroup::planes() const {
   }
 
   add( panel );
-  if( menus_enabled ) add( menu );
   if( menu2s_enabled ) add( menu2 );
+  if( menus_enabled ) add( menu );
 
   add( window );
   add( console );
