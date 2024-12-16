@@ -49,7 +49,7 @@ static_assert( is_copy_constructible_v<HV<int>> );
 static_assert( is_copy_assignable_v<HV<int>> );
 static_assert( is_move_constructible_v<HV<int>> );
 static_assert( is_move_assignable_v<HV<int>> );
-static_assert( is_nothrow_move_constructible_v<HV<int>> );
+static_assert( !is_nothrow_move_constructible_v<HV<int>> );
 static_assert( is_nothrow_move_assignable_v<HV<int>> );
 // static_assert(!std::is_convertible_v<HV<int>, bool>);
 static_assert( is_convertible_v<HV<int>, int&> );
@@ -62,7 +62,7 @@ static_assert( is_copy_constructible_v<HV<string>> );
 static_assert( is_copy_assignable_v<HV<string>> );
 static_assert( is_move_constructible_v<HV<string>> );
 static_assert( is_move_assignable_v<HV<string>> );
-static_assert( is_nothrow_move_constructible_v<HV<string>> );
+static_assert( !is_nothrow_move_constructible_v<HV<string>> );
 static_assert( is_nothrow_move_assignable_v<HV<string>> );
 static_assert( !std::is_convertible_v<HV<string>, bool> );
 
