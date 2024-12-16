@@ -394,6 +394,8 @@ struct LandViewPlane::Impl : public IPlane {
   }
 
   wait<> context_menu( point const where, point const tile ) {
+    viewport().stop_auto_zoom();
+    viewport().stop_auto_panning();
     MenuLayout const layout{
       .groups = {
         MenuItemGroup{

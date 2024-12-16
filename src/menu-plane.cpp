@@ -51,6 +51,11 @@ struct Menu2Plane::Impl : IPlane {
     // There are some open menus, so from this point on we will
     // always return that we handled the input.
 
+    if( event.buttons == input::e_mouse_button_event::right_up ||
+        event.buttons ==
+            input::e_mouse_button_event::right_down )
+      return e_input_handled::yes;
+
     auto const raw = MenuEventRaw::device{ .event = event };
     if( menu_threads_.route_raw_input_thread( raw ) )
       return e_input_handled::yes;
