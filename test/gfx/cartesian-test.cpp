@@ -72,6 +72,13 @@ TEST_CASE( "[gfx/cartesian] operator-( size )" ) {
   REQUIRE( s1 - s2 == size{ .w = 0, .h = -1 } );
 }
 
+TEST_CASE( "[gfx/cartesian] size::operator-()" ) {
+  size s1{ .w = 4, .h = -2 };
+  size s2{ .w = -3, .h = 0 };
+  REQUIRE( -s1 == size{ .w = -4, .h = 2 } );
+  REQUIRE( -s2 == size{ .w = 3, .h = 0 } );
+}
+
 TEST_CASE( "[gfx/cartesian] size::operator+=( size )" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 4, .h = 3 };

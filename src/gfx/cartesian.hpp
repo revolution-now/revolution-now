@@ -67,6 +67,8 @@ struct size {
 
   [[nodiscard]] size operator-( size term ) const;
 
+  [[nodiscard]] size operator-() const;
+
   void operator+=( size term );
 
   [[nodiscard]] size operator*( int scale ) const;
