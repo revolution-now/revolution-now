@@ -29,8 +29,8 @@ struct IMenuPlane {
   virtual ~IMenuPlane() = default;
 
   virtual wait<maybe<e_menu_item>> open_menu(
-      MenuContents const& contents,
-      MenuPosition const& position ) = 0;
+      MenuContents const& contents ATTR_LIFETIMEBOUND,
+      MenuPosition const& position ATTR_LIFETIMEBOUND ) = 0;
 
   virtual IPlane& impl() = 0;
 };

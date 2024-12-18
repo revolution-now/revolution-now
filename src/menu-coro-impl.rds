@@ -9,16 +9,14 @@
 #
 # ===============================================================
 # config
-include "config/menu-item-fwd.hpp"
-
 namespace "rn"
 
 sumtype.MenuEvent {
   close {},
   hover {
-    item 'e_menu_item',
+    text 'std::string',
   },
   click {
-    item 'e_menu_item',
+    text 'std::string',
   },
 }

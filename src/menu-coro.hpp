@@ -47,8 +47,7 @@ struct MenuThreads {
   bool route_raw_input_thread( MenuEventRaw const& /*event*/ );
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuContents const contents,
-      MenuPosition const& position );
+      MenuContents const contents, MenuPosition const position );
 
   MenuAnimState const& anim_state( int menu_id ) const;
   MenuRenderLayout const& render_layout( int menu_id ) const;
@@ -60,24 +59,21 @@ struct MenuThreads {
   }
 
  private:
+  struct OpenMenu;
+
   int next_menu_id();
 
   void unregister_menu( int const menu_id );
 
-  wait<> translate_routed_input_thread();
+  wait<> translate_routed_input_thread( int menu_id );
+
+  void handle_key_event( OpenMenu& open_menu,
+                         input::key_event_t const& key_event );
 
   static wait<> animate_click( MenuAnimState& render_state,
-                               e_menu_item item );
-
-  struct RoutedMenuEventRaw {
-    int menu_id = {};
-    MenuEventRaw input;
-  };
-
-  struct OpenMenu;
+                               std::string const& text );
 
   int next_menu_id_ = 1;
-  co::stream<RoutedMenuEventRaw> routed_input_;
   std::map<int, base::heap_value<OpenMenu>> open_;
 };
 

@@ -26,7 +26,7 @@ enum class e_menu_item;
 ** MenuAnimState
 *****************************************************************/
 struct MenuAnimState {
-  maybe<e_menu_item> highlighted;
+  maybe<std::string> highlighted;
   double alpha = 1.0;
 };
 
@@ -45,7 +45,7 @@ struct MenuItemRenderLayout {
 
 struct MenuRenderLayout {
   gfx::rect bounds;
-  std::unordered_map<e_menu_item, MenuItemRenderLayout> items;
+  std::vector<MenuItemRenderLayout> items;
   std::vector<gfx::rect /*relative*/> bars;
 };
 

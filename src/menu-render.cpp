@@ -41,24 +41,31 @@ using ::gfx::size;
 
 gfx::rect compute_bounding_rect( MenuPosition const& position,
                                  size const sz ) {
-  point const corner = position.where;
+  point const p = position.where;
   point nw;
+  size delta =
+      p.moved( reverse_direction( position.corner ) ) - p;
+  delta.w *= sz.w;
+  delta.h *= sz.h;
   switch( position.corner ) {
     case e_direction::se: {
-      size delta =
-          corner.moved( reverse_direction( position.corner ) ) -
-          corner;
-      delta.w *= sz.w;
-      delta.h *= sz.h;
-      nw = corner + delta;
+      nw = p + delta;
       break;
     }
-    case e_direction::ne:
-      NOT_IMPLEMENTED;
-    case e_direction::sw:
-      NOT_IMPLEMENTED;
+    case e_direction::ne: {
+      delta.h = 0;
+      nw      = p + delta;
+      break;
+    }
+    case e_direction::sw: {
+      delta.w = 0;
+      nw      = p + delta;
+      break;
+    }
     case e_direction::nw:
-      nw = corner;
+      delta.w = 0;
+      delta.h = 0;
+      nw      = p + delta;
       break;
     default:
       FATAL( "direction {} not supported here.",
@@ -78,19 +85,15 @@ MenuRenderLayout build_menu_rendered_layout(
   MenuRenderLayout res;
   int y         = 0;
   int max_w     = 0;
-  auto add_item = [&]( e_menu_item const menu_item ) -> auto& {
-    CHECK( !res.items.contains( menu_item ),
-           "menu item {} appears multiple times in menu.",
-           menu_item );
-    auto& item        = res.items[menu_item];
-    string const text = fmt::to_string( menu_item );
+  auto add_item = [&]( string const& text ) -> auto& {
+    auto& item = res.items.emplace_back();
     size const text_size =
         rr::rendered_text_line_size_pixels( text );
     max_w = std::max( max_w, text_size.w );
-    item  = { .text            = text,
-              .bounds_relative = { .origin = { .x = 0, .y = y },
-                                   .size = { .h = text_size.h } },
-              .has_arrow       = false };
+    item  = {
+       .text            = text,
+       .bounds_relative = { .origin = { .x = 0, .y = y },
+                            .size   = { .h = text_size.h } } };
     return item;
   };
   int const text_height =
@@ -107,12 +110,12 @@ MenuRenderLayout build_menu_rendered_layout(
     for( auto const& elem : grp.elems ) {
       SWITCH( elem ) {
         CASE( leaf ) {
-          auto& item     = add_item( leaf.item );
+          auto& item = add_item( fmt::to_string( leaf.item ) );
           item.has_arrow = false;
           break;
         }
         CASE( node ) {
-          auto& item     = add_item( node.item );
+          auto& item     = add_item( node.text + " >>" );
           item.has_arrow = true;
           break;
         }
@@ -121,11 +124,11 @@ MenuRenderLayout build_menu_rendered_layout(
     }
   }
   size const body_size{ .w = max_w, .h = y };
-  for( auto& [item, rendered_item_layout] : res.items )
+  for( auto& rendered_item_layout : res.items )
     rendered_item_layout.bounds_relative.size.w = max_w;
   for( rect& bar : res.bars ) bar.size.w = max_w;
   res.bounds = compute_bounding_rect( position, body_size );
-  for( auto& [item, rendered_item_layout] : res.items ) {
+  for( auto& rendered_item_layout : res.items ) {
     rendered_item_layout.bounds_absolute.size =
         rendered_item_layout.bounds_relative.size;
     rendered_item_layout.bounds_absolute.origin =
@@ -149,8 +152,8 @@ void render_menu_body( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect( r, pixel::white() );
 
-  for( auto const& [item, item_layout] : layout.items ) {
-    if( anim_state.highlighted == item ) {
+  for( auto const& item_layout : layout.items ) {
+    if( anim_state.highlighted == item_layout.text ) {
       painter.draw_solid_rect( item_layout.bounds_absolute,
                                gfx::pixel::black() );
       rr::Typer typer =

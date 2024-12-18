@@ -398,6 +398,29 @@ struct LandViewPlane::Impl : public IPlane {
     viewport().stop_auto_panning();
     double constexpr zoom_in_factor  = 2.0;
     double constexpr zoom_out_factor = 1.0 / zoom_in_factor;
+    MenuContents const orders_contents{
+      .groups = {
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::leaf{ .item =
+                                       e_menu_item::fortify },
+                MenuElement::leaf{ .item = e_menu_item::sentry },
+              } },
+      } };
+    MenuContents const zoom_contents{
+      .groups = {
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::node{ .text = "Orders",
+                                   .menu = orders_contents },
+                MenuElement::leaf{ .item =
+                                       e_menu_item::zoom_in },
+                MenuElement::leaf{ .item =
+                                       e_menu_item::zoom_out },
+              } },
+      } };
     MenuContents const contents{
       .groups = {
         MenuItemGroup{
@@ -410,13 +433,12 @@ struct LandViewPlane::Impl : public IPlane {
                                        e_menu_item::disband },
                 MenuElement::leaf{ .item = e_menu_item::dump },
               } },
-        MenuItemGroup{ .elems =
-                           {
-                             MenuElement::leaf{
-                               .item = e_menu_item::zoom_in },
-                             MenuElement::leaf{
-                               .item = e_menu_item::zoom_out },
-                           } },
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::node{ .text = "Zoom",
+                                   .menu = zoom_contents },
+              } },
         MenuItemGroup{
           .elems =
               {
@@ -424,6 +446,12 @@ struct LandViewPlane::Impl : public IPlane {
                 MenuElement::leaf{ .item = e_menu_item::road },
                 MenuElement::leaf{
                   .item = e_menu_item::build_colony },
+              } },
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::node{ .text = "Zoom2",
+                                   .menu = zoom_contents },
               } },
       } };
     MenuPosition const position{ .where  = where,

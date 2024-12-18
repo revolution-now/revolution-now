@@ -13,6 +13,10 @@ include "compatibility.hpp" # FIXME: temporary
 
 namespace "gfx"
 
+enum.e_side {
+   left, right,
+}
+
 enum.e_direction {
   nw, n, ne,
    w,     e,
