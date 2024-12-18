@@ -31,10 +31,13 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;
+
+namespace rl = base::rl;
 
 namespace rn {
 
@@ -99,8 +102,10 @@ bool MenuThreads::route_raw_input_thread(
     CASE( device ) {
       SWITCH( device.event ) {
         CASE( mouse_move_event ) {
-          // TODO: need to reverse iteration.
-          for( auto const& [menu_id, state] : open_ ) {
+          // Reverse iteration so that we prefer menus created
+          // later, which are "on top" of previous ones.
+          for( auto const& [menu_id, state] :
+               rl::rall( open_ ) ) {
             auto const& bounds = state->render_layout.bounds;
             if( mouse_move_event.pos.is_inside( bounds ) ) {
               routed_input_.send( RoutedMenuEventRaw{
@@ -111,8 +116,10 @@ bool MenuThreads::route_raw_input_thread(
           break;
         }
         CASE( mouse_button_event ) {
-          // TODO: need to reverse iteration.
-          for( auto const& [menu_id, state] : open_ ) {
+          // Reverse iteration so that we prefer menus created
+          // later, which are "on top" of previous ones.
+          for( auto const& [menu_id, state] :
+               rl::rall( open_ ) ) {
             auto const& bounds = state->render_layout.bounds;
             if( mouse_button_event.pos.is_inside( bounds ) ) {
               routed_input_.send( RoutedMenuEventRaw{

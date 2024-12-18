@@ -432,6 +432,7 @@ struct LandViewPlane::Impl : public IPlane {
         co_await ts_.planes.get().menu2.typed().open_menu(
             contents, position );
     if( !selected_item.has_value() ) co_return;
+    lg.info( "clicked on {} in pop-up menu.", *selected_item );
     switch( *selected_item ) {
       case e_menu_item::fortify:
         raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
@@ -1390,7 +1391,7 @@ struct LandViewPlane::Impl : public IPlane {
   }
 
   void reset_input_buffers() {
-    lg.debug( "clearing land-view input buffers." );
+    // lg.debug( "clearing land-view input buffers." );
     raw_input_stream_.reset();
     translated_input_stream_ = {};
   }
