@@ -29,11 +29,13 @@ struct Menu2Plane::Impl : IPlane {
       e_resolution const /*resolution*/ ) override {}
 
   void draw( rr::Renderer& renderer ) const override {
-    menu_threads_.on_all_render_states(
-        [&]( MenuRenderState const& state ) {
-          MenuRenderer menu_renderer( state );
-          menu_renderer.render_body( renderer );
-        } );
+    for( int const menu_id : menu_threads_.open_menu_ids() ) {
+      auto const& anim_state =
+          menu_threads_.anim_state( menu_id );
+      auto const& render_layout =
+          menu_threads_.render_layout( menu_id );
+      render_menu_body( renderer, anim_state, render_layout );
+    }
   }
 
   e_input_handled on_mouse_move(
@@ -82,8 +84,9 @@ Menu2Plane::~Menu2Plane() = default;
 Menu2Plane::Menu2Plane() : impl_( new Impl() ) {}
 
 wait<maybe<e_menu_item>> Menu2Plane::open_menu(
-    MenuLayout const& layout, MenuPosition const& position ) {
-  co_return co_await impl_->menu_threads_.open_menu( layout,
+    MenuContents const& contents,
+    MenuPosition const& position ) {
+  co_return co_await impl_->menu_threads_.open_menu( contents,
                                                      position );
 }
 

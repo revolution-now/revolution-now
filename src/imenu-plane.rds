@@ -33,7 +33,7 @@ sumtype.MenuElement {
   },
   node {
     item 'e_menu_item',
-    menu 'base::heap_value<MenuLayout>',
+    menu 'base::heap_value<MenuContents>',
   },
 }
 
@@ -41,6 +41,6 @@ struct.MenuItemGroup {
   elems 'std::vector<MenuElement>',
 }
 
-struct.MenuLayout {
+struct.MenuContents {
   groups 'std::vector<MenuItemGroup>',
 }

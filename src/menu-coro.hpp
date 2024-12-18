@@ -22,15 +22,16 @@
 #include "gfx/cartesian.hpp"
 
 // base
-#include "base/function-ref.hpp"
 #include "base/heap-value.hpp"
+#include "base/range-lite.hpp"
 
 // C++ standard library
 #include <map>
 
 namespace rn {
 
-struct MenuRenderState;
+struct MenuAnimState;
+struct MenuRenderLayout;
 
 enum class e_menu_item;
 
@@ -46,11 +47,17 @@ struct MenuThreads {
   bool route_raw_input_thread( MenuEventRaw const& /*event*/ );
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuLayout const layout, MenuPosition const& position );
+      MenuContents const contents,
+      MenuPosition const& position );
 
-  void on_all_render_states(
-      base::function_ref<void( MenuRenderState const& )> fn )
-      const;
+  MenuAnimState const& anim_state( int menu_id ) const;
+  MenuRenderLayout const& render_layout( int menu_id ) const;
+
+  // Returns a view on the keys of the open_ map, i.e a range of
+  // menu IDs.
+  auto open_menu_ids() const {
+    return base::rl::all( open_ ).keys();
+  }
 
  private:
   int next_menu_id();
@@ -59,19 +66,19 @@ struct MenuThreads {
 
   wait<> translate_routed_input_thread();
 
-  static wait<> animate_click(
-      MenuRenderState& /*render_state*/ );
+  static wait<> animate_click( MenuAnimState& render_state,
+                               e_menu_item item );
 
   struct RoutedMenuEventRaw {
     int menu_id = {};
     MenuEventRaw input;
   };
 
-  struct MenuState;
+  struct OpenMenu;
 
   int next_menu_id_ = 1;
   co::stream<RoutedMenuEventRaw> routed_input_;
-  std::map<int, base::heap_value<MenuState>> open_;
+  std::map<int, base::heap_value<OpenMenu>> open_;
 };
 
 } // namespace rn

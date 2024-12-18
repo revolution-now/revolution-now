@@ -23,35 +23,40 @@ namespace rn {
 enum class e_menu_item;
 
 /****************************************************************
-** MenuRenderState
+** MenuAnimState
 *****************************************************************/
-struct MenuRenderState {
-  MenuLayout layout;
-  MenuPosition position;
+struct MenuAnimState {
   maybe<e_menu_item> highlighted;
   double alpha = 1.0;
 };
 
 /****************************************************************
+** Rendered Layouts.
+*****************************************************************/
+// These should only hold things that don't change after cre-
+// ation. Any rendering state that needs to change should be in
+// MenuAnimState.
+struct MenuItemRenderLayout {
+  std::string text          = {};
+  gfx::rect bounds_relative = {};
+  gfx::rect bounds_absolute = {};
+  bool has_arrow            = {};
+};
+
+struct MenuRenderLayout {
+  gfx::rect bounds;
+  std::unordered_map<e_menu_item, MenuItemRenderLayout> items;
+  std::vector<gfx::rect /*relative*/> bars;
+};
+
+MenuRenderLayout build_menu_rendered_layout(
+    MenuContents const& contents, MenuPosition const& position );
+
+/****************************************************************
 ** MenuRenderer
 *****************************************************************/
-struct MenuRenderer {
-  MenuRenderer( MenuRenderState const& state );
-
-  gfx::rect bounding_rect() const;
-
-  void render_body( rr::Renderer& renderer ) const;
-
- private:
-  // These are static for safety because they are called during
-  // the constructor.
-  static gfx::size compute_bounding_size(
-      MenuRenderState const& state );
-  static gfx::rect compute_bounding_rect(
-      MenuRenderState const& state );
-
-  MenuRenderState const& state_;
-  gfx::rect const bounds_;
-};
+void render_menu_body( rr::Renderer& renderer,
+                       MenuAnimState const& state,
+                       MenuRenderLayout const& layout );
 
 } // namespace rn

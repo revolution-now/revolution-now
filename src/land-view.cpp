@@ -396,7 +396,9 @@ struct LandViewPlane::Impl : public IPlane {
   wait<> context_menu( point const where, point const tile ) {
     viewport().stop_auto_zoom();
     viewport().stop_auto_panning();
-    MenuLayout const layout{
+    double constexpr zoom_in_factor  = 2.0;
+    double constexpr zoom_out_factor = 1.0 / zoom_in_factor;
+    MenuContents const contents{
       .groups = {
         MenuItemGroup{
           .elems =
@@ -406,26 +408,70 @@ struct LandViewPlane::Impl : public IPlane {
                 MenuElement::leaf{ .item = e_menu_item::sentry },
                 MenuElement::leaf{ .item =
                                        e_menu_item::disband },
+                MenuElement::leaf{ .item = e_menu_item::dump },
+              } },
+        MenuItemGroup{ .elems =
+                           {
+                             MenuElement::leaf{
+                               .item = e_menu_item::zoom_in },
+                             MenuElement::leaf{
+                               .item = e_menu_item::zoom_out },
+                           } },
+        MenuItemGroup{
+          .elems =
+              {
+                MenuElement::leaf{ .item = e_menu_item::plow },
+                MenuElement::leaf{ .item = e_menu_item::road },
+                MenuElement::leaf{
+                  .item = e_menu_item::build_colony },
               } },
       } };
     MenuPosition const position{ .where  = where,
                                  .corner = e_direction::nw };
     auto const selected_item =
         co_await ts_.planes.get().menu2.typed().open_menu(
-            layout, position );
+            contents, position );
     if( !selected_item.has_value() ) co_return;
     switch( *selected_item ) {
-      case e_menu_item::sentry:
-        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
-          .what = command::sentry{} } ) );
-        break;
       case e_menu_item::fortify:
         raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
           .what = command::fortify{} } ) );
         break;
+      case e_menu_item::sentry:
+        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
+          .what = command::sentry{} } ) );
+        break;
       case e_menu_item::disband:
         raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
           .what = command::disband{ .tile = tile } } ) );
+        break;
+      case e_menu_item::dump:
+        raw_input_stream_.send( RawInput(
+            LandViewRawInput::cmd{ .what = command::dump{} } ) );
+        break;
+      case e_menu_item::zoom_in:
+        viewport().stop_auto_zoom();
+        viewport().stop_auto_panning();
+        viewport().smooth_zoom_target( viewport().get_zoom() *
+                                       zoom_in_factor );
+        break;
+      case e_menu_item::zoom_out:
+        viewport().stop_auto_zoom();
+        viewport().stop_auto_panning();
+        viewport().smooth_zoom_target( viewport().get_zoom() *
+                                       zoom_out_factor );
+        break;
+      case e_menu_item::plow:
+        raw_input_stream_.send( RawInput(
+            LandViewRawInput::cmd{ .what = command::plow{} } ) );
+        break;
+      case e_menu_item::road:
+        raw_input_stream_.send( RawInput(
+            LandViewRawInput::cmd{ .what = command::road{} } ) );
+        break;
+      case e_menu_item::build_colony:
+        raw_input_stream_.send( RawInput( LandViewRawInput::cmd{
+          .what = command::build{} } ) );
         break;
       default:
         SHOULD_NOT_BE_HERE;

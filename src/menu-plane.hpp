@@ -25,7 +25,7 @@ struct Menu2Plane : IMenuPlane {
   Menu2Plane();
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuLayout const& layout,
+      MenuContents const& contents,
       MenuPosition const& position ) override;
 
   ~Menu2Plane() override;
