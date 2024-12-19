@@ -13,7 +13,7 @@ namespace "rn"
 
 sumtype.MenuEvent {
   close {},
-  hover {
+  over {
     text 'std::string',
   },
   click {

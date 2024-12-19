@@ -93,7 +93,7 @@ struct MenuThreads::OpenMenu {
       }
     }();
     if( it == rng.end() ) it = rng.begin();
-    events.send( MenuEvent::hover{ .text = it->text } );
+    events.send( MenuEvent::over{ .text = it->text } );
   }
 
   void highlight_next() {
@@ -167,9 +167,6 @@ void MenuThreads::route_raw_input_thread(
       return;
     }
     CASE( device ) {
-      // In the below we do reverse iteration so that we prefer
-      // menus created later, which are "on top" of previous
-      // ones and hence have focus.
       SWITCH( device.event ) {
         CASE( key_event ) {
           if( !open_.empty() ) {
@@ -332,7 +329,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_move_event.pos.is_inside( bounds ) ) {
-                sink.send( MenuEvent::hover{
+                sink.send( MenuEvent::over{
                   .text = item_layout.text } );
                 break;
               }
@@ -441,8 +438,8 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
     }
     SWITCH( event ) {
       CASE( close ) { co_return nothing; }
-      CASE( hover ) {
-        om.anim_state.highlighted = hover.text;
+      CASE( over ) {
+        om.anim_state.highlighted = over.text;
         break;
       }
       CASE( click ) {

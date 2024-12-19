@@ -38,26 +38,7 @@ struct Menu2Plane::Impl : IPlane {
     }
   }
 
-  e_input_handled on_key(
-      input::key_event_t const& event ) override {
-    if( menu_threads_.open_count() == 0 )
-      return e_input_handled::no;
-    auto const raw = MenuEventRaw::device{ .event = event };
-    menu_threads_.route_raw_input_thread( raw );
-    return e_input_handled::yes;
-  }
-
-  e_input_handled on_mouse_move(
-      input::mouse_move_event_t const& event ) override {
-    if( menu_threads_.open_count() == 0 )
-      return e_input_handled::no;
-    auto const raw = MenuEventRaw::device{ .event = event };
-    menu_threads_.route_raw_input_thread( raw );
-    return e_input_handled::yes;
-  }
-
-  e_input_handled on_mouse_button(
-      input::mouse_button_event_t const& event ) override {
+  e_input_handled input( input::event_t const& event ) override {
     if( menu_threads_.open_count() == 0 )
       return e_input_handled::no;
     auto const raw = MenuEventRaw::device{ .event = event };
