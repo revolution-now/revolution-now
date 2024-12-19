@@ -263,6 +263,14 @@ point point::moved( e_cdirection d ) const {
   // clang-format on
 }
 
+point point::with_x( int const new_x ) const {
+  return { .x = new_x, .y = y };
+}
+
+point point::with_y( int const new_y ) const {
+  return { .x = x, .y = new_y };
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/

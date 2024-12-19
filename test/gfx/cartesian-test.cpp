@@ -191,6 +191,13 @@ TEST_CASE( "[gfx/cartesian] dsize::operator/( double )" ) {
 /****************************************************************
 ** point
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] point::with_x/with_y" ) {
+  REQUIRE( point{ .x = 1, .y = 2 }.with_x( 5 ) ==
+           point{ .x = 5, .y = 2 } );
+  REQUIRE( point{ .x = 1, .y = 2 }.with_y( 5 ) ==
+           point{ .x = 1, .y = 5 } );
+}
+
 TEST_CASE( "[gfx/cartesian] point::operator+=( int )" ) {
   point p{ .x = 4, .y = 2 };
   int scale = 3;

@@ -136,6 +136,9 @@ struct point {
   // Returns a dpoint; auto is used to avoid circular dependency.
   [[nodiscard]] auto to_double() const;
 
+  point with_x( int new_x ) const;
+  point with_y( int new_y ) const;
+
   // If this point is outside the rect then it will be brought
   // into the rect by traveling in precisely one straight line in
   // each direction (or possibly only one direction).
