@@ -40,43 +40,36 @@ struct Menu2Plane::Impl : IPlane {
 
   e_input_handled on_key(
       input::key_event_t const& event ) override {
+    if( menu_threads_.open_count() == 0 )
+      return e_input_handled::no;
     auto const raw = MenuEventRaw::device{ .event = event };
-    if( menu_threads_.route_raw_input_thread( raw ) )
-      return e_input_handled::yes;
-    return e_input_handled::no;
+    menu_threads_.route_raw_input_thread( raw );
+    return e_input_handled::yes;
   }
 
   e_input_handled on_mouse_move(
       input::mouse_move_event_t const& event ) override {
+    if( menu_threads_.open_count() == 0 )
+      return e_input_handled::no;
     auto const raw = MenuEventRaw::device{ .event = event };
-    if( menu_threads_.route_raw_input_thread( raw ) )
-      return e_input_handled::yes;
-    return e_input_handled::no;
+    menu_threads_.route_raw_input_thread( raw );
+    return e_input_handled::yes;
   }
 
   e_input_handled on_mouse_button(
       input::mouse_button_event_t const& event ) override {
     if( menu_threads_.open_count() == 0 )
       return e_input_handled::no;
-    // There are some open menus, so from this point on we will
-    // always return that we handled the input.
-
-    if( event.buttons == input::e_mouse_button_event::right_up ||
-        event.buttons ==
-            input::e_mouse_button_event::right_down )
-      return e_input_handled::yes;
-
     auto const raw = MenuEventRaw::device{ .event = event };
-    if( menu_threads_.route_raw_input_thread( raw ) )
-      return e_input_handled::yes;
-
-    if( event.buttons == input::e_mouse_button_event::left_up ) {
-      menu_threads_.route_raw_input_thread(
-          MenuEventRaw::close_all{} );
-      return e_input_handled::yes;
-    }
-
+    menu_threads_.route_raw_input_thread( raw );
     return e_input_handled::yes;
+  }
+
+  e_accept_drag can_drag( input::e_mouse_button const /*button*/,
+                          Coord const /*origin*/ ) override {
+    if( menu_threads_.open_count() == 0 )
+      return e_accept_drag::no;
+    return e_accept_drag::motion;
   }
 
   MenuThreads menu_threads_;

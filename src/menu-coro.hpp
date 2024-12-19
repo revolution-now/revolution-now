@@ -44,7 +44,7 @@ struct MenuThreads {
 
   int open_count() const;
 
-  bool route_raw_input_thread( MenuEventRaw const& /*event*/ );
+  void route_raw_input_thread( MenuEventRaw const& /*event*/ );
 
   wait<maybe<e_menu_item>> open_menu(
       MenuContents const contents, MenuPosition const position );
@@ -69,6 +69,8 @@ struct MenuThreads {
 
   void handle_key_event( OpenMenu& open_menu,
                          input::key_event_t const& key_event );
+
+  maybe<int> menu_from_point( gfx::point p ) const;
 
   static wait<> animate_click( MenuAnimState& render_state,
                                std::string const& text );

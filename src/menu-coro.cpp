@@ -138,10 +138,22 @@ int MenuThreads::next_menu_id() {
 }
 
 void MenuThreads::unregister_menu( int const menu_id ) {
+  CHECK( open_.contains( menu_id ) );
   open_.erase( menu_id );
 }
 
-bool MenuThreads::route_raw_input_thread(
+maybe<int> MenuThreads::menu_from_point(
+    gfx::point const p ) const {
+  // Reverse iteration so that we prefer menus created later,
+  // which are "on top" of previous ones.
+  for( auto const& [menu_id, open_menu] : rl::rall( open_ ) ) {
+    auto const& bounds = open_menu->render_layout.bounds;
+    if( p.is_inside( bounds ) ) return menu_id;
+  }
+  return nothing;
+}
+
+void MenuThreads::route_raw_input_thread(
     MenuEventRaw const& event ) {
   SWITCH( event ) {
     CASE( click ) {
@@ -152,7 +164,7 @@ bool MenuThreads::route_raw_input_thread(
       for( auto& [menu_id, open_menu] : open_ )
         open_menu.get().routed_input.send( RoutedMenuEventRaw{
           .menu_id = menu_id, .input = event } );
-      break;
+      return;
     }
     CASE( device ) {
       // In the below we do reverse iteration so that we prefer
@@ -165,37 +177,40 @@ bool MenuThreads::route_raw_input_thread(
             open_menu.get().routed_input.send(
                 RoutedMenuEventRaw{ .menu_id = menu_id,
                                     .input   = event } );
-            return true;
+            return;
           }
           break;
         }
         CASE( mouse_move_event ) {
-          // Reverse iteration so that we prefer menus created
-          // later, which are "on top" of previous ones.
-          for( auto& [menu_id, open_menu] : rl::rall( open_ ) ) {
-            auto const& bounds = open_menu->render_layout.bounds;
-            if( mouse_move_event.pos.is_inside( bounds ) ) {
-              open_menu.get().routed_input.send(
-                  RoutedMenuEventRaw{ .menu_id = menu_id,
-                                      .input   = event } );
-              return true;
-            }
-          }
+          UNWRAP_BREAK(
+              menu_id, menu_from_point( mouse_move_event.pos ) );
+          open_[menu_id].get().routed_input.send(
+              RoutedMenuEventRaw{ .menu_id = menu_id,
+                                  .input   = event } );
           break;
         }
         CASE( mouse_button_event ) {
-          // Reverse iteration so that we prefer menus created
-          // later, which are "on top" of previous ones.
-          for( auto& [menu_id, open_menu] : rl::rall( open_ ) ) {
-            auto const& bounds = open_menu->render_layout.bounds;
-            if( mouse_button_event.pos.is_inside( bounds ) ) {
-              open_menu.get().routed_input.send(
-                  RoutedMenuEventRaw{ .menu_id = menu_id,
+          auto const menu_id =
+              menu_from_point( mouse_button_event.pos );
+          if( menu_id.has_value() ) {
+            // Since the mouse is over an open menu we will al-
+            // ways return here, though if it is the left button
+            // then we pass it through.
+            if( mouse_button_event.buttons ==
+                input::e_mouse_button_event::left_up )
+              open_[*menu_id].get().routed_input.send(
+                  RoutedMenuEventRaw{ .menu_id = *menu_id,
                                       .input   = event } );
-              return true;
-            }
+            return;
           }
-          break;
+          // This ensures that if there is a click outside of the
+          // menus that it causes all to close.
+          if( mouse_button_event.buttons ==
+                  input::e_mouse_button_event::left_up ||
+              mouse_button_event.buttons ==
+                  input::e_mouse_button_event::right_up )
+            route_raw_input_thread( MenuEventRaw::close_all{} );
+          return;
         }
         default:
           break;
@@ -203,8 +218,6 @@ bool MenuThreads::route_raw_input_thread(
       break;
     }
   }
-
-  return false;
 }
 
 void MenuThreads::handle_key_event(
