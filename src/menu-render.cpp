@@ -10,11 +10,19 @@
 *****************************************************************/
 #include "menu-render.hpp"
 
+// Revolution Now
+#include "render.hpp"
+#include "tiles.hpp"
+
 // config
 #include "config/menu-items.rds.hpp"
+#include "config/menu.rds.hpp"
+#include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // render
 #include "error.hpp"
+#include "render/extra.hpp"
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
@@ -38,6 +46,11 @@ using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+
+// TODO: move these to the configs with proper names after the
+// old menu module is retired.
+size constexpr kHighlightPadding{ .w = 6, .h = 2 };
+size constexpr kBorderPadding{ .w = 4, .h = 4 };
 
 gfx::rect compute_bounding_rect( MenuPosition const& position,
                                  size const sz ) {
@@ -83,22 +96,26 @@ MenuRenderLayout build_menu_rendered_layout(
     MenuContents const& contents,
     MenuPosition const& position ) {
   MenuRenderLayout res;
-  int y         = 0;
-  int max_w     = 0;
+  int y     = 0;
+  int max_w = 0;
+  int const row_height =
+      rr::rendered_text_line_size_pixels( "X" ).h +
+      2 * kHighlightPadding.h;
   auto add_item = [&]( string const& text ) -> auto& {
     auto& item = res.items.emplace_back();
-    size const text_size =
-        rr::rendered_text_line_size_pixels( text );
-    max_w = std::max( max_w, text_size.w );
+    int const row_w =
+        rr::rendered_text_line_size_pixels( text ).w +
+        2 * kHighlightPadding.w;
+    max_w = std::max( max_w, row_w );
     item  = {
-       .text            = text,
-       .bounds_relative = { .origin = { .x = 0, .y = y },
-                            .size   = { .h = text_size.h } } };
+       .text             = text,
+       .bounds_relative  = { .origin = point{ .x = 0, .y = y },
+                             .size   = { .h = row_height } },
+       .text_nw_relative = point{} + kHighlightPadding };
     return item;
   };
-  int const text_height =
-      rr::rendered_text_line_size_pixels( "X" ).h;
-  int const bar_height = text_height - 4;
+  // Minus one to make it even.
+  int const bar_height = row_height / 2 - 1;
   int needs_bar        = false;
   for( auto const& grp : contents.groups ) {
     if( needs_bar ) {
@@ -110,7 +127,8 @@ MenuRenderLayout build_menu_rendered_layout(
     for( auto const& elem : grp.elems ) {
       SWITCH( elem ) {
         CASE( leaf ) {
-          auto& item = add_item( fmt::to_string( leaf.item ) );
+          auto& item =
+              add_item( config_menu.items[leaf.item].name );
           item.has_arrow = false;
           break;
         }
@@ -120,13 +138,23 @@ MenuRenderLayout build_menu_rendered_layout(
           break;
         }
       }
-      y += text_height;
+      y += row_height;
     }
   }
-  size const body_size{ .w = max_w, .h = y };
+
+  // Now apply border padding.
+  for( auto& layout : res.items )
+    layout.bounds_relative.origin += kBorderPadding;
+  for( rect& bar : res.bars ) bar.origin.y += kBorderPadding.h;
+  size const body_size =
+      size{ .w = max_w, .h = y } + kBorderPadding * 2;
+
+  // Now make the widths uniform.
   for( auto& rendered_item_layout : res.items )
     rendered_item_layout.bounds_relative.size.w = max_w;
-  for( rect& bar : res.bars ) bar.size.w = max_w;
+  for( rect& bar : res.bars ) bar.size.w = body_size.w;
+
+  // Now populate the absolute coordinates.
   res.bounds = compute_bounding_rect( position, body_size );
   for( auto& rendered_item_layout : res.items ) {
     rendered_item_layout.bounds_absolute.size =
@@ -142,28 +170,68 @@ MenuRenderLayout build_menu_rendered_layout(
 }
 
 /****************************************************************
-** MenuRenderer
+** Menu Rendering.
 *****************************************************************/
+static void render_divider( rr::Renderer& renderer,
+                            point const pos,
+                            int const max_width ) {
+  int const width     = max_width - 8;
+  rr::Painter painter = renderer.painter();
+  painter.draw_horizontal_line( pos + size{ .w = 1, .h = -1 },
+                                width + 2,
+                                config_ui.window.border_dark );
+  painter.draw_horizontal_line(
+      pos + size{ .w = ( width * 3 ) / 4 + 7, .h = -1 },
+      width / 3 - 12, config_ui.window.border_light );
+  painter.draw_horizontal_line( pos, width,
+                                config_ui.window.border_darker );
+  painter.draw_horizontal_line(
+      pos + size{ .w = ( width * 3 ) / 4 + 4 }, width / 3 - 9,
+      config_ui.window.border_dark );
+  painter.draw_horizontal_line( pos + size{ .w = 1, .h = +1 },
+                                width + 3,
+                                config_ui.window.border_light );
+  painter.draw_horizontal_line(
+      pos + size{ .w = ( width * 3 ) / 4, .h = +1 },
+      width / 3 - 5, config_ui.window.border_lighter );
+}
+
 void render_menu_body( rr::Renderer& renderer,
                        MenuAnimState const& anim_state,
                        MenuRenderLayout const& layout ) {
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, anim_state.alpha )
-  rect const r        = layout.bounds;
-  rr::Painter painter = renderer.painter();
-  painter.draw_solid_rect( r, pixel::white() );
+  rect const body = layout.bounds;
 
+  tile_sprite( renderer, e_tile::wood_middle, body );
+  render_shadow_hightlight_border(
+      renderer, body.with_edges_removed( 2 ),
+      config_ui.window.border_dark,
+      config_ui.window.border_lighter );
+  render_shadow_hightlight_border(
+      renderer, body.with_edges_removed( 1 ),
+      config_ui.window.border_darker,
+      config_ui.window.border_light );
+
+  rr::Painter painter = renderer.painter();
+
+  static auto const text_color = config_ui.dialog_text.normal;
   for( auto const& item_layout : layout.items ) {
     if( anim_state.highlighted == item_layout.text ) {
-      painter.draw_solid_rect( item_layout.bounds_absolute,
-                               gfx::pixel::black() );
+      painter.draw_solid_rect(
+          item_layout.bounds_absolute,
+          config_ui.dialog_text.selected_background );
       rr::Typer typer =
-          renderer.typer( item_layout.bounds_absolute.origin,
-                          gfx::pixel::white() );
+          renderer.typer( item_layout.bounds_absolute.origin +
+                              item_layout.text_nw_relative
+                                  .distance_from_origin(),
+                          text_color );
       typer.write( item_layout.text );
     } else {
       rr::Typer typer =
-          renderer.typer( item_layout.bounds_absolute.origin,
-                          gfx::pixel::black() );
+          renderer.typer( item_layout.bounds_absolute.origin +
+                              item_layout.text_nw_relative
+                                  .distance_from_origin(),
+                          text_color );
       typer.write( item_layout.text );
     }
   }
@@ -172,8 +240,7 @@ void render_menu_body( rr::Renderer& renderer,
     auto const r = bar;
     point const start{ .x = r.left(),
                        .y = ( r.bottom() + r.top() ) / 2 };
-    painter.draw_horizontal_line( start, r.size.w,
-                                  gfx::pixel::black() );
+    render_divider( renderer, start, r.size.w );
   }
 }
 

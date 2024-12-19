@@ -37,10 +37,11 @@ struct MenuAnimState {
 // ation. Any rendering state that needs to change should be in
 // MenuAnimState.
 struct MenuItemRenderLayout {
-  std::string text          = {};
-  gfx::rect bounds_relative = {};
-  gfx::rect bounds_absolute = {};
-  bool has_arrow            = {};
+  std::string text            = {};
+  gfx::rect bounds_relative   = {};
+  gfx::rect bounds_absolute   = {};
+  gfx::point text_nw_relative = {}; // relative to row origin.
+  bool has_arrow              = {};
 };
 
 struct MenuRenderLayout {
@@ -53,7 +54,7 @@ MenuRenderLayout build_menu_rendered_layout(
     MenuContents const& contents, MenuPosition const& position );
 
 /****************************************************************
-** MenuRenderer
+** Menu Rendering.
 *****************************************************************/
 void render_menu_body( rr::Renderer& renderer,
                        MenuAnimState const& state,

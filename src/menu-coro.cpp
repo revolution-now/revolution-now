@@ -181,6 +181,14 @@ void MenuThreads::route_raw_input_thread(
     CASE( device ) {
       SWITCH( device.event ) {
         CASE( key_event ) {
+          switch( key_event.keycode ) {
+            case ::SDLK_ESCAPE:
+              route_raw_input_thread(
+                  MenuEventRaw::close_all{} );
+              break;
+            default:
+              break;
+          }
           if( !open_.empty() ) {
             auto& [menu_id, open_menu] = *open_.rbegin();
             open_menu.get().routed_input.send( event );
@@ -227,9 +235,6 @@ void MenuThreads::handle_key_event(
     OpenMenu& open_menu, input::key_event_t const& key_event ) {
   if( key_event.change != input::e_key_change::down ) return;
   switch( key_event.keycode ) {
-    case ::SDLK_ESCAPE:
-      open_menu.events.send( MenuEvent::close{} );
-      break;
     case ::SDLK_KP_8:
     case ::SDLK_UP:
       open_menu.highlight_previous();
@@ -486,8 +491,14 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
             co_return leaf.item;
           }
           CASE( node ) {
+            // TODO: this needs to support both left and right
+            // positioning as well as above/below the selected
+            // menu item depending on available screen space.
+            int const right_menu_edge =
+                om.render_layout.bounds.right();
             MenuPosition const sub_menu_position{
-              .where       = layout->bounds_absolute.ne(),
+              .where = layout->bounds_absolute.ne().with_x(
+                  right_menu_edge ),
               .corner      = e_direction::nw,
               .parent_side = e_side::left };
             sub_menu_thread = sub_menu_opener(
