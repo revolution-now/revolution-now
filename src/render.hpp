@@ -127,13 +127,4 @@ void render_dwelling( rr::Renderer& renderer, Coord where,
                       SSConst const& ss,
                       Dwelling const& dwelling );
 
-/****************************************************************
-** Misc. Rendering.
-*****************************************************************/
-// TODO: move this.
-void render_shadow_hightlight_border( rr::Renderer& renderer,
-                                      gfx::rect rect,
-                                      gfx::pixel left_and_bottom,
-                                      gfx::pixel top_and_right );
-
 } // namespace rn

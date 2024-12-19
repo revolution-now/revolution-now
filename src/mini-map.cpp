@@ -34,6 +34,7 @@
 #include "ss/terrain.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // gfx

@@ -24,6 +24,9 @@
 // ss
 #include "ss/natives.hpp"
 
+// render
+#include "render/extra.hpp"
+
 // gfx
 #include "gfx/coord.hpp"
 

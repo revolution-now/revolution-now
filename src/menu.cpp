@@ -36,6 +36,7 @@
 #include "config/ui.rds.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // gfx

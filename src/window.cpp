@@ -39,6 +39,7 @@
 #include "ss/unit.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // base
