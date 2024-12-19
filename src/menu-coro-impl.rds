@@ -12,11 +12,24 @@
 namespace "rn"
 
 sumtype.MenuEvent {
+  # Close the menu and all child menus.
   close {},
+
+  # For when the mouse is over an item.
   over {
     text 'std::string',
   },
-  click {
+
+  # For when we want to change the selection due to some other
+  # mechanism, such as keyboard input.
+  highlight {
     text 'std::string',
   },
+
+  # An event that is fired after the mouse has remained over a
+  # certain item for a certain period of time.
+  hover {},
+
+  # Click, fire the action, and close the menu.
+  click {},
 }

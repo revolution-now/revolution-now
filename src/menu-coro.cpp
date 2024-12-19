@@ -50,11 +50,6 @@ namespace {
 using ::gfx::e_side;
 using ::gfx::point;
 
-struct RoutedMenuEventRaw {
-  int menu_id = {};
-  MenuEventRaw input;
-};
-
 } // namespace
 
 /****************************************************************
@@ -65,14 +60,28 @@ struct MenuThreads::OpenMenu {
   MenuPosition position;
   MenuAnimState anim_state;
   MenuRenderLayout render_layout;
-  co::stream<RoutedMenuEventRaw> routed_input;
+  co::stream<MenuEventRaw> routed_input;
   co::stream<MenuEvent> events;
+  maybe<wait<>> hover_timer;
 
   maybe<MenuItemRenderLayout const&> layout_for_selected() {
     if( !anim_state.highlighted.has_value() ) return nothing;
     for( auto const& item_layout : render_layout.items )
       if( *anim_state.highlighted == item_layout.text )
         return item_layout;
+    return nothing;
+  }
+
+  maybe<MenuElement const&> find_element(
+      string const& text ) const {
+    auto it = render_layout.items.begin();
+    for( auto const& grp : contents.groups ) {
+      for( auto const& elem : grp.elems ) {
+        CHECK( it != render_layout.items.end() );
+        if( it->text == text ) return elem;
+        ++it;
+      }
+    }
     return nothing;
   }
 
@@ -93,7 +102,7 @@ struct MenuThreads::OpenMenu {
       }
     }();
     if( it == rng.end() ) it = rng.begin();
-    events.send( MenuEvent::over{ .text = it->text } );
+    events.send( MenuEvent::highlight{ .text = it->text } );
   }
 
   void highlight_next() {
@@ -105,6 +114,14 @@ struct MenuThreads::OpenMenu {
     if( render_layout.items.empty() ) return;
     cycle_highlight(
         ranges::views::reverse( render_layout.items ) );
+  }
+
+  void set_hover_timer() {
+    hover_timer.reset();
+    hover_timer = [this]() -> wait<> {
+      co_await 300ms;
+      events.send( MenuEvent::hover{} );
+    }();
   }
 };
 
@@ -156,14 +173,9 @@ maybe<int> MenuThreads::menu_from_point(
 void MenuThreads::route_raw_input_thread(
     MenuEventRaw const& event ) {
   SWITCH( event ) {
-    CASE( click ) {
-      // TODO
-      NOT_IMPLEMENTED;
-    }
     CASE( close_all ) {
       for( auto& [menu_id, open_menu] : open_ )
-        open_menu.get().routed_input.send( RoutedMenuEventRaw{
-          .menu_id = menu_id, .input = event } );
+        open_menu.get().routed_input.send( event );
       return;
     }
     CASE( device ) {
@@ -171,9 +183,7 @@ void MenuThreads::route_raw_input_thread(
         CASE( key_event ) {
           if( !open_.empty() ) {
             auto& [menu_id, open_menu] = *open_.rbegin();
-            open_menu.get().routed_input.send(
-                RoutedMenuEventRaw{ .menu_id = menu_id,
-                                    .input   = event } );
+            open_menu.get().routed_input.send( event );
             return;
           }
           break;
@@ -181,9 +191,7 @@ void MenuThreads::route_raw_input_thread(
         CASE( mouse_move_event ) {
           UNWRAP_BREAK(
               menu_id, menu_from_point( mouse_move_event.pos ) );
-          open_[menu_id].get().routed_input.send(
-              RoutedMenuEventRaw{ .menu_id = menu_id,
-                                  .input   = event } );
+          open_[menu_id].get().routed_input.send( event );
           break;
         }
         CASE( mouse_button_event ) {
@@ -195,9 +203,7 @@ void MenuThreads::route_raw_input_thread(
             // then we pass it through.
             if( mouse_button_event.buttons ==
                 input::e_mouse_button_event::left_up )
-              open_[*menu_id].get().routed_input.send(
-                  RoutedMenuEventRaw{ .menu_id = *menu_id,
-                                      .input   = event } );
+              open_[*menu_id].get().routed_input.send( event );
             return;
           }
           // This ensures that if there is a click outside of the
@@ -239,8 +245,7 @@ void MenuThreads::handle_key_event(
           open_menu.layout_for_selected().member(
               &MenuItemRenderLayout::text );
       if( !selected_text.has_value() ) break;
-      open_menu.events.send(
-          MenuEvent::click{ .text = *selected_text } );
+      open_menu.events.send( MenuEvent::click{} );
       break;
     }
     case ::SDLK_KP_4:
@@ -250,8 +255,7 @@ void MenuThreads::handle_key_event(
         auto const selected = open_menu.layout_for_selected();
         if( !selected.has_value() ) break;
         if( selected->has_arrow != true ) break;
-        open_menu.events.send(
-            MenuEvent::click{ .text = selected->text } );
+        open_menu.events.send( MenuEvent::click{} );
         break;
       }
       switch( *pside ) {
@@ -260,10 +264,12 @@ void MenuThreads::handle_key_event(
           break;
         case e_side::right: {
           auto const selected = open_menu.layout_for_selected();
-          if( !selected.has_value() ) break;
+          if( !selected.has_value() ) {
+            open_menu.highlight_next();
+            break;
+          }
           if( selected->has_arrow != true ) break;
-          open_menu.events.send(
-              MenuEvent::click{ .text = selected->text } );
+          open_menu.events.send( MenuEvent::click{} );
           break;
         }
       }
@@ -276,17 +282,18 @@ void MenuThreads::handle_key_event(
         auto const selected = open_menu.layout_for_selected();
         if( !selected.has_value() ) break;
         if( selected->has_arrow != true ) break;
-        open_menu.events.send(
-            MenuEvent::click{ .text = selected->text } );
+        open_menu.events.send( MenuEvent::click{} );
         break;
       }
       switch( *pside ) {
         case e_side::left: {
           auto const selected = open_menu.layout_for_selected();
-          if( !selected.has_value() ) break;
+          if( !selected.has_value() ) {
+            open_menu.highlight_next();
+            break;
+          }
           if( selected->has_arrow != true ) break;
-          open_menu.events.send(
-              MenuEvent::click{ .text = selected->text } );
+          open_menu.events.send( MenuEvent::click{} );
           break;
         }
         case e_side::right:
@@ -305,16 +312,11 @@ wait<> MenuThreads::translate_routed_input_thread(
   while( true ) {
     auto const routed =
         co_await open_[menu_id]->routed_input.next();
-    int const menu_id = routed.menu_id;
     CHECK( open_.contains( menu_id ) );
     OpenMenu& menu     = open_[menu_id].get();
     auto const& layout = menu.render_layout;
     auto& sink         = menu.events;
-    SWITCH( routed.input ) {
-      CASE( click ) {
-        sink.send( MenuEvent::click{ .text = click.text } );
-        break;
-      }
+    SWITCH( routed ) {
       CASE( close_all ) {
         sink.send( MenuEvent::close{} );
         break;
@@ -340,8 +342,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_button_event.pos.is_inside( bounds ) ) {
-                sink.send( MenuEvent::click{
-                  .text = item_layout.text } );
+                sink.send( MenuEvent::click{} );
                 break;
               }
             }
@@ -435,43 +436,63 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
         event         = o;
         break;
       }
+      default:
+        SHOULD_NOT_BE_HERE;
     }
     SWITCH( event ) {
       CASE( close ) { co_return nothing; }
+      CASE( hover ) {
+        om.hover_timer.reset();
+        auto const layout = om.layout_for_selected();
+        if( !layout.has_value() ) break;
+        if( layout->has_arrow )
+          om.events.send( MenuEvent::click{} );
+        break;
+      }
+      CASE( highlight ) {
+        // This event, unlike the `over` event, is sent either in
+        // response to keyboard action or some other manual ac-
+        // tion, so we don't want the hover timer here.
+        om.hover_timer.reset();
+        om.anim_state.highlighted = highlight.text;
+        break;
+      }
       CASE( over ) {
+        if( om.anim_state.highlighted != over.text )
+          om.set_hover_timer();
         om.anim_state.highlighted = over.text;
         break;
       }
       CASE( click ) {
-        om.anim_state.highlighted = click.text;
-        auto it = om.render_layout.items.begin();
-        for( auto const& grp : contents.groups ) {
-          for( auto const& elem : grp.elems ) {
-            CHECK( it != om.render_layout.items.end() );
-            if( it->text == click.text ) {
-              SWITCH( elem ) {
-                CASE( leaf ) {
-                  // Close sub menus first before animating this
-                  // click because we clicked an item in the main
-                  // menu.
-                  sub_menu_thread.reset();
-                  co_await animate_click( om.anim_state,
-                                          click.text );
-                  co_return leaf.item;
-                }
-                CASE( node ) {
-                  MenuPosition const sub_menu_position{
-                    .where       = it->bounds_absolute.se(),
-                    .corner      = e_direction::sw,
-                    .parent_side = e_side::left };
-                  sub_menu_thread = sub_menu_opener(
-                      sub_menu_stream, node.menu,
-                      sub_menu_position );
-                  break;
-                }
-              }
-            }
-            ++it;
+        om.hover_timer.reset();
+        auto const layout = om.layout_for_selected();
+        // This is normally expected to have a value if this
+        // click is being made via the mouse, since the mouse
+        // needs to move over a region before clicking on it. But
+        // we'll be defensive just in case either a) someone man-
+        // ually sends us this click event, or if there is some
+        // strange ordering of input events.
+        if( !layout.has_value() ) break;
+        UNWRAP_CHECK_T( auto const& elem,
+                        om.find_element( layout->text ) );
+        SWITCH( elem ) {
+          CASE( leaf ) {
+            // Close sub menus first before animating this
+            // click because we clicked an item in the main
+            // menu.
+            sub_menu_thread.reset();
+            co_await animate_click( om.anim_state,
+                                    layout->text );
+            co_return leaf.item;
+          }
+          CASE( node ) {
+            MenuPosition const sub_menu_position{
+              .where       = layout->bounds_absolute.ne(),
+              .corner      = e_direction::nw,
+              .parent_side = e_side::left };
+            sub_menu_thread = sub_menu_opener(
+                sub_menu_stream, node.menu, sub_menu_position );
+            break;
           }
         }
       }

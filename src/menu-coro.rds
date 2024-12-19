@@ -17,8 +17,5 @@ sumtype.MenuEventRaw {
   device {
     event 'input::event_t',
   },
-  click {
-    text 'std::string',
-  },
   close_all {},
 }
