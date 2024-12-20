@@ -1398,7 +1398,11 @@ struct LandViewPlane::Impl : public IPlane {
       drag_thread   = dragging( button, origin );
       return IPlane::e_accept_drag::yes;
     }
-    return IPlane::e_accept_drag::no;
+    // Since this is a bottom plane, there is no one else who
+    // could handle drag events, so just give them to us as mo-
+    // tion events so that we can still generally respond to the
+    // mouse movements.
+    return IPlane::e_accept_drag::motion;
   }
 
   void on_drag( input::mod_keys const& /*unused*/,
