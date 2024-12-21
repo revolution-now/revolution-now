@@ -25,9 +25,27 @@ namespace "rn"
 
 struct.MenuPosition {
   where 'gfx::point',
-  corner 'e_direction',
+  orientation 'e_diagonal_direction',
   # Which side of the this menu was the parent, if any.
   parent_side 'base::maybe<gfx::e_side>',
+}
+
+struct.MenuAllowedPosition {
+  where 'gfx::point',
+  # Restrict the possible orientations to this set, in order of
+  # priority. If it is empty then they will all be allowed and
+  # one will be selected using a heuristic that makes sense given
+  # the parent side. The first in the list of attempted direc-
+  # tions where the resulting menu would fit on the screen will
+  # be selected.
+  orientations_allowed 'std::vector<e_diagonal_direction>',
+  # Which side of the this menu was the parent, if any.
+  parent_side 'base::maybe<gfx::e_side>',
+}
+
+struct.MenuAllowedPositions {
+  # Allowed configurations in decreasing order of priority.
+  positions_allowed 'std::vector<MenuAllowedPosition>',
 }
 
 sumtype.MenuElement {

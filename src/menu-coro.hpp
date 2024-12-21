@@ -47,7 +47,8 @@ struct MenuThreads {
   void route_raw_input_thread( MenuEventRaw const& /*event*/ );
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuContents const contents, MenuPosition const position );
+      MenuContents const contents,
+      MenuAllowedPositions const positions );
 
   MenuAnimState const& anim_state( int menu_id ) const;
   MenuRenderLayout const& render_layout( int menu_id ) const;

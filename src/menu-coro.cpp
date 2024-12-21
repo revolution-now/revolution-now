@@ -57,7 +57,7 @@ using ::gfx::point;
 *****************************************************************/
 struct MenuThreads::OpenMenu {
   MenuContents contents;
-  MenuPosition position;
+  MenuAllowedPositions positions;
   MenuAnimState anim_state;
   MenuRenderLayout render_layout;
   co::stream<MenuEventRaw> routed_input;
@@ -255,7 +255,8 @@ void MenuThreads::handle_key_event(
     }
     case ::SDLK_KP_4:
     case ::SDLK_LEFT: {
-      auto const& pside = open_menu.position.parent_side;
+      auto const& pside =
+          open_menu.render_layout.position.parent_side;
       if( !pside.has_value() ) {
         auto const selected = open_menu.layout_for_selected();
         if( !selected.has_value() ) break;
@@ -282,7 +283,8 @@ void MenuThreads::handle_key_event(
     }
     case ::SDLK_KP_6:
     case ::SDLK_RIGHT: {
-      auto const& pside = open_menu.position.parent_side;
+      auto const& pside =
+          open_menu.render_layout.position.parent_side;
       if( !pside.has_value() ) {
         auto const selected = open_menu.layout_for_selected();
         if( !selected.has_value() ) break;
@@ -402,15 +404,16 @@ wait<> MenuThreads::animate_click( MenuAnimState& anim_state,
 }
 
 wait<maybe<e_menu_item>> MenuThreads::open_menu(
-    MenuContents const contents, MenuPosition const position ) {
+    MenuContents const contents,
+    MenuAllowedPositions const positions ) {
   int const menu_id = next_menu_id();
   SCOPE_EXIT { unregister_menu( menu_id ); };
 
   OpenMenu& om = open_[menu_id].get();
   om.contents  = contents;
-  om.position  = position;
+  om.positions = positions;
   om.render_layout =
-      build_menu_rendered_layout( contents, position );
+      build_menu_rendered_layout( contents, positions );
 
   wait<> const translater =
       translate_routed_input_thread( menu_id );
@@ -419,8 +422,8 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
   maybe<wait<>> sub_menu_thread;
   auto sub_menu_opener =
       [this]( SubMenuStream& stream, MenuContents const contents,
-              MenuPosition const position ) -> wait<> {
-    stream.send( co_await open_menu( contents, position ) );
+              MenuAllowedPositions const positions ) -> wait<> {
+    stream.send( co_await open_menu( contents, positions ) );
   };
   SubMenuStream sub_menu_stream;
   while( true ) {
@@ -491,18 +494,51 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
             co_return leaf.item;
           }
           CASE( node ) {
-            // TODO: this needs to support both left and right
-            // positioning as well as above/below the selected
-            // menu item depending on available screen space.
+            // Need these edges so that we don't step on the
+            // border around the outter edge of the menu.
             int const right_menu_edge =
                 om.render_layout.bounds.right();
-            MenuPosition const sub_menu_position{
+            int const left_menu_edge =
+                om.render_layout.bounds.left();
+            // Sub-menu positions relative to the rect of the row
+            // that is currently being selected. So "ne" here
+            // means that the origin of the submenu will be
+            // placed on the ne corner of the row rect (adjusted
+            // for the outter menu border).
+            MenuAllowedPosition const submenu_position_ne{
               .where = layout->bounds_absolute.ne().with_x(
                   right_menu_edge ),
-              .corner      = e_direction::nw,
+              .orientations_allowed =
+                  { e_diagonal_direction::nw,
+                    e_diagonal_direction::ne },
               .parent_side = e_side::left };
+            MenuAllowedPosition const submenu_position_nw{
+              .where = layout->bounds_absolute.nw().with_x(
+                  left_menu_edge ),
+              .orientations_allowed =
+                  { e_diagonal_direction::ne,
+                    e_diagonal_direction::nw },
+              .parent_side = e_side::right };
+            MenuAllowedPosition const submenu_position_se{
+              .where = layout->bounds_absolute.se().with_x(
+                  right_menu_edge ),
+              .orientations_allowed =
+                  { e_diagonal_direction::sw,
+                    e_diagonal_direction::se },
+              .parent_side = e_side::left };
+            MenuAllowedPosition const submenu_position_sw{
+              .where = layout->bounds_absolute.sw().with_x(
+                  left_menu_edge ),
+              .orientations_allowed =
+                  { e_diagonal_direction::se,
+                    e_diagonal_direction::sw },
+              .parent_side = e_side::right };
+            MenuAllowedPositions const submenu_positions{
+              .positions_allowed = {
+                submenu_position_ne, submenu_position_se,
+                submenu_position_nw, submenu_position_sw } };
             sub_menu_thread = sub_menu_opener(
-                sub_menu_stream, node.menu, sub_menu_position );
+                sub_menu_stream, node.menu, submenu_positions );
             break;
           }
         }

@@ -26,7 +26,8 @@ struct Menu2Plane : IMenuPlane {
 
   wait<maybe<e_menu_item>> open_menu(
       MenuContents const& contents ATTR_LIFETIMEBOUND,
-      MenuPosition const& position ATTR_LIFETIMEBOUND ) override;
+      MenuAllowedPositions const& positions
+          ATTR_LIFETIMEBOUND ) override;
 
   ~Menu2Plane() override;
 

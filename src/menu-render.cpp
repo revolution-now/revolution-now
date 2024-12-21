@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "render.hpp"
+#include "screen.hpp"
 #include "tiles.hpp"
 
 // config
@@ -42,6 +43,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::e_side;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -57,32 +59,29 @@ gfx::rect compute_bounding_rect( MenuPosition const& position,
   point const p = position.where;
   point nw;
   size delta =
-      p.moved( reverse_direction( position.corner ) ) - p;
+      p.moved( reverse_direction( position.orientation ) ) - p;
   delta.w *= sz.w;
   delta.h *= sz.h;
-  switch( position.corner ) {
-    case e_direction::se: {
+  switch( position.orientation ) {
+    case e_diagonal_direction::se: {
       nw = p + delta;
       break;
     }
-    case e_direction::ne: {
+    case e_diagonal_direction::ne: {
       delta.h = 0;
       nw      = p + delta;
       break;
     }
-    case e_direction::sw: {
+    case e_diagonal_direction::sw: {
       delta.w = 0;
       nw      = p + delta;
       break;
     }
-    case e_direction::nw:
+    case e_diagonal_direction::nw:
       delta.w = 0;
       delta.h = 0;
       nw      = p + delta;
       break;
-    default:
-      FATAL( "direction {} not supported here.",
-             position.corner );
   }
   return rect{ .origin = nw, .size = sz }.normalized();
 }
@@ -94,7 +93,8 @@ gfx::rect compute_bounding_rect( MenuPosition const& position,
 *****************************************************************/
 MenuRenderLayout build_menu_rendered_layout(
     MenuContents const& contents,
-    MenuPosition const& position ) {
+    MenuAllowedPositions const& positions ) {
+  CHECK( !positions.positions_allowed.empty() );
   MenuRenderLayout res;
   int y     = 0;
   int max_w = 0;
@@ -157,7 +157,71 @@ MenuRenderLayout build_menu_rendered_layout(
   for( rect& bar : res.bars ) bar.size.w = body_size.w;
 
   // Now populate the absolute coordinates.
-  res.bounds = compute_bounding_rect( position, body_size );
+  struct PositionAndBounds {
+    MenuPosition position;
+    rect bounds;
+  };
+
+  vector<PositionAndBounds> const possible_positions = [&] {
+    vector<PositionAndBounds> res;
+    // 4 = # diagonal directions.
+    res.reserve( positions.positions_allowed.size() * 4 );
+    for( auto const& position_allowed :
+         positions.positions_allowed ) {
+      auto orientations = position_allowed.orientations_allowed;
+      if( orientations.empty() ) {
+        if( position_allowed.parent_side.has_value() ) {
+          switch( *position_allowed.parent_side ) {
+            case e_side::left:
+              orientations = { e_diagonal_direction::nw,
+                               e_diagonal_direction::sw,
+                               e_diagonal_direction::ne,
+                               e_diagonal_direction::se };
+              break;
+            case e_side::right:
+              orientations = { e_diagonal_direction::ne,
+                               e_diagonal_direction::se,
+                               e_diagonal_direction::nw,
+                               e_diagonal_direction::sw };
+              break;
+          }
+        } else {
+          orientations = {
+            e_diagonal_direction::nw, e_diagonal_direction::sw,
+            e_diagonal_direction::ne, e_diagonal_direction::se };
+        }
+      }
+      for( e_diagonal_direction const orientation :
+           orientations ) {
+        MenuPosition const position{
+          .where       = position_allowed.where,
+          .orientation = orientation,
+          .parent_side = position_allowed.parent_side };
+        res.push_back( PositionAndBounds{
+          .position = position,
+          .bounds =
+              compute_bounding_rect( position, body_size ) } );
+      }
+    }
+    return res;
+  }();
+  CHECK( !possible_positions.empty() );
+
+  rect const screen_rect    = main_window_logical_rect();
+  auto const fitting_bounds = [&] {
+    auto fitting = possible_positions;
+    erase_if(
+        fitting, [&]( PositionAndBounds const& bounds_rect ) {
+          return !bounds_rect.bounds.is_inside( screen_rect );
+        } );
+    return fitting;
+  }();
+
+  PositionAndBounds const& chosen_position =
+      !fitting_bounds.empty() ? fitting_bounds[0]
+                              : possible_positions[0];
+  res.position = chosen_position.position;
+  res.bounds   = chosen_position.bounds;
   for( auto& rendered_item_layout : res.items ) {
     rendered_item_layout.bounds_absolute.size =
         rendered_item_layout.bounds_relative.size;

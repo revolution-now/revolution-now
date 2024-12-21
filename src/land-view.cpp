@@ -406,6 +406,7 @@ struct LandViewPlane::Impl : public IPlane {
                 MenuElement::leaf{ .item =
                                        e_menu_item::fortify },
                 MenuElement::leaf{ .item = e_menu_item::sentry },
+                MenuElement::leaf{ .item = e_menu_item::dump },
               } },
       } };
     MenuContents const zoom_contents{
@@ -454,11 +455,11 @@ struct LandViewPlane::Impl : public IPlane {
                                    .menu = zoom_contents },
               } },
       } };
-    MenuPosition const position{ .where  = where,
-                                 .corner = e_direction::nw };
+    MenuAllowedPositions const positions{
+      .positions_allowed = { { .where = where } } };
     auto const selected_item =
         co_await ts_.planes.get().menu2.typed().open_menu(
-            contents, position );
+            contents, positions );
     if( !selected_item.has_value() ) co_return;
     lg.info( "clicked on {} in pop-up menu.", *selected_item );
     switch( *selected_item ) {

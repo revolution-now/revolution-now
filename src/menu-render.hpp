@@ -45,13 +45,16 @@ struct MenuItemRenderLayout {
 };
 
 struct MenuRenderLayout {
+  MenuPosition position;
   gfx::rect bounds;
   std::vector<MenuItemRenderLayout> items;
   std::vector<gfx::rect /*relative*/> bars;
 };
 
+// There must be at least one allowed position supplied.
 MenuRenderLayout build_menu_rendered_layout(
-    MenuContents const& contents, MenuPosition const& position );
+    MenuContents const& contents,
+    MenuAllowedPositions const& positions );
 
 /****************************************************************
 ** Menu Rendering.

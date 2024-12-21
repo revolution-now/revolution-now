@@ -67,9 +67,9 @@ Menu2Plane::Menu2Plane() : impl_( new Impl() ) {}
 
 wait<maybe<e_menu_item>> Menu2Plane::open_menu(
     MenuContents const& contents,
-    MenuPosition const& position ) {
+    MenuAllowedPositions const& positions ) {
   co_return co_await impl_->menu_threads_.open_menu( contents,
-                                                     position );
+                                                     positions );
 }
 
 } // namespace rn

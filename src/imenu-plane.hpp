@@ -30,7 +30,8 @@ struct IMenuPlane {
 
   virtual wait<maybe<e_menu_item>> open_menu(
       MenuContents const& contents ATTR_LIFETIMEBOUND,
-      MenuPosition const& position ATTR_LIFETIMEBOUND ) = 0;
+      MenuAllowedPositions const& positions
+          ATTR_LIFETIMEBOUND ) = 0;
 
   virtual IPlane& impl() = 0;
 };
