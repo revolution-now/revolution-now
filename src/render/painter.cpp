@@ -27,20 +27,17 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
-template<typename F>
-void emit_solid_quad( rect dst, F&& f ) {
-  dst            = dst.normalized();
-  int dst_left   = dst.origin.x;
-  int dst_right  = dst.origin.x + dst.size.w;
-  int dst_top    = dst.origin.y;
-  int dst_bottom = dst.origin.y + dst.size.h;
+void emit_triangle( point const p1, point const p2,
+                    point const p3, auto const& f ) {
+  f( p1 );
+  f( p2 );
+  f( p3 );
+}
 
-  f( point{ .x = dst_left, .y = dst_top } );
-  f( point{ .x = dst_left, .y = dst_bottom } );
-  f( point{ .x = dst_right, .y = dst_bottom } );
-  f( point{ .x = dst_left, .y = dst_top } );
-  f( point{ .x = dst_right, .y = dst_top } );
-  f( point{ .x = dst_right, .y = dst_bottom } );
+void emit_solid_quad( rect const dst, auto const& f ) {
+  auto const r = dst.normalized();
+  emit_triangle( r.nw(), r.sw(), r.se(), f );
+  emit_triangle( r.nw(), r.ne(), r.se(), f );
 }
 
 template<typename F>
@@ -160,6 +157,16 @@ Painter& Painter::draw_horizontal_line( point start, int length,
       [&, this]( point p ) {
         emit( SolidVertex( p, color ) );
       } );
+  return *this;
+}
+
+Painter& Painter::draw_solid_triangle( point const p1,
+                                       point const p2,
+                                       point const p3,
+                                       pixel const color ) {
+  emit_triangle( p1, p2, p3, [&]( point const p ) {
+    emit( SolidVertex( p, color ) );
+  } );
   return *this;
 }
 

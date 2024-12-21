@@ -65,6 +65,28 @@ rect get_atlas_rect( int id ) {
   return atlas_map().lookup( id );
 }
 
+TEST_CASE( "[render/painter] draw_solid_triangle" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  auto VertR = [&]( point p ) {
+    return SolidVertex( p, R ).generic();
+  };
+
+  point const p1{ .x = 1, .y = 2 };
+  point const p2{ .x = 2, .y = 3 };
+  point const p3{ .x = 3, .y = 0 };
+  painter.draw_solid_triangle( p1, p2, p3, R );
+  expected = {
+    VertR( { .x = 1, .y = 2 } ),
+    VertR( { .x = 2, .y = 3 } ),
+    VertR( { .x = 3, .y = 0 } ),
+  };
+  REQUIRE( v == expected );
+}
+
 TEST_CASE( "[render/painter] draw_solid_rect" ) {
   vector<GenericVertex> v, expected;
 

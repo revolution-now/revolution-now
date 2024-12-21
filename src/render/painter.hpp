@@ -126,6 +126,14 @@ struct Painter {
   Painter& draw_vertical_line( gfx::point start, int length,
                                gfx::pixel color );
 
+  // ...................[[ Solid Triangle ]].................. //
+
+  // NOTE: this will not respect logical pixels, so is probably
+  //       of limited usefulness.
+  Painter& draw_solid_triangle( gfx::point p1, gfx::point p2,
+                                gfx::point p3,
+                                gfx::pixel color );
+
   // .....................[[ Solid Rect ]].................... //
 
   Painter& draw_solid_rect( gfx::rect rect, gfx::pixel color );
