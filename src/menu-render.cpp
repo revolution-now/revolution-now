@@ -217,8 +217,6 @@ void render_menu_body( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
 
   static auto const text_color = config_ui.dialog_text.normal;
-  static auto const arrow_color =
-      config_ui.dialog_text.selected_background;
 
   for( auto const& item_layout : layout.items ) {
     auto const arrow_origin = [&] {
@@ -241,10 +239,6 @@ void render_menu_body( rr::Renderer& renderer,
                                   .distance_from_origin(),
                           text_color );
       typer.write( item_layout.text );
-      if( item_layout.has_arrow )
-        render_sprite_silhouette( renderer, arrow_origin,
-                                  e_tile::submenu_arrow,
-                                  text_color );
     } else {
       rr::Typer typer =
           renderer.typer( item_layout.bounds_absolute.origin +
@@ -252,11 +246,11 @@ void render_menu_body( rr::Renderer& renderer,
                                   .distance_from_origin(),
                           text_color );
       typer.write( item_layout.text );
-      if( item_layout.has_arrow )
-        render_sprite_silhouette( renderer, arrow_origin,
-                                  e_tile::submenu_arrow,
-                                  arrow_color );
     }
+    if( item_layout.has_arrow )
+      render_sprite_silhouette( renderer, arrow_origin,
+                                e_tile::submenu_arrow,
+                                text_color );
   }
 
   for( auto const& bar : layout.bars ) {
