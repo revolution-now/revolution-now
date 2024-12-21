@@ -247,6 +247,28 @@ point point::moved( e_direction d ) const {
   // clang-format on
 }
 
+point point::moved( e_cardinal_direction const d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_cardinal_direction::n:  return {.x=x,  .y=y-1};
+    case e_cardinal_direction::w:  return {.x=x-1,.y=y  };
+    case e_cardinal_direction::e:  return {.x=x+1,.y=y  };
+    case e_cardinal_direction::s:  return {.x=x,  .y=y+1};
+  };
+  // clang-format on
+}
+
+point point::moved( e_diagonal_direction const d ) const {
+  // clang-format off
+  switch( d ) {
+    case e_diagonal_direction::nw: return {.x=x-1,.y=y-1};
+    case e_diagonal_direction::ne: return {.x=x+1,.y=y-1};
+    case e_diagonal_direction::sw: return {.x=x-1,.y=y+1};
+    case e_diagonal_direction::se: return {.x=x+1,.y=y+1};
+  };
+  // clang-format on
+}
+
 point point::moved( e_cdirection d ) const {
   // clang-format off
   switch( d ) {

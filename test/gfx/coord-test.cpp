@@ -63,6 +63,15 @@ TEST_CASE( "[e_direction] reverse_direction*" ) {
            e_direction::w );
   REQUIRE( reverse_direction( e_direction::s ) ==
            e_direction::n );
+
+  REQUIRE( reverse_direction( e_diagonal_direction::nw ) ==
+           e_diagonal_direction::se );
+  REQUIRE( reverse_direction( e_diagonal_direction::ne ) ==
+           e_diagonal_direction::sw );
+  REQUIRE( reverse_direction( e_diagonal_direction::sw ) ==
+           e_diagonal_direction::ne );
+  REQUIRE( reverse_direction( e_diagonal_direction::se ) ==
+           e_diagonal_direction::nw );
 }
 
 TEST_CASE( "[e_direction] to_diagonal*" ) {

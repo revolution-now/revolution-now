@@ -173,6 +173,8 @@ struct point {
 
   [[nodiscard]] point moved( e_direction d ) const;
   [[nodiscard]] point moved( e_cdirection cd ) const;
+  [[nodiscard]] point moved( e_cardinal_direction d ) const;
+  [[nodiscard]] point moved( e_diagonal_direction d ) const;
 };
 
 /****************************************************************

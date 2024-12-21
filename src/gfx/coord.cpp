@@ -194,6 +194,20 @@ base::maybe<e_diagonal_direction> to_diagonal( e_direction d ) {
   }
 }
 
+e_diagonal_direction reverse_direction(
+    e_diagonal_direction const d ) {
+  switch( d ) {
+    case e_diagonal_direction::nw:
+      return e_diagonal_direction::se;
+    case e_diagonal_direction::ne:
+      return e_diagonal_direction::sw;
+    case e_diagonal_direction::se:
+      return e_diagonal_direction::nw;
+    case e_diagonal_direction::sw:
+      return e_diagonal_direction::ne;
+  }
+}
+
 /****************************************************************
 ** Rect
 *****************************************************************/
