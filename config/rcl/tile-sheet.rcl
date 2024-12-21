@@ -799,32 +799,7 @@ sheets {
       img_path: assets/art/tiles/menu.png
       sprite_size: { w: 8, h: 8 }
       sprites {
-        menu_top_left:       { y: 0, x: 0 }
-        menu_body:           { y: 0, x: 1 }
-        menu_top:            { y: 0, x: 2 }
-        menu_left:           { y: 0, x: 3 }
-        menu_bottom:         { y: 0, x: 4 }
-        menu_bottom_left:    { y: 0, x: 5 }
-        menu_right:          { y: 0, x: 6 }
-        menu_top_right:      { y: 0, x: 7 }
-        menu_bottom_right:   { y: 0, x: 8 }
-      }
-    }
-    {
-      img_path: assets/art/tiles/menu16.png
-      sprite_size: { w: 16, h: 16 }
-      sprites {
-        menu_bar_0: { y: 0, x: 0 }
-        menu_bar_1: { y: 0, x: 1 }
-        menu_bar_2: { y: 0, x: 2 }
-      }
-    }
-    {
-      img_path: assets/art/tiles/menu-sel.png
-      sprite_size: { w: 128, h: 16 }
-      sprites {
-        menu_item_sel_back: { y: 0, x: 0 }
-        menu_hdr_sel_back:  { y: 1, x: 0 }
+        submenu_arrow:       { y: 0, x: 0 }
       }
     }
     {

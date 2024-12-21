@@ -645,22 +645,7 @@ enum.e_tile {
   # =============================================================
   # Menu
   # =============================================================
-  menu_top_left,
-  menu_body,
-  menu_top,
-  menu_left,
-  menu_bottom,
-  menu_bottom_left,
-  menu_right,
-  menu_top_right,
-  menu_bottom_right,
-
-  menu_item_sel_back,
-  menu_hdr_sel_back,
-
-  menu_bar_0,
-  menu_bar_1,
-  menu_bar_2,
+  submenu_arrow,
 
   # =============================================================
   # Buttons
