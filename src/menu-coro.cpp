@@ -435,7 +435,8 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_button_event.pos.is_inside( bounds ) ) {
-                if( enabled( item_layout ) ) break;
+                if( !enabled( menu.contents, item_layout ) )
+                  break;
                 sink.send( MenuEvent::click{} );
                 break;
               }
