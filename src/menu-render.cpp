@@ -11,7 +11,6 @@
 #include "menu-render.hpp"
 
 // Revolution Now
-#include "imenu-server.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -44,6 +43,7 @@ namespace rn {
 
 namespace {
 
+using ::base::function_ref;
 using ::gfx::e_side;
 using ::gfx::pixel;
 using ::gfx::point;
@@ -250,10 +250,10 @@ static void render_divider( rr::Renderer& renderer,
       width / 3 - 5, config_ui.window.border_lighter );
 }
 
-void render_menu_body( rr::Renderer& renderer,
-                       MenuAnimState const& anim_state,
-                       MenuRenderLayout const& layout,
-                       IMenuServer const& menu_plane ) {
+void render_menu_body(
+    rr::Renderer& renderer, MenuAnimState const& anim_state,
+    MenuRenderLayout const& layout,
+    function_ref<ItemEnabledFn> const enabled_fn ) {
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, anim_state.alpha )
   rect const body = layout.bounds;
 
@@ -272,8 +272,7 @@ void render_menu_body( rr::Renderer& renderer,
   for( auto const& item_layout : layout.items ) {
     auto const text_color = [&] {
       if( item_layout.item.has_value() )
-        return menu_plane.can_handle_menu_click(
-                   *item_layout.item )
+        return enabled_fn( item_layout )
                    ? config_ui.dialog_text.normal
                    : config_ui.dialog_text.disabled;
       else

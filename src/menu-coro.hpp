@@ -52,6 +52,7 @@ struct MenuThreads {
       MenuContents const contents,
       MenuAllowedPositions const positions );
 
+  MenuContents const& menu_contents( int menu_id ) const;
   MenuAnimState const& anim_state( int menu_id ) const;
   MenuRenderLayout const& render_layout( int menu_id ) const;
 
@@ -60,6 +61,12 @@ struct MenuThreads {
   auto open_menu_ids() const {
     return base::rl::all( open_ ).keys();
   }
+
+  bool enabled( MenuContents const& contents,
+                e_menu_item item ) const;
+
+  bool enabled( MenuContents const& contents,
+                MenuItemRenderLayout const& item ) const;
 
  private:
   struct OpenMenu;
@@ -77,10 +84,6 @@ struct MenuThreads {
 
   static wait<> animate_click( MenuAnimState& render_state,
                                std::string const& text );
-
-  // For convenience.
-  bool enabled( e_menu_item item ) const;
-  bool enabled( MenuItemRenderLayout const& item ) const;
 
   // This really should be const because otherwise it'd be pos-
   // sible to circumvent constness in this class, since we could

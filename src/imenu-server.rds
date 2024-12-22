@@ -64,4 +64,10 @@ struct.MenuItemGroup {
 
 struct.MenuContents {
   groups 'std::vector<MenuItemGroup>',
+  # By default all menu items are enabled, since an open menu
+  # won't actually try to handle an item that is clicked on; it
+  # just returns it. Thus the caller might want to handle the
+  # menu click on their own instead of using the IPlane mecha-
+  # nism, in which case this can be set to true.
+  force_enable_all 'bool',
 }

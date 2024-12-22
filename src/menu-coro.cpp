@@ -129,12 +129,14 @@ struct MenuThreads::OpenMenu {
   // Need to make this a member function as opposed to a lambda
   // for lifetime reasons.
   wait<> hover_timer_thread() {
-      co_await 300ms;
-      events.send( MenuEvent::hover{} );
+    co_await 300ms;
+    events.send( MenuEvent::hover{} );
   }
 
   void set_hover_timer() {
     hover_timer.reset();
+    // Need to make this a member function as opposed to a lambda
+    // for lifetime reasons.
     hover_timer = hover_timer_thread();
   }
 
@@ -201,6 +203,13 @@ MenuThreads::MenuThreads( IMenuServer const& menu_server )
 
 MenuThreads::~MenuThreads() = default;
 
+MenuContents const& MenuThreads::menu_contents(
+    int const menu_id ) const {
+  auto const it = open_.find( menu_id );
+  CHECK( it != open_.end() );
+  return it->second.get().contents;
+}
+
 MenuAnimState const& MenuThreads::anim_state(
     int const menu_id ) const {
   auto const it = open_.find( menu_id );
@@ -217,14 +226,17 @@ MenuRenderLayout const& MenuThreads::render_layout(
 
 int MenuThreads::open_count() const { return open_.size(); }
 
-bool MenuThreads::enabled( e_menu_item const item ) const {
+bool MenuThreads::enabled( MenuContents const& contents,
+                           e_menu_item const item ) const {
+  if( contents.force_enable_all ) return true;
   return menu_server_.can_handle_menu_click( item );
 }
 
 bool MenuThreads::enabled(
+    MenuContents const& contents,
     MenuItemRenderLayout const& layout ) const {
   if( !layout.item.has_value() ) return true;
-  return menu_server_.can_handle_menu_click( *layout.item );
+  return enabled( contents, *layout.item );
 }
 
 int MenuThreads::next_menu_id() {
@@ -315,7 +327,7 @@ void MenuThreads::handle_key_event(
   if( key_event.change != input::e_key_change::down ) return;
   auto const enabled_fn =
       [&]( MenuItemRenderLayout const& layout ) {
-        return enabled( layout );
+        return enabled( open_menu.contents, layout );
       };
   switch( key_event.keycode ) {
     case ::SDLK_KP_8:
@@ -421,7 +433,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_move_event.pos.is_inside( bounds ) ) {
-                if( enabled( item_layout ) )
+                if( enabled( menu.contents, item_layout ) )
                   sink.send( MenuEvent::over{
                     .text = item_layout.text } );
                 else

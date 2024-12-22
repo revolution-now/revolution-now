@@ -11,6 +11,7 @@
 #include "menu-plane.hpp"
 
 // Revolution Now
+#include "logger.hpp"
 #include "menu-coro.hpp"
 #include "menu-render.hpp"
 #include "plane.hpp"
@@ -20,6 +21,7 @@
 
 // refl
 #include "refl/enum-map.hpp"
+#include "refl/to-str.hpp"
 
 // C++ standard library
 #include <stack>
@@ -58,12 +60,19 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
 
   void draw( rr::Renderer& renderer ) const override {
     for( int const menu_id : menu_threads_.open_menu_ids() ) {
+      auto const& contents =
+          menu_threads_.menu_contents( menu_id );
       auto const& anim_state =
           menu_threads_.anim_state( menu_id );
       auto const& render_layout =
           menu_threads_.render_layout( menu_id );
+      auto const enabled_fn =
+          [&]( MenuItemRenderLayout const& item_layout ) {
+            return menu_threads_.enabled( contents,
+                                          item_layout );
+          };
       render_menu_body( renderer, anim_state, render_layout,
-                        *this );
+                        enabled_fn );
     }
   }
 
@@ -114,6 +123,7 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
       // causes the item to not have a handler anymore. Returns
       // true if the click was actually made.
       return false;
+    lg.info( "clicked on menu item {}.", item );
     // The above function should have checked that we can do the
     // following safely.
     handlers_[item].top()->handle_menu_click( item );

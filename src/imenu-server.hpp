@@ -35,6 +35,10 @@ struct IMenuServer {
   virtual bool can_handle_menu_click(
       e_menu_item item ) const = 0;
 
+  // This will send the menu click event to be handled through
+  // the IPlane interface, namely any planes that have registered
+  // to listen and respond to this menu item.
+  //
   // It is ok to call this on a menu item for which there is no
   // handler, even though it is not expected that will happen.
   // That is just to allow scenarios such as where the user

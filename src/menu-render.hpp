@@ -14,13 +14,14 @@
 #include "imenu-server.rds.hpp"
 #include "maybe.hpp"
 
+// base
+#include "base/function-ref.hpp"
+
 namespace rr {
 struct Renderer;
 }
 
 namespace rn {
-
-struct IMenuServer;
 
 enum class e_menu_item;
 
@@ -63,9 +64,11 @@ MenuRenderLayout build_menu_rendered_layout(
 /****************************************************************
 ** Menu Rendering.
 *****************************************************************/
-void render_menu_body( rr::Renderer& renderer,
-                       MenuAnimState const& state,
-                       MenuRenderLayout const& layout,
-                       IMenuServer const& menu_plane );
+using ItemEnabledFn = bool( MenuItemRenderLayout const& ) const;
+
+void render_menu_body(
+    rr::Renderer& renderer, MenuAnimState const& state,
+    MenuRenderLayout const& layout,
+    base::function_ref<ItemEnabledFn> const enabled_fn );
 
 } // namespace rn
