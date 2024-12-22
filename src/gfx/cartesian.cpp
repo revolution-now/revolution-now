@@ -65,6 +65,204 @@ R rect_clamped( R const src, R const bounds ) {
 } // namespace
 
 /****************************************************************
+** e_side
+*****************************************************************/
+e_side reverse( e_side const s ) {
+  switch( s ) {
+    case e_side::right:
+      return e_side::left;
+    case e_side::left:
+      return e_side::right;
+  }
+}
+
+/****************************************************************
+** e_direction
+*****************************************************************/
+e_direction_type direction_type( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+    case e_direction::ne:
+    case e_direction::sw:
+    case e_direction::se:
+      return e_direction_type::diagonal;
+    case e_direction::n:
+    case e_direction::w:
+    case e_direction::e:
+    case e_direction::s:
+      return e_direction_type::cardinal;
+  }
+}
+
+e_direction reverse_direction( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+      return e_direction::se;
+    case e_direction::ne:
+      return e_direction::sw;
+    case e_direction::sw:
+      return e_direction::ne;
+    case e_direction::se:
+      return e_direction::nw;
+    case e_direction::n:
+      return e_direction::s;
+    case e_direction::w:
+      return e_direction::e;
+    case e_direction::e:
+      return e_direction::w;
+    case e_direction::s:
+      return e_direction::n;
+  }
+}
+
+/****************************************************************
+** e_cdirection
+*****************************************************************/
+base::maybe<e_direction> to_direction( e_cdirection cd ) {
+  base::maybe<e_direction> res;
+  switch( cd ) {
+    case e_cdirection::nw:
+      res = e_direction::nw;
+      break;
+    case e_cdirection::ne:
+      res = e_direction::ne;
+      break;
+    case e_cdirection::sw:
+      res = e_direction::sw;
+      break;
+    case e_cdirection::se:
+      res = e_direction::se;
+      break;
+    case e_cdirection::n:
+      res = e_direction::n;
+      break;
+    case e_cdirection::w:
+      res = e_direction::w;
+      break;
+    case e_cdirection::e:
+      res = e_direction::e;
+      break;
+    case e_cdirection::s:
+      res = e_direction::s;
+      break;
+    case e_cdirection::c:
+      break;
+  }
+  return res;
+}
+
+e_cdirection to_cdirection( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+      return e_cdirection::nw;
+    case e_direction::ne:
+      return e_cdirection::ne;
+    case e_direction::sw:
+      return e_cdirection::sw;
+    case e_direction::se:
+      return e_cdirection::se;
+    case e_direction::n:
+      return e_cdirection::n;
+    case e_direction::w:
+      return e_cdirection::w;
+    case e_direction::e:
+      return e_cdirection::e;
+    case e_direction::s:
+      return e_cdirection::s;
+  }
+}
+
+/****************************************************************
+** e_cardinal_direction
+*****************************************************************/
+e_direction to_direction( e_cardinal_direction d ) {
+  switch( d ) {
+    case e_cardinal_direction::n:
+      return e_direction::n;
+    case e_cardinal_direction::w:
+      return e_direction::w;
+    case e_cardinal_direction::e:
+      return e_direction::e;
+    case e_cardinal_direction::s:
+      return e_direction::s;
+  }
+}
+
+e_cdirection to_cdirection( e_cardinal_direction d ) {
+  switch( d ) {
+    case e_cardinal_direction::n:
+      return e_cdirection::n;
+    case e_cardinal_direction::w:
+      return e_cdirection::w;
+    case e_cardinal_direction::e:
+      return e_cdirection::e;
+    case e_cardinal_direction::s:
+      return e_cdirection::s;
+  }
+}
+
+/****************************************************************
+** e_diagonal_direction
+*****************************************************************/
+e_direction to_direction( e_diagonal_direction d ) {
+  switch( d ) {
+    case e_diagonal_direction::nw:
+      return e_direction::nw;
+    case e_diagonal_direction::ne:
+      return e_direction::ne;
+    case e_diagonal_direction::se:
+      return e_direction::se;
+    case e_diagonal_direction::sw:
+      return e_direction::sw;
+  }
+}
+
+base::maybe<e_diagonal_direction> to_diagonal( e_direction d ) {
+  switch( d ) {
+    case e_direction::nw:
+      return e_diagonal_direction::nw;
+    case e_direction::ne:
+      return e_diagonal_direction::ne;
+    case e_direction::sw:
+      return e_diagonal_direction::sw;
+    case e_direction::se:
+      return e_diagonal_direction::se;
+    case e_direction::n:
+    case e_direction::w:
+    case e_direction::e:
+    case e_direction::s:
+      return base::nothing;
+  }
+}
+
+e_diagonal_direction reverse_direction(
+    e_diagonal_direction const d ) {
+  switch( d ) {
+    case e_diagonal_direction::nw:
+      return e_diagonal_direction::se;
+    case e_diagonal_direction::ne:
+      return e_diagonal_direction::sw;
+    case e_diagonal_direction::se:
+      return e_diagonal_direction::nw;
+    case e_diagonal_direction::sw:
+      return e_diagonal_direction::ne;
+  }
+}
+
+e_side side_for( e_diagonal_direction const d ) {
+  switch( d ) {
+    case e_diagonal_direction::nw:
+      return e_side::left;
+    case e_diagonal_direction::ne:
+      return e_side::right;
+    case e_diagonal_direction::se:
+      return e_side::right;
+    case e_diagonal_direction::sw:
+      return e_side::left;
+  }
+}
+
+/****************************************************************
 ** size
 *****************************************************************/
 size size::max_with( size const rhs ) const {
@@ -410,6 +608,19 @@ point rect::sw() const {
   rect norm = normalized();
   return point{ .x = norm.origin.x,
                 .y = norm.origin.y + norm.size.h };
+}
+
+point rect::corner( e_diagonal_direction const d ) const {
+  switch( d ) {
+    case gfx::e_diagonal_direction::nw:
+      return nw();
+    case gfx::e_diagonal_direction::ne:
+      return ne();
+    case gfx::e_diagonal_direction::sw:
+      return sw();
+    case gfx::e_diagonal_direction::se:
+      return se();
+  }
 }
 
 int rect::top() const {

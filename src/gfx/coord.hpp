@@ -53,36 +53,6 @@ struct Delta;
 struct Rect;
 
 /****************************************************************
-** e_direction
-*****************************************************************/
-e_direction_type direction_type( e_direction d );
-
-e_direction reverse_direction( e_direction d );
-
-/****************************************************************
-** e_cdirection
-*****************************************************************/
-base::maybe<e_direction> to_direction( e_cdirection cd );
-
-e_cdirection to_cdirection( e_direction d );
-
-/****************************************************************
-** e_cardinal_direction
-*****************************************************************/
-e_direction to_direction( e_cardinal_direction d );
-
-e_cdirection to_cdirection( e_cardinal_direction d );
-
-/****************************************************************
-** e_diagonal_direction
-*****************************************************************/
-e_direction to_direction( e_diagonal_direction d );
-
-base::maybe<e_diagonal_direction> to_diagonal( e_direction d );
-
-e_diagonal_direction reverse_direction( e_diagonal_direction d );
-
-/****************************************************************
 ** Delta
 *****************************************************************/
 struct Delta {
