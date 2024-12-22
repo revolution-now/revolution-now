@@ -123,6 +123,60 @@ struct MenuThreads::OpenMenu {
       events.send( MenuEvent::hover{} );
     }();
   }
+
+  MenuAllowedPositions prioritized_submenu_positions(
+      MenuItemRenderLayout const& layout ) const {
+    auto const submenu_position =
+        [&]( e_diagonal_direction const parent,
+             e_diagonal_direction const child ) {
+          return MenuAllowedPosition{
+            .where =
+                layout.bounds_absolute.corner( parent ).with_x(
+                    render_layout.bounds.corner( parent ).x ),
+            .orientations_allowed = { child },
+            .parent_side = reverse( side_for( parent ) ) };
+        };
+    // Sub-menu positions relative to the rect of the row that is
+    // currently being selected. So e.g. (ne,nw) here means that
+    // the origin of the submenu will be placed on the ne corner
+    // of the row rect (adjusted for the outter menu border) and
+    // the orientation will be "nw", meaning that the nw corner
+    // of the submenu will be at that point.
+    //
+    // Note that "overlapping" below means that the child menu
+    // will be on top of the parent menu, thus those configura-
+    // tions are given less priority.
+    switch( render_layout.position.parent_side.value_or(
+        e_side::left ) ) {
+      using enum e_diagonal_direction;
+      case e_side::right:
+        return MenuAllowedPositions{
+          .positions_allowed = {
+            submenu_position( nw, ne ),
+            submenu_position( sw, se ),
+            submenu_position( ne, nw ),
+            submenu_position( se, sw ),
+            // Overlapping.
+            submenu_position( nw, nw ),
+            submenu_position( sw, sw ),
+            submenu_position( ne, ne ),
+            submenu_position( se, se ),
+          } };
+      case e_side::left:
+        return MenuAllowedPositions{
+          .positions_allowed = {
+            submenu_position( ne, nw ),
+            submenu_position( se, sw ),
+            submenu_position( nw, ne ),
+            submenu_position( sw, se ),
+            // Overlapping.
+            submenu_position( ne, ne ),
+            submenu_position( se, se ),
+            submenu_position( nw, nw ),
+            submenu_position( sw, sw ),
+          } };
+    }
+  }
 };
 
 /****************************************************************
@@ -494,51 +548,9 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
             co_return leaf.item;
           }
           CASE( node ) {
-            // Need these edges so that we don't step on the
-            // border around the outter edge of the menu.
-            int const right_menu_edge =
-                om.render_layout.bounds.right();
-            int const left_menu_edge =
-                om.render_layout.bounds.left();
-            // Sub-menu positions relative to the rect of the row
-            // that is currently being selected. So "ne" here
-            // means that the origin of the submenu will be
-            // placed on the ne corner of the row rect (adjusted
-            // for the outter menu border).
-            MenuAllowedPosition const submenu_position_ne{
-              .where = layout->bounds_absolute.ne().with_x(
-                  right_menu_edge ),
-              .orientations_allowed =
-                  { e_diagonal_direction::nw,
-                    e_diagonal_direction::ne },
-              .parent_side = e_side::left };
-            MenuAllowedPosition const submenu_position_nw{
-              .where = layout->bounds_absolute.nw().with_x(
-                  left_menu_edge ),
-              .orientations_allowed =
-                  { e_diagonal_direction::ne,
-                    e_diagonal_direction::nw },
-              .parent_side = e_side::right };
-            MenuAllowedPosition const submenu_position_se{
-              .where = layout->bounds_absolute.se().with_x(
-                  right_menu_edge ),
-              .orientations_allowed =
-                  { e_diagonal_direction::sw,
-                    e_diagonal_direction::se },
-              .parent_side = e_side::left };
-            MenuAllowedPosition const submenu_position_sw{
-              .where = layout->bounds_absolute.sw().with_x(
-                  left_menu_edge ),
-              .orientations_allowed =
-                  { e_diagonal_direction::se,
-                    e_diagonal_direction::sw },
-              .parent_side = e_side::right };
-            MenuAllowedPositions const submenu_positions{
-              .positions_allowed = {
-                submenu_position_ne, submenu_position_se,
-                submenu_position_nw, submenu_position_sw } };
             sub_menu_thread = sub_menu_opener(
-                sub_menu_stream, node.menu, submenu_positions );
+                sub_menu_stream, node.menu,
+                om.prioritized_submenu_positions( *layout ) );
             break;
           }
         }

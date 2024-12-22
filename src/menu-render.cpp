@@ -169,28 +169,14 @@ MenuRenderLayout build_menu_rendered_layout(
     for( auto const& position_allowed :
          positions.positions_allowed ) {
       auto orientations = position_allowed.orientations_allowed;
-      if( orientations.empty() ) {
-        if( position_allowed.parent_side.has_value() ) {
-          switch( *position_allowed.parent_side ) {
-            case e_side::left:
-              orientations = { e_diagonal_direction::nw,
-                               e_diagonal_direction::sw,
-                               e_diagonal_direction::ne,
-                               e_diagonal_direction::se };
-              break;
-            case e_side::right:
-              orientations = { e_diagonal_direction::ne,
-                               e_diagonal_direction::se,
-                               e_diagonal_direction::nw,
-                               e_diagonal_direction::sw };
-              break;
-          }
-        } else {
-          orientations = {
-            e_diagonal_direction::nw, e_diagonal_direction::sw,
-            e_diagonal_direction::ne, e_diagonal_direction::se };
-        }
-      }
+      if( orientations.empty() )
+        // Note that we could make use of the parent_side prop-
+        // erty to make a more informed guess here about which
+        // order to choose, but it's not expected that orienta-
+        // tions won't be provided for submenus.
+        orientations = {
+          e_diagonal_direction::nw, e_diagonal_direction::sw,
+          e_diagonal_direction::ne, e_diagonal_direction::se };
       for( e_diagonal_direction const orientation :
            orientations ) {
         MenuPosition const position{
