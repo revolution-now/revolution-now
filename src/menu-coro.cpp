@@ -16,6 +16,7 @@
 // Revolution Now
 #include "co-time.hpp"
 #include "co-wait.hpp"
+#include "imenu-server.hpp"
 #include "input.hpp"
 #include "menu-render.hpp"
 #include "throttler.hpp"
@@ -31,6 +32,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/function-ref.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
@@ -47,6 +49,7 @@ namespace rn {
 
 namespace {
 
+using ::base::function_ref;
 using ::gfx::e_side;
 using ::gfx::point;
 
@@ -64,7 +67,8 @@ struct MenuThreads::OpenMenu {
   co::stream<MenuEvent> events;
   maybe<wait<>> hover_timer;
 
-  maybe<MenuItemRenderLayout const&> layout_for_selected() {
+  maybe<MenuItemRenderLayout const&> layout_for_selected()
+      const {
     if( !anim_state.highlighted.has_value() ) return nothing;
     for( auto const& item_layout : render_layout.items )
       if( *anim_state.highlighted == item_layout.text )
@@ -85,35 +89,41 @@ struct MenuThreads::OpenMenu {
     return nothing;
   }
 
-  void cycle_highlight( auto const rng ) {
-    auto const maybe_selected = layout_for_selected().member(
-        &MenuItemRenderLayout::text );
-    auto it = [&] {
-      if( maybe_selected.has_value() ) {
-        auto it = ranges::find_if(
-            rng, [&]( auto const& item_layout ) {
-              return item_layout.text == *maybe_selected;
-            } );
-        CHECK( it != rng.end() );
-        ++it;
-        return it;
-      } else {
-        return rng.begin();
-      }
-    }();
-    if( it == rng.end() ) it = rng.begin();
-    events.send( MenuEvent::highlight{ .text = it->text } );
+  using EnabledFn = bool( MenuItemRenderLayout const& ) const;
+
+  void cycle_highlight(
+      ranges::view auto const rng,
+      function_ref<EnabledFn> const enabled_fn ) {
+    if( rng.empty() ) return;
+
+    auto const current =
+        layout_for_selected()
+            .member( &MenuItemRenderLayout::text )
+            .value_or( ( rng.end() - 1 )->text );
+
+    auto const next =
+        rl::all( rng )
+            .cycle()
+            .drop_while_L( _.text != current )
+            .drop( 1 )          // drop current.
+            .take( rng.size() ) // prevent infinite loops.
+            .remove_if_L( !enabled_fn( _ ) )
+            .head();
+
+    if( next.has_value() )
+      events.send( MenuEvent::highlight{ .text = next->text } );
   }
 
-  void highlight_next() {
-    if( render_layout.items.empty() ) return;
-    cycle_highlight( ranges::views::all( render_layout.items ) );
+  void highlight_next(
+      function_ref<EnabledFn> const enabled_fn ) {
+    cycle_highlight( views::all( render_layout.items ),
+                     enabled_fn );
   }
 
-  void highlight_previous() {
-    if( render_layout.items.empty() ) return;
-    cycle_highlight(
-        ranges::views::reverse( render_layout.items ) );
+  void highlight_previous(
+      function_ref<EnabledFn> const enabled_fn ) {
+    cycle_highlight( views::reverse( render_layout.items ),
+                     enabled_fn );
   }
 
   void set_hover_timer() {
@@ -182,7 +192,8 @@ struct MenuThreads::OpenMenu {
 /****************************************************************
 ** MenuThreads
 *****************************************************************/
-MenuThreads::MenuThreads() = default;
+MenuThreads::MenuThreads( IMenuServer const& menu_server )
+  : menu_server_( menu_server ) {}
 
 MenuThreads::~MenuThreads() = default;
 
@@ -201,6 +212,16 @@ MenuRenderLayout const& MenuThreads::render_layout(
 }
 
 int MenuThreads::open_count() const { return open_.size(); }
+
+bool MenuThreads::enabled( e_menu_item const item ) const {
+  return menu_server_.can_handle_menu_click( item );
+}
+
+bool MenuThreads::enabled(
+    MenuItemRenderLayout const& layout ) const {
+  if( !layout.item.has_value() ) return true;
+  return menu_server_.can_handle_menu_click( *layout.item );
+}
 
 int MenuThreads::next_menu_id() {
   int const menu_id = next_menu_id_++;
@@ -239,7 +260,7 @@ void MenuThreads::route_raw_input_thread(
             case ::SDLK_ESCAPE:
               route_raw_input_thread(
                   MenuEventRaw::close_all{} );
-              break;
+              return;
             default:
               break;
           }
@@ -288,14 +309,18 @@ void MenuThreads::route_raw_input_thread(
 void MenuThreads::handle_key_event(
     OpenMenu& open_menu, input::key_event_t const& key_event ) {
   if( key_event.change != input::e_key_change::down ) return;
+  auto const enabled_fn =
+      [&]( MenuItemRenderLayout const& layout ) {
+        return enabled( layout );
+      };
   switch( key_event.keycode ) {
     case ::SDLK_KP_8:
     case ::SDLK_UP:
-      open_menu.highlight_previous();
+      open_menu.highlight_previous( enabled_fn );
       break;
     case ::SDLK_KP_2:
     case ::SDLK_DOWN:
-      open_menu.highlight_next();
+      open_menu.highlight_next( enabled_fn );
       break;
     case ::SDLK_KP_5:
     case ::SDLK_KP_ENTER:
@@ -325,7 +350,7 @@ void MenuThreads::handle_key_event(
         case e_side::right: {
           auto const selected = open_menu.layout_for_selected();
           if( !selected.has_value() ) {
-            open_menu.highlight_next();
+            open_menu.highlight_next( enabled_fn );
             break;
           }
           if( selected->has_arrow != true ) break;
@@ -350,7 +375,7 @@ void MenuThreads::handle_key_event(
         case e_side::left: {
           auto const selected = open_menu.layout_for_selected();
           if( !selected.has_value() ) {
-            open_menu.highlight_next();
+            open_menu.highlight_next( enabled_fn );
             break;
           }
           if( selected->has_arrow != true ) break;
@@ -392,8 +417,11 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_move_event.pos.is_inside( bounds ) ) {
-                sink.send( MenuEvent::over{
-                  .text = item_layout.text } );
+                if( enabled( item_layout ) )
+                  sink.send( MenuEvent::over{
+                    .text = item_layout.text } );
+                else
+                  sink.send( MenuEvent::deselect{} );
                 break;
               }
             }
@@ -403,6 +431,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_button_event.pos.is_inside( bounds ) ) {
+                if( enabled( item_layout ) ) break;
                 sink.send( MenuEvent::click{} );
                 break;
               }
@@ -503,12 +532,26 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
     }
     SWITCH( event ) {
       CASE( close ) { co_return nothing; }
+      CASE( deselect ) {
+        // Note that although we deselect, we don't close
+        // sub-menus here. This is because it might make it
+        // harder for the user to move the mouse over into the
+        // sub-menu if we close it here, which would happen if
+        // their mouse accidentally touched an adjacent disabled
+        // item while trying to move the mouse into the sub-menu.
+        om.anim_state.highlighted = nothing;
+        break;
+      }
       CASE( hover ) {
         om.hover_timer.reset();
         auto const layout = om.layout_for_selected();
         if( !layout.has_value() ) break;
         if( layout->has_arrow )
           om.events.send( MenuEvent::click{} );
+        else
+          // It seems to produce a good user experience to close
+          // any submenus if the selection lingers on a leaf.
+          sub_menu_thread.reset();
         break;
       }
       CASE( highlight ) {

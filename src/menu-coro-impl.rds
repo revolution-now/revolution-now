@@ -30,6 +30,11 @@ sumtype.MenuEvent {
   # certain item for a certain period of time.
   hover {},
 
+  # Sent to the menu to tell it to de-highlight any item that
+  # might be highlighted. This is used when we are mousing over
+  # disabled items.
+  deselect {},
+
   # Click, fire the action, and close the menu.
   click {},
 }

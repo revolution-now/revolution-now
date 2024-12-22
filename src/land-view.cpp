@@ -183,6 +183,8 @@ struct LandViewPlane::Impl : public IPlane {
         e_menu_item::find_blinking_unit, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::sentry, *this ) );
+    dereg2.push_back( menu_server.register_handler(
+        e_menu_item::sentry, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::fortify, *this ) );
     dereg2.push_back( menu_server.register_handler(

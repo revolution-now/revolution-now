@@ -30,8 +30,10 @@
 
 namespace rn {
 
+struct IMenuServer;
 struct MenuAnimState;
 struct MenuRenderLayout;
+struct MenuItemRenderLayout;
 
 enum class e_menu_item;
 
@@ -39,7 +41,7 @@ enum class e_menu_item;
 ** MenuThreads
 *****************************************************************/
 struct MenuThreads {
-  MenuThreads();
+  MenuThreads( IMenuServer const& menu_server );
   ~MenuThreads();
 
   int open_count() const;
@@ -76,6 +78,16 @@ struct MenuThreads {
   static wait<> animate_click( MenuAnimState& render_state,
                                std::string const& text );
 
+  // For convenience.
+  bool enabled( e_menu_item item ) const;
+  bool enabled( MenuItemRenderLayout const& item ) const;
+
+  // This really should be const because otherwise it'd be pos-
+  // sible to circumvent constness in this class, since we could
+  // call a non-const method on the menu server (which owns this
+  // MenuThreads object) which could then call a non-const method
+  // on us.
+  IMenuServer const& menu_server_;
   int next_menu_id_ = 1;
   std::map<int, base::heap_value<OpenMenu>> open_;
 };

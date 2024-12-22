@@ -42,6 +42,8 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
   MenuThreads menu_threads_;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
 
+  Impl() : menu_threads_( *this ) {}
+
   IPlane& impl() override { return *this; }
 
   wait<maybe<e_menu_item>> open_menu(
