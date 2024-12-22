@@ -15,11 +15,24 @@
 #include "menu-render.hpp"
 #include "plane.hpp"
 
+// config
+#include "config/menu-items.rds.hpp"
+
+// refl
+#include "refl/enum-map.hpp"
+
+// C++ standard library
+#include <stack>
+
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::refl::enum_map;
+
+} // namespace
 
 /****************************************************************
 ** Menu2Plane::Impl
@@ -53,7 +66,42 @@ struct Menu2Plane::Impl : IPlane {
     return e_accept_drag::motion;
   }
 
+  void register_handler( e_menu_item item, IPlane& plane ) {
+    handlers_[item].push( &plane );
+  }
+
+  void unregister_handler( e_menu_item item, IPlane& plane ) {
+    CHECK( !handlers_[item].empty() );
+    CHECK( handlers_[item].top() == &plane );
+    handlers_[item].pop();
+  }
+
+  bool can_handle_menu_click( e_menu_item const item ) const {
+    auto const& st = handlers_[item];
+    if( st.empty() ) return false;
+    CHECK( st.top() != nullptr );
+    IPlane& plane = *st.top();
+    return plane.will_handle_menu_click( item );
+  }
+
+  bool click_item( e_menu_item const item ) {
+    if( !can_handle_menu_click( item ) )
+      // It is ok to call this on a menu item for which there is
+      // no handler, even though it is not expected that will
+      // happen. That is just to allow scenarios such as where
+      // the user clicks an item and then while the click anima-
+      // tion is running, something changes in another plane that
+      // causes the item to not have a handler anymore. Returns
+      // true if the click was actually made.
+      return false;
+    // The above function should have checked that we can do the
+    // following safely.
+    handlers_[item].top()->handle_menu_click( item );
+    return true;
+  }
+
   MenuThreads menu_threads_;
+  enum_map<e_menu_item, stack<IPlane*>> handlers_;
 };
 
 /****************************************************************
@@ -70,6 +118,26 @@ wait<maybe<e_menu_item>> Menu2Plane::open_menu(
     MenuAllowedPositions const& positions ) {
   co_return co_await impl_->menu_threads_.open_menu( contents,
                                                      positions );
+}
+
+Menu2Plane::Deregistrar Menu2Plane::register_handler(
+    e_menu_item const item, IPlane& plane ) {
+  impl_->register_handler( item, plane );
+  return Deregistrar( *this, plane, item );
+}
+
+void Menu2Plane::unregister_handler( e_menu_item const item,
+                                     IPlane& plane ) {
+  impl_->unregister_handler( item, plane );
+}
+
+bool Menu2Plane::can_handle_menu_click(
+    e_menu_item const item ) const {
+  return impl_->can_handle_menu_click( item );
+}
+
+bool Menu2Plane::click_item( e_menu_item const item ) {
+  return impl_->click_item( item );
 }
 
 } // namespace rn
