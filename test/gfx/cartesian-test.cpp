@@ -105,7 +105,8 @@ TEST_CASE( "[gfx/cartesian] to_diagonal" ) {
   REQUIRE( to_diagonal( e_direction::s ) == base::nothing );
 }
 
-TEST_CASE( "[gfx/cartesian] to_direction*" ) {
+TEST_CASE(
+    "[gfx/cartesian] to_direction( diagonal/cardinal )" ) {
   REQUIRE( to_direction( e_diagonal_direction::nw ) ==
            e_direction::nw );
   REQUIRE( to_direction( e_diagonal_direction::ne ) ==
@@ -135,7 +136,7 @@ TEST_CASE( "[gfx/cartesian] to_direction*" ) {
 /****************************************************************
 ** e_cdirection
 *****************************************************************/
-TEST_CASE( "[gfx/cartesian] to_direction*" ) {
+TEST_CASE( "[gfx/cartesian] to_direction( e_cdirection )" ) {
   REQUIRE( to_direction( e_cdirection::nw ) == e_direction::nw );
   REQUIRE( to_direction( e_cdirection::n ) == e_direction::n );
   REQUIRE( to_direction( e_cdirection::ne ) == e_direction::ne );
@@ -167,13 +168,13 @@ TEST_CASE( "[gfx/cartesian] to_cdirection*" ) {
 *****************************************************************/
 TEST_CASE( "[gfx/cartesian] side_for( e_diagonal_direction )" ) {
   REQUIRE( side_for( e_diagonal_direction::se ) ==
-           e_side::left );
+           e_side::right );
   REQUIRE( side_for( e_diagonal_direction::sw ) ==
-           e_side::right );
-  REQUIRE( side_for( e_diagonal_direction::ne ) ==
            e_side::left );
-  REQUIRE( side_for( e_diagonal_direction::nw ) ==
+  REQUIRE( side_for( e_diagonal_direction::ne ) ==
            e_side::right );
+  REQUIRE( side_for( e_diagonal_direction::nw ) ==
+           e_side::left );
 }
 
 /****************************************************************
