@@ -811,13 +811,56 @@ TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
   REQUIRE( f() == expected );
 
   UnitId const caravel =
-      w.add_unit_on_map( e_unit_type::privateer, ( 1_x, 0_y ) )
+      w.add_unit_on_map( e_unit_type::caravel, ( 1_x, 0_y ) )
           .id();
   UnitId const scout =
       w.add_unit_in_cargo( e_unit_type::scout, caravel ).id();
 
   tile     = ( 1_x, 0_y );
   expected = { free_colonist, caravel, scout };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE(
+    "[unit-mgr] euro_units_from_coord_recursive/nation" ) {
+  world w;
+
+  point tile;
+  e_nation nation = e_nation::dutch;
+  vector<UnitId> expected;
+
+  auto f = [&] {
+    return euro_units_from_coord_recursive( w.units(), nation,
+                                            tile );
+  };
+
+  tile     = ( 1_x, 1_y );
+  expected = {};
+  REQUIRE( f() == expected );
+
+  UnitId const free_colonist =
+      w.add_unit_on_map( e_unit_type::free_colonist,
+                         ( 1_x, 0_y ), e_nation::spanish )
+          .id();
+
+  tile     = ( 1_x, 1_y );
+  nation   = e_nation::dutch;
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 1_y );
+  nation   = e_nation::spanish;
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  nation   = e_nation::dutch;
+  expected = {};
+  REQUIRE( f() == expected );
+
+  tile     = ( 1_x, 0_y );
+  nation   = e_nation::spanish;
+  expected = { free_colonist };
   REQUIRE( f() == expected );
 }
 

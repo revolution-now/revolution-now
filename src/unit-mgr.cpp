@@ -249,6 +249,17 @@ vector<UnitId> euro_units_from_coord_recursive(
   return res;
 }
 
+vector<UnitId> euro_units_from_coord_recursive(
+    UnitsState const& units_state, e_nation const nation,
+    point const tile ) {
+  auto res =
+      euro_units_from_coord_recursive( units_state, tile );
+  erase_if( res, [&]( UnitId const id ) {
+    return units_state.unit_for( id ).nation() != nation;
+  } );
+  return res;
+}
+
 std::vector<GenericUnitId> units_from_coord_recursive(
     UnitsState const& units, point const tile ) {
   vector<GenericUnitId> res;

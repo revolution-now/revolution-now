@@ -72,6 +72,13 @@ maybe<e_unit_activity> current_activity_for_unit(
 std::vector<UnitId> euro_units_from_coord_recursive(
     UnitsState const& units_state, gfx::point tile );
 
+// Same as above but will limit to a single nation. Thus, we will
+// either return all units of a single nation, or nothing, at
+// least under normal gamie operation.
+std::vector<UnitId> euro_units_from_coord_recursive(
+    UnitsState const& units_state, e_nation nation,
+    gfx::point tile );
+
 // Same as above but also includes any native units.
 std::vector<GenericUnitId> units_from_coord_recursive(
     UnitsState const& units, gfx::point tile );
