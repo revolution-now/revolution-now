@@ -828,6 +828,15 @@ class [[nodiscard]] maybe { /* clang-format on */
     return *p;
   }
 
+  template<typename Alt>
+  bool holds() const noexcept ATTR_LIFETIMEBOUND
+  requires( requires {
+    std::get_if<Alt>( std::declval<T*>() );
+  } )
+  {
+    return this->get_if<Alt>().has_value();
+  }
+
   /**************************************************************
   ** Monadic Interface: inner_if
   ***************************************************************/
@@ -1250,6 +1259,15 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
     auto* p = std::get_if<Alt>( &( **this ) );
     if( p == nullptr ) return nothing;
     return *p;
+  }
+
+  template<typename Alt>
+  bool holds() const noexcept
+  requires( requires {
+    std::get_if<Alt>( std::declval<T*>() );
+  } )
+  {
+    return this->get_if<Alt>().has_value();
   }
 
   /**************************************************************

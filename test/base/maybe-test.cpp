@@ -2580,6 +2580,92 @@ TEST_CASE( "[maybe] get_if" ) {
   }
 }
 
+TEST_CASE( "[maybe] holds" ) {
+  SECTION( "value, std::variant" ) {
+    using V = std::variant<int, string, double>;
+    M<V> m;
+    REQUIRE( m.holds<double>() == false );
+    SECTION( "int" ) {
+      m        = 3;
+      auto res = m.holds<int>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+    SECTION( "string" ) {
+      m        = "hello";
+      auto res = as_const( m ).holds<string>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+  }
+  SECTION( "value, base::variant" ) {
+    using V = base::variant<int, string, double>;
+    M<V> m;
+    REQUIRE( m.holds<string>() == false );
+    SECTION( "int" ) {
+      m        = 3;
+      auto res = m.holds<int>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+    SECTION( "string" ) {
+      m        = "hello";
+      auto res = m.holds<string>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+      m = "world";
+      REQUIRE( m == V{ "world" } );
+      REQUIRE( m.holds<double>() == false );
+    }
+  }
+  SECTION( "ref, std::variant" ) {
+    using V = std::variant<int, string, double>;
+    SECTION( "false" ) {
+      M<V&> m = nothing;
+      REQUIRE( m.holds<string>() == false );
+    }
+    SECTION( "int" ) {
+      V v      = 3;
+      M<V&> m  = v;
+      auto res = m.holds<int>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+    SECTION( "string" ) {
+      V v      = "hello";
+      M<V&> m  = v;
+      auto res = m.holds<string>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+  }
+  SECTION( "ref, base::variant" ) {
+    using V = base::variant<int, string, double>;
+    SECTION( "int" ) {
+      V v      = 3;
+      M<V&> m  = v;
+      auto res = m.holds<int>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+    SECTION( "string" ) {
+      V const v     = "hello";
+      M<V const&> m = v;
+      auto res      = m.holds<string>();
+      ASSERT_VAR_TYPE( res, bool );
+      REQUIRE( res );
+      REQUIRE( m.holds<double>() == false );
+    }
+  }
+}
+
 TEST_CASE( "[maybe] implicit conversion to maybe-ref" ) {
   {
     M<int> m1;
