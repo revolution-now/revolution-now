@@ -56,7 +56,9 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
   }
 
   void on_logical_resolution_changed(
-      e_resolution const /*resolution*/ ) override {}
+      e_resolution const /*resolution*/ ) override {
+    menu_threads_.send_event( MenuEventRaw::close_all{} );
+  }
 
   void draw( rr::Renderer& renderer ) const override {
     for( int const menu_id : menu_threads_.open_menu_ids() ) {
@@ -80,7 +82,7 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
     if( menu_threads_.open_count() == 0 )
       return e_input_handled::no;
     auto const raw = MenuEventRaw::device{ .event = event };
-    menu_threads_.route_raw_input_thread( raw );
+    menu_threads_.send_event( raw );
     return e_input_handled::yes;
   }
 

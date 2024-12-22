@@ -261,8 +261,7 @@ maybe<int> MenuThreads::menu_from_point(
   return nothing;
 }
 
-void MenuThreads::route_raw_input_thread(
-    MenuEventRaw const& event ) {
+void MenuThreads::send_event( MenuEventRaw const& event ) {
   SWITCH( event ) {
     CASE( close_all ) {
       for( auto& [menu_id, open_menu] : open_ )
@@ -274,8 +273,7 @@ void MenuThreads::route_raw_input_thread(
         CASE( key_event ) {
           switch( key_event.keycode ) {
             case ::SDLK_ESCAPE:
-              route_raw_input_thread(
-                  MenuEventRaw::close_all{} );
+              send_event( MenuEventRaw::close_all{} );
               return;
             default:
               break;
@@ -311,7 +309,7 @@ void MenuThreads::route_raw_input_thread(
                   input::e_mouse_button_event::left_up ||
               mouse_button_event.buttons ==
                   input::e_mouse_button_event::right_up )
-            route_raw_input_thread( MenuEventRaw::close_all{} );
+            send_event( MenuEventRaw::close_all{} );
           return;
         }
         default:

@@ -46,7 +46,7 @@ struct MenuThreads {
 
   int open_count() const;
 
-  void route_raw_input_thread( MenuEventRaw const& /*event*/ );
+  void send_event( MenuEventRaw const& event );
 
   wait<maybe<e_menu_item>> open_menu(
       MenuContents const contents,
