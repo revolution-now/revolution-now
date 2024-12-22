@@ -126,12 +126,16 @@ struct MenuThreads::OpenMenu {
                      enabled_fn );
   }
 
-  void set_hover_timer() {
-    hover_timer.reset();
-    hover_timer = [this]() -> wait<> {
+  // Need to make this a member function as opposed to a lambda
+  // for lifetime reasons.
+  wait<> hover_timer_thread() {
       co_await 300ms;
       events.send( MenuEvent::hover{} );
-    }();
+  }
+
+  void set_hover_timer() {
+    hover_timer.reset();
+    hover_timer = hover_timer_thread();
   }
 
   MenuAllowedPositions prioritized_submenu_positions(
