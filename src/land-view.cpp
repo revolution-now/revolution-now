@@ -498,42 +498,14 @@ struct LandViewPlane::Impl : public IPlane {
     co_return res;
   }
 
-  wait<vector<LandViewPlayerInput>> activate_tile(
+  static vector<LandViewPlayerInput> activate_tile(
       point const tile ) {
     vector<LandViewPlayerInput> res;
-    // It should not be possible to call this method at a time
-    // when there is no active player.
-    UNWRAP_CHECK_T(
-        e_nation const nation,
-        player_for_role( ss_, e_player_role::active ) );
-
-    // We are going to send this command even if the units array
-    // ends up empty (which it could be if e.g. the tile only
-    // contains foreign units or no units). This is because, like
-    // the OG, we want this command to always activate a unit. We
-    // will prioritize units at the tile location, but otherwise
-    // we just send the empty list which causes the turn module
-    // to just jump back to asking units for orders, if there are
-    // any available. This should apply also to eot mode.
-    auto& prioritize =
+    auto& activate =
         res.emplace_back()
-            .emplace<LandViewPlayerInput::prioritize>();
-
-    auto const society = society_on_square( ss_, tile );
-    if( society.has_value() &&
-        society->holds<Society::european>() ) {
-      auto const& units = ss_.units.from_coord( tile );
-      for( GenericUnitId const generic_id : units ) {
-        if( ss_.units.unit_kind( generic_id ) !=
-            e_unit_kind::euro )
-          continue;
-        Unit const& unit = ss_.units.euro_unit_for( generic_id );
-        if( unit.nation() != nation ) continue;
-        prioritize.units.push_back( unit.id() );
-      }
-    }
-
-    co_return res;
+            .emplace<LandViewPlayerInput::activate>();
+    activate.tile = tile;
+    return res;
   }
 
   /****************************************************************
@@ -619,8 +591,8 @@ struct LandViewPlane::Impl : public IPlane {
       case e::activate: {
         auto& o =
             raw_input.input.get<LandViewRawInput::activate>();
-        vector<LandViewPlayerInput> inputs =
-            co_await activate_tile( o.tile );
+        vector<LandViewPlayerInput> const inputs =
+            activate_tile( o.tile );
         // Since we may have just popped open a box to ask the
         // user to select units, just use the "now" time so
         // that these events don't get disgarded. Also, mouse

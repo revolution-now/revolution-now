@@ -57,12 +57,22 @@ sumtype.LandViewPlayerInput {
     cmd 'command',
   },
 
+  # This would be sent from either eot mode or view mode, and
+  # tells the turn processor to go back to asking units for or-
+  # ders, prioritizing any of the player's units that are on the
+  # given tile if there are any (if not, then ask any unit that
+  # is still available).
+  activate {
+    tile 'gfx::point',
+  },
+
   # Prioritize these units and make them ask for commands now,
   # assuming that they have not used their turn. This needs to be
   # a vector so that if there are multiple, then they can all be
   # prioritized before the first of them starts asking for or-
   # ders.
   prioritize {
+    # This must not be empty.
     units 'std::vector<UnitId>',
   },
 

@@ -287,6 +287,17 @@ void map_all_euro_units(
     func( units_state.unit_for( p.first ) );
 }
 
+vector<UnitId> units_on_tile_to_activate( SSConst const& ss,
+                                          Player const& player,
+                                          point const tile ) {
+  vector<UnitId> res = euro_units_from_coord_recursive(
+      ss.units, player.nation, tile );
+  erase_if( res, [&]( UnitId id ) {
+    return finished_turn( ss.units.unit_for( id ) );
+  } );
+  return res;
+}
+
 // This won't actually prioritize the units, it will just check
 // the request and return the units that can be prioritized.
 wait<vector<UnitId>> process_unit_prioritization_request(
@@ -294,11 +305,10 @@ wait<vector<UnitId>> process_unit_prioritization_request(
     LandViewPlayerInput::prioritize const& request ) {
   // Move some units to the front of the queue.
   auto prioritize = request.units;
-  if( prioritize.empty() )
-    // We can sometimes get an empty prioritization list from the
-    // land view which just means "go back to asking units for
-    // orders if there are any, in whichever order you want."
-    co_return prioritize;
+  // The "prioritize" action should only ever be used when we
+  // have at least one unit to prioritize. If we don't then the
+  // "activate" action should be used.
+  CHECK( !prioritize.empty() );
   erase_if( prioritize, [&]( UnitId id ) {
     return finished_turn( ss.units.unit_for( id ) );
   } );
@@ -575,11 +585,18 @@ wait<EndOfTurnResult> process_player_input_eot(
       }
       break;
     }
-    CASE( prioritize ) {
-      auto& val = input.get<LandViewPlayerInput::prioritize>();
+    CASE( activate ) {
       vector<UnitId> const units =
-          co_await process_unit_prioritization_request( ss, ts,
-                                                        val );
+          units_on_tile_to_activate( ss, player, activate.tile );
+      EndOfTurnResult::return_to_units ret;
+      if( !units.empty() ) ret.first_to_ask = units.back();
+      co_return ret;
+    }
+    CASE( prioritize ) {
+      CHECK( !prioritize.units.empty() );
+      vector<UnitId> const units =
+          co_await process_unit_prioritization_request(
+              ss, ts, prioritize );
       // Unlike during the turn, we don't actually prioritize the
       // list of units that are returned by this function here
       // because there is no active unit queue. So instead we
@@ -742,6 +759,11 @@ wait<> process_player_input_normal_mode(
         prioritize_unit( q, id );
       break;
     }
+    CASE( activate ) {
+      // This action is only relevant in view mode and eot mode,
+      // i.e. when there isn't already a unit asking for orders.
+      SHOULD_NOT_BE_HERE;
+    }
     CASE( prioritize ) {
       co_await prioritize_units_during_turn( ss, ts, nat_units,
                                              prioritize );
@@ -850,6 +872,13 @@ wait<> process_player_input_view_mode(
       }
       break;
     }
+    CASE( activate ) {
+      vector<UnitId> const units =
+          units_on_tile_to_activate( ss, player, activate.tile );
+      for( UnitId const id_to_add : units )
+        prioritize_unit( nat_units.q, id_to_add );
+      break;
+    }
     CASE( prioritize ) {
       co_await prioritize_units_during_turn( ss, ts, nat_units,
                                              prioritize );
@@ -876,13 +905,12 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
       return process_player_input_view_mode( ss, ts, player,
                                              nat_units, action );
     } );
+    using I = LandViewPlayerInput;
     bool const leave =
-        command.get_if<LandViewPlayerInput>()
-            .get_if<LandViewPlayerInput::toggle_view_mode>()
-            .has_value() ||
-        command.get_if<LandViewPlayerInput>()
-            .get_if<LandViewPlayerInput::prioritize>()
-            .has_value();
+        command.get_if<I>().holds<I::toggle_view_mode>() ||
+        command.get_if<I>().holds<I::prioritize>() ||
+        command.get_if<I>().holds<I::activate>() || //
+        false;
     if( leave ) co_return;
     // If we entered view mode targeting a specific tile then we
     // should get rid of it at this point because the player may
