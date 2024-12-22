@@ -15,7 +15,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "imenu-plane.rds.hpp"
+#include "imenu-server.rds.hpp"
 #include "wait.hpp"
 
 // gfx

@@ -11,6 +11,7 @@
 #include "menu-render.hpp"
 
 // Revolution Now
+#include "imenu-server.hpp"
 #include "render.hpp"
 #include "screen.hpp"
 #include "tiles.hpp"
@@ -129,6 +130,7 @@ MenuRenderLayout build_menu_rendered_layout(
         CASE( leaf ) {
           auto& item =
               add_item( config_menu.items[leaf.item].name );
+          item.item      = leaf.item;
           item.has_arrow = false;
           break;
         }
@@ -250,7 +252,8 @@ static void render_divider( rr::Renderer& renderer,
 
 void render_menu_body( rr::Renderer& renderer,
                        MenuAnimState const& anim_state,
-                       MenuRenderLayout const& layout ) {
+                       MenuRenderLayout const& layout,
+                       IMenuServer const& menu_plane ) {
   SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, anim_state.alpha )
   rect const body = layout.bounds;
 
@@ -266,9 +269,16 @@ void render_menu_body( rr::Renderer& renderer,
 
   rr::Painter painter = renderer.painter();
 
-  static auto const text_color = config_ui.dialog_text.normal;
-
   for( auto const& item_layout : layout.items ) {
+    auto const text_color = [&] {
+      if( item_layout.item.has_value() )
+        return menu_plane.can_handle_menu_click(
+                   *item_layout.item )
+                   ? config_ui.dialog_text.normal
+                   : config_ui.dialog_text.disabled;
+      else
+        return config_ui.dialog_text.normal;
+    }();
     auto const arrow_origin = [&] {
       point p = item_layout.bounds_absolute.center();
       p.x     = item_layout.bounds_absolute.right();

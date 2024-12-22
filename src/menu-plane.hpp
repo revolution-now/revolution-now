@@ -5,13 +5,13 @@
 *
 * Created by David P. Sicilia on 2024-12-14.
 *
-* Description: Implements the IMenuPlane menu server.
+* Description: Implements the IMenuServer menu server.
 *
 *****************************************************************/
 #pragma once
 
 // Revolution Now
-#include "imenu-plane.hpp"
+#include "imenu-server.hpp"
 
 // C++ standard library
 #include <memory>
@@ -21,11 +21,11 @@ namespace rn {
 /****************************************************************
 ** Menu2Plane
 *****************************************************************/
-struct Menu2Plane : IMenuPlane {
+struct Menu2Plane : IMenuServer {
   Menu2Plane();
   ~Menu2Plane() override;
 
- public: // IMenuPlane
+ public: // IMenuServer
   IPlane& impl() override;
 
   bool can_handle_menu_click( e_menu_item item ) const override;

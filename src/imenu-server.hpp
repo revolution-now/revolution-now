@@ -1,5 +1,5 @@
 /****************************************************************
-**imenu-plane.hpp
+**imenu-server.hpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #pragma once
 
 // rds
-#include "imenu-plane.rds.hpp"
+#include "imenu-server.rds.hpp"
 
 // Revolution Now
 #include "wait.hpp"
@@ -23,10 +23,10 @@ struct IPlane;
 enum class e_menu_item;
 
 /****************************************************************
-** IMenuPlane
+** IMenuServer
 *****************************************************************/
-struct IMenuPlane {
-  virtual ~IMenuPlane() = default;
+struct IMenuServer {
+  virtual ~IMenuServer() = default;
 
   // In order for this to return true there needs to be at least
   // one plane registered to handle this item and the most recent
@@ -51,12 +51,12 @@ struct IMenuPlane {
 
  public: // Registration.
   struct Deregistrar : base::zero<Deregistrar, e_menu_item> {
-    Deregistrar( IMenuPlane& menu_plane, IPlane& plane,
+    Deregistrar( IMenuServer& menu_server, IPlane& plane,
                  e_menu_item item );
 
    private:
-    IMenuPlane* menu_plane_ = nullptr;
-    IPlane* plane_          = nullptr;
+    IMenuServer* menu_server_ = nullptr;
+    IPlane* plane_            = nullptr;
 
     using Base = base::zero<Deregistrar, e_menu_item>;
 

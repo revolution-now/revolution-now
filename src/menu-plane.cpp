@@ -5,7 +5,7 @@
 *
 * Created by David P. Sicilia on 2024-12-14.
 *
-* Description: Implements the IMenuPlane menu server.
+* Description: Implements the IMenuServer menu server.
 *
 *****************************************************************/
 #include "menu-plane.hpp"
@@ -37,7 +37,20 @@ using ::refl::enum_map;
 /****************************************************************
 ** Menu2Plane::Impl
 *****************************************************************/
-struct Menu2Plane::Impl : IPlane {
+struct Menu2Plane::Impl : IPlane, IMenuServer {
+  // State.
+  MenuThreads menu_threads_;
+  enum_map<e_menu_item, stack<IPlane*>> handlers_;
+
+  IPlane& impl() override { return *this; }
+
+  wait<maybe<e_menu_item>> open_menu(
+      MenuContents const& contents,
+      MenuAllowedPositions const& positions ) override {
+    co_return co_await menu_threads_.open_menu( contents,
+                                                positions );
+  }
+
   void on_logical_resolution_changed(
       e_resolution const /*resolution*/ ) override {}
 
@@ -47,7 +60,8 @@ struct Menu2Plane::Impl : IPlane {
           menu_threads_.anim_state( menu_id );
       auto const& render_layout =
           menu_threads_.render_layout( menu_id );
-      render_menu_body( renderer, anim_state, render_layout );
+      render_menu_body( renderer, anim_state, render_layout,
+                        *this );
     }
   }
 
@@ -66,17 +80,21 @@ struct Menu2Plane::Impl : IPlane {
     return e_accept_drag::motion;
   }
 
-  void register_handler( e_menu_item item, IPlane& plane ) {
+  IMenuServer::Deregistrar register_handler(
+      e_menu_item item, IPlane& plane ) override {
     handlers_[item].push( &plane );
+    return IMenuServer::Deregistrar( *this, plane, item );
   }
 
-  void unregister_handler( e_menu_item item, IPlane& plane ) {
+  void unregister_handler( e_menu_item item,
+                           IPlane& plane ) override {
     CHECK( !handlers_[item].empty() );
     CHECK( handlers_[item].top() == &plane );
     handlers_[item].pop();
   }
 
-  bool can_handle_menu_click( e_menu_item const item ) const {
+  bool can_handle_menu_click(
+      e_menu_item const item ) const override {
     auto const& st = handlers_[item];
     if( st.empty() ) return false;
     CHECK( st.top() != nullptr );
@@ -84,7 +102,7 @@ struct Menu2Plane::Impl : IPlane {
     return plane.will_handle_menu_click( item );
   }
 
-  bool click_item( e_menu_item const item ) {
+  bool click_item( e_menu_item const item ) override {
     if( !can_handle_menu_click( item ) )
       // It is ok to call this on a menu item for which there is
       // no handler, even though it is not expected that will
@@ -99,31 +117,26 @@ struct Menu2Plane::Impl : IPlane {
     handlers_[item].top()->handle_menu_click( item );
     return true;
   }
-
-  MenuThreads menu_threads_;
-  enum_map<e_menu_item, stack<IPlane*>> handlers_;
 };
 
 /****************************************************************
 ** Menu2Plane
 *****************************************************************/
-IPlane& Menu2Plane::impl() { return *impl_; }
-
 Menu2Plane::~Menu2Plane() = default;
 
 Menu2Plane::Menu2Plane() : impl_( new Impl() ) {}
 
+IPlane& Menu2Plane::impl() { return impl_->impl(); }
+
 wait<maybe<e_menu_item>> Menu2Plane::open_menu(
     MenuContents const& contents,
     MenuAllowedPositions const& positions ) {
-  co_return co_await impl_->menu_threads_.open_menu( contents,
-                                                     positions );
+  return impl_->open_menu( contents, positions );
 }
 
 Menu2Plane::Deregistrar Menu2Plane::register_handler(
     e_menu_item const item, IPlane& plane ) {
-  impl_->register_handler( item, plane );
-  return Deregistrar( *this, plane, item );
+  return impl_->register_handler( item, plane );
 }
 
 void Menu2Plane::unregister_handler( e_menu_item const item,

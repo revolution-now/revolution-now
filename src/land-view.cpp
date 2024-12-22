@@ -22,7 +22,7 @@
 #include "compositor.hpp"
 #include "hidden-terrain.hpp"
 #include "imap-updater.hpp"
-#include "imenu-plane.hpp"
+#include "imenu-server.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "logger.hpp"
@@ -140,6 +140,7 @@ struct LandViewPlane::Impl : public IPlane {
   LandViewAnimator animator_;
 
   vector<MenuPlane::Deregistrar> dereg;
+  vector<IMenuServer::Deregistrar> dereg2;
 
   co::stream<RawInput> raw_input_stream_;
   queue<PlayerInput> translated_input_stream_;
@@ -165,7 +166,8 @@ struct LandViewPlane::Impl : public IPlane {
 
   SmoothViewport& viewport() { return ss_.land_view.viewport; }
 
-  void register_menu_items( MenuPlane& menu_plane ) {
+  void register_menu_items( MenuPlane& menu_plane,
+                            IMenuServer& menu_server ) {
     // Register menu handlers.
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::cheat_create_unit_on_map, *this ) );
@@ -182,6 +184,8 @@ struct LandViewPlane::Impl : public IPlane {
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::sentry, *this ) );
     dereg.push_back( menu_plane.register_handler(
+        e_menu_item::fortify, *this ) );
+    dereg2.push_back( menu_server.register_handler(
         e_menu_item::fortify, *this ) );
     dereg.push_back( menu_plane.register_handler(
         e_menu_item::disband, *this ) );
@@ -212,7 +216,8 @@ struct LandViewPlane::Impl : public IPlane {
       animator_( ss, ss.land_view.viewport, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
-    register_menu_items( ts.planes.get().menu );
+    register_menu_items( ts.planes.get().menu,
+                         ts.planes.get().menu2 );
     // Initialize general global data.
     mode_            = LandViewMode::none{};
     last_unit_input_ = nothing;

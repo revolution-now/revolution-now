@@ -1,5 +1,5 @@
 /****************************************************************
-**imenu-plane.cpp
+**imenu-server.cpp
 *
 * Project: Revolution Now
 *
@@ -8,24 +8,26 @@
 * Description: Interface for accessing the menu server.
 *
 *****************************************************************/
-#include "imenu-plane.hpp"
+#include "imenu-server.hpp"
 
 using namespace std;
 
 namespace rn {
 
 /****************************************************************
-** IMenuPlane::Deregistrar
+** IMenuServer::Deregistrar
 *****************************************************************/
-IMenuPlane::Deregistrar::Deregistrar( IMenuPlane& menu_plane,
-                                      IPlane& plane,
-                                      e_menu_item item )
-  : Base( item ), menu_plane_( &menu_plane ), plane_( &plane ) {}
+IMenuServer::Deregistrar::Deregistrar( IMenuServer& menu_server,
+                                       IPlane& plane,
+                                       e_menu_item item )
+  : Base( item ),
+    menu_server_( &menu_server ),
+    plane_( &plane ) {}
 
-void IMenuPlane::Deregistrar::free_resource() {
-  CHECK( menu_plane_ != nullptr );
+void IMenuServer::Deregistrar::free_resource() {
+  CHECK( menu_server_ != nullptr );
   CHECK( plane_ != nullptr );
-  menu_plane_->unregister_handler( resource(), *plane_ );
+  menu_server_->unregister_handler( resource(), *plane_ );
 }
 
 } // namespace rn

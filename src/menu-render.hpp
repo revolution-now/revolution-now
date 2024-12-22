@@ -11,7 +11,7 @@
 #pragma once
 
 // Revolution Now
-#include "imenu-plane.rds.hpp"
+#include "imenu-server.rds.hpp"
 #include "maybe.hpp"
 
 namespace rr {
@@ -19,6 +19,8 @@ struct Renderer;
 }
 
 namespace rn {
+
+struct IMenuServer;
 
 enum class e_menu_item;
 
@@ -37,6 +39,8 @@ struct MenuAnimState {
 // ation. Any rendering state that needs to change should be in
 // MenuAnimState.
 struct MenuItemRenderLayout {
+  // This will have a value if this is a leaf item.
+  maybe<e_menu_item> item     = {};
   std::string text            = {};
   gfx::rect bounds_relative   = {};
   gfx::rect bounds_absolute   = {};
@@ -61,6 +65,7 @@ MenuRenderLayout build_menu_rendered_layout(
 *****************************************************************/
 void render_menu_body( rr::Renderer& renderer,
                        MenuAnimState const& state,
-                       MenuRenderLayout const& layout );
+                       MenuRenderLayout const& layout,
+                       IMenuServer const& menu_plane );
 
 } // namespace rn

@@ -1,11 +1,11 @@
 # ===============================================================
-# imenu-plane.rds
+# imenu-server.rds
 #
 # Project: Revolution Now
 #
 # Created by David P. Sicilia on 2024-12-15.
 #
-# Description: Rds definitions for the imenu-plane module.
+# Description: Rds definitions for the imenu-server module.
 #
 # ===============================================================
 # config

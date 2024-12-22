@@ -29,7 +29,7 @@ struct OmniPlane;
 struct ConsolePlane;
 struct WindowPlane;
 struct MenuPlane;
-struct IMenuPlane;
+struct IMenuServer;
 struct PanelPlane;
 struct ILandViewPlane;
 
@@ -89,7 +89,7 @@ struct PlaneGroup : IPlaneGroup {
   TypedIPlane<WindowPlane> window;
 
   TypedIPlane<MenuPlane> menu;
-  TypedIPlane<IMenuPlane> menu2;
+  TypedIPlane<IMenuServer> menu2;
   TypedIPlane<PanelPlane> panel;
 
   // This one basically defines which general view we're in.
