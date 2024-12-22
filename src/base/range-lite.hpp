@@ -1783,10 +1783,11 @@ class ChainView {
 // lView (which just holds a pointer) and then will wrap the Al-
 // lView in a ChainView. However, if the input is already a Chain
 // view then it will just forward it.
-template<
-    typename InputView,
-    typename T = it_type_to_value_type_t<
-        typename std::remove_reference_t<InputView>::iterator>>
+template<typename InputView,
+         typename T = it_type_to_value_type_t<
+             decltype( std::declval<
+                           std::remove_reference_t<InputView>>()
+                           .begin() )>>
 auto all( InputView&& input ) {
   if constexpr( is_chain_view_v<std::decay_t<InputView>> ) {
     return std::forward<InputView>( input );
@@ -1810,10 +1811,11 @@ auto all( InputView&& input ) {
 }
 
 // Same above but creates a reverse view.
-template<
-    typename InputView,
-    typename T = it_type_to_value_type_t<
-        typename std::remove_reference_t<InputView>::iterator>>
+template<typename InputView,
+         typename T = it_type_to_value_type_t<
+             decltype( std::declval<
+                           std::remove_reference_t<InputView>>()
+                           .begin() )>>
 auto rall( InputView&& input ) {
   using initial_view_t =
       ReverseAllView<std::remove_reference_t<InputView>>;
