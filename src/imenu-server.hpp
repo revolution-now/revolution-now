@@ -53,6 +53,10 @@ struct IMenuServer {
       MenuAllowedPositions const& positions
           ATTR_LIFETIMEBOUND ) = 0;
 
+  // Any menus that are open when this is called will be sent a
+  // close message (thus will return `nothing` to their callers).
+  virtual void close_all_menus() = 0;
+
   virtual void show_menu_bar( bool show ) = 0;
 
   virtual void enable_cheat_menu( bool show ) = 0;

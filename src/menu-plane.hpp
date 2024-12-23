@@ -37,6 +37,8 @@ struct Menu2Plane : IMenuServer {
       MenuAllowedPositions const& positions
           ATTR_LIFETIMEBOUND ) override;
 
+  void close_all_menus() override;
+
   void show_menu_bar( bool show ) override;
 
   void enable_cheat_menu( bool show ) override;

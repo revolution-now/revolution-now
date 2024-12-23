@@ -285,6 +285,9 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
       [&]( MenuStream& stream, e_menu const menu,
            MenuContents const contents,
            MenuAllowedPositions const positions ) -> wait<> {
+    // This is in case there are any menus open that are not as-
+    // sociated with the menu bar (e.g. pop up menus).
+    menu_server_.close_all_menus();
     st.anim_state.set_opened( menu );
     SCOPE_EXIT { st.anim_state.clear_focus(); };
     auto const item =

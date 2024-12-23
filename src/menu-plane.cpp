@@ -100,13 +100,15 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
     restart_bar_thread_if_running();
   }
 
-  void on_logical_resolution_changed(
-      e_resolution const /*resolution*/ ) override {
-    if( bar_is_running() )
-      (void)bar_.send_event( MenuBarEventRaw::close{} );
-    restart_bar_thread_if_running();
+  void close_all_menus() override {
     if( menu_threads_.open_count() != 0 )
       menu_threads_.send_event( MenuEventRaw::close_all{} );
+  }
+
+  void on_logical_resolution_changed(
+      e_resolution const /*resolution*/ ) override {
+    close_all_menus();
+    restart_bar_thread_if_running();
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -212,6 +214,8 @@ wait<maybe<e_menu_item>> Menu2Plane::open_menu(
 void Menu2Plane::show_menu_bar( bool const show ) {
   impl_->show_menu_bar( show );
 }
+
+void Menu2Plane::close_all_menus() { impl_->close_all_menus(); }
 
 void Menu2Plane::enable_cheat_menu( bool const show ) {
   impl_->enable_cheat_menu( show );
