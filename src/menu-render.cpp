@@ -125,8 +125,8 @@ void MenuBarAnimState::clear_focus() { *this = {}; }
 ** Menu Body Rendered Layouts.
 *****************************************************************/
 MenuRenderLayout build_menu_rendered_layout(
-    MenuContents const& contents,
-    MenuAllowedPositions const& positions ) {
+    e_menu const menu, MenuAllowedPositions const& positions ) {
+  auto const& contents = config_menu.layout[menu];
   CHECK( !positions.positions_allowed.empty() );
   MenuRenderLayout res;
   int y     = 0;
@@ -150,33 +150,31 @@ MenuRenderLayout build_menu_rendered_layout(
   };
   // Minus one to make it even.
   int const bar_height = row_height / 2 - 1;
-  int needs_bar        = false;
-  for( auto const& grp : contents.groups ) {
-    if( needs_bar ) {
+  for( auto const& elem : contents.contents ) {
+    if( !elem.has_value() ) {
       res.bars.push_back( rect{ .origin = { .x = 0, .y = y },
                                 .size = { .h = bar_height } } );
       y += bar_height;
+      continue;
     }
-    needs_bar = true;
-    for( auto const& elem : grp.elems ) {
-      SWITCH( elem ) {
-        CASE( leaf ) {
-          auto& item =
-              add_item( config_menu.items[leaf.item].name );
-          item.item      = leaf.item;
-          item.has_arrow = false;
-          break;
-        }
-        CASE( node ) {
-          // Ensure there is some space reserved for the arrow
-          // which will be rendered on the right hand side.
-          auto& item     = add_item( node.text + "  " );
-          item.has_arrow = true;
-          break;
-        }
+    SWITCH( *elem ) {
+      CASE( leaf ) {
+        auto& item =
+            add_item( config_menu.items[leaf.item].name );
+        item.item      = leaf.item;
+        item.has_arrow = false;
+        break;
       }
-      y += row_height;
+      CASE( node ) {
+        // Ensure there is some space reserved for the arrow
+        // which will be rendered on the right hand side.
+        auto& item =
+            add_item( config_menu.menus[node.menu].name + "  " );
+        item.has_arrow = true;
+        break;
+      }
     }
+    y += row_height;
   }
 
   // Now apply border padding.
@@ -264,7 +262,7 @@ MenuRenderLayout build_menu_rendered_layout(
 ** Menu Bar Rendered Layouts.
 *****************************************************************/
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
-    MenuBarContents const& contents ) {
+    vector<e_menu> const& contents ) {
   MenuBarRenderedLayout res;
   UNWRAP_CHECK(
       menu_bar_rect,
@@ -274,7 +272,7 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
   auto menus_for = [&]( config::menu::e_menu_side const side ) {
     vector<e_menu> res;
     res.reserve( enum_count<e_menu> );
-    for( e_menu const menu : contents.menus )
+    for( e_menu const menu : contents )
       if( config_menu.menus[menu].position == side )
         res.push_back( menu );
     return res;

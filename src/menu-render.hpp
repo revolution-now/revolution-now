@@ -81,8 +81,7 @@ struct MenuRenderLayout {
 
 // There must be at least one allowed position supplied.
 MenuRenderLayout build_menu_rendered_layout(
-    MenuContents const& contents,
-    MenuAllowedPositions const& positions );
+    e_menu menu, MenuAllowedPositions const& positions );
 
 /****************************************************************
 ** Menu Bar Rendered Layouts.
@@ -103,7 +102,7 @@ struct MenuBarRenderedLayout {
 };
 
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
-    MenuBarContents const& contents );
+    std::vector<e_menu> const& contents );
 
 /****************************************************************
 ** Menu Rendering.

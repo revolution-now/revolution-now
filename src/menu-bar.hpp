@@ -34,7 +34,7 @@ struct MenuBar {
   ~MenuBar();
 
   wait<> run_thread(
-      MenuBarContents const& contents ATTR_LIFETIMEBOUND );
+      std::vector<e_menu> const& contents ATTR_LIFETIMEBOUND );
 
   [[nodiscard]] bool send_event( MenuBarEventRaw const& event );
 

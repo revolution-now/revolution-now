@@ -46,7 +46,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   MenuThreads menu_threads_;
   MenuBar bar_;
   maybe<wait<>> bar_thread_;
-  MenuBarContents bar_contents_;
+  vector<e_menu> bar_contents_;
   bool cheat_menu_ = false;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
 
@@ -58,10 +58,10 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   IPlane& impl() override { return *this; }
 
   void populate_menu_bar_contents() {
-    bar_contents_.menus.clear();
+    bar_contents_.clear();
     for( e_menu const menu : config_menu.menu_bar ) {
       if( menu == e_menu::cheat && !cheat_menu_ ) continue;
-      bar_contents_.menus.push_back( menu );
+      bar_contents_.push_back( menu );
     }
   }
 
@@ -78,9 +78,9 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuContents const& contents,
+      e_menu const menu,
       MenuAllowedPositions const& positions ) override {
-    co_return co_await menu_threads_.open_menu( contents,
+    co_return co_await menu_threads_.open_menu( menu,
                                                 positions );
   }
 
@@ -118,16 +118,13 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
       render_menu_bar( renderer, anim_state, render_layout );
     }
     for( int const menu_id : menu_threads_.open_menu_ids() ) {
-      auto const& contents =
-          menu_threads_.menu_contents( menu_id );
       auto const& anim_state =
           menu_threads_.anim_state( menu_id );
       auto const& render_layout =
           menu_threads_.render_layout( menu_id );
       auto const enabled_fn =
           [&]( MenuItemRenderLayout const& item_layout ) {
-            return menu_threads_.enabled( contents,
-                                          item_layout );
+            return menu_threads_.enabled( item_layout );
           };
       render_menu_body( renderer, anim_state, render_layout,
                         enabled_fn );
@@ -213,9 +210,8 @@ MenuPlane::MenuPlane() : impl_( new Impl() ) {}
 IPlane& MenuPlane::impl() { return impl_->impl(); }
 
 wait<maybe<e_menu_item>> MenuPlane::open_menu(
-    MenuContents const& contents,
-    MenuAllowedPositions const& positions ) {
-  return impl_->open_menu( contents, positions );
+    e_menu const menu, MenuAllowedPositions const& positions ) {
+  return impl_->open_menu( menu, positions );
 }
 
 void MenuPlane::show_menu_bar( bool const show ) {

@@ -33,9 +33,8 @@ struct MenuPlane : IMenuServer {
   bool click_item( e_menu_item item ) override;
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuContents const& contents ATTR_LIFETIMEBOUND,
-      MenuAllowedPositions const& positions
-          ATTR_LIFETIMEBOUND ) override;
+      e_menu menu, MenuAllowedPositions const& positions
+                       ATTR_LIFETIMEBOUND ) override;
 
   void close_all_menus() override;
 

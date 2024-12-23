@@ -49,10 +49,8 @@ struct MenuThreads {
   void send_event( MenuEventRaw const& event );
 
   wait<maybe<e_menu_item>> open_menu(
-      MenuContents const contents,
-      MenuAllowedPositions const positions );
+      e_menu menu, MenuAllowedPositions const positions );
 
-  MenuContents const& menu_contents( int menu_id ) const;
   MenuAnimState const& anim_state( int menu_id ) const;
   MenuRenderLayout const& render_layout( int menu_id ) const;
 
@@ -62,11 +60,8 @@ struct MenuThreads {
     return base::rl::all( open_ ).keys();
   }
 
-  bool enabled( MenuContents const& contents,
-                e_menu_item item ) const;
-
-  bool enabled( MenuContents const& contents,
-                MenuItemRenderLayout const& item ) const;
+  bool enabled( e_menu_item item ) const;
+  bool enabled( MenuItemRenderLayout const& item ) const;
 
  private:
   struct OpenMenu;
@@ -94,10 +89,5 @@ struct MenuThreads {
   int next_menu_id_ = 1;
   std::map<int, base::heap_value<OpenMenu>> open_;
 };
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-MenuContents contents_for_menu( e_menu const menu );
 
 } // namespace rn

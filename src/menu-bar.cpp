@@ -68,7 +68,7 @@ MenuAllowedPositions positions_for_header(
 ** MenuBar::BarState
 *****************************************************************/
 struct MenuBar::BarState {
-  MenuBarContents contents;
+  vector<e_menu> contents;
   MenuBarAnimState anim_state;
   MenuBarRenderedLayout render_layout;
   co::stream<MenuBarEvent> events;
@@ -90,13 +90,13 @@ struct MenuBar::BarState {
 
   void focus_next() {
     e_menu const new_menu =
-        cycle_focus( views::all( contents.menus ) );
+        cycle_focus( views::all( contents ) );
     events.send( MenuBarEvent::over{ .menu = new_menu } );
   }
 
   void focus_prev() {
     e_menu const new_menu =
-        cycle_focus( views::reverse( contents.menus ) );
+        cycle_focus( views::reverse( contents ) );
     events.send( MenuBarEvent::over{ .menu = new_menu } );
   }
 };
@@ -163,9 +163,9 @@ bool MenuBar::handle_alt_key(
       change == input::e_key_change::down ) {
     // There is no focus and the user has pressed an alt key, so
     // add highlighting to the first menu header.
-    if( st.contents.menus.empty() ) return true;
+    if( st.contents.empty() ) return true;
     st.events.send(
-        MenuBarEvent::over{ .menu = st.contents.menus[0] } );
+        MenuBarEvent::over{ .menu = st.contents[0] } );
     return true;
   }
 
@@ -185,7 +185,7 @@ bool MenuBar::handle_alt_shortcut(
   if( !state_ ) return false;
   auto& st = state();
   // Check for an alt-shortcut key to open a menu.
-  for( e_menu const menu : st.contents.menus ) {
+  for( e_menu const menu : st.contents ) {
     if( key_event.keycode ==
         tolower( config_menu.menus[menu].shortcut ) ) {
       if( st.anim_state.opened_menu() != menu )
@@ -339,7 +339,7 @@ void MenuBar::send_click( e_menu_item item ) const {
   menu_server_.click_item( item );
 }
 
-wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
+wait<> MenuBar::run_thread( vector<e_menu> const& contents ) {
   state_ = make_unique<BarState>();
   SCOPE_EXIT { state_ = nullptr; };
 

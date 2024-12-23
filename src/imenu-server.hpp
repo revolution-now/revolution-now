@@ -49,14 +49,8 @@ struct IMenuServer {
   virtual bool click_item( e_menu_item item ) = 0;
 
   virtual wait<maybe<e_menu_item>> open_menu(
-      MenuContents const& contents ATTR_LIFETIMEBOUND,
-      MenuAllowedPositions const& positions
-          ATTR_LIFETIMEBOUND ) = 0;
-
-  // For convenience.
-  wait<maybe<e_menu_item>> open_menu(
-      e_menu menu,
-      MenuAllowedPositions const& positions ATTR_LIFETIMEBOUND );
+      e_menu menu, MenuAllowedPositions const& positions
+                       ATTR_LIFETIMEBOUND ) = 0;
 
   // Any menus that are open when this is called will be sent a
   // close message (thus will return `nothing` to their callers).

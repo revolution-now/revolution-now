@@ -60,7 +60,7 @@ using ::gfx::point;
 ** MenuThreads::OpenMenu
 *****************************************************************/
 struct MenuThreads::OpenMenu {
-  MenuContents contents;
+  e_menu menu = {};
   MenuAllowedPositions positions;
   MenuAnimState anim_state;
   MenuRenderLayout render_layout;
@@ -77,15 +77,15 @@ struct MenuThreads::OpenMenu {
     return nothing;
   }
 
-  maybe<MenuElement const&> find_element(
+  maybe<config::menu::MenuElement const&> find_element(
       string const& text ) const {
-    auto it = render_layout.items.begin();
-    for( auto const& grp : contents.groups ) {
-      for( auto const& elem : grp.elems ) {
-        CHECK( it != render_layout.items.end() );
-        if( it->text == text ) return elem;
-        ++it;
-      }
+    auto it              = render_layout.items.begin();
+    auto const& contents = config_menu.layout[menu].contents;
+    for( auto const& elem : contents ) {
+      if( !elem.has_value() ) continue;
+      CHECK( it != render_layout.items.end() );
+      if( it->text == text ) return elem;
+      ++it;
     }
     return nothing;
   }
@@ -204,13 +204,6 @@ MenuThreads::MenuThreads( IMenuServer const& menu_server )
 
 MenuThreads::~MenuThreads() = default;
 
-MenuContents const& MenuThreads::menu_contents(
-    int const menu_id ) const {
-  auto const it = open_.find( menu_id );
-  CHECK( it != open_.end() );
-  return it->second.get().contents;
-}
-
 MenuAnimState const& MenuThreads::anim_state(
     int const menu_id ) const {
   auto const it = open_.find( menu_id );
@@ -227,17 +220,14 @@ MenuRenderLayout const& MenuThreads::render_layout(
 
 int MenuThreads::open_count() const { return open_.size(); }
 
-bool MenuThreads::enabled( MenuContents const& contents,
-                           e_menu_item const item ) const {
-  if( contents.force_enable_all ) return true;
+bool MenuThreads::enabled( e_menu_item const item ) const {
   return menu_server_.can_handle_menu_click( item );
 }
 
 bool MenuThreads::enabled(
-    MenuContents const& contents,
     MenuItemRenderLayout const& layout ) const {
   if( !layout.item.has_value() ) return true;
-  return enabled( contents, *layout.item );
+  return enabled( *layout.item );
 }
 
 int MenuThreads::next_menu_id() {
@@ -326,7 +316,7 @@ void MenuThreads::handle_key_event(
   if( key_event.change != input::e_key_change::down ) return;
   auto const enabled_fn =
       [&]( MenuItemRenderLayout const& layout ) {
-        return enabled( open_menu.contents, layout );
+        return enabled( layout );
       };
   switch( key_event.keycode ) {
     case ::SDLK_KP_8:
@@ -432,7 +422,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_move_event.pos.is_inside( bounds ) ) {
-                if( enabled( menu.contents, item_layout ) )
+                if( enabled( item_layout ) )
                   sink.send( MenuEvent::over{
                     .text = item_layout.text } );
                 else
@@ -446,8 +436,7 @@ wait<> MenuThreads::translate_routed_input_thread(
             for( auto const& item_layout : layout.items ) {
               auto const& bounds = item_layout.bounds_absolute;
               if( mouse_button_event.pos.is_inside( bounds ) ) {
-                if( !enabled( menu.contents, item_layout ) )
-                  break;
+                if( !enabled( item_layout ) ) break;
                 sink.send( MenuEvent::click{} );
                 break;
               }
@@ -503,16 +492,15 @@ wait<> MenuThreads::animate_click( MenuAnimState& anim_state,
 }
 
 wait<maybe<e_menu_item>> MenuThreads::open_menu(
-    MenuContents const contents,
-    MenuAllowedPositions const positions ) {
+    e_menu const menu, MenuAllowedPositions const positions ) {
   int const menu_id = next_menu_id();
   SCOPE_EXIT { unregister_menu( menu_id ); };
 
   OpenMenu& om = open_[menu_id].get();
-  om.contents  = contents;
+  om.menu      = menu;
   om.positions = positions;
   om.render_layout =
-      build_menu_rendered_layout( contents, positions );
+      build_menu_rendered_layout( menu, positions );
 
   wait<> const translater =
       translate_routed_input_thread( menu_id );
@@ -520,9 +508,9 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
   using SubMenuStream = co::stream<SubMenuResult>;
   maybe<wait<>> sub_menu_thread;
   auto sub_menu_opener =
-      [this]( SubMenuStream& stream, MenuContents const contents,
+      [this]( SubMenuStream& stream, e_menu const menu,
               MenuAllowedPositions const positions ) -> wait<> {
-    auto const item = co_await open_menu( contents, positions );
+    auto const item = co_await open_menu( menu, positions );
     if( item.has_value() ) stream.send( *item );
   };
   SubMenuStream sub_menu_stream;
@@ -616,42 +604,6 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
       }
     }
   }
-}
-
-/****************************************************************
-** Public API.
-*****************************************************************/
-MenuContents contents_for_menu( e_menu const menu ) {
-  auto const& conf = config_menu.layout[menu].contents;
-  MenuContents contents;
-  MenuItemGroup grp;
-  auto collect_group = [&] {
-    if( !grp.elems.empty() ) {
-      contents.groups.push_back( grp );
-      grp = {};
-    }
-  };
-  for( auto const item : conf ) {
-    if( !item.has_value() ) {
-      collect_group();
-      continue;
-    }
-    SWITCH( *item ) {
-      CASE( leaf ) {
-        grp.elems.push_back(
-            MenuElement::leaf{ .item = leaf.item } );
-        break;
-      }
-      CASE( node ) {
-        grp.elems.push_back( MenuElement::node{
-          .text = config_menu.menus[node.menu].name,
-          .menu = contents_for_menu( node.menu ) } );
-        break;
-      }
-    }
-  }
-  collect_group();
-  return contents;
 }
 
 } // namespace rn

@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "menu-body.hpp"
 
 using namespace std;
 
@@ -32,12 +31,6 @@ void IMenuServer::Deregistrar::free_resource() {
   CHECK( menu_server_ != nullptr );
   CHECK( plane_ != nullptr );
   menu_server_->unregister_handler( resource(), *plane_ );
-}
-
-wait<maybe<e_menu_item>> IMenuServer::open_menu(
-    e_menu const menu, MenuAllowedPositions const& positions ) {
-  co_return co_await open_menu( contents_for_menu( menu ),
-                                positions );
 }
 
 } // namespace rn
