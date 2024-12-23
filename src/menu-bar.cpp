@@ -210,9 +210,6 @@ bool MenuBar::handle_key_event(
   if( key_event.mod.alt_down )
     return handle_alt_shortcut( key_event );
   switch( key_event.keycode ) {
-    case ::SDLK_ESCAPE:
-      menu_server_.close_all_menus();
-      return true;
     case ::SDLK_KP_4:
     case ::SDLK_LEFT: {
       if( !st.anim_state.focused.has_value() ) break;

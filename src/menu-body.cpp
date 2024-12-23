@@ -262,13 +262,6 @@ void MenuThreads::send_event( MenuEventRaw const& event ) {
     CASE( device ) {
       SWITCH( device.event ) {
         CASE( key_event ) {
-          switch( key_event.keycode ) {
-            case ::SDLK_ESCAPE:
-              send_event( MenuEventRaw::close_all{} );
-              return;
-            default:
-              break;
-          }
           if( !open_.empty() ) {
             auto& [menu_id, open_menu] = *open_.rbegin();
             open_menu.get().routed_input.send( event );
@@ -319,6 +312,9 @@ void MenuThreads::handle_key_event(
         return enabled( layout );
       };
   switch( key_event.keycode ) {
+    case ::SDLK_ESCAPE:
+      open_menu.events.send( MenuEvent::close{} );
+      break;
     case ::SDLK_KP_8:
     case ::SDLK_UP:
       open_menu.highlight_previous( enabled_fn );
