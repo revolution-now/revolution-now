@@ -88,8 +88,8 @@ struct PlaneGroup : IPlaneGroup {
   TypedIPlane<ConsolePlane> console;
   TypedIPlane<WindowPlane> window;
 
-  TypedIPlane<MenuPlane> menu;
   TypedIPlane<IMenuServer> menu2;
+  TypedIPlane<MenuPlane> menu;
   TypedIPlane<PanelPlane> panel;
 
   // This one basically defines which general view we're in.

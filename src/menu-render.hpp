@@ -91,9 +91,10 @@ MenuRenderLayout build_menu_rendered_layout(
 // ation. Any rendering state that needs to change should be in
 // MenuAnimState.
 struct MenuHeaderRenderLayout {
-  e_menu menu               = {};
-  std::string text          = {};
-  gfx::rect bounds_absolute = {};
+  e_menu menu                 = {};
+  std::string text            = {};
+  gfx::point text_nw_absolute = {};
+  gfx::rect bounds_absolute   = {};
 };
 
 struct MenuBarRenderedLayout {

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "render.hpp"
 #include "screen.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 
 // config
@@ -29,6 +30,7 @@
 #include "render/typer.hpp"
 
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/coord.hpp"
 
 // rds
@@ -258,19 +260,31 @@ MenuRenderLayout build_menu_rendered_layout(
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
     MenuBarContents const& contents ) {
   MenuBarRenderedLayout res;
-  res.bounds = { .origin = { .x = 16, .y = 200 },
-                 .size   = { .w = 600, .h = 16 } };
-  point p    = res.bounds.origin;
+  int const screen_width = main_window_logical_size().w;
+
+  res.bounds = {
+    .origin = { .x = 0, .y = 17 },
+    .size   = { .w = screen_width,
+                .h = config_ui.menus.menu_bar_height } };
+  point p = res.bounds.origin;
+  p.x += config_ui.menus.first_menu_start_x_offset;
   for( e_menu const menu : contents.menus ) {
     MenuHeaderRenderLayout header;
     header.menu = menu;
-    header.text = fmt::to_string( menu );
-    size const header_size =
+    header.text = config_menu.menus[menu].name;
+    size const text_size =
         rr::rendered_text_line_size_pixels( header.text );
+    size const header_size =
+        text_size +
+        size{ .w = config_ui.menus.padding_x * 2,
+              .h = config_ui.menus.item_vertical_padding * 2 };
+    p.y = res.bounds.origin.y;
+    p.y += ( res.bounds.size.h - header_size.h ) / 2;
     header.bounds_absolute = { .origin = p,
                                .size   = header_size };
     p.x += header_size.w;
-    p.x += 8;
+    header.text_nw_absolute =
+        gfx::centered_in( text_size, header.bounds_absolute );
     res.headers.push_back( header );
   }
   return res;
@@ -376,37 +390,68 @@ void render_menu_body(
 /****************************************************************
 ** Menu Bar Rendering.
 *****************************************************************/
+static void render_wood_bar(
+    rr::Renderer& renderer,
+    MenuBarRenderedLayout const& layout ) {
+  tile_sprite( renderer, e_tile::wood_middle, layout.bounds );
+
+  rr::Painter painter = renderer.painter();
+
+  // Render some border lines.
+  painter.draw_horizontal_line(
+      layout.bounds.sw() + size{ .h = -2 },
+      layout.bounds.size.w + 1, config_ui.window.border_dark );
+  painter.draw_horizontal_line(
+      layout.bounds.sw() + size{ .h = -1 }, layout.bounds.size.w,
+      config_ui.window.border_darker );
+}
+
+static void render_header_text( rr::Renderer& renderer,
+                                point const where,
+                                e_menu const menu,
+                                pixel const color ) {
+  char const shortcut = config_menu.menus[menu].shortcut;
+  string const name   = [&] {
+    string res = config_menu.menus[menu].name;
+    // Highlight the letter representing the shortcut key.
+    string const shortcut_str( 1, shortcut );
+    auto const pos = name.find_first_of( shortcut_str );
+    if( pos != string::npos )
+      res.replace( pos, 1, fmt::format( "[{}]", shortcut_str ) );
+    return res;
+  }();
+  render_text_markup( renderer, where, /*font=*/{},
+                      TextMarkupInfo{ .normal = color }, name );
+}
+
 void render_menu_bar( rr::Renderer& renderer,
                       MenuBarAnimState const& anim_state,
                       MenuBarRenderedLayout const& layout ) {
-  rr::Painter painter = renderer.painter();
-  painter.draw_solid_rect( layout.bounds, pixel::white() );
+  render_wood_bar( renderer, layout );
 
+  rr::Painter painter = renderer.painter();
   for( auto const& header : layout.headers ) {
     if( anim_state.focused == header.menu ) {
       switch( anim_state.highlight_state ) {
         case rn::e_menu_highlight_state::highlighted: {
-          painter.draw_solid_rect( header.bounds_absolute,
-                                   pixel::black() );
-          rr::Typer typer = renderer.typer(
-              header.bounds_absolute.origin, pixel::white() );
-          typer.write( header.text );
+          SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+          rr::Painter painter = renderer.painter();
+          painter.draw_solid_rect(
+              header.bounds_absolute,
+              config_ui.dialog_text.selected_background );
           break;
         }
         case rn::e_menu_highlight_state::open: {
-          painter.draw_solid_rect( header.bounds_absolute,
-                                   pixel::red() );
-          rr::Typer typer = renderer.typer(
-              header.bounds_absolute.origin, pixel::white() );
-          typer.write( header.text );
+          painter.draw_solid_rect(
+              header.bounds_absolute,
+              config_ui.dialog_text.selected_background );
           break;
         }
       }
-    } else {
-      rr::Typer typer = renderer.typer(
-          header.bounds_absolute.origin, pixel::black() );
-      typer.write( header.text );
     }
+    render_header_text( renderer, header.text_nw_absolute,
+                        header.menu,
+                        config_ui.dialog_text.normal );
   }
 }
 

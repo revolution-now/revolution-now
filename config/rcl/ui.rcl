@@ -18,6 +18,7 @@ dialog_text {
 }
 
 menus {
+  # FIXME: get rid of the unused ones and give them better names.
   first_menu_start_x_offset: 8
   item_vertical_padding:     2
   padding_x:                 6
