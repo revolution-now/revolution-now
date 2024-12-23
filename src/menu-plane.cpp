@@ -52,6 +52,7 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
 
   Impl() : menu_threads_( *this ), bar_( *this ) {
     populate_menu_bar_contents();
+    start_bar_thread_if_not_running();
   }
 
   IPlane& impl() override { return *this; }
