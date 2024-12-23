@@ -1,5 +1,5 @@
 /****************************************************************
-**menu-coro.hpp
+**menu-body.hpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #pragma once
 
 // rds
-#include "menu-coro.rds.hpp"
+#include "menu-body.rds.hpp"
 
 // Revolution Now
 #include "co-combinator.hpp"

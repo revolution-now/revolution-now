@@ -1,11 +1,11 @@
 # ===============================================================
-# menu-coro-impl.rds
+# menu-body-impl.rds
 #
 # Project: Revolution Now
 #
 # Created by David P. Sicilia on 2024-12-15.
 #
-# Description: Rds definitions for the menu-coro-impl module.
+# Description: Rds definitions for the menu-body-impl module.
 #
 # ===============================================================
 namespace "rn"

@@ -1,5 +1,5 @@
 /****************************************************************
-**menu-coro.cpp
+**menu-body.cpp
 *
 * Project: Revolution Now
 *
@@ -8,10 +8,10 @@
 * Description: Coroutines for running menus.
 *
 *****************************************************************/
-#include "menu-coro.hpp"
+#include "menu-body.hpp"
 
 // rds
-#include "menu-coro-impl.rds.hpp"
+#include "menu-body-impl.rds.hpp"
 
 // Revolution Now
 #include "co-time.hpp"
