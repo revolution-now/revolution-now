@@ -340,62 +340,6 @@ void MenuBar::send_click( e_menu_item item ) const {
   menu_server_.click_item( item );
 }
 
-static MenuContents tmp_build_contents() {
-  MenuContents const orders_contents{
-    .groups = {
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::leaf{ .item = e_menu_item::fortify },
-              MenuElement::leaf{ .item = e_menu_item::sentry },
-              MenuElement::leaf{ .item = e_menu_item::dump },
-            } },
-    } };
-  MenuContents const zoom_contents{
-    .groups = {
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::node{ .text = "Orders",
-                                 .menu = orders_contents },
-              MenuElement::leaf{ .item = e_menu_item::zoom_in },
-              MenuElement::leaf{ .item = e_menu_item::zoom_out },
-            } },
-    } };
-  MenuContents const contents{
-    .groups = {
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::leaf{ .item = e_menu_item::fortify },
-              MenuElement::leaf{ .item = e_menu_item::sentry },
-              MenuElement::leaf{ .item = e_menu_item::disband },
-              MenuElement::leaf{ .item = e_menu_item::dump },
-            } },
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::node{ .text = "Zoom",
-                                 .menu = zoom_contents },
-            } },
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::leaf{ .item = e_menu_item::plow },
-              MenuElement::leaf{ .item = e_menu_item::road },
-              MenuElement::leaf{ .item =
-                                     e_menu_item::build_colony },
-            } },
-      MenuItemGroup{
-        .elems =
-            {
-              MenuElement::node{ .text = "Zoom2",
-                                 .menu = zoom_contents },
-            } },
-    } };
-  return contents;
-}
-
 wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
   state_ = make_unique<BarState>();
   SCOPE_EXIT { state_ = nullptr; };
@@ -410,7 +354,6 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
   maybe<wait<>> menu_thread;
   auto menu_opener =
       [&]( MenuStream& stream, e_menu const menu,
-           MenuContents const contents,
            MenuAllowedPositions const positions ) -> wait<> {
     // This is in case there are any menus open that are not as-
     // sociated with the menu bar (e.g. pop up menus).
@@ -418,7 +361,7 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
     st.anim_state.set_opened( menu );
     SCOPE_EXIT { st.anim_state.clear_focus(); };
     auto const item =
-        co_await menu_server_.open_menu( contents, positions );
+        co_await menu_server_.open_menu( menu, positions );
     if( item.has_value() ) stream.send( *item );
   };
   MenuStream menu_stream;
@@ -482,7 +425,6 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
         }
         UNWRAP_CHECK( header_layout,
                       layout_for_menu( click.menu ) );
-        MenuContents contents = tmp_build_contents();
         MenuAllowedPositions const positions =
             positions_for_header( st.render_layout,
                                   header_layout );
@@ -491,8 +433,8 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
         // menu opener function is called and runs its own setup
         // stuff.
         menu_thread.reset();
-        menu_thread = menu_opener( menu_stream, click.menu,
-                                   contents, positions );
+        menu_thread =
+            menu_opener( menu_stream, click.menu, positions );
         break;
       }
     }

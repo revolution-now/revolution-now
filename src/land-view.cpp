@@ -404,69 +404,12 @@ struct LandViewPlane::Impl : public IPlane {
                        point const /*tile*/ ) {
     viewport().stop_auto_zoom();
     viewport().stop_auto_panning();
-    MenuContents const orders_contents{
-      .groups = {
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::leaf{ .item =
-                                       e_menu_item::fortify },
-                MenuElement::leaf{ .item = e_menu_item::sentry },
-                MenuElement::leaf{ .item = e_menu_item::dump },
-              } },
-      } };
-    MenuContents const zoom_contents{
-      .groups = {
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::node{ .text = "Orders",
-                                   .menu = orders_contents },
-                MenuElement::leaf{ .item =
-                                       e_menu_item::zoom_in },
-                MenuElement::leaf{ .item =
-                                       e_menu_item::zoom_out },
-              } },
-      } };
-    MenuContents const contents{
-      .groups = {
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::leaf{ .item =
-                                       e_menu_item::fortify },
-                MenuElement::leaf{ .item = e_menu_item::sentry },
-                MenuElement::leaf{ .item =
-                                       e_menu_item::disband },
-                MenuElement::leaf{ .item = e_menu_item::dump },
-              } },
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::node{ .text = "Zoom",
-                                   .menu = zoom_contents },
-              } },
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::leaf{ .item = e_menu_item::plow },
-                MenuElement::leaf{ .item = e_menu_item::road },
-                MenuElement::leaf{
-                  .item = e_menu_item::build_colony },
-              } },
-        MenuItemGroup{
-          .elems =
-              {
-                MenuElement::node{ .text = "Zoom2",
-                                   .menu = zoom_contents },
-              } },
-      } };
     MenuAllowedPositions const positions{
       .positions_allowed = { { .where = where } } };
 
-    auto& menu_server = ts_.planes.get().menu2.typed();
-    auto const selected_item =
-        co_await menu_server.open_menu( contents, positions );
+    auto& menu_server        = ts_.planes.get().menu2.typed();
+    auto const selected_item = co_await menu_server.open_menu(
+        e_menu::orders, positions );
     if( !selected_item.has_value() ) co_return;
     menu_server.click_item( *selected_item );
   }

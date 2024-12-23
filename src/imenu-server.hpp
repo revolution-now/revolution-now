@@ -53,6 +53,11 @@ struct IMenuServer {
       MenuAllowedPositions const& positions
           ATTR_LIFETIMEBOUND ) = 0;
 
+  // For convenience.
+  wait<maybe<e_menu_item>> open_menu(
+      e_menu menu,
+      MenuAllowedPositions const& positions ATTR_LIFETIMEBOUND );
+
   // Any menus that are open when this is called will be sent a
   // close message (thus will return `nothing` to their callers).
   virtual void close_all_menus() = 0;
