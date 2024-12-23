@@ -21,6 +21,7 @@
 
 // config
 #include "config/menu-items.rds.hpp" // FIXME: remove
+#include "config/menu.rds.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -146,6 +147,103 @@ maybe<e_menu> MenuBar::header_from_point( point const p ) const {
   return nothing;
 }
 
+bool MenuBar::handle_alt_key(
+    input::e_key_change const change ) {
+  if( !state_ ) return false;
+  auto& st = state();
+
+  if( st.anim_state.opened_menu().has_value() &&
+      change == input::e_key_change::down ) {
+    // Menus are open and the user is pressing an alt key, so
+    // close menus.
+    st.events.send( MenuBarEvent::close{} );
+    return true;
+  }
+
+  if( !st.anim_state.focused.has_value() &&
+      change == input::e_key_change::down ) {
+    // There is no focus and the user has pressed an alt key, so
+    // add highlighting to the first menu header.
+    if( st.contents.menus.empty() ) return true;
+    st.events.send(
+        MenuBarEvent::over{ .menu = st.contents.menus[0] } );
+    return true;
+  }
+
+  if( !st.anim_state.opened_menu().has_value() &&
+      change == input::e_key_change::up ) {
+    // Menus are closed and the user is releasing an alt key, so
+    // remove any highlighting from the menu headers.
+    st.anim_state.clear_focus();
+    return true;
+  }
+
+  return false;
+}
+
+bool MenuBar::handle_alt_shortcut(
+    input::key_event_t const& key_event ) {
+  if( !state_ ) return false;
+  auto& st = state();
+  // Check for an alt-shortcut key to open a menu.
+  for( e_menu const menu : st.contents.menus ) {
+    if( key_event.keycode ==
+        tolower( config_menu.menus[menu].shortcut ) ) {
+      if( st.anim_state.opened_menu() != menu )
+        st.events.send( MenuBarEvent::click{ .menu = menu } );
+      return true;
+    }
+  }
+  // This prevents an invalid shortcut key from passing through
+  // to underlying planes.
+  return true;
+}
+
+bool MenuBar::handle_key_event(
+    input::key_event_t const& key_event ) {
+  if( !state_ ) return false;
+  auto& st          = state();
+  bool const is_alt = ( key_event.keycode == ::SDLK_LALT ||
+                        key_event.keycode == ::SDLK_RALT );
+  if( is_alt ) return handle_alt_key( key_event.change );
+  if( key_event.change != input::e_key_change::down )
+    return true;
+  if( key_event.mod.alt_down )
+    return handle_alt_shortcut( key_event );
+  switch( key_event.keycode ) {
+    case ::SDLK_ESCAPE:
+      menu_server_.close_all_menus();
+      return true;
+    case ::SDLK_KP_4:
+    case ::SDLK_LEFT: {
+      if( !st.anim_state.focused.has_value() ) break;
+      st.focus_prev();
+      return true;
+    }
+    case ::SDLK_KP_6:
+    case ::SDLK_RIGHT: {
+      if( !st.anim_state.focused.has_value() ) break;
+      st.focus_next();
+      return true;
+    }
+    case ::SDLK_KP_5:
+    case ::SDLK_KP_ENTER:
+    case ::SDLK_RETURN: {
+      if( !st.anim_state.focused.has_value() ) break;
+      if( st.anim_state.opened_menu().has_value() )
+        // There is a menu open so left it handle this
+        // event.
+        return false;
+      st.events.send( MenuBarEvent::click{
+        .menu = *st.anim_state.focused } );
+      return true;
+    }
+    default:
+      return false;
+  }
+  return false;
+}
+
 bool MenuBar::send_event( MenuBarEventRaw const& event ) {
   if( !state_ ) return false;
   auto& st = state();
@@ -157,40 +255,7 @@ bool MenuBar::send_event( MenuBarEventRaw const& event ) {
     CASE( device ) {
       SWITCH( device.event ) {
         CASE( key_event ) {
-          if( key_event.change != input::e_key_change::down )
-            return true;
-          switch( key_event.keycode ) {
-            case ::SDLK_ESCAPE:
-              menu_server_.close_all_menus();
-              return true;
-            case ::SDLK_KP_4:
-            case ::SDLK_LEFT: {
-              if( !st.anim_state.focused.has_value() ) break;
-              st.focus_prev();
-              return true;
-            }
-            case ::SDLK_KP_6:
-            case ::SDLK_RIGHT: {
-              if( !st.anim_state.focused.has_value() ) break;
-              st.focus_next();
-              return true;
-            }
-            case ::SDLK_KP_5:
-            case ::SDLK_KP_ENTER:
-            case ::SDLK_RETURN: {
-              if( !st.anim_state.focused.has_value() ) break;
-              if( st.anim_state.opened_menu().has_value() )
-                // There is a menu open so left it handle this
-                // event.
-                return false;
-              st.events.send( MenuBarEvent::click{
-                .menu = *st.anim_state.focused } );
-              return true;
-            }
-            default:
-              break;
-          }
-          break;
+          return handle_key_event( key_event );
         }
         CASE( mouse_move_event ) {
           auto const header =

@@ -55,6 +55,13 @@ struct MenuBar {
 
   void send_click( e_menu_item item ) const;
 
+  bool handle_key_event( input::key_event_t const& key_event );
+
+  bool handle_alt_key( input::e_key_change const change );
+
+  bool handle_alt_shortcut(
+      input::key_event_t const& key_event );
+
   BarState& state();
   BarState const& state() const;
 
