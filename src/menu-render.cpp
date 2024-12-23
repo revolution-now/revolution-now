@@ -39,6 +39,11 @@
 // refl
 #include "refl/to-str.hpp"
 
+// C++ standard library
+#include <ranges>
+
+namespace views = std::ranges::views;
+
 using namespace std;
 
 namespace rn {
@@ -51,6 +56,7 @@ using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+using ::refl::enum_count;
 
 // TODO: move these to the configs with proper names after the
 // old menu module is retired.
@@ -266,9 +272,24 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     .origin = { .x = 0, .y = 17 },
     .size   = { .w = screen_width,
                 .h = config_ui.menus.menu_bar_height } };
-  point p = res.bounds.origin;
-  p.x += config_ui.menus.first_menu_start_x_offset;
-  for( e_menu const menu : contents.menus ) {
+
+  auto menus_for = [&]( config::menu::e_menu_side const side ) {
+    vector<e_menu> res;
+    res.reserve( enum_count<e_menu> );
+    for( e_menu const menu : contents.menus )
+      if( config_menu.menus[menu].position == side )
+        res.push_back( menu );
+    return res;
+  };
+
+  vector<e_menu> const l_menus =
+      menus_for( config::menu::e_menu_side::left );
+  vector<e_menu> const r_menus =
+      menus_for( config::menu::e_menu_side::right );
+
+  point p;
+
+  auto add_header = [&]( e_menu const menu, bool const x_pre ) {
     MenuHeaderRenderLayout header;
     header.menu = menu;
     header.text = config_menu.menus[menu].name;
@@ -280,13 +301,24 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
               .h = config_ui.menus.item_vertical_padding * 2 };
     p.y = res.bounds.origin.y;
     p.y += ( res.bounds.size.h - header_size.h ) / 2;
+    if( x_pre ) p.x -= header_size.w;
     header.bounds_absolute = { .origin = p,
                                .size   = header_size };
-    p.x += header_size.w;
+    if( !x_pre ) p.x += header_size.w;
     header.text_nw_absolute =
         gfx::centered_in( text_size, header.bounds_absolute );
     res.headers.push_back( header );
-  }
+  };
+
+  p = res.bounds.nw();
+  p.x += config_ui.menus.first_menu_start_x_offset;
+  for( e_menu const menu : l_menus )
+    add_header( menu, /*x_pre=*/false );
+
+  p = res.bounds.ne();
+  p.x -= config_ui.menus.first_menu_start_x_offset;
+  for( e_menu const menu : views::reverse( r_menus ) )
+    add_header( menu, /*x_pre=*/true );
   return res;
 }
 
