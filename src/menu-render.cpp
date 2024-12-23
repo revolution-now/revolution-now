@@ -301,6 +301,7 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
               .h = config_ui.menus.item_vertical_padding * 2 };
     p.y = res.bounds.origin.y;
     p.y += ( res.bounds.size.h - header_size.h ) / 2;
+    --p.y;
     if( x_pre ) p.x -= header_size.w;
     header.bounds_absolute = { .origin = p,
                                .size   = header_size };

@@ -23,6 +23,7 @@
 
 // config
 #include "config/menu-items.rds.hpp"
+#include "config/menu.rds.hpp"
 #include "config/ui.rds.hpp"
 
 // rds
@@ -615,6 +616,42 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
       }
     }
   }
+}
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+MenuContents contents_for_menu( e_menu const menu ) {
+  auto const& conf = config_menu.layout[menu].contents;
+  MenuContents contents;
+  MenuItemGroup grp;
+  auto collect_group = [&] {
+    if( !grp.elems.empty() ) {
+      contents.groups.push_back( grp );
+      grp = {};
+    }
+  };
+  for( auto const item : conf ) {
+    if( !item.has_value() ) {
+      collect_group();
+      continue;
+    }
+    SWITCH( *item ) {
+      CASE( leaf ) {
+        grp.elems.push_back(
+            MenuElement::leaf{ .item = leaf.item } );
+        break;
+      }
+      CASE( node ) {
+        grp.elems.push_back( MenuElement::node{
+          config_menu.subitems[node.item].name,
+          .menu = contents_for_menu( node.menu ) } );
+        break;
+      }
+    }
+  }
+  collect_group();
+  return contents;
 }
 
 } // namespace rn

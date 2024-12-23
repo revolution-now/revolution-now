@@ -109,105 +109,122 @@ items {
   disband.name: Disband Unit
 }
 
+subitems {
+  window.name: Window
+}
+
 layout {
   game.contents: [
-    game_options,
-    colony_report_options,
+    .leaf.item: game_options,
+    .leaf.item: colony_report_options,
     null,
-    about,
+    .leaf.item: about,
     null,
-    save,
-    load,
+    .leaf.item: save,
+    .leaf.item: load,
     null,
-    next_turn,
+    .leaf.item: next_turn,
     null,
-    revolution,
+    .leaf.item: revolution,
     null,
-    retire,
-    exit,
+    .leaf.item: retire,
+    .leaf.item: exit,
   ]
 
   view.contents: [
-    zoom_in,
-    zoom_out,
-    restore_zoom,
+    .leaf.item: zoom_in,
+    .leaf.item: zoom_out,
+    .leaf.item: restore_zoom,
     null,
-    find_blinking_unit,
+    .leaf.item: find_blinking_unit,
     null,
-    harbor_view,
+    .leaf.item: harbor_view,
     null,
-    hidden_terrain,
-    toggle_view_mode,
+    .leaf.item: hidden_terrain,
+    .leaf.item: toggle_view_mode,
+    null,
+    .node:      { item=window, menu=window },
   ]
 
   orders.contents: [
-    activate,
-    wait,
-    fortify,
-    sentry,
+    .leaf.item: activate,
+    .leaf.item: wait,
+    .leaf.item: fortify,
+    .leaf.item: sentry,
     null,
-    build_colony,
-    plow,
-    road,
-    load_cargo,
-    unload_cargo,
+    .leaf.item: build_colony,
+    .leaf.item: plow,
+    .leaf.item: road,
+    .leaf.item: load_cargo,
+    .leaf.item: unload_cargo,
     null,
-    go_to,
-    trade_route,
-    return_to_europe,
+    .leaf.item: go_to,
+    .leaf.item: trade_route,
+    .leaf.item: return_to_europe,
     null,
-    no_orders,
+    .leaf.item: no_orders,
     null,
-    dump,
-    disband,
+    .leaf.item: dump,
+    .leaf.item: disband,
   ]
 
   advisors.contents: [
-    military_advisor,
-    economics_advisor,
-    european_advisor,
+    .leaf.item: military_advisor,
+    .leaf.item: economics_advisor,
+    .leaf.item: european_advisor,
   ]
 
   music.contents: [
-    music_play,
-    music_stop,
-    music_pause,
-    music_resume,
+    .leaf.item: music_play,
+    .leaf.item: music_stop,
+    .leaf.item: music_pause,
+    .leaf.item: music_resume,
     null,
-    music_next,
-    music_prev,
+    .leaf.item: music_next,
+    .leaf.item: music_prev,
     null,
-    music_vol_up,
-    music_vol_down,
+    .leaf.item: music_vol_up,
+    .leaf.item: music_vol_down,
     null,
-    music_set_player,
+    .leaf.item: music_set_player,
   ]
 
   window.contents: [
-    toggle_fullscreen,
+    .leaf.item: toggle_fullscreen,
     null,
-    scale_up,
-    scale_down,
-    scale_optimal,
+    .leaf.item: scale_up,
+    .leaf.item: scale_down,
+    .leaf.item: scale_optimal,
     null,
-    fit_window,
+    .leaf.item: fit_window,
   ]
 
   cheat.contents: [
-    cheat_create_unit_on_map,
-    cheat_reveal_map,
-    cheat_explore_entire_map,
-    cheat_set_human_players,
-    cheat_map_editor,
+    .leaf.item: cheat_create_unit_on_map,
+    .leaf.item: cheat_reveal_map,
+    .leaf.item: cheat_explore_entire_map,
+    .leaf.item: cheat_set_human_players,
+    .leaf.item: cheat_map_editor,
     null,
-    cheat_edit_fathers,
+    .leaf.item: cheat_edit_fathers,
     null,
-    cheat_kill_natives,
+    .leaf.item: cheat_kill_natives,
   ]
 
   pedia.contents: [
-    units_help,
-    terrain_help,
-    founding_father_help,
+    .leaf.item: units_help,
+    .leaf.item: terrain_help,
+    .leaf.item: founding_father_help,
   ]
 }
+
+# This is the layout of the menu bar in the game.
+menu_bar [
+  game
+  view
+  orders
+  advisors
+  music
+  cheat
+  pedia
+]

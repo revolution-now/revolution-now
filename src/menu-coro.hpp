@@ -95,4 +95,9 @@ struct MenuThreads {
   std::map<int, base::heap_value<OpenMenu>> open_;
 };
 
+/****************************************************************
+** Public API.
+*****************************************************************/
+MenuContents contents_for_menu( e_menu const menu );
+
 } // namespace rn

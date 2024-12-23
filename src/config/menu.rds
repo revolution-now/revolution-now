@@ -36,8 +36,18 @@ struct.MenuConfig {
   _features { equality, validation }
 }
 
+sumtype.MenuElement {
+  leaf {
+    item 'e_menu_item',
+  },
+  node {
+    item 'e_submenu_item',
+    menu 'e_menu',
+  },
+}
+
 struct.MenuLayout {
-  contents 'std::vector<base::maybe<e_menu_item>>',
+  contents 'std::vector<base::maybe<MenuElement>>',
   _features { equality, validation }
 }
 
@@ -47,6 +57,8 @@ struct.config_menu_t {
   layout 'refl::enum_map<e_menu, config::menu::MenuLayout>',
   menus 'refl::enum_map<e_menu, config::menu::MenuConfig>',
   items 'refl::enum_map<e_menu_item, config::menu::MenuItemConfig>',
+  subitems 'refl::enum_map<e_submenu_item, config::menu::MenuItemConfig>',
+  menu_bar 'std::vector<e_menu>',
   _features { equality, validation }
 }
 

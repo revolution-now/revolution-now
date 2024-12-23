@@ -10,29 +10,31 @@
 # ===============================================================
 namespace "rn"
 
-# The ordering of these determines the order in which they appear
-# in the menu bar.
+# Ordering does not matter here.
 enum.e_menu {
-  game,
-  view,
-  orders,
   advisors,
-  music,
-  window,
   cheat,
+  game,
+  music,
+  orders,
   pedia,
+  view,
+  window,
 }
 
 enum.e_menu_item {
   about,
+  activate,
+  build_colony,
   cheat_create_unit_on_map,
   cheat_edit_fathers,
   cheat_explore_entire_map,
+  cheat_kill_natives,
   cheat_map_editor,
   cheat_reveal_map,
   cheat_set_human_players,
-  cheat_kill_natives,
   colony_report_options,
+  disband,
   dump,
   economics_advisor,
   european_advisor,
@@ -42,9 +44,11 @@ enum.e_menu_item {
   fortify,
   founding_father_help,
   game_options,
+  go_to,
   harbor_view,
   hidden_terrain,
   load,
+  load_cargo,
   military_advisor,
   music_next,
   music_pause,
@@ -56,9 +60,11 @@ enum.e_menu_item {
   music_vol_down,
   music_vol_up,
   next_turn,
+  no_orders,
   plow,
   restore_zoom,
   retire,
+  return_to_europe,
   revolution,
   road,
   save,
@@ -68,18 +74,17 @@ enum.e_menu_item {
   sentry,
   terrain_help,
   toggle_fullscreen,
+  toggle_view_mode,
+  trade_route,
   units_help,
+  unload_cargo,
+  wait,
   zoom_in,
   zoom_out,
-  toggle_view_mode,
-  activate,
-  wait,
-  build_colony,
-  load_cargo,
-  unload_cargo,
-  go_to,
-  trade_route,
-  return_to_europe,
-  no_orders,
-  disband,
+}
+
+# These are menu items that are not themselves actions, but in-
+# stead they open into sub-menus.
+enum.e_submenu_item {
+  window,
 }

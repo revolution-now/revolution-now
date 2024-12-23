@@ -824,5 +824,13 @@ TEST_CASE( "[cheat] cheat_mode_enabled" ) {
   REQUIRE_FALSE( f() );
 }
 
+TEST_CASE( "[cheat] enable_cheat_mode" ) {
+  world w;
+}
+
+TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

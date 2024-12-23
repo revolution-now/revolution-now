@@ -20,7 +20,6 @@
 #include "menu-render.hpp"
 
 // config
-#include "config/menu-items.rds.hpp" // FIXME: remove
 #include "config/menu.rds.hpp"
 
 // rds

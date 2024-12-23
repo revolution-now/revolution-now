@@ -15,5 +15,6 @@ namespace rn {
 
 enum class e_menu;
 enum class e_menu_item;
+enum class e_submenu_item;
 
 } // namespace rn

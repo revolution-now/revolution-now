@@ -19,6 +19,7 @@
 
 // config
 #include "config/menu-items.rds.hpp"
+#include "config/menu.rds.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -34,7 +35,6 @@ namespace rn {
 namespace {
 
 using ::refl::enum_map;
-using ::refl::enum_values;
 
 } // namespace
 
@@ -59,7 +59,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
 
   void populate_menu_bar_contents() {
     bar_contents_.menus.clear();
-    for( e_menu const menu : enum_values<e_menu> ) {
+    for( e_menu const menu : config_menu.menu_bar ) {
       if( menu == e_menu::cheat && !cheat_menu_ ) continue;
       bar_contents_.menus.push_back( menu );
     }
