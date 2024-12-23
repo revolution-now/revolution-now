@@ -31,6 +31,10 @@ bool Object::input( input::event_t const& event ) {
       auto& val = event.get<input::resolution_event_t>();
       return on_resolution_event( val );
     }
+    case input::e_input_event::cheat_event: {
+      auto& val = event.get<input::cheat_event_t>();
+      return on_cheat_event( val );
+    }
     case input::e_input_event::key_event: {
       auto& val = event.get<input::key_event_t>();
       return on_key( val );
@@ -85,6 +89,11 @@ bool Object::on_win_event(
 
 bool Object::on_resolution_event(
     input::resolution_event_t const& /*unused*/ ) {
+  return false;
+}
+
+bool Object::on_cheat_event(
+    input::cheat_event_t const& /*unused*/ ) {
   return false;
 }
 

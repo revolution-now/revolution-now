@@ -72,9 +72,6 @@ struct.config_rn_t {
   power       'config_rn_power',
 
   game_flag_options_defaults 'refl::enum_map<e_game_flag_option, bool>',
-
-  # Are the various cheat/debug hot keys and menus available.
-  cheat_functions_enabled 'bool',
 }
 
 config.rn {}

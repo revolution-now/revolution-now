@@ -121,6 +121,9 @@ class Object {
   ND virtual bool on_resolution_event(
       input::resolution_event_t const& event );
 
+  ND virtual bool on_cheat_event(
+      input::cheat_event_t const& event );
+
  private:
   bool disabled_ = false;
 };

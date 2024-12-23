@@ -1152,5 +1152,11 @@ TEST_CASE( "[co-combinator] while_throws" ) {
   }
 }
 
+TEST_CASE( "[co-combinator] halt" ) {
+  wait<> w = co::halt();
+  run_all_cpp_coroutines();
+  REQUIRE( !w.ready() );
+}
+
 } // namespace
 } // namespace rn::co

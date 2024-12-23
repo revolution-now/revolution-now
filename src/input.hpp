@@ -181,7 +181,7 @@ struct win_event_t : public event_base_t {
 };
 
 /****************************************************************
-** Window
+** Resolution
 *****************************************************************/
 struct resolution_event_t : public event_base_t {
   // Declare these and use heap_value so that we can forward de-
@@ -199,6 +199,14 @@ struct resolution_event_t : public event_base_t {
 };
 
 /****************************************************************
+** Cheat
+*****************************************************************/
+// This event is sent when the magic cheat key sequence is de-
+// tected. It will be sent each time the sequence is detected,
+// although within a single game it is a one-way latch.
+struct cheat_event_t : public event_base_t {};
+
+/****************************************************************
 ** Input Events
 *****************************************************************/
 // clang-format off
@@ -211,7 +219,8 @@ using event_base = base::variant<
   mouse_wheel_event_t,
   mouse_drag_event_t,
   win_event_t,
-  resolution_event_t
+  resolution_event_t,
+  cheat_event_t
 >;
 // clang-format on
 
@@ -224,6 +233,7 @@ static_assert( std::equality_comparable<mouse_wheel_event_t> );
 static_assert( std::equality_comparable<mouse_drag_event_t> );
 static_assert( std::equality_comparable<win_event_t> );
 static_assert( std::equality_comparable<resolution_event_t> );
+static_assert( std::equality_comparable<cheat_event_t> );
 static_assert( std::equality_comparable<event_base> );
 
 enum class e_input_event {
@@ -236,6 +246,7 @@ enum class e_input_event {
   mouse_drag_event,
   win_event,
   resolution_event,
+  cheat_event,
 };
 
 struct event_t : public event_base {
@@ -255,6 +266,7 @@ struct event_t : public event_base {
   using mouse_drag_event   = mouse_drag_event_t;
   using win_event          = win_event_t;
   using resolution_event   = resolution_event_t;
+  using cheat_event        = cheat_event_t;
 
   using e = e_input_event;
 };

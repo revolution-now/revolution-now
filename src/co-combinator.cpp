@@ -98,4 +98,9 @@ wait<> loop( base::unique_func<wait<>() const> coroutine ) {
   while( true ) co_await coroutine();
 }
 
+/****************************************************************
+** halt
+*****************************************************************/
+wait<> halt() { co_await wait_promise<>{}.wait(); }
+
 } // namespace rn::co

@@ -1,0 +1,13 @@
+# Will the game allow the player to manually enabled cheat mode
+# during the game. If this is false then it will not be possible
+# to enable it even using the magic key sequence.
+can_enable_cheat_mode: true
+
+# If this is true then new games will start with cheat mode en-
+# abled. Note that cheat mode cannot be disabled once it is en-
+# abled.
+enable_cheat_mode_by_default: false
+
+# Type these keys in order while holding Alt to enable cheat
+# mode, assuming that it can be enabled.
+magic_sequence: [w, i, n]

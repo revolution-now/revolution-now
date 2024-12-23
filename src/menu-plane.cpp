@@ -135,6 +135,13 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   e_input_handled input( input::event_t const& event ) override {
+    if( event.holds<input::cheat_event_t>() )
+      // Let this pass through because we don't handle it here
+      // and the alt-WIN key combination can sometimes cause
+      // menus to pop open which interfere with the cheat event
+      // making it down to lower planes.
+      return e_input_handled::no;
+
     if( bar_is_running() ) {
       auto const raw = MenuBarEventRaw::device{ .event = event };
       if( bar_.send_event( raw ) ) return e_input_handled::yes;

@@ -23,6 +23,7 @@
 #include "icolony-evolve.rds.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
+#include "imenu-server.hpp"
 #include "interrupts.hpp"
 #include "land-view.hpp"
 #include "logger.hpp"
@@ -41,10 +42,10 @@
 #include "window.hpp"
 
 // config
+#include "config/cheat.rds.hpp"
 #include "config/colony.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/natives.rds.hpp"
-#include "config/rn.rds.hpp"
 #include "config/unit-type.hpp"
 
 // ss
@@ -108,8 +109,8 @@ void reveal_map_qol( SS& ss, TS& ts ) {
 // This just decides if cheat functions should be enabled by de-
 // fault when a new game starts. The actual per-game setting is
 // stored in the game settings.
-bool config_cheat_mode_enabled() {
-  return config_rn.cheat_functions_enabled;
+bool enable_cheat_mode_by_default() {
+  return config_cheat.enable_cheat_mode_by_default;
 }
 
 } // namespace
@@ -117,8 +118,29 @@ bool config_cheat_mode_enabled() {
 /****************************************************************
 ** General.
 *****************************************************************/
+void enable_cheat_mode( SS& ss, TS& ts ) {
+  if( !config_cheat.can_enable_cheat_mode ) return;
+  ts.planes.get().menu.typed().enable_cheat_menu( true );
+  ss.settings.cheat_options.enabled = true;
+}
+
 bool cheat_mode_enabled( SSConst const& ss ) {
   return ss.settings.cheat_options.enabled;
+}
+
+wait<> monitor_magic_key_sequence( co::stream<char>& chars ) {
+  auto const& seq = config_cheat.magic_sequence;
+  if( seq.empty() )
+    // If there is no sequence to monitor then we will never
+    // enter cheat mode and thus never return.
+    co_await co::halt();
+  while( true ) {
+    for( char const next : seq )
+      if( co_await chars.next() != next ) //
+        goto start_over;
+    co_return;
+  start_over:;
+  }
 }
 
 /****************************************************************
@@ -839,7 +861,7 @@ wait<> cheat_create_unit_on_map( SS& ss, TS& ts,
 *****************************************************************/
 namespace {
 
-LUA_AUTO_FN( config_cheat_mode_enabled );
+LUA_AUTO_FN( enable_cheat_mode_by_default );
 
 }
 

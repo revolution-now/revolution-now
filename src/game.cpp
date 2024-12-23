@@ -24,6 +24,7 @@
 #include "frame-count.hpp"         // FIXME
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
+#include "imenu-server.hpp"
 #include "inative-mind.hpp"
 #include "interrupts.hpp"
 #include "irand.hpp"
@@ -161,6 +162,8 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
   auto owner          = planes.push();
   PlaneGroup& group   = owner.group;
   group.menus_enabled = true;
+  group.menu.typed().enable_cheat_menu(
+      ss.settings.cheat_options.enabled );
 
   PanelPlane panel_plane( ss, ts );
   group.panel = panel_plane;

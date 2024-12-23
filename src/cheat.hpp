@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "co-combinator.hpp"
 #include "wait.hpp"
 
 // ss
@@ -37,7 +38,11 @@ struct UnitsState;
 /****************************************************************
 ** General.
 *****************************************************************/
+void enable_cheat_mode( SS& ss, TS& ts );
+
 bool cheat_mode_enabled( SSConst const& ss );
+
+wait<> monitor_magic_key_sequence( co::stream<char>& chars );
 
 /****************************************************************
 ** In Land View

@@ -1,0 +1,26 @@
+# ===============================================================
+# cheat.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-22.
+#
+# Description: Config data for the cheat module.
+#
+# ===============================================================
+# C++ standard library
+include "<vector>"
+
+namespace "rn.config.cheat"
+
+namespace "rn"
+
+struct.config_cheat_t {
+  can_enable_cheat_mode 'bool',
+
+  enable_cheat_mode_by_default 'bool',
+
+  magic_sequence 'std::vector<char>',
+}
+
+config.cheat {}

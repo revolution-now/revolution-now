@@ -554,4 +554,9 @@ struct DetectSuspend {
 
 inline constexpr DetectSuspend detect_suspend{};
 
+/****************************************************************
+** halt
+*****************************************************************/
+wait<> halt();
+
 } // namespace rn::co

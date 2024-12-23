@@ -37,6 +37,7 @@ struct mouse_drag_event_t;
 struct mouse_button_event_t;
 struct win_event_t;
 struct resolution_event_t;
+struct cheat_event_t;
 struct mod_keys;
 enum class e_mouse_button;
 } // namespace input
@@ -84,6 +85,9 @@ struct IPlane {
 
   [[nodiscard]] virtual e_input_handled on_resolution_event(
       input::resolution_event_t const& event );
+
+  [[nodiscard]] virtual e_input_handled on_cheat_event(
+      input::cheat_event_t const& event );
 
   [[nodiscard]] virtual e_input_handled on_unknown_event(
       input::unknown_event_t const& event );

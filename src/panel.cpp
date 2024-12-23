@@ -11,6 +11,7 @@
 #include "panel.hpp"
 
 // Revolution Now
+#include "cheat.hpp"
 #include "co-wait.hpp"
 #include "compositor.hpp"
 #include "error.hpp"
@@ -213,6 +214,11 @@ struct PanelPlane::Impl : public IPlane {
   }
 
   e_input_handled input( input::event_t const& event ) override {
+    if( event.holds<input::cheat_event_t>() ) {
+      enable_cheat_mode( ss_, ts_ );
+      return e_input_handled::yes;
+    }
+
     // FIXME: we need a window manager in the panel to avoid du-
     // plicating logic between here and the window module.
     if( input::is_mouse_event( event ) ) {

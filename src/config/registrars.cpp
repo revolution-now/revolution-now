@@ -15,6 +15,7 @@
 *
 *****************************************************************/
 // config modules.
+#include "config/cheat.rds.hpp"
 #include "config/colony.rds.hpp"
 #include "config/combat.rds.hpp"
 #include "config/command.rds.hpp"
@@ -59,6 +60,7 @@
 
 namespace rds {
 
+INSTANTIATE_RN_CONFIG( cheat );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
 INSTANTIATE_RN_CONFIG( commodity );

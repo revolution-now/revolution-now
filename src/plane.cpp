@@ -37,6 +37,9 @@ e_input_handled IPlane::input( input::event_t const& event ) {
     CASE( resolution_event ) { //
       return on_resolution_event( resolution_event );
     }
+    CASE( cheat_event ) { //
+      return on_cheat_event( cheat_event );
+    }
     CASE( key_event ) { //
       return on_key( key_event );
     }
@@ -86,6 +89,11 @@ e_input_handled IPlane::on_win_event(
 
 e_input_handled IPlane::on_resolution_event(
     input::resolution_event_t const& ) {
+  return e_input_handled::no;
+}
+
+e_input_handled IPlane::on_cheat_event(
+    input::cheat_event_t const& ) {
   return e_input_handled::no;
 }
 
