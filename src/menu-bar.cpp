@@ -26,9 +26,16 @@
 #include "rds/switch-macro.hpp"
 
 // base
+#include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 
+// C++ standard library
+#include <ranges>
+
 using namespace std;
+
+namespace rl    = base::rl;
+namespace views = std::ranges::views;
 
 namespace rn {
 
@@ -61,10 +68,37 @@ MenuAllowedPositions positions_for_header(
 ** MenuBar::BarState
 *****************************************************************/
 struct MenuBar::BarState {
+  MenuBarContents contents;
   MenuBarAnimState anim_state;
   MenuBarRenderedLayout render_layout;
   co::stream<MenuBarEvent> events;
   co::stream<MenuBarEventRaw> raw_events;
+
+  e_menu cycle_focus( ranges::view auto const rng ) const {
+    CHECK( !rng.empty() );
+    UNWRAP_CHECK( current, anim_state.focused );
+    auto const next =
+        rl::all( rng )
+            .cycle()
+            .drop_while_L( _ != current )
+            .drop( 1 )          // drop current.
+            .take( rng.size() ) // prevent infinite loops.
+            .head();
+    CHECK( next.has_value() );
+    return *next;
+  }
+
+  void focus_next() {
+    e_menu const new_menu =
+        cycle_focus( views::all( contents.menus ) );
+    events.send( MenuBarEvent::over{ .menu = new_menu } );
+  }
+
+  void focus_prev() {
+    e_menu const new_menu =
+        cycle_focus( views::reverse( contents.menus ) );
+    events.send( MenuBarEvent::over{ .menu = new_menu } );
+  }
 };
 
 /****************************************************************
@@ -123,9 +157,36 @@ bool MenuBar::send_event( MenuBarEventRaw const& event ) {
     CASE( device ) {
       SWITCH( device.event ) {
         CASE( key_event ) {
+          if( key_event.change != input::e_key_change::down )
+            return true;
           switch( key_event.keycode ) {
             case ::SDLK_ESCAPE:
-              return send_event( MenuBarEventRaw::close{} );
+              menu_server_.close_all_menus();
+              return true;
+            case ::SDLK_KP_4:
+            case ::SDLK_LEFT: {
+              if( !st.anim_state.focused.has_value() ) break;
+              st.focus_prev();
+              return true;
+            }
+            case ::SDLK_KP_6:
+            case ::SDLK_RIGHT: {
+              if( !st.anim_state.focused.has_value() ) break;
+              st.focus_next();
+              return true;
+            }
+            case ::SDLK_KP_5:
+            case ::SDLK_KP_ENTER:
+            case ::SDLK_RETURN: {
+              if( !st.anim_state.focused.has_value() ) break;
+              if( st.anim_state.opened_menu().has_value() )
+                // There is a menu open so left it handle this
+                // event.
+                return false;
+              st.events.send( MenuBarEvent::click{
+                .menu = *st.anim_state.focused } );
+              return true;
+            }
             default:
               break;
           }
@@ -275,6 +336,7 @@ wait<> MenuBar::run_thread( MenuBarContents const& contents ) {
   SCOPE_EXIT { state_ = nullptr; };
 
   auto& st         = *state_;
+  st.contents      = contents;
   st.render_layout = build_menu_bar_rendered_layout( contents );
 
   wait<> const translater = translate_input_thread( st );
