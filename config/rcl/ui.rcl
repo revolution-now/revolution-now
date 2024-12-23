@@ -18,14 +18,10 @@ dialog_text {
 }
 
 menus {
-  # FIXME: get rid of the unused ones and give them better names.
-  first_menu_start_x_offset: 8
-  item_vertical_padding:     2
-  padding_x:                 6
-  spacing_x:                 0
-  body_min_width:            120 # must be a multiple of 8
-  font:                      habbo_15
-  menu_bar_height:           16
+  menu_bar_x_padding:  8
+  highlight_padding:   { w=6, h=2 }
+  body_border_padding: { w=4, h=4 }
+  menu_bar_height:     16
 
   # Animations.
   enable_click_animation: true

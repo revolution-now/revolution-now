@@ -58,11 +58,6 @@ using ::gfx::rect;
 using ::gfx::size;
 using ::refl::enum_count;
 
-// TODO: move these to the configs with proper names after the
-// old menu module is retired.
-size constexpr kHighlightPadding{ .w = 6, .h = 2 };
-size constexpr kBorderPadding{ .w = 4, .h = 4 };
-
 gfx::rect compute_bounding_rect( MenuPosition const& position,
                                  size const sz ) {
   point const p = position.where;
@@ -138,18 +133,19 @@ MenuRenderLayout build_menu_rendered_layout(
   int max_w = 0;
   int const row_height =
       rr::rendered_text_line_size_pixels( "X" ).h +
-      2 * kHighlightPadding.h;
+      2 * config_ui.menus.highlight_padding.h;
   auto add_item = [&]( string const& text ) -> auto& {
     auto& item = res.items.emplace_back();
     int const row_w =
         rr::rendered_text_line_size_pixels( text ).w +
-        2 * kHighlightPadding.w;
+        2 * config_ui.menus.highlight_padding.w;
     max_w = std::max( max_w, row_w );
     item  = {
-       .text             = text,
-       .bounds_relative  = { .origin = point{ .x = 0, .y = y },
-                             .size   = { .h = row_height } },
-       .text_nw_relative = point{} + kHighlightPadding };
+       .text            = text,
+       .bounds_relative = { .origin = point{ .x = 0, .y = y },
+                            .size   = { .h = row_height } },
+       .text_nw_relative =
+          point{} + config_ui.menus.highlight_padding };
     return item;
   };
   // Minus one to make it even.
@@ -185,10 +181,12 @@ MenuRenderLayout build_menu_rendered_layout(
 
   // Now apply border padding.
   for( auto& layout : res.items )
-    layout.bounds_relative.origin += kBorderPadding;
-  for( rect& bar : res.bars ) bar.origin.y += kBorderPadding.h;
-  size const body_size =
-      size{ .w = max_w, .h = y } + kBorderPadding * 2;
+    layout.bounds_relative.origin +=
+        config_ui.menus.body_border_padding;
+  for( rect& bar : res.bars )
+    bar.origin.y += config_ui.menus.body_border_padding.h;
+  size const body_size = size{ .w = max_w, .h = y } +
+                         config_ui.menus.body_border_padding * 2;
 
   // Now make the widths uniform.
   for( auto& rendered_item_layout : res.items )
@@ -296,9 +294,7 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     size const text_size =
         rr::rendered_text_line_size_pixels( header.text );
     size const header_size =
-        text_size +
-        size{ .w = config_ui.menus.padding_x * 2,
-              .h = config_ui.menus.item_vertical_padding * 2 };
+        text_size + config_ui.menus.highlight_padding * 2;
     p.y = res.bounds.origin.y;
     p.y += ( res.bounds.size.h - header_size.h ) / 2;
     --p.y;
@@ -312,12 +308,12 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
   };
 
   p = res.bounds.nw();
-  p.x += config_ui.menus.first_menu_start_x_offset;
+  p.x += config_ui.menus.menu_bar_x_padding;
   for( e_menu const menu : l_menus )
     add_header( menu, /*x_pre=*/false );
 
   p = res.bounds.ne();
-  p.x -= config_ui.menus.first_menu_start_x_offset;
+  p.x -= config_ui.menus.menu_bar_x_padding;
   for( e_menu const menu : views::reverse( r_menus ) )
     add_header( menu, /*x_pre=*/true );
   return res;

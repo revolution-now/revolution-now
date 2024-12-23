@@ -8,13 +8,11 @@
 # Description: Config info for UI stuff.
 #
 # ===============================================================
-# Revolution Now
-include "font.hpp"
-
 # Rds
 include "../compositor.rds.hpp"
 
 # gfx
+include "gfx/cartesian.hpp"
 include "gfx/pixel.hpp"
 
 # C++ standard library
@@ -42,12 +40,9 @@ struct.dialog_text {
 }
 
 struct.menus {
-  first_menu_start_x_offset 'int',
-  item_vertical_padding 'int',
-  padding_x 'int',
-  spacing_x 'int',
-  body_min_width 'int',
-  font 'e_font',
+  menu_bar_x_padding 'int',
+  highlight_padding 'gfx::size',
+  body_border_padding 'gfx::size',
   menu_bar_height 'int',
 
   # Animations.
