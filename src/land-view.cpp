@@ -26,7 +26,6 @@
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
 #include "logger.hpp"
-#include "menu.hpp"
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -139,8 +138,7 @@ struct LandViewPlane::Impl : public IPlane {
   unique_ptr<IVisibility const> viz_;
   LandViewAnimator animator_;
 
-  vector<MenuPlane::Deregistrar> dereg;
-  vector<IMenuServer::Deregistrar> dereg2;
+  vector<IMenuServer::Deregistrar> dereg;
 
   co::stream<RawInput> raw_input_stream_;
   queue<PlayerInput> translated_input_stream_;
@@ -166,48 +164,43 @@ struct LandViewPlane::Impl : public IPlane {
 
   SmoothViewport& viewport() { return ss_.land_view.viewport; }
 
-  void register_menu_items( MenuPlane& menu_plane,
-                            IMenuServer& menu_server ) {
+  void register_menu_items( IMenuServer& menu_server ) {
     // Register menu handlers.
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::cheat_create_unit_on_map, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::cheat_reveal_map, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::zoom_in, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::zoom_out, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::restore_zoom, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::find_blinking_unit, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::sentry, *this ) );
-    dereg2.push_back( menu_server.register_handler(
-        e_menu_item::sentry, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::fortify, *this ) );
-    dereg2.push_back( menu_server.register_handler(
-        e_menu_item::fortify, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::disband, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::wait, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::build_colony, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::return_to_europe, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::dump, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::plow, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::road, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::activate, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::hidden_terrain, *this ) );
-    dereg.push_back( menu_plane.register_handler(
+    dereg.push_back( menu_server.register_handler(
         e_menu_item::toggle_view_mode, *this ) );
   }
 
@@ -218,8 +211,7 @@ struct LandViewPlane::Impl : public IPlane {
       animator_( ss, ss.land_view.viewport, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
-    register_menu_items( ts.planes.get().menu,
-                         ts.planes.get().menu2 );
+    register_menu_items( ts.planes.get().menu2 );
     // Initialize general global data.
     mode_            = LandViewMode::none{};
     last_unit_input_ = nothing;

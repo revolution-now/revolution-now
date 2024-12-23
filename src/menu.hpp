@@ -56,8 +56,8 @@ struct MenuPlane {
   };
 
  public:
-  [[nodiscard]] Deregistrar register_handler( e_menu_item item,
-                                              IPlane& plane );
+  [[deprecated]] [[nodiscard]] Deregistrar register_handler(
+      e_menu_item item, IPlane& plane );
 
  private:
   void unregister_handler( e_menu_item item, IPlane& plane );

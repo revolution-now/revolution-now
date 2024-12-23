@@ -31,7 +31,6 @@
 #include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
-#include "menu.hpp"
 #include "minds.hpp"
 #include "panel.hpp"
 #include "plane-stack.hpp"
@@ -161,7 +160,6 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
 
   auto owner           = planes.push();
   PlaneGroup& group    = owner.group;
-  group.menus_enabled  = true;
   group.menu2s_enabled = true;
 
   PanelPlane panel_plane( ss, ts );

@@ -16,7 +16,7 @@
 #include "error.hpp"
 #include "fathers.hpp"
 #include "igui.hpp"
-#include "menu.hpp"
+#include "imenu-server.hpp"
 #include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -66,7 +66,7 @@ struct PanelPlane::Impl : public IPlane {
   TS& ts_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<> w_promise;
-  MenuPlane::Deregistrar eot_click_dereg_;
+  vector<IMenuServer::Deregistrar> dereg_;
 
   static Rect rect() {
     UNWRAP_CHECK( res, compositor::section(
@@ -86,9 +86,9 @@ struct PanelPlane::Impl : public IPlane {
 
   Impl( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {
     // Register menu handlers.
-    eot_click_dereg_ =
-        ts.planes.get().menu.typed().register_handler(
-            e_menu_item::next_turn, *this );
+    dereg_.push_back(
+        ts.planes.get().menu2.typed().register_handler(
+            e_menu_item::next_turn, *this ) );
 
     vector<ui::OwningPositionedView> view_vec;
 

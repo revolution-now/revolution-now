@@ -15,7 +15,6 @@
 #include "init.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
-#include "menu.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
 #include "oggplayer.hpp"

@@ -20,7 +20,7 @@
 
 namespace rn {
 
-struct MenuPlane;
+struct IMenuServer;
 struct IPlane;
 
 enum class e_menu_item;
@@ -30,7 +30,7 @@ enum class e_menu_item;
 *****************************************************************/
 // This is mostly just to handle menu items.
 struct TurnPlane {
-  TurnPlane( MenuPlane& menu_plane );
+  TurnPlane( IMenuServer& menu_server );
   ~TurnPlane();
 
   wait<e_menu_item> next_menu_action();

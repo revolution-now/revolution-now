@@ -17,7 +17,8 @@
 #include "connectivity.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
-#include "ieuro-mind.hpp"   // FIXME
+#include "ieuro-mind.hpp" // FIXME
+#include "imenu-server.hpp"
 #include "inative-mind.hpp" // FIXME
 #include "input.hpp"
 #include "logger.hpp"
@@ -25,7 +26,7 @@
 #include "map-gen.hpp"
 #include "map-square.hpp"
 #include "map-updater.hpp"
-#include "menu.hpp"
+#include "menu-plane.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -138,23 +139,21 @@ struct MapEditPlane::Impl : public IPlane {
   co::stream<input::event_t> input_;
   maybe<editor::e_toolbar_item> selected_tool_;
 
-  MenuPlane::Deregistrar zoom_in_dereg_;
-  MenuPlane::Deregistrar zoom_out_dereg_;
-  MenuPlane::Deregistrar restore_zoom_dereg_;
+  vector<IMenuServer::Deregistrar> dereg_;
 
-  void register_menu_items( MenuPlane& menu_plane ) {
+  void register_menu_items( IMenuServer& menu_server ) {
     // Register menu handlers.
-    zoom_in_dereg_ = menu_plane.register_handler(
-        e_menu_item::zoom_in, *this );
-    zoom_out_dereg_ = menu_plane.register_handler(
-        e_menu_item::zoom_out, *this );
-    restore_zoom_dereg_ = menu_plane.register_handler(
-        e_menu_item::restore_zoom, *this );
+    dereg_.push_back( menu_server.register_handler(
+        e_menu_item::zoom_in, *this ) );
+    dereg_.push_back( menu_server.register_handler(
+        e_menu_item::zoom_out, *this ) );
+    dereg_.push_back( menu_server.register_handler(
+        e_menu_item::restore_zoom, *this ) );
   }
 
   Impl( SS& ss, TS& ts )
     : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
-    register_menu_items( ts_.planes.get().menu );
+    register_menu_items( ts_.planes.get().menu2 );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -661,7 +660,7 @@ wait<> run_map_editor_standalone( Planes& planes ) {
 }
 
 wait<> run_map_editor( SS& ss, TS& ts ) {
-  MenuPlane menu_plane;
+  Menu2Plane menu_plane;
   MapEditPlane map_edit_plane( ss, ts );
   WindowPlane window_plane;
 
@@ -669,7 +668,7 @@ wait<> run_map_editor( SS& ss, TS& ts ) {
   auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
 
-  new_group.menu = menu_plane;
+  new_group.menu2 = menu_plane;
   new_group.set_bottom( map_edit_plane.impl() );
 
   auto map_updater_options_popper =

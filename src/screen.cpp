@@ -15,7 +15,6 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "menu.hpp"
 #include "resolution.hpp"
 #include "sdl-util.hpp"
 #include "sdl.hpp"

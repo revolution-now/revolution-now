@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "menu.hpp"
+#include "imenu-server.hpp"
 #include "plane.hpp"
 
 // config
@@ -46,12 +46,12 @@ struct TurnPlane::Impl : public IPlane {
   // State.
   co::stream<e_menu_item> menu_actions;
 
-  vector<MenuPlane::Deregistrar> dereg;
+  vector<IMenuServer::Deregistrar> dereg;
 
-  Impl( MenuPlane& menu_plane ) {
+  Impl( IMenuServer& menu_server ) {
     for( e_menu_item item : kSupportedMenuItems )
       dereg.push_back(
-          menu_plane.register_handler( item, *this ) );
+          menu_server.register_handler( item, *this ) );
   }
 
   bool will_handle_menu_click( e_menu_item item ) override {
@@ -77,8 +77,8 @@ IPlane& TurnPlane::impl() { return *impl_; }
 
 TurnPlane::~TurnPlane() = default;
 
-TurnPlane::TurnPlane( MenuPlane& menu_plane )
-  : impl_( new Impl( menu_plane ) ) {}
+TurnPlane::TurnPlane( IMenuServer& menu_server )
+  : impl_( new Impl( menu_server ) ) {}
 
 wait<e_menu_item> TurnPlane::next_menu_action() {
   return impl_->next_menu_action();

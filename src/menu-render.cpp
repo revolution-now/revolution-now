@@ -269,7 +269,7 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
   int const screen_width = main_window_logical_size().w;
 
   res.bounds = {
-    .origin = { .x = 0, .y = 17 },
+    .origin = { .x = 0, .y = 0 },
     .size   = { .w = screen_width,
                 .h = config_ui.menus.menu_bar_height } };
 

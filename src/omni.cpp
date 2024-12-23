@@ -13,8 +13,8 @@
 // Revolution Now
 #include "aspect.hpp"
 #include "frame.hpp"
+#include "imenu-server.hpp"
 #include "input.hpp"
-#include "menu.hpp"
 #include "plane.hpp"
 #include "resolution.hpp"
 #include "screen.hpp"
@@ -142,13 +142,13 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
 struct OmniPlane::Impl : public IPlane {
   bool show_game_cursor_ = true;
 
-  vector<MenuPlane::Deregistrar> dereg_;
+  vector<IMenuServer::Deregistrar> dereg_;
 
-  Impl( MenuPlane& menu_plane ) {
+  Impl( IMenuServer& menu_server ) {
     for( auto const& [item, enabled] : kSupportedMenuItems )
       if( enabled )
         dereg_.push_back(
-            menu_plane.register_handler( item, *this ) );
+            menu_server.register_handler( item, *this ) );
   }
 
   bool can_cycle_resolution_up() {
@@ -431,8 +431,8 @@ IPlane& OmniPlane::impl() { return *impl_; }
 
 OmniPlane::~OmniPlane() = default;
 
-OmniPlane::OmniPlane( MenuPlane& menu_plane )
-  : impl_( new Impl( menu_plane ) ) {}
+OmniPlane::OmniPlane( IMenuServer& menu_server )
+  : impl_( new Impl( menu_server ) ) {}
 
 /****************************************************************
 ** Lua

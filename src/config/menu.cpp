@@ -8,8 +8,6 @@
 # Description: Config data for the menus in the menu bar.
 *
 *****************************************************************/
-#include "menu.hpp"
-
 // config
 #include "menu.rds.hpp"
 
