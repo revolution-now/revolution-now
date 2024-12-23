@@ -515,13 +515,14 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
 
   wait<> const translater =
       translate_routed_input_thread( menu_id );
-  using SubMenuResult = maybe<e_menu_item>;
+  using SubMenuResult = e_menu_item;
   using SubMenuStream = co::stream<SubMenuResult>;
   maybe<wait<>> sub_menu_thread;
   auto sub_menu_opener =
       [this]( SubMenuStream& stream, MenuContents const contents,
               MenuAllowedPositions const positions ) -> wait<> {
-    stream.send( co_await open_menu( contents, positions ) );
+    auto const item = co_await open_menu( contents, positions );
+    if( item.has_value() ) stream.send( *item );
   };
   SubMenuStream sub_menu_stream;
   while( true ) {
@@ -534,8 +535,7 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
     switch( next.index() ) {
       case 0: {
         auto const& o = get<0>( next );
-        if( o.has_value() ) co_return *o;
-        continue;
+        co_return o;
       }
       case 1: {
         auto const& o = get<1>( next );
