@@ -153,7 +153,7 @@ struct MapEditPlane::Impl : public IPlane {
 
   Impl( SS& ss, TS& ts )
     : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
-    register_menu_items( ts_.planes.get().menu2 );
+    register_menu_items( ts_.planes.get().menu );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
     // constructed.
@@ -660,7 +660,7 @@ wait<> run_map_editor_standalone( Planes& planes ) {
 }
 
 wait<> run_map_editor( SS& ss, TS& ts ) {
-  Menu2Plane menu_plane;
+  MenuPlane menu_plane;
   MapEditPlane map_edit_plane( ss, ts );
   WindowPlane window_plane;
 
@@ -668,7 +668,7 @@ wait<> run_map_editor( SS& ss, TS& ts ) {
   auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
 
-  new_group.menu2 = menu_plane;
+  new_group.menu = menu_plane;
   new_group.set_bottom( map_edit_plane.impl() );
 
   auto map_updater_options_popper =

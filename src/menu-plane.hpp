@@ -19,11 +19,11 @@
 namespace rn {
 
 /****************************************************************
-** Menu2Plane
+** MenuPlane
 *****************************************************************/
-struct Menu2Plane : IMenuServer {
-  Menu2Plane();
-  ~Menu2Plane() override;
+struct MenuPlane : IMenuServer {
+  MenuPlane();
+  ~MenuPlane() override;
 
  public: // IMenuServer
   IPlane& impl() override;

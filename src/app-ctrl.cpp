@@ -47,14 +47,14 @@ wait<> revolution_now( Planes& planes ) {
 
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
-  Menu2Plane menu2_plane;
-  OmniPlane omni_plane( menu2_plane );
+  MenuPlane menu_plane;
+  OmniPlane omni_plane( menu_plane );
   ConsolePlane console_plane( terminal );
   WindowPlane window_plane;
   group.omni    = omni_plane;
   group.console = console_plane;
   group.window  = window_plane;
-  group.menu2   = menu2_plane;
+  group.menu    = menu_plane;
 
   RealGui gui( planes );
 

@@ -45,7 +45,7 @@ Planes::PlaneGroupOwner::PlaneGroupOwner( Planes& planes )
     group.omni    = prev_owner_->group.omni;
     group.console = prev_owner_->group.console;
     group.window  = prev_owner_->group.window;
-    group.menu2   = prev_owner_->group.menu2;
+    group.menu    = prev_owner_->group.menu;
   }
   planes_.owner_head_ = this;
 }

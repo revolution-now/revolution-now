@@ -87,7 +87,7 @@ struct PlaneGroup : IPlaneGroup {
   TypedIPlane<ConsolePlane> console;
   TypedIPlane<WindowPlane> window;
 
-  TypedIPlane<IMenuServer> menu2;
+  TypedIPlane<IMenuServer> menu;
   TypedIPlane<PanelPlane> panel;
 
   // This one basically defines which general view we're in.
@@ -96,7 +96,7 @@ struct PlaneGroup : IPlaneGroup {
   void set_bottom( IPlane& p ATTR_LIFETIMEBOUND );
   IPlane* get_bottom() const;
 
-  bool menu2s_enabled = false;
+  bool menus_enabled = false;
 
   template<IsTypedBottomType T>
   void set_bottom( T& p ATTR_LIFETIMEBOUND ) {

@@ -39,9 +39,9 @@ using ::refl::enum_values;
 } // namespace
 
 /****************************************************************
-** Menu2Plane::Impl
+** MenuPlane::Impl
 *****************************************************************/
-struct Menu2Plane::Impl : IPlane, IMenuServer {
+struct MenuPlane::Impl : IPlane, IMenuServer {
   // State.
   MenuThreads menu_threads_;
   MenuBar bar_;
@@ -197,46 +197,46 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
 };
 
 /****************************************************************
-** Menu2Plane
+** MenuPlane
 *****************************************************************/
-Menu2Plane::~Menu2Plane() = default;
+MenuPlane::~MenuPlane() = default;
 
-Menu2Plane::Menu2Plane() : impl_( new Impl() ) {}
+MenuPlane::MenuPlane() : impl_( new Impl() ) {}
 
-IPlane& Menu2Plane::impl() { return impl_->impl(); }
+IPlane& MenuPlane::impl() { return impl_->impl(); }
 
-wait<maybe<e_menu_item>> Menu2Plane::open_menu(
+wait<maybe<e_menu_item>> MenuPlane::open_menu(
     MenuContents const& contents,
     MenuAllowedPositions const& positions ) {
   return impl_->open_menu( contents, positions );
 }
 
-void Menu2Plane::show_menu_bar( bool const show ) {
+void MenuPlane::show_menu_bar( bool const show ) {
   impl_->show_menu_bar( show );
 }
 
-void Menu2Plane::close_all_menus() { impl_->close_all_menus(); }
+void MenuPlane::close_all_menus() { impl_->close_all_menus(); }
 
-void Menu2Plane::enable_cheat_menu( bool const show ) {
+void MenuPlane::enable_cheat_menu( bool const show ) {
   impl_->enable_cheat_menu( show );
 }
 
-Menu2Plane::Deregistrar Menu2Plane::register_handler(
+MenuPlane::Deregistrar MenuPlane::register_handler(
     e_menu_item const item, IPlane& plane ) {
   return impl_->register_handler( item, plane );
 }
 
-void Menu2Plane::unregister_handler( e_menu_item const item,
-                                     IPlane& plane ) {
+void MenuPlane::unregister_handler( e_menu_item const item,
+                                    IPlane& plane ) {
   impl_->unregister_handler( item, plane );
 }
 
-bool Menu2Plane::can_handle_menu_click(
+bool MenuPlane::can_handle_menu_click(
     e_menu_item const item ) const {
   return impl_->can_handle_menu_click( item );
 }
 
-bool Menu2Plane::click_item( e_menu_item const item ) {
+bool MenuPlane::click_item( e_menu_item const item ) {
   return impl_->click_item( item );
 }
 

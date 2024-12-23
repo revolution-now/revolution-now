@@ -641,7 +641,7 @@ wait<EndOfTurnResult> process_input_eot( SS& ss, TS& ts,
   // menu items), which is what we want for a good user experi-
   // ence.
   UserInputEndOfTurn const command = co_await co::first( //
-      wait_for_menu_selection( ts.planes.get().menu2 ),  //
+      wait_for_menu_selection( ts.planes.get().menu ),   //
       ts.planes.get()
           .get_bottom<ILandViewPlane>()
           .eot_get_next_input(),   //
@@ -806,7 +806,7 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
                          Player& player,
                          NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
-      wait_for_menu_selection( ts.planes.get().menu2 ),
+      wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
   co_await visit( command, [&]( auto const& action ) {
     return process_player_input_normal_mode( id, action, ss, ts,
@@ -896,7 +896,7 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
   SCOPE_EXIT { nat_units.view_mode = false; };
   while( true ) {
     auto const command = co_await co::first(
-        wait_for_menu_selection( ts.planes.get().menu2 ),
+        wait_for_menu_selection( ts.planes.get().menu ),
         ts.planes.get()
             .get_bottom<ILandViewPlane>()
             .show_view_mode( options ) );

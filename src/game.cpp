@@ -158,9 +158,9 @@ wait<> run_game( Planes& planes, IGui& gui, LoaderFunc loader ) {
 
   ensure_human_player( ss.players );
 
-  auto owner           = planes.push();
-  PlaneGroup& group    = owner.group;
-  group.menu2s_enabled = true;
+  auto owner          = planes.push();
+  PlaneGroup& group   = owner.group;
+  group.menus_enabled = true;
 
   PanelPlane panel_plane( ss, ts );
   group.panel = panel_plane;

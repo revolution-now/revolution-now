@@ -211,7 +211,7 @@ struct LandViewPlane::Impl : public IPlane {
       animator_( ss, ss.land_view.viewport, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
-    register_menu_items( ts.planes.get().menu2 );
+    register_menu_items( ts.planes.get().menu );
     // Initialize general global data.
     mode_            = LandViewMode::none{};
     last_unit_input_ = nothing;
@@ -399,7 +399,7 @@ struct LandViewPlane::Impl : public IPlane {
     MenuAllowedPositions const positions{
       .positions_allowed = { { .where = where } } };
 
-    auto& menu_server        = ts_.planes.get().menu2.typed();
+    auto& menu_server        = ts_.planes.get().menu.typed();
     auto const selected_item = co_await menu_server.open_menu(
         e_menu::orders, positions );
     if( !selected_item.has_value() ) co_return;
