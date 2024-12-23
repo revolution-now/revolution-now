@@ -47,6 +47,12 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   MenuBar bar_;
   maybe<wait<>> bar_thread_;
   vector<e_menu> bar_contents_;
+  // This cheat menu on/off state unfortunately has to be kept
+  // separate from the game settings chean enabled flag since
+  // this menu plane is not associated with a single game state;
+  // it can live throughout the duration of the program. So this
+  // needs to be kept in sync with whatever the current loaded
+  // game is configured to have.
   bool cheat_menu_ = false;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
 

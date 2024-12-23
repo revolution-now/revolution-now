@@ -66,6 +66,8 @@ struct MenuBar {
   BarState const& state() const;
 
   IMenuServer& menu_server_;
+  // This is only alive when there is a running menu bar thread
+  // that is active.
   std::unique_ptr<BarState> state_;
 };
 
