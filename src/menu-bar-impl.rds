@@ -1,0 +1,29 @@
+# ===============================================================
+# menu-bar-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-22.
+#
+# Description: Rds definitions for the menu-bar-impl module.
+#
+# ===============================================================
+# config
+include "config/menu-item-fwd.hpp"
+
+namespace "rn"
+
+sumtype.MenuBarEvent {
+  # Close the menu and all child menus.
+  close {},
+
+  # For when the mouse is over an item.
+  over {
+    menu 'e_menu',
+  },
+
+  # Click, fire the action, and close the menu.
+  click {
+    menu 'e_menu',
+  },
+}

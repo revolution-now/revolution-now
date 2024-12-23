@@ -90,7 +90,36 @@ gfx::rect compute_bounding_rect( MenuPosition const& position,
 } // namespace
 
 /****************************************************************
-** Rendered Layouts.
+** MenuBarAnimState
+*****************************************************************/
+maybe<e_menu> MenuBarAnimState::highlighted_menu() const {
+  if( !focused.has_value() ) return nothing;
+  if( highlight_state != e_menu_highlight_state::highlighted )
+    return nothing;
+  return *focused;
+}
+
+maybe<e_menu> MenuBarAnimState::opened_menu() const {
+  if( !focused.has_value() ) return nothing;
+  if( highlight_state != e_menu_highlight_state::open )
+    return nothing;
+  return *focused;
+}
+
+void MenuBarAnimState::set_highlighted( e_menu menu ) {
+  focused         = menu;
+  highlight_state = e_menu_highlight_state::highlighted;
+}
+
+void MenuBarAnimState::set_opened( e_menu menu ) {
+  focused         = menu;
+  highlight_state = e_menu_highlight_state::open;
+}
+
+void MenuBarAnimState::clear_focus() { *this = {}; }
+
+/****************************************************************
+** Menu Body Rendered Layouts.
 *****************************************************************/
 MenuRenderLayout build_menu_rendered_layout(
     MenuContents const& contents,
@@ -224,7 +253,31 @@ MenuRenderLayout build_menu_rendered_layout(
 }
 
 /****************************************************************
-** Menu Rendering.
+** Menu Bar Rendered Layouts.
+*****************************************************************/
+MenuBarRenderedLayout build_menu_bar_rendered_layout(
+    MenuBarContents const& contents ) {
+  MenuBarRenderedLayout res;
+  res.bounds = { .origin = { .x = 16, .y = 200 },
+                 .size   = { .w = 600, .h = 16 } };
+  point p    = res.bounds.origin;
+  for( e_menu const menu : contents.menus ) {
+    MenuHeaderRenderLayout header;
+    header.menu = menu;
+    header.text = fmt::to_string( menu );
+    size const header_size =
+        rr::rendered_text_line_size_pixels( header.text );
+    header.bounds_absolute = { .origin = p,
+                               .size   = header_size };
+    p.x += header_size.w;
+    p.x += 8;
+    res.headers.push_back( header );
+  }
+  return res;
+}
+
+/****************************************************************
+** Menu Body Rendering.
 *****************************************************************/
 static void render_divider( rr::Renderer& renderer,
                             point const pos,
@@ -317,6 +370,43 @@ void render_menu_body(
     point const start{ .x = r.left(),
                        .y = ( r.bottom() + r.top() ) / 2 };
     render_divider( renderer, start, r.size.w );
+  }
+}
+
+/****************************************************************
+** Menu Bar Rendering.
+*****************************************************************/
+void render_menu_bar( rr::Renderer& renderer,
+                      MenuBarAnimState const& anim_state,
+                      MenuBarRenderedLayout const& layout ) {
+  rr::Painter painter = renderer.painter();
+  painter.draw_solid_rect( layout.bounds, pixel::white() );
+
+  for( auto const& header : layout.headers ) {
+    if( anim_state.focused == header.menu ) {
+      switch( anim_state.highlight_state ) {
+        case rn::e_menu_highlight_state::highlighted: {
+          painter.draw_solid_rect( header.bounds_absolute,
+                                   pixel::black() );
+          rr::Typer typer = renderer.typer(
+              header.bounds_absolute.origin, pixel::white() );
+          typer.write( header.text );
+          break;
+        }
+        case rn::e_menu_highlight_state::open: {
+          painter.draw_solid_rect( header.bounds_absolute,
+                                   pixel::red() );
+          rr::Typer typer = renderer.typer(
+              header.bounds_absolute.origin, pixel::white() );
+          typer.write( header.text );
+          break;
+        }
+      }
+    } else {
+      rr::Typer typer = renderer.typer(
+          header.bounds_absolute.origin, pixel::black() );
+      typer.write( header.text );
+    }
   }
 }
 

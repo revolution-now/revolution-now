@@ -37,6 +37,10 @@ struct Menu2Plane : IMenuServer {
       MenuAllowedPositions const& positions
           ATTR_LIFETIMEBOUND ) override;
 
+  void show_menu_bar( bool show ) override;
+
+  void enable_cheat_menu( bool show ) override;
+
   Deregistrar register_handler( e_menu_item item,
                                 IPlane& plane ) override;
 

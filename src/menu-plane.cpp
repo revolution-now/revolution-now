@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "logger.hpp"
+#include "menu-bar.hpp"
 #include "menu-coro.hpp"
 #include "menu-render.hpp"
 #include "plane.hpp"
@@ -33,6 +34,7 @@ namespace rn {
 namespace {
 
 using ::refl::enum_map;
+using ::refl::enum_values;
 
 } // namespace
 
@@ -42,11 +44,37 @@ using ::refl::enum_map;
 struct Menu2Plane::Impl : IPlane, IMenuServer {
   // State.
   MenuThreads menu_threads_;
+  MenuBar bar_;
+  maybe<wait<>> bar_thread_;
+  MenuBarContents bar_contents_;
+  bool cheat_menu_ = false;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
 
-  Impl() : menu_threads_( *this ) {}
+  Impl() : menu_threads_( *this ), bar_( *this ) {
+    populate_menu_bar_contents();
+  }
 
   IPlane& impl() override { return *this; }
+
+  void populate_menu_bar_contents() {
+    bar_contents_.menus.clear();
+    for( e_menu const menu : enum_values<e_menu> ) {
+      if( menu == e_menu::cheat && !cheat_menu_ ) continue;
+      bar_contents_.menus.push_back( menu );
+    }
+  }
+
+  void start_bar_thread_if_not_running() {
+    if( !bar_is_running() )
+      bar_thread_ = bar_.run_thread( bar_contents_ );
+  }
+
+  void restart_bar_thread_if_running() {
+    if( bar_is_running() ) {
+      bar_thread_.reset();
+      start_bar_thread_if_not_running();
+    }
+  }
 
   wait<maybe<e_menu_item>> open_menu(
       MenuContents const& contents,
@@ -55,12 +83,37 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
                                                 positions );
   }
 
+  bool bar_is_running() const { return bar_thread_.has_value(); }
+
+  void show_menu_bar( bool const show ) override {
+    if( !show ) {
+      bar_thread_.reset();
+      return;
+    }
+    start_bar_thread_if_not_running();
+  }
+
+  void enable_cheat_menu( bool const show ) override {
+    cheat_menu_ = show;
+    populate_menu_bar_contents();
+    restart_bar_thread_if_running();
+  }
+
   void on_logical_resolution_changed(
       e_resolution const /*resolution*/ ) override {
-    menu_threads_.send_event( MenuEventRaw::close_all{} );
+    if( bar_is_running() )
+      (void)bar_.send_event( MenuBarEventRaw::close{} );
+    restart_bar_thread_if_running();
+    if( menu_threads_.open_count() != 0 )
+      menu_threads_.send_event( MenuEventRaw::close_all{} );
   }
 
   void draw( rr::Renderer& renderer ) const override {
+    if( bar_is_running() ) {
+      auto const& anim_state    = bar_.anim_state();
+      auto const& render_layout = bar_.render_layout();
+      render_menu_bar( renderer, anim_state, render_layout );
+    }
     for( int const menu_id : menu_threads_.open_menu_ids() ) {
       auto const& contents =
           menu_threads_.menu_contents( menu_id );
@@ -79,11 +132,18 @@ struct Menu2Plane::Impl : IPlane, IMenuServer {
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    if( menu_threads_.open_count() == 0 )
-      return e_input_handled::no;
-    auto const raw = MenuEventRaw::device{ .event = event };
-    menu_threads_.send_event( raw );
-    return e_input_handled::yes;
+    if( bar_is_running() ) {
+      auto const raw = MenuBarEventRaw::device{ .event = event };
+      if( bar_.send_event( raw ) ) return e_input_handled::yes;
+    }
+
+    if( menu_threads_.open_count() != 0 ) { // Menu threads.
+      auto const raw = MenuEventRaw::device{ .event = event };
+      menu_threads_.send_event( raw );
+      return e_input_handled::yes;
+    }
+
+    return e_input_handled::no;
   }
 
   e_accept_drag can_drag( input::e_mouse_button const /*button*/,
@@ -146,6 +206,14 @@ wait<maybe<e_menu_item>> Menu2Plane::open_menu(
     MenuContents const& contents,
     MenuAllowedPositions const& positions ) {
   return impl_->open_menu( contents, positions );
+}
+
+void Menu2Plane::show_menu_bar( bool const show ) {
+  impl_->show_menu_bar( show );
+}
+
+void Menu2Plane::enable_cheat_menu( bool const show ) {
+  impl_->enable_cheat_menu( show );
 }
 
 Menu2Plane::Deregistrar Menu2Plane::register_handler(

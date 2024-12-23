@@ -53,6 +53,10 @@ struct IMenuServer {
       MenuAllowedPositions const& positions
           ATTR_LIFETIMEBOUND ) = 0;
 
+  virtual void show_menu_bar( bool show ) = 0;
+
+  virtual void enable_cheat_menu( bool show ) = 0;
+
  public: // Registration.
   struct Deregistrar : base::zero<Deregistrar, e_menu_item> {
     Deregistrar( IMenuServer& menu_server, IPlane& plane,

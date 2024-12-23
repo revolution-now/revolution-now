@@ -8,7 +8,6 @@
 # Description: Rds definitions for the menu-coro-impl module.
 #
 # ===============================================================
-# config
 namespace "rn"
 
 sumtype.MenuEvent {

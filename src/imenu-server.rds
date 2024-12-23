@@ -71,3 +71,7 @@ struct.MenuContents {
   # nism, in which case this can be set to true.
   force_enable_all 'bool',
 }
+
+struct.MenuBarContents {
+  menus 'std::vector<e_menu>',
+}

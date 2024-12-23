@@ -1,0 +1,21 @@
+# ===============================================================
+# menu-bar.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-22.
+#
+# Description: Rds definitions for the menu-bar module.
+#
+# ===============================================================
+# Revolution Now
+include "input.hpp"
+
+namespace "rn"
+
+sumtype.MenuBarEventRaw {
+  device {
+    event 'input::event_t',
+  },
+  close {},
+}
