@@ -85,9 +85,3 @@ enum.e_menu_item {
   zoom_in,
   zoom_out,
 }
-
-# These are menu items that are not themselves actions, but in-
-# stead they open into sub-menus.
-enum.e_submenu_item {
-  window,
-}

@@ -644,7 +644,7 @@ MenuContents contents_for_menu( e_menu const menu ) {
       }
       CASE( node ) {
         grp.elems.push_back( MenuElement::node{
-          .text = config_menu.subitems[node.item].name,
+          .text = config_menu.menus[node.menu].name,
           .menu = contents_for_menu( node.menu ) } );
         break;
       }

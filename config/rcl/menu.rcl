@@ -115,10 +115,6 @@ items {
   disband.name: Disband Unit
 }
 
-subitems {
-  window.name: Window
-}
-
 layout {
   game.contents: [
     .leaf.item: game_options,
@@ -149,7 +145,7 @@ layout {
     .leaf.item: hidden_terrain,
     .leaf.item: toggle_view_mode,
     null,
-    .node:      { item=window, menu=window },
+    .node.menu: window
   ]
 
   orders.contents: [
