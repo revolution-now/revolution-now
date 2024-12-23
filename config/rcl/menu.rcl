@@ -46,6 +46,12 @@ menus {
     shortcut: R
     position: right
   }
+
+  land_view {
+    name:     Land View
+    shortcut: L
+    position: left
+  }
 }
 
 items {
@@ -215,6 +221,16 @@ layout {
     .leaf.item: units_help,
     .leaf.item: terrain_help,
     .leaf.item: founding_father_help,
+  ]
+
+  land_view.contents: [
+    .leaf.item: zoom_in,
+    .leaf.item: zoom_out,
+    .leaf.item: restore_zoom,
+    null,
+    .leaf.item: find_blinking_unit,
+    .leaf.item: hidden_terrain,
+    .leaf.item: terrain_help,
   ]
 }
 

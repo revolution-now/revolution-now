@@ -71,51 +71,33 @@ base::valid_or<string> config_menu_t::validate() const {
 
   // Check that all menu items are in at least one menu.
   refl::enum_map<e_menu_item, bool> items;
-  for( auto& [menu, conf] : menus ) {
+  for( auto& [menu, conf] : menus )
     for( auto const& item_conf : layout[menu].contents )
-      if( item_conf.has_value() ) {
+      if( item_conf.has_value() )
         if( auto const leaf =
                 item_conf
                     ->get_if<config::menu::MenuElement::leaf>();
-            leaf.has_value() ) {
-          e_menu_item const item = leaf->item;
-          REFL_VALIDATE(
-              !items[item],
-              "the menu item `{}` appears multiple times.",
-              item );
-          items[item] = true;
-        }
-      }
-  }
-  for( auto item : refl::enum_values<e_menu_item> ) {
+            leaf.has_value() )
+          items[leaf->item] = true;
+  for( auto item : refl::enum_values<e_menu_item> )
     REFL_VALIDATE( items[item],
                    "the menu item `{}` is not in any menu.",
                    item );
-  }
 
   // Check that all submenu items are in at least one menu.
   refl::enum_map<e_submenu_item, bool> subitems;
-  for( auto& [menu, conf] : menus ) {
+  for( auto& [menu, conf] : menus )
     for( auto const& node_conf : layout[menu].contents )
-      if( node_conf.has_value() ) {
+      if( node_conf.has_value() )
         if( auto const node =
                 node_conf
                     ->get_if<config::menu::MenuElement::node>();
-            node.has_value() ) {
-          e_submenu_item const item = node->item;
-          REFL_VALIDATE(
-              !subitems[item],
-              "the menu item `{}` appears multiple times.",
-              item );
-          subitems[item] = true;
-        }
-      }
-  }
-  for( auto item : refl::enum_values<e_submenu_item> ) {
+            node.has_value() )
+          subitems[node->item] = true;
+  for( auto item : refl::enum_values<e_submenu_item> )
     REFL_VALIDATE( subitems[item],
                    "the sub-menu item `{}` is not in any menu.",
                    item );
-  }
 
   return base::valid;
 }
