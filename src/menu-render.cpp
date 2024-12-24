@@ -201,28 +201,15 @@ MenuRenderLayout build_menu_rendered_layout(
     vector<PositionAndBounds> res;
     // 4 = # diagonal directions.
     res.reserve( positions.positions_allowed.size() * 4 );
-    for( auto const& position_allowed :
-         positions.positions_allowed ) {
-      auto orientations = position_allowed.orientations_allowed;
-      if( orientations.empty() )
-        // Note that we could make use of the parent_side prop-
-        // erty to make a more informed guess here about which
-        // order to choose, but it's not expected that orienta-
-        // tions won't be provided for submenus.
-        orientations = {
-          e_diagonal_direction::nw, e_diagonal_direction::sw,
-          e_diagonal_direction::ne, e_diagonal_direction::se };
-      for( e_diagonal_direction const orientation :
-           orientations ) {
-        MenuPosition const position{
-          .where       = position_allowed.where,
-          .orientation = orientation,
-          .parent_side = position_allowed.parent_side };
-        res.push_back( PositionAndBounds{
-          .position = position,
-          .bounds =
-              compute_bounding_rect( position, body_size ) } );
-      }
+    for( auto const& allowed : positions.positions_allowed ) {
+      MenuPosition const position{
+        .where       = allowed.where,
+        .orientation = allowed.orientation,
+        .parent_side = allowed.parent_side };
+      res.push_back( PositionAndBounds{
+        .position = position,
+        .bounds =
+            compute_bounding_rect( position, body_size ) } );
     }
     return res;
   }();

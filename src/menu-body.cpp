@@ -150,7 +150,7 @@ struct MenuThreads::OpenMenu {
             .where =
                 layout.bounds_absolute.corner( parent ).with_x(
                     render_layout.bounds.corner( parent ).x ),
-            .orientations_allowed = { child },
+            .orientation = child,
             .parent_side = reverse( side_for( parent ) ) };
         };
     // Sub-menu positions relative to the rect of the row that is

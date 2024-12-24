@@ -53,7 +53,7 @@ MenuAllowedPositions positions_for_header(
           .where =
               layout.bounds_absolute.corner( parent ).with_y(
                   bar_layout.bounds.bottom() ),
-          .orientations_allowed = { child },
+          .orientation = child,
         };
       };
   using enum e_diagonal_direction;
