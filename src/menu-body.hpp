@@ -87,14 +87,9 @@ struct MenuThreads {
   // on us.
   IMenuServer const& menu_server_;
   int next_menu_id_ = 1;
-  // This class was over-engineered to support multiple running
-  // menus, but in practice there will likely only be one at most
-  // running at a time. That said, it might still be useful from
-  // a technical standpoint to support multiple because that
-  // makes it easier have both pop-up menus and menus on the top
-  // bar and not have to worry about synchronizing the closing of
-  // one before the next one opens, which would be necessary if
-  // we could only store one running menu at a time here.
+  // We need to support multiple menus running at a time in order
+  // to support sub-menus, which will each have their own Open-
+  // Menu state.
   std::map<int, base::heap_value<OpenMenu>> open_;
 };
 
