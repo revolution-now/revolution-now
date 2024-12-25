@@ -1,0 +1,59 @@
+# ===============================================================
+# menu-render.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-25.
+#
+# Description: Rds definitions for the menu-render module.
+#
+# ===============================================================
+# Revolution Now
+include "imenu-server.rds.hpp"
+
+# config
+include "config/menu-item-fwd.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+# C++ standard library
+include "<string>"
+include "<vector>"
+
+namespace "rn"
+
+# These should only hold things that don't change after creation.
+# Any rendering state that needs to change should be in MenuAnim-
+# State.
+struct.MenuItemRenderLayout {
+  # This will have a value if this is a leaf item.
+  item 'base::maybe<e_menu_item>',
+  text 'std::string',
+  bounds_relative 'gfx::rect',
+  bounds_absolute 'gfx::rect',
+  text_nw_relative 'gfx::point',
+  has_arrow 'bool',
+}
+
+struct.MenuRenderLayout {
+  position 'MenuPosition',
+  bounds 'gfx::rect',
+  items 'std::vector<MenuItemRenderLayout>',
+  bars 'std::vector<gfx::rect>',
+}
+
+# These should only hold things that don't change after creation.
+# Any rendering state that needs to change should be in MenuAnim-
+# State.
+struct.MenuHeaderRenderLayout {
+  menu 'e_menu',
+  text 'std::string',
+  text_nw_absolute 'gfx::point',
+  bounds_absolute 'gfx::rect',
+}
+
+struct.MenuBarRenderedLayout {
+  bounds 'gfx::rect',
+  headers 'std::vector<MenuHeaderRenderLayout>',
+}

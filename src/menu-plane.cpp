@@ -16,6 +16,7 @@
 #include "menu-body.hpp"
 #include "menu-render.hpp"
 #include "plane.hpp"
+#include "screen.hpp" // FIXME: remove
 
 // config
 #include "config/menu-items.rds.hpp"
@@ -34,6 +35,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::rect;
 using ::refl::enum_map;
 
 } // namespace
@@ -73,7 +75,8 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
 
   void start_bar_thread_if_not_running() {
     if( !bar_is_running() )
-      bar_thread_ = bar_.run_thread( bar_contents_ );
+      bar_thread_ = bar_.run_thread( main_window_logical_rect(),
+                                     bar_contents_ );
   }
 
   void restart_bar_thread_if_running() {
@@ -84,10 +87,10 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   wait<maybe<e_menu_item>> open_menu(
-      e_menu const menu,
+      e_menu const menu, rect const logical_screen_rect,
       MenuAllowedPositions const& positions ) override {
-    co_return co_await menu_threads_.open_menu( menu,
-                                                positions );
+    co_return co_await menu_threads_.open_menu(
+        menu, logical_screen_rect, positions );
   }
 
   bool bar_is_running() const { return bar_thread_.has_value(); }
@@ -216,8 +219,10 @@ MenuPlane::MenuPlane() : impl_( new Impl() ) {}
 IPlane& MenuPlane::impl() { return impl_->impl(); }
 
 wait<maybe<e_menu_item>> MenuPlane::open_menu(
-    e_menu const menu, MenuAllowedPositions const& positions ) {
-  return impl_->open_menu( menu, positions );
+    e_menu const menu, rect const logical_screen_rect,
+    MenuAllowedPositions const& positions ) {
+  return impl_->open_menu( menu, logical_screen_rect,
+                           positions );
 }
 
 void MenuPlane::show_menu_bar( bool const show ) {

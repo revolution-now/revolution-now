@@ -33,8 +33,9 @@ struct MenuBar {
   MenuBar( IMenuServer& menu_server );
   ~MenuBar();
 
-  wait<> run_thread(
-      std::vector<e_menu> const& contents ATTR_LIFETIMEBOUND );
+  wait<> run_thread( gfx::rect logical_screen_rect,
+                     std::vector<e_menu> const& contents
+                         ATTR_LIFETIMEBOUND );
 
   [[nodiscard]] bool send_event( MenuBarEventRaw const& event );
 

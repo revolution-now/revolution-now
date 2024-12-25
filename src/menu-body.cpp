@@ -53,6 +53,7 @@ namespace {
 using ::base::function_ref;
 using ::gfx::e_side;
 using ::gfx::point;
+using ::gfx::rect;
 
 } // namespace
 
@@ -505,12 +506,13 @@ MenuThreads::OpenMenu const& MenuThreads::lookup_menu(
 }
 
 wait<maybe<e_menu_item>> MenuThreads::open_menu(
-    e_menu const menu, MenuAllowedPositions const positions ) {
+    e_menu const menu, rect const logical_screen_rect,
+    MenuAllowedPositions const positions ) {
   int const menu_id = next_menu_id();
   SCOPE_EXIT { unregister_menu( menu_id ); };
 
-  auto const render_layout =
-      build_menu_rendered_layout( menu, positions );
+  auto const render_layout = build_menu_rendered_layout(
+      menu, logical_screen_rect, positions );
   OpenMenu& om =
       *open_
            .emplace( piecewise_construct,
@@ -526,9 +528,10 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
   using SubMenuStream = co::stream<SubMenuResult>;
   maybe<wait<>> sub_menu_thread;
   auto sub_menu_opener =
-      [this]( SubMenuStream& stream, e_menu const menu,
-              MenuAllowedPositions const positions ) -> wait<> {
-    auto const item = co_await open_menu( menu, positions );
+      [&]( SubMenuStream& stream, e_menu const menu,
+           MenuAllowedPositions const positions ) -> wait<> {
+    auto const item = co_await open_menu(
+        menu, logical_screen_rect, positions );
     if( item.has_value() ) stream.send( *item );
   };
   SubMenuStream sub_menu_stream;

@@ -30,7 +30,8 @@ struct MockIMenuServer : IMenuServer {
                ( const ) );
   MOCK_METHOD( bool, click_item, ( e_menu_item ), () );
   MOCK_METHOD( wait<maybe<e_menu_item>>, open_menu,
-               (e_menu, MenuAllowedPositions const&), () );
+               (e_menu, gfx::rect, MenuAllowedPositions const&),
+               () );
   MOCK_METHOD( void, close_all_menus, (), () );
   MOCK_METHOD( void, show_menu_bar, (bool), () );
   MOCK_METHOD( void, enable_cheat_menu, (bool), () );

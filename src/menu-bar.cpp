@@ -42,6 +42,7 @@ namespace rn {
 namespace {
 
 using ::gfx::point;
+using ::gfx::rect;
 
 MenuAllowedPositions positions_for_header(
     MenuBarRenderedLayout const& bar_layout,
@@ -339,9 +340,10 @@ void MenuBar::send_click( e_menu_item item ) const {
   menu_server_.click_item( item );
 }
 
-wait<> MenuBar::run_thread( vector<e_menu> const& contents ) {
-  auto const render_layout =
-      build_menu_bar_rendered_layout( contents );
+wait<> MenuBar::run_thread( rect const logical_screen_rect,
+                            vector<e_menu> const& contents ) {
+  auto const render_layout = build_menu_bar_rendered_layout(
+      logical_screen_rect, contents );
   state_ = make_unique<BarState>( render_layout );
   SCOPE_EXIT { state_ = nullptr; };
 
@@ -360,8 +362,8 @@ wait<> MenuBar::run_thread( vector<e_menu> const& contents ) {
     menu_server_.close_all_menus();
     st.anim_state.set_opened( menu );
     SCOPE_EXIT { st.anim_state.clear_focus(); };
-    auto const item =
-        co_await menu_server_.open_menu( menu, positions );
+    auto const item = co_await menu_server_.open_menu(
+        menu, logical_screen_rect, positions );
     if( item.has_value() ) stream.send( *item );
   };
   MenuStream menu_stream;

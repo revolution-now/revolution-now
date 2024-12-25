@@ -402,7 +402,8 @@ struct LandViewPlane::Impl : public IPlane {
 
     auto& menu_server        = ts_.planes.get().menu.typed();
     auto const selected_item = co_await menu_server.open_menu(
-        e_menu::land_view, positions );
+        e_menu::land_view, main_window_logical_rect(),
+        positions );
     if( !selected_item.has_value() ) co_return;
     menu_server.click_item( *selected_item );
   }

@@ -125,7 +125,8 @@ void MenuBarAnimState::clear_focus() { *this = {}; }
 ** Menu Body Rendered Layouts.
 *****************************************************************/
 MenuRenderLayout build_menu_rendered_layout(
-    e_menu const menu, MenuAllowedPositions const& positions ) {
+    e_menu const menu, rect const logical_screen_rect,
+    MenuAllowedPositions const& positions ) {
   auto const& contents = config_menu.layout[menu];
   CHECK( !positions.positions_allowed.empty() );
   MenuRenderLayout res;
@@ -217,7 +218,8 @@ MenuRenderLayout build_menu_rendered_layout(
 
   UNWRAP_CHECK(
       screen_rect,
-      compositor::section( compositor::e_section::total ) );
+      compositor::section( logical_screen_rect,
+                           compositor::e_section::total ) );
   auto const fitting_bounds = [&] {
     auto fitting = possible_positions;
     erase_if(
@@ -249,11 +251,13 @@ MenuRenderLayout build_menu_rendered_layout(
 ** Menu Bar Rendered Layouts.
 *****************************************************************/
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
+    rect const logical_screen_rect,
     vector<e_menu> const& contents ) {
   MenuBarRenderedLayout res;
   UNWRAP_CHECK(
       menu_bar_rect,
-      compositor::section( compositor::e_section::menu_bar ) );
+      compositor::section( logical_screen_rect,
+                           compositor::e_section::menu_bar ) );
   res.bounds = menu_bar_rect;
 
   auto menus_for = [&]( config::menu::e_menu_side const side ) {

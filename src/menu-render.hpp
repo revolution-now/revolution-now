@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "menu-render.rds.hpp"
+
 // Revolution Now
 #include "imenu-server.rds.hpp"
 #include "maybe.hpp"
@@ -59,49 +62,16 @@ struct MenuBarAnimState {
 /****************************************************************
 ** Menu Body Rendered Layouts.
 *****************************************************************/
-// These should only hold things that don't change after cre-
-// ation. Any rendering state that needs to change should be in
-// MenuAnimState.
-struct MenuItemRenderLayout {
-  // This will have a value if this is a leaf item.
-  maybe<e_menu_item> item     = {};
-  std::string text            = {};
-  gfx::rect bounds_relative   = {};
-  gfx::rect bounds_absolute   = {};
-  gfx::point text_nw_relative = {}; // relative to row origin.
-  bool has_arrow              = {};
-};
-
-struct MenuRenderLayout {
-  MenuPosition position;
-  gfx::rect bounds;
-  std::vector<MenuItemRenderLayout> items;
-  std::vector<gfx::rect /*relative*/> bars;
-};
-
 // There must be at least one allowed position supplied.
 MenuRenderLayout build_menu_rendered_layout(
-    e_menu menu, MenuAllowedPositions const& positions );
+    e_menu menu, gfx::rect logical_screen_rect,
+    MenuAllowedPositions const& positions );
 
 /****************************************************************
 ** Menu Bar Rendered Layouts.
 *****************************************************************/
-// These should only hold things that don't change after cre-
-// ation. Any rendering state that needs to change should be in
-// MenuAnimState.
-struct MenuHeaderRenderLayout {
-  e_menu menu                 = {};
-  std::string text            = {};
-  gfx::point text_nw_absolute = {};
-  gfx::rect bounds_absolute   = {};
-};
-
-struct MenuBarRenderedLayout {
-  gfx::rect bounds;
-  std::vector<MenuHeaderRenderLayout> headers;
-};
-
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
+    gfx::rect logical_screen_rect,
     std::vector<e_menu> const& contents );
 
 /****************************************************************

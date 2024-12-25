@@ -49,7 +49,8 @@ struct MenuThreads {
   void send_event( MenuEventRaw const& event );
 
   wait<maybe<e_menu_item>> open_menu(
-      e_menu menu, MenuAllowedPositions const positions );
+      e_menu menu, gfx::rect logical_screen_rect,
+      MenuAllowedPositions const positions );
 
   MenuAnimState const& anim_state( int menu_id ) const;
   MenuRenderLayout const& render_layout( int menu_id ) const;
