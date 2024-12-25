@@ -219,6 +219,7 @@ template<typename T>
 concept SettableReference =
     std::is_reference_v<T> &&
     !std::is_const_v<std::remove_reference_t<T>> &&
+    !std::is_abstract_v<std::remove_reference_t<T>> &&
     std::is_copy_assignable_v<std::remove_reference_t<T>>;
 
 template<typename T>
