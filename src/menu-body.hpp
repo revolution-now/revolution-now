@@ -80,6 +80,9 @@ struct MenuThreads {
   static wait<> animate_click( MenuAnimState& render_state,
                                std::string const& text );
 
+  OpenMenu& lookup_menu( int menu_id );
+  OpenMenu const& lookup_menu( int menu_id ) const;
+
   // This really should be const because otherwise it'd be pos-
   // sible to circumvent constness in this class, since we could
   // call a non-const method on the menu server (which owns this

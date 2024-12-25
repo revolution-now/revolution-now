@@ -60,13 +60,16 @@ using ::gfx::point;
 ** MenuThreads::OpenMenu
 *****************************************************************/
 struct MenuThreads::OpenMenu {
-  e_menu menu = {};
-  MenuAllowedPositions positions;
-  MenuAnimState anim_state;
-  MenuRenderLayout render_layout;
-  co::stream<MenuEventRaw> routed_input;
-  co::stream<MenuEvent> events;
-  maybe<wait<>> hover_timer;
+  OpenMenu( MenuRenderLayout render_layout )
+    : render_layout( render_layout ) {}
+
+  e_menu menu                    = {};
+  MenuAllowedPositions positions = {};
+  MenuAnimState anim_state       = {};
+  MenuRenderLayout const render_layout;
+  co::stream<MenuEventRaw> routed_input = {};
+  co::stream<MenuEvent> events          = {};
+  maybe<wait<>> hover_timer             = {};
 
   maybe<MenuItemRenderLayout const&> layout_for_selected()
       const {
@@ -208,14 +211,14 @@ MenuAnimState const& MenuThreads::anim_state(
     int const menu_id ) const {
   auto const it = open_.find( menu_id );
   CHECK( it != open_.end() );
-  return it->second.get().anim_state;
+  return it->second->anim_state;
 }
 
 MenuRenderLayout const& MenuThreads::render_layout(
     int const menu_id ) const {
   auto const it = open_.find( menu_id );
   CHECK( it != open_.end() );
-  return it->second.get().render_layout;
+  return it->second->render_layout;
 }
 
 int MenuThreads::open_count() const { return open_.size(); }
@@ -272,7 +275,7 @@ void MenuThreads::send_event( MenuEventRaw const& event ) {
         CASE( mouse_move_event ) {
           UNWRAP_BREAK(
               menu_id, menu_from_point( mouse_move_event.pos ) );
-          open_[menu_id].get().routed_input.send( event );
+          lookup_menu( menu_id ).routed_input.send( event );
           break;
         }
         CASE( mouse_button_event ) {
@@ -284,7 +287,7 @@ void MenuThreads::send_event( MenuEventRaw const& event ) {
             // then we pass it through.
             if( mouse_button_event.buttons ==
                 input::e_mouse_button_event::left_up )
-              open_[*menu_id].get().routed_input.send( event );
+              lookup_menu( *menu_id ).routed_input.send( event );
             return;
           }
           // This ensures that if there is a click outside of the
@@ -398,9 +401,9 @@ wait<> MenuThreads::translate_routed_input_thread(
     int const menu_id ) {
   while( true ) {
     auto const routed =
-        co_await open_[menu_id]->routed_input.next();
+        co_await lookup_menu( menu_id ).routed_input.next();
     CHECK( open_.contains( menu_id ) );
-    OpenMenu& menu     = open_[menu_id].get();
+    OpenMenu& menu     = lookup_menu( menu_id );
     auto const& layout = menu.render_layout;
     auto& sink         = menu.events;
     SWITCH( routed ) {
@@ -487,16 +490,35 @@ wait<> MenuThreads::animate_click( MenuAnimState& anim_state,
   }
 }
 
+MenuThreads::OpenMenu& MenuThreads::lookup_menu(
+    int const menu_id ) {
+  auto const iter = open_.find( menu_id );
+  CHECK( iter != open_.end() );
+  return *iter->second;
+}
+
+MenuThreads::OpenMenu const& MenuThreads::lookup_menu(
+    int const menu_id ) const {
+  auto const iter = open_.find( menu_id );
+  CHECK( iter != open_.end() );
+  return *iter->second;
+}
+
 wait<maybe<e_menu_item>> MenuThreads::open_menu(
     e_menu const menu, MenuAllowedPositions const positions ) {
   int const menu_id = next_menu_id();
   SCOPE_EXIT { unregister_menu( menu_id ); };
 
-  OpenMenu& om = open_[menu_id].get();
+  auto const render_layout =
+      build_menu_rendered_layout( menu, positions );
+  OpenMenu& om =
+      *open_
+           .emplace( piecewise_construct,
+                     forward_as_tuple( menu_id ),
+                     forward_as_tuple( render_layout ) )
+           .first->second;
   om.menu      = menu;
   om.positions = positions;
-  om.render_layout =
-      build_menu_rendered_layout( menu, positions );
 
   wait<> const translater =
       translate_routed_input_thread( menu_id );
