@@ -30,6 +30,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "roles.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "society.hpp"
 #include "time.hpp"
 #include "ts.hpp"
@@ -617,7 +618,8 @@ struct LandViewPlane::Impl : public IPlane {
   void advance_viewport_state() {
     UNWRAP_CHECK(
         viewport_rect_pixels,
-        compositor::section( compositor::e_section::viewport ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::viewport ) );
 
     viewport().advance_state( viewport_rect_pixels );
 
@@ -705,7 +707,8 @@ struct LandViewPlane::Impl : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_CHECK(
         viewport_rect_pixels,
-        compositor::section( compositor::e_section::viewport ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
         viewport_rect_pixels, input_overrun_indicator_,
@@ -1178,6 +1181,7 @@ struct LandViewPlane::Impl : public IPlane {
         // then we are in business.
         UNWRAP_CHECK( viewport_rect_pixels,
                       compositor::section(
+                          main_window_logical_rect(),
                           compositor::e_section::viewport ) );
         if( val.pos.is_inside( viewport_rect_pixels ) ) {
           if( val.wheel_delta < 0 )

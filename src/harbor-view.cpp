@@ -20,6 +20,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "render.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "ts.hpp"
 #include "view.hpp"
 
@@ -77,7 +78,8 @@ struct HarborPlane::Impl : public IPlane {
     : ss_( ss ), ts_( ts ), player_( player ) {
     UNWRAP_CHECK(
         new_canvas,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     composition_ = recomposite_harbor_view( ss_, ts_, player_,
                                             new_canvas.delta() );
     canvas_      = new_canvas;
@@ -90,7 +92,8 @@ struct HarborPlane::Impl : public IPlane {
   void advance_state() override {
     UNWRAP_CHECK(
         new_canvas,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window
@@ -128,6 +131,7 @@ struct HarborPlane::Impl : public IPlane {
 
   void draw_stats( rr::Renderer& renderer ) const {
     UNWRAP_CHECK( canvas, compositor::section(
+                              main_window_logical_rect(),
                               compositor::e_section::normal ) );
     auto& nation       = nation_obj( player_.nation );
     string const stats = fmt::format(

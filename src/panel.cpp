@@ -23,6 +23,7 @@
 #include "plane.hpp"
 #include "roles.hpp"
 #include "screen.hpp"
+#include "screen.hpp" // FIXME
 #include "tiles.hpp"
 #include "ts.hpp" // FIXME
 #include "views.hpp"
@@ -71,6 +72,7 @@ struct PanelPlane::Impl : public IPlane {
 
   static Rect rect() {
     UNWRAP_CHECK( res, compositor::section(
+                           main_window_logical_rect(),
                            compositor::e_section::panel ) );
     return res;
   }

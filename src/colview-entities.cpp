@@ -33,7 +33,7 @@
 #include "production.hpp"
 #include "render.hpp"
 #include "road.hpp"
-#include "screen.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -1942,6 +1942,7 @@ void set_colview_colony( SS& ss, TS& ts, Player& player,
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
+                            main_window_logical_rect(),
                             compositor::e_section::normal ) );
   recomposite( ss, ts, player, colony, normal.delta() );
 }

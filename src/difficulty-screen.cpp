@@ -19,6 +19,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "query-enum.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // config
@@ -301,7 +302,8 @@ struct DifficultyScreen : public IPlane {
   void recomposite() {
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return;
     layout_.resize_grid_for_screen_size( normal_area.delta() );
   }
@@ -312,7 +314,8 @@ struct DifficultyScreen : public IPlane {
 
   gfx::size get_subrect_size() const {
     auto const normal_area =
-        compositor::section( compositor::e_section::normal )
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal )
             .value_or( {} );
     return ( normal_area / layout_.grid.size() )
         .delta()
@@ -336,7 +339,8 @@ struct DifficultyScreen : public IPlane {
   maybe<point> clicked_grid_square( point const p ) const {
     UNWRAP_RETURN(
         normal_area,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return nothing;
     gfx::size const subrect_size = get_subrect_size();
     point const block            = p / subrect_size;
@@ -349,7 +353,8 @@ struct DifficultyScreen : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return;
     rr::Painter painter = renderer.painter();
 

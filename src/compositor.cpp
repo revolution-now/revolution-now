@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "init.hpp"
 #include "plane.hpp"
-#include "screen.hpp"
 
 // config
 #include "config/ui.rds.hpp"
@@ -26,6 +25,8 @@
 namespace rn::compositor {
 
 namespace {
+
+using ::gfx::rect;
 
 W g_panel_width{ 4 * 32 };
 
@@ -58,10 +59,10 @@ void rotate_console() {
       refl::enum_count<e_composite_location> );
 }
 
-maybe<Rect> section_inverted( e_section sec ) {
-  Rect const screen =
-      Rect::from_gfx( main_window_logical_rect() );
-  maybe<Rect> non_inverted = section( sec );
+maybe<Rect> section_inverted( rect const logical_screen_rect,
+                              e_section sec ) {
+  Rect const screen        = logical_screen_rect;
+  maybe<Rect> non_inverted = section( logical_screen_rect, sec );
   if( !non_inverted ) return screen;
 
   // Claim: the rectangle can be inverted if and only if there is
@@ -102,7 +103,8 @@ bool is_menu_plane_enabled() { return true; }
 // out a notification (an input window resize event) that can be
 // picked up by the planes so that they don't have to use
 // advance_state to do that.
-maybe<Rect> section( e_section sec ) {
+maybe<Rect> section( rect const logical_screen_rect,
+                     e_section sec ) {
   maybe<Rect> res;
   auto menu_height = is_menu_plane_enabled()
                          ? config_ui.menus.menu_bar_height
@@ -110,7 +112,8 @@ maybe<Rect> section( e_section sec ) {
   switch( sec ) {
     case e_section::menu_bar: {
       if( !is_menu_plane_enabled() ) break;
-      UNWRAP_CHECK( normal, section( e_section::normal ) );
+      UNWRAP_CHECK( normal, section( logical_screen_rect,
+                                     e_section::normal ) );
       res    = normal;
       res->h = menu_height;
       break;
@@ -118,7 +121,8 @@ maybe<Rect> section( e_section sec ) {
     case e_section::viewport: {
       // At standard zoom; i.e., these are fixed with respect to
       // viewport state.
-      UNWRAP_CHECK( normal, section( e_section::normal ) );
+      UNWRAP_CHECK( normal, section( logical_screen_rect,
+                                     e_section::normal ) );
       res = normal;
       res->y += menu_height;
       res->h -= menu_height;
@@ -126,7 +130,8 @@ maybe<Rect> section( e_section sec ) {
       break;
     }
     case e_section::panel: {
-      UNWRAP_CHECK( normal, section( e_section::normal ) );
+      UNWRAP_CHECK( normal, section( logical_screen_rect,
+                                     e_section::normal ) );
       res = normal;
       res->y += menu_height;
       res->h -= menu_height;
@@ -135,7 +140,8 @@ maybe<Rect> section( e_section sec ) {
       break;
     }
     case e_section::viewport_and_panel: {
-      UNWRAP_CHECK( normal, section( e_section::normal ) );
+      UNWRAP_CHECK( normal, section( logical_screen_rect,
+                                     e_section::normal ) );
       res = normal;
       res->y += menu_height;
       res->h -= menu_height;
@@ -143,7 +149,8 @@ maybe<Rect> section( e_section sec ) {
     }
     case e_section::console: {
       if( g_console_size == 0.0 ) break;
-      UNWRAP_CHECK( total, section( e_section::total ) );
+      UNWRAP_CHECK( total, section( logical_screen_rect,
+                                    e_section::total ) );
       res = total;
       switch( g_console_loc ) {
         case e_composite_location::top: //
@@ -164,24 +171,23 @@ maybe<Rect> section( e_section sec ) {
       break;
     }
     case e_section::normal:
-      res = section_inverted( e_section::console );
+      res = section_inverted( logical_screen_rect,
+                              e_section::console );
       break;
     case e_section::total: {
-      res = Rect::from_gfx( main_window_logical_rect() );
+      res = logical_screen_rect;
       break;
     }
   }
 
   if( res.has_value() ) {
     res = res->normalized();
-    res = res->clamp(
-        Rect::from_gfx( main_window_logical_rect() ) );
+    res = res->clamp( logical_screen_rect );
   }
 
   if( res.has_value() ) {
     // Check invariants before returning.
-    Rect const total =
-        Rect::from_gfx( main_window_logical_rect() );
+    Rect const total = logical_screen_rect;
     CHECK_LE( res->right_edge(), total.right_edge() );
     CHECK_GE( res->left_edge(), total.left_edge() );
     CHECK_LE( res->bottom_edge(), total.bottom_edge() );

@@ -16,7 +16,7 @@
 #include "frame.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
-#include "screen.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "terminal.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -65,7 +65,8 @@ struct ConsolePlane::Impl : public IPlane {
     // window size changes and/or compositor layout changes.
     UNWRAP_CHECK(
         total_area,
-        compositor::section( compositor::e_section::total ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::total ) );
     le_view_.emplace(
         config_rn.console.font, total_area.w,
         []( string const& ) {}, config_ui.dialog_text.normal,
@@ -83,7 +84,8 @@ struct ConsolePlane::Impl : public IPlane {
     rr::Painter painter = renderer.painter();
     UNWRAP_CHECK(
         console_rect,
-        compositor::section( compositor::e_section::console ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::console ) );
     bool const mouse_over_console =
         is_mouse_over_rect( console_rect );
     bool const render_edit_box = mouse_over_console;
@@ -92,7 +94,8 @@ struct ConsolePlane::Impl : public IPlane {
 
     UNWRAP_CHECK(
         total_area,
-        compositor::section( compositor::e_section::total ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::total ) );
 
     if( console_rect.h < total_area.h ) {
       // Console is either at the top or bottom.
@@ -281,7 +284,8 @@ struct ConsolePlane::Impl : public IPlane {
 
   bool is_mouse_over_console() const {
     maybe<Rect> rect =
-        compositor::section( compositor::e_section::console );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::console );
     if( !rect.has_value() ) return false;
     return is_mouse_over_rect( *rect );
   }

@@ -23,6 +23,7 @@
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "text.hpp"
 #include "tiles.hpp"
 #include "ui.hpp"
@@ -123,6 +124,7 @@ struct WindowManager {
 
   void center_window( Window const& win ) {
     UNWRAP_CHECK( area, compositor::section(
+                            main_window_logical_rect(),
                             compositor::e_section::normal ) );
     find_window( win ).pos = centered( win.delta(), area );
   }
@@ -360,6 +362,7 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
                              active_transient_message_->alpha );
     UNWRAP_CHECK(
         area, compositor::section(
+                  main_window_logical_rect(),
                   compositor::e_section::viewport_and_panel ) );
     Delta const rendered_size =
         active_transient_message_->rendered_size;

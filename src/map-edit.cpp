@@ -34,6 +34,7 @@
 #include "rand.hpp"     // FIXME
 #include "renderer.hpp" // FIXME
 #include "road.hpp"
+#include "screen.hpp"   // FIXME: remove
 #include "terminal.hpp" // FIXME
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -379,6 +380,7 @@ struct MapEditPlane::Impl : public IPlane {
 
 Rect MapEditPlane::Impl::toolbar_rect() const {
   UNWRAP_CHECK( rect, compositor::section(
+                          main_window_logical_rect(),
                           compositor::e_section::viewport ) );
   rect.h = g_tile_delta.h;
   return rect;
@@ -394,6 +396,7 @@ wait<> MapEditPlane::Impl::click_on_toolbar( Coord tile ) {
 
 Rect MapEditPlane::Impl::viewport_rect() const {
   UNWRAP_CHECK( rect, compositor::section(
+                          main_window_logical_rect(),
                           compositor::e_section::viewport ) );
   Delta toolbar_size = toolbar_rect().delta();
   rect.h -= toolbar_size.h;
@@ -601,6 +604,7 @@ void MapEditPlane::Impl::render_toolbar(
 void MapEditPlane::Impl::render_sidebar(
     rr::Renderer& renderer ) const {
   UNWRAP_CHECK( rect, compositor::section(
+                          main_window_logical_rect(),
                           compositor::e_section::panel ) );
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect(

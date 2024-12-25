@@ -21,6 +21,7 @@
 #include "interrupts.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "tiles.hpp"
 
 // config
@@ -51,7 +52,8 @@ struct MainMenuPlane : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_CHECK(
         normal_area,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
       tile_sprite( renderer, e_tile::wood_middle, normal_area );

@@ -24,13 +24,15 @@
 namespace rn::compositor {
 
 // If the section is visible it will return bounds.
-maybe<Rect> section( e_section section );
+maybe<Rect> section( gfx::rect logical_screen_rect,
+                     e_section section );
 
 // Return the region that is not the given section, if possible.
 // If the section in question is not visible then the entire
 // screen area will be returned. The way this can fail is if the
 // inverted area cannot be represented by a single rectangle.
-maybe<Rect> section_inverted( e_section section );
+maybe<Rect> section_inverted( gfx::rect logical_screen_rect,
+                              e_section section );
 
 // Rotates the position of the console clockwise.
 void rotate_console();

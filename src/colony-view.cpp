@@ -23,6 +23,7 @@
 #include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
+#include "screen.hpp" // FIXME: remove
 #include "text.hpp"
 #include "throttler.hpp"
 #include "ts.hpp"
@@ -66,6 +67,7 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
       background_color );
 
   UNWRAP_CHECK( canvas, compositor::section(
+                            main_window_logical_rect(),
                             compositor::e_section::normal ) );
 
   colview_top_level().view().draw( renderer,
@@ -154,7 +156,8 @@ struct ColonyPlane : public IPlane {
   void advance_state() override {
     UNWRAP_CHECK(
         new_canvas,
-        compositor::section( compositor::e_section::normal ) );
+        compositor::section( main_window_logical_rect(),
+                             compositor::e_section::normal ) );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window
