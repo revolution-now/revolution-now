@@ -65,6 +65,20 @@ struct IMenuServer {
     Deregistrar( IMenuServer& menu_server, IPlane& plane,
                  e_menu_item item );
 
+    Deregistrar( Deregistrar&& ) = default;
+    // The Deregistrar is not copyable since we don't provide a
+    // copy_resource method (by design). But, the base::zero type
+    // does not check whether that method is present or not (in
+    // order to support forward-declared types) and thus
+    // base::zero always appears to be copyable as far as type
+    // traits are concerned, then when one attempts to copy it we
+    // get a non-SFINAE error. Worse, the mocking framework makes
+    // decisions based on whether things are copy constructible,
+    // and so it will come to the wrong conclusions for this type
+    // and produce strange errors. Thus, we must make this ex-
+    // plicitly non copyable here.
+    Deregistrar( Deregistrar const& ) = delete;
+
    private:
     IMenuServer* menu_server_ = nullptr;
     IPlane* plane_            = nullptr;
@@ -75,6 +89,9 @@ struct IMenuServer {
     // Implement base::zero.
     void free_resource();
   };
+
+  // See comments above for why this is important.
+  static_assert( !std::is_copy_constructible_v<Deregistrar> );
 
   [[nodiscard]] virtual Deregistrar register_handler(
       e_menu_item item, IPlane& plane ) = 0;
