@@ -68,9 +68,12 @@ MenuAllowedPositions positions_for_header(
 ** MenuBar::BarState
 *****************************************************************/
 struct MenuBar::BarState {
+  BarState( MenuBarRenderedLayout render_layout )
+    : render_layout( render_layout ) {}
+
   vector<e_menu> contents;
   MenuBarAnimState anim_state;
-  MenuBarRenderedLayout render_layout;
+  MenuBarRenderedLayout const render_layout;
   co::stream<MenuBarEvent> events;
   co::stream<MenuBarEventRaw> raw_events;
 
@@ -337,12 +340,13 @@ void MenuBar::send_click( e_menu_item item ) const {
 }
 
 wait<> MenuBar::run_thread( vector<e_menu> const& contents ) {
-  state_ = make_unique<BarState>();
+  auto const render_layout =
+      build_menu_bar_rendered_layout( contents );
+  state_ = make_unique<BarState>( render_layout );
   SCOPE_EXIT { state_ = nullptr; };
 
-  auto& st         = *state_;
-  st.contents      = contents;
-  st.render_layout = build_menu_bar_rendered_layout( contents );
+  auto& st    = *state_;
+  st.contents = contents;
 
   wait<> const translater = translate_input_thread( st );
   using MenuResult        = e_menu_item;
