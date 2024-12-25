@@ -351,6 +351,13 @@ void render_menu_body(
   rr::Painter painter = renderer.painter();
 
   for( auto const& item_layout : layout.items ) {
+    // Highlight.
+    if( anim_state.highlighted == item_layout.text )
+      painter.draw_solid_rect(
+          item_layout.bounds_absolute,
+          config_ui.dialog_text.selected_background );
+
+    // Text.
     auto const text_color = [&] {
       if( item_layout.item.has_value() )
         return enabled_fn( item_layout )
@@ -359,38 +366,28 @@ void render_menu_body(
       else
         return config_ui.dialog_text.normal;
     }();
-    auto const arrow_origin = [&] {
-      point p = item_layout.bounds_absolute.center();
-      p.x     = item_layout.bounds_absolute.right();
-      static auto const arrow_size =
-          sprite_size( e_tile::submenu_arrow );
-      p = centered_on( arrow_size, p ).nw();
-      // Looks better with a bit of space on its right.
-      p.x -= 1;
-      return p;
-    }();
-    if( anim_state.highlighted == item_layout.text ) {
-      painter.draw_solid_rect(
-          item_layout.bounds_absolute,
-          config_ui.dialog_text.selected_background );
-      rr::Typer typer =
-          renderer.typer( item_layout.bounds_absolute.origin +
-                              item_layout.text_nw_relative
-                                  .distance_from_origin(),
-                          text_color );
-      typer.write( item_layout.text );
-    } else {
-      rr::Typer typer =
-          renderer.typer( item_layout.bounds_absolute.origin +
-                              item_layout.text_nw_relative
-                                  .distance_from_origin(),
-                          text_color );
-      typer.write( item_layout.text );
-    }
-    if( item_layout.has_arrow )
+    rr::Typer typer = renderer.typer(
+        item_layout.bounds_absolute.origin +
+            item_layout.text_nw_relative.distance_from_origin(),
+        text_color );
+    typer.write( item_layout.text );
+
+    // Arrow.
+    if( item_layout.has_arrow ) {
+      auto const arrow_origin = [&] {
+        point p = item_layout.bounds_absolute.center();
+        p.x     = item_layout.bounds_absolute.right();
+        static auto const arrow_size =
+            sprite_size( e_tile::submenu_arrow );
+        p = centered_on( arrow_size, p ).nw();
+        // Looks better with a bit of space on its right.
+        p.x -= 1;
+        return p;
+      }();
       render_sprite_silhouette( renderer, arrow_origin,
                                 e_tile::submenu_arrow,
                                 text_color );
+    }
   }
 
   for( auto const& bar : layout.bars ) {
