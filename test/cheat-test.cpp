@@ -18,6 +18,7 @@
 #include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/imap-updater.hpp"
+#include "test/mocks/imenu-server.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
@@ -826,6 +827,20 @@ TEST_CASE( "[cheat] cheat_mode_enabled" ) {
 
 TEST_CASE( "[cheat] enable_cheat_mode" ) {
   world w;
+  MockIMenuServer mock_menu_server;
+  w.planes().get().menu = mock_menu_server;
+
+  auto f = [&] { enable_cheat_mode( w.ss(), w.ts() ); };
+
+  REQUIRE_FALSE( w.settings().cheat_options.enabled );
+
+  mock_menu_server.EXPECT__enable_cheat_menu( true );
+  f();
+  REQUIRE( w.settings().cheat_options.enabled );
+
+  mock_menu_server.EXPECT__enable_cheat_menu( true );
+  f();
+  REQUIRE( w.settings().cheat_options.enabled );
 }
 
 TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
