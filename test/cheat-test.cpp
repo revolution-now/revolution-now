@@ -23,6 +23,7 @@
 #include "test/util/coro.hpp"
 
 // Revolution Now
+#include "src/co-runner.hpp"
 #include "src/icolony-evolve.rds.hpp"
 #include "src/plane-stack.hpp"
 #include "src/ss/fog-square.rds.hpp"
@@ -844,7 +845,41 @@ TEST_CASE( "[cheat] enable_cheat_mode" ) {
 }
 
 TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
-  world w;
+  co::stream<char> stream;
+
+  auto f = [&] { return monitor_magic_key_sequence( stream ); };
+
+  wait<> const w = f();
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'w' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'i' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'i' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'n' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'w' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'i' );
+  run_all_coroutines();
+  REQUIRE( !w.ready() );
+
+  stream.send( 'n' );
+  run_all_coroutines();
+  REQUIRE( w.ready() );
 }
 
 } // namespace
