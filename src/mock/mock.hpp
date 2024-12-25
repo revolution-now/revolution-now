@@ -127,6 +127,7 @@ struct RetHolder {
   RetHolder( T val )
   requires( !std::is_reference_v<T> )
     : o( std::move( val ) ) {}
+
   decltype( auto ) get() {
     // If our return type is a non-const l-value ref then we need
     // to return it as such (and not as T&&) because the
@@ -478,7 +479,7 @@ struct ResponderQueue {
 
   void ensure_expectations() const { checker_.perform_check(); }
 
-  R& add( typename R::matchers_t args ) {
+  R& add( typename R::matchers_t&& args ) {
     answers_.push( R( fn_name_, std::move( args ) ) );
     return answers_.back();
   }
