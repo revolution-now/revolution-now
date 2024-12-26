@@ -14,11 +14,19 @@
 #include "src/imenu-server.hpp"
 #include "src/plane.hpp"
 
+// config
+#include "src/config/menu-items.rds.hpp" // needed otherwise
+                                         // e_menu{_item} args
+                                         // can't be formatted.
+
 // mock
 #include "src/mock/mock.hpp"
 
-// base
+// refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/to-str-ext-std.hpp"
 
 namespace rn {
 
