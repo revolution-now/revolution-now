@@ -224,14 +224,12 @@ MenuRenderLayout const& MenuThreads::render_layout(
 
 int MenuThreads::open_count() const { return open_.size(); }
 
-bool MenuThreads::enabled( e_menu_item const item ) const {
-  return menu_server_.can_handle_menu_click( item );
-}
-
 bool MenuThreads::enabled(
     MenuItemRenderLayout const& layout ) const {
-  if( !layout.item.has_value() ) return true;
-  return enabled( *layout.item );
+  if( !layout.item.has_value() )
+    // This is a node (opens sub-menu); always enabled.
+    return true;
+  return menu_server_.can_handle_menu_click( *layout.item );
 }
 
 int MenuThreads::next_menu_id() {

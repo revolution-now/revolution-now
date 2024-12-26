@@ -46,10 +46,8 @@ using ::refl::enum_values;
 /****************************************************************
 ** Harness
 *****************************************************************/
-struct H {
-  [[maybe_unused]] H() : bar_( menu_server_ ) {
-    // TODO
-  }
+struct Harness {
+  [[maybe_unused]] Harness() : bar_( menu_server_ ) {}
 
   [[nodiscard]] bool send_key( ::SDL_Keycode const key ) {
     key_event_t e;
@@ -79,7 +77,7 @@ struct H {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE_METHOD( H, "[menu-bar] some test" ) {
+TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
   vector<e_menu> const& contents = config_menu.menu_bar;
 
   auto f = [&] { return bar_.run_thread( kScreen, contents ); };

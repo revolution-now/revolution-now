@@ -38,6 +38,10 @@ uint64_t total_frame_count();
 
 using FrameSubscriptionFunc = std::function<void( void )>;
 
+// TODO: find a better way to handle these subscriptions and the
+// testing of them. Basically all code in the game that uses
+// timing of any kind will use this.
+//
 // Subscribe to receive a notification after n ticks, or every n
 // ticks if repeating == true.
 [[nodiscard]] int64_t subscribe_to_frame_tick(
@@ -53,6 +57,11 @@ using FrameSubscriptionFunc = std::function<void( void )>;
 // it. Note that the IDs are unique across both types of sub-
 // scriptions.
 void unsubscribe_frame_tick( int64_t id );
+
+// TODO: find a better way to handle these subscriptions and the
+// testing of them. Basically all code in the game that uses
+// timing of any kind will use this.
+void testing_notify_all_subscribers();
 
 using EventCountMap =
     std::unordered_map<std::string_view,

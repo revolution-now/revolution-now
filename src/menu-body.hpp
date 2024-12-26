@@ -61,7 +61,6 @@ struct MenuThreads {
     return base::rl::all( open_ ).keys();
   }
 
-  bool enabled( e_menu_item item ) const;
   bool enabled( MenuItemRenderLayout const& item ) const;
 
  private:

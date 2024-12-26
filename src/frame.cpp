@@ -92,23 +92,24 @@ vector<FrameSubscription>& subscriptions_oneoff() {
   return subs;
 }
 
-void notify_subscribers() {
-  auto try_notify = []( FrameSubscription& sub ) {
+void notify_subscribers( bool const force = false ) {
+  auto try_notify = [&]( FrameSubscription& sub ) {
     overload_visit(
         sub.data,
-        []( FrameSubscriptionTick& tick_sub ) {
+        [&]( FrameSubscriptionTick& tick_sub ) {
           auto& [done, interval, last_message, func] = tick_sub;
           auto total = total_frame_count();
-          if( int( total - last_message ) >= interval.frames ) {
+          if( force ||
+              int( total - last_message ) >= interval.frames ) {
             last_message = total;
             func();
             done = true;
           }
         },
-        []( FrameSubscriptionTime& time_sub ) {
+        [&]( FrameSubscriptionTime& time_sub ) {
           auto& [done, interval, last_message, func] = time_sub;
           auto now = Clock_t::now();
-          if( now - last_message >= interval ) {
+          if( force || now - last_message >= interval ) {
             last_message = now;
             func();
             done = true;
@@ -288,6 +289,10 @@ void deinit_frame() {
 }
 
 } // namespace
+
+void testing_notify_all_subscribers() {
+  notify_subscribers( /*force=*/true );
+}
 
 int64_t subscribe_to_frame_tick( FrameSubscriptionFunc func,
                                  FrameCount n, bool repeating ) {
