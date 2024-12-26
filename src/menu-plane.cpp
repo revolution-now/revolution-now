@@ -16,11 +16,11 @@
 #include "menu-body.hpp"
 #include "menu-render.hpp"
 #include "plane.hpp"
-#include "screen.hpp" // FIXME: remove
 
 // config
 #include "config/menu-items.rds.hpp"
 #include "config/menu.rds.hpp"
+#include "config/resolutions.hpp" // FIXME: remove
 
 // refl
 #include "refl/enum-map.hpp"
@@ -57,6 +57,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   // game is configured to have.
   bool cheat_menu_ = false;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
+  rect logical_screen_rect_ = { .size = { .w = 640, .h = 360 } };
 
   Impl() : menu_threads_( *this ), bar_( *this ) {
     populate_menu_bar_contents();
@@ -75,8 +76,8 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
 
   void start_bar_thread_if_not_running() {
     if( !bar_is_running() )
-      bar_thread_ = bar_.run_thread( main_window_logical_rect(),
-                                     bar_contents_ );
+      bar_thread_ =
+          bar_.run_thread( logical_screen_rect_, bar_contents_ );
   }
 
   void restart_bar_thread_if_running() {
@@ -115,7 +116,8 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   void on_logical_resolution_changed(
-      e_resolution const /*resolution*/ ) override {
+      e_resolution const resolution ) override {
+    logical_screen_rect_.size = resolution_size( resolution );
     close_all_menus();
     restart_bar_thread_if_running();
   }

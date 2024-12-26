@@ -328,10 +328,7 @@ void MenuThreads::handle_key_event(
     case ::SDLK_KP_5:
     case ::SDLK_KP_ENTER:
     case ::SDLK_RETURN: {
-      auto const selected_text =
-          open_menu.layout_for_selected().member(
-              &MenuItemRenderLayout::text );
-      if( !selected_text.has_value() ) break;
+      if( !open_menu.layout_for_selected().has_value() ) break;
       open_menu.events.send( MenuEvent::click{} );
       break;
     }
