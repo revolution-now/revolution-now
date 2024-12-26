@@ -19,6 +19,14 @@ using namespace std;
 namespace rn {
 
 /****************************************************************
+** UntypedIPlane
+*****************************************************************/
+void UntypedIPlane::set_untyped( IPlane* const plane ) {
+  CHECK( plane != nullptr );
+  untyped_ = plane;
+}
+
+/****************************************************************
 ** PlaneGroup
 *****************************************************************/
 void PlaneGroup::set_bottom( IPlane& p ATTR_LIFETIMEBOUND ) {

@@ -35,12 +35,26 @@ struct ILandViewPlane;
 /****************************************************************
 ** TypedIPlane
 *****************************************************************/
+struct UntypedIPlane {
+  void set_untyped( IPlane* plane );
+
+  bool has_untyped() const { return untyped_ != nullptr; }
+
+  IPlane& untyped() const {
+    CHECK( untyped_ != nullptr );
+    return *untyped_;
+  }
+
+ private:
+  IPlane* untyped_ = {};
+};
+
 template<typename T>
-struct TypedIPlane {
+struct TypedIPlane : UntypedIPlane {
   TypedIPlane() = default;
 
   operator bool() const {
-    return typed_ != nullptr && untyped_ != nullptr;
+    return typed_ != nullptr && has_untyped();
   }
 
   operator T&() const { return typed(); }
@@ -49,20 +63,16 @@ struct TypedIPlane {
     CHECK( typed_ != nullptr );
     return *typed_;
   }
-  IPlane& untyped() const {
-    CHECK( untyped_ != nullptr );
-    return *untyped_;
-  }
 
   TypedIPlane& operator=( T& p ATTR_LIFETIMEBOUND ) {
-    typed_   = &p;
-    untyped_ = &p.impl();
+    typed_ = &p;
+    set_untyped( &p.impl() );
+    CHECK( has_untyped() );
     return *this;
   }
 
  private:
-  T* typed_        = {};
-  IPlane* untyped_ = {};
+  T* typed_ = {};
 };
 
 /****************************************************************

@@ -210,11 +210,6 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   for( auto& p : g_event_counts ) p.second.update();
 
   // ----------------------------------------------------------
-  // Step: Initialize any new plane groups.
-  planes.get().initialize_if_needed(
-      main_window_named_logical_resolution() );
-
-  // ----------------------------------------------------------
   // Step: Process deferred window events.
   for( input::win_event_t const& event :
        deferred_events.window ) {
