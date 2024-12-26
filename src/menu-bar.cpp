@@ -226,18 +226,6 @@ bool MenuBar::handle_key_event(
       st.focus_next();
       return true;
     }
-    case ::SDLK_KP_5:
-    case ::SDLK_KP_ENTER:
-    case ::SDLK_RETURN: {
-      if( !st.anim_state.focused.has_value() ) break;
-      if( st.anim_state.opened_menu().has_value() )
-        // There is a menu open so left it handle this
-        // event.
-        return false;
-      st.events.send( MenuBarEvent::click{
-        .menu = *st.anim_state.focused } );
-      return true;
-    }
     default:
       return false;
   }
