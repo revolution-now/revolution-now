@@ -17,9 +17,6 @@
 // Testing.
 #include "test/data/steam/steam-resolutions.hpp"
 
-// Revolution Now
-#include "src/input.hpp"
-
 // rcl
 #include "src/rcl/golden.hpp"
 
@@ -68,38 +65,6 @@ TEST_CASE( "[resolution] supported_resolutions" ) {
     gfx::size{ .w = 720, .h = 450 },
   };
   REQUIRE( supported_resolutions() == expected );
-}
-
-TEST_CASE( "[resolution] set_pending_resolutions" ) {
-  using namespace ::rn::input;
-  ScoredResolution const scored{
-    .resolution = { .physical_window = { .w = 1, .h = 2 },
-                    .logical         = { .w = 640, .h = 360 },
-                    .scale           = 3,
-                    .viewport        = { .origin = { .x = 99 } },
-                    .pixel_size      = 3.4 },
-    .scores     = {
-          .fitting = 1.1, .pixel_size = 2.2, .overall = 3.3 } };
-  SelectedResolution const selected{
-    .rated     = scored,
-    .idx       = 5,
-    .available = true,
-    .named     = e_resolution::_720x450 };
-
-  event_t const expected = [&] {
-    resolution_event_t res_ev;
-    res_ev.resolution = selected;
-    return res_ev;
-  }();
-
-  auto const& q = event_queue();
-
-  REQUIRE( q.empty() );
-  set_pending_resolution( selected );
-  REQUIRE( q.size() == 1 );
-  REQUIRE( q.front().holds<resolution_event_t>() );
-  REQUIRE( q.front().get<resolution_event_t>().resolution ==
-           selected );
 }
 
 TEST_CASE(

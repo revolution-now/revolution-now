@@ -11,9 +11,6 @@
 *****************************************************************/
 #include "resolution.hpp"
 
-// Revolution Now
-#include "input.hpp"
-
 // gfx
 #include "gfx/logical.hpp"
 #include "logical.rds.hpp"
@@ -126,11 +123,6 @@ SelectedResolution create_selected_available_resolution(
       resolution_from_size(
           available[selected.idx].resolution.logical ) );
   return selected;
-}
-
-void set_pending_resolution(
-    SelectedResolution const& selected_resolution ) {
-  input::inject_resolution_event( selected_resolution );
 }
 
 } // namespace rn

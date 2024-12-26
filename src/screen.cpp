@@ -369,6 +369,11 @@ void set_fullscreen( bool fullscreen ) {
   }
 }
 
+void set_pending_resolution(
+    SelectedResolution const& selected_resolution ) {
+  input::inject_resolution_event( selected_resolution );
+}
+
 } // namespace
 
 maybe<gfx::MonitorDpi> monitor_dpi() {
