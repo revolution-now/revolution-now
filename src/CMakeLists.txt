@@ -45,6 +45,7 @@ add_rn_library(
   rn-rds-util
   rn-sav
   rn-stb
+  rn-video
   rtmidi
   Threads::Threads
   ${SDL2_LIBRARY}

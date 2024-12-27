@@ -1,5 +1,5 @@
 /****************************************************************
-**video.cpp
+**video_sdl.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Implementation of IVideo using an SDL backend.
 *
 *****************************************************************/
-#include "video.hpp"
+#include "video_sdl.hpp"
 
 // video
 #include "include-sdl.hpp"
@@ -39,6 +39,11 @@ constexpr auto kPixelFormat = ::SDL_PIXELFORMAT_RGBA8888;
 /****************************************************************
 ** Helpers
 *****************************************************************/
+::SDL_Window* handle_for( WindowHandle const& wh ) {
+  CHECK( wh.handle != nullptr );
+  return static_cast<::SDL_Window*>( wh.handle );
+}
+
 // Only call this when the most recent SDL call made signaled an
 // error via its return code.
 string sdl_get_last_error() { return ::SDL_GetError(); }
@@ -93,9 +98,9 @@ void log_video_stats() {
 } // namespace
 
 /****************************************************************
-** SDLVideo
+** VideoSDL
 *****************************************************************/
-or_err<DisplayMode> SDLVideo::display_mode() {
+or_err<DisplayMode> VideoSDL::display_mode() {
   SDL_DisplayMode dm;
   if( ::SDL_GetCurrentDisplayMode( 0, &dm ) < 0 ) {
     return error{
@@ -107,7 +112,7 @@ or_err<DisplayMode> SDLVideo::display_mode() {
                       .refresh_rate = dm.refresh_rate };
 }
 
-or_err<WindowHandle> SDLVideo::create_window(
+or_err<WindowHandle> VideoSDL::create_window(
     WindowOptions const& options ) {
   log_video_stats();
 
@@ -138,6 +143,54 @@ or_err<WindowHandle> SDLVideo::create_window(
     return error{ .msg = "failed to create window" };
 
   return WindowHandle{ .handle = p_window };
+}
+
+void VideoSDL::destroy_window( WindowHandle const& wh ) {
+  ::SDL_DestroyWindow( handle_for( wh ) );
+}
+
+void VideoSDL::hide_window( WindowHandle const& wh ) {
+  ::SDL_HideWindow( handle_for( wh ) );
+}
+
+void VideoSDL::restore_window( WindowHandle const& wh ) {
+  ::SDL_RestoreWindow( handle_for( wh ) );
+}
+
+// TODO: mac-os, does not seem to be able to detect when the user
+// fullscreens a window.
+bool VideoSDL::is_window_fullscreen( WindowHandle const& wh ) {
+  // This bit should always be set even if we're in the "desktop"
+  // fullscreen mode.
+  return ( ::SDL_GetWindowFlags( handle_for( wh ) ) &
+           ::SDL_WINDOW_FULLSCREEN ) != 0;
+}
+
+void VideoSDL::set_fullscreen( WindowHandle const& wh,
+                               bool const fullscreen ) {
+  if( fullscreen == is_window_fullscreen( wh ) ) return;
+
+  if( fullscreen ) {
+    ::SDL_SetWindowFullscreen( handle_for( wh ),
+                               ::SDL_WINDOW_FULLSCREEN_DESKTOP );
+  } else {
+    ::SDL_SetWindowFullscreen( handle_for( wh ), 0 );
+    // This somehow gets erased when we go to fullscreen mode, so
+    // it needs to be re-set each time.
+    ::SDL_SetWindowResizable( handle_for( wh ),
+                              /*resizable=*/::SDL_TRUE );
+  }
+}
+
+size VideoSDL::window_size( WindowHandle const& wh ) {
+  size res;
+  ::SDL_GetWindowSize( handle_for( wh ), &res.w, &res.h );
+  return res;
+}
+
+void VideoSDL::set_window_size( WindowHandle const& wh,
+                                gfx::size sz ) {
+  ::SDL_SetWindowSize( handle_for( wh ), sz.w, sz.h );
 }
 
 } // namespace vid

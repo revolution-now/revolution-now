@@ -26,6 +26,9 @@
 // render
 #include "render/renderer.hpp" // TODO: replace with IRenderer
 
+// video
+#include "video/video_sdl.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -50,26 +53,13 @@ namespace {
 
 using ::gfx::e_resolution;
 
-struct DisplayMode {
-  gfx::size size   = {};
-  uint32_t format  = 0;
-  int refresh_rate = 0;
-};
-
-DisplayMode current_display_mode() {
-  SDL_DisplayMode dm;
-  if( ::SDL_GetCurrentDisplayMode( 0, &dm ) < 0 ) {
-    FATAL( "failed to get display mode info: {}",
-           sdl_get_last_error() );
-  }
-  return DisplayMode{ .size         = { .w = dm.w, .h = dm.h },
-                      .format       = dm.format,
-                      .refresh_rate = dm.refresh_rate };
-}
+vid::VideoSDL g_video;
+vid::WindowHandle g_window;
 
 gfx::Resolutions& g_resolutions() {
   static gfx::Resolutions r = [] {
-    auto const display_mode         = current_display_mode();
+    UNWRAP_CHECK_T( auto const display_mode,
+                    g_video.display_mode() );
     gfx::size const physical_screen = display_mode.size;
     gfx::Monitor const monitor =
         monitor_properties( physical_screen, monitor_dpi() );
@@ -78,10 +68,6 @@ gfx::Resolutions& g_resolutions() {
   }();
   return r;
 }
-
-::SDL_Window* g_window = nullptr;
-
-auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 
 // The purpose of this cache is so that we can have a consistent
 // physical window size to report across a single frame. If the
@@ -92,217 +78,17 @@ auto g_pixel_format = ::SDL_PIXELFORMAT_RGBA8888;
 // Cache is invalidated by setting to nothing.
 maybe<gfx::size> main_window_physical_size_cache;
 
-#if 0
-double const& viewer_distance_from_monitor() {
-  static double distance = [] {
-    // Determined empirically; viewer distance from screen seems
-    // to scale linearly with screen size, down to a certain
-    // minimum distance.
-    constexpr double viewer_distance_multiplier{ 1.25 };
-    constexpr double viewer_distance_minimum{ 18 }; // inches
-    auto             res =
-        std::max( viewer_distance_multiplier * monitor_inches(),
-                  viewer_distance_minimum );
-    lg.debug( "computed viewer distance from screen: {}in.",
-              res );
-    return res;
-  }();
-  return distance;
-};
-#endif
-
-void query_video_stats() {
-  float ddpi, hdpi, vdpi;
-  // A warning from the SDL2 docs:
-  //
-  //   WARNING: This reports the DPI that the hardware reports,
-  //   and it is not always reliable! It is almost always better
-  //   to use SDL_GetWindowSize() to find the window size, which
-  //   might be in logical points instead of pixels, and then
-  //   SDL_GL_GetDrawableSize(), SDL_Vulkan_GetDrawableSize(),
-  //   SDL_Metal_GetDrawableSize(), or SDL_Get-Renderer-Output-
-  //   Size(), and compare the two values to get an actual
-  //   scaling value between the two. We will be rethinking how
-  //   high-dpi details should be managed in SDL3 to make things
-  //   more consistent, reliable, and clear.
-  //
-  ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  lg.debug( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.",
-            ddpi, hdpi, vdpi );
-
-  SDL_DisplayMode dm;
-
-  auto dm_to_str = [&dm] {
-    return fmt::format( "{}x{}@{}Hz, pf={}", dm.w, dm.h,
-                        dm.refresh_rate,
-                        ::SDL_GetPixelFormatName( dm.format ) );
-  };
-  (void)dm_to_str;
-
-  lg.debug( "default game pixel format: {}",
-            ::SDL_GetPixelFormatName( g_pixel_format ) );
-
-  SDL_GetCurrentDisplayMode( 0, &dm );
-  lg.debug( "GetCurrentDisplayMode: {}", dm_to_str() );
-  if( g_pixel_format != dm.format ) {
-    // g_pixel_format =
-    //    static_cast<decltype( g_pixel_format )>( dm.format );
-    // lg.debug( "correcting game pixel format to {}",
-    //               ::SDL_GetPixelFormatName( dm.format ) );
-  }
-
-  SDL_GetDesktopDisplayMode( 0, &dm );
-  lg.debug( "GetDesktopDisplayMode: {}", dm_to_str() );
-
-  SDL_GetDisplayMode( 0, 0, &dm );
-  lg.debug( "GetDisplayMode: {}", dm_to_str() );
-
-  SDL_Rect r;
-  SDL_GetDisplayBounds( 0, &r );
-  lg.debug( "GetDisplayBounds: {}",
-            Rect{ X{ r.x }, Y{ r.y }, W{ r.w }, H{ r.h } } );
-}
-
-#if 0
-struct ScaleInfo {
-  int    scale;
-  double tile_size_on_screen_surface_inches;
-  Delta  resolution;
-  double tile_angular_size;
-};
-NOTHROW_MOVE( ScaleInfo );
-
-ScaleInfo scale_info( int scale_ ) {
-  Delta scale{ .w = scale_, .h = scale_ };
-  Delta resolution = current_display_mode().size / scale;
-
-  // Tile size in inches if it were measured on the surface of
-  // the screen.
-  double tile_size_screen_surface =
-      ( scale * g_tile_delta ).w / monitor_ddpi();
-
-  // Compute the angular size (this is what actually determines
-  // how big it looks to the viewer).
-  auto theta =
-      2.0 * std::atan( ( tile_size_screen_surface / 2.0 ) /
-                       viewer_distance_from_monitor() );
-
-  return ScaleInfo{ scale_, tile_size_screen_surface, resolution,
-                    theta };
-}
-
-// Lower score is better.
-double scale_score( ScaleInfo const& info ) {
-  return ::abs( info.tile_angular_size -
-                config_rn.ideal_tile_angular_size );
-}
-
-// This function attempts to find an integer scale factor with
-// which to scale the pixel size of the display so that a single
-// tile has approximately a given size. The scale factor is an
-// integer because we scale both dimensions by the same amount,
-// and the scale factor is not a floating point number because we
-// don't want any distortion of individual pixels which would
-// arise in that situation.
-void find_pixel_scale_factor() {
-#  if 0
-  ScaleInfo optimal = scale_info( min_scale_factor );
-  (void)&scale_score;
-#  else
-  UNWRAP_CHECK(
-      optimal, rl::ints( min_scale_factor, max_scale_factor + 1 )
-                   .map( scale_info )
-                   .min_by( scale_score ) );
-#  endif
-
-  ///////////////////////////////////////////////////////////////
-#  if 0
-  auto table_row = []( auto possibility, auto resolution,
-                       auto tile_size_screen, auto tile_size_1ft,
-                       auto score ) {
-    lg.debug( "{: ^10}{: ^19}{: ^18}{: ^18}{: ^10}", possibility,
-              resolution, tile_size_screen, tile_size_1ft,
-              score );
-  };
-
-  table_row( "Scale", "Resolution", "Tile-Size-Screen",
-             "Tile-Angular-Size", "Score" );
-  auto bar = string( 86, '-' );
-  lg.debug( bar );
-  auto fmt_dbl = []( double d ) {
-    return fmt::format( "{:.4}", d );
-  };
-  for( auto const& info : scale_scores ) {
-    string chosen =
-        ( info.scale == optimal.scale ) ? "=> " : "   ";
-    table_row(
-        chosen + to_string( info.scale ), info.resolution,
-        fmt_dbl( info.tile_size_on_screen_surface_inches ),
-        fmt_dbl( info.tile_angular_size ),
-        fmt_dbl( scale_score( info ) ) );
-  }
-  lg.debug( bar );
-#  endif
-  ///////////////////////////////////////////////////////////////
-
-  g_resolution_scale_factor =
-      Delta{ .w = optimal.scale, .h = optimal.scale };
-  g_optimal_resolution_scale_factor =
-      Delta{ .w = optimal.scale, .h = optimal.scale };
-  g_screen_physical_size =
-      optimal.resolution * g_resolution_scale_factor;
-  lg.info( "screen physical resolution: {}",
-           g_screen_physical_size );
-  lg.info( "screen logical  resolution: {}",
-           screen_logical_size() );
-
-  // If this is violated then we have non-integer scaling.
-  CHECK( ( g_screen_physical_size %
-           Delta{ .w = optimal.scale, .h = optimal.scale } ) ==
-         Delta{} );
-
-  // For informational purposes
-  if( current_display_mode().size %
-          Delta{ .w = optimal.scale, .h = optimal.scale } !=
-      Delta{} )
-    lg.warn(
-        "Desktop display resolution not commensurate with scale "
-        "factor." );
-}
-#endif
-
 void init_screen() {
-  query_video_stats();
-
-  int flags = {};
-
-  bool const start_in_fullscreen =
-      config_gfx.program_window.start_in_fullscreen;
-
-  flags |= ::SDL_WINDOW_SHOWN;
-  flags |= ::SDL_WINDOW_OPENGL;
-
-  if( start_in_fullscreen )
-    flags |= ::SDL_WINDOW_FULLSCREEN_DESKTOP;
-
-  // Not sure why, but this seems to be beneficial even when we
-  // are starting in fullscreen desktop mode, since if it is not
-  // set (this is on Linux) then when we leave fullscreen mode
-  // the "restore" command doesn't work and the window remains
-  // maximized.
-  flags |= ::SDL_WINDOW_RESIZABLE;
-
-  DisplayMode const dm = current_display_mode();
-
-  g_window =
-      ::SDL_CreateWindow( config_rn.main_window.title.c_str(), 0,
-                          0, dm.size.w, dm.size.h, flags );
-  CHECK( g_window != nullptr, "failed to create window" );
+  UNWRAP_CHECK_T( vid::DisplayMode const display_mode,
+                  g_video.display_mode() );
+  vid::WindowOptions options{
+    .size = display_mode.size,
+    .start_fullscreen =
+        config_gfx.program_window.start_in_fullscreen };
+  UNWRAP_CHECK_T( g_window, g_video.create_window( options ) );
 }
 
-void cleanup_screen() {
-  if( g_window != nullptr ) SDL_DestroyWindow( g_window );
-}
+void cleanup_screen() { g_video.destroy_window( g_window ); }
 
 REGISTER_INIT_ROUTINE( screen );
 
@@ -356,18 +142,7 @@ gfx::size shrinkage_size() {
 }
 
 void set_fullscreen( bool fullscreen ) {
-  if( fullscreen == is_window_fullscreen() ) return;
-
-  if( fullscreen ) {
-    ::SDL_SetWindowFullscreen( g_window,
-                               ::SDL_WINDOW_FULLSCREEN_DESKTOP );
-  } else {
-    ::SDL_SetWindowFullscreen( g_window, 0 );
-    // This somehow gets erased when we go to fullscreen mode, so
-    // it needs to be re-set each time.
-    ::SDL_SetWindowResizable( g_window,
-                              /*resizable=*/::SDL_TRUE );
-  }
+  g_video.set_fullscreen( g_window, fullscreen );
 }
 
 void set_pending_resolution(
@@ -491,7 +266,7 @@ maybe<gfx::MonitorDpi> monitor_dpi() {
   return dpi;
 }
 
-void* main_os_window_handle() { return (void*)g_window; }
+void* main_os_window_handle() { return g_window.handle; }
 
 maybe<gfx::Resolution const&> get_global_resolution() {
   auto const& selected = g_resolutions().selected;
@@ -522,27 +297,16 @@ maybe<e_resolution> main_window_named_logical_resolution() {
 }
 
 gfx::size main_window_physical_size() {
-  if( !main_window_physical_size_cache ) {
-    CHECK( g_window != nullptr );
-    int w{}, h{};
-    ::SDL_GetWindowSize( g_window, &w, &h );
+  if( !main_window_physical_size_cache )
     main_window_physical_size_cache =
-        Delta{ .w = W{ w }, .h = H{ h } };
-  }
+        g_video.window_size( g_window );
   return *main_window_physical_size_cache;
 }
 
-void hide_window() {
-  if( g_window ) ::SDL_HideWindow( g_window );
-}
+void hide_window() { g_video.hide_window( g_window ); }
 
-// TODO: mac-os, does not seem to be able to detect when the user
-// fullscreens a window.
 bool is_window_fullscreen() {
-  // This bit should always be set even if we're in the "desktop"
-  // fullscreen mode.
-  return ( ::SDL_GetWindowFlags( g_window ) &
-           ::SDL_WINDOW_FULLSCREEN ) != 0;
+  return g_video.is_window_fullscreen( g_window );
 }
 
 bool toggle_fullscreen() {
@@ -552,15 +316,11 @@ bool toggle_fullscreen() {
   return new_fullscreen;
 }
 
-void restore_window() { ::SDL_RestoreWindow( g_window ); }
+void restore_window() { g_video.restore_window( g_window ); }
 
 bool can_shrink_window_to_fit() {
   if( is_window_fullscreen() ) return false;
-  gfx::size const curr_size = [] {
-    gfx::size res;
-    ::SDL_GetWindowSize( g_window, &res.w, &res.h );
-    return res;
-  }();
+  gfx::size const curr_size = g_video.window_size( g_window );
   return curr_size != shrinkage_size();
 }
 
@@ -572,7 +332,7 @@ void shrink_window_to_fit() {
   // In case the window is maximized this must be done first.
   restore_window();
   gfx::size const size = shrinkage_size();
-  ::SDL_SetWindowSize( g_window, size.w, size.h );
+  g_video.set_window_size( g_window, size );
 }
 
 void on_logical_resolution_changed(

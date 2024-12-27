@@ -1,5 +1,5 @@
 /****************************************************************
-**video.hpp
+**video_sdl.hpp
 *
 * Project: Revolution Now
 *
@@ -16,13 +16,29 @@
 namespace vid {
 
 /****************************************************************
-** SDLVideo
+** VideoSDL
 *****************************************************************/
-struct SDLVideo : IVideo {
+struct VideoSDL : IVideo {
   or_err<DisplayMode> display_mode() override;
 
   or_err<WindowHandle> create_window(
       WindowOptions const& options ) override;
+
+  void destroy_window( WindowHandle const& wh ) override;
+
+  void hide_window( WindowHandle const& wh ) override;
+
+  void restore_window( WindowHandle const& wh ) override;
+
+  bool is_window_fullscreen( WindowHandle const& wh ) override;
+
+  void set_fullscreen( WindowHandle const& wh,
+                       bool fullscreen ) override;
+
+  gfx::size window_size( WindowHandle const& wh ) override;
+
+  void set_window_size( WindowHandle const& wh,
+                        gfx::size sz ) override;
 };
 
 } // namespace vid
