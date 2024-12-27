@@ -112,6 +112,30 @@ or_err<DisplayMode> VideoSDL::display_mode() {
                       .refresh_rate = dm.refresh_rate };
 }
 
+or_err<gfx::MonitorDpi> VideoSDL::display_dpi() {
+  float hdpi = 0.0; // horizontal dpi.
+  float vdpi = 0.0; // vertical dpi.
+  float ddpi = 0.0; // diagonal dpi.
+  // A warning from the SDL2 docs:
+  //
+  //   WARNING: This reports the DPI that the hardware reports,
+  //   and it is not always reliable! It is almost always
+  //   better to use SDL_GetWindowSize() to find the window
+  //   size, which might be in logical points instead of pix-
+  //   els, and then SDL_GL_GetDrawableSize(), SDL_Vulkan_-Get-
+  //   DrawableSize(), SDL_Metal_GetDrawableSize(), or SDL_Get-
+  //   RendererOutputSize(), and compare the two values to get
+  //   an actual scaling value between the two. We will be re-
+  //   thinking how high-dpi details should be managed in SDL3
+  //   to make things more consistent, reliable, and clear.
+  //
+  if( ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi ) < 0 )
+    return error{ .msg = sdl_get_last_error() };
+
+  return gfx::MonitorDpi{
+    .horizontal = hdpi, .vertical = vdpi, .diagonal = ddpi };
+}
+
 or_err<WindowHandle> VideoSDL::create_window(
     WindowOptions const& options ) {
   log_video_stats();

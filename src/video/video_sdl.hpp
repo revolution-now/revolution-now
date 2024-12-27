@@ -21,6 +21,8 @@ namespace vid {
 struct VideoSDL : IVideo {
   or_err<DisplayMode> display_mode() override;
 
+  or_err<gfx::MonitorDpi> display_dpi() override;
+
   or_err<WindowHandle> create_window(
       WindowOptions const& options ) override;
 
@@ -40,5 +42,7 @@ struct VideoSDL : IVideo {
   void set_window_size( WindowHandle const& wh,
                         gfx::size sz ) override;
 };
+
+static_assert( !std::is_abstract_v<VideoSDL> );
 
 } // namespace vid

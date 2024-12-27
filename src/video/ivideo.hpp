@@ -13,6 +13,9 @@
 // rds
 #include "ivideo.rds.hpp"
 
+// gfx
+#include "gfx/logical.rds.hpp"
+
 // base
 #include "base/expect.hpp"
 
@@ -39,6 +42,8 @@ struct IVideo {
   virtual ~IVideo() = default;
 
   virtual or_err<DisplayMode> display_mode() = 0;
+
+  virtual or_err<gfx::MonitorDpi> display_dpi() = 0;
 
   virtual or_err<WindowHandle> create_window(
       WindowOptions const& options ) = 0;

@@ -15,8 +15,6 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "sdl-util.hpp"
-#include "sdl.hpp"
 #include "tiles.hpp"
 
 // config
@@ -153,29 +151,20 @@ void set_pending_resolution(
 } // namespace
 
 maybe<gfx::MonitorDpi> monitor_dpi() {
-  static maybe<gfx::MonitorDpi> const dpi =
-      []() -> maybe<gfx::MonitorDpi> {
-    float hdpi = 0.0; // horizontal dpi.
-    float vdpi = 0.0; // vertical dpi.
-    float ddpi = 0.0; // diagonal dpi.
-    // A warning from the SDL2 docs:
-    //
-    //   WARNING: This reports the DPI that the hardware reports,
-    //   and it is not always reliable! It is almost always
-    //   better to use SDL_GetWindowSize() to find the window
-    //   size, which might be in logical points instead of pix-
-    //   els, and then SDL_GL_GetDrawableSize(), SDL_Vulkan_-Get-
-    //   DrawableSize(), SDL_Metal_GetDrawableSize(), or SDL_Get-
-    //   RendererOutputSize(), and compare the two values to get
-    //   an actual scaling value between the two. We will be re-
-    //   thinking how high-dpi details should be managed in SDL3
-    //   to make things more consistent, reliable, and clear.
-    //
-    if( ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi ) < 0 ) {
-      lg.warn( "could not get display dpi: {}",
-               sdl_get_last_error() );
+  static auto const dpi = []() -> maybe<gfx::MonitorDpi> {
+    // This will do a best-effort attempt at providing DPI info
+    // from the underlying windowing API, and might return only
+    // partial results, and/or incorrect results. So after we get
+    // it we post-process it to try as best as possible to to de-
+    // rive as many DPI components as possible what it gives us.
+    auto const dpi = g_video.display_dpi();
+    if( !dpi.has_value() ) {
+      lg.warn( "could not get display dpi: {}", dpi.error() );
       return nothing;
     }
+    double hdpi = dpi->horizontal;
+    double vdpi = dpi->vertical;
+    double ddpi = dpi->diagonal;
     lg.info(
         "monitor DPI: horizontal={}, vertical={}, diagonal={}",
         hdpi, vdpi, ddpi );
