@@ -139,10 +139,6 @@ gfx::size shrinkage_size() {
   return target_size;
 }
 
-void set_fullscreen( bool fullscreen ) {
-  g_video.set_fullscreen( g_window, fullscreen );
-}
-
 void set_pending_resolution(
     gfx::SelectedResolution const& selected_resolution ) {
   input::inject_resolution_event( selected_resolution );
@@ -301,7 +297,7 @@ bool is_window_fullscreen() {
 bool toggle_fullscreen() {
   bool const old_fullscreen = is_window_fullscreen();
   bool const new_fullscreen = !old_fullscreen;
-  set_fullscreen( new_fullscreen );
+  g_video.set_fullscreen( g_window, new_fullscreen );
   return new_fullscreen;
 }
 
