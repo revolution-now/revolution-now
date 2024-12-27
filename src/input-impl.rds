@@ -9,7 +9,7 @@
 #
 # ===============================================================
 # gfx
-include "gfx/coord.hpp"
+include "gfx/cartesian.hpp"
 
 namespace "rn.input"
 
@@ -30,10 +30,10 @@ namespace "rn.input"
 sumtype.drag_phase {
   none {},
   maybe {
-    origin 'Coord',
+    origin 'gfx::point',
   },
   dragging {
-    origin 'Coord',
+    origin 'gfx::point',
     phase 'e_drag_phase',
   },
 }

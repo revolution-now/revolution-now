@@ -10,12 +10,12 @@
 *****************************************************************/
 #include "input.hpp"
 
+// rds
+#include "input-impl.rds.hpp"
+
 // Revolution Now
-#include "logger.hpp"
 #include "screen.hpp"
 #include "sdl.hpp"
-#include "util.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/input.rds.hpp"
@@ -26,13 +26,9 @@
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
-#include "base/meta.hpp"
-
-// rds
-#include "input-impl.rds.hpp"
+#include "base/variant-util.hpp"
 
 // C++ standard library
-#include <algorithm>
 #include <array>
 #include <unordered_map>
 
@@ -407,6 +403,12 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   return event;
 }
 
+template<typename Base, typename From, typename To>
+void copy_common_base_object( From const& from, To& to ) {
+  *( static_cast<Base*>( &to ) ) =
+      *( static_cast<Base const*>( &from ) );
+}
+
 } // namespace
 
 Coord current_mouse_position() { return g_prev_mouse_pos; }
@@ -513,32 +515,6 @@ void pump_event_queue() {
 
 std::queue<event_t>& event_queue() { return g_event_queue; }
 
-// WARNING: this function has not been tested.
-// WARNING: this function has not been tested.
-void inject_sdl_window_resize_event() {
-  ::SDL_Event event{};
-  event.type             = ::SDL_WINDOWEVENT;
-  event.window.type      = ::SDL_WINDOWEVENT_RESIZED;
-  event.window.data1     = 0;
-  event.window.timestamp = ::SDL_GetTicks();
-  // Apparently we can use nullptr for the window and it will use
-  // the "focused" one, which seems to work for us.
-  auto const window_id = ::SDL_GetWindowID( /*window=*/nullptr );
-  CHECK( window_id );
-  event.window.windowID = window_id;
-  // Returns 1 on success, 0 if the event was filtered, or a neg-
-  // ative error code on failure; call SDL_GetError() for more
-  // information. A common reason for error is the event queue
-  // being full.
-  auto const res = ::SDL_PushEvent( &event );
-  // We don't want the event to get filtered.
-  CHECK_NEQ( res, 0 );
-  // If it failed then we will just print a warning, since per-
-  // haps the queue was full.
-  if( res < 0 )
-    lg.warn( "SDL_PushEvent failed to push a window event." );
-}
-
 void inject_resolution_event(
     gfx::SelectedResolution const& resolution ) {
   resolution_event_t event;
@@ -633,14 +609,14 @@ maybe<mouse_event_base_t const&> is_mouse_event(
   // For any events that are mouse events it will return the base
   // type in a maybe, which can be used for boolean checking and
   // getting useful info out of it.
-  return apply_to_alternatives_with_base(
+  return base::apply_to_alternatives_with_base(
       event, nothing,
       []( mouse_event_base_t const& r )
           -> maybe<mouse_event_base_t const&> { return r; } );
 }
 
 maybe<Coord const&> mouse_position( event_t const& event ) {
-  return apply_to_alternatives_with_base(
+  return base::apply_to_alternatives_with_base(
       event, nothing,
       []( mouse_event_base_t const& e ) -> maybe<Coord const&> {
         return e.pos;

@@ -35,12 +35,6 @@ ND int count( ContainerT&& c, ElemT&& e ) {
                      std::forward<ElemT>( e ) );
 }
 
-template<typename Base, typename From, typename To>
-void copy_common_base_object( From const& from, To& to ) {
-  *( static_cast<Base*>( &to ) ) =
-      *( static_cast<Base const*>( &from ) );
-}
-
 // All the parameters must be either the result type or convert-
 // ible to the result type.
 template<typename Res, typename... T>

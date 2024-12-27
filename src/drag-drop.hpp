@@ -20,7 +20,6 @@
 #include "input.hpp"
 #include "logger.hpp"
 #include "throttler.hpp"
-#include "variant.hpp"
 #include "wait.hpp"
 
 // gfx
@@ -35,6 +34,7 @@
 #include "base/function-ref.hpp"
 #include "base/maybe-util.hpp"
 #include "base/scope-exit.hpp"
+#include "base/variant-util.hpp"
 
 namespace rn {
 
@@ -474,7 +474,7 @@ wait<> drag_drop_routine(
         source_user_edit = drag_source.user_edit();
     if( source_user_edit ) {
       auto const& base =
-          variant_base<input::event_base_t>( latest );
+          base::variant_base<input::event_base_t>( latest );
       drag_state->source_requests_edit = base.mod.shf_down;
     }
 

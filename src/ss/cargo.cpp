@@ -15,7 +15,6 @@
 #include "logger.hpp"
 #include "macros.hpp"
 #include "util.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -30,6 +29,7 @@
 #include "base/lambda.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
+#include "base/variant-util.hpp"
 
 // C++ standard library
 #include <type_traits>

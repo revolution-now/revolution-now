@@ -207,7 +207,7 @@ struct ColonyPlane : public IPlane {
     while( true ) {
       input::event_t event = co_await input_.next();
       auto [exit, suspended] =
-          co_await co::detect_suspend( base::visit(
+          co_await co::detect_suspend( std::visit(
               LC( handle_event( _ ) ), event.as_base() ) );
       if( suspended ) clear_non_essential_events();
       if( exit ) co_return;

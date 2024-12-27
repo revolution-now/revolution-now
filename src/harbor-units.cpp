@@ -19,7 +19,6 @@
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -111,8 +110,7 @@ bool is_unit_on_dock( UnitsState const& units_state,
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          !units_state.unit_for( id ).desc().ship &&
-         holds<PortStatus::in_port>(
-             harbor_status->port_status );
+         harbor_status->port_status.holds<PortStatus::in_port>();
 }
 
 base::generator<Coord> search_from_square( Coord const start,
@@ -227,7 +225,7 @@ bool is_unit_inbound( UnitsState const& units_state,
       units_state.maybe_harbor_view_state_of( id );
   auto is_inbound =
       harbor_status.has_value() &&
-      holds<PortStatus::inbound>( harbor_status->port_status );
+      harbor_status->port_status.holds<PortStatus::inbound>();
   if( is_inbound ) {
     CHECK( units_state.unit_for( id ).desc().ship );
   }
@@ -240,7 +238,7 @@ bool is_unit_outbound( UnitsState const& units_state,
       units_state.maybe_harbor_view_state_of( id );
   auto is_outbound =
       harbor_status.has_value() &&
-      holds<PortStatus::outbound>( harbor_status->port_status );
+      harbor_status->port_status.holds<PortStatus::outbound>();
   if( is_outbound ) {
     CHECK( units_state.unit_for( id ).desc().ship );
   }
@@ -253,8 +251,7 @@ bool is_unit_in_port( UnitsState const& units_state,
       units_state.maybe_harbor_view_state_of( id );
   return harbor_status.has_value() &&
          units_state.unit_for( id ).desc().ship &&
-         holds<PortStatus::in_port>(
-             harbor_status->port_status );
+         harbor_status->port_status.holds<PortStatus::in_port>();
 }
 
 vector<UnitId> harbor_units_on_dock(
@@ -433,23 +430,28 @@ e_high_seas_result advance_unit_on_high_seas( SS& ss,
   int const turns_needed =
       turns_needed_for_high_seas( ss.terrain, player, info );
 
-  if_get( info.port_status, PortStatus::outbound, outbound ) {
-    ++outbound.turns;
-    outbound.turns =
-        std::clamp( outbound.turns, 0, turns_needed );
+  if( auto const outbound =
+          info.port_status.get_if<PortStatus::outbound>();
+      outbound.has_value() ) {
+    ++outbound->turns;
+    outbound->turns =
+        std::clamp( outbound->turns, 0, turns_needed );
     lg.debug( "advancing outbound unit {} to {} turns.",
-              debug_string( ss.units, id ), outbound.turns );
-    if( outbound.turns >= turns_needed )
+              debug_string( ss.units, id ), outbound->turns );
+    if( outbound->turns >= turns_needed )
       return e_high_seas_result::arrived_in_new_world;
     return e_high_seas_result::still_traveling;
   }
 
-  if_get( info.port_status, PortStatus::inbound, inbound ) {
-    ++inbound.turns;
-    inbound.turns = std::clamp( inbound.turns, 0, turns_needed );
+  if( auto const inbound =
+          info.port_status.get_if<PortStatus::inbound>();
+      inbound.has_value() ) {
+    ++inbound->turns;
+    inbound->turns =
+        std::clamp( inbound->turns, 0, turns_needed );
     lg.debug( "advancing inbound unit {} to {} turns.",
-              debug_string( ss.units, id ), inbound.turns );
-    if( inbound.turns >= turns_needed ) {
+              debug_string( ss.units, id ), inbound->turns );
+    if( inbound->turns >= turns_needed ) {
       // This should preserve the `sailed_from`.
       unit_move_to_port( ss, id );
       return e_high_seas_result::arrived_in_harbor;

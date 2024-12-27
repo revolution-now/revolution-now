@@ -128,7 +128,7 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         dwelling.id );
   };
 
-  auto expect_unit = overload{
+  auto expect_unit = mp::overload{
     [&]( Unit const& unit ) {
       expected.disbandable.units.push_back( unit.id() );
     },
@@ -161,23 +161,23 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   };
 
   auto make_fogged =
-      overload{ [&]( Dwelling const& dwelling ) {
-                 w.player_square( tile )
-                     .emplace<explored>()
-                     .fog_status.emplace<fogged>()
-                     .contents.dwelling = dwelling;
-               },
-                [&]( Colony const& colony ) {
-                  w.player_square( tile )
-                      .emplace<explored>()
-                      .fog_status.emplace<fogged>()
-                      .contents.colony = colony;
-                },
-                [&]() {
-                  w.player_square( tile )
-                      .emplace<explored>()
-                      .fog_status.emplace<fogged>();
-                } };
+      mp::overload{ [&]( Dwelling const& dwelling ) {
+                     w.player_square( tile )
+                         .emplace<explored>()
+                         .fog_status.emplace<fogged>()
+                         .contents.dwelling = dwelling;
+                   },
+                    [&]( Colony const& colony ) {
+                      w.player_square( tile )
+                          .emplace<explored>()
+                          .fog_status.emplace<fogged>()
+                          .contents.colony = colony;
+                    },
+                    [&]() {
+                      w.player_square( tile )
+                          .emplace<explored>()
+                          .fog_status.emplace<fogged>();
+                    } };
 
   SECTION( "cheat=yes" ) {
     w.settings().cheat_options.enabled = true;

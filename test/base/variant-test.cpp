@@ -11,8 +11,8 @@
 #include "test/testing.hpp"
 
 // Under test.
+#include "base/variant-util.hpp"
 #include "base/variant.hpp"
-#include "src/variant.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -43,7 +43,7 @@ struct HasTwoFields {
 TEST_CASE( "[variant] visitation" ) {
   V<int, double> v = 4.4;
   auto f = []( auto&& _ ) { return fmt::format( "{}", _ ); };
-  REQUIRE( base::visit( f, v ) == "4.4" );
+  REQUIRE( std::visit( f, v ) == "4.4" );
 
   // FIXME: remove this guard once libc++ adds the C++20
   // std::visit<R> overload.
@@ -89,13 +89,13 @@ TEST_CASE( "[variant] holds" ) {
   V<int, string> v1{ 5 };
   V<int, string> v2{ "hello" };
 
-  REQUIRE( ::rn::holds<int>( v1 ) );
-  REQUIRE( !::rn::holds<string>( v1 ) );
-  REQUIRE( ::rn::holds<string>( v2 ) );
-  REQUIRE( !::rn::holds<int>( v2 ) );
-  REQUIRE( ::rn::holds( v1, 5 ) );
-  REQUIRE( !::rn::holds( v1, 6 ) );
-  REQUIRE( !::rn::holds( v1, string( "world" ) ) );
+  REQUIRE( ::base::holds<int>( v1 ) );
+  REQUIRE( !::base::holds<string>( v1 ) );
+  REQUIRE( ::base::holds<string>( v2 ) );
+  REQUIRE( !::base::holds<int>( v2 ) );
+  REQUIRE( ::base::holds( v1, 5 ) );
+  REQUIRE( !::base::holds( v1, 6 ) );
+  REQUIRE( !::base::holds( v1, string( "world" ) ) );
 }
 
 TEST_CASE( "[variant] if_get" ) {

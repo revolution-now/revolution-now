@@ -87,6 +87,7 @@
 #include "base/scope-exit.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
+#include "base/variant-util.hpp"
 
 // base-util
 #include "base-util/algo.hpp"
@@ -647,7 +648,7 @@ wait<EndOfTurnResult> process_input_eot( SS& ss, TS& ts,
           .eot_get_next_input(),   //
       std::move( wait_for_button ) //
   );
-  co_return co_await rn::visit(
+  co_return co_await base::visit(
       command,
       LC( process_player_input_eot( _, ss, ts, player ) ) );
 }

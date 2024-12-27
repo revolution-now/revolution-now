@@ -20,7 +20,6 @@
 #include "terminal.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
-#include "variant.hpp"
 #include "views.hpp"
 
 // config
@@ -194,7 +193,7 @@ struct ConsolePlane::Impl : public IPlane {
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    if( !holds<input::key_event_t>( event ) )
+    if( !event.holds<input::key_event_t>() )
       return e_input_handled::no;
     auto const& key_event =
         *std::get_if<input::key_event_t>( &event );

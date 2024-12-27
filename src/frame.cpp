@@ -19,7 +19,6 @@
 #include "plane.hpp"
 #include "screen.hpp"
 #include "time.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
@@ -38,6 +37,7 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
+#include "base/variant-util.hpp"
 #include "base/variant.hpp"
 
 // C++ standard library
@@ -96,7 +96,7 @@ vector<FrameSubscription>& subscriptions_oneoff() {
 
 void notify_subscribers( bool const force = false ) {
   auto try_notify = [&]( FrameSubscription& sub ) {
-    overload_visit(
+    base::overload_visit(
         sub.data,
         [&]( FrameSubscriptionTick& tick_sub ) {
           auto& [done, interval, last_message, func] = tick_sub;
@@ -121,7 +121,7 @@ void notify_subscribers( bool const force = false ) {
   for( auto& sub : subscriptions() ) try_notify( sub );
   for( auto& sub : subscriptions_oneoff() ) try_notify( sub );
   erase_if( subscriptions_oneoff(), []( FrameSubscription& fs ) {
-    return base::visit( L( _.done ), fs.data );
+    return std::visit( L( _.done ), fs.data );
   } );
 }
 

@@ -25,7 +25,6 @@
 #include "on-map.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/natives.hpp"
@@ -74,9 +73,11 @@ using ::gfx::point;
 maybe<ColonyId> colony_for_unit_who_is_worker(
     UnitsState const& units_state, UnitId id ) {
   maybe<ColonyId> res;
-  if_get( units_state.ownership_of( id ), UnitOwnership::colony,
-          colony_state ) {
-    return colony_state.id;
+  if( auto const colony_state =
+          units_state.ownership_of( id )
+              .get_if<UnitOwnership::colony>();
+      colony_state.has_value() ) {
+    return colony_state->id;
   }
   return res;
 }

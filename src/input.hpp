@@ -279,10 +279,6 @@ void pump_event_queue();
 // Callers are responsible for popping used events.
 std::queue<event_t>& event_queue();
 
-// This is so that we can defer handling of a window resize event
-// until a more appropriate time.
-void inject_sdl_window_resize_event();
-
 void inject_resolution_event(
     gfx::SelectedResolution const& resolution );
 

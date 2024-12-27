@@ -22,7 +22,6 @@
 #include "command-plow.hpp"
 #include "command-road.hpp"
 #include "unit-mgr.hpp"
-#include "variant.hpp"
 
 // ss
 #include "ss/ref.hpp"
@@ -75,8 +74,8 @@ unique_ptr<CommandHandler> command_handler(
     SS& ss, TS& ts, Player& player, UnitId id,
     command const& command ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
-  return visit( command.as_base(),
-                LC( handle_command( ss, ts, player, id, _ ) ) );
+  return visit( LC( handle_command( ss, ts, player, id, _ ) ),
+                command.as_base() );
 }
 
 wait<CommandHandlerRunResult> CommandHandler::run() {

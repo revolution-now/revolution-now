@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "logger.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"
@@ -30,6 +29,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/to-str-ext-std.hpp"
+#include "base/variant-util.hpp"
 
 using namespace std;
 
@@ -43,8 +43,8 @@ constexpr GenericUnitId kFirstUnitId{ 1 };
 valid_or<generic_err> check_harbor_state_invariants(
     PortStatus const& port_status ) {
   valid_or<string> res =
-      base::visit( []( auto const& o ) { return o.validate(); },
-                   port_status.as_base() );
+      std::visit( []( auto const& o ) { return o.validate(); },
+                  port_status.as_base() );
   if( !res ) return GENERIC_ERROR( "{}", res.error() );
   return base::valid;
 }
@@ -61,7 +61,7 @@ valid_or<string> wrapped::UnitsState::validate() const {
       case UnitState::e::euro: {
         auto& o = unit_state.get<UnitState::euro>();
         UnitOwnership const& st = o.ownership;
-        REFL_VALIDATE( !holds<UnitOwnership::free>( st ),
+        REFL_VALIDATE( !st.holds<UnitOwnership::free>(),
                        "unit {} is in the `free` state.", id );
         break;
       }

@@ -15,7 +15,6 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "unit-mgr.hpp"
-#include "variant.hpp"
 
 // config
 #include "config/commodity.rds.hpp"
@@ -239,7 +238,7 @@ int move_commodity_as_much_as_possible(
                     dst_cargo.max_commodity_per_cargo_slot() -
                         maybe_dst_comm->obj.quantity );
     } else {
-      CHECK( holds<CargoSlot::empty>( dst_cargo[dst_slot] ) );
+      CHECK( dst_cargo[dst_slot].holds<CargoSlot::empty>() );
       max_transfer_quantity =
           std::min( removed.quantity,
                     dst_cargo.max_commodity_per_cargo_slot() );

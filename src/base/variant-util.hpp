@@ -1,25 +1,23 @@
 /****************************************************************
-**variant.hpp
+**variant-util.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2019-01-27.
+* Created by David P. Sicilia on 2024-12-27.
 *
-* Description: Utilities for handling variants.
+* Description: Utilities for working with variants.
 *
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
+#include "config.hpp"
 
-// Revolution Now
+// base
 #include "maybe.hpp"
+#include "variant.hpp"
 
 // base
-#include "base/variant.hpp"
-
-// base
-#include "base/meta.hpp"
+#include "meta.hpp"
 
 // C++ standard library
 #include <variant>
@@ -71,13 +69,13 @@
     switch( auto& var = *_##var##_; 0 )                      \
     default:
 
-namespace rn {
+namespace base {
 
 // Does the variant hold the specified value. It will first be
 // tested to see if it holds the type of the value, which is ob-
 // viously a prerequisite for holding the value.
 template<typename T, typename... Vs>
-bool holds( base::variant<Vs...> const& v, T const& val ) {
+bool holds( variant<Vs...> const& v, T const& val ) {
   return std::holds_alternative<T>( v ) &&
          *std::get_if<T>( &v ) == val;
 }
@@ -86,14 +84,14 @@ bool holds( base::variant<Vs...> const& v, T const& val ) {
 // case when we just want to test if it holds a type and get a
 // reference to the value.
 template<typename T, typename... Vs>
-maybe<T&> holds( base::variant<Vs...>& v ) {
+maybe<T&> holds( variant<Vs...>& v ) {
   T* p = std::get_if<T>( &v );
   return p ? maybe<T&>( *p ) : nothing;
 }
 
 // For const access to the variant.
 template<typename T, typename... Vs>
-maybe<T const&> holds( base::variant<Vs...> const& v ) {
+maybe<T const&> holds( variant<Vs...> const& v ) {
   T const* p = std::get_if<T>( &v );
   return p ? maybe<T const&>( *p ) : nothing;
 }
@@ -104,8 +102,8 @@ maybe<T const&> holds( base::variant<Vs...> const& v ) {
 // the variant if the current value has a type with a base class
 // of the function argument type.
 template<typename Func, typename DefT, typename... Args>
-auto apply_to_alternatives_with_base(
-    base::variant<Args...> const& v, DefT&& def, Func&& f ) {
+auto apply_to_alternatives_with_base( variant<Args...> const& v,
+                                      DefT&& def, Func&& f ) {
   using Ret      = mp::callable_ret_type_t<Func>;
   using ArgsList = mp::callable_arg_types_t<Func>; // type_list
   static_assert( mp::list_size_v<ArgsList> == 1 );
@@ -115,7 +113,7 @@ auto apply_to_alternatives_with_base(
   static_assert(
       at_least_one,
       "There are no variants with the given base class!" );
-  return base::visit(
+  return std::visit(
       [&]<typename T>( T const& alternative ) -> Ret {
         if constexpr( std::is_base_of_v<Base,
                                         std::remove_cvref_t<T>> )
@@ -131,7 +129,7 @@ auto apply_to_alternatives_with_base(
 // value of the variant if the current value has a type with a
 // base class of the function argument type.
 template<typename Func, typename... Args>
-void apply_to_alternatives_with_base( base::variant<Args...>& v,
+void apply_to_alternatives_with_base( variant<Args...>& v,
                                       Func&& f ) {
   using Ret = mp::callable_ret_type_t<Func>;
   static_assert( std::is_same_v<Ret, void> );
@@ -143,7 +141,7 @@ void apply_to_alternatives_with_base( base::variant<Args...>& v,
   static_assert(
       at_least_one,
       "There are no variants with the given base class!" );
-  base::visit(
+  std::visit(
       [&]<typename T>( T&& alternative ) {
         if constexpr( std::is_base_of_v<Base,
                                         std::remove_cvref_t<T>> )
@@ -166,8 +164,8 @@ void apply_to_alternatives_with_base( base::variant<Args...>& v,
 // The result should always be non-null assuming that the variant
 // is not in a valueless-by-exception state.
 template<typename Base, typename... Args>
-Base& variant_base( base::variant<Args...>& v ) {
-  return base::visit(
+Base& variant_base( variant<Args...>& v ) {
+  return std::visit(
       []<typename T>( T&& e ) -> Base& {
         static_assert(
             std::is_base_of_v<Base, std::decay_t<T>>,
@@ -179,8 +177,8 @@ Base& variant_base( base::variant<Args...>& v ) {
 
 // And one for const.
 template<typename Base, typename... Args>
-Base const& variant_base( base::variant<Args...> const& v ) {
-  return base::visit(
+Base const& variant_base( variant<Args...> const& v ) {
+  return std::visit(
       []<typename T>( T const& e ) -> Base const& {
         static_assert(
             std::is_base_of_v<Base, T>,
@@ -296,8 +294,8 @@ struct visit_checks<mp::list<VarArgs...>, mp::list<Funcs...>> {
 //     default is not needed.
 //
 template<typename... VarArgs, typename... Funcs>
-decltype( auto ) overload_visit(
-    base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
+decltype( auto ) overload_visit( variant<VarArgs...> const& v,
+                                 Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
   return base::visit(
@@ -305,7 +303,7 @@ decltype( auto ) overload_visit(
 }
 
 template<typename... VarArgs, typename... Funcs>
-decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
+decltype( auto ) overload_visit( variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
@@ -315,8 +313,8 @@ decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
 
 // Allows forcing return type.
 template<typename Ret, typename... VarArgs, typename... Funcs>
-decltype( auto ) overload_visit(
-    base::variant<VarArgs...> const& v, Funcs&&... funcs ) {
+decltype( auto ) overload_visit( variant<VarArgs...> const& v,
+                                 Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
   return base::visit<Ret>(
@@ -325,7 +323,7 @@ decltype( auto ) overload_visit(
 
 // Allows forcing return type.
 template<typename Ret, typename... VarArgs, typename... Funcs>
-decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
+decltype( auto ) overload_visit( variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
@@ -337,8 +335,8 @@ decltype( auto ) overload_visit( base::variant<VarArgs...>& v,
 // first argument.
 template<typename Variant, typename Func>
 decltype( auto ) visit( Variant&& v, Func&& func ) {
-  return base::visit( std::forward<Func>( func ),
-                      std::forward<Variant>( v ) );
+  return std::visit( std::forward<Func>( func ),
+                     std::forward<Variant>( v ) );
 }
 
-} // namespace rn
+} // namespace base
