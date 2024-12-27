@@ -19,7 +19,6 @@
 #include "tiles.hpp"
 
 // config
-#include "config/resolutions.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
@@ -36,6 +35,7 @@
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
+#include "gfx/resolution.rds.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -54,6 +54,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::e_resolution;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;

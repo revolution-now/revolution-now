@@ -15,14 +15,12 @@
 #include "init.hpp"
 #include "input.hpp"
 #include "logger.hpp"
-#include "resolution.hpp"
 #include "sdl-util.hpp"
 #include "sdl.hpp"
 #include "tiles.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
-#include "config/resolutions.hpp"
 #include "config/rn.rds.hpp"
 
 // render
@@ -33,6 +31,7 @@
 
 // gfx
 #include "gfx/logical.hpp"
+#include "gfx/resolution.hpp"
 
 // base
 #include "base/lambda.hpp"
@@ -48,6 +47,8 @@ namespace rl = ::base::rl;
 namespace rn {
 
 namespace {
+
+using ::gfx::e_resolution;
 
 struct DisplayMode {
   gfx::size size   = {};
@@ -66,8 +67,8 @@ DisplayMode current_display_mode() {
                       .refresh_rate = dm.refresh_rate };
 }
 
-Resolutions& g_resolutions() {
-  static Resolutions r = [] {
+gfx::Resolutions& g_resolutions() {
+  static gfx::Resolutions r = [] {
     auto const display_mode         = current_display_mode();
     gfx::size const physical_screen = display_mode.size;
     gfx::Monitor const monitor =
@@ -316,7 +317,7 @@ gfx::size logical_resolution_for_invalid_window_size() {
 
 void on_logical_resolution_changed(
     rr::Renderer& renderer,
-    Resolutions const& new_resolutions ) {
+    gfx::Resolutions const& new_resolutions ) {
   if( new_resolutions.selected.available ) {
     auto const old_selected_resolution =
         g_resolutions().selected.rated.resolution;
@@ -370,7 +371,7 @@ void set_fullscreen( bool fullscreen ) {
 }
 
 void set_pending_resolution(
-    SelectedResolution const& selected_resolution ) {
+    gfx::SelectedResolution const& selected_resolution ) {
   input::inject_resolution_event( selected_resolution );
 }
 
@@ -576,7 +577,7 @@ void shrink_window_to_fit() {
 
 void on_logical_resolution_changed(
     rr::Renderer& renderer,
-    SelectedResolution const& selected_resolution ) {
+    gfx::SelectedResolution const& selected_resolution ) {
   auto new_resolutions     = g_resolutions();
   new_resolutions.selected = selected_resolution;
   on_logical_resolution_changed( renderer, new_resolutions );

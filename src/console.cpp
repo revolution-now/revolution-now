@@ -290,7 +290,8 @@ struct ConsolePlane::Impl : public IPlane {
     return is_mouse_over_rect( *rect );
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 };
 
 /****************************************************************

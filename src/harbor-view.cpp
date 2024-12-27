@@ -353,7 +353,8 @@ struct HarborPlane::Impl : public IPlane {
     hb_state.selected_unit = id;
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 };
 
 /****************************************************************

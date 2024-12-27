@@ -15,6 +15,10 @@
 // Revolution Now
 #include "plane-group.hpp"
 
+namespace gfx {
+enum class e_resolution;
+}
+
 namespace rn {
 
 /****************************************************************
@@ -41,7 +45,8 @@ struct Planes {
   PlaneGroup const& get() const;
   PlaneGroup& get();
 
-  void on_logical_resolution_changed( e_resolution resolution );
+  void on_logical_resolution_changed(
+      gfx::e_resolution resolution );
 
  private:
   template<typename Func>

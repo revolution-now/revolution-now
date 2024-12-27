@@ -322,7 +322,8 @@ struct ColonyPlane : public IPlane {
       input_.send( std::move( e ) );
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 
   Rect canvas_;
 };

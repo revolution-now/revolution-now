@@ -1677,7 +1677,8 @@ struct LandViewPlane::Impl : public IPlane {
     co_return co_await white_box_input_loop( initial_tile );
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 };
 
 /****************************************************************

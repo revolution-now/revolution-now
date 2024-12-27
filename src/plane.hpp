@@ -22,9 +22,12 @@ namespace rr {
 struct Renderer;
 }
 
+namespace gfx {
+enum class e_resolution;
+}
+
 namespace rn {
 enum class e_input_handled;
-enum class e_resolution;
 enum class e_menu_item;
 namespace input {
 struct event_t;
@@ -159,11 +162,12 @@ struct IPlane {
   // Called whenever the logical resolution changes and hence
   // when things may need to have their layout changed.
   virtual void on_logical_resolution_changed(
-      e_resolution resolution ) = 0;
+      gfx::e_resolution resolution ) = 0;
 };
 
 struct NoOpPlane : IPlane {
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 };
 
 } // namespace rn

@@ -18,6 +18,10 @@
 // C++ standard library
 #include <vector>
 
+namespace gfx {
+enum class e_resolution;
+}
+
 namespace rn {
 
 /****************************************************************
@@ -35,7 +39,7 @@ struct IPlaneGroup : public IPlane {
       input::event_t const& event ) override final;
 
   void on_logical_resolution_changed(
-      e_resolution resolution ) override final;
+      gfx::e_resolution resolution ) override final;
 
  private:
   // Drag state.

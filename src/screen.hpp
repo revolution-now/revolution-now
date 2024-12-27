@@ -23,15 +23,14 @@ struct Renderer;
 }
 
 namespace gfx {
+enum class e_resolution;
 struct Resolution;
 struct ResolutionScores;
+struct SelectedResolution;
+
 }
 
 namespace rn {
-
-struct SelectedResolution;
-
-enum class e_resolution;
 
 maybe<gfx::Resolution const&> get_global_resolution();
 
@@ -45,7 +44,7 @@ get_global_resolution_scores();
 gfx::size main_window_logical_size();
 gfx::size main_window_physical_size();
 
-maybe<e_resolution> main_window_named_logical_resolution();
+maybe<gfx::e_resolution> main_window_named_logical_resolution();
 
 // !! origin at (0,0)
 gfx::rect main_window_logical_rect();
@@ -54,7 +53,7 @@ void on_main_window_resized( rr::Renderer& renderer );
 
 void on_logical_resolution_changed(
     rr::Renderer& renderer,
-    SelectedResolution const& resolution );
+    gfx::SelectedResolution const& resolution );
 
 void cycle_resolution( int delta );
 void set_resolution_idx_to_optimal();

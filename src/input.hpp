@@ -36,9 +36,6 @@
 
 namespace gfx {
 struct Resolution;
-}
-
-namespace rn {
 struct SelectedResolution;
 }
 
@@ -195,7 +192,7 @@ struct resolution_event_t : public event_base_t {
 
   bool operator==( resolution_event_t const& ) const;
 
-  base::heap_value<SelectedResolution> resolution;
+  base::heap_value<gfx::SelectedResolution> resolution;
 };
 
 /****************************************************************
@@ -287,7 +284,7 @@ std::queue<event_t>& event_queue();
 void inject_sdl_window_resize_event();
 
 void inject_resolution_event(
-    SelectedResolution const& resolution );
+    gfx::SelectedResolution const& resolution );
 
 /****************************************************************
 ** Utilities

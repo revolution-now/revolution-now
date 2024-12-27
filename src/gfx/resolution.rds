@@ -1,14 +1,20 @@
 # ===============================================================
-# resolutions.rds
+# resolution.rds
 #
 # Project: Revolution Now
 #
-# Created by David P. Sicilia on 2024-10-30.
+# Created by David P. Sicilia on 2024-12-26.
 #
-# Description: Supported logical resolutions.
+# Description: Rds definitions for the gfx/resolution module.
 #
 # ===============================================================
-namespace "rn"
+# gfx
+include "logical.rds.hpp"
+
+# base
+include "base/maybe.hpp"
+
+namespace "gfx"
 
 enum.e_resolution {
   # 16:9
@@ -35,4 +41,18 @@ enum.e_resolution {
   # _1146x480, # for native: 3440x1440 (WQHD)
   # _860x360,  # for native: 3440x1440 (WQHD)
   # _960x400,  # for native: 3840x1600
+}
+
+# NOTE: Try not to create this directly; instead use the factory
+# method provided.
+struct.SelectedResolution {
+  rated 'ScoredResolution',
+  idx 'int',
+  available 'bool',
+  named 'base::maybe<e_resolution>',
+}
+
+struct.Resolutions {
+  ratings 'ResolutionRatings',
+  selected 'SelectedResolution',
 }

@@ -280,7 +280,8 @@ struct PanelPlane::Impl : public IPlane {
     return user_hits_eot_button();
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 };
 
 /****************************************************************

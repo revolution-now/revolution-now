@@ -60,7 +60,8 @@ struct MainMenuPlane : public IPlane {
     }
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 
   wait<> item_selected( e_main_menu_item item ) {
     switch( item ) {

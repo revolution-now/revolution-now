@@ -20,7 +20,9 @@
 // config
 #include "config/menu-items.rds.hpp"
 #include "config/menu.rds.hpp"
-#include "config/resolutions.hpp" // FIXME: remove
+
+// gfx
+#include "gfx/resolution.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -35,6 +37,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::e_resolution;
 using ::gfx::rect;
 using ::refl::enum_map;
 

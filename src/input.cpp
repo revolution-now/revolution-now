@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "logger.hpp"
-#include "resolution.rds.hpp"
 #include "screen.hpp"
 #include "sdl.hpp"
 #include "util.hpp"
@@ -20,6 +19,9 @@
 
 // config
 #include "config/input.rds.hpp"
+
+// gfx
+#include "gfx/resolution.rds.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -538,7 +540,7 @@ void inject_sdl_window_resize_event() {
 }
 
 void inject_resolution_event(
-    SelectedResolution const& resolution ) {
+    gfx::SelectedResolution const& resolution ) {
   resolution_event_t event;
   event.resolution = resolution;
   event_queue().push( event );

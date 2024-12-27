@@ -17,7 +17,6 @@
 #include "moving-avg.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
-#include "resolution.rds.hpp"
 #include "screen.hpp"
 #include "time.hpp"
 #include "variant.hpp"
@@ -32,6 +31,9 @@
 // luapp
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
+
+// gfx
+#include "gfx/resolution.hpp"
 
 // base
 #include "base/function-ref.hpp"

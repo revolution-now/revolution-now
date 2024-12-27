@@ -373,7 +373,8 @@ struct MapEditPlane::Impl : public IPlane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_changed(
+      gfx::e_resolution ) override {}
 
   Rect canvas_;
 };

@@ -3,43 +3,50 @@
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2024-10-14.
+* Created by David P. Sicilia on 2024-12-27.
 *
-* Description: Handles things related to the physical and logical
-*              resolutions used by the game.
+* Description: Manages the set of fixed resolutions.
 *
 *****************************************************************/
 #include "resolution.hpp"
 
 // gfx
-#include "gfx/logical.hpp"
-#include "logical.rds.hpp"
-
-// config
-#include "config/resolutions.hpp"
+#include "logical.hpp"
 
 // refl
-#include "refl/enum-map.hpp"
+#include "refl/query-enum.hpp"
+
+// base
+#include "base/keyval.hpp"
 
 using namespace std;
 
-namespace rn {
+namespace gfx {
 
 namespace {
 
 using ::base::maybe;
+using ::base::nothing;
+
+unordered_map<size, e_resolution> const
+    kResolutionReverseSizeMap = [] {
+      unordered_map<size, e_resolution> res;
+      for( auto const r : refl::enum_values<e_resolution> )
+        res[resolution_size( r )] = r;
+      return res;
+    }();
 
 /****************************************************************
 ** Globals.
 *****************************************************************/
-vector<gfx::size> const kResolutionSizes = [] {
-  vector<gfx::size> res;
+vector<size> const kResolutionSizes = [] {
+  vector<size> res;
   for( auto const r : refl::enum_values<e_resolution> )
     res.push_back( resolution_size( r ) );
   return res;
 }();
 
-gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
+ResolutionRatingOptions const RESOLUTION_RATINGS{
   // TODO: consider making this a config parameter.
   .prefer_fullscreen = true,
   .tolerance         = { .min_percent_covered  = nothing,
@@ -56,24 +63,22 @@ gfx::ResolutionRatingOptions const RESOLUTION_RATINGS{
 /****************************************************************
 ** Helpers.
 *****************************************************************/
-gfx::ResolutionRatings compute_logical_resolution_ratings(
-    gfx::Monitor const& monitor,
-    gfx::size const physical_window ) {
-  gfx::ResolutionAnalysisOptions const options{
+ResolutionRatings compute_logical_resolution_ratings(
+    Monitor const& monitor, size const physical_window ) {
+  ResolutionAnalysisOptions const options{
     .monitor                      = monitor,
     .physical_window              = physical_window,
     .rating_options               = RESOLUTION_RATINGS,
     .supported_logical_dimensions = kResolutionSizes };
-  gfx::ResolutionRatings ratings =
-      resolution_analysis( options );
+  ResolutionRatings ratings = resolution_analysis( options );
   // Always make sure that we have at least one unavailable reso-
   // lution since it is the last resort. Just choose the empty
   // resolution.
-  ratings.unavailable.push_back( gfx::ScoredResolution{
-    .resolution = gfx::Resolution{ .physical_window = {},
-                                   .logical         = {},
-                                   .scale           = 1,
-                                   .viewport        = {} },
+  ratings.unavailable.push_back( ScoredResolution{
+    .resolution = Resolution{ .physical_window = {},
+                              .logical         = {},
+                              .scale           = 1,
+                              .viewport        = {} },
     .scores     = {} } );
   return ratings;
 }
@@ -81,11 +86,49 @@ gfx::ResolutionRatings compute_logical_resolution_ratings(
 } // namespace
 
 /****************************************************************
-** Public API.
+** e_resolution
 *****************************************************************/
-Resolutions compute_resolutions(
-    gfx::Monitor const& monitor,
-    gfx::size const physical_window ) {
+size resolution_size( e_resolution const r ) {
+  switch( r ) {
+    case e_resolution::_640x360:
+      return { .w = 640, .h = 360 };
+    case e_resolution::_640x400:
+      return { .w = 640, .h = 400 };
+    case e_resolution::_768x432:
+      return { .w = 768, .h = 432 };
+    case e_resolution::_576x360:
+      return { .w = 576, .h = 360 };
+    case e_resolution::_720x450:
+      return { .w = 720, .h = 450 };
+  }
+}
+
+vector<size> const& supported_resolutions() {
+  static vector<size> const v = [] {
+    vector<size> res;
+    res.reserve( refl::enum_count<e_resolution> );
+    for( e_resolution const r : refl::enum_values<e_resolution> )
+      res.push_back( resolution_size( r ) );
+    return res;
+  }();
+  return v;
+}
+
+maybe<e_resolution> resolution_from_size( size const sz ) {
+  return base::lookup( kResolutionReverseSizeMap, sz );
+}
+
+Resolutions compute_resolutions( Monitor const& monitor,
+                                 size physical_window );
+
+SelectedResolution create_selected_available_resolution(
+    ResolutionRatings const& ratings, int idx );
+
+/****************************************************************
+** Resolution Selection.
+*****************************************************************/
+Resolutions compute_resolutions( Monitor const& monitor,
+                                 size const physical_window ) {
   auto ratings = compute_logical_resolution_ratings(
       monitor, physical_window );
   // This should be guaranteed by the method that produces the
@@ -111,7 +154,7 @@ Resolutions compute_resolutions(
 }
 
 SelectedResolution create_selected_available_resolution(
-    gfx::ResolutionRatings const& ratings, int const idx ) {
+    ResolutionRatings const& ratings, int const idx ) {
   SelectedResolution selected;
   auto const& available = ratings.available;
   CHECK_LT( idx, ssize( available ) );
@@ -125,4 +168,4 @@ SelectedResolution create_selected_available_resolution(
   return selected;
 }
 
-} // namespace rn
+} // namespace gfx

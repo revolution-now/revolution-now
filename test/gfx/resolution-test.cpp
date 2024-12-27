@@ -3,19 +3,21 @@
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2024-10-30.
+* Created by David P. Sicilia on 2024-12-27.
 *
-* Description: Unit tests for the resolution module.
+* Description: Unit tests for the gfx/resolution module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/config/resolutions.hpp"
-#include "src/resolution.hpp"
+#include "src/gfx/resolution.hpp"
 
 // Testing.
 #include "test/data/steam/steam-resolutions.hpp"
+
+// gfx
+#include "src/gfx/logical.hpp"
 
 // rcl
 #include "src/rcl/golden.hpp"
@@ -38,15 +40,45 @@
 // C++ standard library
 #include <unordered_set>
 
-namespace rn {
+namespace gfx {
 namespace {
 
 using namespace std;
-using namespace ::gfx;
+
+using ::base::nothing;
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[gfx/resolution] resolution_size" ) {
+  REQUIRE( resolution_size( e_resolution::_640x360 ) ==
+           size{ .w = 640, .h = 360 } );
+  REQUIRE( resolution_size( e_resolution::_576x360 ) ==
+           size{ .w = 576, .h = 360 } );
+  REQUIRE( resolution_size( e_resolution::_640x400 ) ==
+           size{ .w = 640, .h = 400 } );
+}
+
+TEST_CASE( "[gfx/resolution] supported_resolutions" ) {
+  vector const expected{
+    size{ .w = 640, .h = 360 }, //
+    size{ .w = 768, .h = 432 }, //
+    size{ .w = 576, .h = 360 }, //
+    size{ .w = 640, .h = 400 }, //
+    size{ .w = 720, .h = 450 }, //
+  };
+  REQUIRE( supported_resolutions() == expected );
+}
+
+TEST_CASE( "[gfx/resolution] resolution_from_size" ) {
+  REQUIRE( resolution_from_size( size{ .w = 640, .h = 360 } ) ==
+           e_resolution::_640x360 );
+  REQUIRE( resolution_from_size( size{ .w = 576, .h = 360 } ) ==
+           e_resolution::_576x360 );
+  REQUIRE( resolution_from_size( size{ .w = 640, .h = 400 } ) ==
+           e_resolution::_640x400 );
+}
+
 TEST_CASE( "[resolution] resolution_size" ) {
   using enum e_resolution;
   using S       = gfx::size;
@@ -246,4 +278,4 @@ TEST_CASE( "[resolution] compute_resolutions 1920x1080 15in" ) {
 }
 
 } // namespace
-} // namespace rn
+} // namespace gfx
