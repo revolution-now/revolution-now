@@ -1,3 +1,6 @@
+find_sdl2_lib( SDL2       )
+find_sdl2_lib( SDL2_mixer )
+
 # === subdirectories ==============================================
 
 add_subdirectory( base )
@@ -14,11 +17,9 @@ add_subdirectory( render )
 add_subdirectory( config )
 add_subdirectory( ss )
 add_subdirectory( sav )
+add_subdirectory( video )
 
 # === this directory ==============================================
-
-find_sdl2_lib( SDL2       )
-find_sdl2_lib( SDL2_mixer )
 
 # We need threading.
 set( THREADS_PREFER_PTHREAD_FLAG ON )

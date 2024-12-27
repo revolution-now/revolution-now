@@ -20,6 +20,7 @@ file( GLOB src_render_sources "render/[a-zA-Z]*.cpp"     )
 file( GLOB src_fake_sources   "fake/[a-zA-Z]*.cpp"       )
 file( GLOB src_ss_sources     "ss/[a-zA-Z]*.cpp"         )
 file( GLOB src_sav_sources    "sav/[a-zA-Z]*.cpp"        )
+file( GLOB src_video_sources  "video/[a-zA-Z]*.cpp"      )
 
 file( GLOB test_mocks_sources "mocks/[a-zA-Z]*.cpp"      )
 file( GLOB test_rds_sources   "rds/[a-zA-Z]*.cpp"        )
@@ -42,6 +43,7 @@ add_executable(
   ${src_fake_sources}
   ${src_ss_sources}
   ${src_sav_sources}
+  ${src_video_sources}
   ${test_mocks_sources}
   ${test_rds_sources}
   ${test_data_steam}

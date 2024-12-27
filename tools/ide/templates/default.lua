@@ -63,6 +63,7 @@ local handlers = {
       rds='rds',
       cdr='cdr',
       sav='sav',
+      video='vid',
     }
     return namespaces[first_folder] or 'rn'
   end,

@@ -1,0 +1,33 @@
+# ===============================================================
+# ivideo.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2024-12-27.
+#
+# Description: Rds definitions for the video/ivideo module.
+#
+# ===============================================================
+# gfx
+include "gfx/cartesian.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "vid"
+
+struct.WindowHandle {
+  handle 'void*',
+}
+
+struct.DisplayMode {
+  size 'gfx::size',
+  format 'uint32_t',
+  refresh_rate 'int',
+}
+
+struct.WindowOptions {
+  size 'gfx::size',
+  start_fullscreen 'bool',
+  title 'std::string',
+}
