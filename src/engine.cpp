@@ -13,6 +13,7 @@
 // Revolution Now
 #include "color-cycle.hpp"
 #include "logger.hpp"
+#include "midiseq.hpp"
 #include "screen.hpp" // FIXME: remove
 
 // config
@@ -275,6 +276,13 @@ struct Engine::Impl {
     video().hide_window( *window_ );
   }
 
+  // ============================================================
+  // MIDI Sequencer
+  // ============================================================
+  void init_midiseq() { midiseq::init_midiseq(); }
+
+  void deinit_midiseq() { midiseq::cleanup_midiseq(); }
+
  private:
   unique_ptr<vid::IVideo> video_;
   maybe<gfx::Resolutions> resolutions_;
@@ -309,6 +317,7 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_resolutions();
       impl().init_renderer();
       impl().init_sfx();
+      impl().init_midiseq();
       break;
     }
     case e_engine_mode::unit_tests: {
@@ -334,6 +343,7 @@ void Engine::deinit() {
   impl().hide_window_if_visible();
 
   // Reverse order.
+  impl().deinit_midiseq();
   impl().deinit_sfx();
   impl().deinit_renderer();
   impl().deinit_resolutions();

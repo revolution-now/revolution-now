@@ -50,4 +50,8 @@ void send_command( command cmd );
 // Testing.
 void test();
 
+void init_midiseq();
+
+void cleanup_midiseq();
+
 } // namespace rn::midiseq

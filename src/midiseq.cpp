@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "init.hpp"
 #include "logger.hpp"
 #include "ranges-fwd.hpp"
 #include "time.hpp"
@@ -749,6 +748,41 @@ void midi_thread() {
   g_midi_comm.set_state( e_midiseq_state::off );
 }
 
+} // namespace
+
+/****************************************************************
+** User API
+*****************************************************************/
+bool midiseq_enabled() {
+  // These should usually always be the same (either both true or
+  // both false, but could be different if some kind of internal
+  // error happens).
+  return g_midi.has_value() && g_midi_thread.has_value();
+}
+
+e_midiseq_state state() { return g_midi_comm.state(); }
+
+bool is_processing_commands() {
+  return g_midi_comm.processing_commands();
+}
+
+void send_command( command cmd ) {
+  if( midiseq_enabled() )
+    g_midi_comm.send_cmd( cmd );
+  else
+    lg.warn(
+        "MIDI is not playable but MIDI commands are being "
+        "received." );
+}
+
+maybe<Duration_t> can_play_tune( fs::path const& path ) {
+  auto info = load_midi_file( path.string() );
+  if( info.has_value() ) return info->tune_duration;
+  return nothing;
+}
+
+maybe<double> progress() { return g_midi_comm.progress(); }
+
 /****************************************************************
 ** Init/Cleanup
 *****************************************************************/
@@ -789,43 +823,6 @@ void cleanup_midiseq() {
     g_midi.reset();
   }
 }
-
-REGISTER_INIT_ROUTINE( midiseq );
-
-} // namespace
-
-/****************************************************************
-** User API
-*****************************************************************/
-bool midiseq_enabled() {
-  // These should usually always be the same (either both true or
-  // both false, but could be different if some kind of internal
-  // error happens).
-  return g_midi.has_value() && g_midi_thread.has_value();
-}
-
-e_midiseq_state state() { return g_midi_comm.state(); }
-
-bool is_processing_commands() {
-  return g_midi_comm.processing_commands();
-}
-
-void send_command( command cmd ) {
-  if( midiseq_enabled() )
-    g_midi_comm.send_cmd( cmd );
-  else
-    lg.warn(
-        "MIDI is not playable but MIDI commands are being "
-        "received." );
-}
-
-maybe<Duration_t> can_play_tune( fs::path const& path ) {
-  auto info = load_midi_file( path.string() );
-  if( info.has_value() ) return info->tune_duration;
-  return nothing;
-}
-
-maybe<double> progress() { return g_midi_comm.progress(); }
 
 /****************************************************************
 ** Testing
