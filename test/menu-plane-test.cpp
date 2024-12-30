@@ -137,9 +137,9 @@ TEST_CASE( "[menu-plane] open_menu" ) {
   world W;
   MockIEngine& engine    = W.engine();
   vid::MockIVideo& video = W.video();
-  engine.EXPECT__video().returns( video );
+  engine.EXPECT__video().by_default().returns( video );
   vid::WindowHandle const wh;
-  engine.EXPECT__window().returns( wh );
+  engine.EXPECT__window().by_default().returns( wh );
   gfx::Resolutions resolutions{
     .selected = gfx::SelectedResolution{
       .rated =
@@ -150,12 +150,11 @@ TEST_CASE( "[menu-plane] open_menu" ) {
                   .logical         = { .w = 640, .h = 360 },
                   .scale           = 2 } },
       .available = true } };
-  engine.EXPECT__resolutions().returns( resolutions );
+  engine.EXPECT__resolutions().by_default().returns(
+      resolutions );
   MenuPlane mp( engine );
   MockIPlane mock_plane;
   IPlane& plane_impl = mp.impl();
-
-  rect const kScreen{ .size = { .w = 640, .h = 360 } };
 
   MenuAllowedPositions const positions{
     .positions_allowed = {
@@ -172,7 +171,7 @@ TEST_CASE( "[menu-plane] open_menu" ) {
     } };
 
   wait<maybe<e_menu_item>> const w =
-      mp.open_menu( e_menu::view, kScreen, positions );
+      mp.open_menu( e_menu::view, positions );
   REQUIRE( !w.ready() );
 
   auto const send_key = [&]( ::SDL_Keycode const key ) {

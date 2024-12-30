@@ -350,8 +350,8 @@ wait<> MenuBar::run_thread( rect const logical_screen_rect,
     menu_server_.close_all_menus();
     st.anim_state.set_opened( menu );
     SCOPE_EXIT { st.anim_state.clear_focus(); };
-    auto const item = co_await menu_server_.open_menu(
-        menu, logical_screen_rect, positions );
+    auto const item =
+        co_await menu_server_.open_menu( menu, positions );
     if( item.has_value() ) stream.send( *item );
   };
   MenuStream menu_stream;

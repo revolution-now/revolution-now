@@ -96,10 +96,13 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   wait<maybe<e_menu_item>> open_menu(
-      e_menu const menu, rect const logical_screen_rect,
+      e_menu const menu,
       MenuAllowedPositions const& positions ) override {
-    co_return co_await menu_threads_.open_menu(
-        menu, logical_screen_rect, positions );
+    auto const screen = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
+    co_return co_await menu_threads_.open_menu( menu, screen,
+                                                positions );
   }
 
   bool bar_is_running() const { return bar_thread_.has_value(); }
@@ -229,10 +232,8 @@ MenuPlane::MenuPlane( IEngine& engine )
 IPlane& MenuPlane::impl() { return impl_->impl(); }
 
 wait<maybe<e_menu_item>> MenuPlane::open_menu(
-    e_menu const menu, rect const logical_screen_rect,
-    MenuAllowedPositions const& positions ) {
-  return impl_->open_menu( menu, logical_screen_rect,
-                           positions );
+    e_menu const menu, MenuAllowedPositions const& positions ) {
+  return impl_->open_menu( menu, positions );
 }
 
 void MenuPlane::show_menu_bar( bool const show ) {

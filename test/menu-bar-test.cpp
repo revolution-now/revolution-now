@@ -106,7 +106,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -123,7 +123,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -143,7 +143,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -166,7 +166,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p_game;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p_game.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -175,7 +175,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_key( ::SDLK_RIGHT ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p_view;
-    menu_server_.EXPECT__open_menu( e_menu::view, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::view, _ )
         .returns( p_view.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::view );
@@ -189,7 +189,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p_game;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p_game.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -198,7 +198,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_key( ::SDLK_LEFT ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p_view;
-    menu_server_.EXPECT__open_menu( e_menu::pedia, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::pedia, _ )
         .returns( p_view.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::pedia );
@@ -213,7 +213,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -230,7 +230,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
@@ -247,7 +247,7 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
     REQUIRE( send_alt_key( ::SDLK_g ) );
     menu_server_.EXPECT__close_all_menus();
     wait_promise<maybe<e_menu_item>> p;
-    menu_server_.EXPECT__open_menu( e_menu::game, kScreen, _ )
+    menu_server_.EXPECT__open_menu( e_menu::game, _ )
         .returns( p.wait() );
     run_all_coroutines();
     REQUIRE( bar_.anim_state().opened_menu() == e_menu::game );
