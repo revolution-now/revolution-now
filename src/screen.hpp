@@ -45,9 +45,6 @@ maybe<gfx::Resolution const&> get_resolution( IEngine& engine );
 maybe<gfx::ResolutionScores const&> get_resolution_scores(
     IEngine& engine );
 
-// NOTE: you should not normally call this in most game code, in-
-// stead you should go through the compositor in order to allow
-// it to control the logical size of each element on the screen.
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
     gfx::Resolutions const& resolutions );

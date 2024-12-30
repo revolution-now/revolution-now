@@ -68,7 +68,7 @@ struct ConsolePlane::Impl : public IPlane {
   Impl( IEngine& engine, Terminal& terminal )
     : engine_( engine ), terminal_( terminal ) {
     // FIXME: move this into method that gets called when logical
-    // window size changes and/or compositor layout changes.
+    // window size changes.
     auto const width = console_rect().size.w;
     le_view_.emplace(
         config_rn.console.font, width, []( string const& ) {},
@@ -200,7 +200,7 @@ struct ConsolePlane::Impl : public IPlane {
       return e_input_handled::no;
     if( key_event.keycode == ::SDLK_BACKQUOTE ) {
       if( key_event.mod.shf_down ) {
-        // compositor::rotate_console();
+        // rotate_console();
         return e_input_handled::yes;
       }
       show_ = !show_;
