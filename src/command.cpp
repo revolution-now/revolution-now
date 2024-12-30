@@ -74,8 +74,9 @@ unique_ptr<CommandHandler> command_handler(
     SS& ss, TS& ts, Player& player, UnitId id,
     command const& command ) {
   CHECK( !ss.units.unit_for( id ).mv_pts_exhausted() );
-  return visit( LC( handle_command( ss, ts, player, id, _ ) ),
-                command.as_base() );
+  return std::visit(
+      LC( handle_command( ss, ts, player, id, _ ) ),
+      command.as_base() );
 }
 
 wait<CommandHandlerRunResult> CommandHandler::run() {

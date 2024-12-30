@@ -677,7 +677,7 @@ wait<> run_map_editor_standalone( IEngine& engine,
 }
 
 wait<> run_map_editor( IEngine& engine, SS& ss, TS& ts ) {
-  MenuPlane menu_plane;
+  MenuPlane menu_plane( engine );
   MapEditPlane map_edit_plane( engine, ss, ts );
   WindowPlane window_plane( engine );
 

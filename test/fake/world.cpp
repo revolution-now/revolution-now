@@ -13,10 +13,12 @@
 // Testing
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/inative-mind.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/mocks/video/ivideo.hpp"
 
 // Revolution Now
 #include "src/colony-mgr.hpp"
@@ -192,6 +194,18 @@ MockIColonyViewer& World::colony_viewer() {
     uninitialized_colony_viewer_ =
         make_unique<MockIColonyViewer>();
   return *uninitialized_colony_viewer_;
+}
+
+MockIEngine& World::engine() {
+  if( uninitialized_engine_ == nullptr )
+    uninitialized_engine_ = make_unique<MockIEngine>();
+  return *uninitialized_engine_;
+}
+
+vid::MockIVideo& World::video() {
+  if( uninitialized_video_ == nullptr )
+    uninitialized_video_ = make_unique<vid::MockIVideo>();
+  return *uninitialized_video_;
 }
 
 namespace {

@@ -14,15 +14,22 @@
 #include "src/menu-plane.hpp"
 
 // Testing.
+#include "test/fake/world.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/iplane.hpp"
+#include "test/mocks/video/ivideo.hpp"
 
 // Revolution Now
 #include "src/co-runner.hpp"
 #include "src/frame.hpp"
 #include "src/input.hpp"
+#include "src/mock/matchers.hpp"
 
 // config
 #include "src/config/menu-items.rds.hpp"
+
+// gfx
+#include "src/gfx/resolution.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -34,12 +41,52 @@ using namespace std;
 using namespace input;
 
 using ::gfx::rect;
+using ::gfx::size;
+using ::mock::matchers::_;
+
+/****************************************************************
+** Fake World Setup
+*****************************************************************/
+struct world : testing::World {
+  world() {
+    add_default_player();
+    create_default_map();
+  }
+
+  void create_default_map() {
+    MapSquare const _ = make_ocean();
+    MapSquare const L = make_grassland();
+    vector<MapSquare> tiles{
+      L, L, L, //
+      L, _, L, //
+      L, L, L, //
+    };
+    build_map( std::move( tiles ), 3 );
+  }
+};
 
 /****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[menu-plane] registration/handlers" ) {
-  MenuPlane mp;
+  world w;
+  MockIEngine& engine    = w.engine();
+  vid::MockIVideo& video = w.video();
+  engine.EXPECT__video().returns( video );
+  vid::WindowHandle const wh;
+  engine.EXPECT__window().returns( wh );
+  gfx::Resolutions resolutions{
+    .selected = gfx::SelectedResolution{
+      .rated =
+          gfx::ScoredResolution{
+            .resolution =
+                gfx::Resolution{
+                  .physical_window = { .w = 1280, .h = 720 },
+                  .logical         = { .w = 640, .h = 360 },
+                  .scale           = 2 } },
+      .available = true } };
+  engine.EXPECT__resolutions().returns( resolutions );
+  MenuPlane mp( engine );
   MockIPlane mock_plane;
 
   REQUIRE_FALSE(
@@ -87,7 +134,24 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
 }
 
 TEST_CASE( "[menu-plane] open_menu" ) {
-  MenuPlane mp;
+  world W;
+  MockIEngine& engine    = W.engine();
+  vid::MockIVideo& video = W.video();
+  engine.EXPECT__video().returns( video );
+  vid::WindowHandle const wh;
+  engine.EXPECT__window().returns( wh );
+  gfx::Resolutions resolutions{
+    .selected = gfx::SelectedResolution{
+      .rated =
+          gfx::ScoredResolution{
+            .resolution =
+                gfx::Resolution{
+                  .physical_window = { .w = 1280, .h = 720 },
+                  .logical         = { .w = 640, .h = 360 },
+                  .scale           = 2 } },
+      .available = true } };
+  engine.EXPECT__resolutions().returns( resolutions );
+  MenuPlane mp( engine );
   MockIPlane mock_plane;
   IPlane& plane_impl = mp.impl();
 

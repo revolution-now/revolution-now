@@ -42,6 +42,10 @@ namespace lua {
 struct state;
 }
 
+namespace vid {
+struct MockIVideo;
+}
+
 namespace rn {
 
 // This is so that each unit test doesn't have to include the en-
@@ -63,6 +67,7 @@ struct MockIEuroMind;
 struct MockIGui;
 struct MockINativeMind;
 struct MockIRand;
+struct MockIEngine;
 struct NativeMinds;
 struct NativeUnit;
 struct NativesState;
@@ -384,6 +389,8 @@ struct World {
   MockIRand& rand();
   MockICombat& combat();
   MockIColonyViewer& colony_viewer();
+  MockIEngine& engine();
+  vid::MockIVideo& video();
   TS& ts();
 
   IMapUpdater& map_updater() { return *map_updater_; }
@@ -421,6 +428,8 @@ struct World {
   std::unique_ptr<MockICombat> uninitialized_combat_;
   std::unique_ptr<MockIColonyViewer>
       uninitialized_colony_viewer_;
+  std::unique_ptr<MockIEngine> uninitialized_engine_;
+  std::unique_ptr<vid::MockIVideo> uninitialized_video_;
   std::unique_ptr<NativeMinds> uninitialized_native_minds_;
   std::unique_ptr<EuroMinds> uninitialized_euro_minds_;
   std::unique_ptr<TS> uninitialized_ts_;

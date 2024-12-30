@@ -18,11 +18,13 @@
 
 namespace rn {
 
+struct IEngine;
+
 /****************************************************************
 ** MenuPlane
 *****************************************************************/
 struct MenuPlane : IMenuServer {
-  MenuPlane();
+  MenuPlane( IEngine& engine );
   ~MenuPlane() override;
 
  public: // IMenuServer

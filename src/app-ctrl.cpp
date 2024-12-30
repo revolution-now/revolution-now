@@ -47,7 +47,7 @@ wait<> revolution_now( IEngine& engine, Planes& planes ) {
 
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
-  MenuPlane menu_plane;
+  MenuPlane menu_plane( engine );
   OmniPlane omni_plane( engine, menu_plane );
   ConsolePlane console_plane( engine, terminal );
   WindowPlane window_plane( engine );

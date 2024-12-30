@@ -11,11 +11,13 @@
 #include "menu-plane.hpp"
 
 // Revolution Now
+#include "iengine.hpp"
 #include "logger.hpp"
 #include "menu-bar.hpp"
 #include "menu-body.hpp"
 #include "menu-render.hpp"
 #include "plane.hpp"
+#include "screen.hpp"
 
 // config
 #include "config/menu-items.rds.hpp"
@@ -47,7 +49,7 @@ using ::refl::enum_map;
 ** MenuPlane::Impl
 *****************************************************************/
 struct MenuPlane::Impl : IPlane, IMenuServer {
-  // State.
+  IEngine& engine_;
   MenuThreads menu_threads_;
   MenuBar bar_;
   maybe<wait<>> bar_thread_;
@@ -60,9 +62,9 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   // game is configured to have.
   bool cheat_menu_ = false;
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
-  rect logical_screen_rect_ = { .size = { .w = 640, .h = 360 } };
 
-  Impl() : menu_threads_( *this ), bar_( *this ) {
+  Impl( IEngine& engine )
+    : engine_( engine ), menu_threads_( *this ), bar_( *this ) {
     populate_menu_bar_contents();
     start_bar_thread_if_not_running();
   }
@@ -80,7 +82,10 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   void start_bar_thread_if_not_running() {
     if( !bar_is_running() )
       bar_thread_ =
-          bar_.run_thread( logical_screen_rect_, bar_contents_ );
+          bar_.run_thread( main_window_logical_rect(
+                               engine_.video(), engine_.window(),
+                               engine_.resolutions() ),
+                           bar_contents_ );
   }
 
   void restart_bar_thread_if_running() {
@@ -119,8 +124,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   }
 
   void on_logical_resolution_changed(
-      e_resolution const resolution ) override {
-    logical_screen_rect_.size = resolution_size( resolution );
+      e_resolution const ) override {
     close_all_menus();
     restart_bar_thread_if_running();
   }
@@ -219,7 +223,8 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
 *****************************************************************/
 MenuPlane::~MenuPlane() = default;
 
-MenuPlane::MenuPlane() : impl_( new Impl() ) {}
+MenuPlane::MenuPlane( IEngine& engine )
+  : impl_( new Impl( engine ) ) {}
 
 IPlane& MenuPlane::impl() { return impl_->impl(); }
 
