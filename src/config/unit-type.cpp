@@ -24,9 +24,6 @@ using namespace std;
 
 namespace rn {
 
-// Defined elsewhere (FIXME).
-bool configs_loaded();
-
 namespace {
 
 unordered_map<e_unit_inventory, e_unit_type_modifier>
@@ -55,7 +52,6 @@ UnitTypeAttributes const& unit_attr( e_unit_type type ) {
 maybe<e_unit_type_modifier> inventory_to_modifier(
     e_unit_inventory inv ) {
   static auto const m = [] {
-    DCHECK( configs_loaded() );
     return create_inventory_to_modifier_map(
         config_unit_type.composition.modifier_traits );
   }();
