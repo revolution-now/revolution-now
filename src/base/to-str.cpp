@@ -14,7 +14,7 @@ using namespace std;
 
 namespace base {
 
-void to_str( bool const o, std::string& out, tag<bool> ) {
+void to_str( bool const o, string& out, tag<bool> ) {
   if( o )
     out += "true";
   else
@@ -55,19 +55,28 @@ void to_str( uint64_t const o, string& out, tag<uint64_t> ) {
   out += to_string( o );
 }
 
-void to_str( float const o, std::string& out, tag<float> ) {
+void to_str( float const o, string& out, tag<float> ) {
   // Using the fmt one suppresses extra decimal places.
   out += fmt::to_string( o );
 }
 
-void to_str( double const o, std::string& out, tag<double> ) {
+void to_str( double const o, string& out, tag<double> ) {
   // Using the fmt one suppresses extra decimal places.
   out += fmt::to_string( o );
 }
 
-void to_str( long double const o, std::string& out,
+void to_str( long double const o, string& out,
              tag<long double> ) {
   // Using the fmt one suppresses extra decimal places.
+  out += fmt::to_string( o );
+}
+
+void to_str( void const* const o, string& out, tag<void*> ) {
+  out += fmt::to_string( o );
+}
+
+void to_str( void const* const o, string& out,
+             tag<void const*> ) {
   out += fmt::to_string( o );
 }
 

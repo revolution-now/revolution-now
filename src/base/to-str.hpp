@@ -49,6 +49,9 @@ void to_str( float o, std::string& out, tag<float> );
 void to_str( double o, std::string& out, tag<double> );
 void to_str( long double o, std::string& out, tag<long double> );
 
+void to_str( void const* o, std::string& out, tag<void*> );
+void to_str( void const* o, std::string& out, tag<void const*> );
+
 template<size_t N> void to_str( char const ( &o )[N],
                                 std::string& out,
                                 tag<char[N]> ) {

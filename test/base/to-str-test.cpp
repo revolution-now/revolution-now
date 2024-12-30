@@ -125,6 +125,13 @@ TEST_CASE( "[to-str] primitive" ) {
   REQUIRE( to_str( double{ 5.3 } ) == "5.3" );
   REQUIRE( to_str( double{ 1234.3 } ) == "1234.3" );
 
+  // void*
+  void* const voidp = reinterpret_cast<void*>( 0x123456ULL );
+  void const* const cvoidp =
+      reinterpret_cast<void*>( 0x123456ULL );
+  REQUIRE( to_str( voidp ) == "0x123456" );
+  REQUIRE( to_str( cvoidp ) == "0x123456" );
+
   // double
   using LD = long double;
   REQUIRE( to_str( LD{ -1.0 } ) == "-1" );
