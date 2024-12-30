@@ -12,7 +12,7 @@
 #include "test/fake/world.hpp"
 
 // Revolution Now
-#include "src/init.hpp"
+#include "src/engine.hpp"
 #include "src/linking.hpp"
 
 #define CATCH_CONFIG_RUNNER
@@ -22,9 +22,8 @@ using namespace rn;
 
 int main( int argc, char** argv ) {
   linker_dont_discard_me();
-  run_all_init_routines( e_log_level::off,
-                         { e_init_routine::configs } );
+  Engine engine;
+  engine.init( e_engine_mode::unit_tests );
   int result = Catch::Session().run( argc, argv );
-  run_all_cleanup_routines();
   return result;
 }

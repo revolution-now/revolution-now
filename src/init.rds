@@ -14,7 +14,6 @@ namespace "rn"
 enum.e_init_routine {
   compositor,
   conductor,
-  configs,
   midiplayer,
   midiseq,
   oggplayer,

@@ -45,8 +45,6 @@ void run( e_mode mode ) {
     case e_mode::game: {
       init_logger( e_log_level::debug );
 
-      run_init_routine( engine, e_init_routine::configs );
-
       engine.init( e_engine_mode::game );
 
       init_sprites( engine.renderer_use_only_when_needed() );
@@ -71,8 +69,6 @@ void run( e_mode mode ) {
       break;
     }
     case e_mode::map_gen: {
-      run_all_init_routines( e_log_level::warn,
-                             { e_init_routine::configs } );
       NOT_IMPLEMENTED;
       // ascii_map_gen();
       // break;
