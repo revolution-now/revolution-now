@@ -33,6 +33,7 @@
 
 // gfx
 #include "gfx/logical.hpp"
+#include "gfx/monitor.hpp"
 #include "gfx/resolution.hpp"
 
 // base
@@ -104,109 +105,26 @@ void set_pending_resolution(
 
 } // namespace
 
+// This will do a best-effort attempt at providing DPI info from
+// the underlying windowing API, and might return only partial
+// results, and/or incorrect results. So after we get it we
+// post-process it to try as best as possible to to derive as
+// many DPI components as possible what it gives us.
 maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video ) {
-  static auto const dpi = [&]() -> maybe<gfx::MonitorDpi> {
-    // This will do a best-effort attempt at providing DPI info
-    // from the underlying windowing API, and might return only
-    // partial results, and/or incorrect results. So after we get
-    // it we post-process it to try as best as possible to to de-
-    // rive as many DPI components as possible what it gives us.
-    auto const dpi = video.display_dpi();
-    if( !dpi.has_value() ) {
-      lg.warn( "could not get display dpi: {}", dpi.error() );
-      return nothing;
-    }
-    double hdpi = dpi->horizontal;
-    double vdpi = dpi->vertical;
-    double ddpi = dpi->diagonal;
-    lg.info(
-        "monitor DPI: horizontal={}, vertical={}, diagonal={}",
-        hdpi, vdpi, ddpi );
-    if( hdpi != vdpi )
-      lg.warn( "horizontal DPI not equal to vertical DPI.", hdpi,
-               vdpi );
-
-    // The above function may not provide all of the components,
-    // and/or it may return inconsistent or invalid components.
-    // Thus, we now do our best to reconstruct any missing or in-
-    // valid ones if we have enough information.
-
-    static auto good = []( double const d ) {
-      // Any sensible DPI should surely be larger than 1 pixel
-      // per inch. If not then it is probably invalid.
-      return !isnan( d ) && d > 1.0;
-    };
-    static auto bad = []( double const d ) {
-      return !good( d );
-    };
-
-    // Geometrically, the diagonal DPI should always be >= to the
-    // cardinal DPIs. If it is not then one of the components may
-    // not be reliable. In those cases that were observed, it was
-    // the case that the diagonal one was the accurate one, so
-    // let's nuke the cardinal one and hope that we'll be able to
-    // recompute it below.
-    if( bad( ddpi ) ) {
-      lg.warn( "diagonal DPI is not available from hardware." );
-    } else if( good( hdpi ) && hdpi <= ddpi ) {
-      lg.warn(
-          "horizontal DPI is less than diagonal DPI, thus one "
-          "of them is inaccurate and must be discarded.  Will "
-          "assume that the diagonal one is accurate." );
-      hdpi = 0.0;
-    } else if( good( vdpi ) && vdpi <= ddpi ) {
-      lg.warn(
-          "vertical DPI is less than diagonal DPI, thus one of "
-          "them is inaccurate and must be discarded.  Will "
-          "assume that the diagonal one is accurate." );
-      vdpi = 0.0;
-    }
-
-    if( good( hdpi ) && bad( vdpi ) ) vdpi = hdpi;
-    if( bad( hdpi ) && good( vdpi ) ) hdpi = vdpi;
-    // At this point hdpi/vdpi are either both good or both bad.
-    CHECK_EQ( good( hdpi ), good( vdpi ) );
-
-    bool const have_cardinal = good( hdpi );
-    bool const have_diagonal = good( ddpi );
-
-    if( !have_cardinal )
-      lg.warn(
-          "neither horizontal nor vertical DPIs are "
-          "available." );
-
-    if( !have_cardinal && !have_diagonal ) {
-      // Can't do anything here;
-      lg.warn( "no DPI information can be obtained." );
-      return nothing;
-    }
-
-    if( have_cardinal && have_diagonal )
-      return gfx::MonitorDpi{
-        .horizontal = hdpi, .vertical = vdpi, .diagonal = ddpi };
-
-    if( !have_cardinal && have_diagonal ) {
-      lg.warn(
-          "cardinal DPI must be inferred from diagonal DPI." );
-      // Assume a square; won't be perfect, but good enough.
-      return gfx::MonitorDpi{ .horizontal = ddpi / 1.41421,
-                              .vertical   = vdpi / 1.41421,
-                              .diagonal   = ddpi };
-    }
-
-    if( have_cardinal && !have_diagonal ) {
-      lg.warn(
-          "diagonal DPI must be inferred from cardinal DPI." );
-      return gfx::MonitorDpi{
-        .horizontal = hdpi,
-        .vertical   = vdpi,
-        .diagonal   = sqrt( hdpi * hdpi + vdpi * vdpi ) };
-    }
-
-    lg.error( "something went wrong while computing DPI." );
+  auto const dpi = video.display_dpi();
+  if( !dpi.has_value() ) {
+    lg.warn( "could not get display dpi: {}", dpi.error() );
     return nothing;
-  }();
-  return dpi;
+  }
+  gfx::ProcessedMonitorDpi const processed =
+      gfx::post_process_monitor_dpi( *dpi );
+  for( auto const& info : processed.info_logs )
+    lg.info( "{}", info );
+  for( auto const& warn : processed.warning_logs )
+    lg.info( "{}", warn );
+  for( auto const& err : processed.error_logs )
+    lg.info( "{}", err );
+  return processed.dpi;
 }
 
 maybe<gfx::Resolution const&> get_global_resolution(

@@ -14,7 +14,7 @@
 #include "ivideo.rds.hpp"
 
 // gfx
-#include "gfx/logical.rds.hpp"
+#include "gfx/monitor.rds.hpp"
 
 // base
 #include "base/expect.hpp"

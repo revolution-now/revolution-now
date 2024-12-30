@@ -199,20 +199,6 @@ vector<Resolution> find_resolutions(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Monitor monitor_properties( size const physical_screen,
-                            maybe<MonitorDpi> const dpi ) {
-  Monitor monitor;
-  monitor.physical_screen = physical_screen;
-  if( dpi.has_value() ) {
-    monitor.dpi = dpi;
-    monitor.diagonal_inches =
-        sqrt( pow( physical_screen.w, 2.0 ) +
-              pow( physical_screen.h, 2.0 ) ) /
-        dpi->diagonal;
-  }
-  return monitor;
-}
-
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options ) {
   vector<ScoredResolution> all;

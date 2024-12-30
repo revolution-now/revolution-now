@@ -13,6 +13,9 @@
 // rds
 #include "logical.rds.hpp"
 
+// gfx
+#include "gfx/monitor.rds.hpp"
+
 // C++ standard library
 #include <span>
 
@@ -48,9 +51,6 @@ struct ResolutionAnalysisOptions {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Monitor monitor_properties( size physical_screen,
-                            base::maybe<MonitorDpi> dpi );
-
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options );
 

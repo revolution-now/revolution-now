@@ -13,6 +13,9 @@
 // video
 #include "ivideo.hpp"
 
+// gfx
+#include "gfx/logical.rds.hpp"
+
 using namespace std;
 
 namespace vid {

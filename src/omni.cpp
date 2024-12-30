@@ -19,7 +19,6 @@
 #include "imenu-server.hpp"
 #include "input.hpp"
 #include "plane.hpp"
-#include "resolution.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -38,7 +37,7 @@
 #include "render/renderer.hpp"
 
 // gfx
-#include "gfx/logical.hpp"
+#include "gfx/monitor.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -301,7 +300,7 @@ struct OmniPlane::Impl : public IPlane {
     auto const log = line_logger( lines );
 
     CHECK( resolution.has_value() );
-    auto const monitor = monitor_properties(
+    auto const monitor = gfx::monitor_properties(
         main_window_physical_size( engine_.video(),
                                    engine_.window() ),
         monitor_dpi( engine_.video() ) );

@@ -40,6 +40,7 @@
 #include "sdl/init.hpp"
 
 // gfx
+#include "gfx/monitor.hpp"
 #include "gfx/resolution.hpp"
 
 // refl
@@ -145,7 +146,7 @@ struct Engine::Impl {
     UNWRAP_CHECK_T( auto const display_mode,
                     video().display_mode() );
     gfx::size const physical_screen = display_mode.size;
-    gfx::Monitor const monitor      = monitor_properties(
+    gfx::Monitor const monitor      = gfx::monitor_properties(
         physical_screen, monitor_dpi( video() ) );
     resolutions_ = compute_resolutions(
         monitor,

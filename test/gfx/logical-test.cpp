@@ -12,6 +12,7 @@
 
 // Under test.
 #include "src/gfx/logical.hpp"
+#include "src/gfx/monitor.hpp"
 
 // rcl
 #include "src/rcl/golden.hpp"

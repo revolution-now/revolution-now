@@ -15,6 +15,7 @@
 
 // gfx
 #include "cartesian.hpp"
+#include "monitor.rds.hpp"
 
 // base
 #include "base/maybe.hpp"

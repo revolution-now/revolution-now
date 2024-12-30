@@ -20,21 +20,6 @@ include "<vector>"
 namespace "gfx"
 
 # ---------------------------------------------------------------
-# Monitor Info.
-# ---------------------------------------------------------------
-struct.MonitorDpi {
-  horizontal 'double',
-  vertical 'double',
-  diagonal 'double',
-}
-
-struct.Monitor {
-  physical_screen 'size',
-  dpi 'base::maybe<MonitorDpi>',
-  diagonal_inches 'base::maybe<double>',
-}
-
-# ---------------------------------------------------------------
 # Resolution Representations.
 # ---------------------------------------------------------------
 struct.Resolution {
