@@ -25,6 +25,7 @@ namespace {
 
 using namespace std;
 using ::Catch::Contains;
+using ::Catch::Equals;
 using ::Catch::Matches;
 using ::mock::matchers::_;
 using ::testing::monitoring_types::MovedFromCounter;
@@ -281,9 +282,11 @@ TEST_CASE( "[mock] throws on unexpected mock call" ) {
   MockPoint mp;
   PointUser user( &mp );
 
+  // NOTE: this also tests that a function with no args does not
+  // have spaces between the parenthesis in the error message.
   REQUIRE_THROWS_WITH(
       user.increment_y(),
-      Matches( "unexpected mock function call.*get_y.*" ) );
+      Equals( "unexpected mock function call: get_y()" ) );
 }
 
 TEST_CASE(

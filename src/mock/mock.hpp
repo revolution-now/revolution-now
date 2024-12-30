@@ -512,11 +512,14 @@ struct ResponderQueue {
     while( !answers_.empty() && answers_.front().finished() )
       answers_.pop();
     if( answers_.empty() ) {
-      std::string const formatted_args =
-          format_args_where_possible(
-              std::forward<T>( args )... );
+      std::string const formatted_args = [&] {
+        std::string res = format_args_where_possible(
+            std::forward<T>( args )... );
+        if( !res.empty() ) res = fmt::format( " {} ", res );
+        return res;
+      }();
       throw_unexpected_error(
-          fmt::format( "unexpected mock function call: {}( {} )",
+          fmt::format( "unexpected mock function call: {}({})",
                        fn_name_, formatted_args ) );
     }
     R& responder = answers_.front();
