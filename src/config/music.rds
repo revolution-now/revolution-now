@@ -20,6 +20,15 @@ include "<string>"
 include "<unordered_map>"
 include "<vector>"
 
+namespace "rn.config.music"
+
+struct.Tune {
+  display_name 'std::string',
+  stem 'std::string',
+  description 'std::string',
+  dimensions 'TuneDimensions',
+}
+
 namespace "rn"
 
 struct.config_music_t {
@@ -31,7 +40,7 @@ struct.config_music_t {
 
   threshold_previous_tune_secs 'std::chrono::seconds',
 
-  tunes 'std::vector<Tune>',
+  tunes 'std::vector<config::music::Tune>',
 
   special_event_tunes 'std::unordered_map<e_special_music_event, std::string>',
 

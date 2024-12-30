@@ -71,10 +71,3 @@ struct.TuneDimensions {
   epoch 'e_tune_epoch',
   purpose 'e_tune_purpose',
 }
-
-struct.Tune {
-  display_name 'std::string',
-  stem 'std::string',
-  description 'std::string',
-  dimensions 'TuneDimensions',
-}

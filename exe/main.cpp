@@ -49,7 +49,6 @@ void run( e_mode mode ) {
 
       init_sprites( engine.renderer_use_only_when_needed() );
       run_init_routine( engine, e_init_routine::compositor );
-      run_init_routine( engine, e_init_routine::tunes );
       run_init_routine( engine, e_init_routine::midiplayer );
       run_init_routine( engine, e_init_routine::oggplayer );
       run_init_routine( engine, e_init_routine::conductor );

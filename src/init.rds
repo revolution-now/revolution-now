@@ -16,5 +16,4 @@ enum.e_init_routine {
   conductor,
   midiplayer,
   oggplayer,
-  tunes,
 }

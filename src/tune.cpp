@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "init.hpp"
 #include "logger.hpp"
 #include "rand-enum.hpp"
 #include "time.hpp"
@@ -33,6 +32,7 @@
 
 // C++ standard library
 #include <limits>
+#include <numeric>
 #include <regex>
 #include <tuple>
 #include <unordered_set>
@@ -45,8 +45,6 @@ namespace rl = ::base::rl;
 
 namespace {
 
-unordered_map<TuneId, Tune const*> g_tunes;
-
 #define TUNE_DIMENSION_ADD_IF_DIFFERENT( dim ) \
   if( !util::contains( dims.dim, tune.dimensions.dim ) ) score++
 
@@ -57,53 +55,17 @@ unordered_map<TuneId, Tune const*> g_tunes;
 vector<pair<TuneId, int>> tune_difference_scores(
     TuneVecDimensions dims ) {
   vector<pair<TuneId, int /*score*/>> scores;
-  for( auto const& [id, tune_ptr] : g_tunes ) {
-    auto const& tune = *tune_ptr;
-    int score        = 0;
+  for( int id = 0; auto const& tune : config_music.tunes ) {
+    int score = 0;
     EVAL( PP_MAP_SEMI( TUNE_DIMENSION_ADD_IF_DIFFERENT,
                        TUNE_DIMENSION_LIST ) )
     scores.emplace_back( id, score );
+    ++id;
   }
   // Sort from most similar to most different.
   util::sort_by_key( scores, L( _.second ) );
   return scores;
 }
-
-TuneId gen_tune_id() {
-  static int next_id = 12345;
-  return TuneId( next_id++ );
-}
-
-void init_tunes() {
-  if( config_music.tunes.size() == 0 ) {
-    lg.error( "tune list is empty." );
-    return;
-  }
-  unordered_set<string> stems;
-
-  int idx   = 0;
-  string rx = "[a-z0-9-]*";
-  regex rx_compiled( rx );
-  for( auto const& tune : config_music.tunes ) {
-    g_tunes.emplace( gen_tune_id(), &tune );
-    CHECK( regex_match( tune.stem, rx_compiled ),
-           "tune stem {} must match regex {}", tune.stem, rx );
-    CHECK( !stems.contains( tune.stem ),
-           "stem {} appears in more than one tune.", tune.stem );
-    CHECK( !tune.stem.empty(),
-           "stem for tune #{} (zero-based) is empty.", idx );
-    CHECK( !tune.display_name.empty(),
-           "display_name for tune {} is empty.", tune.stem );
-    CHECK( !tune.description.empty(),
-           "description for tune {} is empty.", tune.stem );
-    stems.insert( tune.stem );
-    idx++;
-  }
-}
-
-void cleanup_tunes() {}
-
-REGISTER_INIT_ROUTINE( tunes );
 
 } // namespace
 
@@ -145,30 +107,31 @@ void TunePlayerInfo::log() const {
 vector<TuneId> const& all_tunes() {
   static vector<TuneId> tunes = [] {
     vector<TuneId> res;
-    for( auto& p : g_tunes ) res.push_back( p.first );
+    res.resize( config_music.tunes.size() );
+    iota( res.begin(), res.end(), 0 );
     return res;
   }();
   return tunes;
 }
 
 string const& tune_display_name_from_id( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  return g_tunes[id]->display_name;
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  return config_music.tunes[id].display_name;
 }
 
 string const& tune_desc_from_id( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  return g_tunes[id]->description;
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  return config_music.tunes[id].description;
 }
 
 string const& tune_stem_from_id( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  return g_tunes[id]->stem;
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  return config_music.tunes[id].stem;
 }
 
 TuneDimensions const& tune_dimensions( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  return g_tunes[id]->dimensions;
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  return config_music.tunes[id].dimensions;
 }
 
 vector<TuneId> find_tunes( TuneOptDimensions dims,
@@ -203,8 +166,8 @@ vector<TuneId> find_tunes( TuneVecDimensions dimensions,
 }
 
 vector<TuneId> tunes_like( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  auto const& tune = *g_tunes[id];
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  auto const& tune = config_music.tunes[id];
   return find_tunes( to_opt_dims( tune.dimensions ), //
                      /*fuzzy_match=*/true,           //
                      /*not_like=*/false              //
@@ -212,8 +175,8 @@ vector<TuneId> tunes_like( TuneId id ) {
 }
 
 vector<TuneId> tunes_not_like( TuneId id ) {
-  CHECK( g_tunes.contains( id ) );
-  auto const& tune = *g_tunes[id];
+  CHECK_LT( id, ssize( config_music.tunes ) );
+  auto const& tune = config_music.tunes[id];
   return find_tunes( to_opt_dims( tune.dimensions ), //
                      /*fuzzy_match=*/true,           //
                      /*not_like=*/true               //

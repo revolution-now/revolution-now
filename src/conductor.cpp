@@ -690,6 +690,7 @@ void playlist_generate( IRand& rand ) {
   size_t no_overlap_size =
       ( num_tunes > 5 ) ? 5 : ( num_tunes - 1 );
   CHECK( no_overlap_size < 100000 ); // sanity check
+  CHECK_GT( no_overlap_size, 0u );
   vector<TuneId> last_n;
   for( auto id : rl::all( all_tunes() ).take( no_overlap_size ) )
     last_n.push_back( id );
@@ -720,9 +721,9 @@ void playlist_generate( IRand& rand ) {
       break;
     }
   }
-  lg.trace( "playlist:" );
+  lg.debug( "playlist:" );
   for( auto [idx, id] : rl::all( res ).enumerate() )
-    lg.trace( " {: >4}. {}", idx + 1,
+    lg.debug( " {: >4}. {}", idx + 1,
               tune_display_name_from_id( id ) );
   CHECK( res.size() > 0 );
 
