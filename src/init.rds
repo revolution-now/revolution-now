@@ -12,7 +12,6 @@ namespace "rn"
 
 # Ordering of these enum.values does not matter.
 enum.e_init_routine {
-  compositor,
   conductor,
   midiplayer,
   oggplayer,

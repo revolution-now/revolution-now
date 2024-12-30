@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "init.hpp"
 #include "plane.hpp"
 
 // config
@@ -31,18 +30,14 @@ using ::gfx::rect;
 W g_panel_width{ 4 * 32 };
 
 // Is the console at the top or bottom of the screen.
-e_composite_location g_console_loc =
-    e_composite_location::bottom;
+auto console_loc = []() -> auto& {
+  static e_composite_location loc =
+      config_ui.console.default_location;
+  return loc;
+};
+
 // Percent of screen dimension occupied.
 double g_console_size = 0.0;
-
-void init_compositor() {
-  g_console_loc = config_ui.console.default_location;
-}
-
-void cleanup_compositor() {}
-
-REGISTER_INIT_ROUTINE( compositor );
 
 } // namespace
 
@@ -54,8 +49,8 @@ void set_console_size( double percent ) {
 }
 
 void rotate_console() {
-  g_console_loc = static_cast<e_composite_location>(
-      ( static_cast<int>( g_console_loc ) + 1 ) %
+  console_loc() = static_cast<e_composite_location>(
+      ( static_cast<int>( console_loc() ) + 1 ) %
       refl::enum_count<e_composite_location> );
 }
 
@@ -152,7 +147,7 @@ maybe<Rect> section( rect const logical_screen_rect,
       UNWRAP_CHECK( total, section( logical_screen_rect,
                                     e_section::total ) );
       res = total;
-      switch( g_console_loc ) {
+      switch( console_loc() ) {
         case e_composite_location::top: //
           res->h = static_cast<int>( res->h * g_console_size );
           break;
