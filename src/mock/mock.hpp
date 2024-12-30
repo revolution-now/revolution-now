@@ -184,7 +184,8 @@ struct exhaust_checker {
   void perform_check() const {
     int unfinished = 0;
     while( !p_->empty() ) {
-      if( !p_->front().finished() )
+      if( !p_->front().finished() &&
+          !p_->front().allows_infinite() )
         unfinished += p_->front().times_remaining();
       p_->pop();
     }
@@ -324,8 +325,7 @@ struct Responder<RetT, std::tuple<Args...>,
 
     // Decrement this after args are checked so that we can de-
     // tect arg failures and recover and still use the responder.
-    BASE_CHECK( times_expected_ > 0 );
-    --times_expected_;
+    if( times_expected_ > 0 ) --times_expected_;
 
     // 5. Return what was requested to be returned.
     if constexpr( !std::is_same_v<RetT, void> ) {
@@ -364,8 +364,13 @@ struct Responder<RetT, std::tuple<Args...>,
     }
   }
 
-  bool finished() const { return times_expected_ == 0; }
-  int times_remaining() const { return times_expected_; }
+  bool allows_infinite() const { return times_expected_ < 0; }
+  int times_remaining() const {
+    return std::max( times_expected_, 0 );
+  }
+  bool finished() const {
+    return !allows_infinite() && times_remaining() == 0;
+  }
 
   void clear_expectations() { times_expected_ = 0; }
 
@@ -380,6 +385,19 @@ struct Responder<RetT, std::tuple<Args...>,
         "EXPECT_CALL statements in the unit test." );
     BASE_CHECK( n > 0 );
     times_expected_ = n;
+    return *this;
+  }
+
+  Responder& by_default() {
+    static_assert(
+        std::is_same_v<RetT, void> ||
+            std::is_copy_constructible_v<RetT>,
+        "When returning a non-copyable type we cannot use the "
+        ".by_default() method because that would require "
+        "repeatedly moving out of the (single) stored return "
+        "value. In these cases, one instead needs to issue "
+        "multiple EXPECT_CALL statements in the unit test." );
+    times_expected_ = -1;
     return *this;
   }
 
@@ -458,7 +476,9 @@ struct Responder<RetT, std::tuple<Args...>,
   base::maybe<array_setters_t> array_setters_ = {};
   std::string fn_name_;
   matchers_t matchers_;
-  int times_expected_;
+  // When this is negative it means that the function can be
+  // called an arbitrary number of times (>= 0).
+  int times_expected_ = 0;
 };
 
 template<typename R>

@@ -195,6 +195,17 @@ TEST_CASE( "[mock] repeated calls" ) {
       Matches( "unexpected mock function call.*" ) );
 }
 
+TEST_CASE( "[mock] by-default calls" ) {
+  MockPoint mp;
+  PointUser user( &mp );
+
+  mp.EXPECT__get_x().by_default().returns( 7 );
+  for( int i = 0; i < 1000; ++i ) {
+    INFO( fmt::format( "i: {}", i ) );
+    REQUIRE( user.get_x() == 7 );
+  }
+}
+
 TEST_CASE( "[mock] sets_arg" ) {
   MockPoint mp;
   PointUser user( &mp );
