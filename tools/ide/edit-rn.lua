@@ -171,7 +171,13 @@ end
 -- Quitting.
 -----------------------------------------------------------------
 local function quit_all_and_save_tabs()
-  save_tabs()
+  -- Should be no need to save on quit, since we save whenever we
+  -- open and close a tab. And this also prevents issues where we
+  -- open nvim and some of the tabs fail to load, then when we
+  -- exit it would save it in the partially loaded state.
+  --
+  -- save_tabs()
+
   -- Close all tabs and quit. This will refuse to exit if there
   -- are unsaved changes in some buffer.
   require( 'dsicilia.quitting' ).quit_all()
