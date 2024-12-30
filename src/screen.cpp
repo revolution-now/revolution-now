@@ -25,7 +25,7 @@
 #include "render/renderer.hpp" // TODO: replace with IRenderer
 
 // video
-#include "video/video_sdl.hpp"
+#include "video/video-sdl.hpp" // FIXME: remove
 #include "video/window.hpp"
 
 // refl

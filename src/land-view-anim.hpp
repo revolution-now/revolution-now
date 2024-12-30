@@ -29,6 +29,10 @@
 // C++ standard library
 #include <stack>
 
+namespace sfx {
+struct ISfx;
+}
+
 namespace rn {
 
 struct AnimationAction;
@@ -62,7 +66,8 @@ struct LandViewAnimator {
   };
 
   LandViewAnimator(
-      SSConst const& ss, SmoothViewport& viewport,
+      sfx::ISfx const& sfx, SSConst const& ss,
+      SmoothViewport& viewport,
       std::unique_ptr<IVisibility const> const& viz );
 
   // Getters.
@@ -230,6 +235,7 @@ struct LandViewAnimator {
   }
 
  private:
+  sfx::ISfx const& sfx_;
   SSConst const& ss_;
   SmoothViewport& viewport_;
   UnitAnimStatesMap unit_animations_;

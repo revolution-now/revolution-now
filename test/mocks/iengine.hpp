@@ -23,6 +23,7 @@ namespace rn {
 *****************************************************************/
 struct MockIEngine : IEngine {
   MOCK_METHOD( vid::IVideo&, video, (), () );
+  MOCK_METHOD( sfx::ISfx&, sfx, (), () );
   MOCK_METHOD( vid::WindowHandle const&, window, (), () );
   MOCK_METHOD( rr::Renderer&, renderer_use_only_when_needed, (),
                () );

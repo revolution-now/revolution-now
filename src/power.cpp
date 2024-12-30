@@ -10,8 +10,8 @@
 *****************************************************************/
 #include "power.hpp"
 
-// Revolution Now
-#include "sdl.hpp"
+// sdl
+#include "include-sdl-base.hpp"
 
 namespace rn {
 

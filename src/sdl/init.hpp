@@ -1,28 +1,21 @@
 /****************************************************************
-**sdl-util.hpp
+**init.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-25.
+* Created by David P. Sicilia on 2024-12-30.
 *
-* Description: Utilities for working with SDL.
+* Description: SDL initialization things.
 *
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Revolution Now
-#include "sdl.hpp"
-
-// gfx
-#include "gfx/coord.hpp"
-#include "gfx/pixel.hpp"
-
 // C++ standard library
 #include <string_view>
 
-namespace rn {
+struct SDL_version;
+
+namespace sdl {
 
 // Will throw an error is the game is being run with a different
 // major version of the given SDL library (e.g., mixer, ttf,
@@ -33,4 +26,8 @@ void check_SDL_compile_link_version(
     ::SDL_version const& link_version,
     ::SDL_version const& compiled_version );
 
-} // namespace rn
+void init_sdl_base();
+
+void deinit_sdl_base();
+
+} // namespace sdl

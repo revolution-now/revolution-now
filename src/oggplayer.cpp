@@ -13,11 +13,12 @@
 // Revolution Now
 #include "init.hpp"
 #include "logger.hpp"
-#include "sdl-mixer.hpp"
-#include "sdl.hpp"
 
 // config
 #include "config/music.rds.hpp"
+
+// sdl
+#include "sdl/include-sdl-mixer.hpp"
 
 // C++ standard library
 #include <cmath>

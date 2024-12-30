@@ -11,23 +11,31 @@ general {
   chunk_size: 512
 }
 
-sfx {
-  # Using mp3 instead of wav seems to noticeably increase the
-  # delay at the start of playing a sound.
-  move:            "assets/sfx/whoosh-1.wav"
-  attacker_lost:   "assets/sfx/explosion-1.wav"
-  attacker_won:    "assets/sfx/explosion-2.wav"
-  # FIXME: need dedicated sounds for these.
-  sunk_ship:       "assets/sfx/explosion-2.wav"
-  city_destroyed:  "assets/sfx/explosion-2.wav"
-  treasure:        "assets/sfx/whoosh-1.wav"
-
-  volume {
-    move:           100
-    attacker_lost:  100
-    attacker_won:   64
-    sunk_ship:      64
-    city_destroyed: 64
-    treasure:       100
+# Using mp3 instead of wav seems to noticeably increase the delay
+# at the start of playing a sound.
+effects{
+  move {
+    volume:  100
+    file:   "assets/sfx/whoosh-1.wav"
+  }
+  attacker_lost {
+    volume:  100
+    file:   "assets/sfx/explosion-1.wav"
+  }
+  attacker_won {
+    volume:  64
+    file:   "assets/sfx/explosion-2.wav"
+  }
+  sunk_ship {
+    volume:  64
+    file:   "assets/sfx/explosion-2.wav" # TODO
+  }
+  city_destroyed {
+    volume:  64
+    file:   "assets/sfx/explosion-2.wav" # TODO
+  }
+  treasure {
+    volume:  100
+    file:   "assets/sfx/whoosh-1.wav" # TODO
   }
 }

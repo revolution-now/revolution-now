@@ -35,6 +35,8 @@ struct Engine : IEngine {
  public: // IEngine
   vid::IVideo& video() override;
 
+  sfx::ISfx& sfx() override;
+
   vid::WindowHandle const& window() override;
 
   rr::Renderer& renderer_use_only_when_needed() override;

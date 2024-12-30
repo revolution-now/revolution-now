@@ -13,6 +13,9 @@
 // Under test.
 #include "src/input.hpp"
 
+// sdl
+#include "src/sdl/include-sdl-base.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 

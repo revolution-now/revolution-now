@@ -1,5 +1,5 @@
 /****************************************************************
-**video_sdl.hpp
+**video-sdl.hpp
 *
 * Project: Revolution Now
 *

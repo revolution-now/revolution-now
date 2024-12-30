@@ -20,14 +20,20 @@
 #include "config/tile-sheet.rds.hpp"
 
 // video
-#include "video/video_sdl.hpp"
+#include "video/video-sdl.hpp"
 #include "video/window.hpp"
+
+// sfx
+#include "sfx/sfx-sdl.hpp"
 
 // render
 #include "render/renderer.hpp"
 
 // gl
 #include "gl/init.hpp"
+
+// sdl
+#include "sdl/init.hpp"
 
 // gfx
 #include "gfx/resolution.hpp"
@@ -50,6 +56,13 @@ using ::base::maybe;
 *****************************************************************/
 struct Engine::Impl {
   // ============================================================
+  // SDL Base
+  // ============================================================
+  void init_sdl_base() { sdl::init_sdl_base(); }
+
+  void deinit_sdl_base() { sdl::deinit_sdl_base(); }
+
+  // ============================================================
   // Video
   // ============================================================
   void init_video() {
@@ -65,6 +78,30 @@ struct Engine::Impl {
   vid::IVideo& video() const {
     CHECK( video_ );
     return *video_;
+  }
+
+  // ============================================================
+  // Sound Effects
+  // ============================================================
+  void init_sfx() {
+    CHECK( !sfx_ );
+    sfx_ = make_unique<sfx::SfxSDL>();
+
+    sfx_->init_mixer();
+    sfx_->load_all_sfx();
+  }
+
+  void deinit_sfx() {
+    if( !sfx_ ) return;
+    // Reverse order.
+    sfx_->free_all_sfx();
+    sfx_->deinit_mixer();
+    sfx_.reset();
+  }
+
+  sfx::ISfx& sfx() const {
+    CHECK( sfx_ );
+    return *sfx_;
   }
 
   // ============================================================
@@ -210,6 +247,7 @@ struct Engine::Impl {
   maybe<vid::WindowHandle> window_;
   maybe<vid::RenderingBackendContext> rendering_backend_context_;
   maybe<gl::InitResult> gl_iface_;
+  unique_ptr<sfx::SfxSDL> sfx_;
 };
 
 /****************************************************************
@@ -228,10 +266,12 @@ Engine::Impl& Engine::impl() {
 void Engine::init( e_engine_mode const mode ) {
   switch( mode ) {
     case e_engine_mode::game: {
+      impl().init_sdl_base();
       impl().init_video();
       impl().init_window();
       impl().init_resolutions();
       impl().init_renderer();
+      impl().init_sfx();
       break;
     }
     case e_engine_mode::console: {
@@ -252,13 +292,17 @@ void Engine::deinit() {
   impl().hide_window_if_visible();
 
   // Reverse order.
+  impl().deinit_sfx();
   impl().deinit_renderer();
   impl().deinit_resolutions();
   impl().deinit_window();
   impl().deinit_video();
+  impl().deinit_sdl_base();
 }
 
 vid::IVideo& Engine::video() { return impl().video(); }
+
+sfx::ISfx& Engine::sfx() { return impl().sfx(); }
 
 vid::WindowHandle const& Engine::window() {
   return impl().window();

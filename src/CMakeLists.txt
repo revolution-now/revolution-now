@@ -18,6 +18,8 @@ add_subdirectory( config )
 add_subdirectory( ss )
 add_subdirectory( sav )
 add_subdirectory( video )
+add_subdirectory( sfx )
+add_subdirectory( sdl )
 
 # === this directory ==============================================
 
@@ -44,6 +46,8 @@ add_rn_library(
   rn-render
   rn-rds-util
   rn-sav
+  rn-sdl
+  rn-sfx
   rn-stb
   rn-video
   rtmidi

@@ -15,10 +15,15 @@
 #include "logger.hpp"
 #include "maybe.hpp"
 #include "screen.hpp"
-#include "sdl-util.hpp"
 
 // render
 #include "render/renderer.hpp"
+
+// gfx
+#include "gfx/coord.hpp"
+
+// sdl
+#include "sdl/include-sdl-base.hpp"
 
 // base
 #include "base/fmt.hpp"

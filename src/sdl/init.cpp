@@ -1,38 +1,42 @@
 /****************************************************************
-**sdl-util.cpp
+**init.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-08-25.
+* Created by David P. Sicilia on 2024-12-30.
 *
-* Description: Utilities for working with SDL.
+* Description: SDL initialization things.
 *
 *****************************************************************/
-#include "sdl-util.hpp"
-
-// Revolution Now
-#include "error.hpp"
 #include "init.hpp"
-#include "logger.hpp"
 
-// config
-#include "config/gfx.rds.hpp"
+// sdl
+#include "include-sdl-base.hpp"
+
+// base
+#include "base/error.hpp"
+#include "base/fmt.hpp"
 
 using namespace std;
 
-namespace rn {
+// TODO: replace this with a logging framework.
+#define LOG_INFO fmt::println
+#define LOG_WARN fmt::println
 
-namespace {} // namespace
+namespace sdl {
 
+/****************************************************************
+** Public API.
+*****************************************************************/
 void check_SDL_compile_link_version(
     string_view module_name, ::SDL_version const& link_version,
     ::SDL_version const& compiled_version ) {
-  lg.info( "SDL {}: compiled with version: {}.{}.{}",
-           module_name, compiled_version.major,
-           compiled_version.minor, compiled_version.patch );
-  lg.info( "SDL {}:  running with version: {}.{}.{}",
-           module_name, link_version.major, link_version.minor,
-           link_version.patch );
+  LOG_INFO( "SDL {}: compiled with version: {}.{}.{}",
+            module_name, compiled_version.major,
+            compiled_version.minor, compiled_version.patch );
+  LOG_INFO( "SDL {}:  running with version: {}.{}.{}",
+            module_name, link_version.major, link_version.minor,
+            link_version.patch );
   CHECK( compiled_version.major == link_version.major,
          "This game was compiled with a version of SDL {} whose "
          "major version number ({}) is different from the major "
@@ -41,7 +45,7 @@ void check_SDL_compile_link_version(
          link_version.major );
 
   if( compiled_version.minor != link_version.minor ) {
-    lg.warn(
+    LOG_WARN(
         "This game was compiled with a version of SDL {} whose "
         "minor version number ({}) is different from the minor "
         "version number of the runtime library ({})",
@@ -50,9 +54,7 @@ void check_SDL_compile_link_version(
   }
 }
 
-namespace {
-
-void init_sdl() {
+void init_sdl_base() {
   ::SDL_version compiled, linked;
   SDL_VERSION( &compiled );
   ::SDL_GetVersion( &linked );
@@ -63,7 +65,7 @@ void init_sdl() {
   // See:
   // https://discourse.libsdl.org/t/a-couple-of-questions-regarding-batching-in-sdl-2-0-10/26453/3
   if( linked.minor == 0 && linked.patch < 10 )
-    lg.warn(
+    LOG_WARN(
         "SDL versions prior to 2.0.10 may not have GPU batching "
         "support; game may run slow." );
 
@@ -73,10 +75,6 @@ void init_sdl() {
   ::SDL_ShowCursor( SDL_DISABLE );
 }
 
-void cleanup_sdl() { ::SDL_Quit(); }
+void deinit_sdl_base() { ::SDL_Quit(); }
 
-REGISTER_INIT_ROUTINE( sdl );
-
-} // namespace
-
-} // namespace rn
+} // namespace sdl

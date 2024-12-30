@@ -13,8 +13,10 @@
 // Revolution Now
 #include "init.hpp"
 #include "logger.hpp"
-#include "sdl.hpp"
 #include "stacktrace.hpp"
+
+// sdl
+#include "include-sdl-base.hpp"
 
 // base
 #include "base/stack-trace.hpp"

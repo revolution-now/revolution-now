@@ -1,11 +1,11 @@
 /****************************************************************
-**sdl-mixer.hpp
+**include-sdl-mixer.hpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2022-08-09.
+* Created by David P. Sicilia on 2024-12-30.
 *
-* Description: Single point where SDL_mixer.h is included.
+* Description: Includes SDL Mixer for this library.
 *
 *****************************************************************/
 #pragma once

@@ -18,7 +18,5 @@ enum.e_init_routine {
   midiplayer,
   midiseq,
   oggplayer,
-  sdl,
-  sound,
   tunes,
 }

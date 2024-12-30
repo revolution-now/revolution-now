@@ -16,7 +16,6 @@
 #include "co-time.hpp" // IWYU pragma: keep
 #include "frame-count.hpp"
 #include "latch.hpp"
-#include "sound.hpp"
 #include "throttler.hpp"
 #include "unit-mgr.hpp"
 #include "viewport.hpp"
@@ -31,6 +30,9 @@
 #include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
+
+// sfx
+#include "sfx/isfx.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -145,9 +147,10 @@ wait<> pixelation_stage_throttler( co::latch& hold,
 ** Public API
 *****************************************************************/
 LandViewAnimator::LandViewAnimator(
-    SSConst const& ss, SmoothViewport& viewport,
+    sfx::ISfx const& sfx, SSConst const& ss,
+    SmoothViewport& viewport,
     std::unique_ptr<IVisibility const> const& viz )
-  : ss_( ss ), viewport_( viewport ), viz_( viz ) {
+  : sfx_( sfx ), ss_( ss ), viewport_( viewport ), viz_( viz ) {
   CHECK( viz_ != nullptr );
 }
 
@@ -438,7 +441,7 @@ wait<> LandViewAnimator::animate_action_primitive(
       // TODO: should we co_await on the length of the sound ef-
       // fect? Maybe that would be a separate animation such as
       // `play_sound_wait`.
-      play_sound_effect( play_sound.what );
+      sfx_.play_sound_effect( play_sound.what );
       hold.count_down();
       break;
     }

@@ -16,13 +16,15 @@
 // Revolution Now
 #include "iengine.hpp"
 #include "screen.hpp"
-#include "sdl.hpp"
 
 // config
 #include "config/input.rds.hpp"
 
 // gfx
 #include "gfx/resolution.rds.hpp"
+
+// sdl
+#include "sdl/include-sdl-base.hpp"
 
 // base
 #include "base/keyval.hpp"
@@ -415,7 +417,7 @@ void copy_common_base_object( From const& from, To& to ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( IEngine& engine, Coord new_pos ) {
-  int const scale_factor = get_global_resolution(engine)
+  int const scale_factor = get_global_resolution( engine )
                                .member( &gfx::Resolution::scale )
                                .value_or( 1 );
   new_pos.x *= scale_factor;

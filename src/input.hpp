@@ -22,14 +22,13 @@
 // gfx
 #include "gfx/coord.hpp"
 
+// sdl
+#include "sdl/include-sdl-base.hpp" // FIXME: remove
+
 // base
 #include "base/adl-tag.hpp"
 #include "base/heap-value.hpp"
 #include "base/variant.hpp"
-
-// SDL
-// TODO: get rid of this
-#include "sdl.hpp"
 
 // C++ standard library.
 #include <queue>
@@ -157,8 +156,8 @@ enum class e_key_change {
 
 struct key_event_t : public event_base_t {
   e_key_change change;
-  ::SDL_Keycode keycode   = ::SDLK_UNKNOWN;
-  ::SDL_Scancode scancode = ::SDL_SCANCODE_UNKNOWN;
+  int keycode  = {};
+  int scancode = {};
   // If the key in question happens to correspond to a
   // directional motion then this will be populated. It will be
   // populated both for key-up and key-down. It may not be useful

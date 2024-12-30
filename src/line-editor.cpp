@@ -12,7 +12,9 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "sdl.hpp"
+
+// sdl
+#include "include-sdl-base.hpp"
 
 // base
 #include "base/math.hpp"

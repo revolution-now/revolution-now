@@ -19,6 +19,10 @@ struct IVideo;
 struct WindowHandle;
 }
 
+namespace sfx {
+struct ISfx;
+}
+
 namespace rr {
 struct Renderer;
 }
@@ -36,6 +40,8 @@ struct IEngine {
   virtual ~IEngine() = default;
 
   virtual vid::IVideo& video() = 0;
+
+  virtual sfx::ISfx& sfx() = 0;
 
   virtual vid::WindowHandle const& window() = 0;
 

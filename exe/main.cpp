@@ -46,13 +46,11 @@ void run( e_mode mode ) {
       init_logger( e_log_level::debug );
 
       run_init_routine( engine, e_init_routine::configs );
-      run_init_routine( engine, e_init_routine::sdl );
 
       engine.init( e_engine_mode::game );
 
       init_sprites( engine.renderer_use_only_when_needed() );
       run_init_routine( engine, e_init_routine::compositor );
-      run_init_routine( engine, e_init_routine::sound );
       run_init_routine( engine, e_init_routine::midiseq );
       run_init_routine( engine, e_init_routine::tunes );
       run_init_routine( engine, e_init_routine::midiplayer );

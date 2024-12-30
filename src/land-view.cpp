@@ -212,7 +212,8 @@ struct LandViewPlane::Impl : public IPlane {
       ss_( ss ),
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
-      animator_( ss, ss.land_view.viewport, viz_ ) {
+      animator_( engine_.sfx(), ss, ss.land_view.viewport,
+                 viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.get().menu );

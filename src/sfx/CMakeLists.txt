@@ -1,7 +1,6 @@
 add_rn_library(
-  rn-video
+  rn-sfx
   # Dependencies
-  rn-gfx
   rn-sdl
   rn-base
 )

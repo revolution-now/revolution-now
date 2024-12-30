@@ -1,5 +1,5 @@
 /****************************************************************
-**video_sdl.cpp
+**video-sdl.cpp
 *
 * Project: Revolution Now
 *
@@ -8,10 +8,10 @@
 * Description: Implementation of IVideo using an SDL backend.
 *
 *****************************************************************/
-#include "video_sdl.hpp"
+#include "video-sdl.hpp"
 
-// video
-#include "include-sdl.hpp"
+// sdl
+#include "sdl/include-sdl-base.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -20,7 +20,7 @@
 #include "base/fmt.hpp"
 
 // TODO: replace this with a logging framework.
-#define LOG      fmt::println
+#define LOG_INFO fmt::println
 #define LOG_WARN fmt::println
 
 using namespace std;
@@ -103,8 +103,8 @@ void log_video_stats() {
   //   more consistent, reliable, and clear.
   //
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  LOG( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.", ddpi,
-       hdpi, vdpi );
+  LOG_INFO( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.",
+            ddpi, hdpi, vdpi );
 
   SDL_DisplayMode dm;
 
@@ -115,23 +115,23 @@ void log_video_stats() {
   };
   (void)dm_to_str;
 
-  LOG( "default game pixel format: {}",
-       ::SDL_GetPixelFormatName( kPixelFormat ) );
+  LOG_INFO( "default game pixel format: {}",
+            ::SDL_GetPixelFormatName( kPixelFormat ) );
 
   SDL_GetCurrentDisplayMode( 0, &dm );
-  LOG( "GetCurrentDisplayMode: {}", dm_to_str() );
+  LOG_INFO( "GetCurrentDisplayMode: {}", dm_to_str() );
 
   SDL_GetDesktopDisplayMode( 0, &dm );
-  LOG( "GetDesktopDisplayMode: {}", dm_to_str() );
+  LOG_INFO( "GetDesktopDisplayMode: {}", dm_to_str() );
 
   SDL_GetDisplayMode( 0, 0, &dm );
-  LOG( "GetDisplayMode: {}", dm_to_str() );
+  LOG_INFO( "GetDisplayMode: {}", dm_to_str() );
 
   SDL_Rect r;
   SDL_GetDisplayBounds( 0, &r );
-  LOG( "GetDisplayBounds: {}",
-       rect{ .origin = { .x = r.x, .y = r.y },
-             .size   = { .w = r.w, .h = r.h } } );
+  LOG_INFO( "GetDisplayBounds: {}",
+            rect{ .origin = { .x = r.x, .y = r.y },
+                  .size   = { .w = r.w, .h = r.h } } );
 }
 
 } // namespace
