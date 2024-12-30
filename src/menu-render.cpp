@@ -11,7 +11,6 @@
 #include "menu-render.hpp"
 
 // Revolution Now
-#include "compositor.hpp"
 #include "render.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -216,16 +215,13 @@ MenuRenderLayout build_menu_rendered_layout(
   }();
   CHECK( !possible_positions.empty() );
 
-  UNWRAP_CHECK(
-      screen_rect,
-      compositor::section( logical_screen_rect,
-                           compositor::e_section::total ) );
   auto const fitting_bounds = [&] {
     auto fitting = possible_positions;
-    erase_if(
-        fitting, [&]( PositionAndBounds const& bounds_rect ) {
-          return !bounds_rect.bounds.is_inside( screen_rect );
-        } );
+    erase_if( fitting,
+              [&]( PositionAndBounds const& bounds_rect ) {
+                return !bounds_rect.bounds.is_inside(
+                    logical_screen_rect );
+              } );
     return fitting;
   }();
 
@@ -254,10 +250,9 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     rect const logical_screen_rect,
     vector<e_menu> const& contents ) {
   MenuBarRenderedLayout res;
-  UNWRAP_CHECK(
-      menu_bar_rect,
-      compositor::section( logical_screen_rect,
-                           compositor::e_section::menu_bar ) );
+  auto const menu_bar_rect =
+      logical_screen_rect.with_new_bottom_edge(
+          config_ui.menus.menu_bar_height );
   res.bounds = menu_bar_rect;
 
   auto menus_for = [&]( config::menu::e_menu_side const side ) {

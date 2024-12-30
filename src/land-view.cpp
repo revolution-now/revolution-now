@@ -19,7 +19,6 @@
 #include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "command.hpp"
-#include "compositor.hpp"
 #include "hidden-terrain.hpp"
 #include "iengine.hpp"
 #include "imap-updater.hpp"
@@ -45,6 +44,7 @@
 // config
 #include "config/land-view.rds.hpp"
 #include "config/menu-items.rds.hpp"
+#include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -623,15 +623,16 @@ struct LandViewPlane::Impl : public IPlane {
   /****************************************************************
   ** Land View IPlane
   *****************************************************************/
-  void advance_viewport_state() {
-    UNWRAP_CHECK( viewport_rect_pixels,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::viewport ) );
+  rect viewport_rect_pixels() const {
+    rect r = main_window_logical_rect( engine_.video(),
+                                       engine_.window(),
+                                       engine_.resolutions() );
+    return r.with_new_top_edge( config_ui.menus.menu_bar_height )
+        .with_new_right_edge( config_ui.panel.width );
+  }
 
-    viewport().advance_state( viewport_rect_pixels );
+  void advance_viewport_state() {
+    viewport().advance_state( viewport_rect_pixels() );
 
     // TODO: should only do the following when the viewport has
     // input focus.
@@ -715,15 +716,9 @@ struct LandViewPlane::Impl : public IPlane {
   void advance_state() override { advance_viewport_state(); }
 
   void draw( rr::Renderer& renderer ) const override {
-    UNWRAP_CHECK( viewport_rect_pixels,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
-        viewport_rect_pixels, input_overrun_indicator_,
+        viewport_rect_pixels(), input_overrun_indicator_,
         viewport() );
 
     lv_renderer.render_non_entities();
@@ -1191,13 +1186,7 @@ struct LandViewPlane::Impl : public IPlane {
         auto& val = event.get<input::mouse_wheel_event_t>();
         // If the mouse is in the viewport and its a wheel event
         // then we are in business.
-        UNWRAP_CHECK( viewport_rect_pixels,
-                      compositor::section(
-                          main_window_logical_rect(
-                              engine_.video(), engine_.window(),
-                              engine_.resolutions() ),
-                          compositor::e_section::viewport ) );
-        if( val.pos.is_inside( viewport_rect_pixels ) ) {
+        if( val.pos.is_inside( viewport_rect_pixels() ) ) {
           if( val.wheel_delta < 0 )
             viewport().set_zoom_push( e_push_direction::negative,
                                       nothing );

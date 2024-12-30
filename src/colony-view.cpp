@@ -16,7 +16,6 @@
 #include "colony-mgr.hpp"
 #include "colony.hpp"
 #include "colview-entities.hpp"
-#include "compositor.hpp"
 #include "drag-drop.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
@@ -67,15 +66,9 @@ void draw_colony_view( IEngine& engine, Colony const&,
       gfx::rect{ .origin = {},
                  .size   = renderer.logical_screen_size() },
       background_color );
-
-  UNWRAP_CHECK( canvas, compositor::section(
-                            main_window_logical_rect(
-                                engine.video(), engine.window(),
-                                engine.resolutions() ),
-                            compositor::e_section::normal ) );
-
-  colview_top_level().view().draw( renderer,
-                                   canvas.upper_left() );
+  auto const canvas = main_window_logical_rect(
+      engine.video(), engine.window(), engine.resolutions() );
+  colview_top_level().view().draw( renderer, canvas.ne() );
 }
 
 /****************************************************************
@@ -160,12 +153,9 @@ struct ColonyPlane : public IPlane {
   // resize event into the input queue that will then be automat-
   // ically picked up by all of the planes.
   void advance_state() override {
-    UNWRAP_CHECK( new_canvas,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const new_canvas = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window

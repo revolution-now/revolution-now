@@ -39,3 +39,7 @@ console {
   # .25 then that would make it cover 1/4 of the screen's height.
   size_percentage: .25
 }
+
+panel {
+  width: 128
+}

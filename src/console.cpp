@@ -11,12 +11,12 @@
 #include "console.hpp"
 
 // Revolution Now
-#include "compositor.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "iengine.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
+#include "renderer.hpp"
 #include "screen.hpp" // FIXME: remove
 #include "terminal.hpp"
 #include "text.hpp"
@@ -35,7 +35,11 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::rect;
+
+} // namespace
 
 /****************************************************************
 ** Console Commands
@@ -65,45 +69,31 @@ struct ConsolePlane::Impl : public IPlane {
     : engine_( engine ), terminal_( terminal ) {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
-    UNWRAP_CHECK( total_area,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::total ) );
+    auto const width = console_rect().size.w;
     le_view_.emplace(
-        config_rn.console.font, total_area.w,
-        []( string const& ) {}, config_ui.dialog_text.normal,
-        gfx::pixel::wood(), prompt, /*initial_text=*/"" );
+        config_rn.console.font, width, []( string const& ) {},
+        config_ui.dialog_text.normal, gfx::pixel::wood(), prompt,
+        /*initial_text=*/"" );
   }
 
   void advance_state() override {
     show_percent_ += show_ ? .1 : -.1;
     show_percent_ = std::clamp( show_percent_, 0.0, 1.0 );
-    compositor::set_console_size( console_height() );
   }
 
   void draw( rr::Renderer& renderer ) const override {
+    // SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
     if( show_percent_ < .0001 ) return;
     rr::Painter painter = renderer.painter();
-    UNWRAP_CHECK( console_rect,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::console ) );
+    Rect console_rect   = this->console_rect();
     bool const mouse_over_console =
         is_mouse_over_rect( console_rect );
     bool const render_edit_box = mouse_over_console;
 
+    Rect const total_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     Rect divider_rect = console_rect;
-
-    UNWRAP_CHECK( total_area,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::total ) );
 
     if( console_rect.h < total_area.h ) {
       // Console is either at the top or bottom.
@@ -210,7 +200,7 @@ struct ConsolePlane::Impl : public IPlane {
       return e_input_handled::no;
     if( key_event.keycode == ::SDLK_BACKQUOTE ) {
       if( key_event.mod.shf_down ) {
-        compositor::rotate_console();
+        // compositor::rotate_console();
         return e_input_handled::yes;
       }
       show_ = !show_;
@@ -286,18 +276,23 @@ struct ConsolePlane::Impl : public IPlane {
     return show_percent_ * config_ui.console.size_percentage;
   }
 
+  rect console_rect() const {
+    auto console_rect = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
+    console_rect = console_rect.with_new_top_edge(
+        int( console_rect.bottom() -
+             console_rect.size.h * console_height() ) );
+    return console_rect;
+  }
+
   bool is_mouse_over_rect( Rect rect ) const {
     return input::current_mouse_position().is_inside( rect );
   }
 
   bool is_mouse_over_console() const {
-    maybe<Rect> rect = compositor::section(
-        main_window_logical_rect( engine_.video(),
-                                  engine_.window(),
-                                  engine_.resolutions() ),
-        compositor::e_section::console );
-    if( !rect.has_value() ) return false;
-    return is_mouse_over_rect( *rect );
+    if( !show_ ) return false;
+    return is_mouse_over_rect( console_rect() );
   }
 
   void on_logical_resolution_changed(

@@ -15,7 +15,6 @@
 #include "co-combinator.hpp"
 #include "co-time.hpp"
 #include "co-wait.hpp"
-#include "compositor.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
 #include "iengine.hpp"
@@ -126,12 +125,9 @@ struct WindowManager {
   int num_windows() const { return windows_.size(); }
 
   void center_window( Window const& win ) {
-    UNWRAP_CHECK( area,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     find_window( win ).pos = centered( win.delta(), area );
   }
 
@@ -370,17 +366,14 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
     string_view const msg = active_transient_message_->msg;
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
                              active_transient_message_->alpha );
-    UNWRAP_CHECK(
-        area, compositor::section(
-                  main_window_logical_rect(
-                      engine_.video(), engine_.window(),
-                      engine_.resolutions() ),
-                  compositor::e_section::viewport_and_panel ) );
+    auto const area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     Delta const rendered_size =
         active_transient_message_->rendered_size;
-    Coord const start = centered( rendered_size, area )
-                            .with_y( area.top_edge() ) +
-                        Delta{ .h = 5 };
+    Coord const start =
+        centered( rendered_size, area ).with_y( area.top() ) +
+        Delta{ .h = 5 };
     Rect const background = Rect::from( start, rendered_size )
                                 .with_border_added( 2 );
     rr::Painter painter = renderer.painter();

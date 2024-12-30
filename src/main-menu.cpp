@@ -15,7 +15,6 @@
 
 // Revolution Now
 #include "co-combinator.hpp"
-#include "compositor.hpp"
 #include "game.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
@@ -52,15 +51,12 @@ struct MainMenuPlane : public IPlane {
     : engine_( engine ), planes_( planes ), gui_( gui ) {}
 
   void draw( rr::Renderer& renderer ) const override {
-    UNWRAP_CHECK( normal_area,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
-      tile_sprite( renderer, e_tile::wood_middle, normal_area );
+      tile_sprite( renderer, e_tile::wood_middle, area );
     }
   }
 

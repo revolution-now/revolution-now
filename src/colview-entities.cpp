@@ -19,7 +19,6 @@
 #include "colview-land.hpp"
 #include "colview-population.hpp"
 #include "commodity.hpp"
-#include "compositor.hpp"
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "equip.hpp"
@@ -1942,12 +1941,9 @@ void set_colview_colony( IEngine& engine, SS& ss, TS& ts,
   update_production( ss, colony );
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
-  UNWRAP_CHECK( normal, compositor::section(
-                            main_window_logical_rect(
-                                engine.video(), engine.window(),
-                                engine.resolutions() ),
-                            compositor::e_section::normal ) );
-  recomposite( ss, ts, player, colony, normal.delta() );
+  auto const r = main_window_logical_rect(
+      engine.video(), engine.window(), engine.resolutions() );
+  recomposite( ss, ts, player, colony, r.size );
 }
 
 } // namespace rn

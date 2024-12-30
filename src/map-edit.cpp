@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-combinator.hpp"
 #include "colony-view.hpp"
-#include "compositor.hpp"
 #include "connectivity.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
@@ -44,6 +43,7 @@
 // config
 #include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/land-view.hpp"
@@ -74,6 +74,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::rect;
 
 /****************************************************************
 ** Toolbar
@@ -381,16 +383,21 @@ struct MapEditPlane::Impl : public IPlane {
   void on_logical_resolution_changed(
       gfx::e_resolution ) override {}
 
+  rect viewport_rect_pixels() const {
+    rect r = main_window_logical_rect( engine_.video(),
+                                       engine_.window(),
+                                       engine_.resolutions() );
+    return r.with_new_top_edge( config_ui.menus.menu_bar_height )
+        .with_new_right_edge( config_ui.panel.width );
+  }
+
   Rect canvas_;
 };
 
 Rect MapEditPlane::Impl::toolbar_rect() const {
-  UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(
-                              engine_.video(), engine_.window(),
-                              engine_.resolutions() ),
-                          compositor::e_section::viewport ) );
-  rect.h = g_tile_delta.h;
+  auto rect = main_window_logical_rect(
+      engine_.video(), engine_.window(), engine_.resolutions() );
+  rect.size.h = g_tile_delta.h;
   return rect;
 }
 
@@ -403,14 +410,10 @@ wait<> MapEditPlane::Impl::click_on_toolbar( Coord tile ) {
 }
 
 Rect MapEditPlane::Impl::viewport_rect() const {
-  UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(
-                              engine_.video(), engine_.window(),
-                              engine_.resolutions() ),
-                          compositor::e_section::viewport ) );
-  Delta toolbar_size = toolbar_rect().delta();
-  rect.h -= toolbar_size.h;
-  rect.y += toolbar_size.h;
+  auto rect                = viewport_rect_pixels();
+  Delta const toolbar_size = toolbar_rect().delta();
+  rect.size.h -= toolbar_size.h;
+  rect.origin.y += toolbar_size.h;
   return rect;
 }
 
@@ -613,11 +616,13 @@ void MapEditPlane::Impl::render_toolbar(
 
 void MapEditPlane::Impl::render_sidebar(
     rr::Renderer& renderer ) const {
-  UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(
-                              engine_.video(), engine_.window(),
-                              engine_.resolutions() ),
-                          compositor::e_section::panel ) );
+  auto const rect = [&] {
+    auto const r = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
+    return r.with_new_left_edge( r.right() -
+                                 config_ui.panel.width );
+  }();
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect(
       rect,

@@ -13,7 +13,6 @@
 // Revolution Now
 #include "cheat.hpp"
 #include "commodity.hpp"
-#include "compositor.hpp"
 #include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
 #include "iengine.hpp"
@@ -81,14 +80,11 @@ struct HarborPlane::Impl : public IPlane {
       ss_( ss ),
       ts_( ts ),
       player_( player ) {
-    UNWRAP_CHECK( new_canvas,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const new_canvas = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     composition_ = recomposite_harbor_view( ss_, ts_, player_,
-                                            new_canvas.delta() );
+                                            new_canvas.size );
     canvas_      = new_canvas;
   }
 
@@ -97,12 +93,9 @@ struct HarborPlane::Impl : public IPlane {
   // resize event into the input queue that will then be automat-
   // ically picked up by all of the planes.
   void advance_state() override {
-    UNWRAP_CHECK( new_canvas,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const new_canvas = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window
@@ -139,12 +132,9 @@ struct HarborPlane::Impl : public IPlane {
   }
 
   void draw_stats( rr::Renderer& renderer ) const {
-    UNWRAP_CHECK( canvas,
-                  compositor::section(
-                      main_window_logical_rect(
-                          engine_.video(), engine_.window(),
-                          engine_.resolutions() ),
-                      compositor::e_section::normal ) );
+    auto const canvas = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     auto& nation       = nation_obj( player_.nation );
     string const stats = fmt::format(
         "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",

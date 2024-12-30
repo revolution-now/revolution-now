@@ -64,6 +64,10 @@ struct.console {
   _features { equality, validation }
 }
 
+struct.panel {
+  width 'int',
+}
+
 namespace "rn"
 
 struct.config_ui_t {
@@ -71,6 +75,7 @@ struct.config_ui_t {
   dialog_text 'config::ui::dialog_text',
   menus 'config::ui::menus',
   console 'config::ui::console',
+  panel 'config::ui::panel',
 }
 
 config.ui {}

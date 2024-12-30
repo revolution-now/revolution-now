@@ -13,7 +13,6 @@
 // Revolution Now
 #include "cheat.hpp"
 #include "co-wait.hpp"
-#include "compositor.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
 #include "iengine.hpp"
@@ -51,8 +50,6 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
-
 // FIXME FIXME FIXME
 //
 // The minimap is a huge performance drain since it is redrawn
@@ -73,12 +70,11 @@ struct PanelPlane::Impl : public IPlane {
   vector<IMenuServer::Deregistrar> dereg_;
 
   Rect rect() const {
-    UNWRAP_CHECK( res, compositor::section(
-                           main_window_logical_rect(
-                               engine_.video(), engine_.window(),
-                               engine_.resolutions() ),
-                           compositor::e_section::panel ) );
-    return res;
+    auto const r = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
+    return r.with_new_left_edge( r.right() -
+                                 config_ui.panel.width );
   }
 
   Rect mini_map_available_rect() const {

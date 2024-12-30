@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "compositor.hpp"
 #include "iengine.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
@@ -305,15 +304,11 @@ struct DifficultyScreen : public IPlane {
   }
 
   void recomposite() {
-    UNWRAP_RETURN_VOID_T(
-        auto const normal_area,
-        compositor::section(
-            main_window_logical_rect( engine_.video(),
-                                      engine_.window(),
-                                      engine_.resolutions() ),
-            compositor::e_section::normal ) );
+    auto const normal_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     if( normal_area.area() == 0 ) return;
-    layout_.resize_grid_for_screen_size( normal_area.delta() );
+    layout_.resize_grid_for_screen_size( normal_area.size );
   }
 
   void on_logical_resolution_changed( e_resolution ) override {}
@@ -321,13 +316,9 @@ struct DifficultyScreen : public IPlane {
   void advance_state() override { recomposite(); }
 
   gfx::size get_subrect_size() const {
-    auto const normal_area =
-        compositor::section(
-            main_window_logical_rect( engine_.video(),
-                                      engine_.window(),
-                                      engine_.resolutions() ),
-            compositor::e_section::normal )
-            .value_or( {} );
+    auto const normal_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     return ( normal_area / layout_.grid.size() )
         .delta()
         .to_gfx();
@@ -348,12 +339,9 @@ struct DifficultyScreen : public IPlane {
   }
 
   maybe<point> clicked_grid_square( point const p ) const {
-    UNWRAP_RETURN( normal_area,
-                   compositor::section(
-                       main_window_logical_rect(
-                           engine_.video(), engine_.window(),
-                           engine_.resolutions() ),
-                       compositor::e_section::normal ) );
+    auto const normal_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     if( normal_area.area() == 0 ) return nothing;
     gfx::size const subrect_size = get_subrect_size();
     point const block            = p / subrect_size;
@@ -364,13 +352,9 @@ struct DifficultyScreen : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    UNWRAP_RETURN_VOID_T(
-        auto const normal_area,
-        compositor::section(
-            main_window_logical_rect( engine_.video(),
-                                      engine_.window(),
-                                      engine_.resolutions() ),
-            compositor::e_section::normal ) );
+    auto const normal_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     if( normal_area.area() == 0 ) return;
     rr::Painter painter = renderer.painter();
 
