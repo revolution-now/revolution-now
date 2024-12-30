@@ -198,13 +198,14 @@ auto const kLayout_640x360 = [] {
 *****************************************************************/
 struct DifficultyScreen : public IPlane {
   // State
+  IEngine& engine_;
   wait_promise<maybe<e_difficulty>> result_ = {};
   Layout const* layout_                     = {};
   e_difficulty selected_           = e_difficulty::conquistador;
   maybe<e_difficulty> highlighted_ = nothing;
 
  public:
-  DifficultyScreen() {
+  DifficultyScreen( IEngine& engine ) : engine_( engine ) {
     // TODO
   }
 
@@ -404,11 +405,12 @@ struct DifficultyScreen : public IPlane {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<e_difficulty> choose_difficulty_screen_2( Planes& planes ) {
+wait<e_difficulty> choose_difficulty_screen_2( IEngine& engine,
+                                               Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
-  DifficultyScreen difficulty_screen;
+  DifficultyScreen difficulty_screen( engine );
   group.bottom = &difficulty_screen;
 
   co_return co_await difficulty_screen.run();

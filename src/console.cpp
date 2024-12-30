@@ -14,6 +14,7 @@
 #include "compositor.hpp"
 #include "deferred.hpp"
 #include "frame.hpp"
+#include "iengine.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
 #include "screen.hpp" // FIXME: remove
@@ -53,19 +54,23 @@ constexpr W kDividerWidth  = 1;
 
 struct ConsolePlane::Impl : public IPlane {
   // State.
+  IEngine& engine_;
   Terminal& terminal_;
   bool show_{ false };
   double show_percent_{ 0.0 };
   deferred<ui::LineEditorView> le_view_{};
   int history_index_{ 0 };
 
-  Impl( Terminal& terminal ) : terminal_( terminal ) {
+  Impl( IEngine& engine, Terminal& terminal )
+    : engine_( engine ), terminal_( terminal ) {
     // FIXME: move this into method that gets called when logical
     // window size changes and/or compositor layout changes.
-    UNWRAP_CHECK(
-        total_area,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::total ) );
+    UNWRAP_CHECK( total_area,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::total ) );
     le_view_.emplace(
         config_rn.console.font, total_area.w,
         []( string const& ) {}, config_ui.dialog_text.normal,
@@ -81,20 +86,24 @@ struct ConsolePlane::Impl : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     if( show_percent_ < .0001 ) return;
     rr::Painter painter = renderer.painter();
-    UNWRAP_CHECK(
-        console_rect,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::console ) );
+    UNWRAP_CHECK( console_rect,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::console ) );
     bool const mouse_over_console =
         is_mouse_over_rect( console_rect );
     bool const render_edit_box = mouse_over_console;
 
     Rect divider_rect = console_rect;
 
-    UNWRAP_CHECK(
-        total_area,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::total ) );
+    UNWRAP_CHECK( total_area,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::total ) );
 
     if( console_rect.h < total_area.h ) {
       // Console is either at the top or bottom.
@@ -282,9 +291,11 @@ struct ConsolePlane::Impl : public IPlane {
   }
 
   bool is_mouse_over_console() const {
-    maybe<Rect> rect =
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::console );
+    maybe<Rect> rect = compositor::section(
+        main_window_logical_rect( engine_.video(),
+                                  engine_.window(),
+                                  engine_.resolutions() ),
+        compositor::e_section::console );
     if( !rect.has_value() ) return false;
     return is_mouse_over_rect( *rect );
   }
@@ -300,8 +311,8 @@ IPlane& ConsolePlane::impl() { return *impl_; }
 
 ConsolePlane::~ConsolePlane() = default;
 
-ConsolePlane::ConsolePlane( Terminal& terminal )
-  : impl_( new Impl( terminal ) ) {}
+ConsolePlane::ConsolePlane( IEngine& engine, Terminal& terminal )
+  : impl_( new Impl( engine, terminal ) ) {}
 
 Terminal& ConsolePlane::terminal() { return impl_->terminal_; }
 

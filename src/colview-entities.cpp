@@ -23,6 +23,7 @@
 #include "construction.hpp"
 #include "damaged.hpp"
 #include "equip.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "interrupts.hpp"
 #include "land-production.hpp"
@@ -1936,13 +1937,15 @@ void update_production( SSConst const& ss,
   g_production = production_for_colony( ss, colony );
 }
 
-void set_colview_colony( SS& ss, TS& ts, Player& player,
-                         Colony& colony ) {
+void set_colview_colony( IEngine& engine, SS& ss, TS& ts,
+                         Player& player, Colony& colony ) {
   update_production( ss, colony );
   // TODO: compute squares around this colony that are being
   // worked by other colonies.
   UNWRAP_CHECK( normal, compositor::section(
-                            main_window_logical_rect(),
+                            main_window_logical_rect(
+                                engine.video(), engine.window(),
+                                engine.resolutions() ),
                             compositor::e_section::normal ) );
   recomposite( ss, ts, player, colony, normal.delta() );
 }

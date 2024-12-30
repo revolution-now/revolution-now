@@ -16,6 +16,7 @@
 #include "compositor.hpp"
 #include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
+#include "iengine.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -64,6 +65,7 @@ void check_selected_unit_in_harbor( SSConst const& ss,
 ** Harbor IPlane
 *****************************************************************/
 struct HarborPlane::Impl : public IPlane {
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   Player& player_;
@@ -74,12 +76,17 @@ struct HarborPlane::Impl : public IPlane {
 
   HarborViewComposited composition_;
 
-  Impl( SS& ss, TS& ts, Player& player )
-    : ss_( ss ), ts_( ts ), player_( player ) {
-    UNWRAP_CHECK(
-        new_canvas,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+  Impl( IEngine& engine, SS& ss, TS& ts, Player& player )
+    : engine_( engine ),
+      ss_( ss ),
+      ts_( ts ),
+      player_( player ) {
+    UNWRAP_CHECK( new_canvas,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::normal ) );
     composition_ = recomposite_harbor_view( ss_, ts_, player_,
                                             new_canvas.delta() );
     canvas_      = new_canvas;
@@ -90,10 +97,12 @@ struct HarborPlane::Impl : public IPlane {
   // resize event into the input queue that will then be automat-
   // ically picked up by all of the planes.
   void advance_state() override {
-    UNWRAP_CHECK(
-        new_canvas,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+    UNWRAP_CHECK( new_canvas,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::normal ) );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window
@@ -130,9 +139,12 @@ struct HarborPlane::Impl : public IPlane {
   }
 
   void draw_stats( rr::Renderer& renderer ) const {
-    UNWRAP_CHECK( canvas, compositor::section(
-                              main_window_logical_rect(),
-                              compositor::e_section::normal ) );
+    UNWRAP_CHECK( canvas,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::normal ) );
     auto& nation       = nation_obj( player_.nation );
     string const stats = fmt::format(
         "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
@@ -364,8 +376,9 @@ IPlane& HarborPlane::impl() { return *impl_; }
 
 HarborPlane::~HarborPlane() = default;
 
-HarborPlane::HarborPlane( SS& ss, TS& ts, Player& player )
-  : impl_( new Impl( ss, ts, player ) ) {}
+HarborPlane::HarborPlane( IEngine& engine, SS& ss, TS& ts,
+                          Player& player )
+  : impl_( new Impl( engine, ss, ts, player ) ) {}
 
 void HarborPlane::set_selected_unit( UnitId id ) {
   impl_->set_selected_unit( id );
@@ -378,13 +391,14 @@ wait<> HarborPlane::show_harbor_view() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( SS& ss, TS& ts, Player& player,
+wait<> show_harbor_view( IEngine& engine, SS& ss, TS& ts,
+                         Player& player,
                          maybe<UnitId> selected_unit ) {
   Planes& planes    = ts.planes;
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
-  HarborPlane harbor_plane( ss, ts, player );
+  HarborPlane harbor_plane( engine, ss, ts, player );
   check_selected_unit_in_harbor( ss, player );
   if( selected_unit.has_value() )
     harbor_plane.set_selected_unit( *selected_unit );

@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-runner.hpp"
+#include "iengine.hpp"
 #include "input.hpp"
 #include "macros.hpp"
 #include "moving-avg.hpp"
@@ -132,11 +133,9 @@ struct DeferredEvents {
 
 using InputReceivedFunc = base::function_ref<void()>;
 using FrameLoopBodyFunc = base::function_ref<void(
-    rr::Renderer&, Planes&, DeferredEvents&,
-    InputReceivedFunc )>;
+    IEngine&, Planes&, DeferredEvents&, InputReceivedFunc )>;
 
-void frame_loop_scheduler( wait<> const& what,
-                           rr::Renderer& renderer,
+void frame_loop_scheduler( IEngine& engine, wait<> const& what,
                            Planes& planes,
                            FrameLoopBodyFunc body ) {
   using namespace chrono;
@@ -160,7 +159,7 @@ void frame_loop_scheduler( wait<> const& what,
     frame_rate.tick();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
-    body( renderer, planes, deferred_events, on_input );
+    body( engine, planes, deferred_events, on_input );
     // ----------------------------------------------------------
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
@@ -193,9 +192,12 @@ static bool try_defer( DeferredEvents& deferred_events,
 }
 
 // Called once per frame.
-void frame_loop_body( rr::Renderer& renderer, Planes& planes,
+void frame_loop_body( IEngine& engine, Planes& planes,
                       DeferredEvents& deferred_events,
                       InputReceivedFunc input_received ) {
+  rr::Renderer& renderer =
+      engine.renderer_use_only_when_needed();
+
   // ----------------------------------------------------------
   // Step: Notify
 
@@ -216,17 +218,20 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   for( input::win_event_t const& event :
        deferred_events.window ) {
     auto const old_resolution =
-        main_window_named_logical_resolution();
+        main_window_named_logical_resolution(
+            engine.resolutions() );
     switch( event.type ) {
       using enum input::e_win_event_type;
       case resized:
-        on_main_window_resized( renderer );
+        on_main_window_resized( engine.video(), engine.window(),
+                                engine.resolutions(), renderer );
         break;
       case other:
         break;
     }
     auto const new_resolution =
-        main_window_named_logical_resolution();
+        main_window_named_logical_resolution(
+            engine.resolutions() );
     planes.get().input( event );
     run_all_coroutines();
     if( new_resolution.has_value() &&
@@ -241,8 +246,9 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
   // Step: Process deferred resolution events.
   for( input::resolution_event_t const& event :
        deferred_events.resolution ) {
-    on_logical_resolution_changed( renderer,
-                                   event.resolution.get() );
+    on_logical_resolution_changed(
+        engine.video(), engine.window(), renderer,
+        engine.resolutions(), event.resolution.get() );
     planes.get().input( event );
     run_all_coroutines();
     if( event.resolution.get().named.has_value() ) {
@@ -255,7 +261,7 @@ void frame_loop_body( rr::Renderer& renderer, Planes& planes,
 
   // ----------------------------------------------------------
   // Step: Get Input.
-  input::pump_event_queue();
+  input::pump_event_queue( engine );
 
   for( auto& q = input::event_queue(); !q.empty(); ) {
     input_received();
@@ -330,11 +336,10 @@ EventCountMap& event_counts() { return g_event_counts; }
 uint64_t total_frame_count() { return frame_rate.total_ticks(); }
 double avg_frame_rate() { return frame_rate.average(); }
 
-void frame_loop( Planes& planes, wait<> const& what,
-                 rr::Renderer& renderer ) {
+void frame_loop( IEngine& engine, Planes& planes,
+                 wait<> const& what ) {
   g_target_fps = config_gfx.target_frame_rate;
-  frame_loop_scheduler( what, renderer, planes,
-                        frame_loop_body );
+  frame_loop_scheduler( engine, what, planes, frame_loop_body );
   deinit_frame();
 }
 

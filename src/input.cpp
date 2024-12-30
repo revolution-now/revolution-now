@@ -14,6 +14,7 @@
 #include "input-impl.rds.hpp"
 
 // Revolution Now
+#include "iengine.hpp"
 #include "screen.hpp"
 #include "sdl.hpp"
 
@@ -108,7 +109,7 @@ mod_keys query_mod_keys( ::Uint8 const* sdl_keyboard_state ) {
 // that it is given as input) because it does things like get the
 // current mouse position, so the function signature might be a
 // bit decieving.
-event_t from_SDL( ::SDL_Event sdl_event ) {
+event_t from_SDL( IEngine& engine, ::SDL_Event sdl_event ) {
   event_t event;
 
   Coord mouse;
@@ -119,12 +120,12 @@ event_t from_SDL( ::SDL_Event sdl_event ) {
   ::SDL_GetMouseState( &mouse.x, &mouse.y );
 
   gfx::size const viewport_offset =
-      get_global_resolution()
+      get_global_resolution( engine )
           .member( &gfx::Resolution::viewport )
           .member( &gfx::rect::origin )
           .value_or( gfx::point{} )
           .distance_from_origin();
-  int const scale_factor = get_global_resolution()
+  int const scale_factor = get_global_resolution( engine )
                                .member( &gfx::Resolution::scale )
                                .value_or( 1 );
   mouse -= Delta::from_gfx( viewport_offset );
@@ -413,8 +414,8 @@ void copy_common_base_object( From const& from, To& to ) {
 
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
-void set_mouse_position( Coord new_pos ) {
-  int const scale_factor = get_global_resolution()
+void set_mouse_position( IEngine& engine, Coord new_pos ) {
+  int const scale_factor = get_global_resolution(engine)
                                .member( &gfx::Resolution::scale )
                                .value_or( 1 );
   new_pos.x *= scale_factor;
@@ -494,10 +495,10 @@ maybe<::SDL_Event> next_sdl_event() {
   return nothing;
 }
 
-maybe<event_t> next_event() {
+maybe<event_t> next_event( IEngine& engine ) {
   while( auto event = next_sdl_event() ) {
     if( !is_relevant_event_type( event->type ) ) continue;
-    return from_SDL( *event );
+    return from_SDL( engine, *event );
   }
   return nothing;
 }
@@ -507,8 +508,8 @@ std::queue<event_t> g_event_queue;
 
 } // namespace
 
-void pump_event_queue() {
-  while( auto event = input::next_event() )
+void pump_event_queue( IEngine& engine ) {
+  while( auto event = input::next_event( engine ) )
     if( g_event_queue.size() < kMaxEventQueueSize )
       g_event_queue.push( *event );
 }

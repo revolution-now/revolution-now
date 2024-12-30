@@ -36,7 +36,7 @@ namespace rn {
 /****************************************************************
 ** Coroutine entry point.
 *****************************************************************/
-wait<> revolution_now( Planes& planes ) {
+wait<> revolution_now( IEngine& engine, Planes& planes ) {
   lua::state st;
   lua_init( st );
   Terminal terminal( st );
@@ -48,9 +48,9 @@ wait<> revolution_now( Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
   MenuPlane menu_plane;
-  OmniPlane omni_plane( menu_plane );
-  ConsolePlane console_plane( terminal );
-  WindowPlane window_plane;
+  OmniPlane omni_plane( engine, menu_plane );
+  ConsolePlane console_plane( engine, terminal );
+  WindowPlane window_plane( engine );
   group.omni    = omni_plane;
   group.console = console_plane;
   group.window  = window_plane;
@@ -58,7 +58,7 @@ wait<> revolution_now( Planes& planes ) {
 
   RealGui gui( planes );
 
-  co_await run_main_menu( planes, gui );
+  co_await run_main_menu( engine, planes, gui );
 }
 
 } // namespace rn

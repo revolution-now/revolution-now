@@ -33,28 +33,4 @@ void check_SDL_compile_link_version(
     ::SDL_version const& link_version,
     ::SDL_version const& compiled_version );
 
-::SDL_Color color_from_pixel( SDL_PixelFormat* fmt,
-                              uint32_t pixel );
-
-::SDL_Point to_SDL( Coord const& coord );
-::SDL_Rect to_SDL( Rect const& rect );
-::SDL_Color to_SDL( gfx::pixel color );
-
-Coord from_SDL( ::SDL_Point const& p );
-gfx::pixel from_SDL( ::SDL_Color color );
-Rect from_SDL( ::SDL_Rect const& rect );
-
-/****************************************************************
-** OpenGL Specific.
-*****************************************************************/
-::SDL_GLContext init_SDL_for_OpenGL( ::SDL_Window* window );
-
-void sdl_gl_swap_window( ::SDL_Window* window );
-
-void close_SDL_for_OpenGL( ::SDL_GLContext context );
-
-// Only call this when the most recent SDL call made signaled an
-// error via its return code.
-std::string sdl_get_last_error();
-
 } // namespace rn

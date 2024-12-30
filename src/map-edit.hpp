@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct Planes;
 struct SS;
@@ -26,7 +27,7 @@ struct TS;
 ** MapEditPlane
 *****************************************************************/
 struct MapEditPlane {
-  MapEditPlane( SS& ss, TS& ts );
+  MapEditPlane( IEngine& engine, SS& ss, TS& ts );
   ~MapEditPlane();
 
   wait<> run_map_editor();
@@ -42,8 +43,9 @@ struct MapEditPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_map_editor( SS& ss, TS& ts );
+wait<> run_map_editor( IEngine& engine, SS& ss, TS& ts );
 
-wait<> run_map_editor_standalone( Planes& planes );
+wait<> run_map_editor_standalone( IEngine& engine,
+                                  Planes& planes );
 
 } // namespace rn

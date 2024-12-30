@@ -13,8 +13,6 @@
 // Revolution Now
 #include "config-files.hpp"
 #include "error.hpp"
-#include "init.hpp"
-#include "renderer.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -22,6 +20,7 @@
 
 // render
 #include "render/atlas.hpp"
+#include "render/renderer.hpp" // FIXME: remove
 
 // gfx
 #include "gfx/iter.hpp"
@@ -48,11 +47,15 @@ namespace {
 
 vector<int> cache;
 
-void init_sprites() {
-  // FIXME: need to find a better way to get the renderer to gen-
-  // erate the atlas ID cache.
-  rr::Renderer& renderer =
-      global_renderer_use_only_when_needed();
+int atlas_lookup( e_tile tile ) {
+  int idx = static_cast<int>( tile );
+  DCHECK( idx < int( cache.size() ) );
+  return cache[idx];
+}
+
+} // namespace
+
+void init_sprites( rr::Renderer& renderer ) {
   cache.resize( refl::enum_count<e_tile> );
   auto& atlas_ids = renderer.atlas_ids();
   int i           = 0;
@@ -63,18 +66,6 @@ void init_sprites() {
     cache[i++] = atlas_id;
   }
 }
-
-void cleanup_sprites() { cache.clear(); }
-
-int atlas_lookup( e_tile tile ) {
-  int idx = static_cast<int>( tile );
-  DCHECK( idx < int( cache.size() ) );
-  return cache[idx];
-}
-
-REGISTER_INIT_ROUTINE( sprites );
-
-} // namespace
 
 Delta sprite_size( e_tile tile ) {
   // FIXME: find a better way to do this. Maybe store it in the

@@ -20,10 +20,11 @@
 
 namespace rn {
 
+struct IEngine;
 struct IGui;
 struct Planes;
 
-wait<> run_game_with_mode( Planes& planes, IGui& gui,
-                           StartMode const& mode );
+wait<> run_game_with_mode( IEngine& engine, Planes& planes,
+                           IGui& gui, StartMode const& mode );
 
 } // namespace rn

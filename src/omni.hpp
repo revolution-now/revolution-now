@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct IMenuServer;
 
@@ -24,7 +25,7 @@ struct IMenuServer;
 ** OmniPlane
 *****************************************************************/
 struct OmniPlane {
-  OmniPlane( IMenuServer& menu_server );
+  OmniPlane( IEngine& engine, IMenuServer& menu_server );
   ~OmniPlane();
 
  private:

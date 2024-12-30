@@ -24,6 +24,7 @@ struct state;
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct Terminal;
 
@@ -31,7 +32,7 @@ struct Terminal;
 ** ConsolePlane
 *****************************************************************/
 struct ConsolePlane {
-  ConsolePlane( Terminal& terminal );
+  ConsolePlane( IEngine& engine, Terminal& terminal );
   ~ConsolePlane();
 
   Terminal& terminal();

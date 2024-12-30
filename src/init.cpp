@@ -37,8 +37,6 @@ namespace rn {
 
 namespace {
 
-bool g_init_finished{ false };
-
 auto& init_functions() {
   static unordered_map<e_init_routine, InitFunction>
       s_init_functions;
@@ -67,23 +65,6 @@ unordered_map<e_init_routine, vector<e_init_routine>>
                    {
                      e_init_routine::configs //
                    } },
-                 { e_init_routine::screen,
-                   {
-                     e_init_routine::configs, //
-                     e_init_routine::sdl      //
-                   } },
-                 { e_init_routine::renderer,
-                   {
-                     e_init_routine::configs, //
-                     e_init_routine::sdl,     //
-                     e_init_routine::screen   //
-                   } },
-                 { e_init_routine::sprites,
-                   {
-                     e_init_routine::configs, //
-                     e_init_routine::sdl,     //
-                     e_init_routine::renderer //
-                   } },
                  { e_init_routine::sound,
                    {
                      e_init_routine::configs, //
@@ -93,7 +74,6 @@ unordered_map<e_init_routine, vector<e_init_routine>>
                    {
                      e_init_routine::configs, //
                      e_init_routine::sdl,     //
-                     e_init_routine::screen   //
                    } },
                  { e_init_routine::tunes,
                    {
@@ -178,8 +158,6 @@ void run_all_init_routines(
          "there is a cycle in the dependency graph of "
          "initialization routine dependencies" );
 
-  CHECK( !g_init_finished );
-
   // Now that we know there are no cycles, let's create a DAG.
   // This would actually throw an error if there is a cycle, but
   // we'd rather catch it here above.
@@ -216,8 +194,6 @@ void run_all_init_routines(
       init_routine_run_map()[routine] = true;
     }
   }
-
-  g_init_finished = true;
 }
 
 void run_all_cleanup_routines() {
@@ -239,6 +215,11 @@ void run_all_cleanup_routines() {
   }
 }
 
-bool has_init_finished() { return g_init_finished; }
+void run_init_routine( IEngine&, e_init_routine routine ) {
+  g_init_has_started = true;
+  lg.info( "initializing: {}", routine );
+  init_functions()[routine]();
+  init_routine_run_map()[routine] = true;
+}
 
 } // namespace rn

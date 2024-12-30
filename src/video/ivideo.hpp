@@ -64,6 +64,16 @@ struct IVideo {
 
   virtual void set_window_size( WindowHandle const& wh,
                                 gfx::size sz ) = 0;
+
+  virtual RenderingBackendContext
+  init_window_for_rendering_backend(
+      WindowHandle const& wh,
+      RenderingBackendOptions const& options ) = 0;
+
+  virtual void free_rendering_backend_context(
+      RenderingBackendContext const& context ) = 0;
+
+  virtual void swap_double_buffer( WindowHandle const& wh ) = 0;
 };
 
 } // namespace vid

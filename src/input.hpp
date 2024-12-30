@@ -39,6 +39,10 @@ struct Resolution;
 struct SelectedResolution;
 }
 
+namespace rn {
+struct IEngine;
+}
+
 namespace rn::input {
 
 /****************************************************************
@@ -113,7 +117,8 @@ Coord current_mouse_position();
 // that it will do so by generating a mouse motion even, so the
 // mouse position won't immediately change until that event is
 // polled through the usual mechanism.
-[[deprecated]] void set_mouse_position( Coord new_pos );
+[[deprecated]] void set_mouse_position( IEngine& engine,
+                                        Coord new_pos );
 
 // Whether or not to show the system cursor when the mouse is
 // over the game window. This can be useful e.g. when the mouse
@@ -274,7 +279,7 @@ NOTHROW_MOVE( event_t );
 ** Event queue.
 *****************************************************************/
 // Grab all new events and put them into the queue.
-void pump_event_queue();
+void pump_event_queue( IEngine& engine );
 
 // Callers are responsible for popping used events.
 std::queue<event_t>& event_queue();

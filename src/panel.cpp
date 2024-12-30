@@ -16,6 +16,7 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "imenu-server.hpp"
 #include "mini-map.hpp"
@@ -64,15 +65,18 @@ namespace {} // namespace
 ** PanelPlane::Impl
 *****************************************************************/
 struct PanelPlane::Impl : public IPlane {
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<> w_promise;
   vector<IMenuServer::Deregistrar> dereg_;
 
-  static Rect rect() {
+  Rect rect() const {
     UNWRAP_CHECK( res, compositor::section(
-                           main_window_logical_rect(),
+                           main_window_logical_rect(
+                               engine_.video(), engine_.window(),
+                               engine_.resolutions() ),
                            compositor::e_section::panel ) );
     return res;
   }
@@ -87,7 +91,8 @@ struct PanelPlane::Impl : public IPlane {
     return mini_map_available_rect;
   }
 
-  Impl( SS& ss, TS& ts ) : ss_( ss ), ts_( ts ) {
+  Impl( IEngine& engine, SS& ss, TS& ts )
+    : engine_( engine ), ss_( ss ), ts_( ts ) {
     // Register menu handlers.
     dereg_.push_back(
         ts.planes.get().menu.typed().register_handler(
@@ -130,8 +135,8 @@ struct PanelPlane::Impl : public IPlane {
 
   void advance_state() override { view->advance_state(); }
 
-  static W panel_width() { return rect().w; }
-  static H panel_height() { return rect().h; }
+  W panel_width() const { return rect().w; }
+  H panel_height() const { return rect().h; }
 
   Delta delta() const {
     return { panel_width(), panel_height() };
@@ -302,8 +307,8 @@ IPlane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( SS& ss, TS& ts )
-  : impl_( new Impl( ss, ts ) ) {}
+PanelPlane::PanelPlane( IEngine& engine, SS& ss, TS& ts )
+  : impl_( new Impl( engine, ss, ts ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

@@ -17,9 +17,10 @@
 
 namespace rn {
 
+struct IEngine;
 struct SS;
 struct TS;
 
-wait<> turn_loop( SS& ss, TS& ts );
+wait<> turn_loop( IEngine& engine, SS& ss, TS& ts );
 
 } // namespace rn

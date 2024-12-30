@@ -26,11 +26,12 @@
 
 namespace rn {
 
+struct IEngine;
 struct Planes;
 
 // Will spin until the wait is ready.
-void frame_loop( Planes& planes, wait<> const& what,
-                 rr::Renderer& renderer );
+void frame_loop( IEngine& engine, Planes& planes,
+                 wait<> const& what );
 
 double avg_frame_rate();
 

@@ -38,6 +38,7 @@ struct TS;
 
 struct Colony;
 struct ColonyProduction;
+struct IEngine;
 struct IGui;
 struct Player;
 struct TerrainState;
@@ -124,8 +125,8 @@ void update_production( SSConst const& ss,
                         Colony const& colony );
 
 // Must be called before any other method in this module.
-void set_colview_colony( SS& ss, TS& ts, Player& player,
-                         Colony& colony );
+void set_colview_colony( IEngine& engine, SS& ss, TS& ts,
+                         Player& player, Colony& colony );
 
 void colview_drag_n_drop_draw(
     SS& ss, rr::Renderer& renderer,

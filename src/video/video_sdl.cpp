@@ -20,7 +20,8 @@
 #include "base/fmt.hpp"
 
 // TODO: replace this with a logging framework.
-#define LOG fmt::println
+#define LOG      fmt::println
+#define LOG_WARN fmt::println
 
 using namespace std;
 
@@ -39,14 +40,52 @@ constexpr auto kPixelFormat = ::SDL_PIXELFORMAT_RGBA8888;
 /****************************************************************
 ** Helpers
 *****************************************************************/
+// Only call this when the most recent SDL call made signaled an
+// error via its return code.
+string sdl_get_last_error() { return ::SDL_GetError(); }
+
+::SDL_GLContext init_SDL_for_OpenGL(
+    ::SDL_Window* window, bool const wait_for_vsync ) {
+  // These next lines are needed on macOS to get the window to
+  // appear (???).
+#ifdef __APPLE__
+  ::SDL_PumpEvents();
+  ::SDL_DisplayMode display_mode;
+  ::SDL_GetWindowDisplayMode( window, &display_mode );
+  ::SDL_SetWindowDisplayMode( window, &display_mode );
+#endif
+
+  ::SDL_GL_SetAttribute( SDL_GL_ACCELERATED_VISUAL, 1 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 3 );
+  ::SDL_GL_SetAttribute( SDL_GL_CONTEXT_PROFILE_MASK,
+                         SDL_GL_CONTEXT_PROFILE_CORE );
+
+  /* Turn on double buffering with a 24bit Z buffer.
+   * You may need to change this to 16 or 32 for your system */
+  ::SDL_GL_SetAttribute( SDL_GL_DOUBLEBUFFER, 1 );
+  ::SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 );
+
+  /* Create our opengl context and attach it to our window */
+  ::SDL_GLContext opengl_context =
+      ::SDL_GL_CreateContext( window );
+  CHECK( opengl_context, "failed to create OpenGL context: {}",
+         sdl_get_last_error() );
+
+  if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
+    LOG_WARN( "setting swap interval is not supported." );
+  return opengl_context;
+}
+
+void close_SDL_for_OpenGL( ::SDL_GLContext context ) {
+  ::SDL_GL_DeleteContext( context );
+  ::SDL_GL_UnloadLibrary();
+}
+
 ::SDL_Window* handle_for( WindowHandle const& wh ) {
   CHECK( wh.handle != nullptr );
   return static_cast<::SDL_Window*>( wh.handle );
 }
-
-// Only call this when the most recent SDL call made signaled an
-// error via its return code.
-string sdl_get_last_error() { return ::SDL_GetError(); }
 
 void log_video_stats() {
   float ddpi, hdpi, vdpi;
@@ -215,6 +254,28 @@ size VideoSDL::window_size( WindowHandle const& wh ) {
 void VideoSDL::set_window_size( WindowHandle const& wh,
                                 gfx::size sz ) {
   ::SDL_SetWindowSize( handle_for( wh ), sz.w, sz.h );
+}
+
+RenderingBackendContext
+VideoSDL::init_window_for_rendering_backend(
+    WindowHandle const& wh,
+    RenderingBackendOptions const& options ) {
+  ::SDL_GLContext const context = init_SDL_for_OpenGL(
+      handle_for( wh ), options.wait_for_vsync );
+  CHECK( context ); // should already have been checked.
+  return RenderingBackendContext{
+    .handle = static_cast<void*>( context ) };
+}
+
+void VideoSDL::free_rendering_backend_context(
+    RenderingBackendContext const& context ) {
+  CHECK( context.handle != nullptr );
+  close_SDL_for_OpenGL(
+      static_cast<::SDL_GLContext>( context.handle ) );
+}
+
+void VideoSDL::swap_double_buffer( WindowHandle const& wh ) {
+  ::SDL_GL_SwapWindow( handle_for( wh ) );
 }
 
 } // namespace vid

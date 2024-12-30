@@ -38,6 +38,7 @@ struct Renderer;
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct SSConst;
 struct WindowManager;
@@ -124,7 +125,7 @@ struct SelectBoxOption {
 // since it is intended only to be used to implement the IGui in-
 // terface, which is the more polished one.
 struct WindowPlane {
-  WindowPlane();
+  WindowPlane( IEngine& engine );
   ~WindowPlane();
 
   WindowManager& manager();

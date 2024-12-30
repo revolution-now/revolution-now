@@ -15,6 +15,7 @@
 #include "cheat.hpp"
 #include "co-combinator.hpp"
 #include "frame.hpp"
+#include "iengine.hpp"
 #include "imenu-server.hpp"
 #include "input.hpp"
 #include "plane.hpp"
@@ -26,6 +27,9 @@
 // config
 #include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+
+// video
+#include "video/window.hpp"
 
 // luapp
 #include "luapp/register.hpp"
@@ -142,13 +146,15 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
 //   4) Catching any global events (such as special key presses).
 //
 struct OmniPlane::Impl : public IPlane {
+  IEngine& engine_;
   bool show_game_cursor_ = true;
   co::stream<char> alt_key_seq;
   wait<> magic_key_seq_thread;
 
   vector<IMenuServer::Deregistrar> dereg_;
 
-  Impl( IMenuServer& menu_server ) {
+  Impl( IEngine& engine, IMenuServer& menu_server )
+    : engine_( engine ) {
     magic_key_seq_thread = run_alt_key_seq_monitor();
     for( auto const& [item, enabled] : kSupportedMenuItems )
       if( enabled )
@@ -168,14 +174,15 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   bool can_cycle_resolution_up() {
-    auto const idx = get_resolution_idx();
+    auto const idx = get_resolution_idx( engine_.resolutions() );
     CHECK_GE( *idx, 0 );
     return *idx > 0;
   }
 
   bool can_cycle_resolution_down() {
-    auto const size = get_resolution_cycle_size();
-    auto const idx  = get_resolution_idx();
+    auto const size =
+        get_resolution_cycle_size( engine_.resolutions() );
+    auto const idx = get_resolution_idx( engine_.resolutions() );
     CHECK_EQ( size.has_value(), idx.has_value() );
     if( !size.has_value() ) return false;
     CHECK_LT( *idx, *size );
@@ -189,7 +196,8 @@ struct OmniPlane::Impl : public IPlane {
       e_menu_item const item ) override {
     switch( item ) {
       case e_menu_item::scale_optimal: {
-        auto const idx = get_resolution_idx();
+        auto const idx =
+            get_resolution_idx( engine_.resolutions() );
         if( !idx.has_value() || *idx == 0 ) return false;
         break;
       }
@@ -202,7 +210,12 @@ struct OmniPlane::Impl : public IPlane {
         break;
       }
       case e_menu_item::fit_window: {
-        if( !can_shrink_window_to_fit() ) return false;
+        auto const resolution = get_global_resolution( engine_ );
+        if( !resolution.has_value() ) return false;
+        if( !vid::can_shrink_window_to_fit( engine_.video(),
+                                            engine_.window(),
+                                            *resolution ) )
+          return false;
         break;
       }
       default:
@@ -214,19 +227,22 @@ struct OmniPlane::Impl : public IPlane {
   void handle_menu_click( e_menu_item const item ) override {
     switch( item ) {
       case e_menu_item::scale_down:
-        cycle_resolution( -1 );
+        cycle_resolution( engine_.resolutions(), -1 );
         break;
       case e_menu_item::scale_optimal:
-        set_resolution_idx_to_optimal();
+        set_resolution_idx_to_optimal( engine_.resolutions() );
         break;
       case e_menu_item::scale_up:
-        cycle_resolution( 1 );
+        cycle_resolution( engine_.resolutions(), 1 );
         break;
       case e_menu_item::toggle_fullscreen:
         this->toggle_fullscreen();
         break;
       case e_menu_item::fit_window: {
-        shrink_window_to_fit();
+        UNWRAP_CHECK( resolution,
+                      get_global_resolution( engine_ ) );
+        vid::can_shrink_window_to_fit(
+            engine_.video(), engine_.window(), resolution );
         break;
       }
       default:
@@ -234,7 +250,9 @@ struct OmniPlane::Impl : public IPlane {
     }
   }
 
-  void toggle_fullscreen() const { rn::toggle_fullscreen(); }
+  void toggle_fullscreen() const {
+    vid::toggle_fullscreen( engine_.video(), engine_.window() );
+  }
 
   inline static auto SHADED_WOOD =
       gfx::pixel::wood().shaded( 8 );
@@ -255,8 +273,11 @@ struct OmniPlane::Impl : public IPlane {
 
   void render_bad_window_size_overlay(
       rr::Renderer& renderer ) const {
-    auto const physical_size   = main_window_physical_size();
-    auto const default_logical = main_window_logical_rect();
+    auto const physical_size = main_window_physical_size(
+        engine_.video(), engine_.window() );
+    auto const default_logical = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     tile_sprite( renderer, e_tile::hazard,
                  Rect::from_gfx( default_logical ) );
     vector<string> help_msg{
@@ -270,7 +291,7 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void render_resolution_info( rr::Renderer& renderer ) const {
-    auto const resolution = get_global_resolution();
+    auto const resolution = get_global_resolution( engine_ );
     if( !resolution.has_value() ) {
       render_bad_window_size_overlay( renderer );
       return;
@@ -281,9 +302,11 @@ struct OmniPlane::Impl : public IPlane {
 
     CHECK( resolution.has_value() );
     auto const monitor = monitor_properties(
-        main_window_physical_size(), monitor_dpi() );
+        main_window_physical_size( engine_.video(),
+                                   engine_.window() ),
+        monitor_dpi( engine_.video() ) );
     UNWRAP_CHECK_T( auto const scores,
-                    get_global_resolution_scores() );
+                    get_global_resolution_scores( engine_ ) );
     // Although this is a tolerance, it is not a rating option,
     // since it is not used to filter results, just to describe
     // them.
@@ -325,7 +348,7 @@ struct OmniPlane::Impl : public IPlane {
   void render_logical_resolution(
       rr::Renderer& renderer ) const {
     UNWRAP_CHECK_T( auto const& resolution,
-                    get_global_resolution() );
+                    get_global_resolution( engine_ ) );
 
     vector<string> lines;
     auto const log = line_logger( lines );
@@ -333,7 +356,10 @@ struct OmniPlane::Impl : public IPlane {
     log( "{}", resolution.logical );
 
     gfx::point const info_region_anchor =
-        main_window_logical_rect().ne();
+        main_window_logical_rect( engine_.video(),
+                                  engine_.window(),
+                                  engine_.resolutions() )
+            .ne();
 
     render_text_overlay_with_anchor(
         renderer, lines, info_region_anchor, e_cdirection::ne,
@@ -347,8 +373,8 @@ struct OmniPlane::Impl : public IPlane {
     render_logical_resolution( renderer );
   }
 
-  static bool window_too_small() {
-    return !get_global_resolution().has_value();
+  bool window_too_small() const {
+    return !get_global_resolution( engine_ ).has_value();
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -371,8 +397,9 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void update_system_cursor() {
-    auto const viewport = get_global_resolution().member(
-        &gfx::Resolution::viewport );
+    auto const viewport =
+        get_global_resolution( engine_ ).member(
+            &gfx::Resolution::viewport );
     if( !viewport.has_value() ) {
       input::set_show_system_cursor( true );
       show_game_cursor_ = false;
@@ -420,14 +447,14 @@ struct OmniPlane::Impl : public IPlane {
           case ::SDLK_MINUS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_down() )
-                cycle_resolution( -1 );
+                cycle_resolution( engine_.resolutions(), -1 );
               handled = e_input_handled::yes;
             }
             break;
           case ::SDLK_EQUALS:
             if( key_event.mod.ctrl_down ) {
               if( can_cycle_resolution_up() )
-                cycle_resolution( 1 );
+                cycle_resolution( engine_.resolutions(), 1 );
               handled = e_input_handled::yes;
             }
             break;
@@ -457,8 +484,8 @@ IPlane& OmniPlane::impl() { return *impl_; }
 
 OmniPlane::~OmniPlane() = default;
 
-OmniPlane::OmniPlane( IMenuServer& menu_server )
-  : impl_( new Impl( menu_server ) ) {}
+OmniPlane::OmniPlane( IEngine& engine, IMenuServer& menu_server )
+  : impl_( new Impl( engine, menu_server ) ) {}
 
 /****************************************************************
 ** Lua

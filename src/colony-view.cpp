@@ -19,6 +19,7 @@
 #include "compositor.hpp"
 #include "drag-drop.hpp"
 #include "icolony-evolve.rds.hpp"
+#include "iengine.hpp"
 #include "interrupts.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"
@@ -58,7 +59,8 @@ struct IMapUpdater;
 /****************************************************************
 ** Drawing
 *****************************************************************/
-void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
+void draw_colony_view( IEngine& engine, Colony const&,
+                       rr::Renderer& renderer ) {
   static gfx::pixel background_color =
       gfx::pixel::parse_from_hex( "f1cf81" ).value();
   renderer.painter().draw_solid_rect(
@@ -67,7 +69,9 @@ void draw_colony_view( Colony const&, rr::Renderer& renderer ) {
       background_color );
 
   UNWRAP_CHECK( canvas, compositor::section(
-                            main_window_logical_rect(),
+                            main_window_logical_rect(
+                                engine.video(), engine.window(),
+                                engine.resolutions() ),
                             compositor::e_section::normal ) );
 
   colview_top_level().view().draw( renderer,
@@ -132,6 +136,7 @@ void try_decrease_commodity( SS& ss, Colony& colony,
 ** Colony IPlane
 *****************************************************************/
 struct ColonyPlane : public IPlane {
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   Player& player_;
@@ -141,12 +146,13 @@ struct ColonyPlane : public IPlane {
   co::stream<input::event_t> input_           = {};
   maybe<DragState<ColViewObject>> drag_state_ = {};
 
-  ColonyPlane( SS& ss, TS& ts, Colony& colony )
-    : ss_( ss ),
+  ColonyPlane( IEngine& engine, SS& ss, TS& ts, Colony& colony )
+    : engine_( engine ),
+      ss_( ss ),
       ts_( ts ),
       player_( ss.players.players[colony.nation].value() ),
       colony_( colony ) {
-    set_colview_colony( ss_, ts_, player_, colony_ );
+    set_colview_colony( engine_, ss_, ts_, player_, colony_ );
   }
 
   // FIXME: find a better way to do this. One idea is that when
@@ -154,10 +160,12 @@ struct ColonyPlane : public IPlane {
   // resize event into the input queue that will then be automat-
   // ically picked up by all of the planes.
   void advance_state() override {
-    UNWRAP_CHECK(
-        new_canvas,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+    UNWRAP_CHECK( new_canvas,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::normal ) );
     if( new_canvas != canvas_ ) {
       canvas_ = new_canvas;
       // This is slightly hacky since this is not a real window
@@ -178,7 +186,7 @@ struct ColonyPlane : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    draw_colony_view( colony_, renderer );
+    draw_colony_view( engine_, colony_, renderer );
     if( drag_state_.has_value() )
       colview_drag_n_drop_draw( ss_, renderer, *drag_state_,
                                 canvas_.upper_left() );
@@ -286,7 +294,7 @@ struct ColonyPlane : public IPlane {
   wait<bool> handle_event( input::win_event_t const& event ) {
     if( event.type == input::e_win_event_type::resized )
       // Force a re-composite.
-      set_colview_colony( ss_, ts_, player_, colony_ );
+      set_colview_colony( engine_, ss_, ts_, player_, colony_ );
     co_return false;
   }
 
@@ -331,14 +339,15 @@ struct ColonyPlane : public IPlane {
 /****************************************************************
 ** ColonyViewer
 *****************************************************************/
-ColonyViewer::ColonyViewer( SS& ss ) : ss_( ss ) {}
+ColonyViewer::ColonyViewer( IEngine& engine, SS& ss )
+  : engine_( engine ), ss_( ss ) {}
 
 wait<> ColonyViewer::show_impl( TS& ts, Colony& colony ) {
   Planes& planes        = ts.planes;
   auto owner            = planes.push();
   PlaneGroup& new_group = owner.group;
 
-  ColonyPlane colony_plane( ss_, ts, colony );
+  ColonyPlane colony_plane( engine_, ss_, ts, colony );
   new_group.bottom = &colony_plane;
 
   lg.info( "viewing colony '{}'.", colony.name );

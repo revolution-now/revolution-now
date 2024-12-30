@@ -41,6 +41,15 @@ struct VideoSDL : IVideo {
 
   void set_window_size( WindowHandle const& wh,
                         gfx::size sz ) override;
+
+  RenderingBackendContext init_window_for_rendering_backend(
+      WindowHandle const& wh,
+      RenderingBackendOptions const& options ) override;
+
+  void free_rendering_backend_context(
+      RenderingBackendContext const& context ) override;
+
+  void swap_double_buffer( WindowHandle const& wh ) override;
 };
 
 static_assert( !std::is_abstract_v<VideoSDL> );

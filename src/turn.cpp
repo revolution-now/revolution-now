@@ -442,8 +442,8 @@ wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
 /****************************************************************
 ** Menu Handlers
 *****************************************************************/
-wait<> menu_handler( SS& ss, TS& ts, Player& player,
-                     e_menu_item item ) {
+wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
+                     Player& player, e_menu_item item ) {
   switch( item ) {
     case e_menu_item::exit: {
       co_await proceed_to_exit( ss, ts );
@@ -492,7 +492,7 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
       break;
     }
     case e_menu_item::harbor_view: {
-      co_await show_harbor_view( ss, ts, player,
+      co_await show_harbor_view( engine, ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -510,7 +510,7 @@ wait<> menu_handler( SS& ss, TS& ts, Player& player,
     }
     case e_menu_item::cheat_map_editor: {
       // Need to co_await so that the map_updater stays alive.
-      co_await run_map_editor( ss, ts );
+      co_await run_map_editor( engine, ss, ts );
       break;
     }
     case e_menu_item::cheat_edit_fathers: {
@@ -538,23 +538,24 @@ wait<e_menu_item> wait_for_menu_selection(
 ** Processing Player Input (End of Turn).
 *****************************************************************/
 wait<EndOfTurnResult> process_player_input_eot(
-    e_menu_item item, SS& ss, TS& ts, Player& player ) {
+    IEngine& engine, e_menu_item item, SS& ss, TS& ts,
+    Player& player ) {
   // In the future we might need to put logic here that is spe-
   // cific to the end-of-turn, but for now this is sufficient.
-  co_await menu_handler( ss, ts, player, item );
+  co_await menu_handler( engine, ss, ts, player, item );
   co_return EndOfTurnResult::not_done_yet{};
 }
 
 wait<EndOfTurnResult> process_player_input_eot(
-    LandViewPlayerInput const& input, SS& ss, TS& ts,
-    Player& player ) {
+    IEngine& engine, LandViewPlayerInput const& input, SS& ss,
+    TS& ts, Player& player ) {
   SWITCH( input ) {
     CASE( colony ) {
       co_await open_colony( ts, colony );
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( ss, ts, player,
+      co_await show_harbor_view( engine, ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -622,13 +623,15 @@ wait<EndOfTurnResult> process_player_input_eot(
   co_return EndOfTurnResult::not_done_yet{};
 }
 
-wait<EndOfTurnResult> process_player_input_eot( next_turn_t, SS&,
+wait<EndOfTurnResult> process_player_input_eot( IEngine&,
+                                                next_turn_t, SS&,
                                                 TS&, Player& ) {
   lg.debug( "end of turn button clicked." );
   co_return EndOfTurnResult::proceed{};
 }
 
-wait<EndOfTurnResult> process_input_eot( SS& ss, TS& ts,
+wait<EndOfTurnResult> process_input_eot( IEngine& engine, SS& ss,
+                                         TS& ts,
                                          Player& player ) {
   auto wait_for_button = co::fmap(
       [] λ( next_turn_t{} ), ts.planes.get()
@@ -649,35 +652,36 @@ wait<EndOfTurnResult> process_input_eot( SS& ss, TS& ts,
       std::move( wait_for_button ) //
   );
   co_return co_await base::visit(
-      command,
-      LC( process_player_input_eot( _, ss, ts, player ) ) );
+      command, LC( process_player_input_eot( engine, _, ss, ts,
+                                             player ) ) );
 }
 
 // Enters the EOT phase and processes a single input then re-
 // turns.
-wait<EndOfTurnResult> end_of_turn( SS& ss, TS& ts,
-                                   Player& player ) {
+wait<EndOfTurnResult> end_of_turn( IEngine& engine, SS& ss,
+                                   TS& ts, Player& player ) {
   // See comments above the autosave_if_needed function for why
   // we are putting this here and how it works.
   autosave_if_needed( ss, ts );
-  co_return co_await process_input_eot( ss, ts, player );
+  co_return co_await process_input_eot( engine, ss, ts, player );
 }
 
 /****************************************************************
 ** Processing Player Input (During Turn).
 *****************************************************************/
 wait<> process_player_input_normal_mode(
-    UnitId, e_menu_item item, SS& ss, TS& ts, Player& player,
-    NationTurnState::units& ) {
+    IEngine& engine, UnitId, e_menu_item item, SS& ss, TS& ts,
+    Player& player, NationTurnState::units& ) {
   // In the future we might need to put logic here that is spe-
   // cific to the mid-turn scenario, but for now this is suffi-
   // cient.
-  co_await menu_handler( ss, ts, player, item );
+  co_await menu_handler( engine, ss, ts, player, item );
 }
 
 wait<> process_player_input_normal_mode(
-    UnitId id, LandViewPlayerInput const& input, SS& ss, TS& ts,
-    Player& player, NationTurnState::units& nat_units ) {
+    IEngine& engine, UnitId id, LandViewPlayerInput const& input,
+    SS& ss, TS& ts, Player& player,
+    NationTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
   SWITCH( input ) {
@@ -695,7 +699,7 @@ wait<> process_player_input_normal_mode(
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( ss, ts, player,
+      co_await show_harbor_view( engine, ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -803,15 +807,15 @@ wait<LandViewPlayerInput> landview_player_input(
   co_return response;
 }
 
-wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
-                         Player& player,
+wait<> query_unit_input( IEngine& engine, UnitId id, SS& ss,
+                         TS& ts, Player& player,
                          NationTurnState::units& nat_units ) {
   auto command = co_await co::first(
       wait_for_menu_selection( ts.planes.get().menu ),
       landview_player_input( ss, ts, nat_units, id ) );
   co_await visit( command, [&]( auto const& action ) {
-    return process_player_input_normal_mode( id, action, ss, ts,
-                                             player, nat_units );
+    return process_player_input_normal_mode(
+        engine, id, action, ss, ts, player, nat_units );
   } );
   // A this point we should return because we want to in general
   // allow for the possibility and any action executed above
@@ -822,17 +826,17 @@ wait<> query_unit_input( UnitId id, SS& ss, TS& ts,
 /****************************************************************
 ** View Mode.
 *****************************************************************/
-wait<> process_player_input_view_mode( SS& ss, TS& ts,
-                                       Player& player,
+wait<> process_player_input_view_mode( IEngine& engine, SS& ss,
+                                       TS& ts, Player& player,
                                        NationTurnState::units&,
                                        e_menu_item const item ) {
   // In the future we might need to put logic here that is spe-
   // cific to view mode, but for now this is sufficient.
-  co_await menu_handler( ss, ts, player, item );
+  co_await menu_handler( engine, ss, ts, player, item );
 }
 
 wait<> process_player_input_view_mode(
-    SS& ss, TS& ts, Player& player,
+    IEngine& engine, SS& ss, TS& ts, Player& player,
     NationTurnState::units& nat_units,
     LandViewPlayerInput const& input ) {
   SWITCH( input ) {
@@ -842,7 +846,7 @@ wait<> process_player_input_view_mode(
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( ss, ts, player,
+      co_await show_harbor_view( engine, ss, ts, player,
                                  /*selected_unit=*/nothing );
       break;
     }
@@ -888,7 +892,8 @@ wait<> process_player_input_view_mode(
   co_return;
 }
 
-wait<> show_view_mode( SS& ss, TS& ts, Player& player,
+wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
+                       Player& player,
                        NationTurnState::units& nat_units,
                        ViewModeOptions options ) {
   lg.info( "entering view mode." );
@@ -902,8 +907,8 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
             .get_bottom<ILandViewPlane>()
             .show_view_mode( options ) );
     co_await visit( command, [&]( auto const& action ) {
-      return process_player_input_view_mode( ss, ts, player,
-                                             nat_units, action );
+      return process_player_input_view_mode(
+          engine, ss, ts, player, nat_units, action );
     } );
     using I = LandViewPlayerInput;
     bool const leave =
@@ -927,8 +932,8 @@ wait<> show_view_mode( SS& ss, TS& ts, Player& player,
 ** Advancing Units.
 *****************************************************************/
 // Returns true if the unit needs to ask the user for input.
-wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
-                         UnitId id ) {
+wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
+                         Player& player, UnitId id ) {
   IEuroMind& euro_mind = ts.euro_minds()[player.nation];
   Unit& unit           = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
@@ -971,7 +976,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
             "Our [{}] has finished its repairs in [{}].",
             unit.desc().name,
             nation_obj( player.nation ).harbor_city_name );
-        co_await show_harbor_view( ss, ts, player, unit.id() );
+        co_await show_harbor_view( engine, ss, ts, player,
+                                   unit.id() );
         co_return false;
       }
     }
@@ -1077,7 +1083,7 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
           co_await show_woodcut_if_needed(
               player, euro_mind,
               e_woodcut::cargo_from_the_new_world );
-        co_await show_harbor_view( ss, ts, player, id );
+        co_await show_harbor_view( engine, ss, ts, player, id );
         co_return false; // do not ask for orders.
       }
     }
@@ -1092,7 +1098,8 @@ wait<bool> advance_unit( SS& ss, TS& ts, Player& player,
   co_return true;
 }
 
-wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
+wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
+                            Player& player,
                             NationTurnState::units& nat_units,
                             deque<UnitId>& q ) {
   while( !q.empty() ) {
@@ -1110,7 +1117,7 @@ wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
     }
 
     bool should_ask =
-        co_await advance_unit( ss, ts, player, id );
+        co_await advance_unit( engine, ss, ts, player, id );
     if( !should_ask ) {
       q.pop_front();
       continue;
@@ -1125,14 +1132,16 @@ wait<> units_turn_one_pass( SS& ss, TS& ts, Player& player,
     // back to this line a few times in this while loop until we
     // get the order for the unit in question (unless the player
     // activates another unit).
-    co_await query_unit_input( id, ss, ts, player, nat_units );
+    co_await query_unit_input( engine, id, ss, ts, player,
+                               nat_units );
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
   }
 }
 
-wait<> units_turn( SS& ss, TS& ts, Player& player,
+wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
+                   Player& player,
                    NationTurnState::units& nat_units ) {
   auto& st = nat_units;
   auto& q  = st.q;
@@ -1144,7 +1153,7 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
     ViewModeOptions view_mode_options;
 
     auto const view_mode = [&]() -> wait<> {
-      co_await show_view_mode( ss, ts, player, nat_units,
+      co_await show_view_mode( engine, ss, ts, player, nat_units,
                                view_mode_options );
     };
 
@@ -1154,8 +1163,8 @@ wait<> units_turn( SS& ss, TS& ts, Player& player,
 
     while( true ) {
       try {
-        co_await units_turn_one_pass( ss, ts, player, nat_units,
-                                      q );
+        co_await units_turn_one_pass( engine, ss, ts, player,
+                                      nat_units, q );
         co_return;
       } catch( view_mode_interrupt const& e ) {
         view_mode_options = e.options;
@@ -1273,8 +1282,8 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 }
 
 // Processes the current state and returns the next state.
-wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
-                                        e_nation nation,
+wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
+                                        TS& ts, e_nation nation,
                                         NationTurnState& st ) {
   Player& player =
       player_for_nation_or_die( ss.players, nation );
@@ -1291,7 +1300,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       co_return NationTurnState::units{};
     }
     CASE( units ) {
-      co_await units_turn( ss, ts, player, units );
+      co_await units_turn( engine, ss, ts, player, units );
       CHECK( units.q.empty() );
       if( !units.skip_eot ) co_return NationTurnState::eot{};
       if( ss.settings.game_options
@@ -1302,7 +1311,7 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
       co_return NationTurnState::finish{};
     }
     CASE( eot ) {
-      SWITCH( co_await end_of_turn( ss, ts, player ) ) {
+      SWITCH( co_await end_of_turn( engine, ss, ts, player ) ) {
         CASE( not_done_yet ) {
           co_return NationTurnState::eot{};
         }
@@ -1321,14 +1330,14 @@ wait<NationTurnState> nation_turn_iter( SS& ss, TS& ts,
   }
 }
 
-wait<> nation_turn( SS& ss, TS& ts, e_nation nation,
-                    NationTurnState& st ) {
+wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
+                    e_nation nation, NationTurnState& st ) {
   if( !ss.players.players[nation].has_value() ) co_return;
   // TODO: Until we have AI.
   if( !ss.players.humans[nation] )
     st = NationTurnState::finished{};
   while( !st.holds<NationTurnState::finished>() )
-    st = co_await nation_turn_iter( ss, ts, nation, st );
+    st = co_await nation_turn_iter( engine, ss, ts, nation, st );
 }
 
 /****************************************************************
@@ -1360,7 +1369,8 @@ void start_of_turn_cycle( SS& ss ) {
 }
 
 // Processes teh current state and returns the next state.
-wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
+wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
+                                TS& ts ) {
   TurnState& turn  = ss.turn;
   TurnCycle& cycle = ss.turn.cycle;
   // The "visibility" here determines from whose point of view
@@ -1386,7 +1396,8 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
       co_return TurnCycle::nation{};
     }
     CASE( nation ) {
-      co_await nation_turn( ss, ts, nation.nation, nation.st );
+      co_await nation_turn( engine, ss, ts, nation.nation,
+                            nation.st );
       auto& ns  = refl::enum_values<e_nation>;
       auto next = base::find( ns, nation.nation ) + 1;
       if( next != ns.end() )
@@ -1402,12 +1413,12 @@ wait<TurnCycle> next_turn_iter( SS& ss, TS& ts ) {
 }
 
 // Runs through the various phases of a single turn.
-wait<> next_turn( SS& ss, TS& ts ) {
+wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
   ts.planes.get().get_bottom<ILandViewPlane>().start_new_turn();
   print_bar( '=', "[ Starting Turn ]" );
   while( !cycle.holds<TurnCycle::finished>() )
-    cycle = co_await next_turn_iter( ss, ts );
+    cycle = co_await next_turn_iter( engine, ss, ts );
   // The default-constructed cycle represents a new turn where
   // nothing yet has been done. Do this at the end of the cycle
   // so that we don't destroy the turn state after having loaded
@@ -1421,10 +1432,10 @@ wait<> next_turn( SS& ss, TS& ts ) {
 ** Turn State Advancement
 *****************************************************************/
 // Runs through multiple turns.
-wait<> turn_loop( SS& ss, TS& ts ) {
+wait<> turn_loop( IEngine& engine, SS& ss, TS& ts ) {
   while( true ) {
     try {
-      co_await next_turn( ss, ts );
+      co_await next_turn( engine, ss, ts );
     } catch( top_of_turn_loop const& ) {}
   }
 }

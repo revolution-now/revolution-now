@@ -17,8 +17,9 @@
 
 namespace rn {
 
+struct IEngine;
 struct Planes;
 
-wait<> lua_ui_test( Planes& planes );
+wait<> lua_ui_test( IEngine& engine, Planes& planes );
 
 } // namespace rn

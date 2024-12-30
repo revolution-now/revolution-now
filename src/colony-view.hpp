@@ -24,6 +24,7 @@
 namespace rn {
 
 struct Colony;
+struct IEngine;
 struct SS;
 struct TS;
 
@@ -49,7 +50,7 @@ struct ColonyViewer : IColonyViewer {
   // pendency, since the IColonyViewer is part of TS. Instead, we
   // take it explicitly in each method invidually where it is
   // needed.
-  ColonyViewer( SS& ss );
+  ColonyViewer( IEngine& engine, SS& ss );
 
   // Implement IColonyViewer.
   wait<e_colony_abandoned> show( TS& ts,
@@ -58,6 +59,7 @@ struct ColonyViewer : IColonyViewer {
  private:
   wait<> show_impl( TS& ts, Colony& colony );
 
+  IEngine& engine_;
   SS& ss_;
 };
 

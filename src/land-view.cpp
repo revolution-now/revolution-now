@@ -21,6 +21,7 @@
 #include "command.hpp"
 #include "compositor.hpp"
 #include "hidden-terrain.hpp"
+#include "iengine.hpp"
 #include "imap-updater.hpp"
 #include "imenu-server.hpp"
 #include "land-view-anim.hpp"
@@ -134,6 +135,7 @@ struct LastUnitInput {
 } // namespace
 
 struct LandViewPlane::Impl : public IPlane {
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   unique_ptr<IVisibility const> viz_;
@@ -205,8 +207,9 @@ struct LandViewPlane::Impl : public IPlane {
         e_menu_item::toggle_view_mode, *this ) );
   }
 
-  Impl( SS& ss, TS& ts, maybe<e_nation> nation )
-    : ss_( ss ),
+  Impl( IEngine& engine, SS& ss, TS& ts, maybe<e_nation> nation )
+    : engine_( engine ),
+      ss_( ss ),
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
       animator_( ss, ss.land_view.viewport, viz_ ) {
@@ -402,7 +405,10 @@ struct LandViewPlane::Impl : public IPlane {
 
     auto& menu_server        = ts_.planes.get().menu.typed();
     auto const selected_item = co_await menu_server.open_menu(
-        e_menu::land_view, main_window_logical_rect(),
+        e_menu::land_view,
+        main_window_logical_rect( engine_.video(),
+                                  engine_.window(),
+                                  engine_.resolutions() ),
         positions );
     if( !selected_item.has_value() ) co_return;
     menu_server.click_item( *selected_item );
@@ -617,10 +623,12 @@ struct LandViewPlane::Impl : public IPlane {
   ** Land View IPlane
   *****************************************************************/
   void advance_viewport_state() {
-    UNWRAP_CHECK(
-        viewport_rect_pixels,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::viewport ) );
+    UNWRAP_CHECK( viewport_rect_pixels,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::viewport ) );
 
     viewport().advance_state( viewport_rect_pixels );
 
@@ -706,10 +714,12 @@ struct LandViewPlane::Impl : public IPlane {
   void advance_state() override { advance_viewport_state(); }
 
   void draw( rr::Renderer& renderer ) const override {
-    UNWRAP_CHECK(
-        viewport_rect_pixels,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::viewport ) );
+    UNWRAP_CHECK( viewport_rect_pixels,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::viewport ) );
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
         viewport_rect_pixels, input_overrun_indicator_,
@@ -1182,7 +1192,9 @@ struct LandViewPlane::Impl : public IPlane {
         // then we are in business.
         UNWRAP_CHECK( viewport_rect_pixels,
                       compositor::section(
-                          main_window_logical_rect(),
+                          main_window_logical_rect(
+                              engine_.video(), engine_.window(),
+                              engine_.resolutions() ),
                           compositor::e_section::viewport ) );
         if( val.pos.is_inside( viewport_rect_pixels ) ) {
           if( val.wheel_delta < 0 )
@@ -1688,9 +1700,9 @@ IPlane& LandViewPlane::impl() { return *impl_; }
 
 LandViewPlane::~LandViewPlane() = default;
 
-LandViewPlane::LandViewPlane( SS& ss, TS& ts,
+LandViewPlane::LandViewPlane( IEngine& engine, SS& ss, TS& ts,
                               maybe<e_nation> visibility )
-  : impl_( new Impl( ss, ts, visibility ) ) {}
+  : impl_( new Impl( engine, ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
   return impl_->animator_.ensure_visible( coord.to_gfx() );

@@ -1,5 +1,6 @@
 #include "app-ctrl.hpp"
 #include "console.hpp"
+#include "engine.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
@@ -8,13 +9,11 @@
 #include "map-edit.hpp"
 #include "map-gen.hpp"
 #include "omni.hpp"
-#include "open-gl-test.hpp"
 #include "plane-stack.hpp"
-#include "renderer.hpp"
-#include "screen.hpp"
+#include "tiles.hpp" // FIXME
 #include "util.hpp"
 
-// Rds
+// rds
 #include "main.rds.hpp"
 
 // refl
@@ -24,6 +23,7 @@
 #include "base/cli-args.hpp"
 #include "base/error.hpp"
 #include "base/keyval.hpp"
+#include "base/scope-exit.hpp"
 
 using namespace std;
 using namespace base;
@@ -32,33 +32,44 @@ namespace rn {
 namespace {
 
 wait<> test_ui() { return make_wait<>(); }
-wait<> test_lua_ui( Planes& planes ) {
-  return rn::lua_ui_test( planes );
-}
-
-rr::Renderer& renderer() {
-  // This should be the only place where this function is called,
-  // save for one or two other (hopefully temporary) hacks.
-  return global_renderer_use_only_when_needed();
+wait<> test_lua_ui( IEngine& engine, Planes& planes ) {
+  return rn::lua_ui_test( engine, planes );
 }
 
 void full_init() { run_all_init_routines( e_log_level::debug ); }
 
 void run( e_mode mode ) {
   Planes planes;
+  Engine engine;
   switch( mode ) {
     case e_mode::game: {
-      full_init();
+      init_logger( e_log_level::debug );
+
+      run_init_routine( engine, e_init_routine::configs );
+      run_init_routine( engine, e_init_routine::sdl );
+
+      engine.init( e_engine_mode::game );
+
+      init_sprites( engine.renderer_use_only_when_needed() );
+      run_init_routine( engine, e_init_routine::compositor );
+      run_init_routine( engine, e_init_routine::sound );
+      run_init_routine( engine, e_init_routine::midiseq );
+      run_init_routine( engine, e_init_routine::tunes );
+      run_init_routine( engine, e_init_routine::midiplayer );
+      run_init_routine( engine, e_init_routine::oggplayer );
+      run_init_routine( engine, e_init_routine::conductor );
+
       print_bar( '-', "[ Starting Game ]" );
-      frame_loop( planes, revolution_now( planes ), renderer() );
+      frame_loop( engine, planes,
+                  revolution_now( engine, planes ) );
       print_bar( '-', "[ Shutting Down ]" );
       break;
     }
     case e_mode::map_editor: {
       full_init();
       print_bar( '-', "[ Starting Map Editor ]" );
-      frame_loop( planes, run_map_editor_standalone( planes ),
-                  renderer() );
+      frame_loop( engine, planes,
+                  run_map_editor_standalone( engine, planes ) );
       break;
     }
     case e_mode::map_gen: {
@@ -70,18 +81,13 @@ void run( e_mode mode ) {
     }
     case e_mode::test_ui: {
       full_init();
-      frame_loop( planes, test_ui(), renderer() );
+      frame_loop( engine, planes, test_ui() );
       break;
     }
     case e_mode::test_lua_ui: {
       full_init();
-      frame_loop( planes, rn::test_lua_ui( planes ),
-                  renderer() );
-      break;
-    }
-    case e_mode::gl_test: {
-      full_init();
-      open_gl_test();
+      frame_loop( engine, planes,
+                  rn::test_lua_ui( engine, planes ) );
       break;
     }
   }
@@ -110,7 +116,6 @@ int main( int argc, char** argv ) {
   try {
     run( mode );
   } catch( exception_exit const& ) {}
-  hide_window();
   run_all_cleanup_routines();
   return 0;
 }

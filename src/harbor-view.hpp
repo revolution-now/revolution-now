@@ -18,6 +18,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct Player;
 struct SS;
@@ -27,7 +28,7 @@ struct TS;
 ** ColonyPlane
 *****************************************************************/
 struct HarborPlane {
-  HarborPlane( SS& ss, TS& ts, Player& player );
+  HarborPlane( IEngine& engine, SS& ss, TS& ts, Player& player );
 
   ~HarborPlane();
 
@@ -46,7 +47,8 @@ struct HarborPlane {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> show_harbor_view( SS& ss, TS& ts, Player& player,
+wait<> show_harbor_view( IEngine& engine, SS& ss, TS& ts,
+                         Player& player,
                          maybe<UnitId> selected_unit );
 
 } // namespace rn

@@ -17,6 +17,7 @@
 #include "connectivity.hpp"
 #include "gui.hpp" // FIXME
 #include "icombat.hpp"
+#include "iengine.hpp"
 #include "ieuro-mind.hpp" // FIXME
 #include "imenu-server.hpp"
 #include "inative-mind.hpp" // FIXME
@@ -31,8 +32,7 @@
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "plow.hpp"
-#include "rand.hpp"     // FIXME
-#include "renderer.hpp" // FIXME
+#include "rand.hpp" // FIXME
 #include "road.hpp"
 #include "screen.hpp"   // FIXME: remove
 #include "terminal.hpp" // FIXME
@@ -134,6 +134,7 @@ refl::enum_map<editor::e_toolbar_item, ToolbarItem>
 ** Map Editor IPlane
 *****************************************************************/
 struct MapEditPlane::Impl : public IPlane {
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
 
@@ -152,8 +153,12 @@ struct MapEditPlane::Impl : public IPlane {
         e_menu_item::restore_zoom, *this ) );
   }
 
-  Impl( SS& ss, TS& ts )
-    : ss_( ss ), ts_( ts ), input_{}, selected_tool_{} {
+  Impl( IEngine& engine, SS& ss, TS& ts )
+    : engine_( engine ),
+      ss_( ss ),
+      ts_( ts ),
+      input_{},
+      selected_tool_{} {
     register_menu_items( ts_.planes.get().menu );
     // This is done to initialize the viewport with info about
     // the viewport size that cannot be known while it is being
@@ -381,7 +386,9 @@ struct MapEditPlane::Impl : public IPlane {
 
 Rect MapEditPlane::Impl::toolbar_rect() const {
   UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(),
+                          main_window_logical_rect(
+                              engine_.video(), engine_.window(),
+                              engine_.resolutions() ),
                           compositor::e_section::viewport ) );
   rect.h = g_tile_delta.h;
   return rect;
@@ -397,7 +404,9 @@ wait<> MapEditPlane::Impl::click_on_toolbar( Coord tile ) {
 
 Rect MapEditPlane::Impl::viewport_rect() const {
   UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(),
+                          main_window_logical_rect(
+                              engine_.video(), engine_.window(),
+                              engine_.resolutions() ),
                           compositor::e_section::viewport ) );
   Delta toolbar_size = toolbar_rect().delta();
   rect.h -= toolbar_size.h;
@@ -605,7 +614,9 @@ void MapEditPlane::Impl::render_toolbar(
 void MapEditPlane::Impl::render_sidebar(
     rr::Renderer& renderer ) const {
   UNWRAP_CHECK( rect, compositor::section(
-                          main_window_logical_rect(),
+                          main_window_logical_rect(
+                              engine_.video(), engine_.window(),
+                              engine_.resolutions() ),
                           compositor::e_section::panel ) );
   rr::Painter painter = renderer.painter();
   painter.draw_solid_rect(
@@ -620,8 +631,8 @@ IPlane& MapEditPlane::impl() { return *impl_; }
 
 MapEditPlane::~MapEditPlane() = default;
 
-MapEditPlane::MapEditPlane( SS& ss, TS& ts )
-  : impl_( new Impl( ss, ts ) ) {}
+MapEditPlane::MapEditPlane( IEngine& engine, SS& ss, TS& ts )
+  : impl_( new Impl( engine, ss, ts ) ) {}
 
 wait<> MapEditPlane::run_map_editor() {
   lg.info( "entering map editor." );
@@ -632,12 +643,13 @@ wait<> MapEditPlane::run_map_editor() {
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_map_editor_standalone( Planes& planes ) {
+wait<> run_map_editor_standalone( IEngine& engine,
+                                  Planes& planes ) {
   // FIXME: this duplicates initialization code in app-ctrl.
   SS ss;
   Delta size{ .w = 100, .h = 100 };
   RenderingMapUpdater map_updater(
-      ss, global_renderer_use_only_when_needed(),
+      ss, engine.renderer_use_only_when_needed(),
       MapUpdaterOptions{} );
   reset_terrain( map_updater, size );
   ss.land_view.viewport.set_world_size_tiles( size );
@@ -648,11 +660,11 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   SCOPE_EXIT { set_console_terminal( nullptr ); };
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
-  WindowPlane window_plane;
+  WindowPlane window_plane( engine );
   RealGui gui( planes );
   Rand rand;
   TrappingCombat combat;
-  ColonyViewer colony_viewer( ss );
+  ColonyViewer colony_viewer( engine, ss );
   TerrainConnectivity connectivity;
   NativeMinds native_minds;
   EuroMinds euro_minds;
@@ -661,13 +673,13 @@ wait<> run_map_editor_standalone( Planes& planes ) {
   auto _1 = ts.set_map_updater( map_updater );
   auto _2 = ts.set_native_minds( native_minds );
   auto _3 = ts.set_euro_minds( euro_minds );
-  co_await run_map_editor( ss, ts );
+  co_await run_map_editor( engine, ss, ts );
 }
 
-wait<> run_map_editor( SS& ss, TS& ts ) {
+wait<> run_map_editor( IEngine& engine, SS& ss, TS& ts ) {
   MenuPlane menu_plane;
-  MapEditPlane map_edit_plane( ss, ts );
-  WindowPlane window_plane;
+  MapEditPlane map_edit_plane( engine, ss, ts );
+  WindowPlane window_plane( engine );
 
   Planes& planes        = ts.planes;
   auto owner            = planes.push();

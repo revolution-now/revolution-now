@@ -13,13 +13,14 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "compositor.hpp"
+#include "iengine.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
 #include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "query-enum.hpp"
-#include "screen.hpp" // FIXME: remove
+#include "screen.hpp"
 #include "tiles.hpp"
 
 // config
@@ -29,6 +30,9 @@
 
 // ss
 #include "ss/difficulty.rds.hpp"
+
+// video
+#include "video/window.hpp"
 
 // render
 #include "render/extra.hpp"
@@ -281,6 +285,7 @@ void draw_info_box_contents( rr::Renderer& renderer,
 *****************************************************************/
 struct DifficultyScreen : public IPlane {
   // State
+  IEngine& engine_;
   wait_promise<maybe<e_difficulty>> result_ = {};
   DifficultyLayout layout_                  = {};
 
@@ -288,7 +293,7 @@ struct DifficultyScreen : public IPlane {
   int const kPaddingWidth = 4;
 
  public:
-  DifficultyScreen() {
+  DifficultyScreen( IEngine& engine ) : engine_( engine ) {
     using namespace gfx;
     layout_.grid                     = Delta{ .w = 1, .h = 1 };
     layout_.grid[{ .x = 0, .y = 0 }] = e_difficulty::discoverer;
@@ -302,8 +307,11 @@ struct DifficultyScreen : public IPlane {
   void recomposite() {
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+        compositor::section(
+            main_window_logical_rect( engine_.video(),
+                                      engine_.window(),
+                                      engine_.resolutions() ),
+            compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return;
     layout_.resize_grid_for_screen_size( normal_area.delta() );
   }
@@ -314,8 +322,11 @@ struct DifficultyScreen : public IPlane {
 
   gfx::size get_subrect_size() const {
     auto const normal_area =
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal )
+        compositor::section(
+            main_window_logical_rect( engine_.video(),
+                                      engine_.window(),
+                                      engine_.resolutions() ),
+            compositor::e_section::normal )
             .value_or( {} );
     return ( normal_area / layout_.grid.size() )
         .delta()
@@ -337,10 +348,12 @@ struct DifficultyScreen : public IPlane {
   }
 
   maybe<point> clicked_grid_square( point const p ) const {
-    UNWRAP_RETURN(
-        normal_area,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+    UNWRAP_RETURN( normal_area,
+                   compositor::section(
+                       main_window_logical_rect(
+                           engine_.video(), engine_.window(),
+                           engine_.resolutions() ),
+                       compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return nothing;
     gfx::size const subrect_size = get_subrect_size();
     point const block            = p / subrect_size;
@@ -353,8 +366,11 @@ struct DifficultyScreen : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     UNWRAP_RETURN_VOID_T(
         auto const normal_area,
-        compositor::section( main_window_logical_rect(),
-                             compositor::e_section::normal ) );
+        compositor::section(
+            main_window_logical_rect( engine_.video(),
+                                      engine_.window(),
+                                      engine_.resolutions() ),
+            compositor::e_section::normal ) );
     if( normal_area.area() == 0 ) return;
     rr::Painter painter = renderer.painter();
 
@@ -567,11 +583,12 @@ struct DifficultyScreen : public IPlane {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<e_difficulty> choose_difficulty_screen( Planes& planes ) {
+wait<e_difficulty> choose_difficulty_screen( IEngine& engine,
+                                             Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
-  DifficultyScreen difficulty_screen;
+  DifficultyScreen difficulty_screen( engine );
   group.bottom = &difficulty_screen;
 
   e_difficulty const difficulty =

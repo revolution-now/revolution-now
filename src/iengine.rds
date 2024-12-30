@@ -1,19 +1,15 @@
 # ===============================================================
-# main.rds
+# iengine.rds
 #
 # Project: Revolution Now
 #
-# Created by dsicilia on 2022-03-21.
+# Created by David P. Sicilia on 2024-12-27.
 #
-# Description: Rds definitions for the main module.
+# Description: Rds definitions for the iengine module.
 #
 # ===============================================================
 namespace "rn"
 
-enum.e_mode {
-  game,
-  map_editor,
-  map_gen,
-  test_ui,
-  test_lua_ui,
-}
+# enum.e_engine_mode {
+#   map_editor
+# }

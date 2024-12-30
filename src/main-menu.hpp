@@ -15,12 +15,14 @@
 
 namespace rn {
 
-struct Planes;
+struct IEngine;
 struct IGui;
+struct Planes;
 
 /****************************************************************
 ** API
 *****************************************************************/
-wait<> run_main_menu( Planes& planes, IGui& gui );
+wait<> run_main_menu( IEngine& engine, Planes& planes,
+                      IGui& gui );
 
 } // namespace rn

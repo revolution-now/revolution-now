@@ -18,6 +18,7 @@
 #include "compositor.hpp"
 #include "error.hpp"
 #include "game-ui-views.hpp"
+#include "iengine.hpp"
 #include "input.hpp"
 #include "logger.hpp"
 #include "plane.hpp"
@@ -96,6 +97,8 @@ Delta const& window_padding() {
 *****************************************************************/
 struct WindowManager {
  public:
+  WindowManager( IEngine& engine ) : engine_( engine ) {}
+
   struct PositionedWindow {
     Window* win = nullptr;
     Coord pos   = {};
@@ -123,9 +126,12 @@ struct WindowManager {
   int num_windows() const { return windows_.size(); }
 
   void center_window( Window const& win ) {
-    UNWRAP_CHECK( area, compositor::section(
-                            main_window_logical_rect(),
-                            compositor::e_section::normal ) );
+    UNWRAP_CHECK( area,
+                  compositor::section(
+                      main_window_logical_rect(
+                          engine_.video(), engine_.window(),
+                          engine_.resolutions() ),
+                      compositor::e_section::normal ) );
     find_window( win ).pos = centered( win.delta(), area );
   }
 
@@ -175,6 +181,8 @@ struct WindowManager {
   auto& transient_messages() { return transient_messages_; }
 
  private:
+  IEngine& engine_;
+
   wait<> process_transient_messages();
 
   // Gets the window with focus, throws if no windows.
@@ -216,7 +224,7 @@ struct WindowManager {
 ** WindowPlane::Impl
 *****************************************************************/
 struct WindowPlane::Impl : public IPlane {
-  Impl() = default;
+  Impl( IEngine& engine ) : engine_( engine ), wm( engine ) {}
 
   void advance_state() override { wm.advance_state(); }
 
@@ -251,6 +259,7 @@ struct WindowPlane::Impl : public IPlane {
   void on_logical_resolution_changed(
       gfx::e_resolution ) override {}
 
+  IEngine& engine_;
   WindowManager wm;
 };
 
@@ -363,7 +372,9 @@ void WindowManager::draw_layout( rr::Renderer& renderer ) const {
                              active_transient_message_->alpha );
     UNWRAP_CHECK(
         area, compositor::section(
-                  main_window_logical_rect(),
+                  main_window_logical_rect(
+                      engine_.video(), engine_.window(),
+                      engine_.resolutions() ),
                   compositor::e_section::viewport_and_panel ) );
     Delta const rendered_size =
         active_transient_message_->rendered_size;
@@ -520,7 +531,9 @@ void WindowManager::on_drag( input::mod_keys const& /*unused*/,
     Coord pos = position( *dragging_win_ );
     pos += ( current - prev );
     // Now prevent the window from being dragged off screen.
-    gfx::rect const total_area = main_window_logical_rect();
+    gfx::rect const total_area = main_window_logical_rect(
+        engine_.video(), engine_.window(),
+        engine_.resolutions() );
     pos.y = clamp( pos.y, 0, total_area.bottom() - 16 );
     pos.x = clamp( pos.x, 16 - focused().delta().w,
                    total_area.right() - 16 );
@@ -809,7 +822,8 @@ IPlane& WindowPlane::impl() { return *impl_; }
 
 WindowPlane::~WindowPlane() = default;
 
-WindowPlane::WindowPlane() : impl_( new Impl() ) {}
+WindowPlane::WindowPlane( IEngine& engine )
+  : impl_( new Impl( engine ) ) {}
 
 WindowManager& WindowPlane::manager() { return impl_->wm; }
 

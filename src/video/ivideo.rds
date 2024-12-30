@@ -31,3 +31,11 @@ struct.WindowOptions {
   start_fullscreen 'bool',
   title 'std::string',
 }
+
+struct.RenderingBackendContext {
+  handle 'void*',
+}
+
+struct.RenderingBackendOptions {
+  wait_for_vsync 'bool',
+}

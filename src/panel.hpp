@@ -17,6 +17,7 @@
 
 namespace rn {
 
+struct IEngine;
 struct IPlane;
 struct SS;
 struct TS;
@@ -25,7 +26,7 @@ struct TS;
 ** PanelPlane
 *****************************************************************/
 struct PanelPlane {
-  PanelPlane( SS& ss, TS& ts );
+  PanelPlane( IEngine& engine, SS& ss, TS& ts );
   ~PanelPlane();
 
   wait<> wait_for_eot_button_click();
