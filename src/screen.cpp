@@ -127,14 +127,13 @@ maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video ) {
   return processed.dpi;
 }
 
-maybe<gfx::Resolution const&> get_global_resolution(
-    IEngine& engine ) {
+maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
   auto const& selected = engine.resolutions().selected;
   if( !selected.available ) return nothing;
   return selected.rated.resolution;
 }
 
-maybe<gfx::ResolutionScores const&> get_global_resolution_scores(
+maybe<gfx::ResolutionScores const&> get_resolution_scores(
     IEngine& engine ) {
   auto const& resolutions = engine.resolutions();
   auto const& selected    = resolutions.selected;

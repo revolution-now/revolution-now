@@ -209,7 +209,7 @@ struct OmniPlane::Impl : public IPlane {
         break;
       }
       case e_menu_item::fit_window: {
-        auto const resolution = get_global_resolution( engine_ );
+        auto const resolution = get_resolution( engine_ );
         if( !resolution.has_value() ) return false;
         if( !vid::can_shrink_window_to_fit( engine_.video(),
                                             engine_.window(),
@@ -238,8 +238,7 @@ struct OmniPlane::Impl : public IPlane {
         this->toggle_fullscreen();
         break;
       case e_menu_item::fit_window: {
-        UNWRAP_CHECK( resolution,
-                      get_global_resolution( engine_ ) );
+        UNWRAP_CHECK( resolution, get_resolution( engine_ ) );
         vid::can_shrink_window_to_fit(
             engine_.video(), engine_.window(), resolution );
         break;
@@ -290,7 +289,7 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void render_resolution_info( rr::Renderer& renderer ) const {
-    auto const resolution = get_global_resolution( engine_ );
+    auto const resolution = get_resolution( engine_ );
     if( !resolution.has_value() ) {
       render_bad_window_size_overlay( renderer );
       return;
@@ -305,7 +304,7 @@ struct OmniPlane::Impl : public IPlane {
                                    engine_.window() ),
         monitor_dpi( engine_.video() ) );
     UNWRAP_CHECK_T( auto const scores,
-                    get_global_resolution_scores( engine_ ) );
+                    get_resolution_scores( engine_ ) );
     // Although this is a tolerance, it is not a rating option,
     // since it is not used to filter results, just to describe
     // them.
@@ -347,7 +346,7 @@ struct OmniPlane::Impl : public IPlane {
   void render_logical_resolution(
       rr::Renderer& renderer ) const {
     UNWRAP_CHECK_T( auto const& resolution,
-                    get_global_resolution( engine_ ) );
+                    get_resolution( engine_ ) );
 
     vector<string> lines;
     auto const log = line_logger( lines );
@@ -373,7 +372,7 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   bool window_too_small() const {
-    return !get_global_resolution( engine_ ).has_value();
+    return !get_resolution( engine_ ).has_value();
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -396,9 +395,8 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void update_system_cursor() {
-    auto const viewport =
-        get_global_resolution( engine_ ).member(
-            &gfx::Resolution::viewport );
+    auto const viewport = get_resolution( engine_ ).member(
+        &gfx::Resolution::viewport );
     if( !viewport.has_value() ) {
       input::set_show_system_cursor( true );
       show_game_cursor_ = false;

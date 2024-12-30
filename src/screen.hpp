@@ -39,11 +39,10 @@ namespace rn {
 
 struct IEngine;
 
-maybe<gfx::Resolution const&> get_global_resolution(
-    IEngine& engine );
+maybe<gfx::Resolution const&> get_resolution( IEngine& engine );
 
 // TODO: temporary.
-maybe<gfx::ResolutionScores const&> get_global_resolution_scores(
+maybe<gfx::ResolutionScores const&> get_resolution_scores(
     IEngine& engine );
 
 // NOTE: you should not normally call this in most game code, in-

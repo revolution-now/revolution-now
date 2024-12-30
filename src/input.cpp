@@ -122,12 +122,12 @@ event_t from_SDL( IEngine& engine, ::SDL_Event sdl_event ) {
   ::SDL_GetMouseState( &mouse.x, &mouse.y );
 
   gfx::size const viewport_offset =
-      get_global_resolution( engine )
+      get_resolution( engine )
           .member( &gfx::Resolution::viewport )
           .member( &gfx::rect::origin )
           .value_or( gfx::point{} )
           .distance_from_origin();
-  int const scale_factor = get_global_resolution( engine )
+  int const scale_factor = get_resolution( engine )
                                .member( &gfx::Resolution::scale )
                                .value_or( 1 );
   mouse -= Delta::from_gfx( viewport_offset );
@@ -417,7 +417,7 @@ void copy_common_base_object( From const& from, To& to ) {
 Coord current_mouse_position() { return g_prev_mouse_pos; }
 
 void set_mouse_position( IEngine& engine, Coord new_pos ) {
-  int const scale_factor = get_global_resolution( engine )
+  int const scale_factor = get_resolution( engine )
                                .member( &gfx::Resolution::scale )
                                .value_or( 1 );
   new_pos.x *= scale_factor;
