@@ -68,7 +68,7 @@ void draw_colony_view( IEngine& engine, Colony const&,
       background_color );
   auto const canvas = main_window_logical_rect(
       engine.video(), engine.window(), engine.resolutions() );
-  colview_top_level().view().draw( renderer, canvas.ne() );
+  colview_top_level().view().draw( renderer, canvas.nw() );
 }
 
 /****************************************************************
