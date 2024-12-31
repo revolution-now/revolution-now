@@ -16,14 +16,17 @@
 // base
 #include "base/error.hpp"
 #include "base/fmt.hpp"
+#include "base/logger.hpp"
 
 using namespace std;
 
-// TODO: replace this with a logging framework.
-#define LOG_INFO fmt::println
-#define LOG_WARN fmt::println
-
 namespace sdl {
+
+namespace {
+
+using ::base::lg;
+
+}
 
 /****************************************************************
 ** Public API.
@@ -31,12 +34,12 @@ namespace sdl {
 void check_SDL_compile_link_version(
     string_view module_name, ::SDL_version const& link_version,
     ::SDL_version const& compiled_version ) {
-  LOG_INFO( "SDL {}: compiled with version: {}.{}.{}",
-            module_name, compiled_version.major,
-            compiled_version.minor, compiled_version.patch );
-  LOG_INFO( "SDL {}:  running with version: {}.{}.{}",
-            module_name, link_version.major, link_version.minor,
-            link_version.patch );
+  lg.info( "SDL {}: compiled with version: {}.{}.{}",
+           module_name, compiled_version.major,
+           compiled_version.minor, compiled_version.patch );
+  lg.info( "SDL {}:  running with version: {}.{}.{}",
+           module_name, link_version.major, link_version.minor,
+           link_version.patch );
   CHECK( compiled_version.major == link_version.major,
          "This game was compiled with a version of SDL {} whose "
          "major version number ({}) is different from the major "
@@ -45,7 +48,7 @@ void check_SDL_compile_link_version(
          link_version.major );
 
   if( compiled_version.minor != link_version.minor ) {
-    LOG_WARN(
+    lg.warn(
         "This game was compiled with a version of SDL {} whose "
         "minor version number ({}) is different from the minor "
         "version number of the runtime library ({})",
@@ -65,7 +68,7 @@ void init_sdl_base() {
   // See:
   // https://discourse.libsdl.org/t/a-couple-of-questions-regarding-batching-in-sdl-2-0-10/26453/3
   if( linked.minor == 0 && linked.patch < 10 )
-    LOG_WARN(
+    lg.warn(
         "SDL versions prior to 2.0.10 may not have GPU batching "
         "support; game may run slow." );
 

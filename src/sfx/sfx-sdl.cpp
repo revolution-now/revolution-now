@@ -23,11 +23,7 @@
 
 // base
 #include "base/fmt.hpp"
-
-// TODO: replace this with a logging framework.
-#define LOG_INFO  fmt::println
-#define LOG_WARN  fmt::println
-#define LOG_DEBUG fmt::println
+#include "base/logger.hpp"
 
 using namespace std;
 
@@ -35,20 +31,11 @@ namespace sfx {
 
 namespace {
 
+using ::base::lg;
 using ::refl::enum_map;
 using ::refl::enum_values;
 using ::rn::config_sound;
 using ::rn::e_sfx;
-
-/****************************************************************
-** Constants
-*****************************************************************/
-// TODO
-
-/****************************************************************
-** Helpers
-*****************************************************************/
-// TODO
 
 } // namespace
 
@@ -73,7 +60,7 @@ struct SfxSDL::Impl {
     CHECK( chunk != nullptr,
            "the {} sound effect has not been loaded.", sfx );
     if( ::Mix_PlayChannel( -1, chunk, 0 ) == -1 )
-      LOG_WARN( "unable to play sound effect {}", sfx );
+      lg.warn( "unable to play sound effect {}", sfx );
   }
 
   void load_all_sfx() {
@@ -121,15 +108,15 @@ struct SfxSDL::Impl {
            "unexpected: SDL Mixer audio has not been "
            "initialized." );
 
-    LOG_INFO( "opening audio with {} channels @ {}Hz.", channels,
-              frequency );
+    lg.info( "opening audio with {} channels @ {}Hz.", channels,
+             frequency );
 
     for( int i = 0; i < ::SDL_GetNumAudioDrivers(); ++i )
-      LOG_DEBUG( "audio driver #{}: {}", i,
-                 ::SDL_GetAudioDriver( i ) );
+      lg.debug( "audio driver #{}: {}", i,
+                ::SDL_GetAudioDriver( i ) );
 
-    LOG_INFO( "using audio driver: {}",
-              ::SDL_GetCurrentAudioDriver() );
+    lg.info( "using audio driver: {}",
+             ::SDL_GetCurrentAudioDriver() );
 
     // Set Volume for all channels.
     //

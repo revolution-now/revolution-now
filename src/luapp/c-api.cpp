@@ -12,6 +12,7 @@
 
 // base
 #include "base/error.hpp"
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 // Lua
@@ -30,6 +31,7 @@ namespace {
 
 static_assert( is_same_v<LuaKContext, lua_KContext> );
 
+using ::base::lg;
 using ::base::maybe;
 using ::base::nothing;
 
@@ -681,12 +683,12 @@ bool c_api::next( int idx ) noexcept {
 }
 
 void c_api::print_stack( string_view label ) noexcept {
-  fmt::print( "[{}] Lua Stack:\n", label );
+  lg.debug( "[{}] Lua Stack:\n", label );
   for( int i = stack_size(); i >= 1; --i ) {
     string s = tostring( i, nullptr );
     pop();
-    fmt::print( "  {: 2}. {}: {}\n", i - stack_size() - 1,
-                type_of( i ), s );
+    lg.debug( "  {: 2}. {}: {}\n", i - stack_size() - 1,
+              type_of( i ), s );
   }
 }
 

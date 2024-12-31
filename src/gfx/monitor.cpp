@@ -10,12 +10,16 @@
 *****************************************************************/
 #include "monitor.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 namespace gfx {
 
 namespace {
 
+using ::base::lg;
 using ::base::maybe;
 using ::base::nothing;
 
@@ -30,13 +34,12 @@ ProcessedMonitorDpi post_process_monitor_dpi(
   double hdpi = dpi.horizontal;
   double vdpi = dpi.vertical;
   double ddpi = dpi.diagonal;
-  res.info_logs.push_back( fmt::format(
+  lg.info(
       "raw monitor DPI: horizontal={}, vertical={}, diagonal={}",
-      hdpi, vdpi, ddpi ) );
+      hdpi, vdpi, ddpi );
   if( hdpi != vdpi )
-    res.warning_logs.push_back(
-        fmt::format( "horizontal DPI not equal to vertical DPI.",
-                     hdpi, vdpi ) );
+    lg.warn( "horizontal DPI not equal to vertical DPI.", hdpi,
+             vdpi );
 
   // The above function may not provide all of the components,
   // and/or it may return inconsistent or invalid components.
@@ -57,19 +60,18 @@ ProcessedMonitorDpi post_process_monitor_dpi(
   // let's nuke the cardinal one and hope that we'll be able to
   // recompute it below.
   if( bad( ddpi ) ) {
-    res.warning_logs.push_back( fmt::format(
-        "diagonal DPI is not available from hardware." ) );
+    lg.warn( "diagonal DPI is not available from hardware." );
   } else if( good( hdpi ) && hdpi <= ddpi ) {
-    res.warning_logs.push_back( fmt::format(
+    lg.warn(
         "horizontal DPI is less than diagonal DPI, thus one "
         "of them is inaccurate and must be discarded.  Will "
-        "assume that the diagonal one is accurate." ) );
+        "assume that the diagonal one is accurate." );
     hdpi = 0.0;
   } else if( good( vdpi ) && vdpi <= ddpi ) {
-    res.warning_logs.push_back( fmt::format(
+    lg.warn(
         "vertical DPI is less than diagonal DPI, thus one of "
         "them is inaccurate and must be discarded.  Will "
-        "assume that the diagonal one is accurate." ) );
+        "assume that the diagonal one is accurate." );
     vdpi = 0.0;
   }
 
@@ -82,14 +84,13 @@ ProcessedMonitorDpi post_process_monitor_dpi(
   bool const have_diagonal = good( ddpi );
 
   if( !have_cardinal )
-    res.warning_logs.push_back(
-        fmt::format( "neither horizontal nor vertical DPIs are "
-                     "available." ) );
+    lg.warn(
+        "neither horizontal nor vertical DPIs are "
+        "available." );
 
   if( !have_cardinal && !have_diagonal ) {
     // Can't do anything here;
-    res.warning_logs.push_back(
-        fmt::format( "no DPI information can be obtained." ) );
+    lg.warn( "no DPI information can be obtained." );
     return res;
   }
 
@@ -100,8 +101,8 @@ ProcessedMonitorDpi post_process_monitor_dpi(
   }
 
   if( !have_cardinal && have_diagonal ) {
-    res.warning_logs.push_back( fmt::format(
-        "cardinal DPI must be inferred from diagonal DPI." ) );
+    lg.warn(
+        "cardinal DPI must be inferred from diagonal DPI." );
     // Assume a square; won't be perfect, but good enough.
     res.dpi = MonitorDpi{ .horizontal = ddpi / 1.41421,
                           .vertical   = vdpi / 1.41421,
@@ -110,8 +111,8 @@ ProcessedMonitorDpi post_process_monitor_dpi(
   }
 
   if( have_cardinal && !have_diagonal ) {
-    res.warning_logs.push_back( fmt::format(
-        "diagonal DPI must be inferred from cardinal DPI." ) );
+    lg.warn(
+        "diagonal DPI must be inferred from cardinal DPI." );
     res.dpi = MonitorDpi{
       .horizontal = hdpi,
       .vertical   = vdpi,
@@ -119,8 +120,7 @@ ProcessedMonitorDpi post_process_monitor_dpi(
     return res;
   }
 
-  res.error_logs.push_back( fmt::format(
-      "something went wrong while computing DPI." ) );
+  lg.error( "something went wrong while computing DPI." );
   return res;
 }
 

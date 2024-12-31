@@ -14,6 +14,7 @@
 #include "base/error.hpp"
 #include "base/fmt.hpp"
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/macros.hpp"
 
 // base-util
@@ -53,6 +54,8 @@ namespace gl {
 
 namespace {
 
+using ::base::lg;
+
 template<typename T>
 auto handle_pointer( T&& arg ) {
   if constexpr( is_pointer_v<remove_cvref_t<T>> ) {
@@ -72,8 +75,8 @@ void log_gl_call( string_view name, string_view params ) {
   DCHECK( name.starts_with( "gl_" ) );
   if( base::find( no_log, name ) == no_log.end() ) return;
   string no_prefix( name.begin() + 3, name.end() );
-  fmt::print( "OpenGLWithLogger: gl{}( {} )\n", no_prefix,
-              params );
+  lg.trace( "OpenGLWithLogger: gl{}( {} )\n", no_prefix,
+            params );
 }
 
 } // namespace

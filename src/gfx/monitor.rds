@@ -28,9 +28,6 @@ struct.MonitorDpi {
 
 struct.ProcessedMonitorDpi {
   dpi 'base::maybe<MonitorDpi>',
-  info_logs 'std::vector<std::string>',
-  warning_logs 'std::vector<std::string>',
-  error_logs 'std::vector<std::string>',
 }
 
 struct.Monitor {

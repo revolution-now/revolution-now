@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "emitter.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 #ifndef NDEBUG
@@ -20,12 +23,14 @@ namespace rr {
 
 namespace {
 
+using ::base::lg;
+
 #ifdef TRACK_CAPACITY
 void log_capacity_change( bool on, long capacity_before,
                           long capacity_after ) {
   DCHECK( capacity_after >= capacity_before );
   if( on && capacity_after != capacity_before )
-    fmt::print(
+    lg.debug(
         "{}:{}:log: vertex buffer emitter capacity change: {} "
         "-> {} (factor of {} increase).\n",
         __FILE__, __LINE__, capacity_before, capacity_after,

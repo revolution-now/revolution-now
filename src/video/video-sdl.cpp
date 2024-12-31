@@ -18,10 +18,7 @@
 
 // base
 #include "base/fmt.hpp"
-
-// TODO: replace this with a logging framework.
-#define LOG_INFO fmt::println
-#define LOG_WARN fmt::println
+#include "base/logger.hpp"
 
 using namespace std;
 
@@ -29,6 +26,7 @@ namespace vid {
 
 namespace {
 
+using ::base::lg;
 using ::gfx::rect;
 using ::gfx::size;
 
@@ -73,7 +71,7 @@ string sdl_get_last_error() { return ::SDL_GetError(); }
          sdl_get_last_error() );
 
   if( ::SDL_GL_SetSwapInterval( wait_for_vsync ? 1 : 0 ) != 0 )
-    LOG_WARN( "setting swap interval is not supported." );
+    lg.warn( "setting swap interval is not supported." );
   return opengl_context;
 }
 
@@ -103,8 +101,8 @@ void log_video_stats() {
   //   more consistent, reliable, and clear.
   //
   ::SDL_GetDisplayDPI( 0, &ddpi, &hdpi, &vdpi );
-  LOG_INFO( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.",
-            ddpi, hdpi, vdpi );
+  lg.info( "GetDisplayDPI: {{ddpi={}, hdpi={}, vdpi={}}}.", ddpi,
+           hdpi, vdpi );
 
   SDL_DisplayMode dm;
 
@@ -115,23 +113,23 @@ void log_video_stats() {
   };
   (void)dm_to_str;
 
-  LOG_INFO( "default game pixel format: {}",
-            ::SDL_GetPixelFormatName( kPixelFormat ) );
+  lg.info( "default game pixel format: {}",
+           ::SDL_GetPixelFormatName( kPixelFormat ) );
 
   SDL_GetCurrentDisplayMode( 0, &dm );
-  LOG_INFO( "GetCurrentDisplayMode: {}", dm_to_str() );
+  lg.info( "GetCurrentDisplayMode: {}", dm_to_str() );
 
   SDL_GetDesktopDisplayMode( 0, &dm );
-  LOG_INFO( "GetDesktopDisplayMode: {}", dm_to_str() );
+  lg.info( "GetDesktopDisplayMode: {}", dm_to_str() );
 
   SDL_GetDisplayMode( 0, 0, &dm );
-  LOG_INFO( "GetDisplayMode: {}", dm_to_str() );
+  lg.info( "GetDisplayMode: {}", dm_to_str() );
 
   SDL_Rect r;
   SDL_GetDisplayBounds( 0, &r );
-  LOG_INFO( "GetDisplayBounds: {}",
-            rect{ .origin = { .x = r.x, .y = r.y },
-                  .size   = { .w = r.w, .h = r.h } } );
+  lg.info( "GetDisplayBounds: {}",
+           rect{ .origin = { .x = r.x, .y = r.y },
+                 .size   = { .w = r.w, .h = r.h } } );
 }
 
 } // namespace

@@ -119,12 +119,6 @@ maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video ) {
     }
     gfx::ProcessedMonitorDpi const processed =
         gfx::post_process_monitor_dpi( *dpi );
-    for( auto const& info : processed.info_logs )
-      lg.info( "{}", info );
-    for( auto const& warn : processed.warning_logs )
-      lg.info( "{}", warn );
-    for( auto const& err : processed.error_logs )
-      lg.info( "{}", err );
     return processed.dpi;
   }();
   return dpi;
