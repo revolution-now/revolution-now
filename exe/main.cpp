@@ -12,7 +12,6 @@
 #include "omni.hpp"
 #include "plane-stack.hpp"
 #include "tiles.hpp" // FIXME
-#include "util.hpp"
 
 // rds
 #include "main.rds.hpp"

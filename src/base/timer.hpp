@@ -24,16 +24,6 @@
 
 namespace base {
 
-namespace detail {
-
-// FIXME: temporary until we move logging into the base module.
-// This needs to be available at link time somewhere in the bi-
-// nary.
-void timer_logger_hook( std::string_view msg,
-                        std::source_location const& loc );
-
-}
-
 /****************************************************************
 ** ScopedTimer
 *****************************************************************/

@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// Revolution Now
-#include "util.hpp"
-
 // config
 #include "config/tile-enum-fwd.hpp"
 

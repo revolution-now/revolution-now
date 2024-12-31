@@ -13,7 +13,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "util.hpp"
 
 // C++ standard library
 #include <algorithm>

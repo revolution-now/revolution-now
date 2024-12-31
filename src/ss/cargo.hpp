@@ -19,7 +19,6 @@
 #include "error.hpp"
 #include "expect.hpp"
 #include "macros.hpp"
-#include "util.hpp"
 #include "variant.hpp"
 
 // gs
@@ -80,7 +79,7 @@ class CargoHold {
   auto begin() const { return o_.slots.begin(); }
   auto end() const { return o_.slots.end(); }
 
-  maybe<CargoSlot const&> at( int slot ) const;
+  base::maybe<CargoSlot const&> at( int slot ) const;
 
   CargoSlot const& operator[]( int idx ) const;
   std::vector<CargoSlot> const& slots() const {
@@ -88,26 +87,27 @@ class CargoHold {
   }
 
   template<typename T>
-  maybe<T const&> slot_holds_cargo_type( int idx ) const;
+  base::maybe<T const&> slot_holds_cargo_type( int idx ) const;
 
   // If there is a cargo item whose first (and possibly only)
   // slot is `idx`, it will be returned.
-  maybe<Cargo const&> cargo_starting_at_slot( int idx ) const;
+  base::maybe<Cargo const&> cargo_starting_at_slot(
+      int idx ) const;
   // If there is a cargo item that occupies the given slot either
   // as its first slot or subsequent slot, it will be returned,
   // alon with its first slot.
-  maybe<std::pair<Cargo const&, int>> cargo_covering_slot(
+  base::maybe<std::pair<Cargo const&, int>> cargo_covering_slot(
       int idx ) const;
 
   // If unit is in cargo, returns its slot index.
-  maybe<int> find_unit( UnitId id ) const;
+  base::maybe<int> find_unit( UnitId id ) const;
   // Returns all units in the cargo.
   std::vector<UnitId> units() const;
   // Returns all commodities (and slot indices) in the cargo un-
   // less a specific type is specified in which case it will be
   // limited to those.
   std::vector<std::pair<Commodity, int>> commodities(
-      maybe<e_commodity> type = nothing ) const;
+      base::maybe<e_commodity> type = base::nothing ) const;
 
   // Find the maximum quantity of the commodity of the given type
   // that can fit in the entire cargo hold (given its current
@@ -253,7 +253,7 @@ int CargoHold::count_items_of_type() const {
 }
 
 template<typename T>
-maybe<T const&> CargoHold::slot_holds_cargo_type(
+base::maybe<T const&> CargoHold::slot_holds_cargo_type(
     int idx ) const {
   CHECK( idx >= 0 && idx < slots_total() );
   return o_.slots[idx]

@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "logger.hpp"
 #include "macros.hpp"
-#include "util.hpp"
 
 // config
 #include "config/unit-type.rds.hpp"

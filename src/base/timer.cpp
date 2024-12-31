@@ -11,6 +11,7 @@
 #include "timer.hpp"
 
 // base
+#include "logger.hpp"
 #include "to-str-ext-chrono.hpp"
 
 using namespace std;
@@ -39,9 +40,8 @@ void ScopedTimer::log_segment_result( Segment const& segment,
   nanoseconds const d =
       std::max( 0ns, duration_cast<nanoseconds>(
                          segment.end - segment.start ) );
-  string const res = fmt::format(
-      "{}{}: {}", prefix, segment.label, format_duration( d ) );
-  detail::timer_logger_hook( res, segment.source_loc );
+  lg.debug( "{}{}: {}", prefix, segment.label,
+            format_duration( d ) );
 }
 
 ScopedTimer::~ScopedTimer() noexcept {

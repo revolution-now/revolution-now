@@ -3,23 +3,18 @@
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2018-12-07.
+* Created by David P. Sicilia on 2024-12-30.
 *
-* Description: Interface to logger
+* Description: The logger.
 *
 *****************************************************************/
 #include "logger.hpp"
 
-// Revolution Now
-#include "console.hpp"
-#include "error.hpp"
-#include "macros.hpp"
-#include "terminal.hpp"
-#include "util.hpp"
-
 // base
-#include "base/ansi.hpp"
-#include "base/fmt.hpp"
+#include "ansi.hpp"
+#include "env.hpp"
+#include "error.hpp"
+#include "fs.hpp"
 
 // C++ standard library
 #include <atomic>
@@ -29,7 +24,7 @@
 
 using namespace std;
 
-namespace rn {
+namespace base {
 
 /****************************************************************
 ** Log Level
@@ -78,12 +73,12 @@ struct ConsoleLogger final : public ILogger {
   void log( e_log_level target, std::string_view what,
             source_location const& ) override {
     if( target < global_log_level() ) return;
-    if( terminal_ )
+    if( log_fn_.has_value() )
       // Note that the console has its own mutex, so we don't
       // need to guard this.
-      terminal_->log( what );
+      ( *log_fn_ )( what );
   }
-  Terminal* terminal_ = nullptr;
+  maybe<TerminalLoggerFn> log_fn_;
 };
 
 namespace {
@@ -95,9 +90,9 @@ ConsoleLogger& console_logger_storage() {
 
 ILogger& console_logger() { return console_logger_storage(); }
 
-void set_console_terminal( Terminal* terminal ) {
-  // Could be nullptr or not.
-  console_logger_storage().terminal_ = terminal;
+void set_console_terminal( maybe<TerminalLoggerFn const&> fn ) {
+  // Could be nothing or not.
+  console_logger_storage().log_fn_ = fn;
 }
 
 /****************************************************************
@@ -202,16 +197,4 @@ void print_bar( char c, string_view msg ) {
   fmt::print( "{}", fmt_bar( c, msg ) );
 }
 
-} // namespace rn
-
-// FIXME: temporary until we move logging into the base module.
-// This needs to be available at link time somewhere in the bi-
-// nary.
-namespace base::detail {
-void timer_logger_hook( std::string_view msg,
-                        source_location const& loc );
-void timer_logger_hook( std::string_view msg,
-                        source_location const& loc ) {
-  ::rn::lg.log( rn::e_log_level::debug, msg, loc );
-}
-}
+} // namespace base

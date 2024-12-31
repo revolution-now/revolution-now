@@ -1,28 +1,29 @@
 /****************************************************************
-**util.cpp
+**env-test.cpp
 *
 * Project: Revolution Now
 *
-* Created by dsicilia on 2020-09-27.
+* Created by David P. Sicilia on 2024-12-30.
 *
-* Description: Unit tests for the src/util.* module.
+* Description: Unit tests for the base/env module.
 *
 *****************************************************************/
-#include "testing.hpp"
+#include "test/testing.hpp"
 
 // Under test.
-#include "src/util.hpp"
+#include "src/base/env.hpp"
 
 // Must be last.
-#include "catch-common.hpp"
+#include "test/catch-common.hpp" // IWYU pragma: keep
 
-namespace rn {
+namespace base {
 namespace {
 
 using namespace std;
 
-using Catch::Contains;
-
+/****************************************************************
+** Test Cases
+*****************************************************************/
 TEST_CASE( "[env] Set/Get env var" ) {
   REQUIRE( env_var( "abcdefghi" ) == nothing );
   set_env_var( "abcdefghi", "hello" );
@@ -43,4 +44,4 @@ TEST_CASE( "[env] Set/Get env var" ) {
 }
 
 } // namespace
-} // namespace rn
+} // namespace base

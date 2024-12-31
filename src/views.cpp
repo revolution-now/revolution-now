@@ -15,7 +15,6 @@
 #include "text.hpp"
 #include "tiles.hpp"
 #include "unit-flag.hpp"
-#include "util.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -42,7 +41,17 @@ using namespace std;
 
 namespace rn::ui {
 
-namespace {} // namespace
+namespace {
+
+template<typename Res, typename... T>
+std::vector<Res> params_to_vector( T&&... ts ) {
+  std::vector<Res> res;
+  res.reserve( sizeof...( T ) );
+  ( res.push_back( std::forward<T>( ts ) ), ... );
+  return res;
+}
+
+} // namespace
 
 /****************************************************************
 ** CompositeView

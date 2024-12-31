@@ -28,7 +28,6 @@
 #include "tiles.hpp"
 #include "ui.hpp"
 #include "unit-mgr.hpp"
-#include "util.hpp"
 #include "views.hpp"
 
 // config

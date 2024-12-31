@@ -1289,7 +1289,7 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
 
   SWITCH( st ) {
     CASE( not_started ) {
-      print_bar( '-', fmt::format( "[ {} ]", nation ) );
+      base::print_bar( '-', fmt::format( "[ {} ]", nation ) );
       co_await nation_start_of_turn( ss, ts, player );
       co_return NationTurnState::colonies{};
     }
@@ -1415,7 +1415,7 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
 wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
   TurnCycle& cycle = ss.turn.cycle;
   ts.planes.get().get_bottom<ILandViewPlane>().start_new_turn();
-  print_bar( '=', "[ Starting Turn ]" );
+  base::print_bar( '=', "[ Starting Turn ]" );
   while( !cycle.holds<TurnCycle::finished>() )
     cycle = co_await next_turn_iter( engine, ss, ts );
   // The default-constructed cycle represents a new turn where

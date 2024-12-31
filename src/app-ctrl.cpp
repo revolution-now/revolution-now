@@ -40,8 +40,10 @@ wait<> revolution_now( IEngine& engine, Planes& planes ) {
   lua::state st;
   lua_init( st );
   Terminal terminal( st );
-  set_console_terminal( &terminal );
-  SCOPE_EXIT { set_console_terminal( nullptr ); };
+  function<void( string_view )> const terminal_log =
+      [&]( string_view const msg ) { terminal.log( msg ); };
+  base::set_console_terminal( terminal_log );
+  SCOPE_EXIT { base::set_console_terminal( nothing ); };
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
 
