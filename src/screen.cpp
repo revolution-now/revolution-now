@@ -111,20 +111,23 @@ void set_pending_resolution(
 // post-process it to try as best as possible to to derive as
 // many DPI components as possible what it gives us.
 maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video ) {
-  auto const dpi = video.display_dpi();
-  if( !dpi.has_value() ) {
-    lg.warn( "could not get display dpi: {}", dpi.error() );
-    return nothing;
-  }
-  gfx::ProcessedMonitorDpi const processed =
-      gfx::post_process_monitor_dpi( *dpi );
-  for( auto const& info : processed.info_logs )
-    lg.info( "{}", info );
-  for( auto const& warn : processed.warning_logs )
-    lg.info( "{}", warn );
-  for( auto const& err : processed.error_logs )
-    lg.info( "{}", err );
-  return processed.dpi;
+  static auto const dpi = [&]() -> maybe<gfx::MonitorDpi> {
+    auto dpi = video.display_dpi();
+    if( !dpi.has_value() ) {
+      lg.warn( "could not get display dpi: {}", dpi.error() );
+      return nothing;
+    }
+    gfx::ProcessedMonitorDpi const processed =
+        gfx::post_process_monitor_dpi( *dpi );
+    for( auto const& info : processed.info_logs )
+      lg.info( "{}", info );
+    for( auto const& warn : processed.warning_logs )
+      lg.info( "{}", warn );
+    for( auto const& err : processed.error_logs )
+      lg.info( "{}", err );
+    return processed.dpi;
+  }();
+  return dpi;
 }
 
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
