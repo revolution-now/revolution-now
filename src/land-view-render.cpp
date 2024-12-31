@@ -379,7 +379,7 @@ void LandViewRenderer::render_units_impl() const {
     if( hit.contains( tile ) ) continue;
     hit.insert( tile );
     if( tiles_to_fade.contains( tile ) ) {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .25 );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .35 );
       render_units_on_square( tile, /*flags=*/false );
     } else {
       render_units_on_square( tile, /*flags=*/true );
@@ -667,7 +667,7 @@ void LandViewRenderer::render_colony_depixelate(
 // that they all end up visible and thus create a "zooming" ef-
 // fect.
 void LandViewRenderer::render_backdrop() const {
-  SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
+  SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.2 );
   auto const [shortest_side, longest_side] = [&] {
     Delta const delta = viewport_rect_pixels_.delta();
     int shortest_side = std::min( delta.w, delta.h );
@@ -922,7 +922,7 @@ void LandViewRenderer::render_non_entities() const {
 
     {
       // This is the shadow behind the land rectangle.
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.5 );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.4 );
       double const zoom = viewport_.get_zoom();
       int shadow_offset = 6;
       gfx::dpoint corner =
