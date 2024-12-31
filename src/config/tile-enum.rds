@@ -762,6 +762,12 @@ enum.e_tile {
   # Difficulty Screen.
   # =============================================================
   difficulty_scroll,
+  scroll_stencil,
+  discoverer,
+  explorer,
+  conquistador,
+  governor,
+  viceroy,
 
   # =============================================================
   # Testing

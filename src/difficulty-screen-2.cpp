@@ -77,6 +77,8 @@ struct DifficultyCell {
   pixel selected_color = {};
 
   std::string_view description_label = {};
+
+  e_tile character = {};
 };
 
 struct InstructionsCell {
@@ -103,6 +105,10 @@ struct Layout {
   // Same as above but for the "(easy)", "(hard)" labels.
   size center_for_description_label = {};
 
+  // The point, relative to the ne of the scroll, which will be
+  // the nw for the character sprites (including stencil).
+  size stencil_nw = {};
+
   InstructionsCell instructions_cell = {};
 
   enum_map<e_difficulty, DifficultyCell> cells = {};
@@ -117,6 +123,7 @@ auto const kLayout_640x360 = [] {
   l.selected_buffer              = { .w = 5, .h = 5 };
   l.center_for_label             = { .w = 63, .h = 20 };
   l.center_for_description_label = { .w = 63, .h = 146 };
+  l.stencil_nw                   = { .w = 10, .h = 26 };
 
   auto& instructions                  = l.instructions_cell;
   instructions.center_for_title_label = { .x = 320, .y = 65 };
@@ -133,6 +140,7 @@ auto const kLayout_640x360 = [] {
     auto& cell             = l.cells[discoverer];
     cell.label             = "Discoverer";
     cell.description_label = "(easiest)";
+    cell.character         = e_tile::discoverer;
     cell.scroll_origin     = { .x = 46, .y = 12 };
     cell.next[n]           = explorer;
     cell.next[e]           = viceroy;
@@ -146,6 +154,7 @@ auto const kLayout_640x360 = [] {
     auto& cell             = l.cells[explorer];
     cell.label             = "Explorer";
     cell.description_label = "(easy)";
+    cell.character         = e_tile::explorer;
     cell.scroll_origin     = { .x = 46, .y = 188 };
     cell.next[n]           = discoverer;
     cell.next[e]           = conquistador;
@@ -159,6 +168,7 @@ auto const kLayout_640x360 = [] {
     auto& cell             = l.cells[conquistador];
     cell.label             = "Conquistador";
     cell.description_label = "(moderate)";
+    cell.character         = e_tile::conquistador;
     cell.scroll_origin     = { .x = 260, .y = 188 };
     cell.next[n]           = conquistador;
     cell.next[e]           = governor;
@@ -172,6 +182,7 @@ auto const kLayout_640x360 = [] {
     auto& cell             = l.cells[governor];
     cell.label             = "Governor";
     cell.description_label = "(tough)";
+    cell.character         = e_tile::governor;
     cell.scroll_origin     = { .x = 473, .y = 188 };
     cell.next[n]           = viceroy;
     cell.next[e]           = explorer;
@@ -185,6 +196,7 @@ auto const kLayout_640x360 = [] {
     auto& cell             = l.cells[viceroy];
     cell.label             = "Viceroy";
     cell.description_label = "(toughest)";
+    cell.character         = e_tile::viceroy;
     cell.scroll_origin     = { .x = 473, .y = 12 };
     cell.next[n]           = governor;
     cell.next[e]           = discoverer;
@@ -258,6 +270,9 @@ struct DifficultyScreen : public IPlane {
     bool const this_highlighted = ( highlighted_ == difficulty );
     render_sprite( renderer, cell.scroll_origin,
                    e_tile::difficulty_scroll );
+    render_sprite_stencil(
+        renderer, cell.scroll_origin + l.stencil_nw,
+        e_tile::scroll_stencil, cell.character, pixel::black() );
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
