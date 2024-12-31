@@ -361,13 +361,28 @@ void Engine::init( e_engine_mode const mode ) {
       break;
     }
     case e_engine_mode::console: {
-      NOT_IMPLEMENTED;
+      impl().init_configs();
+      break;
     }
     case e_engine_mode::map_editor: {
-      NOT_IMPLEMENTED;
+      impl().init_configs();
+      impl().init_sdl_base();
+      impl().init_video();
+      impl().init_window();
+      impl().init_resolutions();
+      impl().init_renderer();
+      impl().init_sprites();
+      break;
     }
     case e_engine_mode::ui_test: {
-      NOT_IMPLEMENTED;
+      impl().init_configs();
+      impl().init_sdl_base();
+      impl().init_video();
+      impl().init_window();
+      impl().init_resolutions();
+      impl().init_renderer();
+      impl().init_sprites();
+      break;
     }
   }
 }
