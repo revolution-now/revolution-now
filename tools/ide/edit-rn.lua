@@ -127,16 +127,20 @@ local function find_all_modules()
   -- Extensions of files that, if found, mean that their stem
   -- should be added to the pool of module names.
   local EXTS = { '?pp', 'rds', 'vert', 'frag' }
+  local DIRS = { 'src', 'exe' }
   local rn = util.rn_root_dir()
   local modules = {}
-  local function add_glob( ext )
-    local files = glob( format( '%s/src/**/*.%s', rn, ext ) )
+  local function add_glob( dir, ext )
+    local files = glob( format( '%s/%s/**/*.%s', rn, dir, ext ) )
     for file in files:gmatch( '[^\r\n]+' ) do
-      local module_name = file:match( '.*/src/(.+)%..*' )
+      local module_name = file:match(
+                              format( '.*/%s/(.+)%%..*', dir ) )
       modules[module_name] = true
     end
   end
-  for _, ext in ipairs( EXTS ) do add_glob( ext ) end
+  for _, dir in ipairs( DIRS ) do
+    for _, ext in ipairs( EXTS ) do add_glob( dir, ext ) end
+  end
   local res = {}
   for k, _ in pairs( modules ) do table.insert( res, k ) end
   table.sort( res )

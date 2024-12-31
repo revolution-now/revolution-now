@@ -21,20 +21,20 @@ local insert = table.insert
 -----------------------------------------------------------------
 -- Private Functions.
 -----------------------------------------------------------------
-local function files( stem )
+local function files( dir, stem )
   local F = {}
-  F.cpp = format( 'src/%s.cpp', stem )
-  F.hpp = format( 'src/%s.hpp', stem )
-  F.rds = format( 'src/%s.rds', stem )
-  F.rds_impl = format( 'src/%s-impl.rds', stem )
-  F.rds_iface = format( 'src/i%s.rds', stem )
+  F.cpp = format( '%s/%s.cpp', dir, stem )
+  F.hpp = format( '%s/%s.hpp', dir, stem )
+  F.rds = format( '%s/%s.rds', dir, stem )
+  F.rds_impl = format( '%s/%s-impl.rds', dir, stem )
+  F.rds_iface = format( '%s/i%s.rds', dir, stem )
   F.test = format( 'test/%s-test.cpp', stem )
   return F
 end
 
 -- For large monitors.
-local function layout_wide( stem )
-  local F = files( stem )
+local function layout_wide( dir, stem )
+  local F = files( dir, stem )
   local plan = vsplit{
     {}, -- will be filled out.
     F.cpp, F.test,
@@ -53,8 +53,8 @@ local function layout_wide( stem )
 end
 
 -- For small monitors.
-local function layout_narrow( stem )
-  local F = files( stem )
+local function layout_narrow( dir, stem )
+  local F = files( dir, stem )
   local plan = vsplit{
     {}, -- will be filled out.
     F.cpp, F.test,
@@ -73,10 +73,12 @@ end
 -- Public API.
 -----------------------------------------------------------------
 function M.create( stem )
+  local dir = 'src'
+  if stem == 'main' then dir = 'exe' end
   if util.is_wide() then
-    return layout_wide( stem )
+    return layout_wide( dir, stem )
   else
-    return layout_narrow( stem )
+    return layout_narrow( dir, stem )
   end
 end
 
