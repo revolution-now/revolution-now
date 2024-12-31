@@ -167,4 +167,25 @@ void on_main_window_resized( vid::IVideo& video,
                                  resolutions, new_resolutions );
 }
 
+void change_resolution(
+    gfx::SelectedResolution const& selected_resolution ) {
+  input::inject_resolution_event( selected_resolution );
+}
+
+void change_resolution_to_named_if_available(
+    gfx::Resolutions const& resolutions,
+    e_resolution const target_named ) {
+  for( int idx = 0; idx < ssize( resolutions.ratings.available );
+       ++idx ) {
+    auto const selected = create_selected_available_resolution(
+        resolutions.ratings, idx );
+    if( selected.named == target_named ) {
+      change_resolution( selected );
+      return;
+    }
+  }
+  lg.error( "logical resolution {} is not available.",
+            target_named );
+}
+
 } // namespace rn

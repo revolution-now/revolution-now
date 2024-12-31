@@ -154,11 +154,6 @@ maybe<gfx::ResolutionScores const&> get_resolution_scores(
   return selected.rated.scores;
 }
 
-void set_pending_resolution(
-    gfx::SelectedResolution const& selected_resolution ) {
-  input::inject_resolution_event( selected_resolution );
-}
-
 void cycle_resolution( gfx::Resolutions const& resolutions,
                        int const delta ) {
   // Copy; cannot modify the global state directly.
@@ -175,7 +170,7 @@ void cycle_resolution( gfx::Resolutions const& resolutions,
   while( idx < 0 ) idx += available.size();
   idx %= available.size();
   CHECK_LT( idx, ssize( available ) );
-  set_pending_resolution( create_selected_available_resolution(
+  change_resolution( create_selected_available_resolution(
       curr.ratings, idx ) );
 }
 
@@ -183,7 +178,7 @@ void set_resolution_idx_to_optimal(
     gfx::Resolutions const& resolutions ) {
   auto const& curr = resolutions;
   if( curr.ratings.available.empty() ) return;
-  set_pending_resolution( create_selected_available_resolution(
+  change_resolution( create_selected_available_resolution(
       curr.ratings, /*idx=*/0 ) );
 }
 

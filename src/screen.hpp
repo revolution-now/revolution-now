@@ -69,4 +69,16 @@ void on_logical_resolution_changed(
 // turned.
 maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video );
 
+// This is the method that should be used whenever manually
+// changing the resolution because it does so properly by in-
+// jecting the resolution changes as an input message so that it
+// can be scheduled to go into effect at the top of a frame and
+// to cause the proper notifications to go out.
+void change_resolution(
+    gfx::SelectedResolution const& selected_resolution );
+
+void change_resolution_to_named_if_available(
+    gfx::Resolutions const& resolutions,
+    gfx::e_resolution const target_named );
+
 } // namespace rn
