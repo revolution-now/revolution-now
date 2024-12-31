@@ -11,14 +11,8 @@
 #include "screen.hpp"
 
 // Revolution Now
-#include "error.hpp"
 #include "iengine.hpp"
 #include "input.hpp"
-#include "tiles.hpp"
-
-// config
-#include "config/gfx.rds.hpp"
-#include "config/rn.rds.hpp"
 
 // render
 #include "render/renderer.hpp" // TODO: replace with IRenderer
@@ -31,21 +25,13 @@
 #include "refl/to-str.hpp"
 
 // gfx
-#include "gfx/logical.hpp"
 #include "gfx/monitor.hpp"
 #include "gfx/resolution.hpp"
 
 // base
-#include "base/lambda.hpp"
 #include "base/logger.hpp"
-#include "base/range-lite.hpp"
-
-// C++ standard library
-#include <cmath>
 
 using namespace std;
-
-namespace rl = ::base::rl;
 
 namespace rn {
 
