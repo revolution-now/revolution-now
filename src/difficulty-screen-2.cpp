@@ -15,6 +15,7 @@
 #include "input.hpp"
 #include "interrupts.hpp"
 #include "plane-stack.hpp"
+#include "screen.hpp"
 #include "tiles.hpp"
 
 // config
@@ -208,7 +209,9 @@ struct DifficultyScreen : public IPlane {
 
  public:
   DifficultyScreen( IEngine& engine ) : engine_( engine ) {
-    // TODO
+    if( auto const named = named_resolution( engine_ );
+        named.has_value() )
+      on_logical_resolution_changed( *named );
   }
 
   void on_logical_resolution_changed(

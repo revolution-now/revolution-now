@@ -111,6 +111,11 @@ maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
   return selected.rated.resolution;
 }
 
+maybe<gfx::e_resolution> named_resolution( IEngine& engine ) {
+  return resolution_from_size( main_window_logical_size(
+      engine.video(), engine.window(), engine.resolutions() ) );
+}
+
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
     gfx::Resolutions const& resolutions ) {

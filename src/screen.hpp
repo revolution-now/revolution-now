@@ -41,6 +41,8 @@ struct IEngine;
 
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine );
 
+maybe<gfx::e_resolution> named_resolution( IEngine& engine );
+
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
     gfx::Resolutions const& resolutions );
