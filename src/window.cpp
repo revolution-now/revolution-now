@@ -252,7 +252,10 @@ struct WindowPlane::Impl : public IPlane {
   }
 
   void on_logical_resolution_changed(
-      gfx::e_resolution ) override {}
+      gfx::e_resolution ) override {
+    for( auto const& pwin : wm.active_windows() )
+      wm.center_window( *pwin.win );
+  }
 
   IEngine& engine_;
   WindowManager wm;
