@@ -137,4 +137,11 @@ void play_request( IRand& rand, e_request request,
 // Testing
 void test();
 
+/****************************************************************
+** Initialization
+*****************************************************************/
+void init_conductor();
+
+void cleanup_conductor();
+
 } // namespace rn::conductor

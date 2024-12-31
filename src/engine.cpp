@@ -12,9 +12,12 @@
 
 // Revolution Now
 #include "color-cycle.hpp"
+#include "conductor.hpp"
 #include "logger.hpp"
+#include "midiplayer.hpp"
 #include "midiseq.hpp"
-#include "screen.hpp" // FIXME: remove
+#include "oggplayer.hpp"
+#include "screen.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
@@ -283,6 +286,27 @@ struct Engine::Impl {
 
   void deinit_midiseq() { midiseq::cleanup_midiseq(); }
 
+  // ============================================================
+  // OGG Music Player
+  // ============================================================
+  void init_oggplayer() { rn::init_oggplayer(); }
+
+  void deinit_oggplayer() { rn::cleanup_oggplayer(); }
+
+  // ============================================================
+  // MIDI Music Player
+  // ============================================================
+  void init_midiplayer() { rn::init_midiplayer(); }
+
+  void deinit_midiplayer() { rn::cleanup_midiplayer(); }
+
+  // ============================================================
+  // Conductor
+  // ============================================================
+  void init_conductor() { conductor::init_conductor(); }
+
+  void deinit_conductor() { conductor::cleanup_conductor(); }
+
  private:
   unique_ptr<vid::IVideo> video_;
   maybe<gfx::Resolutions> resolutions_;
@@ -318,6 +342,9 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_renderer();
       impl().init_sfx();
       impl().init_midiseq();
+      impl().init_oggplayer();
+      impl().init_midiplayer();
+      impl().init_conductor();
       break;
     }
     case e_engine_mode::unit_tests: {
@@ -343,6 +370,9 @@ void Engine::deinit() {
   impl().hide_window_if_visible();
 
   // Reverse order.
+  impl().deinit_conductor();
+  impl().deinit_midiplayer();
+  impl().deinit_oggplayer();
   impl().deinit_midiseq();
   impl().deinit_sfx();
   impl().deinit_renderer();

@@ -34,7 +34,7 @@ struct Renderer;
 namespace rn {
 
 /****************************************************************
-** Global Cache (FIXME: remove)
+** Global Cache (TODO: find a better way of doing this)
 *****************************************************************/
 void init_sprites( rr::Renderer& renderer );
 

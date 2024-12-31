@@ -17,6 +17,9 @@
 
 namespace rn {
 
+/****************************************************************
+** MidiSeqMusicPlayer
+*****************************************************************/
 // A MusicPlayer with a MIDI sequencer backend.
 class MidiSeqMusicPlayer : public MusicPlayer {
  public:
@@ -62,5 +65,12 @@ class MidiSeqMusicPlayer : public MusicPlayer {
   friend void init_midiplayer();
   maybe<TunePlayerInfo> last_played_tune_info_;
 };
+
+/****************************************************************
+** Initialization
+*****************************************************************/
+void init_midiplayer();
+
+void cleanup_midiplayer();
 
 } // namespace rn

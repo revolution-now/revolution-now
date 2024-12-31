@@ -11,7 +11,6 @@
 #include "error.hpp"
 
 // Revolution Now
-#include "init.hpp"
 #include "logger.hpp"
 #include "stacktrace.hpp"
 
@@ -26,6 +25,8 @@ using namespace std;
 namespace rn {
 namespace {
 
+base::maybe<base::function_ref<void() const>> g_cleanup_fn;
+
 void print_SDL_error() {
   string sdl_error = SDL_GetError();
   if( !sdl_error.empty() )
@@ -34,6 +35,11 @@ void print_SDL_error() {
 }
 
 } // namespace
+
+void register_cleanup_callback_on_abort(
+    base::maybe<base::function_ref<void() const>> fn ) {
+  g_cleanup_fn = fn;
+}
 
 void linker_dont_discard_module_error();
 void linker_dont_discard_module_error() {}
@@ -49,7 +55,7 @@ namespace base {
 void abort_with_backtrace_here( source_location /*loc*/ ) {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
-  rn::run_all_cleanup_routines();
+  if( rn::g_cleanup_fn.has_value() ) ( *rn::g_cleanup_fn )();
   print_stack_trace(
       here, ::rn::StackTraceOptions{ .skip_frames = 5 } );
   std::abort();
@@ -72,7 +78,7 @@ void abort_with_backtrace_here( source_location /*loc*/ ) {
 [[noreturn]] void c_abort_with_backtrace_here() {
   auto here = ::rn::stack_trace_here();
   rn::print_SDL_error();
-  rn::run_all_cleanup_routines();
+  if( rn::g_cleanup_fn.has_value() ) ( *rn::g_cleanup_fn )();
   print_stack_trace(
       here, ::rn::StackTraceOptions{
               .skip_frames = 3,

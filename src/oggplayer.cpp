@@ -11,7 +11,6 @@
 #include "oggplayer.hpp"
 
 // Revolution Now
-#include "init.hpp"
 #include "logger.hpp"
 
 // config
@@ -147,11 +146,6 @@ maybe<OggTune> load_tune( TuneId id ) {
   return OggTune( id, music );
 }
 
-void cleanup_oggplayer() {
-  stop_music_if_playing();
-  update_state_if_stopped();
-}
-
 } // namespace
 
 // Outside of anonymous namespace otherwise it apparently cannot
@@ -173,8 +167,9 @@ void init_oggplayer() {
   g_ogg_player = OggMusicPlayer{};
 }
 
-namespace {
-REGISTER_INIT_ROUTINE( oggplayer );
+void cleanup_oggplayer() {
+  stop_music_if_playing();
+  update_state_if_stopped();
 }
 
 /****************************************************************

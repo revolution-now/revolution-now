@@ -1,6 +1,7 @@
 #include "app-ctrl.hpp"
 #include "console.hpp"
 #include "engine.hpp"
+#include "error.hpp"
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
@@ -36,21 +37,20 @@ wait<> test_lua_ui( IEngine& engine, Planes& planes ) {
   return rn::lua_ui_test( engine, planes );
 }
 
-void full_init() { run_all_init_routines( e_log_level::debug ); }
-
 void run( e_mode mode ) {
   Planes planes;
   Engine engine;
+  auto const cleanup_engine_on_abort = [&] { engine.deinit(); };
+  register_cleanup_callback_on_abort( cleanup_engine_on_abort );
+  // If we are leaving this scope naturally then the engine will
+  // clean up itself; the callback is only for check failing.
+  SCOPE_EXIT { register_cleanup_callback_on_abort( nothing ); };
+  init_logger( e_log_level::debug );
   switch( mode ) {
     case e_mode::game: {
-      init_logger( e_log_level::debug );
-
       engine.init( e_engine_mode::game );
-
+      // FIXME
       init_sprites( engine.renderer_use_only_when_needed() );
-      run_init_routine( engine, e_init_routine::midiplayer );
-      run_init_routine( engine, e_init_routine::oggplayer );
-      run_init_routine( engine, e_init_routine::conductor );
 
       print_bar( '-', "[ Starting Game ]" );
       frame_loop( engine, planes,
@@ -59,24 +59,25 @@ void run( e_mode mode ) {
       break;
     }
     case e_mode::map_editor: {
-      full_init();
+      engine.init( e_engine_mode::map_editor );
       print_bar( '-', "[ Starting Map Editor ]" );
       frame_loop( engine, planes,
                   run_map_editor_standalone( engine, planes ) );
       break;
     }
     case e_mode::map_gen: {
+      engine.init( e_engine_mode::console );
       NOT_IMPLEMENTED;
       // ascii_map_gen();
       // break;
     }
     case e_mode::test_ui: {
-      full_init();
+      engine.init( e_engine_mode::ui_test );
       frame_loop( engine, planes, test_ui() );
       break;
     }
     case e_mode::test_lua_ui: {
-      full_init();
+      engine.init( e_engine_mode::ui_test );
       frame_loop( engine, planes,
                   rn::test_lua_ui( engine, planes ) );
       break;
@@ -107,6 +108,5 @@ int main( int argc, char** argv ) {
   try {
     run( mode );
   } catch( exception_exit const& ) {}
-  run_all_cleanup_routines();
   return 0;
 }

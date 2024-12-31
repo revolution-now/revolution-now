@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "frame.hpp"
-#include "init.hpp"
 #include "irand.hpp"
 #include "logger.hpp"
 #include "midiplayer.hpp"
@@ -36,6 +35,7 @@
 #include "base-util/algo.hpp"
 
 // C++ standard library
+#include <iostream>
 #include <unordered_set>
 
 using namespace std;
@@ -194,9 +194,29 @@ void register_requests() {
   }
 }
 
-/****************************************************************
-** Init / Cleanup
-*****************************************************************/
+unordered_map<e_conductor_event, vector<ConductorEventFunc>>&
+subscriptions() {
+  static unordered_map<e_conductor_event,
+                       vector<ConductorEventFunc>>
+      subs;
+  return subs;
+}
+
+void send_notifications( e_conductor_event event ) {
+  for( auto const& func : subscriptions()[event] ) func();
+}
+
+void silence_all_music_players() {
+  // Need fence() here?  Don't think so...
+  for( auto& mplayer : enabled_mplayers_ptrs() ) {
+    mplayer.stop();
+    auto capabilities = mplayer.capabilities();
+    if( capabilities.has_volume )
+      mplayer.set_volume( g_master_volume );
+  }
+}
+
+} // namespace
 
 void init_conductor() {
   // Generate a random playlist.
@@ -320,32 +340,6 @@ void cleanup_conductor() {
   g_mplayer_descs.clear();
   g_mplayers.clear();
 }
-
-unordered_map<e_conductor_event, vector<ConductorEventFunc>>&
-subscriptions() {
-  static unordered_map<e_conductor_event,
-                       vector<ConductorEventFunc>>
-      subs;
-  return subs;
-}
-
-void send_notifications( e_conductor_event event ) {
-  for( auto const& func : subscriptions()[event] ) func();
-}
-
-void silence_all_music_players() {
-  // Need fence() here?  Don't think so...
-  for( auto& mplayer : enabled_mplayers_ptrs() ) {
-    mplayer.stop();
-    auto capabilities = mplayer.capabilities();
-    if( capabilities.has_volume )
-      mplayer.set_volume( g_master_volume );
-  }
-}
-
-REGISTER_INIT_ROUTINE( conductor );
-
-} // namespace
 
 void play_request( IRand& rand, e_request request,
                    e_request_probability probability ) {

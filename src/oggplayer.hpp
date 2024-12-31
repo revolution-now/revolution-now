@@ -17,6 +17,9 @@
 
 namespace rn {
 
+/****************************************************************
+** OggMusicPlayer
+*****************************************************************/
 // A MusicPlayer with a MIDI sequencer backend.
 class OggMusicPlayer : public MusicPlayer {
  public:
@@ -66,5 +69,12 @@ class OggMusicPlayer : public MusicPlayer {
   OggMusicPlayer() = default;
   friend void init_oggplayer();
 };
+
+/****************************************************************
+** Initialization
+*****************************************************************/
+void init_oggplayer();
+
+void cleanup_oggplayer();
 
 } // namespace rn
