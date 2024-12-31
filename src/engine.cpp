@@ -13,10 +13,12 @@
 // Revolution Now
 #include "color-cycle.hpp"
 #include "conductor.hpp"
+#include "logger.hpp"
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
 #include "oggplayer.hpp"
 #include "screen.hpp"
+#include "tiles.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
@@ -48,9 +50,6 @@
 
 // refl
 #include "refl/to-str.hpp"
-
-// base
-#include "base/logger.hpp"
 
 using namespace std;
 
@@ -250,6 +249,13 @@ struct Engine::Impl {
   }
 
   // ============================================================
+  // Sprite caches.
+  // ============================================================
+  void init_sprites() { rn::init_sprites( renderer() ); }
+
+  void deinit_sprites() { rn::deinit_sprites(); }
+
+  // ============================================================
   // Window
   // ============================================================
   void init_window() {
@@ -342,6 +348,7 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_window();
       impl().init_resolutions();
       impl().init_renderer();
+      impl().init_sprites();
       impl().init_sfx();
       impl().init_midiseq();
       impl().init_oggplayer();
@@ -377,6 +384,7 @@ void Engine::deinit() {
   impl().deinit_oggplayer();
   impl().deinit_midiseq();
   impl().deinit_sfx();
+  impl().deinit_sprites();
   impl().deinit_renderer();
   impl().deinit_resolutions();
   impl().deinit_window();

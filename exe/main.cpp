@@ -10,7 +10,6 @@
 #include "map-gen.hpp"
 #include "omni.hpp"
 #include "plane-stack.hpp"
-#include "tiles.hpp" // FIXME
 
 // rds
 #include "main.rds.hpp"
@@ -48,9 +47,6 @@ void run( e_mode mode ) {
   switch( mode ) {
     case e_mode::game: {
       engine.init( e_engine_mode::game );
-      // FIXME
-      init_sprites( engine.renderer_use_only_when_needed() );
-
       print_bar( '-', "[ Starting Game ]" );
       frame_loop( engine, planes,
                   revolution_now( engine, planes ) );

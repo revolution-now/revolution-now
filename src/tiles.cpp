@@ -66,6 +66,8 @@ void init_sprites( rr::Renderer& renderer ) {
   }
 }
 
+void deinit_sprites() { cache.clear(); }
+
 Delta sprite_size( e_tile tile ) {
   // FIXME: find a better way to do this. Maybe store it in the
   // renderer object.
