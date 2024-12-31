@@ -139,6 +139,7 @@ struct LandViewPlane::Impl : public IPlane {
   SS& ss_;
   TS& ts_;
   unique_ptr<IVisibility const> viz_;
+  ViewportController viewport_;
   LandViewAnimator animator_;
 
   vector<IMenuServer::Deregistrar> dereg;
@@ -161,11 +162,11 @@ struct LandViewPlane::Impl : public IPlane {
 
   bool g_needs_scroll_to_unit_on_input = true;
 
-  SmoothViewport const& viewport() const {
-    return ss_.land_view.viewport;
+  ViewportController const& viewport() const {
+    return viewport_;
   }
 
-  SmoothViewport& viewport() { return ss_.land_view.viewport; }
+  ViewportController& viewport() { return viewport_; }
 
   void register_menu_items( IMenuServer& menu_server ) {
     // Register menu handlers.
@@ -212,8 +213,9 @@ struct LandViewPlane::Impl : public IPlane {
       ss_( ss ),
       ts_( ts ),
       viz_( create_visibility_for( ss, nothing ) ),
-      animator_( engine_.sfx(), ss, ss.land_view.viewport,
-                 viz_ ) {
+      viewport_( ss.terrain, ss.land_view.viewport,
+                 viewport_rect_pixels() ),
+      animator_( engine_.sfx(), ss, viewport_, viz_ ) {
     set_visibility( nation );
     CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.get().menu );
@@ -223,10 +225,6 @@ struct LandViewPlane::Impl : public IPlane {
     raw_input_stream_.reset();
     translated_input_stream_        = {};
     g_needs_scroll_to_unit_on_input = true;
-    // This is done to initialize the viewport with info about
-    // the viewport size that cannot be known while it is being
-    // constructed.
-    advance_viewport_state();
   }
 
   maybe<point> white_box_tile_if_visible() const {
@@ -624,11 +622,12 @@ struct LandViewPlane::Impl : public IPlane {
                                        engine_.window(),
                                        engine_.resolutions() );
     return r.with_new_top_edge( config_ui.menus.menu_bar_height )
-        .with_new_right_edge( config_ui.panel.width );
+        .with_new_right_edge( r.right() -
+                              config_ui.panel.width );
   }
 
   void advance_viewport_state() {
-    viewport().advance_state( viewport_rect_pixels() );
+    viewport().advance_state();
 
     // TODO: should only do the following when the viewport has
     // input focus.
@@ -1444,8 +1443,7 @@ struct LandViewPlane::Impl : public IPlane {
         anim_seq_for_hidden_terrain( ss_, *viz_, ts_.rand );
 
     auto const tile = find_a_good_white_box_location(
-        ss_, last_unit_input_id(),
-        ss_.land_view.viewport.covered_tiles() );
+        ss_, last_unit_input_id(), viewport_.covered_tiles() );
 
     co_await co::first(
         animator_.animate_sequence( seq.hide ),
@@ -1519,7 +1517,7 @@ struct LandViewPlane::Impl : public IPlane {
             ? *options.initial_tile
             : find_a_good_white_box_location(
                   ss_, last_unit_input_id(),
-                  ss_.land_view.viewport.covered_tiles() );
+                  viewport_.covered_tiles() );
     // Now that we've extracted potential info from this, reset
     // it since the fact that we're changing modes means that we
     // don't want the continuity behavior when we exit this mode
@@ -1671,12 +1669,15 @@ struct LandViewPlane::Impl : public IPlane {
     SCOPED_SET_AND_RESTORE( mode_, LandViewMode::end_of_turn{} );
     point const initial_tile = find_a_good_white_box_location(
         ss_, /*last_unit_input=*/nothing,
-        ss_.land_view.viewport.covered_tiles() );
+        viewport_.covered_tiles() );
     co_return co_await white_box_input_loop( initial_tile );
   }
 
   void on_logical_resolution_changed(
-      gfx::e_resolution ) override {}
+      gfx::e_resolution ) override {
+    viewport_.update_logical_rect_cache(
+        viewport_rect_pixels() );
+  }
 };
 
 /****************************************************************
@@ -1742,6 +1743,10 @@ maybe<point> LandViewPlane::white_box() const {
 
 wait<> LandViewPlane::animate( AnimationSequence const& seq ) {
   return impl_->animator_.animate_sequence( seq );
+}
+
+ViewportController& LandViewPlane::viewport() const {
+  return impl_->viewport_;
 }
 
 } // namespace rn

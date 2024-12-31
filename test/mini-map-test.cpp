@@ -30,6 +30,9 @@ namespace {
 
 using namespace std;
 
+using ::gfx::rect;
+using ::gfx::size;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -53,14 +56,16 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
   World W;
   Delta const world_size_tiles{ .w = 7, .h = 7 };
   Delta const mini_map_size_tiles{ .w = 5, .h = 5 };
-  Delta const viewport_size_tiles{ .w = 3, .h = 3 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.0 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   SECTION( "mini-map origin 0,0" ) {
     SECTION( "viewport not moved" ) {
@@ -71,7 +76,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
 
     SECTION( "viewport scrolled to -1,-2 tiles" ) {
       // Should have no effect.
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = -32, .h = -64 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 0, .y = 0 },
@@ -79,7 +84,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
     }
 
     SECTION( "viewport scrolled to 1.5,1.0 tiles" ) {
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 + 16, .h = 32 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 1.5, .y = 1 },
@@ -87,7 +92,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
     }
 
     SECTION( "viewport scrolled to 4,4 tiles" ) {
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 * 4, .h = 32 * 4 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 4, .y = 4 },
@@ -96,7 +101,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
 
     SECTION( "viewport scrolled to 5,5 tiles" ) {
       // Should be the same as previous.
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 * 4, .h = 32 * 4 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 4, .y = 4 },
@@ -127,7 +132,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
 
     SECTION( "viewport scrolled to -1,-2 tiles" ) {
       // Should have no effect.
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = -32, .h = -64 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 0, .y = 0 },
@@ -135,7 +140,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
     }
 
     SECTION( "viewport scrolled to 1.5,1.0 tiles" ) {
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 + 16, .h = 32 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 1.5, .y = 1 },
@@ -143,7 +148,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
     }
 
     SECTION( "viewport scrolled to 4,4 tiles" ) {
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 * 4, .h = 32 * 4 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 4, .y = 4 },
@@ -152,7 +157,7 @@ TEST_CASE( "[mini-map] 7x7 map, 5x5 mini-map, 3x3 viewport" ) {
 
     SECTION( "viewport scrolled to 5,5 tiles" ) {
       // Should be the same as previous.
-      W.land_view().viewport.pan_by_world_coords(
+      viewport.pan_by_world_coords(
           Delta{ .w = 32 * 4, .h = 32 * 4 } );
       REQUIRE( mm.fractional_tiles_inside_white_box() ==
                gfx::drect{ .origin = { .x = 4, .y = 4 },
@@ -177,18 +182,20 @@ TEST_CASE( "[mini-map] drag_box" ) {
   World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
-  Delta const viewport_size_tiles{ .w = 3, .h = 3 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.0 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   // Move mini-map origin 2,2 and viewport to 4,4.
   mm.set_origin( gfx::dpoint{ .x = 2.0, .y = 2.0 } ); // tiles
-  W.land_view().viewport.pan_by_world_coords(
+  viewport.pan_by_world_coords(
       Delta{ .w = 32 * 4, .h = 32 * 4 } );
 
   REQUIRE( mm.size_screen_pixels() ==
@@ -312,18 +319,20 @@ TEST_CASE( "[mini-map] drag_box viewport larger than map" ) {
   World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 5, .h = 5 };
-  Delta const viewport_size_tiles{ .w = 6, .h = 6 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 6, .h = 6 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.0 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   // Move mini-map origin 3,3 and viewport to 2,2.
   mm.set_origin( gfx::dpoint{ .x = 3.0, .y = 3.0 } ); // tiles
-  W.land_view().viewport.pan_by_world_coords(
+  viewport.pan_by_world_coords(
       Delta{ .w = 32 * 2, .h = 32 * 2 } );
 
   REQUIRE( mm.size_screen_pixels() ==
@@ -409,18 +418,20 @@ TEST_CASE( "[mini-map] drag_map" ) {
   World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
-  Delta const viewport_size_tiles{ .w = 3, .h = 3 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.0 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   // Move mini-map origin 2,2 and viewport to 5,5.
   mm.set_origin( gfx::dpoint{ .x = 2.0, .y = 2.0 } ); // tiles
-  W.land_view().viewport.pan_by_world_coords(
+  viewport.pan_by_world_coords(
       Delta{ .w = 32 * 5, .h = 32 * 5 } );
 
   REQUIRE( mm.size_screen_pixels() ==
@@ -552,18 +563,20 @@ TEST_CASE( "[mini-map] drag_map large viewport" ) {
   World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
-  Delta const viewport_size_tiles{ .w = 9, .h = 9 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 9, .h = 9 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.0 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   // Move mini-map origin 2,2 and viewport to 1,1.
   mm.set_origin( gfx::dpoint{ .x = 2.0, .y = 2.0 } ); // tiles
-  W.land_view().viewport.pan_by_world_coords(
+  viewport.pan_by_world_coords(
       Delta{ .w = 32 * 1, .h = 32 * 1 } );
 
   REQUIRE( mm.size_screen_pixels() ==
@@ -625,14 +638,16 @@ TEST_CASE( "[mini-map] auto pan with small viewport" ) {
   World W;
   Delta const world_size_tiles{ .w = 11, .h = 11 };
   Delta const mini_map_size_tiles{ .w = 7, .h = 7 };
-  Delta const viewport_size_tiles{ .w = 3, .h = 3 };
+  rect const viewport_rect_pixels{
+    .size = size{ .w = 3, .h = 3 } * 32 };
   W.create_map( world_size_tiles );
-  MiniMap mm( W.ss(),
+  ViewportController viewport( W.terrain(),
+                               W.land_view().viewport,
+                               viewport_rect_pixels );
+  MiniMap mm( W.ss(), viewport,
               mini_map_size_tiles * 2 /*pixels per tile*/ );
   mm.set_animation_speed( 1.5 );
-  CHECK( W.land_view().viewport.get_zoom() == 1.0 );
-  W.land_view().viewport.advance_state(
-      Rect::from( Coord{}, viewport_size_tiles ) * 32 );
+  BASE_CHECK( W.land_view().viewport.zoom == 1.0 );
 
   // Move mini-map origin 2,2 and viewport to 0,0.
   mm.set_origin( gfx::dpoint{ .x = 2.0, .y = 2.0 } ); // tiles

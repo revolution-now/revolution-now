@@ -2,10 +2,6 @@
 land_view.viewport {
   center_x: 240
   center_y: 48
-  world_size_tiles {
-    h: 8
-    w: 8
-  }
   zoom: 1
 }
 

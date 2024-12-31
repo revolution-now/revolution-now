@@ -31,6 +31,7 @@ namespace rn {
 struct SS;
 struct TS;
 struct IVisibility;
+struct ViewportController;
 
 /****************************************************************
 ** MiniMap
@@ -40,7 +41,8 @@ struct IVisibility;
 // user, such as dragging the map, dragging the viewport, click-
 // ing, and zooming.
 struct MiniMap {
-  MiniMap( SS& ss, gfx::size available_size );
+  MiniMap( SS& ss, ViewportController& viewport,
+           gfx::size available_size );
 
   void set_origin( gfx::dpoint p );
 
@@ -73,6 +75,7 @@ struct MiniMap {
   void fix_invariants();
 
   SS& ss_;
+  ViewportController& viewport_;
   // Size in pixels of the mini-map.
   gfx::size size_screen_pixels_;
 
@@ -85,8 +88,12 @@ struct MiniMap {
 ** MiniMapView
 *****************************************************************/
 struct MiniMapView : ui::View {
-  MiniMapView( SS& ss, TS& ts, Delta available )
-    : ss_( ss ), ts_( ts ), mini_map_( ss, available ) {}
+  MiniMapView( SS& ss, TS& ts, ViewportController& viewport,
+               Delta available )
+    : ss_( ss ),
+      ts_( ts ),
+      viewport_( viewport ),
+      mini_map_( ss, viewport_, available ) {}
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
@@ -127,6 +134,7 @@ struct MiniMapView : ui::View {
 
   SS& ss_;
   TS& ts_;
+  ViewportController& viewport_;
   MiniMap mini_map_;
   maybe<e_mini_map_drag> drag_state_;
 };

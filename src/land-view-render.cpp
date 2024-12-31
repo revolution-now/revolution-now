@@ -803,7 +803,7 @@ LandViewRenderer::LandViewRenderer(
     unique_ptr<IVisibility const> const& viz,
     maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
     maybe<InputOverrunIndicator> input_overrun_indicator,
-    SmoothViewport const& viewport )
+    ViewportController const& viewport )
   : ss_( ss ),
     renderer_( renderer_arg ),
     renderer( renderer_arg ),

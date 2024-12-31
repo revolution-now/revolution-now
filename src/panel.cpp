@@ -18,6 +18,7 @@
 #include "iengine.hpp"
 #include "igui.hpp"
 #include "imenu-server.hpp"
+#include "land-view.hpp"
 #include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -87,7 +88,8 @@ struct PanelPlane::Impl : public IPlane {
     return mini_map_available_rect;
   }
 
-  Impl( IEngine& engine, SS& ss, TS& ts )
+  Impl( IEngine& engine, SS& ss, TS& ts,
+        ILandViewPlane& land_view_plane )
     : engine_( engine ), ss_( ss ), ts_( ts ) {
     // Register menu handlers.
     dereg_.push_back(
@@ -98,7 +100,8 @@ struct PanelPlane::Impl : public IPlane {
 
     Rect const mini_map_available = mini_map_available_rect();
     auto mini_map                 = make_unique<MiniMapView>(
-        ss, ts, mini_map_available.delta() );
+        ss, ts, land_view_plane.viewport(),
+        mini_map_available.delta() );
     Coord const mini_map_upper_left =
         centered( mini_map->delta(), mini_map_available );
     view_vec.emplace_back( ui::OwningPositionedView{
@@ -183,8 +186,7 @@ struct PanelPlane::Impl : public IPlane {
     typer.write( "Crosses: {}\n", player.crosses );
 
     typer.newline();
-    typer.write( "Zoom: {:.4}\n",
-                 ss_.land_view.viewport.get_zoom() );
+    typer.write( "Zoom: {:.4}\n", ss_.land_view.viewport.zoom );
 
     typer.newline();
     typer.write(
@@ -303,8 +305,9 @@ IPlane& PanelPlane::impl() { return *impl_; }
 
 PanelPlane::~PanelPlane() = default;
 
-PanelPlane::PanelPlane( IEngine& engine, SS& ss, TS& ts )
-  : impl_( new Impl( engine, ss, ts ) ) {}
+PanelPlane::PanelPlane( IEngine& engine, SS& ss, TS& ts,
+                        ILandViewPlane& land_view_plane )
+  : impl_( new Impl( engine, ss, ts, land_view_plane ) ) {}
 
 wait<> PanelPlane::wait_for_eot_button_click() {
   return impl_->wait_for_eot_button_click();

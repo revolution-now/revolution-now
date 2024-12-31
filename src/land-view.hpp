@@ -31,6 +31,7 @@ struct IEngine;
 struct IPlane;
 struct SS;
 struct TS;
+struct ViewportController;
 
 /****************************************************************
 ** ILandViewPlane
@@ -93,6 +94,8 @@ struct ILandViewPlane {
   // return a value.
   virtual maybe<gfx::point> white_box() const = 0;
 
+  virtual ViewportController& viewport() const = 0;
+
   virtual IPlane& impl() = 0;
 };
 
@@ -130,6 +133,8 @@ struct LandViewPlane : ILandViewPlane {
   maybe<UnitId> unit_blinking() const override;
 
   maybe<gfx::point> white_box() const override;
+
+  ViewportController& viewport() const override;
 
  private:
   struct Impl;

@@ -26,5 +26,6 @@ namespace rn {} // namespace rn
 namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::LandViewState, owned_by_cpp ){};
+LUA_USERDATA_TRAITS( ::rn::Viewport, owned_by_cpp ){};
 
 } // namespace lua

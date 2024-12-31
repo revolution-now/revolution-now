@@ -418,9 +418,6 @@ function M.create( root, options )
   -- Initializes the maps that track what each player can see.
   create_player_maps( options, root )
 
-  local world_size = root.terrain:size()
-  root.land_view.viewport:set_world_size_tiles( world_size )
-
   if options.map.type == 'battlefield' then
     create_battlefield_units( options, root )
   elseif options.map.type == 'half_and_half' then
@@ -430,12 +427,15 @@ function M.create( root, options )
     create_initial_units( options, root )
   end
 
+  root.land_view.viewport.zoom = 1.0
+
   -- Temporary.
   for _, o in ipairs( options.ordered_nations ) do
     if options.nations[o.nation] then
       if o.human then
         local coord = assert( o.ship_pos )
-        root.land_view.viewport:center_on_tile( coord )
+        root.land_view.viewport.center_x = coord.x * 32 + 16
+        root.land_view.viewport.center_y = coord.y * 32 + 16
         break
       end
     end

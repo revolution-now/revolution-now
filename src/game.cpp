@@ -169,12 +169,12 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   group.menu.typed().enable_cheat_menu(
       ss.settings.cheat_options.enabled );
 
-  PanelPlane panel_plane( engine, ss, ts );
-  group.panel = panel_plane;
-
   LandViewPlane land_view_plane( engine, ss, ts,
                                  /*visibility=*/nothing );
   group.set_bottom<ILandViewPlane>( land_view_plane );
+
+  PanelPlane panel_plane( engine, ss, ts, land_view_plane );
+  group.panel = panel_plane;
 
   // Perform the initial rendering of the map. Even though it
   // will be wasteful in a sense, we will render the entire map

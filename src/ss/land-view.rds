@@ -35,8 +35,16 @@ struct.MiniMapState {
   origin 'gfx::dpoint',
 }
 
+struct.Viewport {
+  zoom 'double',
+  center_x 'double',
+  center_y 'double',
+
+  _features { equality, validation }
+}
+
 struct.LandViewState {
-  viewport 'SmoothViewport',
+  viewport 'Viewport',
 
   minimap 'MiniMapState',
 

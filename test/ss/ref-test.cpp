@@ -185,14 +185,9 @@ cdr::value cdr_game_state_default =
           cdr::table{
             "viewport"_key =
                 cdr::table{
-                  "zoom"_key     = 1.0,
+                  "zoom"_key     = 0.0,
                   "center_x"_key = 0.0,
                   "center_y"_key = 0.0,
-                  "world_size_tiles"_key =
-                      cdr::table{
-                        "h"_key = 0,
-                        "w"_key = 0,
-                      },
                 },
             "minimap"_key =
                 cdr::table{

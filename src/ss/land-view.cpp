@@ -15,14 +15,22 @@
 #include "luapp/state.hpp"
 
 // refl
+#include "refl/ext.hpp"
 #include "refl/to-str.hpp"
 
 using namespace std;
 
 namespace rn {
 
-void linker_dont_discard_module_ss_land_view();
-void linker_dont_discard_module_ss_land_view() {}
+base::valid_or<string> Viewport::validate() const {
+  REFL_VALIDATE( zoom >= 0.0, "zoom must be larger than zero" );
+  REFL_VALIDATE( zoom >= 0.0, "zoom must be less than one" );
+  REFL_VALIDATE( center_x >= 0.0,
+                 "x center must be larger than 0" );
+  REFL_VALIDATE( center_y >= 0.0,
+                 "y center must be larger than 0" );
+  return base::valid;
+}
 
 /****************************************************************
 ** Lua Bindings
@@ -31,15 +39,28 @@ namespace {
 
 // LandViewState
 LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::LandViewState;
-  auto u  = st.usertype.create<U>();
+  // Viewport
+  [&] {
+    using U = ::rn::Viewport;
+    auto u  = st.usertype.create<U>();
 
-  u["viewport"] = &U::viewport;
+    u["zoom"]     = &U::zoom;
+    u["center_x"] = &U::center_x;
+    u["center_y"] = &U::center_y;
+  }();
 
-  u["reveal_complete_map"] = []( U& o ) {
-    // NOTE: need to redraw map after this.
-    o.map_revealed = MapRevealed::entire{};
-  };
+  // LandViewState.
+  [&] {
+    using U = ::rn::LandViewState;
+    auto u  = st.usertype.create<U>();
+
+    u["viewport"] = &U::viewport;
+
+    u["reveal_complete_map"] = []( U& o ) {
+      // NOTE: need to redraw map after this.
+      o.map_revealed = MapRevealed::entire{};
+    };
+  }();
 };
 
 } // namespace

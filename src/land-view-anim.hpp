@@ -40,8 +40,7 @@ struct AnimationSequence;
 struct Colony;
 struct Dwelling;
 struct IVisibility;
-
-class SmoothViewport;
+struct ViewportController;
 
 namespace co {
 struct latch;
@@ -67,7 +66,7 @@ struct LandViewAnimator {
 
   LandViewAnimator(
       sfx::ISfx const& sfx, SSConst const& ss,
-      SmoothViewport& viewport,
+      ViewportController& viewport,
       std::unique_ptr<IVisibility const> const& viz );
 
   // Getters.
@@ -237,7 +236,7 @@ struct LandViewAnimator {
  private:
   sfx::ISfx const& sfx_;
   SSConst const& ss_;
-  SmoothViewport& viewport_;
+  ViewportController& viewport_;
   UnitAnimStatesMap unit_animations_;
   ColonyAnimStatesMap colony_animations_;
   DwellingAnimStatesMap dwelling_animations_;

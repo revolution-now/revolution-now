@@ -13,9 +13,6 @@
 
 #include "core-config.hpp"
 
-// rds
-#include "viewport.rds.hpp"
-
 // Revolution Now
 #include "error.hpp"
 #include "physics.hpp"
@@ -30,14 +27,18 @@
 
 namespace rn {
 
+struct Viewport;
+struct TerrainState;
+
 // This viewport also knows where it is located on screen.
-class SmoothViewport {
- public:
-  bool operator==( SmoothViewport const& ) const;
+struct ViewportController {
+  bool operator==( ViewportController const& ) const;
 
-  SmoothViewport();
+  ViewportController( TerrainState const& terrain,
+                      Viewport& viewport,
+                      gfx::rect viewport_rect_pixels );
 
-  void advance_state( Rect const& viewport_rect_pixels );
+  void advance_state();
 
   // Tiles touched by the viewport (tiles at the edge may only be
   // partially visible).
@@ -86,16 +87,19 @@ class SmoothViewport {
 
   double min_zoom_allowed() const;
 
+  Rect world_rect_pixels() const;
+  Rect world_rect_tiles() const;
+  Delta world_size_pixels() const;
   Delta world_size_tiles() const;
-  void set_world_size_tiles( Delta size );
+
+  void update_logical_rect_cache(
+      gfx::rect viewport_rect_pixels );
 
   // This will provide the upper left corning where the GPU
   // should start rendering the landscape buffer (which could be
   // off screen) in order to make the covered area visible on
   // screen.
   gfx::dpoint landscape_buffer_render_upper_left() const;
-
-  Delta world_size_pixels() const;
 
   // Given a screen pixel coordinate this will return the world
   // coordinate.
@@ -167,12 +171,6 @@ class SmoothViewport {
   // normal part of the behavior of this class.
   void fix_invariants();
 
-  // Implement refl::WrapsReflected.
-  SmoothViewport( wrapped::SmoothViewport&& o );
-  wrapped::SmoothViewport const& refl() const { return o_; }
-  static constexpr std::string_view refl_ns   = "rn";
-  static constexpr std::string_view refl_name = "SmoothViewport";
-
  private:
   void advance( e_push_direction x_push, e_push_direction y_push,
                 e_push_direction zoom_push );
@@ -183,17 +181,12 @@ class SmoothViewport {
 
   template<typename C>
   friend bool are_tile_surroundings_as_fully_visible_as_can_be(
-      SmoothViewport const& vp, Coord const& coords );
+      ViewportController const& vp, Coord const& coords );
 
   bool need_to_scroll_to_reveal_tile( Coord const& coord ) const;
 
   double x_world_pixels_in_viewport() const;
   double y_world_pixels_in_viewport() const;
-
-  // These are to avoid a direct dependency on the screen module
-  // and its initialization code.
-  Rect world_rect_pixels() const;
-  Rect world_rect_tiles() const;
 
   double start_x() const;
   double start_y() const;
@@ -216,7 +209,8 @@ class SmoothViewport {
 
   // ==================== Serialized Fields =====================
 
-  wrapped::SmoothViewport o_;
+  TerrainState const& terrain_;
+  Viewport& o_;
 
   // ============ Transient Fields (not serialized) =============
 
@@ -258,15 +252,5 @@ class SmoothViewport {
 
   Rect viewport_rect_pixels_{};
 };
-NOTHROW_MOVE( SmoothViewport );
 
 } // namespace rn
-
-/****************************************************************
-** Lua
-*****************************************************************/
-namespace lua {
-
-LUA_USERDATA_TRAITS( ::rn::SmoothViewport, owned_by_cpp ){};
-
-} // namespace lua

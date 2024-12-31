@@ -51,6 +51,7 @@ struct MockLandViewPlane : ILandViewPlane {
   MOCK_METHOD( void, zoom_out_full, (), () );
   MOCK_METHOD( maybe<UnitId>, unit_blinking, (), ( const ) );
   MOCK_METHOD( maybe<gfx::point>, white_box, (), ( const ) );
+  MOCK_METHOD( ViewportController&, viewport, (), ( const ) );
 
   IPlane& impl() override {
     static NoOpPlane plane;

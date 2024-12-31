@@ -148,7 +148,7 @@ wait<> pixelation_stage_throttler( co::latch& hold,
 *****************************************************************/
 LandViewAnimator::LandViewAnimator(
     sfx::ISfx const& sfx, SSConst const& ss,
-    SmoothViewport& viewport,
+    ViewportController& viewport,
     std::unique_ptr<IVisibility const> const& viz )
   : sfx_( sfx ), ss_( ss ), viewport_( viewport ), viz_( viz ) {
   CHECK( viz_ != nullptr );

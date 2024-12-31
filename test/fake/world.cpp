@@ -259,8 +259,6 @@ void World::build_map( vector<MapSquare> tiles, W width ) {
             gfx::Matrix<MapSquare>( std::move( tiles ), width );
       } );
   init_player_maps();
-  ss().land_view.viewport.set_world_size_tiles(
-      ss().terrain.world_size_tiles() );
 }
 
 void World::update_terrain_connectivity() {

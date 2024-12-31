@@ -33,14 +33,13 @@ enum class e_render_buffer;
 
 namespace rn {
 
-class SmoothViewport;
-
 struct DwellingAnimationState;
 struct LandViewAnimator;
 struct SSConst;
 struct IVisibility;
 struct UnitFlagOptions;
 struct VisibilityOverrides;
+struct ViewportController;
 
 // A fading hourglass icon will be drawn over a unit to signal to
 // the player that the movement command just entered will be
@@ -61,7 +60,7 @@ struct LandViewRenderer {
       std::unique_ptr<IVisibility const> const& viz,
       maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
       maybe<InputOverrunIndicator> input_overrun_indicator,
-      SmoothViewport const& viewport );
+      ViewportController const& viewport );
 
   // Units, colonies, dwellings.
   void render_entities() const;
@@ -148,7 +147,7 @@ struct LandViewRenderer {
   maybe<UnitId> last_unit_input_;
   Rect viewport_rect_pixels_;
   maybe<InputOverrunIndicator> input_overrun_indicator_;
-  SmoothViewport const& viewport_;
+  ViewportController const& viewport_;
 };
 
 /****************************************************************

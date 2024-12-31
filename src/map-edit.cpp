@@ -139,6 +139,7 @@ struct MapEditPlane::Impl : public IPlane {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;
+  ViewportController viewport_;
 
   co::stream<input::event_t> input_;
   maybe<editor::e_toolbar_item> selected_tool_;
@@ -159,18 +160,14 @@ struct MapEditPlane::Impl : public IPlane {
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
+      viewport_( ss.terrain, ss.land_view.viewport,
+                 viewport_rect_pixels() ),
       input_{},
       selected_tool_{} {
     register_menu_items( ts_.planes.get().menu );
-    // This is done to initialize the viewport with info about
-    // the viewport size that cannot be known while it is being
-    // constructed.
-    viewport().advance_state( viewport_rect() );
   }
 
-  void advance_state() override {
-    viewport().advance_state( viewport_rect() );
-  }
+  void advance_state() override { viewport().advance_state(); }
 
   void draw( rr::Renderer& renderer ) const override {
     renderer.set_camera(
@@ -211,10 +208,10 @@ struct MapEditPlane::Impl : public IPlane {
 
   wait<bool> handle_event( auto const& );
 
-  SmoothViewport& viewport() { return ss_.land_view.viewport; }
+  ViewportController& viewport() { return viewport_; }
 
-  SmoothViewport const& viewport() const {
-    return ss_.land_view.viewport;
+  ViewportController const& viewport() const {
+    return viewport_;
   }
 
   maybe<function<void()>> menu_click_handler(
@@ -381,14 +378,18 @@ struct MapEditPlane::Impl : public IPlane {
   }
 
   void on_logical_resolution_changed(
-      gfx::e_resolution ) override {}
+      gfx::e_resolution ) override {
+    viewport_.update_logical_rect_cache(
+        viewport_rect_pixels() );
+  }
 
   rect viewport_rect_pixels() const {
     rect r = main_window_logical_rect( engine_.video(),
                                        engine_.window(),
                                        engine_.resolutions() );
-    return r.with_new_top_edge( config_ui.menus.menu_bar_height )
-        .with_new_right_edge( config_ui.panel.width );
+    // Remove toolbar and panel.
+    return r.with_new_top_edge( 32 ).with_new_right_edge(
+        r.right() - config_ui.panel.width );
   }
 
   Rect canvas_;
@@ -652,12 +653,11 @@ wait<> run_map_editor_standalone( IEngine& engine,
                                   Planes& planes ) {
   // FIXME: this duplicates initialization code in app-ctrl.
   SS ss;
-  Delta size{ .w = 100, .h = 100 };
+  gfx::size constexpr kClassicWorldSize = { .w = 56, .h = 70 };
   RenderingMapUpdater map_updater(
       ss, engine.renderer_use_only_when_needed(),
       MapUpdaterOptions{} );
-  reset_terrain( map_updater, size );
-  ss.land_view.viewport.set_world_size_tiles( size );
+  reset_terrain( map_updater, kClassicWorldSize );
   lua::state st;
   lua_init( st );
   Terminal terminal( st );

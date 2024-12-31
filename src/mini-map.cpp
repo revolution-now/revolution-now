@@ -160,8 +160,9 @@ void MiniMap::fix_invariants() {
   CHECK_LE( visible.bottom(), world.bottom() + kEpsilon );
 }
 
-MiniMap::MiniMap( SS& ss, gfx::size available_size )
-  : ss_( ss ) {
+MiniMap::MiniMap( SS& ss, ViewportController& viewport,
+                  gfx::size available_size )
+  : ss_( ss ), viewport_( viewport ) {
   SCOPE_EXIT { fix_invariants(); };
   // Compute size_screen_pixels_.
   gfx::size const world_size    = ss_.terrain.world_size_tiles();
@@ -183,9 +184,8 @@ MiniMap::MiniMap( SS& ss, gfx::size available_size )
 
 void MiniMap::drag_map( gfx::size const mouse_delta ) {
   SCOPE_EXIT { fix_invariants(); };
-  SmoothViewport& viewport = ss_.land_view.viewport;
-  viewport.stop_auto_zoom();
-  viewport.stop_auto_panning();
+  viewport_.stop_auto_zoom();
+  viewport_.stop_auto_panning();
 
   gfx::drect const prev_visible = tiles_visible_on_minimap();
   gfx::drect const prev_white_box =
@@ -202,12 +202,12 @@ void MiniMap::drag_map( gfx::size const mouse_delta ) {
   gfx::drect white_box = fractional_tiles_inside_white_box();
 
   auto pan_horizontal = [&]( double const w ) {
-    viewport.pan_by_world_coords( gfx::dsize{ .w = w * 32 } );
+    viewport_.pan_by_world_coords( gfx::dsize{ .w = w * 32 } );
     white_box = fractional_tiles_inside_white_box();
   };
 
   auto pan_vertical = [&]( double const h ) {
-    viewport.pan_by_world_coords( gfx::dsize{ .h = h * 32 } );
+    viewport_.pan_by_world_coords( gfx::dsize{ .h = h * 32 } );
     white_box = fractional_tiles_inside_white_box();
   };
 
@@ -267,11 +267,10 @@ void MiniMap::drag_map( gfx::size const mouse_delta ) {
 
 void MiniMap::drag_box( gfx::size const mouse_delta ) {
   SCOPE_EXIT { fix_invariants(); };
-  SmoothViewport& viewport = ss_.land_view.viewport;
-  viewport.stop_auto_zoom();
-  viewport.stop_auto_panning();
+  viewport_.stop_auto_zoom();
+  viewport_.stop_auto_panning();
   static_assert( kPixelsPerPoint / 2 > 0 );
-  viewport.pan_by_world_coords(
+  viewport_.pan_by_world_coords(
       Delta::from_gfx( mouse_delta * 32 / kPixelsPerPoint ) );
   MiniMapState& minimap = ss_.land_view.minimap;
 
@@ -340,7 +339,7 @@ void MiniMap::set_origin( gfx::dpoint p ) {
 }
 
 gfx::drect MiniMap::fractional_tiles_inside_white_box() const {
-  return ss_.land_view.viewport.covered_pixels() / 32.0;
+  return viewport_.covered_pixels() / 32.0;
 }
 
 void MiniMap::advance_auto_pan() {
@@ -534,21 +533,20 @@ Delta MiniMapView::delta() const {
 
 bool MiniMapView::on_wheel(
     input::mouse_wheel_event_t const& event ) {
-  SmoothViewport& viewport = ss_.land_view.viewport;
-  viewport.stop_auto_zoom();
-  viewport.stop_auto_panning();
-  viewport.set_zoom_push( e_push_direction::positive, nothing );
+  viewport_.stop_auto_zoom();
+  viewport_.stop_auto_panning();
+  viewport_.set_zoom_push( e_push_direction::positive, nothing );
   if( event.wheel_delta < 0 ) {
-    viewport.stop_auto_zoom();
-    viewport.stop_auto_panning();
-    viewport.set_zoom_push( e_push_direction::negative,
-                            nothing );
+    viewport_.stop_auto_zoom();
+    viewport_.stop_auto_panning();
+    viewport_.set_zoom_push( e_push_direction::negative,
+                             nothing );
   }
   if( event.wheel_delta > 0 ) {
-    viewport.stop_auto_zoom();
-    viewport.stop_auto_panning();
-    viewport.set_zoom_push( e_push_direction::positive,
-                            nothing );
+    viewport_.stop_auto_zoom();
+    viewport_.stop_auto_panning();
+    viewport_.set_zoom_push( e_push_direction::positive,
+                             nothing );
   }
   return true;
 }
@@ -609,15 +607,14 @@ bool MiniMapView::on_mouse_button(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     return true;
-  SmoothViewport& viewport = ss_.land_view.viewport;
-  viewport.stop_auto_zoom();
-  viewport.stop_auto_panning();
+  viewport_.stop_auto_zoom();
+  viewport_.stop_auto_panning();
   // We shouldn't have received this event if the position was
   // not in the view, and the view is exactly the size of the
   // mini-map, so we can assume that the location of the click
   // will always correspond to a real tile.
   gfx::dpoint const p = event.pos.to_gfx().to_double();
-  viewport.center_on_tile( Coord::from_gfx(
+  viewport_.center_on_tile( Coord::from_gfx(
       ( p / kPixelsPerPoint +
         mini_map_.origin().distance_from_origin() )
           .truncated() ) );
