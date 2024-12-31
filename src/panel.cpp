@@ -83,7 +83,7 @@ struct PanelPlane::Impl : public IPlane {
     Rect mini_map_available_rect = rect();
     int const kBorder            = 4;
     mini_map_available_rect.x += kBorder;
-    mini_map_available_rect.y += kBorder;
+    mini_map_available_rect.y += 0;
     mini_map_available_rect.w -= kBorder * 2;
     mini_map_available_rect.h = mini_map_available_rect.w;
     return mini_map_available_rect;

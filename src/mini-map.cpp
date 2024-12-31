@@ -60,10 +60,9 @@ gfx::pixel parse_color( string_view hex ) {
   return res;
 }
 
-gfx::pixel const kHiddenColor =
-    parse_color( "2c3468" ).shaded( 3 );
-gfx::pixel const kOceanColor   = parse_color( "404b78" );
-gfx::pixel const kSeaLaneColor = parse_color( "46557d" );
+gfx::pixel const kHiddenColor  = parse_color( "181f41" );
+gfx::pixel const kOceanColor   = parse_color( "2f3a67" );
+gfx::pixel const kSeaLaneColor = parse_color( "3c4472" );
 
 gfx::pixel const kMountainsColor = parse_color( "abafb0" );
 gfx::pixel const kHillsColor     = parse_color( "6b5f5c" );
