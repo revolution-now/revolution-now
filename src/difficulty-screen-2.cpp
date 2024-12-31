@@ -92,7 +92,7 @@ struct InstructionsCell {
 struct Layout {
   rect bg_rect = {};
 
-  pixel const bg_color = pixel::from_hex_rgb( 0x632a10 );
+  pixel const bg_color = pixel::from_hex_rgb( 0x342318 );
 
   // The amount of buffer around the scroll tile to draw the se-
   // lection rectangle
@@ -263,6 +263,17 @@ struct DifficultyScreen : public IPlane {
     renderer.typer( text_rect.nw(), color_fg ).write( text );
   }
 
+  static void render_aged( rr::Renderer& renderer,
+                           auto const& fn ) {
+    fn();
+    // This will overlay some translucent grey noise over the
+    // image to give it a faded/aged/degraded look.
+    SCOPED_RENDERER_MOD_SET( painter_mods.desaturate, true );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage, .5 );
+    fn();
+  }
+
   void draw( rr::Renderer& renderer, Layout const& l,
              e_difficulty const difficulty,
              DifficultyCell const& cell ) const {
@@ -270,9 +281,17 @@ struct DifficultyScreen : public IPlane {
     bool const this_highlighted = ( highlighted_ == difficulty );
     render_sprite( renderer, cell.scroll_origin,
                    e_tile::difficulty_scroll );
-    render_sprite_stencil(
-        renderer, cell.scroll_origin + l.stencil_nw,
-        e_tile::scroll_stencil, cell.character, pixel::black() );
+    // Character.
+    auto draw_character = [&] {
+      render_sprite_stencil( renderer,
+                             cell.scroll_origin + l.stencil_nw,
+                             e_tile::scroll_stencil,
+                             cell.character, pixel::black() );
+    };
+    if( this_selected )
+      draw_character();
+    else
+      render_aged( renderer, draw_character );
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )

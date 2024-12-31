@@ -899,12 +899,18 @@ sheets {
       img_path: assets/art/difficulty/characters.png
       sprite_size: { w: 103, h: 117 }
       sprites {
-        discoverer:     { y: 0, x: 0 }
         explorer:       { y: 1, x: 0 }
         conquistador:   { y: 1, x: 1 }
         governor:       { y: 1, x: 2 }
         viceroy:        { y: 0, x: 2 }
         scroll_stencil: { y: 0, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/difficulty/discoverer.png
+      sprite_size: { w: 103, h: 117 }
+      sprites {
+        discoverer:     { y: 0, x: 0 }
       }
     }
   ]
