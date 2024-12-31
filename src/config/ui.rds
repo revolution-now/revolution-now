@@ -8,9 +8,6 @@
 # Description: Config info for UI stuff.
 #
 # ===============================================================
-# Rds
-include "../compositor.rds.hpp"
-
 # gfx
 include "gfx/cartesian.hpp"
 include "gfx/pixel.hpp"
@@ -53,8 +50,6 @@ struct.menus {
 }
 
 struct.console {
-  default_location 'compositor::e_composite_location',
-
   # How high (or wide, depending on location) is the console in
   # percentage of the screen's size along that dimension. E.g. if
   # the console is at the bottom of the screen and this number is
