@@ -98,11 +98,6 @@ void on_logical_resolution_changed(
       main_window_logical_size( video, wh, new_resolutions ) );
 }
 
-void set_pending_resolution(
-    gfx::SelectedResolution const& selected_resolution ) {
-  input::inject_resolution_event( selected_resolution );
-}
-
 } // namespace
 
 // This will do a best-effort attempt at providing DPI info from
@@ -130,14 +125,6 @@ maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
   return selected.rated.resolution;
 }
 
-maybe<gfx::ResolutionScores const&> get_resolution_scores(
-    IEngine& engine ) {
-  auto const& resolutions = engine.resolutions();
-  auto const& selected    = resolutions.selected;
-  if( !selected.available ) return nothing;
-  return selected.rated.scores;
-}
-
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
     gfx::Resolutions const& resolutions ) {
@@ -153,11 +140,6 @@ gfx::rect main_window_logical_rect(
     gfx::Resolutions const& resolutions ) {
   return gfx::rect{
     .size = main_window_logical_size( video, wh, resolutions ) };
-}
-
-maybe<e_resolution> main_window_named_logical_resolution(
-    gfx::Resolutions const& resolutions ) {
-  return resolutions.selected.named;
 }
 
 void on_logical_resolution_changed(
@@ -192,46 +174,6 @@ void on_main_window_resized( vid::IVideo& video,
   // keep it and the idx constant.
   on_logical_resolution_changed( video, wh, renderer,
                                  resolutions, new_resolutions );
-}
-
-void cycle_resolution( gfx::Resolutions const& resolutions,
-                       int const delta ) {
-  // Copy; cannot modify the global state directly.
-  auto const& curr = resolutions;
-  if( !curr.selected.available ) return;
-  auto const& available = curr.ratings.available;
-  if( available.empty() ) return;
-  int idx = curr.selected.idx;
-  // The "better" resolutions, which also tend to be more scaled
-  // up (though not always) are at the start of the list, so for
-  // "scaling up" we must go negative.
-  idx += ( -delta );
-  // Need to do this because the c++ modulus is the wrong type.
-  while( idx < 0 ) idx += available.size();
-  idx %= available.size();
-  CHECK_LT( idx, ssize( available ) );
-  set_pending_resolution( create_selected_available_resolution(
-      curr.ratings, idx ) );
-}
-
-void set_resolution_idx_to_optimal(
-    gfx::Resolutions const& resolutions ) {
-  auto const& curr = resolutions;
-  if( curr.ratings.available.empty() ) return;
-  set_pending_resolution( create_selected_available_resolution(
-      curr.ratings, /*idx=*/0 ) );
-}
-
-maybe<int> get_resolution_idx(
-    gfx::Resolutions const& resolutions ) {
-  if( !resolutions.selected.available ) return nothing;
-  return resolutions.selected.idx;
-}
-
-maybe<int> get_resolution_cycle_size(
-    gfx::Resolutions const& resolutions ) {
-  if( !resolutions.selected.available ) return nothing;
-  return resolutions.ratings.available.size();
 }
 
 } // namespace rn

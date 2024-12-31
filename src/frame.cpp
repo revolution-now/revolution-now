@@ -218,8 +218,7 @@ void frame_loop_body( IEngine& engine, Planes& planes,
   for( input::win_event_t const& event :
        deferred_events.window ) {
     auto const old_resolution =
-        main_window_named_logical_resolution(
-            engine.resolutions() );
+        engine.resolutions().selected.named;
     switch( event.type ) {
       using enum input::e_win_event_type;
       case resized:
@@ -230,8 +229,7 @@ void frame_loop_body( IEngine& engine, Planes& planes,
         break;
     }
     auto const new_resolution =
-        main_window_named_logical_resolution(
-            engine.resolutions() );
+        engine.resolutions().selected.named;
     planes.get().input( event );
     run_all_coroutines();
     if( new_resolution.has_value() &&

@@ -41,15 +41,8 @@ struct IEngine;
 
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine );
 
-// TODO: temporary.
-maybe<gfx::ResolutionScores const&> get_resolution_scores(
-    IEngine& engine );
-
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
-    gfx::Resolutions const& resolutions );
-
-maybe<gfx::e_resolution> main_window_named_logical_resolution(
     gfx::Resolutions const& resolutions );
 
 // !! origin at (0,0)
@@ -66,15 +59,6 @@ void on_logical_resolution_changed(
     vid::IVideo& video, vid::WindowHandle const& wh,
     rr::Renderer& renderer, gfx::Resolutions& resolutions,
     gfx::SelectedResolution const& selected_resolution );
-
-void cycle_resolution( gfx::Resolutions const& resolutions,
-                       int const delta );
-void set_resolution_idx_to_optimal(
-    gfx::Resolutions const& resolutions );
-maybe<int> get_resolution_idx(
-    gfx::Resolutions const& resolutions );
-maybe<int> get_resolution_cycle_size(
-    gfx::Resolutions const& resolutions );
 
 // If the result is provided then all fields will be populated.
 // If the underlying system API did not provide all components

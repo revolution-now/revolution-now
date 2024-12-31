@@ -118,12 +118,6 @@ maybe<e_resolution> resolution_from_size( size const sz ) {
   return base::lookup( kResolutionReverseSizeMap, sz );
 }
 
-Resolutions compute_resolutions( Monitor const& monitor,
-                                 size physical_window );
-
-SelectedResolution create_selected_available_resolution(
-    ResolutionRatings const& ratings, int idx );
-
 /****************************************************************
 ** Resolution Selection.
 *****************************************************************/
