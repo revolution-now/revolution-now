@@ -12,12 +12,14 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
 #include "midiseq.hpp"
 #include "time.hpp"
 
 // config
 #include "config/music.rds.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

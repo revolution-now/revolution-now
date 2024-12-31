@@ -14,7 +14,6 @@
 #include "color-cycle.hpp"
 #include "error.hpp"
 #include "imap-updater.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "plow.hpp"
 #include "road.hpp"
@@ -38,6 +37,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

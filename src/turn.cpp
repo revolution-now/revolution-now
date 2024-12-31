@@ -35,7 +35,6 @@
 #include "isave-game.rds.hpp"
 #include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-edit.hpp"
 #include "market.hpp"
 #include "minds.hpp"
@@ -83,6 +82,7 @@
 // base
 #include "base/keyval.hpp"
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"

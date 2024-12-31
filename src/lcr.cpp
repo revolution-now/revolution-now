@@ -21,7 +21,6 @@
 #include "immigration.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -50,6 +49,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/no-default.hpp"
 
 using namespace std;

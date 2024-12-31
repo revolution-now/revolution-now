@@ -21,7 +21,6 @@
 #include "imenu-server.hpp"
 #include "inative-mind.hpp" // FIXME
 #include "input.hpp"
-#include "logger.hpp"
 #include "lua.hpp" // FIXME
 #include "map-gen.hpp"
 #include "map-square.hpp"
@@ -67,6 +66,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;

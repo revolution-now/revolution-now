@@ -14,7 +14,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "igui.hpp"
-#include "logger.hpp"
 #include "native-owned.hpp"
 #include "revolution-status.hpp"
 #include "society.hpp"
@@ -38,6 +37,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 
 using namespace std;
 

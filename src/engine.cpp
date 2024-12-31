@@ -13,7 +13,6 @@
 // Revolution Now
 #include "color-cycle.hpp"
 #include "conductor.hpp"
-#include "logger.hpp"
 #include "midiplayer.hpp"
 #include "midiseq.hpp"
 #include "oggplayer.hpp"
@@ -49,6 +48,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

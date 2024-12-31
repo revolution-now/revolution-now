@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "units.hpp"
 
-// Revolution Now
-#include "logger.hpp"
-
 // config
 #include "config/unit-type.rds.hpp"
 
@@ -28,6 +25,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 #include "base/variant-util.hpp"
 

@@ -19,7 +19,6 @@
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
 #include "lcr.hpp"
-#include "logger.hpp"
 #include "meet-natives.hpp"
 #include "minds.hpp"
 #include "society.hpp"
@@ -51,6 +50,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/vocab.hpp"
 
 using namespace std;

@@ -21,7 +21,6 @@
 #include "ieuro-mind.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-search.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
@@ -45,6 +44,9 @@
 #include "ss/ref.hpp"
 #include "ss/tribe.rds.hpp"
 #include "ss/units.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

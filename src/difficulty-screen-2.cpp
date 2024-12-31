@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "tiles.hpp"
 
@@ -40,6 +39,9 @@
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 #define HANDLED( r )                          \
   case e_resolution::_##r: {                  \

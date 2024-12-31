@@ -11,7 +11,6 @@
 #include "auto-pad.hpp"
 
 // Revolution Now
-#include "logger.hpp"
 #include "matrix.hpp"
 
 // config
@@ -19,6 +18,9 @@
 
 // gfx
 #include "gfx/iter.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

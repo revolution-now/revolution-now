@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "ts.hpp"
 #include "views.hpp"
@@ -31,6 +30,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

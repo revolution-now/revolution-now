@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "iengine.hpp"
-#include "logger.hpp"
 #include "menu-bar.hpp"
 #include "menu-body.hpp"
 #include "menu-render.hpp"
@@ -29,6 +28,9 @@
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <stack>

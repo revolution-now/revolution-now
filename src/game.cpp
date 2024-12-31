@@ -30,7 +30,6 @@
 #include "interrupts.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "lua.hpp"
 #include "map-updater.hpp"
 #include "minds.hpp"
@@ -57,6 +56,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 

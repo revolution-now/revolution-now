@@ -25,7 +25,6 @@
 #include "igui.hpp"
 #include "immigration.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "minds.hpp"
 #include "native-owned.hpp"
@@ -64,6 +63,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 #include "base/to-str-ext-std.hpp"
 #include "visibility.hpp"

@@ -21,7 +21,6 @@
 #include "iraid.rds.hpp"
 #include "itribe-evolve.rds.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "minds.hpp"
 #include "mv-calc.hpp"
@@ -58,6 +57,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/timer.hpp"
 
 // C++ standard library

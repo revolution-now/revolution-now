@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
 #include "rand-enum.hpp"
 #include "time.hpp"
 
@@ -24,6 +23,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 #include "base/to-str-ext-chrono.hpp"
 

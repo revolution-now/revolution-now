@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "imap-updater.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -35,6 +34,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <array>

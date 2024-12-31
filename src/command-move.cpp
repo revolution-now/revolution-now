@@ -22,7 +22,6 @@
 #include "harbor-units.hpp"
 #include "igui.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "mv-calc.hpp"
 #include "on-map.hpp"
@@ -47,6 +46,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 #include "base/vocab.hpp"
 

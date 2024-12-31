@@ -14,7 +14,6 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "commodity.hpp"
-#include "logger.hpp"
 #include "ts.hpp"
 
 // config
@@ -27,6 +26,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <map>

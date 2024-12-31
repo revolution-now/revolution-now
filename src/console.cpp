@@ -14,7 +14,6 @@
 #include "deferred.hpp"
 #include "frame.hpp"
 #include "iengine.hpp"
-#include "logger.hpp"
 #include "plane.hpp"
 #include "renderer.hpp"
 #include "screen.hpp" // FIXME: remove
@@ -30,6 +29,9 @@
 
 // gfx
 #include "gfx/coord.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

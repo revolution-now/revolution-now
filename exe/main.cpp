@@ -5,7 +5,6 @@
 #include "frame.hpp"
 #include "init.hpp"
 #include "linking.hpp"
-#include "logger.hpp"
 #include "lua-ui.hpp"
 #include "map-edit.hpp"
 #include "map-gen.hpp"
@@ -23,6 +22,7 @@
 #include "base/cli-args.hpp"
 #include "base/error.hpp"
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;

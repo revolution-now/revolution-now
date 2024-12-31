@@ -16,7 +16,6 @@
 #include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
 #include "iengine.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "render.hpp"
@@ -39,6 +38,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <exception>

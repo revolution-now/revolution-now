@@ -13,7 +13,6 @@
 // Revolution Now
 #include "co-lua.hpp"
 #include "co-wait.hpp"
-#include "logger.hpp"
 #include "lua-wait.hpp"
 #include "lua.hpp"
 #include "plane-stack.hpp"
@@ -25,6 +24,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

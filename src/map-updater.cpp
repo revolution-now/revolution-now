@@ -13,7 +13,6 @@
 // Revolution Now
 #include "depletion.hpp"
 #include "fog-conv.hpp"
-#include "logger.hpp"
 #include "render-terrain.hpp"
 #include "tiles.hpp"
 #include "visibility.hpp"
@@ -27,6 +26,9 @@
 
 // rds
 #include "rds/switch-macro.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <unordered_set>

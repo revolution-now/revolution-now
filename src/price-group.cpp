@@ -14,7 +14,6 @@
 
 // Revolution Now
 #include "irand.hpp"
-#include "logger.hpp"
 #include "ts.hpp"
 
 // config
@@ -31,6 +30,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library

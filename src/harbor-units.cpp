@@ -13,7 +13,6 @@
 // Revolution Now
 #include "connectivity.hpp"
 #include "error.hpp"
-#include "logger.hpp"
 #include "on-map.hpp"
 #include "society.hpp"
 #include "ts.hpp"
@@ -39,6 +38,7 @@
 // base
 #include "base/generator.hpp"
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 
 // base-util
 #include "base-util/algo.hpp"

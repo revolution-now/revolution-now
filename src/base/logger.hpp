@@ -116,3 +116,11 @@ std::string fmt_bar( char c, std::string_view msg = "" );
 void print_bar( char c, std::string_view msg = "" );
 
 } // namespace base
+
+namespace rn {
+
+// This makes it more convenient to use throughout the main code
+// base. Other libraries will have to qualifyit.
+using ::base::lg;
+
+} // namespace rn

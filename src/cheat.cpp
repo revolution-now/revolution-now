@@ -26,7 +26,6 @@
 #include "imenu-server.hpp"
 #include "interrupts.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "market.hpp"
 #include "minds.hpp"
 #include "plane-stack.hpp"
@@ -70,6 +69,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"

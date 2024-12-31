@@ -25,7 +25,6 @@
 #include "imenu-server.hpp"
 #include "land-view-anim.hpp"
 #include "land-view-render.hpp"
-#include "logger.hpp"
 #include "physics.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
@@ -63,6 +62,7 @@
 #include "refl/to-str.hpp" // IWYU pragma: keep
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 // luapp

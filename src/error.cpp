@@ -11,13 +11,13 @@
 #include "error.hpp"
 
 // Revolution Now
-#include "logger.hpp"
 #include "stacktrace.hpp"
 
 // sdl
 #include "include-sdl-base.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/stack-trace.hpp"
 
 using namespace std;

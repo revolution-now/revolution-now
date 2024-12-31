@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
 
 // luapp
 #include "luapp/iter.hpp"
@@ -22,6 +21,7 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 #include "base/string.hpp"
 #include "base/to-str-tags.hpp"

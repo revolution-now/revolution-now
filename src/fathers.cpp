@@ -19,7 +19,6 @@
 #include "imap-updater.hpp"
 #include "immigration.hpp"
 #include "irand.hpp"
-#include "logger.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -42,6 +41,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

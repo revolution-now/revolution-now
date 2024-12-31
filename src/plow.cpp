@@ -13,7 +13,6 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "imap-updater.hpp"
-#include "logger.hpp"
 #include "lumber-yield.hpp"
 #include "map-square.hpp"
 #include "terrain.hpp"
@@ -39,6 +38,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;

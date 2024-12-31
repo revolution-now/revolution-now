@@ -11,8 +11,10 @@
 #include "mplayer.hpp"
 
 // Revolution Now
-#include "logger.hpp"
 #include "time.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <iostream>

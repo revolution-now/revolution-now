@@ -20,7 +20,6 @@
 #include "icolony-evolve.rds.hpp"
 #include "iengine.hpp"
 #include "interrupts.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "screen.hpp" // FIXME: remove
@@ -45,6 +44,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;

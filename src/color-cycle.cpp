@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "gfx/pixel.hpp"
 #include "igui.hpp"
-#include "logger.hpp"
 
 // config
 #include "config/gfx.rds.hpp"
@@ -26,6 +25,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;

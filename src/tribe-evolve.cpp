@@ -14,7 +14,6 @@
 #include "config/natives.rds.hpp"
 
 // Revoution Now
-#include "logger.hpp"
 #include "tribe-arms.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"
@@ -24,6 +23,9 @@
 #include "ss/natives.hpp"
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

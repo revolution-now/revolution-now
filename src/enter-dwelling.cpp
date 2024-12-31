@@ -20,7 +20,6 @@
 #include "imap-updater.hpp"
 #include "irand.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "minds.hpp"
 #include "missionary.hpp"
 #include "plane-stack.hpp"
@@ -56,6 +55,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 

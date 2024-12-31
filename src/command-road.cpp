@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "logger.hpp"
 #include "native-owned.hpp"
 #include "road.hpp"
 #include "ts.hpp"
@@ -21,6 +20,9 @@
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

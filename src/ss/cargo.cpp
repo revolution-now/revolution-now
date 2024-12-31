@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
 #include "macros.hpp"
 
 // config
@@ -26,6 +25,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 #include "base/variant-util.hpp"

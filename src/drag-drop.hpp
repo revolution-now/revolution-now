@@ -18,7 +18,6 @@
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "input.hpp"
-#include "logger.hpp"
 #include "throttler.hpp"
 #include "wait.hpp"
 
@@ -32,6 +31,7 @@
 #include "base/attributes.hpp"
 #include "base/error.hpp"
 #include "base/function-ref.hpp"
+#include "base/logger.hpp"
 #include "base/maybe-util.hpp"
 #include "base/scope-exit.hpp"
 #include "base/variant-util.hpp"

@@ -10,14 +10,12 @@
 *****************************************************************/
 #include "connectivity.hpp"
 
-// Revolution Now
-#include "logger.hpp"
-
 // ss
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/timer.hpp"
 
 using namespace std;

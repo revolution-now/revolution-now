@@ -27,7 +27,6 @@
 #include "igui.hpp"
 #include "inative-mind.hpp"
 #include "land-view.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "minds.hpp"
 #include "missionary.hpp"
@@ -55,14 +54,15 @@
 #include "ss/tribe.rds.hpp"
 #include "ss/units.hpp"
 
-// base
-#include "base/conv.hpp"
-#include "base/scope-exit.hpp"
-#include "base/to-str-ext-std.hpp"
-
 // refl
 #include "refl/to-str.hpp"
 #include "visibility.hpp"
+
+// base
+#include "base/conv.hpp"
+#include "base/logger.hpp"
+#include "base/scope-exit.hpp"
+#include "base/to-str-ext-std.hpp"
 
 using namespace std;
 

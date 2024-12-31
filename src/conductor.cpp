@@ -13,7 +13,6 @@
 // Revolution Now
 #include "frame.hpp"
 #include "irand.hpp"
-#include "logger.hpp"
 #include "midiplayer.hpp"
 #include "mplayer.hpp"
 #include "oggplayer.hpp"
@@ -29,6 +28,7 @@
 
 // base
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 
 // base-util

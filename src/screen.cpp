@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "iengine.hpp"
 #include "input.hpp"
-#include "logger.hpp"
 #include "tiles.hpp"
 
 // config
@@ -38,6 +37,7 @@
 
 // base
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 
 // C++ standard library

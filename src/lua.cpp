@@ -13,7 +13,6 @@
 // Revolution Now
 #include "error.hpp"
 #include "expect.hpp"
-#include "logger.hpp"
 
 // luapp
 #include "luapp/c-api.hpp"
@@ -25,6 +24,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/string.hpp"
 #include "base/to-str-ext-std.hpp"
 

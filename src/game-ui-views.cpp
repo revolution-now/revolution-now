@@ -11,7 +11,6 @@
 #include "game-ui-views.hpp"
 
 // Revolution Now
-#include "logger.hpp"
 #include "unit-mgr.hpp"
 #include "unit-stack.hpp"
 
@@ -25,6 +24,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

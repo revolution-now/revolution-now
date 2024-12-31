@@ -26,7 +26,6 @@
 #include "igui.hpp"
 #include "interrupts.hpp"
 #include "land-production.hpp"
-#include "logger.hpp"
 #include "missionary.hpp"
 #include "on-map.hpp"
 #include "plow.hpp"
@@ -66,6 +65,7 @@
 
 // base
 #include "base/conv.hpp"
+#include "base/logger.hpp"
 #include "base/maybe-util.hpp"
 
 using namespace std;

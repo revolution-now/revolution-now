@@ -19,7 +19,6 @@
 #include "harbor-units.hpp"
 #include "imap-updater.hpp"
 #include "land-production.hpp"
-#include "logger.hpp"
 #include "macros.hpp"
 #include "map-updater-lua.hpp"
 #include "on-map.hpp"
@@ -56,6 +55,7 @@
 // base
 #include "base/function-ref.hpp"
 #include "base/keyval.hpp"
+#include "base/logger.hpp"
 #include "base/to-str-ext-std.hpp"
 
 using namespace std;

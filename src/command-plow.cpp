@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "co-wait.hpp"
-#include "logger.hpp"
 #include "map-square.hpp"
 #include "native-owned.hpp"
 #include "plow.hpp"
@@ -25,6 +24,9 @@
 
 // refl
 #include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

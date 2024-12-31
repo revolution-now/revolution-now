@@ -13,7 +13,6 @@
 // Revolution Now
 #include "damaged.hpp"
 #include "irand.hpp"
-#include "logger.hpp"
 #include "missionary.hpp"
 #include "promotion.hpp"
 #include "society.rds.hpp"
@@ -38,6 +37,9 @@
 
 // rds
 #include "rds/switch-macro.hpp"
+
+// base
+#include "base/logger.hpp"
 
 using namespace std;
 

@@ -12,7 +12,6 @@
 
 // Revolution Now
 #include "error.hpp"
-#include "logger.hpp"
 #include "maybe.hpp"
 #include "screen.hpp"
 
@@ -28,6 +27,7 @@
 // base
 #include "base/fmt.hpp"
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/maybe-util.hpp"
 #include "base/to-str-ext-std.hpp"
 

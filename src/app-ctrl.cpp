@@ -14,7 +14,6 @@
 #include "co-wait.hpp"
 #include "console.hpp"
 #include "gui.hpp"
-#include "logger.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
 #include "menu-plane.hpp"
@@ -27,6 +26,7 @@
 #include "luapp/state.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;

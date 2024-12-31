@@ -10,14 +10,14 @@
 *****************************************************************/
 #include "oggplayer.hpp"
 
-// Revolution Now
-#include "logger.hpp"
-
 // config
 #include "config/music.rds.hpp"
 
 // sdl
 #include "sdl/include-sdl-mixer.hpp"
+
+// base
+#include "base/logger.hpp"
 
 // C++ standard library
 #include <cmath>

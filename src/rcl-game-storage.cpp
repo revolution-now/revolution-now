@@ -10,9 +10,6 @@
 *****************************************************************/
 #include "rcl-game-storage.hpp"
 
-// Revolution Now
-#include "logger.hpp"
-
 // config
 #include "config/nation.rds.hpp"
 #include "config/savegame.rds.hpp"
@@ -40,6 +37,7 @@
 
 // base
 #include "base/io.hpp"
+#include "base/logger.hpp"
 #include "base/string.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"

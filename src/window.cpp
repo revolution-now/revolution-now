@@ -19,7 +19,6 @@
 #include "game-ui-views.hpp"
 #include "iengine.hpp"
 #include "input.hpp"
-#include "logger.hpp"
 #include "plane.hpp"
 #include "render.hpp"
 #include "screen.hpp"
@@ -46,6 +45,7 @@
 #include "base/conv.hpp"
 #include "base/function-ref.hpp"
 #include "base/lambda.hpp"
+#include "base/logger.hpp"
 #include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 

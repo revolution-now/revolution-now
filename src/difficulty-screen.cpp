@@ -15,7 +15,6 @@
 #include "iengine.hpp"
 #include "input.hpp"
 #include "interrupts.hpp"
-#include "logger.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "query-enum.hpp"
@@ -50,6 +49,7 @@
 #include "refl/to-str.hpp"
 
 // base
+#include "base/logger.hpp"
 #include "base/string.hpp"
 
 using namespace std;

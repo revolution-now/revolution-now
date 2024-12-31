@@ -14,7 +14,6 @@
 #include "error.hpp"
 #include "igame-storage.hpp"
 #include "igui.hpp"
-#include "logger.hpp"
 #include "macros.hpp"
 #include "ts.hpp"
 
@@ -29,6 +28,7 @@
 // base
 #include "base/conv.hpp"
 #include "base/fs.hpp"
+#include "base/logger.hpp"
 #include "base/string.hpp"
 #include "base/timer.hpp"
 #include "base/to-str-ext-std.hpp"
