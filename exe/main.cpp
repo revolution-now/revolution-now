@@ -1,3 +1,13 @@
+/****************************************************************
+**main.cpp
+*
+* Project: Revolution Now
+*
+* Created by David P. Sicilia on 2018-08-24.
+*
+* Description: The Revolution Begins.
+*
+*****************************************************************/
 #include "app-ctrl.hpp"
 #include "console.hpp"
 #include "engine.hpp"
