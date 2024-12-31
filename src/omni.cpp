@@ -26,6 +26,7 @@
 // config
 #include "config/menu-items.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // video
 #include "video/window.hpp"
@@ -411,10 +412,13 @@ struct OmniPlane::Impl : public IPlane {
         main_window_logical_rect( engine_.video(),
                                   engine_.window(),
                                   engine_.resolutions() )
-            .ne();
+            .se()
+            .moved_up( 11 )
+            .moved_left( config_ui.panel.width )
+            .moved_right( 2 );
 
     render_text_overlay_with_anchor(
-        renderer, lines, info_region_anchor, e_cdirection::ne,
+        renderer, lines, info_region_anchor, e_cdirection::nw,
         overlay_fg, overlay_bg, /*scale=*/1 );
   }
 

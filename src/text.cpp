@@ -361,7 +361,7 @@ void render_text_overlay_with_anchor(
     // Account for the (scaled) border.
     res.x += 1 * scale;
     res.y += 1 * scale;
-    ++res.x;
+    // ++res.x;
     ++res.y;
     return res;
   }();

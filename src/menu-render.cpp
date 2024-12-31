@@ -407,12 +407,25 @@ static void render_wood_bar(
 
   rr::Painter painter = renderer.painter();
 
+  int const panel_width = config_ui.panel.width;
+
   // Render some border lines.
+  //
+  // The lengths of these lines (as well as the point pixel) are
+  // chosen to make a connection with the corresponding border
+  // that will be drawn by the panel plane so that we form a con-
+  // tiguous corner that makes the menu bar and panel look like a
+  // single wood slab.
   painter.draw_horizontal_line(
       layout.bounds.sw() + size{ .h = -2 },
-      layout.bounds.size.w + 1, config_ui.window.border_dark );
+      layout.bounds.size.w - panel_width + 2,
+      config_ui.window.border_dark );
+  painter.draw_point(
+      layout.bounds.se() - size{ .w = panel_width - 1, .h = 1 },
+      config_ui.window.border_dark );
   painter.draw_horizontal_line(
-      layout.bounds.sw() + size{ .h = -1 }, layout.bounds.size.w,
+      layout.bounds.sw() + size{ .h = -1 },
+      layout.bounds.size.w - panel_width + 1,
       config_ui.window.border_darker );
 }
 

@@ -74,8 +74,9 @@ struct PanelPlane::Impl : public IPlane {
     auto const r = main_window_logical_rect(
         engine_.video(), engine_.window(),
         engine_.resolutions() );
-    return r.with_new_left_edge( r.right() -
-                                 config_ui.panel.width );
+    return r
+        .with_new_left_edge( r.right() - config_ui.panel.width )
+        .with_new_top_edge( config_ui.menus.menu_bar_height );
   }
 
   Rect mini_map_available_rect() const {
