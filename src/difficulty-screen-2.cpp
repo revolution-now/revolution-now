@@ -119,7 +119,7 @@ Layout layout_640x360() {
 
   l.selected_buffer              = { .w = 5, .h = 5 };
   l.center_for_label             = { .w = 61, .h = 19 };
-  l.center_for_description_label = { .w = 63, .h = 146 };
+  l.center_for_description_label = { .w = 63, .h = 147 };
   l.stencil_nw                   = { .w = 10, .h = 26 };
 
   auto& instructions                  = l.instructions_cell;
@@ -136,7 +136,7 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[discoverer];
     cell.label             = "Discoverer";
-    cell.description_label = "(easiest)";
+    cell.description_label = "-easiest-";
     cell.character         = e_tile::discoverer;
     cell.scroll_origin     = { .x = 46, .y = 12 };
     cell.next[n]           = explorer;
@@ -150,7 +150,7 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[explorer];
     cell.label             = "Explorer";
-    cell.description_label = "(easy)";
+    cell.description_label = "-easy-";
     cell.character         = e_tile::explorer;
     cell.scroll_origin     = { .x = 46, .y = 188 };
     cell.next[n]           = discoverer;
@@ -164,7 +164,7 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[conquistador];
     cell.label             = "Conquistador";
-    cell.description_label = "(moderate)";
+    cell.description_label = "-moderate-";
     cell.character         = e_tile::conquistador;
     cell.scroll_origin     = { .x = 260, .y = 188 };
     cell.next[n]           = conquistador;
@@ -178,7 +178,7 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[governor];
     cell.label             = "Governor";
-    cell.description_label = "(tough)";
+    cell.description_label = "-tough-";
     cell.character         = e_tile::governor;
     cell.scroll_origin     = { .x = 473, .y = 188 };
     cell.next[n]           = viceroy;
@@ -192,7 +192,7 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[viceroy];
     cell.label             = "Viceroy";
-    cell.description_label = "(toughest)";
+    cell.description_label = "-toughest-";
     cell.character         = e_tile::viceroy;
     cell.scroll_origin     = { .x = 473, .y = 12 };
     cell.next[n]           = governor;
@@ -271,13 +271,14 @@ struct DifficultyScreen : public IPlane {
   }
 
   static void render_aged( rr::Renderer& renderer,
-                           auto const& fn ) {
+                           double const age, auto const& fn ) {
     fn();
     // This will overlay some translucent grey noise over the
     // image to give it a faded/aged/degraded look.
     SCOPED_RENDERER_MOD_SET( painter_mods.desaturate, true );
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
-    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage, .5 );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, age );
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.stage,
+                             1.0 - age );
     fn();
   }
 
@@ -296,9 +297,9 @@ struct DifficultyScreen : public IPlane {
                              cell.character, pixel::black() );
     };
     if( this_selected )
-      draw_character();
+      render_aged( renderer, /*age=*/0.0, draw_character );
     else
-      render_aged( renderer, draw_character );
+      render_aged( renderer, /*age=*/0.5, draw_character );
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
