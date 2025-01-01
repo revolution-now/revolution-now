@@ -30,6 +30,10 @@
 #include <string>
 #include <unordered_map>
 
+namespace gfx {
+enum class e_resolution;
+}
+
 namespace rr {
 
 /****************************************************************
@@ -148,6 +152,9 @@ struct Renderer : IRenderer {
     return gfx::rect{ .origin = {},
                       .size   = logical_screen_size() };
   }
+
+  // For convenience.
+  gfx::e_resolution named_logical_resolution() const;
 
   // Must be called each time the logical screen size changes.
   void set_viewport( gfx::rect viewport );

@@ -32,6 +32,9 @@
 // stb
 #include "stb/image.hpp"
 
+// gfx
+#include "gfx/resolution.hpp"
+
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/query-enum.hpp"
@@ -524,6 +527,12 @@ void Renderer::set_logical_screen_size( gfx::size new_size ) {
 
 gfx::size Renderer::logical_screen_size() const {
   return impl_->logical_screen_size;
+}
+
+gfx::e_resolution Renderer::named_logical_resolution() const {
+  UNWRAP_CHECK(
+      res, resolution_from_size( impl_->logical_screen_size ) );
+  return res;
 }
 
 void Renderer::set_viewport( gfx::rect const viewport ) {
