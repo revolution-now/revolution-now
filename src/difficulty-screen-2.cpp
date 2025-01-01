@@ -121,7 +121,7 @@ auto const kLayout_640x360 = [] {
   Layout l;
   l.bg_rect.size                 = { .w = 640, .h = 360 };
   l.selected_buffer              = { .w = 5, .h = 5 };
-  l.center_for_label             = { .w = 63, .h = 20 };
+  l.center_for_label             = { .w = 61, .h = 19 };
   l.center_for_description_label = { .w = 63, .h = 146 };
   l.stencil_nw                   = { .w = 10, .h = 26 };
 
@@ -263,6 +263,15 @@ struct DifficultyScreen : public IPlane {
     renderer.typer( text_rect.nw(), color_fg ).write( text );
   }
 
+  void write_centered( rr::Renderer& renderer,
+                       pixel const color_fg, point const center,
+                       string_view const text ) const {
+    size const text_size =
+        rr::rendered_text_line_size_pixels( text );
+    rect const text_rect = gfx::centered_on( text_size, center );
+    renderer.typer( text_rect.nw(), color_fg ).write( text );
+  }
+
   static void render_aged( rr::Renderer& renderer,
                            auto const& fn ) {
     fn();
@@ -295,17 +304,23 @@ struct DifficultyScreen : public IPlane {
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
-        write_centered( renderer, cell.selected_color,
-                        pixel::black(),
+        write_centered( renderer, l.bg_color,
                         cell.scroll_origin + center, text );
       else
-        write_centered(
-            renderer, pixel::from_hex_rgb( 0x777777 ),
-            pixel::black(), cell.scroll_origin + center, text );
+        write_centered( renderer, l.bg_color,
+                        cell.scroll_origin + center, text );
     };
-    write( l.center_for_label, cell.label );
-    write( l.center_for_description_label,
-           cell.description_label );
+    auto const write_text = [&] {
+      write( l.center_for_label, cell.label );
+      write( l.center_for_description_label,
+             cell.description_label );
+    };
+    if( this_selected )
+      write_text();
+    else {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
+      write_text();
+    }
     if( this_selected ) {
       rr::Painter painter = renderer.painter();
       static size const kScrollSize =
@@ -324,6 +339,11 @@ struct DifficultyScreen : public IPlane {
 
     // Background.
     painter.draw_solid_rect( l.bg_rect, l.bg_color );
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+      tile_sprite( renderer, e_tile::wood_middle,
+                   renderer.logical_screen_rect() );
+    }
 
     // Scrolls.
     for( auto const& [difficulty, cell] : l.cells )
@@ -366,21 +386,26 @@ struct DifficultyScreen : public IPlane {
         break;
       case ::SDLK_LEFT:
       case ::SDLK_KP_4:
+      case ::SDLK_h:
+      case ::SDLK_j:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::w];
         break;
       case ::SDLK_RIGHT:
       case ::SDLK_KP_6:
+      case ::SDLK_l:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::e];
         break;
       case ::SDLK_UP:
       case ::SDLK_KP_8:
+      case ::SDLK_i:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::n];
         break;
       case ::SDLK_DOWN:
       case ::SDLK_KP_2:
+      case ::SDLK_COMMA:
         selected_ =
             l.cells[selected_].next[e_cardinal_direction::s];
         break;
