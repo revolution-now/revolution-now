@@ -28,8 +28,10 @@ struct MockIPlane : IPlane {
   MOCK_METHOD( bool, will_handle_menu_click, ( e_menu_item ),
                () );
   MOCK_METHOD( void, handle_menu_click, ( e_menu_item ), () );
-  MOCK_METHOD( void, on_logical_resolution_changed,
+  MOCK_METHOD( void, on_logical_resolution_selected,
                ( gfx::e_resolution ), () );
+  MOCK_METHOD( bool, supports_resolution, ( gfx::e_resolution ),
+               ( const ) );
 };
 
 static_assert( !std::is_abstract_v<MockIPlane> );

@@ -523,7 +523,7 @@ struct OmniPlane::Impl : public IPlane {
     return hazard_is_shown ? e_input_handled::yes : handled;
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       gfx::e_resolution ) override {}
 };
 

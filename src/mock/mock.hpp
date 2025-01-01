@@ -273,10 +273,10 @@ struct Responder<RetT, std::tuple<Args...>,
           if( !matcher.matches( arg ) )
             throw_unexpected_error( fmt::format(
                 "mock function `{}` called with unexpected "
-                "arguments:\n"
-                "argument #{} (one-based) does not match.\n"
-                "expected call: {}( {} )\n"
-                "actual arg #{}: {}",
+                "arguments:\nargument #{} (one-based) does not "
+                "match.\n"
+                "actual call: {}( {} )\n"
+                "expected arg #{}: {}",
                 fn_name_, ArgIdx + 1, fn_name_, formatted_args,
                 ArgIdx + 1, matcher.format_expected() ) );
         };

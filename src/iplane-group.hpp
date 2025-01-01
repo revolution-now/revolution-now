@@ -27,21 +27,27 @@ namespace rn {
 /****************************************************************
 ** IPlaneGroup
 *****************************************************************/
-struct IPlaneGroup : public IPlane {
+struct IPlaneGroup {
+  virtual ~IPlaneGroup() = default;
+
   virtual std::vector<IPlane*> planes() const = 0;
 
- public: // IPlane
-  void draw( rr::Renderer& renderer ) const override final;
+ public:
+  void draw( rr::Renderer& renderer ) const;
 
-  void advance_state() override final;
+  void advance_state();
 
-  e_input_handled input(
-      input::event_t const& event ) override final;
+  e_input_handled input( input::event_t const& event );
 
   void on_logical_resolution_changed(
-      gfx::e_resolution resolution ) override final;
+      gfx::e_resolution resolution );
 
  private:
+  void draw_translated( rr::Renderer& renderer,
+                        IPlane const& plane,
+                        gfx::e_resolution actual,
+                        gfx::e_resolution rendered ) const;
+
   // Drag state.
   enum class e_drag_send_mode {
     normal,

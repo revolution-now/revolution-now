@@ -54,6 +54,10 @@ namespace rn {
 struct IPlane {
   virtual ~IPlane() = default;
 
+  IPlane()                = default;
+  IPlane( IPlane const& ) = default;
+  IPlane( IPlane&& )      = default;
+
   virtual void draw( rr::Renderer& renderer ) const;
 
   // Called once per frame.
@@ -159,15 +163,49 @@ struct IPlane {
   // least once this frame.
   virtual void handle_menu_click( e_menu_item item );
 
+  // ------------------------------------------------------------
+  // Resolutions
+  // ------------------------------------------------------------
   // Called whenever the logical resolution changes and hence
   // when things may need to have their layout changed.
   virtual void on_logical_resolution_changed(
-      gfx::e_resolution resolution ) = 0;
+      gfx::e_resolution resolution ) final;
+
+  // This will be called when a rendering resolution has been se-
+  // lected for the plane to use. Note that the selected resolu-
+  // tion can be different from the actual logical resolution in
+  // cases where the plane does not have a layout for the actual
+  // resolution but has one for another resolution that can be
+  // subsumed by the actual resolution. This is used to help
+  // planes render on logical resolutions that they don't yet
+  // have a layout for, in order to make it easier to add new
+  // resolutions and implement them gradually for all planes.
+  virtual void on_logical_resolution_selected(
+      gfx::e_resolution resolution );
+
+  // Asks the plane which resolution it is currently set to use
+  // when rendering. The plane will either not implement this (if
+  // it doesn't need managed resolutions) or will return whatever
+  // was last given to it via the on_logical_resolution_selected
+  // method above. But whatever it returns, if it is different
+  // than the actual resolution, then the draw call for the plane
+  // will have some translation pre-applied to center it within
+  // the actual resolution.
+  virtual gfx::e_resolution rendered_resolution(
+      rr::Renderer& renderer ) const;
+
+  // Asks the plane if it has a dedicated layout for the given
+  // resolution.
+  virtual bool supports_resolution(
+      gfx::e_resolution resolution ) const;
+
+ private:
+  gfx::e_resolution on_logical_resolution_changed_impl(
+      gfx::e_resolution resolution );
 };
 
-struct NoOpPlane : IPlane {
-  void on_logical_resolution_changed(
-      gfx::e_resolution ) override {}
-};
+struct NoOpPlane : IPlane {};
+
+static_assert( !std::is_abstract_v<NoOpPlane> );
 
 } // namespace rn

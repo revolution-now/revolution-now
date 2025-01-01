@@ -67,7 +67,7 @@ struct TurnPlane::Impl : public IPlane {
     co_return item;
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       gfx::e_resolution ) override {}
 };
 

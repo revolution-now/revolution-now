@@ -128,7 +128,7 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
       menu_threads_.send_event( MenuEventRaw::close_all{} );
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       e_resolution const ) override {
     close_all_menus();
     restart_bar_thread_if_running();

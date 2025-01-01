@@ -793,8 +793,8 @@ TEST_CASE( "[mock] matcher stringification" ) {
       "mock function `set_xy_pair` called with unexpected "
       "arguments:\n"
       "argument #1 (one-based) does not match.\n"
-      "expected call: set_xy_pair( (5,2) )\n"
-      "actual arg #1: AllOf( (TupleElement( (0,Ge( 5 )) ), "
+      "actual call: set_xy_pair( (5,2) )\n"
+      "expected arg #1: AllOf( (TupleElement( (0,Ge( 5 )) ), "
       "TupleElement( (1,Ge( 3 )) )) )" );
 
   user.set_xy_pair( { 5, 3 } );
@@ -837,8 +837,8 @@ TEST_CASE( "[mock] Eq-ref trick" ) {
         "mock function `no_copy_arg_2` called with unexpected "
         "arguments:\n"
         "argument #1 (one-based) does not match.\n"
-        "expected call: no_copy_arg_2( Trivial{d=0,n=9} )\n"
-        "actual arg #1: Trivial{d=0,n=8}" );
+        "actual call: no_copy_arg_2( Trivial{d=0,n=9} )\n"
+        "expected arg #1: Trivial{d=0,n=8}" );
     // Satisfy the expecation so the test doesn't fail.
     --tr.n;
     user.calls_no_copy_arg_2( tr );

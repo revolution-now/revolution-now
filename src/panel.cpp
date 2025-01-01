@@ -284,7 +284,7 @@ struct PanelPlane::Impl : public IPlane {
     return user_hits_eot_button();
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       gfx::e_resolution ) override {}
 };
 

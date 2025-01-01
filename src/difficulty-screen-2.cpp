@@ -35,7 +35,7 @@
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
-#include "gfx/resolution.rds.hpp"
+#include "gfx/resolution.hpp"
 
 // refl
 #include "refl/enum-map.hpp"
@@ -43,13 +43,6 @@
 
 // base
 #include "base/logger.hpp"
-
-#define HANDLED( r )                          \
-  case e_resolution::_##r: {                  \
-    static auto const layout = kLayout_##r(); \
-    layout_                  = &layout;       \
-    break;                                    \
-  }
 
 using namespace std;
 
@@ -90,9 +83,11 @@ struct InstructionsCell {
 };
 
 struct Layout {
+  e_resolution named_resolution = {};
+
   rect bg_rect = {};
 
-  pixel const bg_color = pixel::from_hex_rgb( 0x342318 );
+  pixel bg_color = pixel::from_hex_rgb( 0x342318 );
 
   // The amount of buffer around the scroll tile to draw the se-
   // lection rectangle
@@ -117,9 +112,11 @@ struct Layout {
 /****************************************************************
 ** Layouts.
 *****************************************************************/
-auto const kLayout_640x360 = [] {
+Layout layout_640x360() {
   Layout l;
-  l.bg_rect.size                 = { .w = 640, .h = 360 };
+  l.named_resolution = e_resolution::_640x360;
+  l.bg_rect.size     = resolution_size( l.named_resolution );
+
   l.selected_buffer              = { .w = 5, .h = 5 };
   l.center_for_label             = { .w = 61, .h = 19 };
   l.center_for_description_label = { .w = 63, .h = 146 };
@@ -206,7 +203,7 @@ auto const kLayout_640x360 = [] {
   }
 
   return l;
-};
+}
 
 /****************************************************************
 ** DfficultyScreen
@@ -215,7 +212,7 @@ struct DifficultyScreen : public IPlane {
   // State
   IEngine& engine_;
   wait_promise<maybe<e_difficulty>> result_ = {};
-  Layout const* layout_                     = {};
+  maybe<Layout> layout_                     = {};
   e_difficulty selected_           = e_difficulty::conquistador;
   maybe<e_difficulty> highlighted_ = nothing;
 
@@ -226,27 +223,28 @@ struct DifficultyScreen : public IPlane {
       on_logical_resolution_changed( *named );
   }
 
-  void on_logical_resolution_changed(
+  inline static enum_map<e_resolution, Layout ( * )()> const
+      kSupportedResolutions{
+        { e_resolution::_640x360, &layout_640x360 },
+      };
+
+  e_resolution rendered_resolution(
+      rr::Renderer& renderer ) const override {
+    return layout_ ? layout_->named_resolution
+                   : renderer.named_logical_resolution();
+  }
+
+  bool supports_resolution(
+      e_resolution const resolution ) const override {
+    return kSupportedResolutions[resolution] != nullptr;
+  }
+
+  void on_logical_resolution_selected(
       e_resolution const resolution ) override {
-    switch( resolution ) {
-      HANDLED( 640x360 );
-      case e_resolution::_640x400: {
-        layout_ = {};
-        break;
-      }
-      case e_resolution::_576x360: {
-        layout_ = {};
-        break;
-      }
-      case e_resolution::_720x450: {
-        layout_ = {};
-        break;
-      }
-      case e_resolution::_768x432: {
-        layout_ = {};
-        break;
-      }
-    }
+    layout_            = {};
+    auto const& layout = kSupportedResolutions[resolution];
+    if( !layout ) return;
+    layout_ = layout();
   }
 
   void write_centered( rr::Renderer& renderer,
@@ -341,8 +339,7 @@ struct DifficultyScreen : public IPlane {
     painter.draw_solid_rect( l.bg_rect, l.bg_color );
     {
       SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
-      tile_sprite( renderer, e_tile::wood_middle,
-                   renderer.logical_screen_rect() );
+      tile_sprite( renderer, e_tile::wood_middle, l.bg_rect );
     }
 
     // Scrolls.

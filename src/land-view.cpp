@@ -1673,7 +1673,7 @@ struct LandViewPlane::Impl : public IPlane {
     co_return co_await white_box_input_loop( initial_tile );
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       gfx::e_resolution ) override {
     viewport_.update_logical_rect_cache(
         viewport_rect_pixels() );

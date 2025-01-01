@@ -377,7 +377,7 @@ struct MapEditPlane::Impl : public IPlane {
     // its own after doing any post-drag stuff it needs to do.
   }
 
-  void on_logical_resolution_changed(
+  void on_logical_resolution_selected(
       gfx::e_resolution ) override {
     viewport_.update_logical_rect_cache(
         viewport_rect_pixels() );

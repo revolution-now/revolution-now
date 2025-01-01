@@ -311,7 +311,7 @@ struct DifficultyScreen : public IPlane {
     layout_.resize_grid_for_screen_size( normal_area.size );
   }
 
-  void on_logical_resolution_changed( e_resolution ) override {}
+  void on_logical_resolution_selected( e_resolution ) override {}
 
   void advance_state() override { recomposite(); }
 
