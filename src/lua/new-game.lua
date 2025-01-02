@@ -66,7 +66,7 @@ local function set_default_settings( options, settings )
   game_options.set_flag( 'combat_analysis', true )
   game_options.set_flag( 'water_color_cycling', true )
   game_options.set_flag( 'tutorial_hints', false )
-  game_options.set_flag( 'show_fog_of_war', true )
+  game_options.set_flag( 'show_fog_of_war', false )
 
   if options.difficulty == 'discoverer' then
     game_options.set_flag( 'tutorial_hints', true )
