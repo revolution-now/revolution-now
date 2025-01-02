@@ -51,8 +51,6 @@ size resolution_size( e_resolution const r ) {
       return { .w = 576, .h = 360 };
     case e_resolution::_720x450:
       return { .w = 720, .h = 450 };
-    case e_resolution::_480x270:
-      return { .w = 480, .h = 270 };
     case e_resolution::_640x480:
       return { .w = 640, .h = 480 };
     case e_resolution::_960x720:

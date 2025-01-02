@@ -74,7 +74,6 @@ TEST_CASE( "[plane] on_logical_resolution_changed" ) {
 
     p.EXPECT__supports_resolution( _640x360 ).returns( true );
     p.EXPECT__supports_resolution( _768x432 ).returns( true );
-    p.EXPECT__supports_resolution( _480x270 ).returns( true );
     p.EXPECT__supports_resolution( _576x360 ).returns( true );
     p.EXPECT__supports_resolution( _640x400 ).returns( false );
     p.EXPECT__supports_resolution( _720x450 ).returns( true );

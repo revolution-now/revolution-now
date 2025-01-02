@@ -25,30 +25,6 @@ available: [
   {
     resolution {
       logical {
-        h: 270
-        w: 480
-      }
-      named: _480x270
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 1.0583333333333333
-      scale: 4
-      viewport.size {
-        h: 1080
-        w: 1920
-      }
-    }
-    scores {
-      fitting: 1
-      overall: 0.77
-      pixel_size: 0.77
-    }
-  },
-  {
-    resolution {
-      logical {
         h: 360
         w: 576
       }
