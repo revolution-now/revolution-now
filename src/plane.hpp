@@ -171,6 +171,12 @@ struct IPlane {
   virtual void on_logical_resolution_changed(
       gfx::e_resolution resolution ) final;
 
+  // Asks the plane if it has a dedicated layout for the given
+  // resolution.
+  [[nodiscard]] virtual bool supports_resolution(
+      gfx::e_resolution resolution ) const;
+
+ protected:
   // This will be called when a rendering resolution has been se-
   // lected for the plane to use. Note that the selected resolu-
   // tion can be different from the actual logical resolution in
@@ -181,15 +187,6 @@ struct IPlane {
   // have a layout for, in order to make it easier to add new
   // resolutions and implement them gradually for all planes.
   virtual void on_logical_resolution_selected(
-      gfx::e_resolution resolution );
-
-  // Asks the plane if it has a dedicated layout for the given
-  // resolution.
-  virtual bool supports_resolution(
-      gfx::e_resolution resolution ) const;
-
- private:
-  gfx::e_resolution on_logical_resolution_changed_impl(
       gfx::e_resolution resolution );
 };
 

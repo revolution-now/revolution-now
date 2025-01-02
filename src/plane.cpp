@@ -148,16 +148,16 @@ void IPlane::handle_menu_click( e_menu_item ) {}
 void IPlane::on_logical_resolution_selected(
     gfx::e_resolution ) {}
 
-gfx::e_resolution IPlane::on_logical_resolution_changed_impl(
-    gfx::e_resolution const resolution ) {
-  if( supports_resolution( resolution ) )
+static gfx::e_resolution on_logical_resolution_changed_impl(
+    IPlane const& plane, gfx::e_resolution const resolution ) {
+  if( plane.supports_resolution( resolution ) )
     // Fast path.
     return resolution;
   e_resolution res       = resolution;
   int best_area_delta    = numeric_limits<int>::max();
   size const actual_size = gfx::resolution_size( resolution );
   for( auto const r : enum_values<e_resolution> ) {
-    if( !supports_resolution( r ) ) continue;
+    if( !plane.supports_resolution( r ) ) continue;
     size const r_size = resolution_size( r );
     if( !r_size.fits_inside( actual_size ) ) continue;
     int const area_delta = actual_size.area() - r_size.area();
@@ -171,7 +171,7 @@ gfx::e_resolution IPlane::on_logical_resolution_changed_impl(
 void IPlane::on_logical_resolution_changed(
     gfx::e_resolution const resolution ) {
   on_logical_resolution_selected(
-      on_logical_resolution_changed_impl( resolution ) );
+      on_logical_resolution_changed_impl( *this, resolution ) );
 }
 
 bool IPlane::supports_resolution( gfx::e_resolution ) const {
