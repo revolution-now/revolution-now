@@ -14,12 +14,6 @@
 // Revolution Now
 #include "input.hpp"
 
-// render
-#include "render/renderer.hpp"
-
-// gfx
-#include "gfx/resolution.hpp"
-
 // base
 #include "base/range-lite.hpp"
 
@@ -39,42 +33,8 @@ using ::gfx::e_resolution;
 ** IPlaneGroup
 *****************************************************************/
 void IPlaneGroup::draw( rr::Renderer& renderer ) const {
-  e_resolution const actual_resolution =
-      renderer.named_logical_resolution();
-  for( IPlane const* const plane : planes() ) {
-    e_resolution const rendered_resolution =
-        plane->rendered_resolution( renderer );
-    if( rendered_resolution == actual_resolution ) {
-      plane->draw( renderer );
-      continue;
-    }
-    draw_translated( renderer, *plane, actual_resolution,
-                     rendered_resolution );
-  }
-}
-
-void IPlaneGroup::draw_translated(
-    rr::Renderer& renderer, IPlane const& plane,
-    gfx::e_resolution actual,
-    gfx::e_resolution rendered ) const {
-  // Apply a translation so as to center what is rendered (which
-  // will be at a smaller resolution) into the viewport which
-  // will correspond to the actual resolution. This is to allow
-  // planes to support resolutions that they don't explicitly
-  // have layouts for, so long as they have a layout for at least
-  // one resolution that can be subsumed by the actual one.
-  rr::Painter painter = renderer.painter();
-  // This is so that it is easily apparent that the plane does
-  // not have a layout for this resolution.
-  painter.draw_empty_rect( renderer.logical_screen_rect(),
-                           rr::Painter::e_border_mode::inside,
-                           gfx::pixel::red() );
-  auto const shift = ( gfx::resolution_size( actual ) -
-                       gfx::resolution_size( rendered ) ) /
-                     2;
-  SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                           shift.to_double() );
-  plane.draw( renderer );
+  for( IPlane const* const plane : planes() )
+    plane->draw( renderer );
 }
 
 void IPlaneGroup::advance_state() {

@@ -183,17 +183,6 @@ struct IPlane {
   virtual void on_logical_resolution_selected(
       gfx::e_resolution resolution );
 
-  // Asks the plane which resolution it is currently set to use
-  // when rendering. The plane will either not implement this (if
-  // it doesn't need managed resolutions) or will return whatever
-  // was last given to it via the on_logical_resolution_selected
-  // method above. But whatever it returns, if it is different
-  // than the actual resolution, then the draw call for the plane
-  // will have some translation pre-applied to center it within
-  // the actual resolution.
-  virtual gfx::e_resolution rendered_resolution(
-      rr::Renderer& renderer ) const;
-
   // Asks the plane if it has a dedicated layout for the given
   // resolution.
   virtual bool supports_resolution(

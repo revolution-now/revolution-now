@@ -13,9 +13,6 @@
 // Revolution Now
 #include "input.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/resolution.hpp"
 
@@ -33,7 +30,6 @@ namespace {
 
 using ::gfx::e_resolution;
 using ::gfx::size;
-using ::refl::enum_map;
 using ::refl::enum_values;
 
 }
@@ -176,11 +172,6 @@ void IPlane::on_logical_resolution_changed(
     gfx::e_resolution const resolution ) {
   on_logical_resolution_selected(
       on_logical_resolution_changed_impl( resolution ) );
-}
-
-e_resolution IPlane::rendered_resolution(
-    rr::Renderer& renderer ) const {
-  return renderer.named_logical_resolution();
 }
 
 bool IPlane::supports_resolution( gfx::e_resolution ) const {

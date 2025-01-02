@@ -228,10 +228,14 @@ struct DifficultyScreen : public IPlane {
         { e_resolution::_640x360, &layout_640x360 },
       };
 
-  e_resolution rendered_resolution(
-      rr::Renderer& renderer ) const override {
-    return layout_ ? layout_->named_resolution
-                   : renderer.named_logical_resolution();
+  size rendered_offset() const {
+    if( !layout_.has_value() ) return {};
+    e_resolution const rendered = layout_->named_resolution;
+    auto const actual           = named_resolution( engine_ );
+    if( !actual.has_value() ) return {};
+    return ( gfx::resolution_size( *actual ) -
+             gfx::resolution_size( rendered ) ) /
+           2;
   }
 
   bool supports_resolution(
@@ -361,7 +365,17 @@ struct DifficultyScreen : public IPlane {
 
   void draw( rr::Renderer& renderer ) const override {
     if( !layout_ ) return;
-    draw( renderer, *layout_ );
+    auto const offset = rendered_offset();
+    if( !offset.empty() ) {
+      renderer.painter().draw_empty_rect(
+          renderer.logical_screen_rect(),
+          rr::Painter::e_border_mode::inside, pixel::white() );
+      SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+                               rendered_offset().to_double() );
+      draw( renderer, *layout_ );
+    } else {
+      draw( renderer, *layout_ );
+    }
   }
 
   e_input_handled on_key(
@@ -411,8 +425,10 @@ struct DifficultyScreen : public IPlane {
     return handled;
   }
 
-  e_input_handled on_mouse_move(
-      input::mouse_move_event_t const& event ) override {
+  e_input_handled on_mouse_move( input::mouse_move_event_t const&
+                                     event_unshifted ) override {
+    auto const event = input::mouse_origin_moved_by(
+        event_unshifted, rendered_offset() );
     if( !layout_ ) return e_input_handled::no;
     auto const& l = *layout_;
 
@@ -430,7 +446,10 @@ struct DifficultyScreen : public IPlane {
   }
 
   e_input_handled on_mouse_button(
-      input::mouse_button_event_t const& event ) override {
+      input::mouse_button_event_t const& event_unshifted )
+      override {
+    auto const event = input::mouse_origin_moved_by(
+        event_unshifted, rendered_offset() );
     if( event.buttons != input::e_mouse_button_event::left_up )
       return e_input_handled::no;
 

@@ -43,11 +43,6 @@ struct IPlaneGroup {
       gfx::e_resolution resolution );
 
  private:
-  void draw_translated( rr::Renderer& renderer,
-                        IPlane const& plane,
-                        gfx::e_resolution actual,
-                        gfx::e_resolution rendered ) const;
-
   // Drag state.
   enum class e_drag_send_mode {
     normal,
