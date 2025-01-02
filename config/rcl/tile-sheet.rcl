@@ -889,28 +889,35 @@ sheets {
       }
     }
     {
-      img_path: assets/art/difficulty/scroll.png
+      img_path: assets/art/tiles/scroll.png
       sprite_size: { w: 121, h: 161 }
       sprites {
-        difficulty_scroll: { y: 0, x: 0 }
+        scroll: { y: 0, x: 0 }
       }
     }
     {
-      img_path: assets/art/difficulty/characters.png
+      img_path: assets/art/difficulty/plate.png
+      sprite_size: { w: 121, h: 161 }
+      sprites {
+        wood_plate: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/difficulty/plate-stencil.png
       sprite_size: { w: 103, h: 117 }
       sprites {
-        explorer:       { y: 1, x: 0 }
-        conquistador:   { y: 1, x: 1 }
-        governor:       { y: 1, x: 2 }
-        viceroy:        { y: 0, x: 2 }
-        scroll_stencil: { y: 0, x: 1 }
+        plate_stencil: { y: 0, x: 0 }
       }
     }
     {
       img_path: assets/art/difficulty/discoverer.png
       sprite_size: { w: 103, h: 117 }
       sprites {
-        discoverer:     { y: 0, x: 0 }
+        discoverer:   { y: 0, x: 0 }
+        explorer:     { y: 0, x: 0 }  # TODO
+        conquistador: { y: 0, x: 0 }  # TODO
+        governor:     { y: 0, x: 0 }  # TODO
+        viceroy:      { y: 0, x: 0 }  # TODO
       }
     }
   ]

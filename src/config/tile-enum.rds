@@ -759,10 +759,15 @@ enum.e_tile {
   hazard,
 
   # =============================================================
+  # Scrolls/Plates
+  # =============================================================
+  scroll,
+
+  # =============================================================
   # Difficulty Screen.
   # =============================================================
-  difficulty_scroll,
-  scroll_stencil,
+  wood_plate,
+  plate_stencil,
   discoverer,
   explorer,
   conquistador,

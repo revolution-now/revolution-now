@@ -63,7 +63,7 @@ using ::refl::enum_map;
 struct DifficultyCell {
   std::string_view label = {};
 
-  point scroll_origin = {};
+  point plate_origin = {};
 
   enum_map<e_cardinal_direction, e_difficulty> next = {};
 
@@ -87,20 +87,18 @@ struct Layout {
 
   rect bg_rect = {};
 
-  pixel bg_color = pixel::from_hex_rgb( 0x342318 );
-
-  // The amount of buffer around the scroll tile to draw the se-
+  // The amount of buffer around the plate tile to draw the se-
   // lection rectangle
   size selected_buffer = {};
 
-  // The point, relative to the ne of the scroll, which will be
+  // The point, relative to the ne of the plate, which will be
   // the center for the label text.
   size center_for_label = {};
 
   // Same as above but for the "(easy)", "(hard)" labels.
   size center_for_description_label = {};
 
-  // The point, relative to the ne of the scroll, which will be
+  // The point, relative to the ne of the plate, which will be
   // the nw for the character sprites (including stencil).
   size stencil_nw = {};
 
@@ -117,10 +115,10 @@ Layout layout_640x360() {
   l.named_resolution = e_resolution::_640x360;
   l.bg_rect.size     = resolution_size( l.named_resolution );
 
-  l.selected_buffer              = { .w = 5, .h = 5 };
-  l.center_for_label             = { .w = 61, .h = 19 };
-  l.center_for_description_label = { .w = 63, .h = 147 };
-  l.stencil_nw                   = { .w = 10, .h = 26 };
+  l.selected_buffer              = { .w = -5, .h = -5 };
+  l.center_for_label             = { .w = 61, .h = 16 };
+  l.center_for_description_label = { .w = 63, .h = 145 };
+  l.stencil_nw                   = { .w = 10, .h = 22 };
 
   auto& instructions                  = l.instructions_cell;
   instructions.center_for_title_label = { .x = 320, .y = 65 };
@@ -136,9 +134,9 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[discoverer];
     cell.label             = "Discoverer";
-    cell.description_label = "-easiest-";
+    cell.description_label = "Easiest";
     cell.character         = e_tile::discoverer;
-    cell.scroll_origin     = { .x = 46, .y = 12 };
+    cell.plate_origin      = { .x = 69, .y = 12 };
     cell.next[n]           = explorer;
     cell.next[e]           = viceroy;
     cell.next[w]           = viceroy;
@@ -150,9 +148,9 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[explorer];
     cell.label             = "Explorer";
-    cell.description_label = "-easy-";
+    cell.description_label = "Easy";
     cell.character         = e_tile::explorer;
-    cell.scroll_origin     = { .x = 46, .y = 188 };
+    cell.plate_origin      = { .x = 69, .y = 188 };
     cell.next[n]           = discoverer;
     cell.next[e]           = conquistador;
     cell.next[w]           = governor;
@@ -164,9 +162,9 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[conquistador];
     cell.label             = "Conquistador";
-    cell.description_label = "-moderate-";
+    cell.description_label = "Moderate";
     cell.character         = e_tile::conquistador;
-    cell.scroll_origin     = { .x = 260, .y = 188 };
+    cell.plate_origin      = { .x = 260, .y = 188 };
     cell.next[n]           = conquistador;
     cell.next[e]           = governor;
     cell.next[w]           = explorer;
@@ -178,9 +176,9 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[governor];
     cell.label             = "Governor";
-    cell.description_label = "-tough-";
+    cell.description_label = "Tough";
     cell.character         = e_tile::governor;
-    cell.scroll_origin     = { .x = 473, .y = 188 };
+    cell.plate_origin      = { .x = 450, .y = 188 };
     cell.next[n]           = viceroy;
     cell.next[e]           = explorer;
     cell.next[w]           = conquistador;
@@ -192,9 +190,9 @@ Layout layout_640x360() {
   {
     auto& cell             = l.cells[viceroy];
     cell.label             = "Viceroy";
-    cell.description_label = "-toughest-";
+    cell.description_label = "Toughest";
     cell.character         = e_tile::viceroy;
-    cell.scroll_origin     = { .x = 473, .y = 12 };
+    cell.plate_origin      = { .x = 450, .y = 12 };
     cell.next[n]           = governor;
     cell.next[e]           = discoverer;
     cell.next[w]           = discoverer;
@@ -291,13 +289,14 @@ struct DifficultyScreen : public IPlane {
              DifficultyCell const& cell ) const {
     bool const this_selected    = ( selected_ == difficulty );
     bool const this_highlighted = ( highlighted_ == difficulty );
-    render_sprite( renderer, cell.scroll_origin,
-                   e_tile::difficulty_scroll );
+    render_sprite( renderer, cell.plate_origin,
+                   e_tile::wood_plate );
+
     // Character.
     auto draw_character = [&] {
       render_sprite_stencil( renderer,
-                             cell.scroll_origin + l.stencil_nw,
-                             e_tile::scroll_stencil,
+                             cell.plate_origin + l.stencil_nw,
+                             e_tile::plate_stencil,
                              cell.character, pixel::black() );
     };
     if( this_selected )
@@ -307,30 +306,22 @@ struct DifficultyScreen : public IPlane {
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
-        write_centered( renderer, l.bg_color,
-                        cell.scroll_origin + center, text );
-      else
-        write_centered( renderer, l.bg_color,
-                        cell.scroll_origin + center, text );
+        write_centered( renderer, cell.selected_color,
+                        cell.plate_origin + center, text );
     };
     auto const write_text = [&] {
       write( l.center_for_label, cell.label );
       write( l.center_for_description_label,
              cell.description_label );
     };
-    if( this_selected )
-      write_text();
-    else {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .75 );
-      write_text();
-    }
+    write_text();
     if( this_selected ) {
       rr::Painter painter = renderer.painter();
-      static size const kScrollSize =
-          sprite_size( e_tile::difficulty_scroll );
+      static size const kPlateSize =
+          sprite_size( e_tile::wood_plate );
       rect const selected_rect{
-        .origin = cell.scroll_origin - l.selected_buffer,
-        .size   = kScrollSize + l.selected_buffer * 2 };
+        .origin = cell.plate_origin - l.selected_buffer,
+        .size   = kPlateSize + l.selected_buffer * 2 };
       rr::draw_empty_rect_no_corners(
           painter, selected_rect.with_dec_size(),
           cell.selected_color );
@@ -338,16 +329,13 @@ struct DifficultyScreen : public IPlane {
   }
 
   void draw( rr::Renderer& renderer, const Layout& l ) const {
-    rr::Painter painter = renderer.painter();
-
     // Background.
-    painter.draw_solid_rect( l.bg_rect, l.bg_color );
     {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
       tile_sprite( renderer, e_tile::wood_middle, l.bg_rect );
     }
 
-    // Scrolls.
+    // plates.
     for( auto const& [difficulty, cell] : l.cells )
       draw( renderer, l, difficulty, cell );
 
@@ -432,12 +420,12 @@ struct DifficultyScreen : public IPlane {
     if( !layout_ ) return e_input_handled::no;
     auto const& l = *layout_;
 
-    static size const kScrollSize =
-        sprite_size( e_tile::difficulty_scroll );
+    static size const kPlateSize =
+        sprite_size( e_tile::wood_plate );
     highlighted_ = nothing;
     for( const auto& [difficulty, cell] : l.cells ) {
-      rect const click_area{ .origin = cell.scroll_origin,
-                             .size   = kScrollSize };
+      rect const click_area{ .origin = cell.plate_origin,
+                             .size   = kPlateSize };
       if( event.pos.to_gfx().is_inside( click_area ) )
         highlighted_ = difficulty;
     }
@@ -460,11 +448,11 @@ struct DifficultyScreen : public IPlane {
             l.instructions_cell.select_rect ) ) {
       result_.set_value( selected_ );
     } else {
-      static size const kScrollSize =
-          sprite_size( e_tile::difficulty_scroll );
+      static size const kPlateSize =
+          sprite_size( e_tile::wood_plate );
       for( const auto& [difficulty, cell] : l.cells ) {
-        rect const click_area{ .origin = cell.scroll_origin,
-                               .size   = kScrollSize };
+        rect const click_area{ .origin = cell.plate_origin,
+                               .size   = kPlateSize };
         if( event.pos.to_gfx().is_inside( click_area ) )
           selected_ = difficulty;
       }
