@@ -30,8 +30,6 @@ struct WindowHandle;
 namespace gfx {
 enum class e_resolution;
 struct Resolution;
-struct ResolutionScores;
-struct SelectedResolution;
 struct Resolutions;
 }
 
@@ -53,14 +51,12 @@ gfx::rect main_window_logical_rect(
     gfx::Resolutions const& resolutions );
 
 void on_main_window_resized( vid::IVideo& video,
-                             vid::WindowHandle const& wh,
-                             gfx::Resolutions& resolutions,
-                             rr::Renderer& renderer );
+                             vid::WindowHandle const& wh );
 
 void on_logical_resolution_changed(
     vid::IVideo& video, vid::WindowHandle const& wh,
-    rr::Renderer& renderer, gfx::Resolutions& resolutions,
-    gfx::SelectedResolution const& selected_resolution );
+    rr::Renderer& renderer, gfx::Resolutions& actual_resolutions,
+    gfx::Resolutions const& new_resolutions );
 
 // If the result is provided then all fields will be populated.
 // If the underlying system API did not provide all components
@@ -74,8 +70,7 @@ maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video );
 // jecting the resolution changes as an input message so that it
 // can be scheduled to go into effect at the top of a frame and
 // to cause the proper notifications to go out.
-void change_resolution(
-    gfx::SelectedResolution const& selected_resolution );
+void change_resolution( gfx::Resolutions const& resolutions );
 
 void change_resolution_to_named_if_available(
     gfx::Resolutions const& resolutions,

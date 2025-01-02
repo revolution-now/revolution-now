@@ -127,7 +127,6 @@ void notify_subscribers( bool const force = false ) {
 }
 
 struct DeferredEvents {
-  vector<input::win_event_t> window;
   vector<input::resolution_event_t> resolution;
 };
 
@@ -176,12 +175,6 @@ static bool try_defer( DeferredEvents& deferred_events,
                        input::event_t const& e ) {
   using namespace input;
   SWITCH( e ) {
-    CASE( win_event ) {
-      using enum e_win_event_type;
-      if( win_event.type != resized ) return false;
-      deferred_events.window.push_back( win_event );
-      return true;
-    }
     CASE( resolution_event ) {
       deferred_events.resolution.push_back( resolution_event );
       return true;
@@ -214,44 +207,17 @@ void frame_loop_body( IEngine& engine, Planes& planes,
   for( auto& p : g_event_counts ) p.second.update();
 
   // ----------------------------------------------------------
-  // Step: Process deferred window events.
-  for( input::win_event_t const& event :
-       deferred_events.window ) {
-    auto const old_resolution =
-        engine.resolutions().selected.named;
-    switch( event.type ) {
-      using enum input::e_win_event_type;
-      case resized:
-        on_main_window_resized( engine.video(), engine.window(),
-                                engine.resolutions(), renderer );
-        break;
-      case other:
-        break;
-    }
-    auto const new_resolution =
-        engine.resolutions().selected.named;
-    planes.get().input( event );
-    run_all_coroutines();
-    if( new_resolution.has_value() &&
-        new_resolution != old_resolution ) {
-      planes.on_logical_resolution_changed( *new_resolution );
-      run_all_coroutines();
-    }
-  }
-  deferred_events.window.clear();
-
-  // ----------------------------------------------------------
   // Step: Process deferred resolution events.
   for( input::resolution_event_t const& event :
        deferred_events.resolution ) {
     on_logical_resolution_changed(
         engine.video(), engine.window(), renderer,
-        engine.resolutions(), event.resolution.get() );
+        engine.resolutions(), event.resolutions.get() );
     planes.get().input( event );
     run_all_coroutines();
-    if( event.resolution.get().named.has_value() ) {
+    if( event.resolutions.get().selected.named.has_value() ) {
       planes.on_logical_resolution_changed(
-          *event.resolution.get().named );
+          *event.resolutions.get().selected.named );
       run_all_coroutines();
     }
   }

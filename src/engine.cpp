@@ -228,9 +228,13 @@ struct Engine::Impl {
 
     // Needed to compute physical/logical resolution based on the
     // window dimensions and then tell the renderer what they
-    // are.
-    on_main_window_resized( video(), window(), resolutions(),
-                            *renderer_ );
+    // are. Indications are that this will get called anyway at
+    // initialization, potentially due to window events getting
+    // injected by SDL due to window startup (which then triggers
+    // this function call after the input loop begins), but not
+    // 100% sure about that. Either way, this guarantees that it
+    // gets called.
+    on_main_window_resized( video(), window() );
   }
 
   void deinit_renderer() {

@@ -49,41 +49,6 @@ gfx::size logical_resolution_for_invalid_window_size(
   return main_window_physical_size( video, wh );
 }
 
-void on_logical_resolution_changed(
-    vid::IVideo& video, vid::WindowHandle const& wh,
-    rr::Renderer& renderer, gfx::Resolutions& actual_resolutions,
-    gfx::Resolutions const& new_resolutions ) {
-  if( new_resolutions.selected.available ) {
-    auto const old_selected_resolution =
-        actual_resolutions.selected.rated.resolution;
-    auto const& new_selected_resolution =
-        new_resolutions.selected.rated.resolution;
-    if( new_selected_resolution.logical !=
-        old_selected_resolution.logical )
-      lg.info( "logical resolution changing to {}x{}",
-               new_selected_resolution.logical.w,
-               new_selected_resolution.logical.h );
-    if( actual_resolutions.selected.available )
-      input::update_mouse_pos_with_viewport_change(
-          old_selected_resolution,
-          new_resolutions.selected.rated.resolution );
-  } else {
-    lg.info( "no logical resolution found." );
-  }
-  actual_resolutions   = new_resolutions;
-  auto const& selected = actual_resolutions.selected;
-  gfx::rect const viewport =
-      selected.available
-          ? selected.rated.resolution.viewport
-          : gfx::rect{
-              .size = main_window_physical_size( video, wh ) };
-  // Note this actually uses flipped coordinates where the origin
-  // as at the lower left, but this still works.
-  renderer.set_viewport( viewport );
-  renderer.set_logical_screen_size(
-      main_window_logical_size( video, wh, new_resolutions ) );
-}
-
 } // namespace
 
 // This will do a best-effort attempt at providing DPI info from
@@ -135,20 +100,43 @@ gfx::rect main_window_logical_rect(
 
 void on_logical_resolution_changed(
     vid::IVideo& video, vid::WindowHandle const& wh,
-    rr::Renderer& renderer, gfx::Resolutions& resolutions,
-    gfx::SelectedResolution const& selected_resolution ) {
-  auto new_resolutions     = resolutions;
-  new_resolutions.selected = selected_resolution;
-  on_logical_resolution_changed( video, wh, renderer,
-                                 resolutions, new_resolutions );
+    rr::Renderer& renderer, gfx::Resolutions& actual_resolutions,
+    gfx::Resolutions const& new_resolutions ) {
+  if( new_resolutions.selected.available ) {
+    auto const old_selected_resolution =
+        actual_resolutions.selected.rated.resolution;
+    auto const& new_selected_resolution =
+        new_resolutions.selected.rated.resolution;
+    if( new_selected_resolution.logical !=
+        old_selected_resolution.logical )
+      lg.info( "logical resolution changing to {}x{}",
+               new_selected_resolution.logical.w,
+               new_selected_resolution.logical.h );
+    if( actual_resolutions.selected.available )
+      input::update_mouse_pos_with_viewport_change(
+          old_selected_resolution,
+          new_resolutions.selected.rated.resolution );
+  } else {
+    lg.info( "no logical resolution found." );
+  }
+  actual_resolutions   = new_resolutions;
+  auto const& selected = actual_resolutions.selected;
+  gfx::rect const viewport =
+      selected.available
+          ? selected.rated.resolution.viewport
+          : gfx::rect{
+              .size = main_window_physical_size( video, wh ) };
+  // Note this actually uses flipped coordinates where the origin
+  // as at the lower left, but this still works.
+  renderer.set_viewport( viewport );
+  renderer.set_logical_screen_size(
+      main_window_logical_size( video, wh, new_resolutions ) );
+  // Invalidate cache.
+  vid::reset_window_size_cache();
 }
 
 void on_main_window_resized( vid::IVideo& video,
-                             vid::WindowHandle const& wh,
-                             gfx::Resolutions& resolutions,
-                             rr::Renderer& renderer ) {
-  // Invalidate cache.
-  vid::reset_window_size_cache();
+                             vid::WindowHandle const& wh ) {
   gfx::size const physical_size =
       main_window_physical_size( video, wh );
   lg.debug( "main window resizing to {}", physical_size );
@@ -163,13 +151,11 @@ void on_main_window_resized( vid::IVideo& video,
   // (except for the physical size, which must be removed from
   // the data structure before comparison) and, if it is, just
   // keep it and the idx constant.
-  on_logical_resolution_changed( video, wh, renderer,
-                                 resolutions, new_resolutions );
+  change_resolution( new_resolutions );
 }
 
-void change_resolution(
-    gfx::SelectedResolution const& selected_resolution ) {
-  input::inject_resolution_event( selected_resolution );
+void change_resolution( gfx::Resolutions const& resolutions ) {
+  input::inject_resolution_event( resolutions );
 }
 
 void change_resolution_to_named_if_available(
@@ -180,7 +166,9 @@ void change_resolution_to_named_if_available(
     auto const selected = create_selected_available_resolution(
         resolutions.ratings, idx );
     if( selected.named == target_named ) {
-      change_resolution( selected );
+      auto new_resolutions     = resolutions;
+      new_resolutions.selected = selected;
+      change_resolution( new_resolutions );
       return;
     }
   }

@@ -170,16 +170,21 @@ void cycle_resolution( gfx::Resolutions const& resolutions,
   while( idx < 0 ) idx += available.size();
   idx %= available.size();
   CHECK_LT( idx, ssize( available ) );
-  change_resolution( create_selected_available_resolution(
-      curr.ratings, idx ) );
+  auto new_resolutions = resolutions;
+  new_resolutions.selected =
+      create_selected_available_resolution( curr.ratings, idx );
+  change_resolution( new_resolutions );
 }
 
 void set_resolution_idx_to_optimal(
     gfx::Resolutions const& resolutions ) {
   auto const& curr = resolutions;
   if( curr.ratings.available.empty() ) return;
-  change_resolution( create_selected_available_resolution(
-      curr.ratings, /*idx=*/0 ) );
+  auto new_resolutions = resolutions;
+  new_resolutions.selected =
+      create_selected_available_resolution( curr.ratings,
+                                            /*idx=*/0 );
+  change_resolution( new_resolutions );
 }
 
 } // namespace
@@ -467,6 +472,16 @@ struct OmniPlane::Impl : public IPlane {
     update_system_cursor();
     SWITCH( event ) {
       CASE( quit_event ) { throw exception_exit{}; }
+      CASE( win_event ) {
+        if( win_event.type == input::e_win_event_type::resized ) {
+          // This will just have the effect of queuing another
+          // input event for a resolution change which will then
+          // be handled at the top of the next frame.
+          on_main_window_resized(engine_.video(), engine_.window());
+          handled = e_input_handled::yes;
+        }
+        break;
+      }
       CASE( key_event ) {
         if( key_event.change != input::e_key_change::down )
           break;

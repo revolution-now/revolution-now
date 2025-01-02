@@ -35,7 +35,7 @@
 
 namespace gfx {
 struct Resolution;
-struct SelectedResolution;
+struct Resolutions;
 }
 
 namespace rn {
@@ -196,7 +196,7 @@ struct resolution_event_t : public event_base_t {
 
   bool operator==( resolution_event_t const& ) const;
 
-  base::heap_value<gfx::SelectedResolution> resolution;
+  base::heap_value<gfx::Resolutions> resolutions;
 };
 
 /****************************************************************
@@ -284,7 +284,7 @@ void pump_event_queue( IEngine& engine );
 std::queue<event_t>& event_queue();
 
 void inject_resolution_event(
-    gfx::SelectedResolution const& resolution );
+    gfx::Resolutions const& resolutions );
 
 /****************************************************************
 ** Utilities

@@ -518,10 +518,10 @@ void pump_event_queue( IEngine& engine ) {
 std::queue<event_t>& event_queue() { return g_event_queue; }
 
 void inject_resolution_event(
-    gfx::SelectedResolution const& resolution ) {
+    gfx::Resolutions const& resolutions ) {
   resolution_event_t event;
-  event.resolution = resolution;
-  event_queue().push( event );
+  event.resolutions = resolutions;
+  event_queue().push( std::move( event ) );
 }
 
 /****************************************************************
