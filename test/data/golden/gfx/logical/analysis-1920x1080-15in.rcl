@@ -28,6 +28,7 @@ available: [
         h: 270
         w: 480
       }
+      named: _480x270
       physical_window {
         h: 1080
         w: 1920
@@ -51,6 +52,7 @@ available: [
         h: 360
         w: 576
       }
+      named: _576x360
       physical_window {
         h: 1080
         w: 1920
@@ -77,6 +79,7 @@ available: [
         h: 400
         w: 960
       }
+      named: _960x400
       physical_window {
         h: 1080
         w: 1920
@@ -103,6 +106,7 @@ available: [
         h: 432
         w: 768
       }
+      named: _768x432
       physical_window {
         h: 1080
         w: 1920
@@ -132,6 +136,7 @@ available: [
         h: 450
         w: 720
       }
+      named: _720x450
       physical_window {
         h: 1080
         w: 1920
@@ -161,6 +166,7 @@ available: [
         h: 480
         w: 640
       }
+      named: _640x480
       physical_window {
         h: 1080
         w: 1920
@@ -190,6 +196,7 @@ available: [
         h: 360
         w: 852
       }
+      named: _852x360
       physical_window {
         h: 1080
         w: 1920
@@ -219,6 +226,7 @@ available: [
         h: 360
         w: 860
       }
+      named: _860x360
       physical_window {
         h: 1080
         w: 1920
@@ -248,6 +256,7 @@ available: [
         h: 400
         w: 640
       }
+      named: _640x400
       physical_window {
         h: 1080
         w: 1920
@@ -277,6 +286,7 @@ available: [
         h: 720
         w: 960
       }
+      named: _960x720
       physical_window {
         h: 1080
         w: 1920
@@ -306,6 +316,7 @@ available: [
         h: 540
         w: 1280
       }
+      named: _1280x540
       physical_window {
         h: 1080
         w: 1920
@@ -335,6 +346,7 @@ available: [
         h: 480
         w: 1146
       }
+      named: _1146x480
       physical_window {
         h: 1080
         w: 1920
@@ -355,415 +367,6 @@ available: [
     scores {
       fitting: 0.68
       overall: 0.39
-      pixel_size: 0.57
-    }
-  },
-]
-
-unavailable: [
-  {
-    resolution {
-      logical {
-        h: 270
-        w: 480
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.7937499999999998
-      scale: 3
-      viewport {
-        origin {
-          x: 240
-          y: 135
-        }
-        size {
-          h: 810
-          w: 1440
-        }
-      }
-    }
-    scores {
-      fitting: 0.86
-      overall: 0.78
-      pixel_size: 0.91
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 640
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.5291666666666667
-      scale: 2
-      viewport {
-        origin {
-          x: 320
-          y: 180
-        }
-        size {
-          h: 720
-          w: 1280
-        }
-      }
-    }
-    scores {
-      fitting: 0.8
-      overall: 0.71
-      pixel_size: 0.89
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 576
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.5291666666666667
-      scale: 2
-      viewport {
-        origin {
-          x: 384
-          y: 180
-        }
-        size {
-          h: 720
-          w: 1152
-        }
-      }
-    }
-    scores {
-      fitting: 0.77
-      overall: 0.69
-      pixel_size: 0.89
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 270
-        w: 480
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.5291666666666667
-      scale: 2
-      viewport {
-        origin {
-          x: 480
-          y: 270
-        }
-        size {
-          h: 540
-          w: 960
-        }
-      }
-    }
-    scores {
-      fitting: 0.67
-      overall: 0.6
-      pixel_size: 0.89
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 400
-        w: 960
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 480
-          y: 340
-        }
-        size {
-          h: 400
-          w: 960
-        }
-      }
-    }
-    scores {
-      fitting: 0.6
-      overall: 0.34
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 432
-        w: 768
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 576
-          y: 324
-        }
-        size {
-          h: 432
-          w: 768
-        }
-      }
-    }
-    scores {
-      fitting: 0.57
-      overall: 0.32
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 450
-        w: 720
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 600
-          y: 315
-        }
-        size {
-          h: 450
-          w: 720
-        }
-      }
-    }
-    scores {
-      fitting: 0.57
-      overall: 0.32
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 480
-        w: 640
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 640
-          y: 300
-        }
-        size {
-          h: 480
-          w: 640
-        }
-      }
-    }
-    scores {
-      fitting: 0.56
-      overall: 0.32
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 852
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 534
-          y: 360
-        }
-        size {
-          h: 360
-          w: 852
-        }
-      }
-    }
-    scores {
-      fitting: 0.56
-      overall: 0.32
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 860
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 530
-          y: 360
-        }
-        size {
-          h: 360
-          w: 860
-        }
-      }
-    }
-    scores {
-      fitting: 0.56
-      overall: 0.32
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 400
-        w: 640
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 640
-          y: 340
-        }
-        size {
-          h: 400
-          w: 640
-        }
-      }
-    }
-    scores {
-      fitting: 0.52
-      overall: 0.3
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 640
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 640
-          y: 360
-        }
-        size {
-          h: 360
-          w: 640
-        }
-      }
-    }
-    scores {
-      fitting: 0.5
-      overall: 0.28
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 576
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 672
-          y: 360
-        }
-        size {
-          h: 360
-          w: 576
-        }
-      }
-    }
-    scores {
-      fitting: 0.48
-      overall: 0.27
-      pixel_size: 0.57
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 270
-        w: 480
-      }
-      physical_window {
-        h: 1080
-        w: 1920
-      }
-      pixel_size: 0.26458333333333334
-      scale: 1
-      viewport {
-        origin {
-          x: 720
-          y: 405
-        }
-        size {
-          h: 270
-          w: 480
-        }
-      }
-    }
-    scores {
-      fitting: 0.4
-      overall: 0.23
       pixel_size: 0.57
     }
   },

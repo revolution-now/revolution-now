@@ -22,9 +22,6 @@
 #include "config/menu-items.rds.hpp"
 #include "config/menu.rds.hpp"
 
-// gfx
-#include "gfx/resolution.hpp"
-
 // refl
 #include "refl/enum-map.hpp"
 #include "refl/to-str.hpp"

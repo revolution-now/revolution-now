@@ -41,28 +41,6 @@ using ::base::maybe;
 using ::base::nothing;
 
 /****************************************************************
-** Data
-*****************************************************************/
-// This is a list of resolutions that we currently plan to sup-
-// port, though it may change. This is here to have something
-// stable for testing.
-vector<size> const kSupportedResolutions{
-  { .w = 640, .h = 360 },  //
-  { .w = 768, .h = 432 },  //
-  { .w = 480, .h = 270 },  //
-  { .w = 576, .h = 360 },  //
-  { .w = 640, .h = 400 },  //
-  { .w = 720, .h = 450 },  //
-  { .w = 640, .h = 480 },  //
-  { .w = 960, .h = 720 },  //
-  { .w = 852, .h = 360 },  //
-  { .w = 1280, .h = 540 }, //
-  { .w = 1146, .h = 480 }, //
-  { .w = 860, .h = 360 },  //
-  { .w = 960, .h = 400 },  //
-};
-
-/****************************************************************
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[gfx/logical] monitor_properties" ) {
@@ -109,16 +87,13 @@ TEST_CASE( "[gfx/logical] resolution_analysis 3840x2160 27in" ) {
                      },
                  .diagonal_inches = 22.9 },
     .physical_window = { .w = 3840, .h = 2160 },
-    .rating_options =
-        ResolutionRatingOptions{
-          .prefer_fullscreen = true,
-          .tolerance =
-              ResolutionTolerance{
-                .min_percent_covered  = nothing,
-                .fitting_score_cutoff = nothing },
-          .ideal_pixel_size_mm = .66145,
-          .remove_redundant    = true },
-    .supported_logical_dimensions = kSupportedResolutions };
+    .rating_options  = ResolutionRatingOptions{
+       .prefer_fullscreen = true,
+       .tolerance =
+          ResolutionTolerance{ .min_percent_covered  = nothing,
+                                .fitting_score_cutoff = nothing },
+       .ideal_pixel_size_mm = .66145,
+       .remove_redundant    = true } };
 
   ResolutionRatings const analysis =
       resolution_analysis( options );
@@ -138,16 +113,13 @@ TEST_CASE( "[gfx/logical] resolution_analysis 1920x1080 15in" ) {
                                     .diagonal   = 141.68 },
                  .diagonal_inches = 15.0 },
     .physical_window = { .w = 1920, .h = 1080 },
-    .rating_options =
-        ResolutionRatingOptions{
-          .prefer_fullscreen = true,
-          .tolerance =
-              ResolutionTolerance{
-                .min_percent_covered  = nothing,
-                .fitting_score_cutoff = nothing },
-          .ideal_pixel_size_mm = .66145,
-          .remove_redundant    = true },
-    .supported_logical_dimensions = kSupportedResolutions };
+    .rating_options  = ResolutionRatingOptions{
+       .prefer_fullscreen = true,
+       .tolerance =
+          ResolutionTolerance{ .min_percent_covered  = nothing,
+                                .fitting_score_cutoff = nothing },
+       .ideal_pixel_size_mm = .66145,
+       .remove_redundant    = true } };
 
   ResolutionRatings const analysis =
       resolution_analysis( options );
@@ -170,16 +142,13 @@ TEST_CASE(
                                     .diagonal   = 141.68 },
                  .diagonal_inches = 15.0 },
     .physical_window = { .w = 1920, .h = 1080 },
-    .rating_options =
-        ResolutionRatingOptions{
-          .prefer_fullscreen = true,
-          .tolerance =
-              ResolutionTolerance{
-                .min_percent_covered  = nothing,
-                .fitting_score_cutoff = nothing },
-          .ideal_pixel_size_mm = .66145,
-          .remove_redundant    = true },
-    .supported_logical_dimensions = kSupportedResolutions };
+    .rating_options  = ResolutionRatingOptions{
+       .prefer_fullscreen = true,
+       .tolerance =
+          ResolutionTolerance{ .min_percent_covered  = nothing,
+                                .fitting_score_cutoff = nothing },
+       .ideal_pixel_size_mm = .66145,
+       .remove_redundant    = true } };
 
   ResolutionRatings const analysis =
       resolution_analysis( options );

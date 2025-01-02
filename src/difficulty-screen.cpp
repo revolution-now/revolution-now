@@ -35,7 +35,7 @@
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
-#include "gfx/resolution.hpp"
+#include "gfx/resolution-enum.hpp"
 
 // refl
 #include "refl/enum-map.hpp"

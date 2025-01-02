@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "logical.hpp"
 
+// gfx
+#include "resolution-enum.hpp"
+
 // C++ standard library
 #include <unordered_set>
 
@@ -31,6 +34,12 @@ LogicalResolution construct_logical( size const dimensions,
                                      int const scale ) {
   return LogicalResolution{ .dimensions = dimensions,
                             .scale      = scale };
+}
+
+LogicalResolution construct_logical(
+    e_resolution const resolution, int const scale ) {
+  size const dimensions = resolution_size( resolution );
+  return construct_logical( dimensions, scale );
 }
 
 bool is_exact( Resolution const& resolution ) {
@@ -149,15 +158,14 @@ bool meets_tolerance( ScoredResolution const& scored_resolution,
 }
 
 vector<Resolution> find_resolutions(
-    Monitor const& monitor, size const physical_window,
-    std::span<size const> supported_logical_resolutions ) {
+    Monitor const& monitor, size const physical_window ) {
   rect const physical_rect{ .origin = {},
                             .size   = physical_window };
 
   vector<LogicalResolution> const choices =
       logical_resolutions_for_physical( physical_window );
   vector<Resolution> res;
-  for( size const target : supported_logical_resolutions ) {
+  for( e_resolution const target : supported_resolutions() ) {
     LogicalResolution scaled = construct_logical( target, 1 );
     while( scaled.dimensions.fits_inside( physical_window ) ) {
       LogicalResolution const logical =
@@ -171,6 +179,7 @@ vector<Resolution> find_resolutions(
       r.logical         = logical.dimensions;
       r.scale           = logical.scale;
       r.viewport        = physical_rect;
+      r.named           = target;
       r.pixel_size =
           pixel_size_millimeters( monitor.dpi, logical.scale );
 
@@ -188,7 +197,8 @@ vector<Resolution> find_resolutions(
 
       res.push_back( std::move( r ) );
       ++scaled.scale;
-      scaled.dimensions = target * scaled.scale;
+      scaled.dimensions =
+          resolution_size( target ) * scaled.scale;
     }
   }
   return res;
@@ -202,9 +212,8 @@ vector<Resolution> find_resolutions(
 ResolutionRatings resolution_analysis(
     ResolutionAnalysisOptions const& options ) {
   vector<ScoredResolution> all;
-  auto const resolutions =
-      find_resolutions( options.monitor, options.physical_window,
-                        options.supported_logical_dimensions );
+  auto const resolutions = find_resolutions(
+      options.monitor, options.physical_window );
   for( auto const& r : resolutions )
     all.push_back( ScoredResolution{
       .resolution = r,
@@ -256,8 +265,6 @@ ResolutionRatings resolution_analysis(
         !skip ) {
       seen.insert( dimensions );
       res.available.push_back( rr );
-    } else {
-      res.unavailable.push_back( rr );
     }
   }
   return res;

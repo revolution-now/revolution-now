@@ -70,23 +70,29 @@ maybe<gfx::MonitorDpi> monitor_dpi( vid::IVideo& video ) {
   return dpi;
 }
 
+maybe<gfx::Resolution const&> get_selected_resolution(
+    gfx::Resolutions const& rs ) {
+  auto const& selected = rs.selected;
+  if( !selected.has_value() ) return nothing;
+  return rs.ratings.available[*selected].resolution;
+}
+
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
-  auto const& selected = engine.resolutions().selected;
-  if( !selected.available ) return nothing;
-  return selected.rated.resolution;
+  return get_selected_resolution( engine.resolutions() );
 }
 
 maybe<gfx::e_resolution> named_resolution( IEngine& engine ) {
-  return resolution_from_size( main_window_logical_size(
-      engine.video(), engine.window(), engine.resolutions() ) );
+  return get_selected_resolution( engine.resolutions() )
+      .member( &gfx::Resolution::named );
 }
 
 gfx::size main_window_logical_size(
     vid::IVideo& video, vid::WindowHandle const& wh,
     gfx::Resolutions const& resolutions ) {
   auto const& selected = resolutions.selected;
-  return selected.available
-             ? selected.rated.resolution.logical
+  return selected.has_value()
+             ? resolutions.ratings.available[*selected]
+                   .resolution.logical
              : logical_resolution_for_invalid_window_size( video,
                                                            wh );
 }
@@ -102,28 +108,28 @@ void on_logical_resolution_changed(
     vid::IVideo& video, vid::WindowHandle const& wh,
     rr::Renderer& renderer, gfx::Resolutions& actual_resolutions,
     gfx::Resolutions const& new_resolutions ) {
-  if( new_resolutions.selected.available ) {
-    auto const old_selected_resolution =
-        actual_resolutions.selected.rated.resolution;
-    auto const& new_selected_resolution =
-        new_resolutions.selected.rated.resolution;
-    if( new_selected_resolution.logical !=
-        old_selected_resolution.logical )
+  auto const old_selected =
+      get_selected_resolution( actual_resolutions );
+  auto const new_selected =
+      get_selected_resolution( new_resolutions );
+  if( new_selected.has_value() ) {
+    if( !old_selected.has_value() ||
+        new_selected->logical != old_selected->logical )
       lg.info( "logical resolution changing to {}x{}",
-               new_selected_resolution.logical.w,
-               new_selected_resolution.logical.h );
-    if( actual_resolutions.selected.available )
+               new_selected->logical.w,
+               new_selected->logical.h );
+    if( old_selected.has_value() )
       input::update_mouse_pos_with_viewport_change(
-          old_selected_resolution,
-          new_resolutions.selected.rated.resolution );
+          *old_selected, *new_selected );
   } else {
     lg.info( "no logical resolution found." );
   }
   actual_resolutions   = new_resolutions;
   auto const& selected = actual_resolutions.selected;
   gfx::rect const viewport =
-      selected.available
-          ? selected.rated.resolution.viewport
+      selected.has_value()
+          ? actual_resolutions.ratings.available[*selected]
+                .resolution.viewport
           : gfx::rect{
               .size = main_window_physical_size( video, wh ) };
   // Note this actually uses flipped coordinates where the origin
@@ -163,11 +169,10 @@ void change_resolution_to_named_if_available(
     e_resolution const target_named ) {
   for( int idx = 0; idx < ssize( resolutions.ratings.available );
        ++idx ) {
-    auto const selected = create_selected_available_resolution(
-        resolutions.ratings, idx );
-    if( selected.named == target_named ) {
+    if( resolutions.ratings.available[idx].resolution.named ==
+        target_named ) {
       auto new_resolutions     = resolutions;
-      new_resolutions.selected = selected;
+      new_resolutions.selected = idx;
       change_resolution( new_resolutions );
       return;
     }

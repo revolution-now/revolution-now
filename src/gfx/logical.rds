@@ -10,6 +10,7 @@
 # ===============================================================
 # gfx
 include "cartesian.hpp"
+include "resolution-enum.rds.hpp"
 
 # base
 include "base/maybe.hpp"
@@ -35,6 +36,7 @@ struct.Resolution {
   viewport 'rect',
   # The size of a pixel on screen in millimeters.
   pixel_size 'base::maybe<double>',
+  named 'e_resolution',
 }
 
 # ---------------------------------------------------------------
@@ -61,8 +63,4 @@ struct.ResolutionRatings {
   # within it, such that there will be no part bleeding off the
   # edge of the window.
   available 'std::vector<ScoredResolution>',
-
-  # These are the ones that would have been in the 'viable' cate-
-  # gory but did not meet the require tolerance requirements.
-  unavailable 'std::vector<ScoredResolution>',
 }

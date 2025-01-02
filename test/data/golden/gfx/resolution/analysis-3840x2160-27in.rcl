@@ -1,759 +1,11 @@
-ratings {
-  available: [
-    {
-      resolution {
-        logical {
-          h: 432
-          w: 768
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.6614583333333334
-        scale: 5
-        viewport.size {
-          h: 2160
-          w: 3840
-        }
-      }
-      scores {
-        fitting: 1
-        overall: 1
-        pixel_size: 1
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.7937499999999998
-        scale: 6
-        viewport.size {
-          h: 2160
-          w: 3840
-        }
-      }
-      scores {
-        fitting: 1
-        overall: 0.91
-        pixel_size: 0.91
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 400
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.6614583333333334
-        scale: 5
-        viewport {
-          origin {
-            x: 320
-            y: 80
-          }
-          size {
-            h: 2000
-            w: 3200
-          }
-        }
-      }
-      scores {
-        fitting: 0.94
-        overall: 0.94
-        pixel_size: 1
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.7937499999999998
-        scale: 6
-        viewport {
-          origin.x: 192
-          size {
-            h: 2160
-            w: 3456
-          }
-        }
-      }
-      scores {
-        fitting: 0.97
-        overall: 0.88
-        pixel_size: 0.91
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 450
-          w: 720
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.5291666666666667
-        scale: 4
-        viewport {
-          origin {
-            x: 480
-            y: 180
-          }
-          size {
-            h: 1800
-            w: 2880
-          }
-        }
-      }
-      scores {
-        fitting: 0.88
-        overall: 0.78
-        pixel_size: 0.89
-      }
-    },
-  ]
-  unavailable: [
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.6614583333333334
-        scale: 5
-        viewport {
-          origin {
-            x: 320
-            y: 180
-          }
-          size {
-            h: 1800
-            w: 3200
-          }
-        }
-      }
-      scores {
-        fitting: 0.91
-        overall: 0.91
-        pixel_size: 1
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.6614583333333334
-        scale: 5
-        viewport {
-          origin {
-            x: 480
-            y: 180
-          }
-          size {
-            h: 1800
-            w: 2880
-          }
-        }
-      }
-      scores {
-        fitting: 0.88
-        overall: 0.88
-        pixel_size: 1
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 432
-          w: 768
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.5291666666666667
-        scale: 4
-        viewport {
-          origin {
-            x: 384
-            y: 216
-          }
-          size {
-            h: 1728
-            w: 3072
-          }
-        }
-      }
-      scores {
-        fitting: 0.89
-        overall: 0.79
-        pixel_size: 0.89
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 400
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.5291666666666667
-        scale: 4
-        viewport {
-          origin {
-            x: 640
-            y: 280
-          }
-          size {
-            h: 1600
-            w: 2560
-          }
-        }
-      }
-      scores {
-        fitting: 0.83
-        overall: 0.74
-        pixel_size: 0.89
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.5291666666666667
-        scale: 4
-        viewport {
-          origin {
-            x: 640
-            y: 360
-          }
-          size {
-            h: 1440
-            w: 2560
-          }
-        }
-      }
-      scores {
-        fitting: 0.8
-        overall: 0.71
-        pixel_size: 0.89
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.5291666666666667
-        scale: 4
-        viewport {
-          origin {
-            x: 768
-            y: 360
-          }
-          size {
-            h: 1440
-            w: 2304
-          }
-        }
-      }
-      scores {
-        fitting: 0.77
-        overall: 0.69
-        pixel_size: 0.89
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 432
-          w: 768
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.3968749999999999
-        scale: 3
-        viewport {
-          origin {
-            x: 768
-            y: 432
-          }
-          size {
-            h: 1296
-            w: 2304
-          }
-        }
-      }
-      scores {
-        fitting: 0.75
-        overall: 0.56
-        pixel_size: 0.75
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 450
-          w: 720
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.3968749999999999
-        scale: 3
-        viewport {
-          origin {
-            x: 840
-            y: 405
-          }
-          size {
-            h: 1350
-            w: 2160
-          }
-        }
-      }
-      scores {
-        fitting: 0.74
-        overall: 0.55
-        pixel_size: 0.75
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 400
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.3968749999999999
-        scale: 3
-        viewport {
-          origin {
-            x: 960
-            y: 480
-          }
-          size {
-            h: 1200
-            w: 1920
-          }
-        }
-      }
-      scores {
-        fitting: 0.69
-        overall: 0.52
-        pixel_size: 0.75
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.3968749999999999
-        scale: 3
-        viewport {
-          origin {
-            x: 960
-            y: 540
-          }
-          size {
-            h: 1080
-            w: 1920
-          }
-        }
-      }
-      scores {
-        fitting: 0.67
-        overall: 0.5
-        pixel_size: 0.75
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.3968749999999999
-        scale: 3
-        viewport {
-          origin {
-            x: 1056
-            y: 540
-          }
-          size {
-            h: 1080
-            w: 1728
-          }
-        }
-      }
-      scores {
-        fitting: 0.64
-        overall: 0.48
-        pixel_size: 0.75
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 432
-          w: 768
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.26458333333333334
-        scale: 2
-        viewport {
-          origin {
-            x: 1152
-            y: 648
-          }
-          size {
-            h: 864
-            w: 1536
-          }
-        }
-      }
-      scores {
-        fitting: 0.57
-        overall: 0.32
-        pixel_size: 0.57
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 450
-          w: 720
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.26458333333333334
-        scale: 2
-        viewport {
-          origin {
-            x: 1200
-            y: 630
-          }
-          size {
-            h: 900
-            w: 1440
-          }
-        }
-      }
-      scores {
-        fitting: 0.57
-        overall: 0.32
-        pixel_size: 0.57
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 400
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.26458333333333334
-        scale: 2
-        viewport {
-          origin {
-            x: 1280
-            y: 680
-          }
-          size {
-            h: 800
-            w: 1280
-          }
-        }
-      }
-      scores {
-        fitting: 0.52
-        overall: 0.3
-        pixel_size: 0.57
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.26458333333333334
-        scale: 2
-        viewport {
-          origin {
-            x: 1280
-            y: 720
-          }
-          size {
-            h: 720
-            w: 1280
-          }
-        }
-      }
-      scores {
-        fitting: 0.5
-        overall: 0.28
-        pixel_size: 0.57
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.26458333333333334
-        scale: 2
-        viewport {
-          origin {
-            x: 1344
-            y: 720
-          }
-          size {
-            h: 720
-            w: 1152
-          }
-        }
-      }
-      scores {
-        fitting: 0.48
-        overall: 0.27
-        pixel_size: 0.57
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 432
-          w: 768
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.13229166666666667
-        scale: 1
-        viewport {
-          origin {
-            x: 1536
-            y: 864
-          }
-          size {
-            h: 432
-            w: 768
-          }
-        }
-      }
-      scores {
-        fitting: 0.33
-        overall: 0.11
-        pixel_size: 0.33
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 450
-          w: 720
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.13229166666666667
-        scale: 1
-        viewport {
-          origin {
-            x: 1560
-            y: 855
-          }
-          size {
-            h: 450
-            w: 720
-          }
-        }
-      }
-      scores {
-        fitting: 0.33
-        overall: 0.11
-        pixel_size: 0.33
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 400
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.13229166666666667
-        scale: 1
-        viewport {
-          origin {
-            x: 1600
-            y: 880
-          }
-          size {
-            h: 400
-            w: 640
-          }
-        }
-      }
-      scores {
-        fitting: 0.3
-        overall: 0.1
-        pixel_size: 0.33
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 640
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.13229166666666667
-        scale: 1
-        viewport {
-          origin {
-            x: 1600
-            y: 900
-          }
-          size {
-            h: 360
-            w: 640
-          }
-        }
-      }
-      scores {
-        fitting: 0.29
-        overall: 0.1
-        pixel_size: 0.33
-      }
-    },
-    {
-      resolution {
-        logical {
-          h: 360
-          w: 576
-        }
-        physical_window {
-          h: 2160
-          w: 3840
-        }
-        pixel_size: 0.13229166666666667
-        scale: 1
-        viewport {
-          origin {
-            x: 1632
-            y: 900
-          }
-          size {
-            h: 360
-            w: 576
-          }
-        }
-      }
-      scores {
-        fitting: 0.27
-        overall: 0.09
-        pixel_size: 0.33
-      }
-    },
-    .resolution.scale: 1,
-  ]
-}
-
-selected {
-  available: true
-  named: _768x432
-  rated {
+ratings.available: [
+  {
     resolution {
       logical {
         h: 432
         w: 768
       }
+      named: _768x432
       physical_window {
         h: 2160
         w: 3840
@@ -770,5 +22,342 @@ selected {
       overall: 1
       pixel_size: 1
     }
-  }
-}
+  },
+  {
+    resolution {
+      logical {
+        h: 360
+        w: 640
+      }
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.7937499999999998
+      scale: 6
+      viewport.size {
+        h: 2160
+        w: 3840
+      }
+    }
+    scores {
+      fitting: 1
+      overall: 0.91
+      pixel_size: 0.91
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 270
+        w: 480
+      }
+      named: _480x270
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 1.0583333333333333
+      scale: 8
+      viewport.size {
+        h: 2160
+        w: 3840
+      }
+    }
+    scores {
+      fitting: 1
+      overall: 0.77
+      pixel_size: 0.77
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 400
+        w: 640
+      }
+      named: _640x400
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.6614583333333334
+      scale: 5
+      viewport {
+        origin {
+          x: 320
+          y: 80
+        }
+        size {
+          h: 2000
+          w: 3200
+        }
+      }
+    }
+    scores {
+      fitting: 0.94
+      overall: 0.94
+      pixel_size: 1
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 360
+        w: 576
+      }
+      named: _576x360
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.7937499999999998
+      scale: 6
+      viewport {
+        origin.x: 192
+        size {
+          h: 2160
+          w: 3456
+        }
+      }
+    }
+    scores {
+      fitting: 0.97
+      overall: 0.88
+      pixel_size: 0.91
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 400
+        w: 960
+      }
+      named: _960x400
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.5291666666666667
+      scale: 4
+      viewport {
+        origin.y: 280
+        size {
+          h: 1600
+          w: 3840
+        }
+      }
+    }
+    scores {
+      fitting: 0.93
+      overall: 0.83
+      pixel_size: 0.89
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 450
+        w: 720
+      }
+      named: _720x450
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.5291666666666667
+      scale: 4
+      viewport {
+        origin {
+          x: 480
+          y: 180
+        }
+        size {
+          h: 1800
+          w: 2880
+        }
+      }
+    }
+    scores {
+      fitting: 0.88
+      overall: 0.78
+      pixel_size: 0.89
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 480
+        w: 640
+      }
+      named: _640x480
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.5291666666666667
+      scale: 4
+      viewport {
+        origin {
+          x: 640
+          y: 120
+        }
+        size {
+          h: 1920
+          w: 2560
+        }
+      }
+    }
+    scores {
+      fitting: 0.87
+      overall: 0.77
+      pixel_size: 0.89
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 360
+        w: 852
+      }
+      named: _852x360
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.5291666666666667
+      scale: 4
+      viewport {
+        origin {
+          x: 216
+          y: 360
+        }
+        size {
+          h: 1440
+          w: 3408
+        }
+      }
+    }
+    scores {
+      fitting: 0.87
+      overall: 0.77
+      pixel_size: 0.89
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 360
+        w: 860
+      }
+      named: _860x360
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.5291666666666667
+      scale: 4
+      viewport {
+        origin {
+          x: 200
+          y: 360
+        }
+        size {
+          h: 1440
+          w: 3440
+        }
+      }
+    }
+    scores {
+      fitting: 0.87
+      overall: 0.77
+      pixel_size: 0.89
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 720
+        w: 960
+      }
+      named: _960x720
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.3968749999999999
+      scale: 3
+      viewport {
+        origin.x: 480
+        size {
+          h: 2160
+          w: 2880
+        }
+      }
+    }
+    scores {
+      fitting: 0.93
+      overall: 0.7
+      pixel_size: 0.75
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 540
+        w: 1280
+      }
+      named: _1280x540
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.3968749999999999
+      scale: 3
+      viewport {
+        origin.y: 270
+        size {
+          h: 1620
+          w: 3840
+        }
+      }
+    }
+    scores {
+      fitting: 0.93
+      overall: 0.7
+      pixel_size: 0.75
+    }
+  },
+  {
+    resolution {
+      logical {
+        h: 480
+        w: 1146
+      }
+      named: _1146x480
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.3968749999999999
+      scale: 3
+      viewport {
+        origin {
+          x: 201
+          y: 360
+        }
+        size {
+          h: 1440
+          w: 3438
+        }
+      }
+    }
+    scores {
+      fitting: 0.87
+      overall: 0.65
+      pixel_size: 0.75
+    }
+  },
+]
+
+selected: 0

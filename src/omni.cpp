@@ -134,15 +134,9 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
   };
 }
 
-maybe<int> get_resolution_idx(
-    gfx::Resolutions const& resolutions ) {
-  if( !resolutions.selected.available ) return nothing;
-  return resolutions.selected.idx;
-}
-
 maybe<int> get_resolution_cycle_size(
     gfx::Resolutions const& resolutions ) {
-  if( !resolutions.selected.available ) return nothing;
+  if( !resolutions.selected.has_value() ) return nothing;
   return resolutions.ratings.available.size();
 }
 
@@ -150,18 +144,18 @@ maybe<gfx::ResolutionScores const&> get_resolution_scores(
     IEngine& engine ) {
   auto const& resolutions = engine.resolutions();
   auto const& selected    = resolutions.selected;
-  if( !selected.available ) return nothing;
-  return selected.rated.scores;
+  if( !selected.has_value() ) return nothing;
+  return resolutions.ratings.available[*selected].scores;
 }
 
 void cycle_resolution( gfx::Resolutions const& resolutions,
                        int const delta ) {
   // Copy; cannot modify the global state directly.
   auto const& curr = resolutions;
-  if( !curr.selected.available ) return;
+  if( !curr.selected.has_value() ) return;
   auto const& available = curr.ratings.available;
   if( available.empty() ) return;
-  int idx = curr.selected.idx;
+  int idx = *curr.selected;
   // The "better" resolutions, which also tend to be more scaled
   // up (though not always) are at the start of the list, so for
   // "scaling up" we must go negative.
@@ -170,9 +164,8 @@ void cycle_resolution( gfx::Resolutions const& resolutions,
   while( idx < 0 ) idx += available.size();
   idx %= available.size();
   CHECK_LT( idx, ssize( available ) );
-  auto new_resolutions = resolutions;
-  new_resolutions.selected =
-      create_selected_available_resolution( curr.ratings, idx );
+  auto new_resolutions     = resolutions;
+  new_resolutions.selected = idx;
   change_resolution( new_resolutions );
 }
 
@@ -180,10 +173,8 @@ void set_resolution_idx_to_optimal(
     gfx::Resolutions const& resolutions ) {
   auto const& curr = resolutions;
   if( curr.ratings.available.empty() ) return;
-  auto new_resolutions = resolutions;
-  new_resolutions.selected =
-      create_selected_available_resolution( curr.ratings,
-                                            /*idx=*/0 );
+  auto new_resolutions     = resolutions;
+  new_resolutions.selected = 0;
   change_resolution( new_resolutions );
 }
 
@@ -228,7 +219,8 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   bool can_cycle_resolution_up() {
-    auto const idx = get_resolution_idx( engine_.resolutions() );
+    auto const idx = engine_.resolutions().selected;
+    if( !idx.has_value() ) return false;
     CHECK_GE( *idx, 0 );
     return *idx > 0;
   }
@@ -236,7 +228,7 @@ struct OmniPlane::Impl : public IPlane {
   bool can_cycle_resolution_down() {
     auto const size =
         get_resolution_cycle_size( engine_.resolutions() );
-    auto const idx = get_resolution_idx( engine_.resolutions() );
+    auto const idx = engine_.resolutions().selected;
     CHECK_EQ( size.has_value(), idx.has_value() );
     if( !size.has_value() ) return false;
     CHECK_LT( *idx, *size );
@@ -250,8 +242,7 @@ struct OmniPlane::Impl : public IPlane {
       e_menu_item const item ) override {
     switch( item ) {
       case e_menu_item::scale_optimal: {
-        auto const idx =
-            get_resolution_idx( engine_.resolutions() );
+        auto const idx = engine_.resolutions().selected;
         if( !idx.has_value() || *idx == 0 ) return false;
         break;
       }
@@ -473,11 +464,13 @@ struct OmniPlane::Impl : public IPlane {
     SWITCH( event ) {
       CASE( quit_event ) { throw exception_exit{}; }
       CASE( win_event ) {
-        if( win_event.type == input::e_win_event_type::resized ) {
+        if( win_event.type ==
+            input::e_win_event_type::resized ) {
           // This will just have the effect of queuing another
           // input event for a resolution change which will then
           // be handled at the top of the next frame.
-          on_main_window_resized(engine_.video(), engine_.window());
+          on_main_window_resized( engine_.video(),
+                                  engine_.window() );
           handled = e_input_handled::yes;
         }
         break;

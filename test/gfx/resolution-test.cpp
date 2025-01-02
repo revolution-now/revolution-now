@@ -18,6 +18,7 @@
 
 // gfx
 #include "src/gfx/logical.hpp"
+#include "src/gfx/resolution-enum.hpp"
 
 // rcl
 #include "src/rcl/golden.hpp"
@@ -60,12 +61,11 @@ TEST_CASE( "[gfx/resolution] resolution_size" ) {
 }
 
 TEST_CASE( "[gfx/resolution] supported_resolutions" ) {
+  using enum e_resolution;
   vector const expected{
-    size{ .w = 640, .h = 360 }, //
-    size{ .w = 768, .h = 432 }, //
-    size{ .w = 576, .h = 360 }, //
-    size{ .w = 640, .h = 400 }, //
-    size{ .w = 720, .h = 450 }, //
+    _640x360,  _768x432, _480x270, _576x360, _640x400,
+    _720x450,  _640x480, _960x720, _852x360, _1280x540,
+    _1146x480, _860x360, _960x400,
   };
   REQUIRE( supported_resolutions() == expected );
 }
@@ -88,72 +88,6 @@ TEST_CASE( "[resolution] resolution_size" ) {
   REQUIRE( f( _768x432 ) == S{ .w = 768, .h = 432 } );
 }
 
-TEST_CASE( "[resolution] supported_resolutions" ) {
-  vector<gfx::size> const expected{
-    gfx::size{ .w = 640, .h = 360 },
-    gfx::size{ .w = 768, .h = 432 },
-    gfx::size{ .w = 576, .h = 360 },
-    gfx::size{ .w = 640, .h = 400 },
-    gfx::size{ .w = 720, .h = 450 },
-  };
-  REQUIRE( supported_resolutions() == expected );
-}
-
-TEST_CASE(
-    "[resolution] create_selected_available_resolution" ) {
-  ScoredResolution const scored1{
-    .resolution = { .physical_window = { .w = 1, .h = 2 },
-                    .logical         = { .w = 640, .h = 360 },
-                    .scale           = 3,
-                    .viewport        = { .origin = { .x = 99 } },
-                    .pixel_size      = 3.4 },
-    .scores     = {
-          .fitting = 1.1, .pixel_size = 2.2, .overall = 3.3 } };
-  ScoredResolution const scored2{
-    .resolution = { .physical_window = { .w = 2, .h = 3 },
-                    .logical         = { .w = 640, .h = 400 },
-                    .scale           = 4,
-                    .viewport   = { .origin = { .x = 100 } },
-                    .pixel_size = nothing },
-    .scores     = {
-          .fitting = 2.1, .pixel_size = 3.2, .overall = 4.3 } };
-  ScoredResolution const scored3{
-    .resolution = { .physical_window = { .w = 3, .h = 4 },
-                    .logical         = { .w = 720, .h = 450 },
-                    .scale           = 5,
-                    .viewport   = { .origin = { .x = 101 } },
-                    .pixel_size = 1.2 },
-    .scores     = {
-          .fitting = 3.1, .pixel_size = 4.2, .overall = 5.3 } };
-
-  ResolutionRatings const ratings{
-    .available = { scored1, scored2, scored3 } };
-
-  auto f = [&]( int const idx ) {
-    return create_selected_available_resolution( ratings, idx );
-  };
-
-  SelectedResolution expected;
-
-  expected = { .rated     = scored1,
-               .idx       = 0,
-               .available = true,
-               .named     = e_resolution::_640x360 };
-  REQUIRE( f( 0 ) == expected );
-
-  expected = { .rated     = scored2,
-               .idx       = 1,
-               .available = true,
-               .named     = e_resolution::_640x400 };
-  REQUIRE( f( 1 ) == expected );
-
-  expected = { .rated     = scored3,
-               .idx       = 2,
-               .available = true,
-               .named     = e_resolution::_720x450 };
-  REQUIRE( f( 2 ) == expected );
-}
-
 // Ensure that each of the steam resolutions has at least one
 // fullscreen or near-fullscreen possibility given the resolu-
 // tions that we support.
@@ -162,16 +96,13 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
   using ::testing::steam_resolutions;
 
   ResolutionAnalysisOptions options{
-    .rating_options =
-        ResolutionRatingOptions{
-          .prefer_fullscreen = true,
-          .tolerance =
-              ResolutionTolerance{
-                .min_percent_covered  = nothing,
-                .fitting_score_cutoff = nothing },
-          .ideal_pixel_size_mm = .66145,
-          .remove_redundant    = true },
-    .supported_logical_dimensions = supported_resolutions() };
+    .rating_options = ResolutionRatingOptions{
+      .prefer_fullscreen = true,
+      .tolerance =
+          ResolutionTolerance{ .min_percent_covered  = nothing,
+                               .fitting_score_cutoff = nothing },
+      .ideal_pixel_size_mm = .66145,
+      .remove_redundant    = true } };
 
   auto f = [&] { return resolution_analysis( options ); };
 
@@ -203,9 +134,7 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
   {
     static unordered_set const expected_fail{
       size{ .w = 1366, .h = 768 },  //
-      size{ .w = 3440, .h = 1440 }, //
       size{ .w = 1600, .h = 900 },  //
-      size{ .w = 2560, .h = 1080 }, //
       size{ .w = 1680, .h = 1050 }, //
       size{ .w = 1360, .h = 768 },  //
       size{ .w = 5120, .h = 1440 }, //
@@ -219,9 +148,6 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
     static unordered_set const expected_fail{
       size{ .w = 1680, .h = 1050 }, //
       size{ .w = 5120, .h = 1440 }, //
-      size{ .w = 3440, .h = 1440 }, //
-      size{ .w = 2560, .h = 1080 }, //
-      size{ .w = 1280, .h = 1024 }, //
     };
     check_fits( expected_fail );
   }

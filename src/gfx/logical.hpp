@@ -16,9 +16,6 @@
 // gfx
 #include "gfx/monitor.rds.hpp"
 
-// C++ standard library
-#include <span>
-
 namespace gfx {
 
 /****************************************************************
@@ -42,10 +39,9 @@ struct ResolutionRatingOptions {
 };
 
 struct ResolutionAnalysisOptions {
-  Monitor monitor                                    = {};
-  size physical_window                               = {};
-  ResolutionRatingOptions rating_options             = {};
-  std::span<size const> supported_logical_dimensions = {};
+  Monitor monitor                        = {};
+  size physical_window                   = {};
+  ResolutionRatingOptions rating_options = {};
 };
 
 /****************************************************************

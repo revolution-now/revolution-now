@@ -14,7 +14,7 @@
 #include "input.hpp"
 
 // gfx
-#include "gfx/resolution.hpp"
+#include "gfx/resolution-enum.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"

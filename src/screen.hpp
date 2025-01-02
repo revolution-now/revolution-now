@@ -16,7 +16,7 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
-#include "gfx/logical.hpp"
+#include "gfx/monitor.rds.hpp"
 
 namespace rr {
 struct Renderer;
@@ -36,6 +36,9 @@ struct Resolutions;
 namespace rn {
 
 struct IEngine;
+
+maybe<gfx::Resolution const&> get_selected_resolution(
+    gfx::Resolutions const& rs );
 
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine );
 

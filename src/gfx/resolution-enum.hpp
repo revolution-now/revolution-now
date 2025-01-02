@@ -1,31 +1,30 @@
 /****************************************************************
-**resolution.hpp
+**resolution-enum.hpp
 *
 * Project: Revolution Now
 *
-* Created by David P. Sicilia on 2024-12-27.
+* Created by David P. Sicilia on 2025-01-02.
 *
-* Description: Manages the set of fixed resolutions.
+* Description: Enumerates resolutions that may be supported.
 *
 *****************************************************************/
 #pragma once
 
 // rds
-#include "resolution.rds.hpp"
+#include "resolution-enum.rds.hpp"
 
 // gfx
 #include "cartesian.hpp"
-#include "monitor.rds.hpp"
-
-// base
-#include "base/maybe.hpp"
 
 namespace gfx {
 
 /****************************************************************
-** Resolution Selection.
+** e_resolution
 *****************************************************************/
-Resolutions compute_resolutions( Monitor const& monitor,
-                                 size physical_window );
+size resolution_size( e_resolution resolution );
+
+std::vector<e_resolution> const& supported_resolutions();
+
+base::maybe<e_resolution> resolution_from_size( size sz );
 
 } // namespace gfx

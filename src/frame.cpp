@@ -25,15 +25,15 @@
 #include "config/gfx.rds.hpp"
 #include "config/rn.rds.hpp"
 
+// gfx
+#include "gfx/logical.rds.hpp"
+
 // rds
 #include "rds/switch-macro.hpp"
 
 // luapp
 #include "luapp/register.hpp"
 #include "luapp/state.hpp"
-
-// gfx
-#include "gfx/resolution.hpp"
 
 // base
 #include "base/function-ref.hpp"
@@ -215,9 +215,10 @@ void frame_loop_body( IEngine& engine, Planes& planes,
         engine.resolutions(), event.resolutions.get() );
     planes.get().input( event );
     run_all_coroutines();
-    if( event.resolutions.get().selected.named.has_value() ) {
-      planes.on_logical_resolution_changed(
-          *event.resolutions.get().selected.named );
+    if( auto const rs =
+            get_selected_resolution( event.resolutions );
+        rs.has_value() ) {
+      planes.on_logical_resolution_changed( rs->named );
       run_all_coroutines();
     }
   }
