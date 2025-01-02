@@ -1,5 +1,5 @@
 /****************************************************************
-**difficulty-screen-2.cpp
+**difficulty-screen.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Screen where player chooses difficulty level.
 *
 *****************************************************************/
-#include "difficulty-screen-2.hpp"
+#include "difficulty-screen.hpp"
 
 // Revolution Now
 #include "co-wait.hpp"
@@ -474,8 +474,8 @@ struct DifficultyScreen : public IPlane {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-wait<e_difficulty> choose_difficulty_screen_2( IEngine& engine,
-                                               Planes& planes ) {
+wait<e_difficulty> choose_difficulty_screen( IEngine& engine,
+                                             Planes& planes ) {
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 

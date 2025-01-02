@@ -1,5 +1,5 @@
 /****************************************************************
-**difficulty-screen-2.hpp
+**difficulty-screen.hpp
 *
 * Project: Revolution Now
 *
@@ -20,7 +20,7 @@ struct Planes;
 
 enum class e_difficulty;
 
-wait<e_difficulty> choose_difficulty_screen_2( IEngine& engine,
-                                               Planes& planes );
+wait<e_difficulty> choose_difficulty_screen( IEngine& engine,
+                                             Planes& planes );
 
 } // namespace rn

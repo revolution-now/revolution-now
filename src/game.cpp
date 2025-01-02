@@ -19,8 +19,8 @@
 #include "conductor.hpp"
 #include "connectivity.hpp"
 #include "console.hpp"
-#include "difficulty-screen-2.hpp" // FIXME
-#include "frame-count.hpp"         // FIXME
+#include "difficulty-screen.hpp"
+#include "frame-count.hpp" // FIXME
 #include "iengine.hpp"
 #include "ieuro-mind.hpp"
 #include "igui.hpp"
@@ -224,7 +224,7 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
                       TS& ts ) -> wait<base::NoDiscard<bool>> {
     lua::table options = ts.lua.table.create();
     options["difficulty"] =
-        co_await choose_difficulty_screen_2( engine, planes );
+        co_await choose_difficulty_screen( engine, planes );
     wait<> const generating_msg = persistent_msg_box(
         gui, "Generating game... please wait." );
     co_await 1_frames;
