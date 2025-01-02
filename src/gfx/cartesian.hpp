@@ -91,6 +91,8 @@ struct size {
 
   [[nodiscard]] bool fits_inside( size rhs ) const;
 
+  [[nodiscard]] bool empty() const { return w == 0 && h == 0; }
+
   [[nodiscard]] int area() const { return w * h; }
 
   [[nodiscard]] size max_with( size const rhs ) const;

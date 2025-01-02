@@ -180,6 +180,23 @@ TEST_CASE( "[gfx/cartesian] side_for( e_diagonal_direction )" ) {
 /****************************************************************
 ** size
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] empty/area" ) {
+  size s1{ .w = 4, .h = 8 };
+  size s2{ .w = 4, .h = 0 };
+  size s3{ .w = 0, .h = 8 };
+  size s4{ .w = 0, .h = 0 };
+
+  REQUIRE( !s1.empty() );
+  REQUIRE( !s2.empty() );
+  REQUIRE( !s3.empty() );
+  REQUIRE( s4.empty() );
+
+  REQUIRE( s1.area() == 32 );
+  REQUIRE( s2.area() == 0 );
+  REQUIRE( s3.area() == 0 );
+  REQUIRE( s4.area() == 0 );
+}
+
 TEST_CASE( "[gfx/cartesian] size::max_with" ) {
   size s1{ .w = 4, .h = 2 };
   size s2{ .w = 2, .h = 8 };
