@@ -20,7 +20,6 @@
 #include "connectivity.hpp"
 #include "console.hpp"
 #include "difficulty-screen-2.hpp" // FIXME
-#include "difficulty-screen.hpp"   // FIXME
 #include "frame-count.hpp"         // FIXME
 #include "iengine.hpp"
 #include "ieuro-mind.hpp"
@@ -224,8 +223,6 @@ wait<> handle_mode( IEngine& engine, Planes& planes, IGui& gui,
   auto factory = [&]( SS& ss,
                       TS& ts ) -> wait<base::NoDiscard<bool>> {
     lua::table options = ts.lua.table.create();
-    options["difficulty"] =
-        co_await choose_difficulty_screen( engine, planes );
     options["difficulty"] =
         co_await choose_difficulty_screen_2( engine, planes );
     wait<> const generating_msg = persistent_msg_box(
