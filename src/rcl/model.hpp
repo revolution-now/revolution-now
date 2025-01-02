@@ -128,6 +128,12 @@
 //     }
 //   }
 //
+// That said, this syntax is not allowed at the top-level since
+// it is not needed (the top-level table already can be elided by
+// just putting the keys at the top level) and would complicate
+// error checking since then it would be wrong to have multiple
+// keys at the top level, and this would have to be checked.
+//
 // Post Processing
 // ===============
 //

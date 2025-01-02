@@ -93,7 +93,7 @@ struct standard_emitter {
       if( !is_top_level ) out += "{}";
       return;
     }
-    if( opts_.flatten_keys && o.size() == 1 ) {
+    if( opts_.flatten_keys && o.size() == 1 && !is_top_level ) {
       emit_table_flatten( o, out, indent );
       return;
     }
@@ -137,15 +137,13 @@ struct standard_emitter {
     int indent;
   };
 
-  void emit( list const& o, string& out, int indent ) {
-    if( indent > 0 ) {
-      out += '[';
-      if( o.empty() ) {
-        out += "]";
-        return;
-      }
-      out += '\n';
+  void emit( list const& o, string& out, int const indent ) {
+    out += '[';
+    if( o.empty() ) {
+      out += "]";
+      return;
     }
+    out += '\n';
 
     for( value const& v : o ) {
       do_indent( indent, out );
@@ -154,7 +152,7 @@ struct standard_emitter {
       out += ",\n";
     }
 
-    do_indent( indent - 1, out );
+    if( indent > 0 ) do_indent( indent - 1, out );
     out += ']';
   }
 

@@ -612,5 +612,26 @@ TEST_CASE( "[emit] emit json with key ordering" ) {
   // other round trip.
 }
 
+// This tests that, when the top-level table is elided (as it is
+// usually done) it is not done with a dot in front of the
+// top-level key (as would be done if in a nested table).
+TEST_CASE( "[emit] no elide top-level table" ) {
+  using namespace cdr::literals;
+
+  cdr::table tbl{ "some_key"_key = cdr::list{ 1, 2, 3 } };
+
+  auto const doc =
+      doc::create( std::move( tbl ), ProcessingOptions{} );
+
+  string const expected = R"(some_key: [
+  1,
+  2,
+  3,
+]
+)";
+
+  REQUIRE( emit( *doc ) == expected );
+}
+
 } // namespace
 } // namespace rcl
