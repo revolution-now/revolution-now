@@ -493,7 +493,7 @@ e_input_handled WindowManager::input(
   // view. And, when we send it, we make the mouse position rela-
   // tive to the upper left corner of the view.
   if( mouse_event->pos.is_inside( view_rect ) ) {
-    auto new_event = input::move_mouse_origin_by(
+    auto new_event = input::mouse_origin_moved_by(
         event, win->view_pos( position( *win ) ) - Coord{} );
     (void)win->view()->input( new_event );
   }

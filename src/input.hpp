@@ -304,8 +304,19 @@ bool has_mod_key( key_event_t const& event );
 // Make the mouse position contained in `event` (if there is one)
 // relative to an origin that is shifted by `delta` from the cur-
 // rent origin.
-[[nodiscard]] event_t move_mouse_origin_by( event_t const& event,
-                                            Delta delta );
+void move_mouse_origin( event_t& event, Delta delta );
+
+[[nodiscard]] event_t mouse_origin_moved_by(
+    event_t const& event, Delta delta );
+
+template<typename T>
+requires std::is_convertible_v<T, event_t>
+[[nodiscard]] T mouse_origin_moved_by( T const& event,
+                                       Delta const delta ) {
+  event_t new_event = event;
+  move_mouse_origin( new_event, delta );
+  return new_event.get<T>();
+}
 
 maybe<mouse_event_base_t const&> is_mouse_event(
     event_t const& event );

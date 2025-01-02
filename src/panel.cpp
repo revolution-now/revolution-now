@@ -238,7 +238,7 @@ struct PanelPlane::Impl : public IPlane {
       if( pos.is_inside( rect() ) ||
           event.holds<input::mouse_drag_event_t>() ) {
         auto new_event =
-            move_mouse_origin_by( event, origin() - Coord{} );
+            mouse_origin_moved_by( event, origin() - Coord{} );
         (void)view->input( new_event );
         return e_input_handled::yes;
       }

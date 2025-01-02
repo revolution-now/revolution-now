@@ -579,30 +579,31 @@ bool has_mod_key( key_event_t const& event ) {
       ;
 }
 
-event_t move_mouse_origin_by( event_t const& event,
-                              Delta delta ) {
-  event_t new_event = event;
+void move_mouse_origin( event_t& event, Delta const delta ) {
   // This serves two purposes: 1) to tell us whether this is a
   // mouse event or not, and 2) to give us the mouse position.
 
   // First, move the current mouse position.
   apply_to_alternatives_with_base(
-      new_event,
-      [&]( mouse_event_base_t& e ) { e.pos -= delta; } );
+      event, [&]( mouse_event_base_t& e ) { e.pos -= delta; } );
 
   // Second, if mouse move event, move the previous mouse
   // position.
   apply_to_alternatives_with_base(
-      new_event,
-      [&]( mouse_move_event_t& e ) { e.prev -= delta; } );
+      event, [&]( mouse_move_event_t& e ) { e.prev -= delta; } );
 
   // Third, if mouse drag event, move the origin coordinate in-
   // side the drag state.
-  apply_to_alternatives_with_base( new_event,
+  apply_to_alternatives_with_base( event,
                                    [&]( mouse_drag_event_t& e ) {
                                      e.state.origin -= delta;
                                    } );
+}
 
+event_t mouse_origin_moved_by( event_t const& event,
+                               Delta const delta ) {
+  auto new_event = event;
+  move_mouse_origin( new_event, delta );
   return new_event;
 }
 

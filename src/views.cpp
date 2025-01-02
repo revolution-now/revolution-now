@@ -113,7 +113,7 @@ bool CompositeView::dispatch_mouse_event(
     if( p_view.view->disabled() ) continue;
     if( pos.is_inside( p_view.rect() ) ) {
       auto new_event =
-          move_mouse_origin_by( event, p_view.coord - Coord{} );
+          mouse_origin_moved_by( event, p_view.coord - Coord{} );
       if( p_view.view->input( new_event ) ) //
         return true;
     }
@@ -183,7 +183,7 @@ bool CompositeView::on_mouse_drag(
   // one where the drag started. Moreover, that view will con-
   // tinue to receive drag events even if the cursor leaves the
   // view during the drag.
-  input::event_t const new_event = move_mouse_origin_by(
+  input::event_t const new_event = mouse_origin_moved_by(
       event, origin_pview->coord - Coord{} );
   if( origin_pview->view->disabled() ) return false;
   return origin_pview->view->input( new_event );

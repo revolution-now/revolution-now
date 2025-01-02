@@ -208,7 +208,7 @@ struct HarborPlane::Impl : public IPlane {
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    input::event_t event_translated = move_mouse_origin_by(
+    input::event_t event_translated = mouse_origin_moved_by(
         event, canvas_.upper_left().distance_from_origin() );
     input_.send( event_translated );
     if( event_translated.holds<input::win_event_t>() )

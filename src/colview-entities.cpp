@@ -1656,7 +1656,7 @@ struct CompositeColSubView : public ui::InvisibleView,
       ui::PositionedView pos_view = at( i );
       if( !event.pos.is_inside( pos_view.rect() ) ) continue;
       input::event_t const shifted_event =
-          input::move_mouse_origin_by(
+          input::mouse_origin_moved_by(
               event, pos_view.coord.distance_from_origin() );
       UNWRAP_CHECK(
           shifted_mouse_button_event,
