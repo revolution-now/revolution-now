@@ -15,6 +15,7 @@
 #include "colony-mgr.hpp"
 #include "error.hpp"
 #include "fog-conv.hpp"
+#include "renderer.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "tribe-mgr.hpp"
@@ -139,8 +140,22 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
     render_sprite( renderer, where, tile );
   } else {
     // Show the flag in the front.
-    render_unit_no_flag( renderer, where, tile, options );
+    //
+    // The idea here is that we need it to be in front to be vis-
+    // ible, but we don't want to fully hide what is behind it,
+    // in an effort to make it look better. So this tries to get
+    // the best of both worlds by rendering it behind at full
+    // opacity, then again over the sprite at only partial
+    // opacity so that both the flag contents can be seen as well
+    // as the part of the sprite that would have been hidden. At
+    // the time of writing this is only used for the Man-o-War,
+    // but seems to make it look a bit better.
     render_unit_flag( renderer, where, *options.flag );
+    render_unit_no_flag( renderer, where, tile, options );
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+      render_unit_flag( renderer, where, *options.flag );
+    }
   }
 
   if( damaged )
