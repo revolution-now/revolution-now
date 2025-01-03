@@ -833,24 +833,12 @@ void ViewportController::ensure_tile_visible(
 }
 
 bool ViewportController::is_tile_too_far( Coord tile ) const {
-  Rect const covered = covered_tiles();
-  // Get the approximate distance of this coord to the nearest
-  // covered tile.
-  int const w = ( tile.x <= covered.x ) ? ( covered.x - tile.x )
-                : ( tile.x >= covered.right_edge() )
-                    ? ( tile.x - covered.right_edge() )
-                    : 0;
-  int const h = ( tile.y <= covered.y ) ? ( covered.y - tile.y )
-                : ( tile.y >= covered.bottom_edge() )
-                    ? ( tile.y - covered.bottom_edge() )
-                    : 0;
-  CHECK_GE( w, 0 );
-  CHECK_GE( h, 0 );
-  // FIXME: this needs to be done per axis, not on an average of
-  // the axis. Actually not sure about this, need to revisit.
-  double const dist = sqrt( double( w * w + h * h ) );
+  gfx::rect const covered = covered_tiles();
+  if( tile.is_inside( covered.with_edges_removed() ) )
+    return false;
+  double const dist = ( tile - covered.center() ).diagonal();
   double const threshold =
-      ( covered.w + covered.h ) / 2.0 *
+      covered.size.pythagorean() / 2.0 *
       config_rn.viewport.smooth_scroll_threshold;
   return dist > threshold;
 }
