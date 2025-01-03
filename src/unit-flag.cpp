@@ -65,6 +65,14 @@ gfx::pixel char_color_for_orders( unit_orders const& orders ) {
              : config_gfx.unit_flag_colors.unit_flag_text_color;
 }
 
+char char_value_for_cargo( CargoHold const& cargo ) {
+  int const n_commodity_slots_filled =
+      std::min( cargo.commodities().size(), 9ul );
+  CHECK_GE( n_commodity_slots_filled, 0 );
+  CHECK_LE( n_commodity_slots_filled, 9 );
+  return '0' + n_commodity_slots_filled;
+}
+
 char char_value_for_orders( unit_orders const& orders ) {
   SWITCH( orders ) {
     CASE( none ) { return '-'; }
@@ -88,6 +96,14 @@ UnitFlagContents flag_char_info_from_orders(
     unit_orders const& orders ) {
   return UnitFlagContents::character{
     .value = char_value_for_orders( orders ),
+    .color = char_color_for_orders( orders ),
+  };
+}
+
+UnitFlagContents flag_char_info_from_cargo(
+    unit_orders const& orders, CargoHold const& cargo ) {
+  return UnitFlagContents::character{
+    .value = char_value_for_cargo( cargo ),
     .color = char_color_for_orders( orders ),
   };
 }
@@ -194,11 +210,15 @@ UnitFlagRenderInfo euro_unit_type_flag_info(
 }
 
 UnitFlagRenderInfo euro_unit_flag_render_info(
-    Unit const& unit, maybe<e_nation> viewer,
+    Unit const& unit, maybe<e_nation> const viewer,
     UnitFlagOptions const& options ) {
+  bool const foreign_for_viewer =
+      viewer.has_value() && *viewer != unit.nation();
   bool const privateer_X =
       unit.type() == e_unit_type::privateer &&
-      viewer.has_value() && *viewer != unit.nation();
+      foreign_for_viewer;
+  bool const show_cargo_quantity =
+      unit.desc().ship && !privateer_X && foreign_for_viewer;
   gfx::pixel const background_color =
       privateer_X
           ? config_gfx.unit_flag_colors.privateer_flag_color
@@ -206,9 +226,11 @@ UnitFlagRenderInfo euro_unit_flag_render_info(
   UnitFlagContents const flag_contents = [&] {
     switch( options.type ) {
       case e_flag_char_type::normal:
-        return privateer_X
-                   ? flag_char_info_for_privateer()
-                   : flag_char_info_from_orders( unit.orders() );
+        if( show_cargo_quantity )
+          return flag_char_info_from_cargo( unit.orders(),
+                                            unit.cargo() );
+        if( privateer_X ) return flag_char_info_for_privateer();
+        return flag_char_info_from_orders( unit.orders() );
       case e_flag_char_type::strategy:
         return flag_char_info_for_strategy();
     }

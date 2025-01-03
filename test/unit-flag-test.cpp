@@ -37,6 +37,8 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -234,6 +236,281 @@ TEST_CASE( "[unit-flag] euro_unit_flag_render_info" ) {
   expected.contents =
       UnitFlagContents::icon{ .tile = e_tile::privateer_x };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[unit-flag] euro_unit_flag_render_info/cargo" ) {
+  World W;
+  UnitFlagRenderInfo expected;
+  Unit* unit = {};
+  maybe<e_nation> viewer;
+  UnitFlagOptions options;
+
+  Unit& merchantman =
+      W.add_unit_on_map( e_unit_type::merchantman, point{} );
+  Unit& privateer =
+      W.add_unit_on_map( e_unit_type::privateer, point{} );
+
+  auto f = [&] {
+    BASE_CHECK( unit != nullptr );
+    return euro_unit_flag_render_info( *unit, viewer, options );
+  };
+
+  // Common.
+  expected = {
+    .stacked          = false,
+    .size             = { .w = 14, .h = 14 },
+    .offsets          = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } },
+    .outline_color    = { .r = 0xcc,
+                          .g = 0x07,
+                          .b = 0x22,
+                          .a = 0xff },
+    .background_color = { .r = 255, .a = 255 },
+    .contents =
+        UnitFlagContents::character{ .value = '-',
+                                     .color = { .r = 0x22,
+                                                .g = 0x22,
+                                                .b = 0x22,
+                                                .a = 0xff } },
+    .in_front = false,
+  };
+
+  SECTION( "Merchantman (friendly, no cargo)" ) {
+    unit              = &merchantman;
+    viewer            = e_nation::english;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (friendly, unit cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    viewer            = e_nation::english;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (friendly, commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = e_nation::english;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (friendly, unit+commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = e_nation::english;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (viewing all, no cargo)" ) {
+    unit              = &merchantman;
+    viewer            = nothing;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (viewing all, unit cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    viewer            = nothing;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (viewing all, commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = nothing;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (viewing all, unit+commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = nothing;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (foreign, no cargo)" ) {
+    unit              = &merchantman;
+    viewer            = e_nation::french;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    expected.contents = UnitFlagContents::character{
+      .value = '0',
+      .color = { .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (foreign, unit cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    viewer            = e_nation::french;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    expected.contents = UnitFlagContents::character{
+      .value = '0',
+      .color = { .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (foreign, commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = e_nation::french;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    expected.contents = UnitFlagContents::character{
+      .value = '1',
+      .color = { .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (foreign, unit+commodity cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    viewer            = e_nation::french;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    expected.contents = UnitFlagContents::character{
+      .value = '1',
+      .color = { .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Merchantman (foreign, unit+commodity x3 cargo)" ) {
+    unit = &merchantman;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              merchantman.id() );
+    W.add_commodity_in_cargo( e_commodity::silver,
+                              merchantman.id() );
+    viewer            = e_nation::french;
+    options           = { .flag_count = e_flag_count::single,
+                          .type       = e_flag_char_type::normal };
+    expected.in_front = false;
+    expected.offsets  = { .offset_first   = { .w = 0, .h = 0 },
+                          .offset_stacked = { .w = 2, .h = 2 } };
+    expected.contents = UnitFlagContents::character{
+      .value = '3',
+      .color = { .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Privateer / visible" ) {
+    unit = &privateer;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         privateer.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              privateer.id() );
+    viewer           = e_nation::english;
+    options          = { .flag_count = e_flag_count::multiple,
+                         .type       = e_flag_char_type::normal };
+    expected.stacked = true;
+    expected.offsets = { .offset_first   = { .w = 0, .h = 0 },
+                         .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Privateer / all visible" ) {
+    unit = &privateer;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         privateer.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              privateer.id() );
+    viewer           = nothing;
+    options          = { .flag_count = e_flag_count::single,
+                         .type       = e_flag_char_type::normal };
+    expected.offsets = { .offset_first   = { .w = 0, .h = 0 },
+                         .offset_stacked = { .w = 2, .h = 2 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "Privateer / hidden" ) {
+    unit = &privateer;
+    W.add_unit_in_cargo( e_unit_type::free_colonist,
+                         privateer.id() );
+    W.add_commodity_in_cargo( e_commodity::food,
+                              privateer.id() );
+    viewer           = e_nation::french;
+    expected.offsets = { .offset_first   = { .w = 0, .h = 0 },
+                         .offset_stacked = { .w = 2, .h = 2 } };
+    expected.outline_color = {
+      .r = 0x1b, .g = 0x1b, .b = 0x1b, .a = 0xff };
+    expected.background_color = {
+      .r = 0x22, .g = 0x22, .b = 0x22, .a = 0xff };
+    expected.contents =
+        UnitFlagContents::icon{ .tile = e_tile::privateer_x };
+    REQUIRE( f() == expected );
+  }
 }
 
 TEST_CASE( "[unit-flag] native_unit_flag_render_info" ) {
