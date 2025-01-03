@@ -15,6 +15,7 @@
 #include "render-terrain.hpp"
 #include "render.hpp"
 #include "renderer.rds.hpp"
+#include "roles.hpp"
 #include "tiles.hpp"
 #include "unit-flag.hpp"
 #include "unit-mgr.hpp"
@@ -402,8 +403,56 @@ void LandViewRenderer::render_units_impl() const {
     f( where, flag_options );
   };
 
+  // Normally, we always want to render units (even units being
+  // animated) in the "entities" buffer so that they get rendered
+  // under the obfuscation layers, that way units can appear to
+  // slide under and from under it when moving. However, there is
+  // one case where we don't want that: when the unit sliding is
+  // 1) a european unit, and 2) the map is currently being viewed
+  // from the perspective of that unit's nation. When (and only
+  // when) those two conditions are met, the unit can potentially
+  // remove obfuscation as it moves. When it does that, we don't
+  // want to render it under the obfuscation because it doesn't
+  // look quite right: as it slides onto a square that is itself
+  // adjacent to obfuscation, part of the unit's tile goes under
+  // that obfuscation's edge as it nears its destination, and
+  // then when it arrives the obfuscation gets cleared (because
+  // the unit is now adjacent to that obfuscated tile.
+  //
+  // In theory this sounds ok, but it has the effect of visually
+  // making the game appear like it is rendered by composing mul-
+  // tiple layers (which of course it is). This in turn is bad
+  // because it works against the goal of making the game have a
+  // classic retro look to its rendering, i.e. like an old game
+  // rendered in the way that they used to be, namely by a re-
+  // source constrained CPU onto memory-mapped pixels. Such a
+  // classic game likely would not be re-rendering the entire
+  // screen on every frame of a unit slide animation, thus would
+  // naturally put the sliding unit above all other pixels (ob-
+  // fuscation included). When our unit briefly goes under the
+  // obfuscation as it moves, it kind of breaks the retro feel.
+  // So, we will render the unit above the obfuscation in that
+  // particular scenario. Note that the OG does not deal with
+  // this because its obfuscation tiles don't have any spillover
+  // to adjacent visible tiles.
+  auto should_render_sliding_unit_over_obfuscation =
+      [&]( GenericUnitId const id ) {
+        if( ss_.units.unit_kind( id ) != e_unit_kind::euro )
+          return false;
+        auto const& unit = ss_.units.euro_unit_for( id );
+        if( player_for_role( ss_, e_player_role::viewer ) !=
+            unit.nation() )
+          return false;
+        return true;
+      };
+
   auto render_slide = [&]( GenericUnitId id,
                            UnitSlide const& slide ) {
+    rr::e_render_buffer const buffer =
+        should_render_sliding_unit_over_obfuscation( id )
+            ? rr::e_render_buffer::normal
+            : rr::e_render_buffer::entities;
+    SCOPED_RENDERER_MOD_SET( buffer_mods.buffer, buffer );
     Coord const mover_coord =
         coord_for_unit_indirect_or_die( ss_.units, id );
     // Now render the sliding unit.
