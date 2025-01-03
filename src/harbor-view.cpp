@@ -33,6 +33,9 @@
 #include "ss/turn.rds.hpp"
 #include "ss/units.hpp"
 
+// gfx
+#include "gfx/resolution-enum.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -47,6 +50,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::gfx::point;
 
 void check_selected_unit_in_harbor( SSConst const& ss,
                                     Player const& player ) {
@@ -69,7 +74,6 @@ struct HarborPlane::Impl : public IPlane {
   TS& ts_;
   Player& player_;
 
-  Rect canvas_;
   co::stream<input::event_t> input_                   = {};
   maybe<DragState<HarborDraggableObject>> drag_state_ = {};
 
@@ -85,34 +89,12 @@ struct HarborPlane::Impl : public IPlane {
         engine_.resolutions() );
     composition_ = recomposite_harbor_view( ss_, ts_, player_,
                                             new_canvas.size );
-    canvas_      = new_canvas;
   }
 
-  // FIXME: find a better way to do this. One idea is that when
-  // the compositor changes the layout it will inject a window
-  // resize event into the input queue that will then be automat-
-  // ically picked up by all of the planes.
-  void advance_state() override {
-    auto const new_canvas = main_window_logical_rect(
-        engine_.video(), engine_.window(),
-        engine_.resolutions() );
-    if( new_canvas != canvas_ ) {
-      canvas_ = new_canvas;
-      // This is slightly hacky since this is not a real window
-      // resize event, but it'll do for now. Doing it this way
-      // will ensure that 1) we wake up the input-processing
-      // coroutine which is likely asleep waiting for input
-      // events, and 2) we allow the same logic to handle this
-      // recompositing that is used for real window resize
-      // events, which is good because it has some safeguards
-      // built in to it, such as not allowing a recomposite
-      // during a drag operation (which would cause dangling
-      // pointers; see the comment about that in the dragging
-      // coroutine. This should probably be fixed).
-      input_.send( input::win_event_t{
-        input::event_base_t{},
-        /*type=*/input::e_win_event_type::resized } );
-    }
+  void on_logical_resolution_selected(
+      gfx::e_resolution const resolution ) override {
+    composition_ = recomposite_harbor_view(
+        ss_, ts_, player_, resolution_size( resolution ) );
   }
 
   HarborState& harbor_state() {
@@ -125,8 +107,7 @@ struct HarborPlane::Impl : public IPlane {
   }
 
   void draw( rr::Renderer& renderer ) const override {
-    harbor_view_top_level().view().draw( renderer,
-                                         canvas_.upper_left() );
+    harbor_view_top_level().view().draw( renderer, point{} );
     harbor_view_drag_n_drop_draw( renderer );
     draw_stats( renderer );
   }
@@ -158,7 +139,7 @@ struct HarborPlane::Impl : public IPlane {
       rr::Renderer& renderer ) const {
     if( !drag_state_.has_value() ) return;
     DragState<HarborDraggableObject> const& state = *drag_state_;
-    Coord const canvas_origin = canvas_.upper_left();
+    Coord const canvas_origin;
     Coord const sprite_upper_left =
         state.where - state.click_offset +
         canvas_origin.distance_from_origin();
@@ -208,14 +189,7 @@ struct HarborPlane::Impl : public IPlane {
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    input::event_t event_translated = mouse_origin_moved_by(
-        event, canvas_.upper_left().distance_from_origin() );
-    input_.send( event_translated );
-    if( event_translated.holds<input::win_event_t>() )
-      // Generally we should return no here because this is an
-      // event that we want all planes to see. FIXME: need to
-      // find a better way to handle this automatically.
-      return e_input_handled::no;
+    input_.send( event );
     return e_input_handled::yes;
   }
 
@@ -303,13 +277,6 @@ struct HarborPlane::Impl : public IPlane {
     co_await harbor_view_top_level().perform_click( event );
   }
 
-  wait<> handle_event( input::win_event_t const& event ) {
-    if( event.type == input::e_win_event_type::resized )
-      composition_ = recomposite_harbor_view( ss_, ts_, player_,
-                                              canvas_.delta() );
-    co_return;
-  }
-
   wait<> handle_event( input::mouse_drag_event_t const& event ) {
     co_await drag_drop_routine( input_, harbor_view_top_level(),
                                 drag_state_, ts_.gui, event );
@@ -354,9 +321,6 @@ struct HarborPlane::Impl : public IPlane {
     HarborState& hb_state  = harbor_state();
     hb_state.selected_unit = id;
   }
-
-  void on_logical_resolution_selected(
-      gfx::e_resolution ) override {}
 };
 
 /****************************************************************

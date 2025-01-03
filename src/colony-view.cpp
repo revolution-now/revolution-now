@@ -55,6 +55,8 @@ namespace {
 
 struct IMapUpdater;
 
+using ::gfx::point;
+
 /****************************************************************
 ** Drawing
 *****************************************************************/
@@ -148,49 +150,20 @@ struct ColonyPlane : public IPlane {
     set_colview_colony( engine_, ss_, ts_, player_, colony_ );
   }
 
-  // FIXME: find a better way to do this. One idea is that when
-  // the compositor changes the layout it will inject a window
-  // resize event into the input queue that will then be automat-
-  // ically picked up by all of the planes.
-  void advance_state() override {
-    auto const new_canvas = main_window_logical_rect(
-        engine_.video(), engine_.window(),
-        engine_.resolutions() );
-    if( new_canvas != canvas_ ) {
-      canvas_ = new_canvas;
-      // This is slightly hacky since this is not a real window
-      // resize event, but it'll do for now. Doing it this way
-      // will ensure that 1) we wake up the input-processing
-      // coroutine which is likely asleep waiting for input
-      // events, and 2) we allow the same logic to handle this
-      // recompositing that is used for real window resize
-      // events, which is good because it has some safeguards
-      // built in to it, such as not allowing a recomposite
-      // during a drag operation (which would cause dangling
-      // pointers; see the comment about that in the dragging
-      // coroutine. This should probably be fixed).
-      input_.send( input::win_event_t{
-        input::event_base_t{},
-        /*type=*/input::e_win_event_type::resized } );
-    }
+  void on_logical_resolution_selected(
+      gfx::e_resolution const ) override {
+    set_colview_colony( engine_, ss_, ts_, player_, colony_ );
   }
 
   void draw( rr::Renderer& renderer ) const override {
     draw_colony_view( engine_, colony_, renderer );
     if( drag_state_.has_value() )
       colview_drag_n_drop_draw( ss_, renderer, *drag_state_,
-                                canvas_.upper_left() );
+                                point{} );
   }
 
   e_input_handled input( input::event_t const& event ) override {
-    input::event_t event_translated = mouse_origin_moved_by(
-        event, canvas_.upper_left().distance_from_origin() );
-    input_.send( event_translated );
-    if( event_translated.holds<input::win_event_t>() )
-      // Generally we should return no here because this is an
-      // event that we want all planes to see. FIXME: need to
-      // find a better way to handle this automatically.
-      return e_input_handled::no;
+    input_.send( event );
     return e_input_handled::yes;
   }
 
@@ -281,13 +254,6 @@ struct ColonyPlane : public IPlane {
     co_return false;
   }
 
-  wait<bool> handle_event( input::win_event_t const& event ) {
-    if( event.type == input::e_win_event_type::resized )
-      // Force a re-composite.
-      set_colview_colony( engine_, ss_, ts_, player_, colony_ );
-    co_return false;
-  }
-
   wait<bool> handle_event(
       input::mouse_drag_event_t const& event ) {
     co_await drag_drop_routine( input_, colview_top_level(),
@@ -319,11 +285,6 @@ struct ColonyPlane : public IPlane {
     for( input::event_t& e : saved )
       input_.send( std::move( e ) );
   }
-
-  void on_logical_resolution_selected(
-      gfx::e_resolution ) override {}
-
-  Rect canvas_;
 };
 
 /****************************************************************
