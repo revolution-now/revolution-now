@@ -541,8 +541,9 @@ wait<> NavalBattleHandler::perform() {
   if( auto o = combat.attacker.outcome
                    .get_if<EuroNavalUnitCombatOutcome::moved>();
       o.has_value() )
-    UnitOwnershipChanger( ss_, attacker_id_ )
-        .reinstate_on_map_if_on_map( ts_ );
+    auto const /*deleted*/ _ =
+        co_await UnitOwnershipChanger( ss_, attacker_id_ )
+            .change_to_map( ts_, o->to );
 }
 
 /****************************************************************
