@@ -438,7 +438,9 @@ Unit& World::add_expert_unit_outdoors(
 void World::add_commodity_in_cargo( Commodity const& comm,
                                     UnitId holder,
                                     int starting_slot ) {
-  add_commodity_to_cargo( units(), comm, holder, starting_slot,
+  add_commodity_to_cargo( units(), comm,
+                          units().unit_for( holder ).cargo(),
+                          starting_slot,
                           /*try_other_slots=*/true );
 }
 

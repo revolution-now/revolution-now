@@ -51,8 +51,7 @@ Commodity rm_commodity_from_cargo( UnitId holder, int slot );
 
 namespace rn {
 
-class CargoHold {
- public:
+struct CargoHold {
   CargoHold() = default; // for serialization framework.
 
   explicit CargoHold( int num_slots );
@@ -183,13 +182,14 @@ class CargoHold {
 
   // These are the only functions that should be allowed to add
   // or remove commodities to/from the cargo.
-  friend void add_commodity_to_cargo( UnitsState& units_state,
+  friend void add_commodity_to_cargo( UnitsState const& units,
                                       Commodity const& comm,
-                                      UnitId holder, int slot,
+                                      CargoHold& cargo, int slot,
                                       bool try_other_slots );
 
   friend Commodity rm_commodity_from_cargo(
-      UnitsState& units_state, UnitId holder, int slot );
+      UnitsState const& units, CargoHold& cargo, int slot );
+
   // ------------------------------------------------------------
 
   // Will search through the cargo slots, starting at the speci-

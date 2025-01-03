@@ -227,14 +227,18 @@ wait<> HarborCargo::disown_dragged_object() {
           UNWRAP_CHECK( quantity, dragging_.maybe_member(
                                       &Draggable::quantity ) );
           Commodity const removed = rm_commodity_from_cargo(
-              ss_.units, active_unit_id, slot );
+              ss_.units,
+              ss_.units.unit_for( active_unit_id ).cargo(),
+              slot );
           Commodity to_add = removed;
           to_add.quantity -= quantity;
           CHECK_GE( to_add.quantity, 0 );
           if( to_add.quantity > 0 )
-            add_commodity_to_cargo( ss_.units, to_add,
-                                    active_unit_id, slot,
-                                    /*try_other_slots=*/false );
+            add_commodity_to_cargo(
+                ss_.units, to_add,
+                ss_.units.unit_for( active_unit_id ).cargo(),
+                slot,
+                /*try_other_slots=*/false );
           break;
         }
       }
@@ -322,18 +326,20 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
       auto const& alt =
           o.get<HarborDraggableObject::market_commodity>();
       Commodity const& comm = alt.comm;
-      add_commodity_to_cargo( ss_.units, comm, active_unit_id,
-                              slot,
-                              /*try_other_slots=*/true );
+      add_commodity_to_cargo(
+          ss_.units, comm,
+          ss_.units.unit_for( active_unit_id ).cargo(), slot,
+          /*try_other_slots=*/true );
       break;
     }
     case HarborDraggableObject::e::cargo_commodity: {
       auto const& alt =
           o.get<HarborDraggableObject::cargo_commodity>();
       Commodity const& comm = alt.comm;
-      add_commodity_to_cargo( ss_.units, comm, active_unit_id,
-                              slot,
-                              /*try_other_slots=*/true );
+      add_commodity_to_cargo(
+          ss_.units, comm,
+          ss_.units.unit_for( active_unit_id ).cargo(), slot,
+          /*try_other_slots=*/true );
     }
   }
   co_return;

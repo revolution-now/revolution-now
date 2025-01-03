@@ -1834,24 +1834,22 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         .outcome = EuroNavalUnitCombatOutcome::no_change{} } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
-    Unit const& attacker =
-        W.units().unit_for( combat.attacker.id );
-    Unit const& defender =
-        W.units().unit_for( combat.defender.id );
+    Unit& attacker = W.units().unit_for( combat.attacker.id );
+    Unit& defender = W.units().unit_for( combat.defender.id );
     add_commodity_to_cargo(
         W.units(),
         Commodity{ .type = e_commodity::ore, .quantity = 10 },
-        attacker.id(), /*slot=*/0,
+        attacker.cargo(), /*slot=*/0,
         /*try_other_slots=*/false );
     add_commodity_to_cargo(
         W.units(),
         Commodity{ .type = e_commodity::lumber, .quantity = 20 },
-        attacker.id(), /*slot=*/1,
+        attacker.cargo(), /*slot=*/1,
         /*try_other_slots=*/false );
     add_commodity_to_cargo(
         W.units(),
         Commodity{ .type = e_commodity::ore, .quantity = 10 },
-        defender.id(), /*slot=*/0,
+        defender.cargo(), /*slot=*/0,
         /*try_other_slots=*/false );
     REQUIRE( attacker.cargo().count_items() == 2 );
     REQUIRE( defender.cargo().count_items() == 1 );

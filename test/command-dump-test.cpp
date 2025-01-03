@@ -68,25 +68,25 @@ TEST_CASE( "[command-dump] galleon" ) {
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
   slot = 0;
-  add_commodity_to_cargo( W.units(), comm, id, slot,
+  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 100 tools in slot 2.
   comm = { .type = e_commodity::tools, .quantity = 100 };
   slot = 2;
-  add_commodity_to_cargo( W.units(), comm, id, slot,
+  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 50 horses in slot 4.
   comm = { .type = e_commodity::horses, .quantity = 50 };
   slot = 4;
-  add_commodity_to_cargo( W.units(), comm, id, slot,
+  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // 1 musket in slot 5.
   comm = { .type = e_commodity::muskets, .quantity = 1 };
   slot = 5;
-  add_commodity_to_cargo( W.units(), comm, id, slot,
+  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // Sanity check.
@@ -364,7 +364,7 @@ TEST_CASE( "[command-dump] wagon train" ) {
   // 23 cotton in slot 0.
   comm = { .type = e_commodity::cotton, .quantity = 23 };
   slot = 0;
-  add_commodity_to_cargo( W.units(), comm, id, slot,
+  add_commodity_to_cargo( W.units(), comm, unit.cargo(), slot,
                           /*try_other_slots=*/false );
 
   // Sanity check.

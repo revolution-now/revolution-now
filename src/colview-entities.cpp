@@ -847,9 +847,10 @@ class CargoView : public ui::View,
         },
         [this,
          slot_idx = slot_idx]( Cargo::commodity const& c ) {
-          add_commodity_to_cargo( ss_.units, c.obj, *holder_,
-                                  slot_idx,
-                                  /*try_other_slots=*/true );
+          add_commodity_to_cargo(
+              ss_.units, c.obj,
+              ss_.units.unit_for( *holder_ ).cargo(), slot_idx,
+              /*try_other_slots=*/true );
         } );
     co_return;
   }
@@ -946,12 +947,15 @@ class CargoView : public ui::View,
           CHECK( reduced_comm.type == to_remove.obj.type );
           reduced_comm.quantity -= to_remove.obj.quantity;
           CHECK( reduced_comm.quantity >= 0 );
-          rm_commodity_from_cargo( ss_.units, *holder_,
-                                   dragging_->slot );
+          rm_commodity_from_cargo(
+              ss_.units, ss_.units.unit_for( *holder_ ).cargo(),
+              dragging_->slot );
           if( reduced_comm.quantity > 0 )
-            add_commodity_to_cargo( ss_.units, reduced_comm,
-                                    *holder_, dragging_->slot,
-                                    /*try_other_slots=*/false );
+            add_commodity_to_cargo(
+                ss_.units, reduced_comm,
+                ss_.units.unit_for( *holder_ ).cargo(),
+                dragging_->slot,
+                /*try_other_slots=*/false );
         } );
     co_return;
   }
@@ -1372,10 +1376,11 @@ class UnitsAtGateColonyView
           Unit& target_unit =
               ss_.units.unit_for( *target_unit_id );
           if( target_unit.desc().cargo_slots > 0 ) {
-            add_commodity_to_cargo( ss_.units, comm.comm,
-                                    *target_unit_id,
-                                    /*slot=*/0,
-                                    /*try_other_slots=*/true );
+            add_commodity_to_cargo(
+                ss_.units, comm.comm,
+                ss_.units.unit_for( *target_unit_id ).cargo(),
+                /*slot=*/0,
+                /*try_other_slots=*/true );
           } else {
             // We are dragging a commodity over a unit that does
             // not have a cargo hold. This could be valid if we

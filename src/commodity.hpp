@@ -38,6 +38,7 @@ struct Renderer;
 namespace rn {
 
 struct UnitsState;
+struct CargoHold;
 
 constexpr Delta const kCommodityInCargoHoldRenderingOffset{
   .w = 8, .h = 3 };
@@ -74,27 +75,27 @@ Commodity with_quantity( Commodity const& in, int new_quantity );
 // carried out then an error will be thrown. This will try to put
 // all the cargo in the specified slot, or, if it doesn't fit,
 // will try to distribute it to other slots.
-void add_commodity_to_cargo( UnitsState& units_state,
+void add_commodity_to_cargo( UnitsState const& units,
                              Commodity const& comm,
-                             UnitId holder, int slot,
+                             CargoHold& cargo, int slot,
                              bool try_other_slots );
 
-Commodity rm_commodity_from_cargo( UnitsState& units_state,
-                                   UnitId holder, int slot );
+Commodity rm_commodity_from_cargo( UnitsState const& units,
+                                   CargoHold& cargo, int slot );
 
 // This will take the commodity in (only) the src_slot of the src
 // unit and will attempt to move as much of it as possible to the
 // dst unit's dst_slot (and/or to other dst slots if "try other
 // dst slots" is true) It will return the quantity actually
 // moved. Note this function may return zero if nothing can be
-// moved (that is ok), but it will return an error if there is no
-// commodity at the src's src_slot.
+// moved (that is ok), but it will check fail if there is no com-
+// modity at the src's src_slot.
 //
 // This function will work even if the src and dst units are the
 // same (and then even if the src/dst slots are the same).
 int move_commodity_as_much_as_possible(
-    UnitsState& units_state, UnitId src, int src_slot,
-    UnitId dst, int dst_slot, maybe<int> max_quantity,
+    UnitsState const& units, CargoHold& src_cargo, int src_slot,
+    CargoHold& dst_cargo, int dst_slot, maybe<int> max_quantity,
     bool try_other_dst_slots );
 
 /****************************************************************

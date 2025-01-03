@@ -49,9 +49,10 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible single "
     "ship" ) {
   World W;
-  UnitId ship =
+  UnitId ship_id =
       W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
+  CargoHold& ship = W.units().unit_for( ship_id ).cargo();
   auto food_full  = Commodity{ /*type=*/e_commodity::food,
                               /*quantity=*/100 };
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
@@ -64,297 +65,203 @@ TEST_CASE(
                                /*quantity=*/30 };
 
   SECTION( "throws" ) {
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        0 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        0 );
+    REQUIRE( ship.slots_occupied() == 0 );
+    REQUIRE( ship.slots_occupied() == 0 );
     add_commodity_to_cargo( W.units(), food_full, ship, 0,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 100 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
   }
 
   SECTION( "one commodity" ) {
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        0 );
+    REQUIRE( ship.slots_occupied() == 0 );
     add_commodity_to_cargo( W.units(), food_part, ship, 0,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     add_commodity_to_cargo( W.units(), food_part, ship, 1,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 60 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 60 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship.slots_occupied() == 1 );
     add_commodity_to_cargo( W.units(), food_full, ship, 0,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 40 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 40 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 0 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     add_commodity_to_cargo( W.units(), food_part, ship, 1,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 10 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 10 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     add_commodity_to_cargo( W.units(), food_10, ship, 1,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 0 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 0 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
   }
 
   SECTION( "two commodities" ) {
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        0 );
+    REQUIRE( ship.slots_occupied() == 0 );
     add_commodity_to_cargo( W.units(), food_part, ship, 0,
                             /*try_other_slots=*/false );
     add_commodity_to_cargo( W.units(), sugar_part, ship, 1,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 2,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 3, ship, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     add_commodity_to_cargo( W.units(), sugar_full, ship, 2,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 100 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 3,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 2,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 100 );
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
   }
 
   SECTION( "max quantity" ) {
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        0 );
+    REQUIRE( ship.slots_occupied() == 0 );
     add_commodity_to_cargo( W.units(), food_part, ship, 0,
                             /*try_other_slots=*/false );
     add_commodity_to_cargo( W.units(), sugar_part, ship, 1,
                             /*try_other_slots=*/false );
     // | f30 | s30 |    |    |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 0, ship, 1,
                  /*max_quantity=*/40,
                  /*try_other_dst_slots=*/true ) == 30 );
     // |     | s30 | f30  |    |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 2,
                  /*max_quantity=*/10,
                  /*try_other_dst_slots=*/true ) == 10 );
     // |     | s20 | f30  | s10 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 0,
                  /*max_quantity=*/100,
                  /*try_other_dst_slots=*/true ) == 30 );
     // | f30 | s20 |      | s10 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 3, ship, 1,
                  /*max_quantity=*/5,
                  /*try_other_dst_slots=*/true ) == 5 );
     // | f30 | s25 |      | s05 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     add_commodity_to_cargo( W.units(), sugar_full, ship, 2,
                             /*try_other_slots=*/false );
     // | f30 | s25 | s100 | s05 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        4 );
+    REQUIRE( ship.slots_occupied() == 4 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 0,
                  /*max_quantity=*/50,
                  /*try_other_dst_slots=*/true ) == 50 );
     // | f30 | s75 | s50 | s05 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        4 );
+    REQUIRE( ship.slots_occupied() == 4 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 2, ship, 3,
                  /*max_quantity=*/50,
                  /*try_other_dst_slots=*/true ) == 50 );
     // | f30 | s75 |     | s55 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
                  W.units(), ship, 1, ship, 2,
                  /*max_quantity=*/1,
                  /*try_other_dst_slots=*/true ) == 1 );
     // | f30 | s74 | s01 | s55 |
-    REQUIRE(
-        W.units().unit_for( ship ).cargo().slots_occupied() ==
-        4 );
+    REQUIRE( ship.slots_occupied() == 4 );
   }
 }
 
@@ -362,12 +269,16 @@ TEST_CASE(
     "Commodity move_commodity_as_much_as_possible two "
     "ships" ) {
   World W;
-  UnitId ship1 =
+  UnitId const ship1_id =
       W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
-  UnitId ship2 =
+  UnitId const ship2_id =
       W.add_unit_on_map( e_unit_type::merchantman, Coord{} )
           .id();
+  CargoHold& ship1_cargo =
+      W.units().unit_for( ship1_id ).cargo();
+  CargoHold& ship2_cargo =
+      W.units().unit_for( ship2_id ).cargo();
   auto sugar_full = Commodity{ /*type=*/e_commodity::sugar,
                                /*quantity=*/100 };
   auto food_part  = Commodity{ /*type=*/e_commodity::food,
@@ -376,182 +287,116 @@ TEST_CASE(
                                /*quantity=*/30 };
 
   SECTION( "no max quantity" ) {
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        0 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        0 );
-    add_commodity_to_cargo( W.units(), food_part, ship1, 1,
+    REQUIRE( ship1_cargo.slots_occupied() == 0 );
+    REQUIRE( ship2_cargo.slots_occupied() == 0 );
+    add_commodity_to_cargo( W.units(), food_part, ship1_cargo, 1,
                             /*try_other_slots=*/false );
-    add_commodity_to_cargo( W.units(), sugar_part, ship2, 0,
+    add_commodity_to_cargo( W.units(), sugar_part, ship2_cargo,
+                            0,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship1, 1, ship2, 0,
+                 W.units(), ship1_cargo, 1, ship2_cargo, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        0 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship1_cargo.slots_occupied() == 0 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 1, ship1, 0,
+                 W.units(), ship2_cargo, 1, ship1_cargo, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
-    add_commodity_to_cargo( W.units(), sugar_full, ship1, 1,
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
+    add_commodity_to_cargo( W.units(), sugar_full, ship1_cargo,
+                            1,
                             /*try_other_slots=*/false );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 2 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship1, 1, ship2, 0,
+                 W.units(), ship1_cargo, 1, ship2_cargo, 0,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/true ) == 100 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 0, ship1, 1,
+                 W.units(), ship2_cargo, 0, ship1_cargo, 1,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 100 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 2 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 1, ship1, 2,
+                 W.units(), ship2_cargo, 1, ship1_cargo, 2,
                  /*max_quantity=*/nothing,
                  /*try_other_dst_slots=*/false ) == 30 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        3 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        0 );
+    REQUIRE( ship1_cargo.slots_occupied() == 3 );
+    REQUIRE( ship2_cargo.slots_occupied() == 0 );
   }
 
   SECTION( "max quantity" ) {
     // ship1 |     |     |     |     |
     // ship2 |     |     |     |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        0 );
-    add_commodity_to_cargo( W.units(), food_part, ship1, 1,
+    REQUIRE( ship1_cargo.slots_occupied() == 0 );
+    add_commodity_to_cargo( W.units(), food_part, ship1_cargo, 1,
                             /*try_other_slots=*/false );
-    add_commodity_to_cargo( W.units(), sugar_part, ship2, 0,
+    add_commodity_to_cargo( W.units(), sugar_part, ship2_cargo,
+                            0,
                             /*try_other_slots=*/false );
     // ship1 |     | f30 |     |     |
     // ship2 | s30 |     |     |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 1 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship1, 1, ship2, 0,
+                 W.units(), ship1_cargo, 1, ship2_cargo, 0,
                  /*max_quantity=*/99,
                  /*try_other_dst_slots=*/true ) == 30 );
     // ship1 |     |     |     |     |
     // ship2 | s30 | f30 |     |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        0 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship1_cargo.slots_occupied() == 0 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 1, ship1, 0,
+                 W.units(), ship2_cargo, 1, ship1_cargo, 0,
                  /*max_quantity=*/5,
                  /*try_other_dst_slots=*/false ) == 5 );
     // ship1 | f05 |     |     |     |
     // ship2 | s30 | f25 |     |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        1 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
-    add_commodity_to_cargo( W.units(), sugar_full, ship1, 1,
+    REQUIRE( ship1_cargo.slots_occupied() == 1 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
+    add_commodity_to_cargo( W.units(), sugar_full, ship1_cargo,
+                            1,
                             /*try_other_slots=*/false );
     // ship1 | f05 | s100|     |     |
     // ship2 | s30 | f25 |     |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship1_cargo.slots_occupied() == 2 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship1, 1, ship2, 0,
+                 W.units(), ship1_cargo, 1, ship2_cargo, 0,
                  /*max_quantity=*/80,
                  /*try_other_dst_slots=*/true ) == 80 );
     // ship1 | f05 | s20 |     |     |
     // ship2 | s100| f25 | s10 |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        2 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship1_cargo.slots_occupied() == 2 );
+    REQUIRE( ship2_cargo.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 0, ship1, 1,
+                 W.units(), ship2_cargo, 0, ship1_cargo, 1,
                  /*max_quantity=*/81,
                  /*try_other_dst_slots=*/true ) == 81 );
     // ship1 | f05 | s100| s01 |     |
     // ship2 | s19 | f25 | s10 |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        3 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        3 );
+    REQUIRE( ship1_cargo.slots_occupied() == 3 );
+    REQUIRE( ship2_cargo.slots_occupied() == 3 );
     REQUIRE( move_commodity_as_much_as_possible(
-                 W.units(), ship2, 1, ship1, 3,
+                 W.units(), ship2_cargo, 1, ship1_cargo, 3,
                  /*max_quantity=*/25,
                  /*try_other_dst_slots=*/false ) == 25 );
     // ship1 | f05 | s100| s01 | f25 |
     // ship2 | s19 |     | s10 |     |
-    REQUIRE(
-        W.units().unit_for( ship1 ).cargo().slots_occupied() ==
-        4 );
-    REQUIRE(
-        W.units().unit_for( ship2 ).cargo().slots_occupied() ==
-        2 );
+    REQUIRE( ship1_cargo.slots_occupied() == 4 );
+    REQUIRE( ship2_cargo.slots_occupied() == 2 );
   }
 }
 

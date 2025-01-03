@@ -110,8 +110,9 @@ struct DumpHandler : public CommandHandler {
 
   wait<> perform() override {
     lg.info( "dumping {} overboard.", to_remove_ );
-    Commodity const removed =
-        rm_commodity_from_cargo( ss_.units, unit_id_, slot_ );
+    Commodity const removed = rm_commodity_from_cargo(
+        ss_.units, ss_.units.unit_for( unit_id_ ).cargo(),
+        slot_ );
     CHECK( removed == to_remove_ );
     co_return;
   }

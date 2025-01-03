@@ -316,9 +316,9 @@ wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
       auto const& alt =
           o.get<HarborDraggableObject::market_commodity>();
       UNWRAP_CHECK( unit_with_pos, unit_at_location( where ) );
-      Unit const& ship = ss_.units.unit_for( unit_with_pos.id );
+      Unit& ship = ss_.units.unit_for( unit_with_pos.id );
       Commodity const& comm = alt.comm;
-      add_commodity_to_cargo( ss_.units, comm, ship.id(),
+      add_commodity_to_cargo( ss_.units, comm, ship.cargo(),
                               /*slot=*/0,
                               /*try_other_slots=*/true );
       break;
@@ -327,9 +327,9 @@ wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
       auto const& alt =
           o.get<HarborDraggableObject::cargo_commodity>();
       UNWRAP_CHECK( unit_with_pos, unit_at_location( where ) );
-      Unit const& ship = ss_.units.unit_for( unit_with_pos.id );
+      Unit& ship = ss_.units.unit_for( unit_with_pos.id );
       Commodity const& comm = alt.comm;
-      add_commodity_to_cargo( ss_.units, comm, ship.id(),
+      add_commodity_to_cargo( ss_.units, comm, ship.cargo(),
                               /*slot=*/0,
                               /*try_other_slots=*/true );
     }

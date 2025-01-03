@@ -169,46 +169,42 @@ string uppercase_commodity_display_name( e_commodity type ) {
       lowercase_commodity_display_name( type ) );
 }
 
-void add_commodity_to_cargo( UnitsState& units_state,
+void add_commodity_to_cargo( UnitsState const& units,
                              Commodity const& comm,
-                             UnitId holder, int slot,
-                             bool try_other_slots ) {
+                             CargoHold& cargo, int const slot,
+                             bool const try_other_slots ) {
   if( try_other_slots ) {
-    CHECK(
-        units_state.unit_for( holder ).cargo().try_add_somewhere(
-            units_state, Cargo::commodity{ comm }, slot ),
-        "failed to add {} starting at slot {}", comm, slot );
+    CHECK( cargo.try_add_somewhere(
+               units, Cargo::commodity{ comm }, slot ),
+           "failed to add {} starting at slot {}", comm, slot );
   } else {
-    CHECK( units_state.unit_for( holder ).cargo().try_add(
-               units_state, Cargo::commodity{ comm }, slot ),
-           "failed to add {} at slot {}", comm, slot );
+    CHECK(
+        cargo.try_add( units, Cargo::commodity{ comm }, slot ),
+        "failed to add {} at slot {}", comm, slot );
   }
 }
 
-Commodity rm_commodity_from_cargo( UnitsState& units_state,
-                                   UnitId holder, int slot ) {
-  auto& cargo = units_state.unit_for( holder ).cargo();
-
+Commodity rm_commodity_from_cargo( UnitsState const& units,
+                                   CargoHold& cargo,
+                                   int const slot ) {
   ASSIGN_CHECK_V( cargo_item, cargo[slot], CargoSlot::cargo );
   ASSIGN_CHECK_V( comm, cargo_item.contents, Cargo::commodity );
 
   Commodity res = std::move( comm.obj );
   cargo[slot]   = CargoSlot{ CargoSlot::empty{} };
-  cargo.validate_or_die( units_state );
+  cargo.validate_or_die( units );
   return res;
 }
 
 int move_commodity_as_much_as_possible(
-    UnitsState& units_state, UnitId src, int src_slot,
-    UnitId dst, int dst_slot, maybe<int> max_quantity,
+    UnitsState const& units, CargoHold& src_cargo, int src_slot,
+    CargoHold& dst_cargo, int dst_slot, maybe<int> max_quantity,
     bool try_other_dst_slots ) {
-  auto const& src_cargo = units_state.unit_for( src ).cargo();
   auto maybe_src_comm =
       src_cargo.slot_holds_cargo_type<Cargo::commodity>(
           src_slot );
   CHECK( maybe_src_comm.has_value() );
 
-  auto const& dst_cargo = units_state.unit_for( dst ).cargo();
   auto maybe_dst_comm =
       dst_cargo.slot_holds_cargo_type<Cargo::commodity>(
           dst_slot );
@@ -221,7 +217,7 @@ int move_commodity_as_much_as_possible(
 
   // Need to remove first in case src/dst are the same unit.
   auto removed =
-      rm_commodity_from_cargo( units_state, src, src_slot );
+      rm_commodity_from_cargo( units, src_cargo, src_slot );
   CHECK( removed.quantity > 0 );
 
   int max_transfer_quantity = 0;
@@ -238,7 +234,8 @@ int move_commodity_as_much_as_possible(
                     dst_cargo.max_commodity_per_cargo_slot() -
                         maybe_dst_comm->obj.quantity );
     } else {
-      CHECK( dst_cargo[dst_slot].holds<CargoSlot::empty>() );
+      CHECK( as_const( dst_cargo )[dst_slot]
+                 .holds<CargoSlot::empty>() );
       max_transfer_quantity =
           std::min( removed.quantity,
                     dst_cargo.max_commodity_per_cargo_slot() );
@@ -257,7 +254,7 @@ int move_commodity_as_much_as_possible(
     auto comm_to_transfer     = removed;
     comm_to_transfer.quantity = max_transfer_quantity;
     add_commodity_to_cargo(
-        units_state, comm_to_transfer, dst,
+        units, comm_to_transfer, dst_cargo,
         /*slot=*/dst_slot,
         /*try_other_slots=*/try_other_dst_slots );
     removed.quantity -= max_transfer_quantity;
@@ -265,7 +262,7 @@ int move_commodity_as_much_as_possible(
   }
 
   if( removed.quantity > 0 )
-    add_commodity_to_cargo( units_state, removed, src,
+    add_commodity_to_cargo( units, removed, src_cargo,
                             /*slot=*/src_slot,
                             /*try_other_slots=*/false );
 

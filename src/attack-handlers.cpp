@@ -489,10 +489,9 @@ wait<> NavalBattleHandler::perform() {
 
   if( combat.winner.has_value() ) {
     // One of the ships was either damaged or sunk.
-    Unit const& loser =
-        ( combat.winner == e_combat_winner::attacker )
-            ? defender_
-            : attacker_;
+    Unit& loser = ( combat.winner == e_combat_winner::attacker )
+                      ? defender_
+                      : attacker_;
     bool const has_commodity_cargo =
         ( loser.cargo().count_items_of_type<Cargo::commodity>() >
           0 );
@@ -508,7 +507,7 @@ wait<> NavalBattleHandler::perform() {
       // clear the cargo out of the ship if it has been damaged.
       for( auto [comm, slot] : loser.cargo().commodities() ) {
         Commodity const removed = rm_commodity_from_cargo(
-            ss_.units, loser.id(), slot );
+            ss_.units, loser.cargo(), slot );
         CHECK_EQ( removed, comm );
       }
     }
