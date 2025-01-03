@@ -1694,7 +1694,7 @@ composition {
       colonist:              no
       can_found:             no
       nat_icon_front:        false
-      nat_icon_position:     nw
+      nat_icon_position:     ne
       visibility:            2
       base_movement_points:  6
       can_attack:            true
