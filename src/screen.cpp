@@ -74,7 +74,7 @@ maybe<gfx::Resolution const&> get_selected_resolution(
     gfx::Resolutions const& rs ) {
   auto const& selected = rs.selected;
   if( !selected.has_value() ) return nothing;
-  return rs.ratings.available[*selected].resolution;
+  return rs.scored[*selected].resolution;
 }
 
 maybe<gfx::Resolution const&> get_resolution( IEngine& engine ) {
@@ -91,8 +91,7 @@ gfx::size main_window_logical_size(
     gfx::Resolutions const& resolutions ) {
   auto const& selected = resolutions.selected;
   return selected.has_value()
-             ? resolutions.ratings.available[*selected]
-                   .resolution.logical
+             ? resolutions.scored[*selected].resolution.logical
              : logical_resolution_for_invalid_window_size( video,
                                                            wh );
 }
@@ -128,7 +127,7 @@ void on_logical_resolution_changed(
   auto const& selected = actual_resolutions.selected;
   gfx::rect const viewport =
       selected.has_value()
-          ? actual_resolutions.ratings.available[*selected]
+          ? actual_resolutions.scored[*selected]
                 .resolution.viewport
           : gfx::rect{
               .size = main_window_physical_size( video, wh ) };
@@ -167,9 +166,8 @@ void change_resolution( gfx::Resolutions const& resolutions ) {
 void change_resolution_to_named_if_available(
     gfx::Resolutions const& resolutions,
     e_resolution const target_named ) {
-  for( int idx = 0; idx < ssize( resolutions.ratings.available );
-       ++idx ) {
-    if( resolutions.ratings.available[idx].resolution.named ==
+  for( int idx = 0; idx < ssize( resolutions.scored ); ++idx ) {
+    if( resolutions.scored[idx].resolution.named ==
         target_named ) {
       auto new_resolutions     = resolutions;
       new_resolutions.selected = idx;

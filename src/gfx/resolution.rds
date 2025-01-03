@@ -14,9 +14,12 @@ include "logical.rds.hpp"
 # base
 include "base/maybe.hpp"
 
+# C++ standard library
+include "<vector>"
+
 namespace "gfx"
 
 struct.Resolutions {
-  ratings 'ResolutionRatings',
+  scored 'std::vector<ScoredResolution>',
   selected 'base::maybe<int>',
 }

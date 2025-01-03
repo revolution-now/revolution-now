@@ -137,7 +137,7 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
 maybe<int> get_resolution_cycle_size(
     gfx::Resolutions const& resolutions ) {
   if( !resolutions.selected.has_value() ) return nothing;
-  return resolutions.ratings.available.size();
+  return resolutions.scored.size();
 }
 
 maybe<gfx::ResolutionScores const&> get_resolution_scores(
@@ -145,7 +145,7 @@ maybe<gfx::ResolutionScores const&> get_resolution_scores(
   auto const& resolutions = engine.resolutions();
   auto const& selected    = resolutions.selected;
   if( !selected.has_value() ) return nothing;
-  return resolutions.ratings.available[*selected].scores;
+  return resolutions.scored[*selected].scores;
 }
 
 void cycle_resolution( gfx::Resolutions const& resolutions,
@@ -153,7 +153,7 @@ void cycle_resolution( gfx::Resolutions const& resolutions,
   // Copy; cannot modify the global state directly.
   auto const& curr = resolutions;
   if( !curr.selected.has_value() ) return;
-  auto const& available = curr.ratings.available;
+  auto const& available = curr.scored;
   if( available.empty() ) return;
   int idx = *curr.selected;
   // The "better" resolutions, which also tend to be more scaled
@@ -172,7 +172,7 @@ void cycle_resolution( gfx::Resolutions const& resolutions,
 void set_resolution_idx_to_optimal(
     gfx::Resolutions const& resolutions ) {
   auto const& curr = resolutions;
-  if( curr.ratings.available.empty() ) return;
+  if( curr.scored.empty() ) return;
   auto new_resolutions     = resolutions;
   new_resolutions.selected = 0;
   change_resolution( new_resolutions );

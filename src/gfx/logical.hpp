@@ -26,7 +26,7 @@ struct ResolutionTolerance {
   base::maybe<double> fitting_score_cutoff = {};
 };
 
-struct ResolutionRatingOptions {
+struct ResolutionScoringOptions {
   bool prefer_fullscreen        = {};
   ResolutionTolerance tolerance = {};
   double ideal_pixel_size_mm    = {};
@@ -39,15 +39,15 @@ struct ResolutionRatingOptions {
 };
 
 struct ResolutionAnalysisOptions {
-  Monitor monitor                        = {};
-  size physical_window                   = {};
-  ResolutionRatingOptions rating_options = {};
+  Monitor monitor                          = {};
+  size physical_window                     = {};
+  ResolutionScoringOptions scoring_options = {};
 };
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ResolutionRatings resolution_analysis(
+std::vector<ScoredResolution> resolution_analysis(
     ResolutionAnalysisOptions const& options );
 
 } // namespace gfx

@@ -14,6 +14,9 @@
 #include "src/gfx/logical.hpp"
 #include "src/gfx/monitor.hpp"
 
+// gfx
+#include "src/gfx/logical-impl.rds.hpp"
+
 // rcl
 #include "src/rcl/golden.hpp"
 
@@ -69,9 +72,9 @@ TEST_CASE( "[gfx/logical] monitor_properties" ) {
 
 TEST_CASE( "[gfx/logical] resolution_analysis empty options" ) {
   ResolutionAnalysisOptions const options{};
-  ResolutionRatings const analysis =
+  vector<ScoredResolution> const analysis =
       resolution_analysis( options );
-  REQUIRE( analysis == ResolutionRatings{} );
+  REQUIRE( analysis == vector<ScoredResolution>{} );
 }
 
 // 27in 4K monitor.
@@ -87,16 +90,16 @@ TEST_CASE( "[gfx/logical] resolution_analysis 3840x2160 27in" ) {
                      },
                  .diagonal_inches = 22.9 },
     .physical_window = { .w = 3840, .h = 2160 },
-    .rating_options  = ResolutionRatingOptions{
-       .prefer_fullscreen = true,
-       .tolerance =
+    .scoring_options = ResolutionScoringOptions{
+      .prefer_fullscreen = true,
+      .tolerance =
           ResolutionTolerance{ .min_percent_covered  = nothing,
-                                .fitting_score_cutoff = nothing },
-       .ideal_pixel_size_mm = .66145,
-       .remove_redundant    = true } };
+                               .fitting_score_cutoff = nothing },
+      .ideal_pixel_size_mm = .66145,
+      .remove_redundant    = true } };
 
-  ResolutionRatings const analysis =
-      resolution_analysis( options );
+  WrappedScoredResolutions const analysis{
+    .v = resolution_analysis( options ) };
 
   rcl::Golden const gold( analysis, "analysis-3840x2160-27in" );
 
@@ -113,16 +116,16 @@ TEST_CASE( "[gfx/logical] resolution_analysis 1920x1080 15in" ) {
                                     .diagonal   = 141.68 },
                  .diagonal_inches = 15.0 },
     .physical_window = { .w = 1920, .h = 1080 },
-    .rating_options  = ResolutionRatingOptions{
-       .prefer_fullscreen = true,
-       .tolerance =
+    .scoring_options = ResolutionScoringOptions{
+      .prefer_fullscreen = true,
+      .tolerance =
           ResolutionTolerance{ .min_percent_covered  = nothing,
-                                .fitting_score_cutoff = nothing },
-       .ideal_pixel_size_mm = .66145,
-       .remove_redundant    = true } };
+                               .fitting_score_cutoff = nothing },
+      .ideal_pixel_size_mm = .66145,
+      .remove_redundant    = true } };
 
-  ResolutionRatings const analysis =
-      resolution_analysis( options );
+  WrappedScoredResolutions const analysis{
+    .v = resolution_analysis( options ) };
 
   rcl::Golden const gold( analysis, "analysis-1920x1080-15in" );
 
@@ -142,21 +145,21 @@ TEST_CASE(
                                     .diagonal   = 141.68 },
                  .diagonal_inches = 15.0 },
     .physical_window = { .w = 1920, .h = 1080 },
-    .rating_options  = ResolutionRatingOptions{
-       .prefer_fullscreen = true,
-       .tolerance =
+    .scoring_options = ResolutionScoringOptions{
+      .prefer_fullscreen = true,
+      .tolerance =
           ResolutionTolerance{ .min_percent_covered  = nothing,
-                                .fitting_score_cutoff = nothing },
-       .ideal_pixel_size_mm = .66145,
-       .remove_redundant    = true } };
+                               .fitting_score_cutoff = nothing },
+      .ideal_pixel_size_mm = .66145,
+      .remove_redundant    = true } };
 
-  ResolutionRatings const analysis =
+  vector<ScoredResolution> const analysis =
       resolution_analysis( options );
 
-  REQUIRE( !analysis.available.empty() );
+  REQUIRE( !analysis.empty() );
 
   auto const best_logical_resolution =
-      analysis.available[0].resolution.logical;
+      analysis[0].resolution.logical;
   size const expected{ .w = 640, .h = 360 };
 
   REQUIRE( best_logical_resolution == expected );

@@ -1,0 +1,23 @@
+# ===============================================================
+# logical-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-02.
+#
+# Description: Rds definitions for the gfx/logical-impl module.
+#
+# ===============================================================
+# gfx
+include "logical.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "gfx"
+
+# Helps with Golden testing, which requires a data structure that
+# gets serialized as a table at the top level.
+struct.WrappedScoredResolutions {
+  v 'std::vector<ScoredResolution>',
+}

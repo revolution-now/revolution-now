@@ -95,7 +95,7 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
   using ::testing::steam_resolutions;
 
   ResolutionAnalysisOptions options{
-    .rating_options = ResolutionRatingOptions{
+    .scoring_options = ResolutionScoringOptions{
       .prefer_fullscreen = true,
       .tolerance =
           ResolutionTolerance{ .min_percent_covered  = nothing,
@@ -106,12 +106,11 @@ TEST_CASE( "[resolution] steam numbers / fullscreen" ) {
   auto f = [&] { return resolution_analysis( options ); };
 
   auto is_within_n = []( int const tolerance,
-                         ResolutionRatings const& rr ) {
-    if( rr.available.empty() ) return false;
-    int const scale = rr.available[0].resolution.scale;
+                         vector<ScoredResolution> const& rr ) {
+    if( rr.empty() ) return false;
+    int const scale = rr[0].resolution.scale;
     BASE_CHECK( scale > 0 );
-    point const viewport =
-        rr.available[0].resolution.viewport.origin;
+    point const viewport = rr[0].resolution.viewport.origin;
     return viewport.x / scale <= tolerance &&
            viewport.y / scale <= tolerance;
   };

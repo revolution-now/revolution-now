@@ -57,10 +57,3 @@ struct.ScoredResolution {
   resolution 'Resolution',
   scores 'ResolutionScores',
 }
-
-struct.ResolutionRatings {
-  # These are the ones that either fit the window exactly or fit
-  # within it, such that there will be no part bleeding off the
-  # edge of the window.
-  available 'std::vector<ScoredResolution>',
-}

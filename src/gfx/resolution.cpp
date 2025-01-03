@@ -36,7 +36,7 @@ vector<e_resolution> const kResolutionSizes = [] {
   return res;
 }();
 
-ResolutionRatingOptions const RESOLUTION_RATINGS{
+ResolutionScoringOptions const RESOLUTION_RATINGS{
   // TODO: consider making this a config parameter.
   .prefer_fullscreen = true,
   .tolerance         = { .min_percent_covered  = nothing,
@@ -53,12 +53,12 @@ ResolutionRatingOptions const RESOLUTION_RATINGS{
 /****************************************************************
 ** Helpers.
 *****************************************************************/
-ResolutionRatings compute_logical_resolution_ratings(
+vector<ScoredResolution> compute_logical_resolution_ratings(
     Monitor const& monitor, size const physical_window ) {
   ResolutionAnalysisOptions const options{
     .monitor         = monitor,
     .physical_window = physical_window,
-    .rating_options  = RESOLUTION_RATINGS };
+    .scoring_options = RESOLUTION_RATINGS };
   return resolution_analysis( options );
 }
 
@@ -70,9 +70,9 @@ ResolutionRatings compute_logical_resolution_ratings(
 Resolutions compute_resolutions( Monitor const& monitor,
                                  size const physical_window ) {
   Resolutions res;
-  res.ratings = compute_logical_resolution_ratings(
+  res.scored = compute_logical_resolution_ratings(
       monitor, physical_window );
-  if( !res.ratings.available.empty() ) res.selected = 0;
+  if( !res.scored.empty() ) res.selected = 0;
   return res;
 }
 

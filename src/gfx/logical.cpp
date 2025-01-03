@@ -89,7 +89,7 @@ double relative_diff_score_fn( double const x, double const y ) {
 
 ResolutionScores score(
     Resolution const& r,
-    ResolutionRatingOptions const& options ) {
+    ResolutionScoringOptions const& options ) {
   ResolutionScores scores;
 
   if( r.physical_window.area() == 0 ) return scores;
@@ -135,7 +135,7 @@ ResolutionScores score(
 }
 
 bool meets_tolerance( ScoredResolution const& scored_resolution,
-                      ResolutionRatingOptions const& options ) {
+                      ResolutionScoringOptions const& options ) {
   auto const& r         = scored_resolution.resolution;
   auto const& scores    = scored_resolution.scores;
   auto const& tolerance = options.tolerance;
@@ -209,7 +209,7 @@ vector<Resolution> find_resolutions(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-ResolutionRatings resolution_analysis(
+vector<ScoredResolution> resolution_analysis(
     ResolutionAnalysisOptions const& options ) {
   vector<ScoredResolution> all;
   auto const resolutions = find_resolutions(
@@ -217,7 +217,7 @@ ResolutionRatings resolution_analysis(
   for( auto const& r : resolutions )
     all.push_back( ScoredResolution{
       .resolution = r,
-      .scores     = score( r, options.rating_options ) } );
+      .scores     = score( r, options.scoring_options ) } );
 
   auto stable_sort_by = [&]( auto&& key_fn ) {
     ranges::stable_sort( all,
@@ -246,7 +246,7 @@ ResolutionRatings resolution_analysis(
     return l.scores.overall > r.scores.overall;
   } );
 
-  if( options.rating_options.prefer_fullscreen ) {
+  if( options.scoring_options.prefer_fullscreen ) {
     stable_sort_by( []( ScoredResolution const& l,
                         ScoredResolution const& r ) {
       if( is_exact( l.resolution ) == is_exact( r.resolution ) )
@@ -255,16 +255,16 @@ ResolutionRatings resolution_analysis(
     } );
   }
 
-  ResolutionRatings res;
+  vector<ScoredResolution> res;
   unordered_set<size> seen;
   for( ScoredResolution const& rr : all ) {
     size const dimensions = rr.resolution.logical;
-    bool const skip = options.rating_options.remove_redundant &&
+    bool const skip = options.scoring_options.remove_redundant &&
                       seen.contains( dimensions );
-    if( meets_tolerance( rr, options.rating_options ) &&
+    if( meets_tolerance( rr, options.scoring_options ) &&
         !skip ) {
       seen.insert( dimensions );
-      res.available.push_back( rr );
+      res.push_back( rr );
     }
   }
   return res;

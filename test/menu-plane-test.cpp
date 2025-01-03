@@ -76,13 +76,12 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
   vid::WindowHandle const wh;
   engine.EXPECT__window().returns( wh );
   gfx::Resolutions resolutions{
-    .ratings  = { .available = { gfx::ScoredResolution{
-                    .resolution =
-                       gfx::Resolution{
-                          .physical_window = { .w = 1280,
-                                               .h = 720 },
-                          .logical = { .w = 640, .h = 360 },
-                          .scale   = 2 } } } },
+    .scored   = { gfx::ScoredResolution{
+        .resolution =
+          gfx::Resolution{
+              .physical_window = { .w = 1280, .h = 720 },
+              .logical         = { .w = 640, .h = 360 },
+              .scale           = 2 } } },
     .selected = 0 };
   engine.EXPECT__resolutions().returns( resolutions );
   MenuPlane mp( engine );
@@ -140,13 +139,12 @@ TEST_CASE( "[menu-plane] open_menu" ) {
   vid::WindowHandle const wh;
   engine.EXPECT__window().by_default().returns( wh );
   gfx::Resolutions resolutions{
-    .ratings  = { .available = { gfx::ScoredResolution{
-                    .resolution =
-                       gfx::Resolution{
-                          .physical_window = { .w = 1280,
-                                               .h = 720 },
-                          .logical = { .w = 640, .h = 360 },
-                          .scale   = 2 } } } },
+    .scored   = { gfx::ScoredResolution{
+        .resolution =
+          gfx::Resolution{
+              .physical_window = { .w = 1280, .h = 720 },
+              .logical         = { .w = 640, .h = 360 },
+              .scale           = 2 } } },
     .selected = 0 };
   engine.EXPECT__resolutions().by_default().returns(
       resolutions );
