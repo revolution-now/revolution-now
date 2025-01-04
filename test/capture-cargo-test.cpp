@@ -15,6 +15,8 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
+#include "test/util/coro.hpp"
 
 // ss
 #include "src/ss/cargo.hpp"
@@ -35,12 +37,16 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_default_player();
+    add_player( e_nation::english );
+    add_player( e_nation::french );
+    set_default_player( e_nation::english );
     create_default_map();
   }
 
@@ -48,7 +54,7 @@ struct world : testing::World {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
     vector<MapSquare> tiles{
-      L, L, L, //
+      _, L, L, //
       L, _, L, //
       L, L, L, //
     };
@@ -257,10 +263,262 @@ TEST_CASE( "[capture-cargo] capturable_cargo_items" ) {
 
 TEST_CASE( "[capture-cargo] transfer_capturable_cargo_items" ) {
   world w;
+
+  CapturableCargoItems items;
+  CargoHold src;
+  CargoHold dst;
+  wrapped::CargoHold expected_src;
+  wrapped::CargoHold expected_dst;
+
+  auto f = [&] {
+    return transfer_capturable_cargo_items( w.ss(), items, src,
+                                            dst );
+  };
+
+  using enum e_commodity;
+
+  SECTION( "default" ) {
+    f();
+    expected_src = {};
+    expected_dst = {};
+    REQUIRE( src.refl() == expected_src );
+    REQUIRE( dst.refl() == expected_dst );
+  }
+
+  SECTION( "src=[c] / dst=[_], move none" ) {
+    wrapped::CargoHold src_refl;
+    wrapped::CargoHold dst_refl;
+    w.add_cargo( src_refl,
+                 Commodity{ .type = silver, .quantity = 40 },
+                 /*slot=*/0 );
+    dst_refl.slots.push_back( CargoSlot::empty{} );
+    src   = CargoHold( std::move( src_refl ) );
+    dst   = CargoHold( std::move( dst_refl ) );
+    items = {};
+    f();
+    expected_src = {
+      .slots = {
+        CargoSlot::cargo{
+          .contents =
+              Cargo::commodity{
+                .obj = { .type = silver, .quantity = 40 } } },
+      } };
+    expected_dst = { .slots = {
+                       CargoSlot::empty{},
+                     } };
+    REQUIRE( src.refl() == expected_src );
+    REQUIRE( dst.refl() == expected_dst );
+  }
+
+  SECTION( "src=[c] / dst=[_], move one" ) {
+    wrapped::CargoHold src_refl;
+    wrapped::CargoHold dst_refl;
+    w.add_cargo( src_refl,
+                 Commodity{ .type = silver, .quantity = 40 },
+                 /*slot=*/0 );
+    dst_refl.slots.push_back( CargoSlot::empty{} );
+    src   = CargoHold( std::move( src_refl ) );
+    dst   = CargoHold( std::move( dst_refl ) );
+    items = { .commodities = {
+                { .type = silver, .quantity = 40 },
+              } };
+    f();
+    expected_src = { .slots = {
+                       CargoSlot::empty{},
+                     } };
+    expected_dst = {
+      .slots = {
+        CargoSlot::cargo{
+          .contents =
+              Cargo::commodity{
+                .obj = { .type = silver, .quantity = 40 } } },
+      } };
+    REQUIRE( src.refl() == expected_src );
+    REQUIRE( dst.refl() == expected_dst );
+  }
+
+  SECTION( "src=[c,c] / dst=[_,_], move partial" ) {
+    wrapped::CargoHold src_refl;
+    wrapped::CargoHold dst_refl;
+    w.add_cargo( src_refl,
+                 Commodity{ .type = silver, .quantity = 40 },
+                 /*slot=*/0 );
+    w.add_cargo( src_refl,
+                 Commodity{ .type = silver, .quantity = 40 },
+                 /*slot=*/1 );
+    dst_refl.slots.push_back( CargoSlot::empty{} );
+    dst_refl.slots.push_back( CargoSlot::empty{} );
+    src   = CargoHold( std::move( src_refl ) );
+    dst   = CargoHold( std::move( dst_refl ) );
+    items = { .commodities = {
+                { .type = silver, .quantity = 40 },
+              } };
+    f();
+    expected_src = {
+      .slots = {
+        CargoSlot::cargo{
+          .contents =
+              Cargo::commodity{
+                .obj = { .type = silver, .quantity = 40 } } },
+        CargoSlot::empty{},
+      } };
+    expected_dst = {
+      .slots = {
+        CargoSlot::cargo{
+          .contents =
+              Cargo::commodity{
+                .obj = { .type = silver, .quantity = 40 } } },
+        CargoSlot::empty{},
+      } };
+    REQUIRE( src.refl() == expected_src );
+    REQUIRE( dst.refl() == expected_dst );
+  }
 }
 
 TEST_CASE( "[capture-cargo] select_items_to_capture_ui" ) {
   world w;
+
+  CapturableCargo capturable;
+  CapturableCargoItems expected;
+
+  Unit& frigate = w.add_unit_on_map( e_unit_type::frigate,
+                                     point{ .x = 0, .y = 0 },
+                                     e_nation::english );
+  Unit& galleon = w.add_unit_on_map( e_unit_type::galleon,
+                                     point{ .x = 1, .y = 1 },
+                                     e_nation::french );
+
+  auto f = [&] {
+    return co_await_test( select_items_to_capture_ui(
+        w.ss(), w.gui(), galleon.id(), frigate.id(),
+        capturable ) );
+  };
+
+  using enum e_commodity;
+
+  SECTION( "default" ) { REQUIRE( f() == expected ); }
+
+  SECTION( "nothing to take" ) {
+    capturable = { .items    = { .commodities = {} },
+                   .max_take = 4 };
+    expected   = {};
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "can take all" ) {
+    capturable = {
+      .items    = { .commodities =
+                        {
+                       { .type = furs, .quantity = 30 },
+                       { .type = coats, .quantity = 40 },
+                       { .type = trade_goods, .quantity = 50 },
+                       { .type = tools, .quantity = 100 },
+                     } },
+      .max_take = 4 };
+    w.gui().EXPECT__message_box(
+        "[English Frigate] has captured [30 furs] from [French] "
+        "cargo!" );
+    w.gui().EXPECT__message_box(
+        "[English Frigate] has captured [40 coats] from "
+        "[French] "
+        "cargo!" );
+    w.gui().EXPECT__message_box(
+        "[English Frigate] has captured [50 trade goods] from "
+        "[French] "
+        "cargo!" );
+    w.gui().EXPECT__message_box(
+        "[English Frigate] has captured [100 tools] from "
+        "[French] cargo!" );
+    expected = { .commodities = {
+                   { .type = furs, .quantity = 30 },
+                   { .type = coats, .quantity = 40 },
+                   { .type = trade_goods, .quantity = 50 },
+                   { .type = tools, .quantity = 100 },
+                 } };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "can take some, cancels" ) {
+    capturable = {
+      .items    = { .commodities =
+                        {
+                       { .type = furs, .quantity = 30 },
+                       { .type = coats, .quantity = 40 },
+                       { .type = trade_goods, .quantity = 50 },
+                       { .type = tools, .quantity = 100 },
+                     } },
+      .max_take = 3 };
+    ChoiceConfig const config1{
+      .msg =
+          "Select a cargo item to capture from [French "
+          "Galleon]:",
+      .options =
+          {
+            { .key = "0", .display_name = "30 furs" },
+            { .key = "1", .display_name = "40 coats" },
+            { .key = "2", .display_name = "50 trade goods" },
+            { .key = "3", .display_name = "100 tools" },
+          },
+      .sort = false };
+    w.gui().EXPECT__choice( config1 );
+    expected = { .commodities = {} };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "can take some, chooses 2" ) {
+    capturable = {
+      .items    = { .commodities =
+                        {
+                       { .type = furs, .quantity = 30 },
+                       { .type = coats, .quantity = 40 },
+                       { .type = trade_goods, .quantity = 50 },
+                       { .type = tools, .quantity = 100 },
+                     } },
+      .max_take = 3 };
+    ChoiceConfig const config1{
+      .msg =
+          "Select a cargo item to capture from [French "
+          "Galleon]:",
+      .options =
+          {
+            { .key = "0", .display_name = "30 furs" },
+            { .key = "1", .display_name = "40 coats" },
+            { .key = "2", .display_name = "50 trade goods" },
+            { .key = "3", .display_name = "100 tools" },
+          },
+      .sort = false };
+    w.gui().EXPECT__choice( config1 ).returns<maybe<string>>(
+        "2" );
+    ChoiceConfig const config2{
+      .msg =
+          "Select a cargo item to capture from [French "
+          "Galleon]:",
+      .options =
+          {
+            { .key = "0", .display_name = "30 furs" },
+            { .key = "1", .display_name = "40 coats" },
+            { .key = "2", .display_name = "100 tools" },
+          },
+      .sort = false };
+    w.gui().EXPECT__choice( config2 ).returns<maybe<string>>(
+        "0" );
+    ChoiceConfig const config3{
+      .msg =
+          "Select a cargo item to capture from [French "
+          "Galleon]:",
+      .options =
+          {
+            { .key = "0", .display_name = "40 coats" },
+            { .key = "1", .display_name = "100 tools" },
+          },
+      .sort = false };
+    w.gui().EXPECT__choice( config3 );
+    expected = { .commodities = {
+                   { .type = trade_goods, .quantity = 50 },
+                   { .type = furs, .quantity = 30 },
+                 } };
+    REQUIRE( f() == expected );
+  }
 }
 
 } // namespace

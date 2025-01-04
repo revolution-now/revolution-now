@@ -91,7 +91,7 @@ wait<CapturableCargoItems> select_items_to_capture_ui(
       .msg = fmt::format(
           "Select a cargo item to capture from [{} {}]:",
           nation_possessive( src_player ),
-          dst_unit.desc().name ),
+          src_unit.desc().name ),
       .options = {},
     };
 
