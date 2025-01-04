@@ -663,10 +663,10 @@ AnimationSequence anim_seq_for_unit_move(
     e_direction direction ) {
   Coord const tile =
       coord_for_unit_multi_ownership_or_die( ss, unit_id );
-  Coord const target = tile.moved( direction );
   AnimationBuilder builder;
-  // Phase 0: pan to site.
-  ensure_tiles_visible( builder, { tile, target } );
+  // Phase 0: pan to site. On a move, we just ensure the source
+  // tile is visible to reduce unnecessary panning.
+  ensure_tiles_visible( builder, { tile } );
   // Phase 1: slide.
   builder.new_phase();
   builder.slide_unit( unit_id, direction );
