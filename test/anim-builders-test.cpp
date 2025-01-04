@@ -85,9 +85,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_move" ) {
      .sequence = {
       /*phase 0*/ {
         { .primitive = P::ensure_tile_visible{ .tile = coord } },
-        { .primitive =
-               P::ensure_tile_visible{
-                 .tile = coord.moved( direction ) } } },
+      },
       /*phase 1*/ {
         { .primitive = P::slide_unit{ .unit_id   = unit_id,
                                        .direction = direction } },
@@ -116,9 +114,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_unit_move off map" ) {
      .sequence = {
       /*phase 0*/ {
         { .primitive = P::ensure_tile_visible{ .tile = coord } },
-        { .primitive =
-               P::ensure_tile_visible{
-                 .tile = coord.moved( direction ) } } },
+      },
       /*phase 1*/ {
         { .primitive = P::slide_unit{ .unit_id   = unit_id,
                                        .direction = direction } },
