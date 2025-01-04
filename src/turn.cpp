@@ -435,7 +435,7 @@ wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
       disbandable_entities_on_tile( ss.as_const, *viz, tile );
   auto const selected = co_await disband_tile_ui_interaction(
       ss.as_const, ts, player, *viz, entities );
-  execute_disband( ss, ts, *viz, tile, selected );
+  co_await execute_disband( ss, ts, *viz, tile, selected );
 }
 
 /****************************************************************

@@ -35,8 +35,8 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
     SSConst const& ss, TS& ts, Player const& player,
     IVisibility const& viz, DisbandingPermissions const& perms );
 
-void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
-                      gfx::point const tile,
-                      EntitiesOnTile const& entities );
+wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
+                        gfx::point const tile,
+                        EntitiesOnTile const& entities );
 
 } // namespace rn

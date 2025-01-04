@@ -578,8 +578,8 @@ TEST_CASE( "[disband] execute_disband" ) {
 
   auto f = [&] {
     BASE_CHECK( viz );
-    return execute_disband( w.ss(), w.ts(), *viz, tile,
-                            entities );
+    return co_await_test( execute_disband( w.ss(), w.ts(), *viz,
+                                           tile, entities ) );
   };
 
   auto add_unit =
@@ -817,6 +817,62 @@ TEST_CASE( "[disband] execute_disband" ) {
         .contents.colony = fake_colony;
     entities             = { .colony = fake_colony };
     f();
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::explored>() );
+  }
+}
+
+TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
+  world w;
+  point tile = { .x = 2, .y = 1 };
+  EntitiesOnTile entities;
+
+  VisibilityEntire const full_viz( w.ss() );
+  VisibilityForNation const nation_viz( w.ss(),
+                                        e_nation::english );
+
+  IVisibility const* viz = &full_viz;
+
+  auto f = [&] {
+    BASE_CHECK( viz );
+    return co_await_test( execute_disband( w.ss(), w.ts(), *viz,
+                                           tile, entities ) );
+  };
+
+  auto add_dwelling = [&]() -> auto& {
+    return w.add_dwelling( tile, e_tribe::sioux );
+  };
+
+  // Dwelling, full visibility.
+  {
+    w.mark_all_unexplored();
+    entities = { .dwelling = add_dwelling() };
+    w.gui().EXPECT__message_box(
+        "The [Sioux] tribe has been wiped out." );
+    f();
+    REQUIRE( !w.natives().dwelling_exists(
+        entities.dwelling.value().id ) );
+    REQUIRE( w.player_square( tile )
+                 .holds<PlayerSquare::unexplored>() );
+  }
+
+  // Dwelling, nation visibility.
+  {
+    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    w.mark_all_unexplored();
+    entities = { .dwelling = add_dwelling() };
+    w.gui()
+        .EXPECT__message_box(
+            "The [Sioux] tribe has been wiped out." )
+        .invokes( [&] {
+          // This checks that the visibility is cleared before we
+          // pop up the tribe-destroyed message.
+          REQUIRE( w.player_square( tile )
+                       .holds<PlayerSquare::explored>() );
+        } );
+    f();
+    REQUIRE( !w.natives().dwelling_exists(
+        entities.dwelling.value().id ) );
     REQUIRE( w.player_square( tile )
                  .holds<PlayerSquare::explored>() );
   }

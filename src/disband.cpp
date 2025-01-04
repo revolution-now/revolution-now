@@ -430,9 +430,9 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   co_return entities;
 }
 
-void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
-                      gfx::point const tile,
-                      EntitiesOnTile const& entities ) {
+wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
+                        gfx::point const tile,
+                        EntitiesOnTile const& entities ) {
   // NOTE: we need to do units first in case we are disbanding
   // both a colony and a ship that it has in port. If we don't
   // first get rid of the ship then code below will check-fail
@@ -487,6 +487,18 @@ void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
     }
   }
 
+  // If we need to destroy the tribe below then we want to use
+  // the interactive method so that it can post the usual message
+  // (the OG does this when disbanding the last dwelling of a
+  // tribe as well). However, in the case that the player is dis-
+  // banding a dwelling under fog, we want to run the code fur-
+  // ther below that makes that tile clear first so that the
+  // dwelling appears to disappear before the message pops up
+  // about the tribe having been destroyed, otherwise it won't
+  // make visual sense to the player. So make a note if a tribe
+  // needs to be destroyed but run it further below.
+  maybe<e_tribe> destroy_tribe;
+
   if( entities.dwelling.has_value() ) {
     // The dwelling object that we've obtained will be the play-
     // er's object, which always has an ID of zero, since it may
@@ -499,7 +511,7 @@ void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
           ss.natives.tribe_type_for( *real_id );
       destroy_dwelling( ss, map_updater, *real_id );
       if( ss.natives.dwellings_for_tribe( tribe_type ).empty() )
-        destroy_tribe( ss, map_updater, tribe_type );
+        destroy_tribe = tribe_type;
     }
   }
 
@@ -513,6 +525,9 @@ void execute_disband( SS& ss, TS& ts, IVisibility const& viz,
     // pose to the player the fact that it is no longer there.
     if( auto const nation = viz.nation(); nation.has_value() )
       map_updater.make_squares_visible( *nation, { tile } );
+
+  if( destroy_tribe.has_value() )
+    co_await destroy_tribe_interactive( ss, ts, *destroy_tribe );
 }
 
 } // namespace rn
