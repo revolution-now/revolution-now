@@ -37,6 +37,36 @@ namespace rn {
 
 namespace {
 
+// ColoniesState & PlayersState
+valid_or<string> validate_interaction(
+    ColoniesState const& colonies,
+    PlayersState const& players ) {
+  // All colonies have a nation that has a Player object.
+  for( auto const& [colony_id, colony] : colonies.all() ) {
+    REFL_VALIDATE( players.players[colony.nation].has_value(),
+                   "Colony {} has nation {} but there is no "
+                   "Player object for it.",
+                   colony.name, colony.nation );
+  }
+  return base::valid;
+}
+
+// UnitsState & PlayersState
+valid_or<string> validate_interaction(
+    UnitsState const& units, PlayersState const& players ) {
+  // All European units have a nation that has a Player object.
+  for( auto const& [generic_id, state] : units.all() ) {
+    if( units.unit_kind( generic_id ) != e_unit_kind::euro )
+      continue;
+    Unit const& unit = units.euro_unit_for( generic_id );
+    REFL_VALIDATE( players.players[unit.nation()].has_value(),
+                   "Unit {} has nation {} but there is no "
+                   "Player object for it.",
+                   unit.id(), unit.nation() );
+  }
+  return base::valid;
+}
+
 // ColoniesState & UnitsState
 valid_or<string> validate_interaction(
     ColoniesState const& colonies, UnitsState const& units ) {
@@ -151,6 +181,8 @@ valid_or<string> FormatVersion::validate() const {
 
 valid_or<string> RootState::validate() const {
   HAS_VALUE_OR_RET( validate_interaction( colonies, units ) );
+  HAS_VALUE_OR_RET( validate_interaction( colonies, players ) );
+  HAS_VALUE_OR_RET( validate_interaction( units, players ) );
   HAS_VALUE_OR_RET(
       validate_interaction( colonies, zzz_terrain ) );
   HAS_VALUE_OR_RET(
