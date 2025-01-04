@@ -351,7 +351,7 @@ AnimationSequence anim_seq_for_euro_attack_euro(
   return builder.result();
 }
 
-AnimationSequence anim_seq_for_naval_battle(
+AnimationSequenceForNavalBattle anim_seq_for_naval_battle(
     SSConst const& ss, CombatShipAttackShip const& combat ) {
   UnitId const attacker_id = combat.attacker.id;
   UnitId const defender_id = combat.defender.id;
@@ -361,51 +361,63 @@ AnimationSequence anim_seq_for_naval_battle(
       coord_for_unit_multi_ownership_or_die( ss, defender_id );
   UNWRAP_CHECK( direction,
                 attacker_coord.direction_to( defender_coord ) );
-  AnimationBuilder builder;
 
-  // Phase 0: pan to battle site;
-  ensure_tiles_visible( builder,
-                        { attacker_coord, defender_coord } );
+  AnimationSequenceForNavalBattle parts;
 
-  // Phase 1: defender unit appears on top of stack and the at-
-  // tacker slides toward it.
-  builder.new_phase();
-  builder.front_unit( defender_id );
-  builder.slide_unit( attacker_id, direction );
-  builder.play_sound( e_sfx::move );
+  parts.part_1 = [&] {
+    AnimationBuilder builder;
 
-  // Phase 2: pixelations for both attacker and defender where
-  // needed.
-  builder.new_phase();
-  add_naval_attack_outcome_for_unit( builder, combat.attacker.id,
-                                     combat.attacker.outcome );
-  add_naval_attack_outcome_for_unit( builder, combat.defender.id,
-                                     combat.defender.outcome );
+    // Phase 0: pan to battle site;
+    ensure_tiles_visible( builder,
+                          { attacker_coord, defender_coord } );
 
-  for( auto const& [affected_id, affected] :
-       combat.affected_defender_units )
-    builder.hide_unit( affected_id );
-  play_combat_outcome_sound( builder, combat );
-
-  // Phase 3: if the attacker wins (and the defender is sunk or
-  // damaged) then the attacker will move into the defender's
-  // square.
-  if( combat.attacker.outcome
-          .holds<EuroNavalUnitCombatOutcome::moved>() ) {
-    CHECK_EQ( combat.attacker.outcome
-                  .get<EuroNavalUnitCombatOutcome::moved>()
-                  .to,
-              defender_coord );
+    // Phase 1: defender unit appears on top of stack and the at-
+    // tacker slides toward it.
     builder.new_phase();
-    builder.hide_unit( defender_id );
+    builder.front_unit( defender_id );
+    builder.slide_unit( attacker_id, direction );
+    builder.play_sound( e_sfx::move );
+
+    return builder.result();
+  }();
+
+  parts.part_2 = [&] {
+    AnimationBuilder builder;
+    // Phase 2: pixelations for both attacker and defender where
+    // needed.
+    builder.new_phase();
+    add_naval_attack_outcome_for_unit(
+        builder, combat.attacker.id, combat.attacker.outcome );
+    add_naval_attack_outcome_for_unit(
+        builder, combat.defender.id, combat.defender.outcome );
+
     for( auto const& [affected_id, affected] :
          combat.affected_defender_units )
       builder.hide_unit( affected_id );
-    builder.slide_unit( attacker_id, direction );
-    builder.play_sound( e_sfx::move );
-  }
+    play_combat_outcome_sound( builder, combat );
 
-  return builder.result();
+    // Phase 3: if the attacker wins (and the defender is sunk or
+    // damaged) then the attacker will move into the defender's
+    // square.
+    if( combat.attacker.outcome
+            .holds<EuroNavalUnitCombatOutcome::moved>() ) {
+      CHECK_EQ( combat.attacker.outcome
+                    .get<EuroNavalUnitCombatOutcome::moved>()
+                    .to,
+                defender_coord );
+      builder.new_phase();
+      builder.hide_unit( defender_id );
+      for( auto const& [affected_id, affected] :
+           combat.affected_defender_units )
+        builder.hide_unit( affected_id );
+      builder.slide_unit( attacker_id, direction );
+      builder.play_sound( e_sfx::move );
+    }
+
+    return builder.result();
+  }();
+
+  return parts;
 }
 
 AnimationSequence anim_seq_for_euro_attack_brave(

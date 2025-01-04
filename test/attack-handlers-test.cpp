@@ -215,6 +215,19 @@ struct World : testing::World {
         "The [{}] tribe has been wiped out.", tribe_name ) );
   }
 
+  void expect_unit_captures_cargo(
+      UnitId const src, UnitId const dst,
+      CapturableCargo const& capturable ) {
+    Unit& dst_unit              = units().unit_for( dst );
+    e_nation const taker_nation = dst_unit.nation();
+    auto& taker_mind            = euro_mind( taker_nation );
+    taker_mind
+        .EXPECT__select_commodities_to_capture( src, dst,
+                                                capturable )
+        .returns<base::heap_value<CapturableCargoItems>>(
+            capturable.items );
+  }
+
   MockLandViewPlane mock_land_view_plane_;
 };
 
@@ -223,7 +236,6 @@ struct World : testing::World {
 *****************************************************************/
 // This test case tests failure modes that are common to most of
 // the handlers for the case of a land battle.
-#ifndef COMPILER_GCC
 TEST_CASE(
     "[attack-handlers] common failure checks (land attacker)" ) {
   World W;
@@ -310,7 +322,6 @@ TEST_CASE(
     // that will be tested in other test cases.
   }
 }
-#endif
 
 // This test case tests failure modes that are common to most of
 // the handlers for the case of a ship battle.
@@ -335,7 +346,6 @@ TEST_CASE(
   }
 }
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
   World W;
   CommandHandlerRunResult expected = { .order_was_run = true };
@@ -577,9 +587,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
   }
 }
-#endif
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   World W;
   CommandHandlerRunResult expected = { .order_was_run = true };
@@ -755,9 +763,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     REQUIRE( attacker.movement_points() == 0 );
   }
 }
-#endif
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   World W;
   CommandHandlerRunResult expected = { .order_was_run = true };
@@ -1472,9 +1478,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( W.natives().tribe_exists( W.kNativeTribe ) );
   }
 }
-#endif
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
   World W;
   CombatShipAttackShip combat;
@@ -1504,6 +1508,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     W.expect_evaded( W.kAttackingNation );
     W.expect_evaded( W.kDefendingNation );
@@ -1540,6 +1545,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
@@ -1591,6 +1597,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
+    W.expect_some_animation();
     W.expect_msg_contains( W.kAttackingNation, "Merchantman",
                            "damaged", "1" );
     W.expect_msg_contains( W.kDefendingNation, "Merchantman",
@@ -1637,6 +1644,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::caravel );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     W.expect_msg_contains( W.kAttackingNation, "Caravel",
                            "damaged", "1" );
@@ -1704,6 +1712,15 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
     W.expect_some_animation();
+    W.expect_some_animation();
+    W.expect_unit_captures_cargo(
+        /*src=*/galleon_id,
+        /*dst=*/combat.attacker.id,
+        CapturableCargo{
+          .items    = { .commodities = { { .type =
+                                               e_commodity::silver,
+                                           .quantity = 100 } } },
+          .max_take = 2 } );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1742,7 +1759,12 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( galleon.orders() ==
              unit_orders{ unit_orders::damaged{
                .turns_until_repair = 10 } } );
-    REQUIRE( attacker.cargo().count_items() == 0 );
+    REQUIRE( attacker.cargo().count_items() == 1 );
+    REQUIRE( attacker.cargo().commodities().size() == 1 );
+    REQUIRE( attacker.cargo().commodities().at( 0 ) ==
+             pair{ Commodity{ .type     = e_commodity::silver,
+                              .quantity = 100 },
+                   0 } );
     REQUIRE( galleon.cargo().count_items() == 0 );
   }
 
@@ -1756,6 +1778,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::privateer, e_unit_type::merchantman );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     W.expect_ship_sunk( W.kAttackingNation );
     W.expect_ship_sunk( W.kDefendingNation );
@@ -1795,6 +1818,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
             .id();
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     W.expect_msg_contains( W.kAttackingNation, "sunk" );
     W.expect_msg_contains( W.kAttackingNation, "Two", "units",
@@ -1855,6 +1879,22 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 1 );
     expect_combat();
     W.expect_some_animation();
+    W.expect_some_animation();
+    W.expect_unit_captures_cargo(
+        /*src=*/combat.attacker.id,
+        /*dst=*/combat.defender.id,
+        CapturableCargo{
+          .items =
+              {
+                .commodities =
+                    {
+                      { .type     = e_commodity::lumber,
+                        .quantity = 20 },
+                      { .type     = e_commodity::ore,
+                        .quantity = 10 },
+                    },
+              },
+          .max_take = 3 } );
     W.expect_msg_contains( W.kAttackingNation, "Privateer",
                            "damaged", "London" );
     W.expect_msg_contains( W.kDefendingNation, "Privateer",
@@ -1881,7 +1921,16 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                .turns_until_repair = 8 } } );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( attacker.cargo().count_items() == 0 );
-    REQUIRE( defender.cargo().count_items() == 1 );
+    REQUIRE( defender.cargo().count_items() == 2 );
+    REQUIRE( defender.cargo().commodities().size() == 2 );
+    REQUIRE( defender.cargo().commodities().at( 0 ) ==
+             pair{ Commodity{ .type     = e_commodity::ore,
+                              .quantity = 20 },
+                   0 } );
+    REQUIRE( defender.cargo().commodities().at( 1 ) ==
+             pair{ Commodity{ .type     = e_commodity::lumber,
+                              .quantity = 20 },
+                   1 } );
   }
 
   SECTION( "attacker damaged with unit cargo" ) {
@@ -1907,6 +1956,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
             .id();
     REQUIRE( attacker.cargo().count_items() == 2 );
     expect_combat();
+    W.expect_some_animation();
     W.expect_some_animation();
     W.expect_msg_contains( W.kAttackingNation, "Privateer",
                            "damaged", "London" );
@@ -1944,16 +1994,13 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 0 );
   }
 }
-#endif
 
-#ifndef COMPILER_GCC
 TEST_CASE(
     "[attack-handlers] attack_colony_undefended_handler" ) {
   World W;
   CombatEuroAttackUndefendedColony combat;
   // TODO
 }
-#endif
 
 } // namespace
 } // namespace rn

@@ -28,15 +28,19 @@ struct SS;
 struct HumanEuroMind final : IEuroMind {
   HumanEuroMind( e_nation nation, SS& ss, IGui& gui );
 
-  // Implement IMind.
+ public: // IMind.
   wait<> message_box( std::string const& msg ) override;
 
-  // Implement IEuroMind.
+ public: // IEuroMind.
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
-  // Implement IEuroMind.
   wait<> show_woodcut( e_woodcut woodcut ) override;
+
+  wait<base::heap_value<CapturableCargoItems>>
+  select_commodities_to_capture(
+      UnitId src, UnitId dst,
+      CapturableCargo const& items ) override;
 
  private:
   SS& ss_;

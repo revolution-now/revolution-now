@@ -18,12 +18,20 @@
 #include "meet-natives.rds.hpp"
 #include "wait.hpp"
 
+// ss
+#include "ss/unit-id.hpp"
+
+// base
+#include "base/heap-value.hpp"
+
 namespace rn {
 
 enum class e_nation;
 enum class e_woodcut;
 
 struct MeetTribe;
+struct CapturableCargo;
+struct CapturableCargoItems;
 
 /****************************************************************
 ** IEuroMind
@@ -47,6 +55,10 @@ struct IEuroMind : IMind {
   // game. This will show it each time it is called.
   virtual wait<> show_woodcut( e_woodcut woodcut ) = 0;
 
+  virtual wait<base::heap_value<CapturableCargoItems>>
+  select_commodities_to_capture(
+      UnitId src, UnitId dst, CapturableCargo const& items ) = 0;
+
  private:
   e_nation nation_ = {};
 };
@@ -59,15 +71,19 @@ struct IEuroMind : IMind {
 struct NoopEuroMind final : IEuroMind {
   NoopEuroMind( e_nation nation );
 
-  // Implement IMind.
+ public: // IMind.
   wait<> message_box( std::string const& msg ) override;
 
-  // Implement IEuroMind.
+ public: // IEuroMind.
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
-  // Implement IEuroMind.
   wait<> show_woodcut( e_woodcut woodcut ) override;
+
+  wait<base::heap_value<CapturableCargoItems>>
+  select_commodities_to_capture(
+      UnitId src, UnitId dst,
+      CapturableCargo const& items ) override;
 };
 
 } // namespace rn

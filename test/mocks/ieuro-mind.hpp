@@ -11,6 +11,7 @@
 #pragma once
 
 // Revolution Now
+#include "src/capture-cargo.rds.hpp"
 #include "src/ieuro-mind.hpp"
 
 // mock
@@ -33,6 +34,10 @@ struct MockIEuroMind : IEuroMind {
                meet_tribe_ui_sequence, (MeetTribe const&), () );
 
   MOCK_METHOD( wait<>, show_woodcut, ( e_woodcut ), () );
+
+  MOCK_METHOD( wait<base::heap_value<CapturableCargoItems>>,
+               select_commodities_to_capture,
+               (UnitId, UnitId, CapturableCargo const&), () );
 };
 
 static_assert( !std::is_abstract_v<MockIEuroMind> );

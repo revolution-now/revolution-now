@@ -1,0 +1,26 @@
+# ===============================================================
+# capture-cargo.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-03.
+#
+# Description: Rds definitions for the capture-cargo module.
+#
+# ===============================================================
+# ss
+include "ss/commodity.rds.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+struct.CapturableCargoItems {
+  commodities 'std::vector<Commodity>',
+}
+
+struct.CapturableCargo {
+  items 'CapturableCargoItems',
+  max_take 'int',
+}

@@ -12,6 +12,7 @@
 #include "ieuro-mind.hpp"
 
 // Revolution Now
+#include "capture-cargo.rds.hpp"
 #include "co-wait.hpp"
 
 using namespace std;
@@ -37,5 +38,11 @@ NoopEuroMind::meet_tribe_ui_sequence( MeetTribe const& ) {
 }
 
 wait<> NoopEuroMind::show_woodcut( e_woodcut ) { co_return; }
+
+wait<base::heap_value<CapturableCargoItems>>
+NoopEuroMind::select_commodities_to_capture(
+    UnitId const, UnitId const, CapturableCargo const& ) {
+  co_return {};
+}
 
 } // namespace rn

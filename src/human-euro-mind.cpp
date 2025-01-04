@@ -11,9 +11,13 @@
 #include "human-euro-mind.hpp"
 
 // Revolution Now
+#include "capture-cargo.hpp"
 #include "co-wait.hpp"
 #include "igui.hpp"
 #include "meet-natives.hpp"
+
+// ss
+#include "ss/ref.hpp"
 
 using namespace std;
 
@@ -39,6 +43,14 @@ HumanEuroMind::meet_tribe_ui_sequence(
 
 wait<> HumanEuroMind::show_woodcut( e_woodcut woodcut ) {
   co_await gui_.display_woodcut( woodcut );
+}
+
+wait<base::heap_value<CapturableCargoItems>>
+HumanEuroMind::select_commodities_to_capture(
+    UnitId const src, UnitId const dst,
+    CapturableCargo const& capturable ) {
+  co_return co_await select_items_to_capture_ui(
+      ss_.as_const, gui_, src, dst, capturable );
 }
 
 } // namespace rn

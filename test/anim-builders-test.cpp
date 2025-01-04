@@ -919,7 +919,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
 
 TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
   World W;
-  AnimationSequence expected;
+  AnimationSequenceForNavalBattle expected;
   Unit const& attacker = W.add_unit_on_map(
       e_unit_type::privateer, { .x = 0, .y = 0 } );
   Unit const& defender = W.add_unit_on_map( e_unit_type::frigate,
@@ -937,21 +937,22 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
   };
 
   expected = {
-    .sequence = {
-      /*phase 0*/ { { .primitive =
-                          P::ensure_tile_visible{
-                            .tile = { .x = 0, .y = 0 } } },
-                    { .primitive =
-                          P::ensure_tile_visible{
-                            .tile = { .x = 0, .y = 1 } } } },
-      /*phase 1=*/{
-        { .primitive =
-              P::front_unit{ .unit_id = defender.id() } },
-        { .primitive =
-              P::slide_unit{ .unit_id   = attacker.id(),
-                             .direction = e_direction::s } },
-        { .primitive =
-              P::play_sound{ .what = e_sfx::move } } } } };
+    .part_1 = {
+      .sequence = {
+        /*phase 0*/ { { .primitive =
+                            P::ensure_tile_visible{
+                              .tile = { .x = 0, .y = 0 } } },
+                      { .primitive =
+                            P::ensure_tile_visible{
+                              .tile = { .x = 0, .y = 1 } } } },
+        /*phase 1=*/{
+          { .primitive =
+                P::front_unit{ .unit_id = defender.id() } },
+          { .primitive =
+                P::slide_unit{ .unit_id   = attacker.id(),
+                               .direction = e_direction::s } },
+          { .primitive =
+                P::play_sound{ .what = e_sfx::move } } } } } };
 
   SECTION( "evade" ) {
     combat.winner = nothing;
@@ -961,7 +962,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
     combat.defender.outcome =
         EuroNavalUnitCombatOutcome::no_change{};
 
-    expected.sequence.push_back(
+    expected.part_2.sequence.push_back(
         /*phase 2=*/{
           { .primitive =
                 P::front_unit{ .unit_id = attacker.id() } },
@@ -984,7 +985,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
         AffectedNavalDefender{ .id = affected1.id() } },
       { affected2.id(),
         AffectedNavalDefender{ .id = affected2.id() } } };
-    expected.sequence.push_back(
+    expected.part_2.sequence.push_back(
         /*phase 2=*/{
           { .primitive =
                 P::depixelate_euro_unit{ .unit_id =
@@ -995,7 +996,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
                 P::hide_unit{ .unit_id = affected2.id() } },
           { .primitive = P::play_sound{
               .what = e_sfx::attacker_won } } } );
-    expected.sequence.push_back(
+    expected.part_2.sequence.push_back(
         /*phase 3=*/{
           { .primitive =
                 P::hide_unit{ .unit_id = defender.id() } },
@@ -1018,7 +1019,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_naval_battle" ) {
     combat.defender.outcome =
         EuroNavalUnitCombatOutcome::no_change{};
 
-    expected.sequence.push_back(
+    expected.part_2.sequence.push_back(
         /*phase 2=*/{
           { .primitive =
                 P::depixelate_euro_unit{ .unit_id =

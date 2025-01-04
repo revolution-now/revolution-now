@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// rds
+#include "anim-builders.rds.hpp"
+
 // Revolution Now
 #include "anim-builder.rds.hpp"
 
@@ -60,7 +63,7 @@ AnimationSequence anim_seq_for_brave_attack_colony(
     SSConst const& ss, IVisibility const& viz,
     CombatBraveAttackColony const& combat );
 
-AnimationSequence anim_seq_for_naval_battle(
+AnimationSequenceForNavalBattle anim_seq_for_naval_battle(
     SSConst const& ss, CombatShipAttackShip const& combat );
 
 // This is a special case of an attack sequence where we are at-

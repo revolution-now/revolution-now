@@ -13,6 +13,7 @@
 // Revolution Now
 #include "alarm.hpp"
 #include "anim-builders.hpp"
+#include "capture-cargo.hpp"
 #include "co-wait.hpp"
 #include "colonies.hpp"
 #include "colony-mgr.hpp"
@@ -470,6 +471,13 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
 
   // Implement CommandHandler.
   wait<> perform() override;
+
+  wait<> perform_loser_cargo_captures(
+      CombatShipAttackShip const& combat );
+
+  wait<> perform_loser_cargo_capture(
+      Unit& src, Unit& dst, IEuroMind& dst_mind,
+      EuroNavalUnitCombatOutcome const& src_outcome );
 };
 
 wait<bool> NavalBattleHandler::confirm() {
@@ -484,35 +492,29 @@ wait<> NavalBattleHandler::perform() {
 
   co_await Base::perform();
 
+  AnimationSequenceForNavalBattle anim_seq =
+      anim_seq_for_naval_battle( ss_, combat );
+
+  // Do the initial slide part of the animation first.
   co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
-      anim_seq_for_naval_battle( ss_, combat ) );
+      anim_seq.part_1 );
 
-  if( combat.winner.has_value() ) {
-    // One of the ships was either damaged or sunk.
-    Unit& loser = ( combat.winner == e_combat_winner::attacker )
-                      ? defender_
-                      : attacker_;
-    bool const has_commodity_cargo =
-        ( loser.cargo().count_items_of_type<Cargo::commodity>() >
-          0 );
-    if( has_commodity_cargo ) {
-      // At this point the losing ship has commodity cargo on it
-      // that the attacker can potentially capture. Note that if
-      // the ship has units in cargo then they will be destroyed,
-      // but that is handled further below. This section is just
-      // for commodity capture.
-      //
-      // TODO: add a method to IEuroMind to implement this for
-      // both human and AI players. Until then, we will just
-      // clear the cargo out of the ship if it has been damaged.
-      for( auto [comm, slot] : loser.cargo().commodities() ) {
-        Commodity const removed = rm_commodity_from_cargo(
-            ss_.units, loser.cargo(), slot );
-        CHECK_EQ( removed, comm );
-      }
-    }
-  }
+  // For any unit that lost the battle (whether attacker or de-
+  // fender/affected units) we need to check if they need to get
+  // their cargo stolen if they've lost. This needs to be done
+  // before the depixelation part of the animation (as the OG
+  // does) because otherwise it looks strange if e.g. a defender
+  // sinks and then we are asked what goods we want to capture
+  // from it. Note that the loser will in any case lose all of
+  // there cargo (units+commodities) but this step only does the
+  // capturing.
+  co_await perform_loser_cargo_captures( combat );
 
+  co_await ts_.planes.get().get_bottom<ILandViewPlane>().animate(
+      anim_seq.part_2 );
+
+  // Must be done before performing effects (although it should
+  // be ok that we've already done the cargo capture above).
   CombatEffectsMessages const effects_msg =
       combat_effects_msg( ss_, combat );
   perform_naval_unit_combat_effects( ss_, ts_, attacker_,
@@ -521,8 +523,6 @@ wait<> NavalBattleHandler::perform() {
   perform_naval_unit_combat_effects( ss_, ts_, defender_,
                                      attacker_id_,
                                      combat.defender.outcome );
-  // The order of iteration here may be non-deterministic but it
-  // shouldn't cause any issues.
   for( auto const& [unit_id, affected] :
        combat.affected_defender_units )
     perform_naval_affected_unit_combat_effects(
@@ -544,6 +544,50 @@ wait<> NavalBattleHandler::perform() {
     auto const /*deleted*/ _ =
         co_await UnitOwnershipChanger( ss_, attacker_id_ )
             .change_to_map( ts_, o->to );
+}
+
+wait<> NavalBattleHandler::perform_loser_cargo_captures(
+    CombatShipAttackShip const& combat ) {
+  using Capture = tuple<Unit*, Unit*, IEuroMind*,
+                        EuroNavalUnitCombatOutcome const*>;
+  vector<Capture> v;
+
+  v.push_back( { &attacker_, &defender_, &defender_mind_,
+                 &combat.attacker.outcome } );
+  v.push_back( { &defender_, &attacker_, &attacker_mind_,
+                 &combat.defender.outcome } );
+  for( auto const& [unit_id, affected] :
+       combat.affected_defender_units )
+    v.push_back( { &ss_.units.unit_for( unit_id ), &attacker_,
+                   &attacker_mind_, &affected.outcome } );
+
+  for( auto const& [src, dst, mind, outcome] : v )
+    co_await perform_loser_cargo_capture( *src, *dst, *mind,
+                                          *outcome );
+}
+
+wait<> NavalBattleHandler::perform_loser_cargo_capture(
+    Unit& src, Unit& dst, IEuroMind& dst_mind,
+    EuroNavalUnitCombatOutcome const& src_outcome ) {
+  // Here we make the assumption that we can infer loser status
+  // from outcome, which would seem to be fine.
+  if( !src_outcome.holds<EuroNavalUnitCombatOutcome::sunk>() &&
+      !src_outcome.holds<EuroNavalUnitCombatOutcome::damaged>() )
+    co_return;
+  // At this point the src unit has been either damaged or sunk,
+  // which entitles the other (dst) unit to capture its cargo if
+  // it has sufficient space. Any cargo in the src unit that is
+  // not captured will be destroyed. That will happen either au-
+  // tomatically if it is sunk or will happen when it is moved
+  // for repairs, so we don't need to do that here.
+  CapturableCargo const capturable =
+      capturable_cargo_items( ss_, src.cargo(), dst.cargo() );
+  if( capturable.items.commodities.empty() ) co_return;
+  CapturableCargoItems const items =
+      co_await dst_mind.select_commodities_to_capture(
+          src.id(), dst.id(), capturable );
+  transfer_capturable_cargo_items( ss_, items, src.cargo(),
+                                   dst.cargo() );
 }
 
 /****************************************************************

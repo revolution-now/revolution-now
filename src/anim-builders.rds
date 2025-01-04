@@ -1,0 +1,23 @@
+# ===============================================================
+# anim-builders.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-04.
+#
+# Description: Rds definitions for the anim-builders module.
+#
+# ===============================================================
+# Revolution Now
+include "anim-builder.rds.hpp"
+
+namespace "rn"
+
+struct.AnimationSequenceForNavalBattle {
+  # We need two parts because we may need to ask the player which
+  # cargo they want to capture from the losing ship, and it looks
+  # best to do this after the initial slide (part 1) but before
+  # the depixlation (part 2).
+  part_1 'AnimationSequence',
+  part_2 'AnimationSequence',
+}
