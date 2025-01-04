@@ -403,8 +403,7 @@ struct OmniPlane::Impl : public IPlane {
         main_window_logical_rect( engine_.video(),
                                   engine_.window(),
                                   engine_.resolutions() )
-            .se()
-            .moved_up( 11 )
+            .ne()
             .moved_left( config_ui.panel.width )
             .moved_right( 2 );
 
