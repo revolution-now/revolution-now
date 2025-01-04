@@ -229,7 +229,7 @@ struct IGui {
   template<typename ResultT, typename Fn>
   requires std::is_same_v<std::invoke_result_t<Fn>, ResultT>
   wait<maybe<ResultT>> interactive_ok_cancel_box(
-      std::string const& title, std::unique_ptr<ui::View> view,
+      std::string const& title, std::unique_ptr<ui::View>&& view,
       Fn const& fn ) {
     maybe<ResultT> res;
     co_await ok_cancel_box( title, std::move( view ),

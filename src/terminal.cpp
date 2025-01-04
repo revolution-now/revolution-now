@@ -30,6 +30,7 @@
 #include "base-util/string.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <unordered_map>
 
 using namespace std;

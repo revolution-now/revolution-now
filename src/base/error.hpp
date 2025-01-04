@@ -22,6 +22,7 @@
 #include "base-util/pp.hpp"
 
 // C++ standard library
+#include <exception>
 #include <memory>
 
 // There are two types of error-checking macros:

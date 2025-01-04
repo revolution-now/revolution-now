@@ -99,7 +99,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     auto t = st["foo"].call<tuple<int>>( 42 );
     static_assert( is_same_v<decltype( t ), tuple<int>> );
 
-    REQUIRE( t == tuple{ 42 } );
+    REQUIRE( ( t == tuple{ 42 } ) );
   }
   SECTION( "double" ) {
     st.script.run( R"lua(
@@ -112,7 +112,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     static_assert(
         is_same_v<decltype( t ), tuple<int, string>> );
 
-    REQUIRE( t == tuple{ 42, "hello" } );
+    REQUIRE( ( t == tuple{ 42, "hello" } ) );
   }
   SECTION( "many" ) {
     st.script.run( R"lua(
@@ -125,7 +125,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     static_assert(
         is_same_v<decltype( t ), tuple<int, string, double>> );
 
-    REQUIRE( t == tuple{ 42, "hello", 7.7 } );
+    REQUIRE( ( t == tuple{ 42, "hello", 7.7 } ) );
   }
   SECTION( "integers" ) {
     st.script.run( R"lua(
@@ -140,8 +140,8 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
         is_same_v<decltype( t ),
                   tuple<int, int, int, int, int, int>> );
 
-    REQUIRE( t == tuple<int, int, int, int, int, int>{
-                    1, 2, 3, 4, 5, 6 } );
+    REQUIRE( ( t == tuple<int, int, int, int, int, int>{
+                      1, 2, 3, 4, 5, 6 } ) );
   }
   SECTION( "with userdata" ) {
     MyUserdata mud{ .n = 9 };
@@ -157,7 +157,7 @@ LUA_TEST_CASE( "[ext-std] tuple" ) {
     static_assert(
         is_same_v<decltype( t ), tuple<int, MyUserdata&>> );
 
-    REQUIRE( t == tuple<int, MyUserdata&>{ 42, mud } );
+    REQUIRE( ( t == tuple<int, MyUserdata&>{ 42, mud } ) );
   }
   SECTION( "not enough" ) {
     MyUserdata mud{ .n = 9 };

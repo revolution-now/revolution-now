@@ -40,6 +40,7 @@
 
 // C++ standard library
 #include <algorithm>
+#include <mutex>
 #include <queue>
 #include <set>
 #include <thread>

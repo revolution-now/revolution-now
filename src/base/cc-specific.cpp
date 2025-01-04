@@ -11,6 +11,7 @@
 #include "cc-specific.hpp"
 
 // C++ standard library
+#include <cstdlib>
 #include <memory>
 
 // Compiler-specific includes.
@@ -35,7 +36,7 @@ string demangle( char const* name ) {
 
   unique_ptr<char, void ( * )( void* )> res{
     abi::__cxa_demangle( name, nullptr, nullptr, &status ),
-    std::free };
+    ::std::free };
   return ( status == 0 ) ? res.get() : name;
 }
 #else

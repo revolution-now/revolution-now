@@ -223,7 +223,7 @@ function( add_rn_target target type )
     message( FATAL "unrecognized target type: ${type}" )
   endif()
 
-  target_compile_features( ${target} PUBLIC cxx_std_20 )
+  target_compile_features( ${target} PUBLIC cxx_std_23 )
   set_target_properties( ${target} PROPERTIES CXX_EXTENSIONS OFF )
   set_warning_options( ${target} )
 

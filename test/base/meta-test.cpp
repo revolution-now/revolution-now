@@ -515,18 +515,18 @@ TEST_CASE( "[meta] tuple_tail" ) {
                                                   4.5, 5.6f, 3 };
 
   auto t2 = mp::tuple_tail( t1 );
-  REQUIRE( t2 == std::tuple<string, double, float, int>{
-                   "hello", 4.5, 5.6f, 3 } );
+  REQUIRE( ( t2 == std::tuple<string, double, float, int>{
+                     "hello", 4.5, 5.6f, 3 } ) );
 
   auto t3 = mp::tuple_tail( t2 );
-  REQUIRE( t3 ==
-           std::tuple<double, float, int>{ 4.5, 5.6f, 3 } );
+  REQUIRE(
+      ( t3 == std::tuple<double, float, int>{ 4.5, 5.6f, 3 } ) );
 
   auto t4 = mp::tuple_tail( t3 );
-  REQUIRE( t4 == std::tuple<float, int>{ 5.6f, 3 } );
+  REQUIRE( ( t4 == std::tuple<float, int>{ 5.6f, 3 } ) );
 
   auto t5 = mp::tuple_tail( t4 );
-  REQUIRE( t5 == std::tuple<int>{ 3 } );
+  REQUIRE( ( t5 == std::tuple<int>{ 3 } ) );
 
   auto t6 = mp::tuple_tail( t5 );
   REQUIRE( t6 == std::tuple<>{} );
