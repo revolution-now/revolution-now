@@ -108,11 +108,11 @@ struct Layout {
 };
 
 /****************************************************************
-** Layouts.
+** Auto-Layout.
 *****************************************************************/
-Layout layout_640x360() {
+Layout layout_auto( e_resolution const resolution ) {
   Layout l;
-  l.named_resolution = e_resolution::_640x360;
+  l.named_resolution = resolution;
   l.bg_rect.size     = resolution_size( l.named_resolution );
 
   l.selected_buffer              = { .w = -5, .h = -5 };
@@ -120,15 +120,38 @@ Layout layout_640x360() {
   l.center_for_description_label = { .w = 63, .h = 145 };
   l.stencil_nw                   = { .w = 10, .h = 22 };
 
-  auto& instructions                  = l.instructions_cell;
-  instructions.center_for_title_label = { .x = 320, .y = 65 };
-  instructions.center_for_click_here_label = { .x = 320,
-                                               .y = 120 };
-  instructions.select_rect = { .origin = { .x = 234, .y = 28 },
-                               .size = { .w = 172, .h = 123 } };
-
   using enum e_difficulty;
   using enum e_cardinal_direction;
+
+  // Find positions of plates.
+  static size const kPlateSize =
+      sprite_size( e_tile::wood_plate );
+  size const margins = {
+    .w = ( l.bg_rect.size.w - 3 * kPlateSize.w ) / 4,
+    .h = ( l.bg_rect.size.h - 2 * kPlateSize.h ) / 3 };
+  int const plate_row_y0 = margins.h;
+  int const plate_row_y1 = margins.h * 2 + kPlateSize.h;
+  int const plate_col_x0 = margins.w;
+  int const plate_col_x1 = margins.w * 2 + kPlateSize.w;
+  int const plate_col_x2 = margins.w * 3 + kPlateSize.w * 2;
+
+  auto& instructions       = l.instructions_cell;
+  instructions.select_rect = {
+    .origin = { .x = plate_col_x1 - margins.w / 2,
+                .y = plate_row_y0 },
+    .size   = { .w = kPlateSize.w + margins.w,
+                .h = kPlateSize.h } };
+  point const select_rect_center =
+      instructions.select_rect.center();
+
+  instructions.center_for_title_label = {
+    .x = select_rect_center.x,
+    .y = instructions.select_rect.top() +
+         instructions.select_rect.size.h / 3 };
+  instructions.center_for_click_here_label = {
+    .x = select_rect_center.x,
+    .y = instructions.select_rect.top() +
+         2 * instructions.select_rect.size.h / 3 };
 
   // Discoverer.
   {
@@ -136,12 +159,12 @@ Layout layout_640x360() {
     cell.label             = "Discoverer";
     cell.description_label = "Easiest";
     cell.character         = e_tile::discoverer;
-    cell.plate_origin      = { .x = 69, .y = 12 };
     cell.next[n]           = explorer;
     cell.next[e]           = viceroy;
     cell.next[w]           = viceroy;
     cell.next[s]           = explorer;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0x04B410 );
+    cell.plate_origin = { .x = plate_col_x0, .y = plate_row_y0 };
   }
 
   // Explorer.
@@ -150,12 +173,12 @@ Layout layout_640x360() {
     cell.label             = "Explorer";
     cell.description_label = "Easy";
     cell.character         = e_tile::explorer;
-    cell.plate_origin      = { .x = 69, .y = 188 };
     cell.next[n]           = discoverer;
     cell.next[e]           = conquistador;
     cell.next[w]           = governor;
     cell.next[s]           = discoverer;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0x5555ff );
+    cell.plate_origin = { .x = plate_col_x0, .y = plate_row_y1 };
   }
 
   // Conquistador.
@@ -164,12 +187,12 @@ Layout layout_640x360() {
     cell.label             = "Conquistador";
     cell.description_label = "Moderate";
     cell.character         = e_tile::conquistador;
-    cell.plate_origin      = { .x = 260, .y = 188 };
     cell.next[n]           = conquistador;
     cell.next[e]           = governor;
     cell.next[w]           = explorer;
     cell.next[s]           = conquistador;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xfffe54 );
+    cell.plate_origin = { .x = plate_col_x1, .y = plate_row_y1 };
   }
 
   // Governor.
@@ -178,12 +201,12 @@ Layout layout_640x360() {
     cell.label             = "Governor";
     cell.description_label = "Tough";
     cell.character         = e_tile::governor;
-    cell.plate_origin      = { .x = 450, .y = 188 };
     cell.next[n]           = viceroy;
     cell.next[e]           = explorer;
     cell.next[w]           = conquistador;
     cell.next[s]           = viceroy;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xff7100 );
+    cell.plate_origin = { .x = plate_col_x2, .y = plate_row_y1 };
   }
 
   // Viceroy.
@@ -192,14 +215,24 @@ Layout layout_640x360() {
     cell.label             = "Viceroy";
     cell.description_label = "Toughest";
     cell.character         = e_tile::viceroy;
-    cell.plate_origin      = { .x = 450, .y = 12 };
     cell.next[n]           = governor;
     cell.next[e]           = discoverer;
     cell.next[w]           = discoverer;
     cell.next[s]           = governor;
     cell.selected_color = gfx::pixel::from_hex_rgb( 0xff0000 );
+    cell.plate_origin = { .x = plate_col_x2, .y = plate_row_y0 };
   }
 
+  return l;
+}
+
+/****************************************************************
+** Layouts.
+*****************************************************************/
+// Example for how to customize for a particular resolution.
+Layout layout_576x360() {
+  Layout l = layout_auto( e_resolution::_576x360 );
+  // Customize.
   return l;
 }
 
@@ -213,6 +246,7 @@ struct DifficultyScreen : public IPlane {
   maybe<Layout> layout_                     = {};
   e_difficulty selected_           = e_difficulty::conquistador;
   maybe<e_difficulty> highlighted_ = nothing;
+  bool hover_finished_             = false;
 
  public:
   DifficultyScreen( IEngine& engine ) : engine_( engine ) {
@@ -221,32 +255,20 @@ struct DifficultyScreen : public IPlane {
       on_logical_resolution_changed( *named );
   }
 
-  inline static enum_map<e_resolution, Layout ( * )()> const
-      kSupportedResolutions{
-        { e_resolution::_640x360, &layout_640x360 },
-      };
-
-  size rendered_offset() const {
-    if( !layout_.has_value() ) return {};
-    e_resolution const rendered = layout_->named_resolution;
-    auto const actual           = named_resolution( engine_ );
-    if( !actual.has_value() ) return {};
-    return ( gfx::resolution_size( *actual ) -
-             gfx::resolution_size( rendered ) ) /
-           2;
-  }
-
-  bool supports_resolution(
-      e_resolution const resolution ) const override {
-    return kSupportedResolutions[resolution] != nullptr;
+  Layout layout_gen( e_resolution const resolution ) {
+    using enum e_resolution;
+    switch( resolution ) {
+      case _576x360:
+        // Example for how to customize per resolution.
+        return layout_576x360();
+      default:
+        return layout_auto( resolution );
+    }
   }
 
   void on_logical_resolution_selected(
       e_resolution const resolution ) override {
-    layout_            = {};
-    auto const& layout = kSupportedResolutions[resolution];
-    if( !layout ) return;
-    layout_ = layout();
+    layout_ = layout_gen( resolution );
   }
 
   void write_centered( rr::Renderer& renderer,
@@ -260,15 +282,6 @@ struct DifficultyScreen : public IPlane {
         .write( text );
     renderer.typer( text_rect.nw() + size{ .h = 1 }, color_bg )
         .write( text );
-    renderer.typer( text_rect.nw(), color_fg ).write( text );
-  }
-
-  void write_centered( rr::Renderer& renderer,
-                       pixel const color_fg, point const center,
-                       string_view const text ) const {
-    size const text_size =
-        rr::rendered_text_line_size_pixels( text );
-    rect const text_rect = gfx::centered_on( text_size, center );
     renderer.typer( text_rect.nw(), color_fg ).write( text );
   }
 
@@ -307,6 +320,7 @@ struct DifficultyScreen : public IPlane {
                             string_view const text ) {
       if( this_highlighted || this_selected )
         write_centered( renderer, cell.selected_color,
+                        pixel::black(),
                         cell.plate_origin + center, text );
     };
     auto const write_text = [&] {
@@ -346,24 +360,17 @@ struct DifficultyScreen : public IPlane {
                     l.instructions_cell.center_for_title_label,
                     "Choose Difficulty Level" );
     write_centered(
-        renderer, kUiTextColor, pixel::black(),
+        renderer,
+        hover_finished_ ? kUiTextColor.highlighted( 3 )
+                        : kUiTextColor,
+        pixel::black(),
         l.instructions_cell.center_for_click_here_label,
         "(Click here when finished)" );
   }
 
   void draw( rr::Renderer& renderer ) const override {
     if( !layout_ ) return;
-    auto const offset = rendered_offset();
-    if( !offset.empty() ) {
-      renderer.painter().draw_empty_rect(
-          renderer.logical_screen_rect(),
-          rr::Painter::e_border_mode::inside, pixel::white() );
-      SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
-                               rendered_offset().to_double() );
-      draw( renderer, *layout_ );
-    } else {
-      draw( renderer, *layout_ );
-    }
+    draw( renderer, *layout_ );
   }
 
   e_input_handled on_key(
@@ -413,10 +420,8 @@ struct DifficultyScreen : public IPlane {
     return handled;
   }
 
-  e_input_handled on_mouse_move( input::mouse_move_event_t const&
-                                     event_unshifted ) override {
-    auto const event = input::mouse_origin_moved_by(
-        event_unshifted, rendered_offset() );
+  e_input_handled on_mouse_move(
+      input::mouse_move_event_t const& event ) override {
     if( !layout_ ) return e_input_handled::no;
     auto const& l = *layout_;
 
@@ -430,14 +435,14 @@ struct DifficultyScreen : public IPlane {
         highlighted_ = difficulty;
     }
 
+    hover_finished_ =
+        event.pos.is_inside( l.instructions_cell.select_rect );
+
     return e_input_handled::yes;
   }
 
   e_input_handled on_mouse_button(
-      input::mouse_button_event_t const& event_unshifted )
-      override {
-    auto const event = input::mouse_origin_moved_by(
-        event_unshifted, rendered_offset() );
+      input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_up )
       return e_input_handled::no;
 
