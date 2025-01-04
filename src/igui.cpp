@@ -28,6 +28,19 @@ wait<maybe<string>> IGui::optional_choice(
   co_return co_await choice( config );
 }
 
+wait<maybe<int>> IGui::optional_choice_idx(
+    ChoiceConfig const& config ) {
+  auto const str = co_await choice( config );
+  if( !str.has_value() ) co_return nothing;
+  for( int i = 0; i < ssize( config.options ); ++i )
+    if( config.options[i].key == *str ) //
+      co_return i;
+  FATAL(
+      "programmer error: choice result '{}' not found in "
+      "options.",
+      *str );
+}
+
 wait<string> IGui::required_choice(
     ChoiceConfig const& config ) {
   do {

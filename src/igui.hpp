@@ -107,6 +107,11 @@ struct IGui {
   wait<maybe<std::string>> optional_choice(
       ChoiceConfig const& config );
 
+  // Same as above but returns the zero-based index of the selec-
+  // tion instead of the string key.
+  wait<maybe<int>> optional_choice_idx(
+      ChoiceConfig const& config );
+
   wait<std::string> required_choice(
       ChoiceConfig const& config );
 
