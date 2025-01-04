@@ -33,6 +33,8 @@ using namespace std;
 
 namespace rn {
 
+using ::refl::enum_count;
+
 /****************************************************************
 ** Public API
 *****************************************************************/
@@ -140,38 +142,36 @@ NativeUnitCommand AiNativeMind::command_for(
   // AI module but in the code that moves the brave to a new
   // tile, since it is a deterministic part of the game that
   // doesn't need any AI.
-  e_direction const rand_d = [&] {
-    for( e_direction d : refl::enum_values<e_direction> ) {
-      Coord const moved = ownership.coord.moved( d );
-      if( !ss_.terrain.square_exists( moved ) ) continue;
-      if( ss_.colonies.maybe_from_coord( moved ) ) return d;
+  vector<e_direction> available_d;
+  available_d.reserve( enum_count<e_direction> );
+  for( e_direction const d : refl::enum_values<e_direction> ) {
+    Coord const moved = ownership.coord.moved( d );
+    if( !ss_.terrain.square_exists( moved ) ) continue;
+    MapSquare const& square = ss_.terrain.square_at( moved );
+    if( square.surface != e_surface::land ) continue;
+    if( maybe<Society> const society =
+            society_on_square( ss_, moved );
+        society.has_value() ) {
+      SWITCH( *society ) {
+        CASE( native ) {
+          if( native.tribe != tribe.type ) continue;
+          break;
+        }
+        CASE( european ) { break; }
+      }
     }
-    for( e_direction d : refl::enum_values<e_direction> ) {
-      Coord const moved = ownership.coord.moved( d );
-      if( !ss_.terrain.square_exists( moved ) ) continue;
-      maybe<Society> const society =
-          society_on_square( ss_, moved );
-      if( society.has_value() &&
-          society->holds<Society::european>() )
-        return d;
-    }
-    return pick_one<e_direction>( rand_ );
-  }();
-  Coord const moved = ownership.coord.moved( rand_d );
-  if( !ss_.terrain.square_exists( moved ) )
+    available_d.push_back( d );
+  }
+  if( available_d.empty() )
     return NativeUnitCommand::forfeight{};
-  MapSquare const& square = ss_.terrain.square_at( moved );
-  if( square.surface != e_surface::land )
-    return NativeUnitCommand::forfeight{};
+
+  e_direction const rand_d = rand_.pick_one( available_d );
+  Coord const moved        = ownership.coord.moved( rand_d );
   if( maybe<Society> const society =
           society_on_square( ss_, moved );
       society.has_value() ) {
     SWITCH( *society ) {
-      CASE( native ) {
-        if( native.tribe != tribe.type )
-          return NativeUnitCommand::forfeight{};
-        break;
-      }
+      CASE( native ) { break; }
       CASE( european ) {
         if( rand_.bernoulli( .2 ) )
           // TODO: temporary.
