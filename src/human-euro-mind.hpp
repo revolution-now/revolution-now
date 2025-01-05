@@ -32,6 +32,8 @@ struct HumanEuroMind final : IEuroMind {
   wait<> message_box( std::string const& msg ) override;
 
  public: // IEuroMind.
+  Player const& player() override;
+
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
@@ -41,6 +43,10 @@ struct HumanEuroMind final : IEuroMind {
   select_commodities_to_capture(
       UnitId src, UnitId dst,
       CapturableCargo const& items ) override;
+
+  wait<> notify_captured_cargo(
+      Player const& src_player, Player const& dst_player,
+      Unit const& dst_unit, Commodity const& stolen ) override;
 
  private:
   SS& ss_;

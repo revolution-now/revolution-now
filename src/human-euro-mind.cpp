@@ -17,6 +17,8 @@
 #include "meet-natives.hpp"
 
 // ss
+#include "players.hpp"
+#include "ss/player.hpp"
 #include "ss/ref.hpp"
 
 using namespace std;
@@ -51,6 +53,18 @@ HumanEuroMind::select_commodities_to_capture(
     CapturableCargo const& capturable ) {
   co_return co_await select_items_to_capture_ui(
       ss_.as_const, gui_, src, dst, capturable );
+}
+
+wait<> HumanEuroMind::notify_captured_cargo(
+    Player const& src_player, Player const& dst_player,
+    Unit const& dst_unit, Commodity const& stolen ) {
+  co_await notify_captured_cargo_human(
+      gui_, src_player, dst_player, dst_unit, stolen );
+}
+
+Player const& HumanEuroMind::player() {
+  return player_for_nation_or_die( as_const( ss_.players ),
+                                   nation() );
 }
 
 } // namespace rn

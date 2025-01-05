@@ -476,7 +476,9 @@ struct NavalBattleHandler : public EuroAttackHandlerBase {
       CombatShipAttackShip const& combat );
 
   wait<> perform_loser_cargo_capture(
-      Unit& src, Unit& dst, IEuroMind& dst_mind,
+      Unit& src, Unit& dst, IEuroMind& src_mind,
+      IEuroMind& dst_mind, Player const& src_player,
+      Player const& dst_player,
       EuroNavalUnitCombatOutcome const& src_outcome );
 };
 
@@ -548,26 +550,39 @@ wait<> NavalBattleHandler::perform() {
 
 wait<> NavalBattleHandler::perform_loser_cargo_captures(
     CombatShipAttackShip const& combat ) {
-  using Capture = tuple<Unit*, Unit*, IEuroMind*,
-                        EuroNavalUnitCombatOutcome const*>;
+  using Capture =
+      tuple<Unit*, Unit*, IEuroMind*, IEuroMind*, Player const*,
+            Player const*, EuroNavalUnitCombatOutcome const*>;
   vector<Capture> v;
 
-  v.push_back( { &attacker_, &defender_, &defender_mind_,
+  v.push_back( { &attacker_, &defender_,                 //
+                 &attacker_mind_, &defender_mind_,       //
+                 &attacking_player_, &defending_player_, //
                  &combat.attacker.outcome } );
-  v.push_back( { &defender_, &attacker_, &attacker_mind_,
+  v.push_back( { &defender_, &attacker_,                 //
+                 &defender_mind_, &attacker_mind_,       //
+                 &defending_player_, &attacking_player_, //
                  &combat.defender.outcome } );
   for( auto const& [unit_id, affected] :
        combat.affected_defender_units )
-    v.push_back( { &ss_.units.unit_for( unit_id ), &attacker_,
-                   &attacker_mind_, &affected.outcome } );
+    v.push_back( { &ss_.units.unit_for( unit_id ), &attacker_, //
+                   &defender_mind_, &attacker_mind_,           //
+                   &defending_player_, &attacking_player_,     //
+                   &affected.outcome } );
 
-  for( auto const& [src, dst, mind, outcome] : v )
-    co_await perform_loser_cargo_capture( *src, *dst, *mind,
-                                          *outcome );
+  for( auto const& tup : v ) {
+    auto const& [src, dst, src_mind, dst_mind, src_player,
+                 dst_player, outcome] = tup;
+    co_await perform_loser_cargo_capture(
+        *src, *dst, *src_mind, *dst_mind, *src_player,
+        *dst_player, *outcome );
+  }
 }
 
 wait<> NavalBattleHandler::perform_loser_cargo_capture(
-    Unit& src, Unit& dst, IEuroMind& dst_mind,
+    Unit& src, Unit& dst, IEuroMind& src_mind,
+    IEuroMind& dst_mind, Player const& src_player,
+    Player const& dst_player,
     EuroNavalUnitCombatOutcome const& src_outcome ) {
   // Here we make the assumption that we can infer loser status
   // from outcome, which would seem to be fine.
@@ -586,6 +601,9 @@ wait<> NavalBattleHandler::perform_loser_cargo_capture(
   CapturableCargoItems const items =
       co_await dst_mind.select_commodities_to_capture(
           src.id(), dst.id(), capturable );
+  for( auto const& stolen : items.commodities )
+    co_await src_mind.notify_captured_cargo(
+        src_player, dst_player, dst, stolen );
   transfer_capturable_cargo_items( ss_, items, src.cargo(),
                                    dst.cargo() );
 }

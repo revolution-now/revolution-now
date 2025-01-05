@@ -14,6 +14,10 @@
 #include "src/capture-cargo.rds.hpp"
 #include "src/ieuro-mind.hpp"
 
+// ss
+#include "src/ss/player.rds.hpp"
+#include "src/ss/unit.hpp"
+
 // mock
 #include "src/mock/mock.hpp"
 
@@ -28,6 +32,8 @@ namespace rn {
 struct MockIEuroMind : IEuroMind {
   MockIEuroMind( e_nation nation ) : IEuroMind( nation ) {}
 
+  MOCK_METHOD( Player const&, player, (), () );
+
   MOCK_METHOD( wait<>, message_box, (std::string const&), () );
 
   MOCK_METHOD( wait<e_declare_war_on_natives>,
@@ -38,6 +44,11 @@ struct MockIEuroMind : IEuroMind {
   MOCK_METHOD( wait<base::heap_value<CapturableCargoItems>>,
                select_commodities_to_capture,
                (UnitId, UnitId, CapturableCargo const&), () );
+
+  MOCK_METHOD( wait<>, notify_captured_cargo,
+               (Player const&, Player const&, Unit const&,
+                Commodity const&),
+               () );
 };
 
 static_assert( !std::is_abstract_v<MockIEuroMind> );

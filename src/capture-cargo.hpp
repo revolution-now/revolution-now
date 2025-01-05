@@ -25,6 +25,8 @@ namespace rn {
 struct IGui;
 struct SSConst;
 struct CargoHold;
+struct Player;
+struct Unit;
 
 /****************************************************************
 ** Public API
@@ -39,6 +41,15 @@ struct CargoHold;
 wait<CapturableCargoItems> select_items_to_capture_ui(
     SSConst const& ss, IGui& gui, UnitId src, UnitId dst,
     CapturableCargo const& capturable );
+
+// This should not be called directly by normal game code; in-
+// stead the corresponding method on IEuroMind should be used,
+// which will in turn call this method as implementation.
+wait<> notify_captured_cargo_human( IGui& gui,
+                                    Player const& src_player,
+                                    Player const& dst_player,
+                                    Unit const& dst_unit,
+                                    Commodity const& stolen );
 
 void transfer_capturable_cargo_items(
     SSConst const& ss, CapturableCargoItems const& capturable,

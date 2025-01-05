@@ -82,7 +82,8 @@ EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
       holder[nation] =
           make_unique<HumanEuroMind>( nation, ss, gui );
     else
-      holder[nation] = make_unique<NoopEuroMind>( nation );
+      holder[nation] =
+          make_unique<NoopEuroMind>( ss.as_const, nation );
   }
   return EuroMinds( std::move( holder ) );
 }

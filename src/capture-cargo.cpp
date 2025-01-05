@@ -56,6 +56,20 @@ CapturableCargo capturable_cargo_items( SSConst const& ss,
     .max_take = to_compact.slots_remaining() };
 }
 
+wait<> notify_captured_cargo_human( IGui& gui,
+                                    Player const& src_player,
+                                    Player const& dst_player,
+                                    Unit const& dst_unit,
+                                    Commodity const& stolen ) {
+  string const text = fmt::format(
+      "[{} {}] has captured [{} {}] from [{}] cargo!",
+      nation_possessive( dst_player ), dst_unit.desc().name,
+      stolen.quantity,
+      lowercase_commodity_display_name( stolen.type ),
+      nation_possessive( src_player ) );
+  co_await gui.message_box( "{}", text );
+}
+
 wait<CapturableCargoItems> select_items_to_capture_ui(
     SSConst const& ss, IGui& gui, UnitId const src,
     UnitId const dst, CapturableCargo const& capturable ) {
@@ -71,17 +85,12 @@ wait<CapturableCargoItems> select_items_to_capture_ui(
   if( capturable.items.commodities.empty() ) co_return res;
   if( capturable.max_take >=
       ssize( capturable.items.commodities ) ) {
-    for( auto const& [type, q] : capturable.items.commodities ) {
-      string const text = fmt::format(
-          "[{} {}] has captured [{} {}] from [{}] cargo!",
-          nation_possessive( dst_player ), dst_unit.desc().name,
-          q, lowercase_commodity_display_name( type ),
-          nation_possessive( src_player ) );
-      // NOTE: we use IGui here and not IEuroMind because this
-      // function is only called via IEuroMind in the case that
-      // the mind is a human.
-      co_await gui.message_box( "{}", text );
-    }
+    for( auto const& comm : capturable.items.commodities )
+      // NOTE: we use the human-specific call here and not IEuro-
+      // Mind because this function is only called via IEuroMind
+      // in the case of a human.
+      co_await notify_captured_cargo_human(
+          gui, src_player, dst_player, dst_unit, comm );
     co_return capturable.items;
   }
   auto remaining = capturable;

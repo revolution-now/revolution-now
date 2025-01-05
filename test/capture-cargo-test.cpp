@@ -521,5 +521,28 @@ TEST_CASE( "[capture-cargo] select_items_to_capture_ui" ) {
   }
 }
 
+TEST_CASE( "[capture-cargo] notify_captured_cargo_human" ) {
+  world w;
+
+  Commodity stolen;
+
+  Unit& frigate = w.add_unit_on_map( e_unit_type::frigate,
+                                     point{ .x = 0, .y = 0 },
+                                     e_nation::english );
+
+  auto f = [&] {
+    return co_await_test( notify_captured_cargo_human(
+        w.gui(), w.french(), w.english(), frigate, stolen ) );
+  };
+
+  using enum e_commodity;
+
+  stolen = { .type = coats, .quantity = 40 };
+  w.gui().EXPECT__message_box(
+      "[English Frigate] has captured [40 coats] from [French] "
+      "cargo!" );
+  f();
+}
+
 } // namespace
 } // namespace rn

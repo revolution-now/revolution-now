@@ -49,6 +49,8 @@ using namespace std;
 
 using ::mock::matchers::_;
 using ::mock::matchers::AllOf;
+using ::mock::matchers::Field;
+using ::mock::matchers::Property;
 using ::mock::matchers::StrContains;
 
 /****************************************************************
@@ -226,6 +228,19 @@ struct World : testing::World {
                                                 capturable )
         .returns<base::heap_value<CapturableCargoItems>>(
             capturable.items );
+  }
+
+  [[nodiscard]] auto expect_attacking_player() {
+    return Field( &Player::nation, kAttackingNation );
+  }
+
+  [[nodiscard]] auto expect_defending_player() {
+    return Field( &Player::nation, kDefendingNation );
+  }
+
+  [[nodiscard]] auto expect_unit_of_type(
+      e_unit_type const type ) {
+    return Property( &Unit::type, type );
   }
 
   MockLandViewPlane mock_land_view_plane_;
@@ -1721,6 +1736,13 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                                                e_commodity::silver,
                                            .quantity = 100 } } },
           .max_take = 2 } );
+    W.euro_mind( W.kDefendingNation )
+        .EXPECT__notify_captured_cargo(
+            W.expect_defending_player(),
+            W.expect_attacking_player(),
+            W.expect_unit_of_type( e_unit_type::privateer ),
+            Commodity{ .type     = e_commodity::silver,
+                       .quantity = 100 } );
     REQUIRE( W.units()
                  .unit_for( combat.attacker.id )
                  .movement_points() == 8 );
@@ -1845,8 +1867,6 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE( defender.cargo().count_items() == 0 );
   }
 
-  // NOTE: this is temporary until we implement the UI routine
-  // which allows the winner to capture the loser's commodities.
   SECTION( "attacker damaged with commodity cargo" ) {
     combat = {
       .winner = e_combat_winner::defender,
@@ -1895,6 +1915,20 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
                     },
               },
           .max_take = 3 } );
+    W.euro_mind( W.kAttackingNation )
+        .EXPECT__notify_captured_cargo(
+            W.expect_attacking_player(),
+            W.expect_defending_player(),
+            W.expect_unit_of_type( e_unit_type::merchantman ),
+            Commodity{ .type     = e_commodity::lumber,
+                       .quantity = 20 } );
+    W.euro_mind( W.kAttackingNation )
+        .EXPECT__notify_captured_cargo(
+            W.expect_attacking_player(),
+            W.expect_defending_player(),
+            W.expect_unit_of_type( e_unit_type::merchantman ),
+            Commodity{ .type     = e_commodity::ore,
+                       .quantity = 10 } );
     W.expect_msg_contains( W.kAttackingNation, "Privateer",
                            "damaged", "London" );
     W.expect_msg_contains( W.kDefendingNation, "Privateer",

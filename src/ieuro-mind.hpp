@@ -29,9 +29,13 @@ namespace rn {
 enum class e_nation;
 enum class e_woodcut;
 
-struct MeetTribe;
 struct CapturableCargo;
 struct CapturableCargoItems;
+struct Commodity;
+struct MeetTribe;
+struct Player;
+struct SSConst;
+struct Unit;
 
 /****************************************************************
 ** IEuroMind
@@ -43,6 +47,9 @@ struct IEuroMind : IMind {
 
   // For convenience.
   e_nation nation() const { return nation_; }
+
+  // For convenience.
+  virtual Player const& player() = 0;
 
   // This is the interactive part of the sequence of events that
   // happens when first encountering a given native tribe. In
@@ -59,6 +66,12 @@ struct IEuroMind : IMind {
   select_commodities_to_capture(
       UnitId src, UnitId dst, CapturableCargo const& items ) = 0;
 
+  // This is used to notify the player when the cargo in one of
+  // their ships has been captured by a foreign ship.
+  virtual wait<> notify_captured_cargo(
+      Player const& src_player, Player const& dst_player,
+      Unit const& dst_unit, Commodity const& stolen ) = 0;
+
  private:
   e_nation nation_ = {};
 };
@@ -69,12 +82,14 @@ struct IEuroMind : IMind {
 // Minimal implementation does not either nothing or the minimum
 // necessary to fulfill the contract of each request.
 struct NoopEuroMind final : IEuroMind {
-  NoopEuroMind( e_nation nation );
+  NoopEuroMind( SSConst const& ss, e_nation nation );
 
  public: // IMind.
   wait<> message_box( std::string const& msg ) override;
 
  public: // IEuroMind.
+  Player const& player() override;
+
   wait<e_declare_war_on_natives> meet_tribe_ui_sequence(
       MeetTribe const& meet_tribe ) override;
 
@@ -84,6 +99,13 @@ struct NoopEuroMind final : IEuroMind {
   select_commodities_to_capture(
       UnitId src, UnitId dst,
       CapturableCargo const& items ) override;
+
+  wait<> notify_captured_cargo(
+      Player const& src_player, Player const& dst_player,
+      Unit const& dst_unit, Commodity const& stolen ) override;
+
+ private:
+  SSConst const& ss_;
 };
 
 } // namespace rn
