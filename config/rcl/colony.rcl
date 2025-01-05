@@ -849,14 +849,22 @@ teaching {
 # that is not yet finished is rushed (buy).
 rush_construction {
   # Cost per remaining hammer.
-  cost_per_hammer: 26
+  cost_per_hammer: 13
 
-  # The cost per remaining tool is given by B+M*A, where B is a
-  # fixed base cost, A is the current market ask price in hun-
-  # dreds, and M is a fixed multiplier. In the OG B=8 and M=2,
-  # and this is independent of difficulty level.
-  base_cost_per_tool: 8
-  tools_ask_price_multiplier: 2
+  # The cost per remaining tool is given by B+A, where B is a
+  # fixed base cost and A is the current market ask price in hun-
+  # dreds. In the OG B=4 for all difficulty levels.
+  base_cost_per_tool: 4
+
+  # The OG will, after computing the cost via the above parame-
+  # ters, multiply the result by this factor if the colony has
+  # zero hammers. If the colony has at least one hammer then this
+  # factor is not applied. This could be in order to discourage
+  # or slow down the process of building up a colony through
+  # money, in that the player needs to let at least one (addi-
+  # tional) turn pass for each building that they want to rush if
+  # they want to do so efficiently.
+  zero_hammers_factor: 2
 
   # If tools are boycotted, are we still allowed to rush a con-
   # struction that would require acquiring tools? In the OG we

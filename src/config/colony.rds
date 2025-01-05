@@ -151,7 +151,8 @@ struct.RushConstruction {
   # dreds, and M is a fixed multiplier. In the OG B=8 and M=2,
   # and this is independent of difficulty level.
   base_cost_per_tool 'int',
-  tools_ask_price_multiplier 'int',
+
+  zero_hammers_factor 'int',
 
   # If tools are boycotted, are we still allowed to rush a con-
   # struction that would require acquiring tools? In the OG we

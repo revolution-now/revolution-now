@@ -238,17 +238,17 @@ maybe<RushConstruction> rush_construction_cost(
     return nothing;
   auto needed_requirements = total_requirements;
   adjust_materials( colony, needed_requirements );
+  int const zero_hammers_multiplier =
+      ( colony.hammers > 0 ) ? 1 : 2;
   int const hammers_cost =
       config_colony.rush_construction.cost_per_hammer *
-      needed_requirements.hammers;
+      needed_requirements.hammers * zero_hammers_multiplier;
   int const tools_ask =
       market_price( player, e_commodity::tools ).ask;
   int const tools_cost =
       ( config_colony.rush_construction.base_cost_per_tool +
-        config_colony.rush_construction
-                .tools_ask_price_multiplier *
-            tools_ask ) *
-      needed_requirements.tools;
+        tools_ask ) *
+      needed_requirements.tools * zero_hammers_multiplier;
   bool const boycott_block =
       ( !config_colony.rush_construction
              .allow_rushing_tools_during_boycott &&

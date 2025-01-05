@@ -702,7 +702,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.hammers = 0;
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost    = 52 * 26,
+                          .cost    = 52 * 13 * 2,
                           .total_hammers            = 52,
                           .total_tools              = 0,
                           .needed_hammers           = 52,
@@ -713,7 +713,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.hammers = 10;
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost    = 42 * 26,
+                          .cost    = 42 * 13,
                           .total_hammers            = 52,
                           .total_tools              = 0,
                           .needed_hammers           = 42,
@@ -724,7 +724,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.hammers = 51;
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost    = 1 * 26,
+                          .cost    = 1 * 13,
                           .total_hammers            = 52,
                           .total_tools              = 0,
                           .needed_hammers           = 1,
@@ -762,14 +762,14 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.hammers = 0;
     set_tools( 0 );
     set_tools_ask( 2 );
-    expected =
-        RushConstruction{ .project = colony.construction.value(),
-                          .cost = 512 * 26 + 200 * ( 8 + 2 * 2 ),
-                          .total_hammers            = 512,
-                          .total_tools              = 200,
-                          .needed_hammers           = 512,
-                          .needed_tools             = 200,
-                          .blocked_by_tools_boycott = false };
+    expected = RushConstruction{
+      .project        = colony.construction.value(),
+      .cost           = ( 512 * 13 + 200 * ( 4 + 2 ) ) * 2,
+      .total_hammers  = 512,
+      .total_tools    = 200,
+      .needed_hammers = 512,
+      .needed_tools   = 200,
+      .blocked_by_tools_boycott = false };
     REQUIRE( f() == expected );
 
     colony.hammers = 100;
@@ -777,7 +777,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 2 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost = 412 * 26 + 200 * ( 8 + 2 * 2 ),
+                          .cost    = 412 * 13 + 200 * ( 4 + 2 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 412,
@@ -788,27 +788,27 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     colony.hammers = 0;
     set_tools( 100 );
     set_tools_ask( 2 );
-    expected =
-        RushConstruction{ .project = colony.construction.value(),
-                          .cost = 512 * 26 + 100 * ( 8 + 2 * 2 ),
-                          .total_hammers            = 512,
-                          .total_tools              = 200,
-                          .needed_hammers           = 512,
-                          .needed_tools             = 100,
-                          .blocked_by_tools_boycott = false };
+    expected = RushConstruction{
+      .project        = colony.construction.value(),
+      .cost           = ( 512 * 13 + 100 * ( 4 + 2 ) ) * 2,
+      .total_hammers  = 512,
+      .total_tools    = 200,
+      .needed_hammers = 512,
+      .needed_tools   = 100,
+      .blocked_by_tools_boycott = false };
     REQUIRE( f() == expected );
 
     colony.hammers = 0;
     set_tools( 100 );
     set_tools_ask( 6 );
-    expected =
-        RushConstruction{ .project = colony.construction.value(),
-                          .cost = 512 * 26 + 100 * ( 8 + 2 * 6 ),
-                          .total_hammers            = 512,
-                          .total_tools              = 200,
-                          .needed_hammers           = 512,
-                          .needed_tools             = 100,
-                          .blocked_by_tools_boycott = false };
+    expected = RushConstruction{
+      .project        = colony.construction.value(),
+      .cost           = ( 512 * 13 + 100 * ( 4 + 6 ) ) * 2,
+      .total_hammers  = 512,
+      .total_tools    = 200,
+      .needed_hammers = 512,
+      .needed_tools   = 100,
+      .blocked_by_tools_boycott = false };
     REQUIRE( f() == expected );
 
     colony.hammers = 200;
@@ -816,7 +816,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 6 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost = 312 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .cost    = 312 * 13 + 100 * ( 4 + 6 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 312,
@@ -829,7 +829,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 6 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost = 1 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .cost    = 1 * 13 + 100 * ( 4 + 6 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 1,
@@ -842,7 +842,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 6 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost = 0 * 26 + 100 * ( 8 + 2 * 6 ),
+                          .cost    = 0 * 13 + 100 * ( 4 + 6 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 0,
@@ -855,7 +855,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 3 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost    = 0 * 26 + 1 * ( 8 + 2 * 3 ),
+                          .cost    = 0 * 13 + 1 * ( 4 + 3 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 0,
@@ -868,7 +868,7 @@ TEST_CASE( "[construction] rush_construction_cost" ) {
     set_tools_ask( 3 );
     expected =
         RushConstruction{ .project = colony.construction.value(),
-                          .cost    = 0 * 26 + 0 * ( 8 + 2 * 3 ),
+                          .cost    = 0 * 13 + 0 * ( 4 + 3 ),
                           .total_hammers            = 512,
                           .total_tools              = 200,
                           .needed_hammers           = 0,
