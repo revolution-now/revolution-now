@@ -40,6 +40,8 @@ namespace rn::input {
 
 namespace {
 
+using ::gfx::point;
+
 // This is used to hold the last "measured" mouse position, where
 // "measured" means the last time there was a mouse motion event
 // that we processed in this module.  Clients cannot see this
@@ -655,6 +657,11 @@ mouse_move_event_t drag_event_to_mouse_motion_event(
   copy_common_base_object<mouse_move_event_t>( /*from=*/event,
                                                /*to=*/res );
   return res;
+}
+
+mouse_move_event_t mouse_move_event_from_curr_pos() {
+  point const curr = current_mouse_position();
+  return mouse_move_event_t{ mouse_event_base_t( curr ), curr };
 }
 
 /****************************************************************

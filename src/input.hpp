@@ -329,6 +329,13 @@ maybe<mouse_button_event_t> drag_event_to_mouse_button_event(
 mouse_move_event_t drag_event_to_mouse_motion_event(
     mouse_drag_event_t const& event );
 
+// This is useful during initialization of something that re-
+// sponds to mouse-over events in order to make its state consis-
+// tent with the current mouse position since otherwise it
+// wouldn't get a mouse move event until the user happens to next
+// move the mouse.
+mouse_move_event_t mouse_move_event_from_curr_pos();
+
 /****************************************************************
 ** For Testing
 *****************************************************************/

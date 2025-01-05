@@ -253,6 +253,9 @@ struct DifficultyScreen : public IPlane {
     if( auto const named = named_resolution( engine_ );
         named.has_value() )
       on_logical_resolution_changed( *named );
+    // Make the hover state consistent with the current mouse po-
+    // sition while waiting for the first mouse move event.
+    on_mouse_move( input::mouse_move_event_from_curr_pos() );
   }
 
   Layout layout_gen( e_resolution const resolution ) {
@@ -344,10 +347,7 @@ struct DifficultyScreen : public IPlane {
 
   void draw( rr::Renderer& renderer, const Layout& l ) const {
     // Background.
-    {
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .7 );
-      tile_sprite( renderer, e_tile::wood_middle, l.bg_rect );
-    }
+    tile_sprite( renderer, e_tile::wood_middle, l.bg_rect );
 
     // plates.
     for( auto const& [difficulty, cell] : l.cells )
