@@ -16,12 +16,16 @@
 // gfx
 #include "gfx/logical.rds.hpp"
 
+// base
+#include "base/logger.hpp"
+
 using namespace std;
 
 namespace vid {
 
 namespace {
 
+using ::base::lg;
 using ::base::maybe;
 
 // The purpose of this cache is so that we can have a consistent
@@ -84,8 +88,7 @@ bool can_shrink_window_to_fit(
 void shrink_window_to_fit( IVideo& video, WindowHandle const& wh,
                            gfx::Resolution const& resolution ) {
   if( !can_shrink_window_to_fit( video, wh, resolution ) ) {
-    // FIXME: logging
-    // lg.warn( "cannot adjust window size." );
+    lg.warn( "cannot adjust window size." );
     return;
   }
   // In case the window is maximized this must be done first.

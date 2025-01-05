@@ -285,7 +285,7 @@ struct OmniPlane::Impl : public IPlane {
         break;
       case e_menu_item::fit_window: {
         UNWRAP_CHECK( resolution, get_resolution( engine_ ) );
-        vid::can_shrink_window_to_fit(
+        vid::shrink_window_to_fit(
             engine_.video(), engine_.window(), resolution );
         break;
       }
