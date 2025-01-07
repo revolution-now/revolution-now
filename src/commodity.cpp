@@ -11,7 +11,6 @@
 #include "commodity.hpp"
 
 // Revolution Now
-#include "macros.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
 #include "unit-mgr.hpp"
@@ -48,31 +47,77 @@ namespace rn {
 
 namespace {
 
-#define TO_TILE( type )   \
-  case e_commodity::type: \
-    return PP_JOIN( e_tile::commodity_, type );
-
-#define TO_TILES( ... ) EVAL( PP_MAP( TO_TILE, __VA_ARGS__ ) )
-
-e_tile tile_for_commodity( e_commodity c ) {
+e_tile tile_for_commodity_16( e_commodity const c ) {
   switch( c ) {
-    TO_TILES( food,        //
-              sugar,       //
-              tobacco,     //
-              cotton,      //
-              furs,        //
-              lumber,      //
-              ore,         //
-              silver,      //
-              horses,      //
-              rum,         //
-              cigars,      //
-              cloth,       //
-              coats,       //
-              trade_goods, //
-              tools,       //
-              muskets      //
-    )
+    case e_commodity::food:
+      return e_tile::commodity_food_16;
+    case e_commodity::sugar:
+      return e_tile::commodity_sugar_16;
+    case e_commodity::tobacco:
+      return e_tile::commodity_tobacco_16;
+    case e_commodity::cotton:
+      return e_tile::commodity_cotton_16;
+    case e_commodity::furs:
+      return e_tile::commodity_furs_16;
+    case e_commodity::lumber:
+      return e_tile::commodity_lumber_16;
+    case e_commodity::ore:
+      return e_tile::commodity_ore_16;
+    case e_commodity::silver:
+      return e_tile::commodity_silver_16;
+    case e_commodity::horses:
+      return e_tile::commodity_horses_16;
+    case e_commodity::rum:
+      return e_tile::commodity_rum_16;
+    case e_commodity::cigars:
+      return e_tile::commodity_cigars_16;
+    case e_commodity::cloth:
+      return e_tile::commodity_cloth_16;
+    case e_commodity::coats:
+      return e_tile::commodity_coats_16;
+    case e_commodity::trade_goods:
+      return e_tile::commodity_trade_goods_16;
+    case e_commodity::tools:
+      return e_tile::commodity_tools_16;
+    case e_commodity::muskets:
+      return e_tile::commodity_muskets_16;
+  }
+}
+
+e_tile tile_for_commodity_20( e_commodity const c ) {
+  switch( c ) {
+    case e_commodity::food:
+      return e_tile::commodity_food_20;
+    case e_commodity::sugar:
+      return e_tile::commodity_sugar_20;
+    case e_commodity::tobacco:
+      return e_tile::commodity_tobacco_20;
+    case e_commodity::cotton:
+      return e_tile::commodity_cotton_20;
+    case e_commodity::furs:
+      return e_tile::commodity_furs_20;
+    case e_commodity::lumber:
+      return e_tile::commodity_lumber_20;
+    case e_commodity::ore:
+      return e_tile::commodity_ore_20;
+    case e_commodity::silver:
+      return e_tile::commodity_silver_20;
+    case e_commodity::horses:
+      return e_tile::commodity_horses_20;
+    case e_commodity::rum:
+      return e_tile::commodity_rum_20;
+    case e_commodity::cigars:
+      return e_tile::commodity_cigars_20;
+    case e_commodity::cloth:
+      return e_tile::commodity_cloth_20;
+    case e_commodity::coats:
+      return e_tile::commodity_coats_20;
+    case e_commodity::trade_goods:
+      return e_tile::commodity_trade_goods_20;
+    case e_commodity::tools:
+      return e_tile::commodity_tools_20;
+    case e_commodity::muskets:
+      return e_tile::commodity_muskets_20;
   }
 }
 
@@ -109,10 +154,9 @@ void render_commodity_label(
 }
 
 void render_commodity_impl(
-    rr::Renderer& renderer, Coord where, e_commodity type,
+    rr::Renderer& renderer, Coord where, e_tile tile,
     maybe<string> label, e_commodity_label_render_colors colors,
     bool dulled ) {
-  auto tile = tile_for_commodity( type );
   render_sprite_dulled( renderer, tile, where, dulled );
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
@@ -123,6 +167,24 @@ void render_commodity_impl(
       where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
                      .h = comm_size.h + 2 };
   render_commodity_label( renderer, origin, *label, colors );
+}
+
+void render_commodity_16_impl(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    maybe<string> label, e_commodity_label_render_colors colors,
+    bool dulled ) {
+  render_commodity_impl( renderer, where,
+                         tile_for_commodity_16( type ), label,
+                         colors, dulled );
+}
+
+void render_commodity_20_impl(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    maybe<string> label, e_commodity_label_render_colors colors,
+    bool dulled ) {
+  render_commodity_impl( renderer, where,
+                         tile_for_commodity_20( type ), label,
+                         colors, dulled );
 }
 
 string commodity_number_to_markup( int value ) {
@@ -148,8 +210,12 @@ Commodity with_quantity( Commodity const& in,
 /****************************************************************
 ** Public API
 *****************************************************************/
-Delta commodity_tile_size( e_commodity type ) {
-  return sprite_size( tile_for_commodity( type ) );
+Delta commodity_tile_size_16( e_commodity ) {
+  return { .w = 16, .h = 16 };
+}
+
+Delta commodity_tile_size_20( e_commodity ) {
+  return { .w = 20, .h = 20 };
 }
 
 maybe<e_commodity> commodity_from_index( int index ) {
@@ -288,32 +354,65 @@ maybe<string> commodity_label_to_markup(
   };
 }
 
-void render_commodity( rr::Renderer& renderer, Coord where,
-                       e_commodity type ) {
-  render_commodity_impl( renderer, where, type,
-                         /*label=*/nothing, /*colors=*/{},
-                         /*dulled=*/false );
+void render_commodity_16( rr::Renderer& renderer, Coord where,
+                          e_commodity type ) {
+  render_commodity_16_impl( renderer, where, type,
+                            /*label=*/nothing, /*colors=*/{},
+                            /*dulled=*/false );
 }
 
-void render_commodity_annotated(
+void render_commodity_20( rr::Renderer& renderer, Coord where,
+                          e_commodity type ) {
+  render_commodity_20_impl( renderer, where, type,
+                            /*label=*/nothing, /*colors=*/{},
+                            /*dulled=*/false );
+}
+
+void render_commodity_annotated_16(
     rr::Renderer& renderer, Coord where, e_commodity type,
     CommodityRenderStyle const& style ) {
   e_commodity_label_render_colors const colors =
       style.label.get_if<CommodityLabel::quantity>()
           .member( &CommodityLabel::quantity::colors )
           .value_or( e_commodity_label_render_colors::standard );
-  render_commodity_impl(
+  render_commodity_16_impl(
+      renderer, where, type,
+      commodity_label_to_markup( style.label ), colors,
+      style.dulled );
+}
+
+void render_commodity_annotated_20(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    CommodityRenderStyle const& style ) {
+  e_commodity_label_render_colors const colors =
+      style.label.get_if<CommodityLabel::quantity>()
+          .member( &CommodityLabel::quantity::colors )
+          .value_or( e_commodity_label_render_colors::standard );
+  render_commodity_20_impl(
       renderer, where, type,
       commodity_label_to_markup( style.label ), colors,
       style.dulled );
 }
 
 // Will use quantity as label.
-void render_commodity_annotated( rr::Renderer& renderer,
-                                 Coord where,
-                                 Commodity const& comm ) {
+void render_commodity_annotated_16( rr::Renderer& renderer,
+                                    Coord where,
+                                    Commodity const& comm ) {
   bool const dulled = ( comm.quantity < 100 );
-  render_commodity_annotated(
+  render_commodity_annotated_16(
+      renderer, where, comm.type,
+      CommodityRenderStyle{
+        .label =
+            CommodityLabel::quantity{ .value  = comm.quantity,
+                                      .colors = {} },
+        .dulled = dulled } );
+}
+
+void render_commodity_annotated_20( rr::Renderer& renderer,
+                                    Coord where,
+                                    Commodity const& comm ) {
+  bool const dulled = ( comm.quantity < 100 );
+  render_commodity_annotated_20(
       renderer, where, comm.type,
       CommodityRenderStyle{
         .label =

@@ -152,12 +152,12 @@ struct HarborPlane::Impl : public IPlane {
                        UnitRenderOptions{} );
         },
         [&]( HarborDraggableObject::market_commodity const& o ) {
-          render_commodity( renderer, sprite_upper_left,
-                            o.comm.type );
+          render_commodity_16( renderer, sprite_upper_left,
+                               o.comm.type );
         },
         [&]( HarborDraggableObject::cargo_commodity const& o ) {
-          render_commodity( renderer, sprite_upper_left,
-                            o.comm.type );
+          render_commodity_16( renderer, sprite_upper_left,
+                               o.comm.type );
         } );
     // Render any indicators on top of it.
     switch( state.indicator ) {

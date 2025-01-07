@@ -50,26 +50,26 @@ namespace rn {
 
 namespace {
 
-e_tile tile_for_outdoor_job( e_outdoor_job job ) {
+e_tile tile_for_outdoor_job_16( e_outdoor_job job ) {
   switch( job ) {
     case e_outdoor_job::food:
-      return e_tile::commodity_food;
+      return e_tile::commodity_food_16;
     case e_outdoor_job::fish:
       return e_tile::product_fish;
     case e_outdoor_job::sugar:
-      return e_tile::commodity_sugar;
+      return e_tile::commodity_sugar_16;
     case e_outdoor_job::tobacco:
-      return e_tile::commodity_tobacco;
+      return e_tile::commodity_tobacco_16;
     case e_outdoor_job::cotton:
-      return e_tile::commodity_cotton;
+      return e_tile::commodity_cotton_16;
     case e_outdoor_job::furs:
-      return e_tile::commodity_furs;
+      return e_tile::commodity_furs_16;
     case e_outdoor_job::lumber:
-      return e_tile::commodity_lumber;
+      return e_tile::commodity_lumber_16;
     case e_outdoor_job::ore:
-      return e_tile::commodity_ore;
+      return e_tile::commodity_ore_16;
     case e_outdoor_job::silver:
-      return e_tile::commodity_silver;
+      return e_tile::commodity_silver_16;
   }
 }
 
@@ -461,7 +461,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         renderer, unit_coord, desc.type,
         UnitRenderOptions{ .shadow = UnitShadow{} } );
     e_outdoor_job const job   = outdoor_unit->job;
-    e_tile const product_tile = tile_for_outdoor_job( job );
+    e_tile const product_tile = tile_for_outdoor_job_16( job );
     Coord const product_coord =
         square_coord + Delta{ .w = 4, .h = 4 };
     render_sprite( renderer, product_coord, product_tile );
@@ -488,7 +488,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   // food.
   {
     e_tile const product_tile =
-        tile_for_outdoor_job( e_outdoor_job::food );
+        tile_for_outdoor_job_16( e_outdoor_job::food );
     Coord const product_coord =
         square_coord + Delta{ .w = 12, .h = 4 };
     render_sprite( renderer, product_coord, product_tile );
@@ -508,7 +508,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   if( production.center_extra_production.has_value() ) {
     e_outdoor_job const job =
         production.center_extra_production->what;
-    e_tile const product_tile = tile_for_outdoor_job( job );
+    e_tile const product_tile = tile_for_outdoor_job_16( job );
     Coord const product_coord =
         square_coord + Delta{ .w = 12, .h = 32 };
     render_sprite( renderer, product_coord, product_tile );

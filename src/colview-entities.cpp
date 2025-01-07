@@ -442,7 +442,7 @@ class MarketCommodities
       // removed those from the colony store.
       if( *comm_it == dragging_.member( &Commodity::type ) )
         label.value = 0;
-      render_commodity_annotated(
+      render_commodity_annotated_16(
           renderer,
           rect.upper_left() + rendered_commodity_offset(),
           *comm_it,
@@ -662,7 +662,7 @@ class CargoView : public ui::View,
                              UnitRenderOptions{} );
               },
               [&]( Cargo::commodity const& c ) {
-                render_commodity_annotated(
+                render_commodity_annotated_16(
                     renderer,
                     rect.upper_left() +
                         kCommodityInCargoHoldRenderingOffset,
@@ -1893,8 +1893,8 @@ void colview_drag_n_drop_draw(
                      UnitRenderOptions{} );
       },
       [&]( ColViewObject::commodity const& o ) {
-        render_commodity( renderer, sprite_upper_left,
-                          o.comm.type );
+        render_commodity_16( renderer, sprite_upper_left,
+                             o.comm.type );
       } );
   // Render any indicators on top of it.
   switch( state.indicator ) {

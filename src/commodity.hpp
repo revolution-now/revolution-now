@@ -101,24 +101,33 @@ int move_commodity_as_much_as_possible(
 /****************************************************************
 ** Commodity Renderers
 *****************************************************************/
-Delta commodity_tile_size( e_commodity type );
+Delta commodity_tile_size_16( e_commodity type );
+Delta commodity_tile_size_20( e_commodity type );
 
-void render_commodity( rr::Renderer& renderer, Coord where,
-                       e_commodity type );
+void render_commodity_16( rr::Renderer& renderer, Coord where,
+                          e_commodity type );
+void render_commodity_20( rr::Renderer& renderer, Coord where,
+                          e_commodity type );
 
 // The "annotated" functions will render the label just below the
 // commodity sprite and both will have their centers aligned hor-
 // izontally. Note that the coordinate is the upper left corner
 // of the commodity sprite.
 
-void render_commodity_annotated(
+void render_commodity_annotated_16(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    CommodityRenderStyle const& style );
+void render_commodity_annotated_20(
     rr::Renderer& renderer, Coord where, e_commodity type,
     CommodityRenderStyle const& style );
 
 // Will use quantity as label and will render the icon greyed if
 // the quantity is less than 100.
-void render_commodity_annotated( rr::Renderer& renderer,
-                                 Coord where,
-                                 Commodity const& comm );
+void render_commodity_annotated_16( rr::Renderer& renderer,
+                                    Coord where,
+                                    Commodity const& comm );
+void render_commodity_annotated_20( rr::Renderer& renderer,
+                                    Coord where,
+                                    Commodity const& comm );
 
 } // namespace rn

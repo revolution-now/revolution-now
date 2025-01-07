@@ -279,7 +279,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     CommodityPrice price = market_price( player_, *comm_it );
     label.bid            = price.bid;
     label.ask            = price.ask;
-    render_commodity_annotated(
+    render_commodity_annotated_16(
         renderer,
         rect.upper_left() + kCommodityInCargoHoldRenderingOffset,
         *comm_it,

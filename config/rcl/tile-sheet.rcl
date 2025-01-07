@@ -830,27 +830,50 @@ sheets {
       img_path: assets/art/tiles/commodities.png
       sprite_size: { w: 16, h: 16 }
       sprites {
-        commodity_food:        { y: 0, x: 0  }
-        commodity_sugar:       { y: 0, x: 1  }
-        commodity_tobacco:     { y: 0, x: 2  }
-        commodity_cotton:      { y: 0, x: 3  }
-        commodity_furs:        { y: 0, x: 4  }
-        commodity_lumber:      { y: 0, x: 5  }
-        commodity_ore:         { y: 0, x: 6  }
-        commodity_silver:      { y: 0, x: 7  }
-        commodity_horses:      { y: 0, x: 8  }
-        commodity_rum:         { y: 0, x: 9  }
-        commodity_cigars:      { y: 0, x: 10 }
-        commodity_cloth:       { y: 0, x: 11 }
-        commodity_coats:       { y: 0, x: 12 }
-        commodity_trade_goods: { y: 0, x: 13 }
-        commodity_tools:       { y: 0, x: 14 }
-        commodity_muskets:     { y: 0, x: 15 }
+        commodity_food_16:        { y: 0, x: 0  }
+        commodity_sugar_16:       { y: 0, x: 1  }
+        commodity_tobacco_16:     { y: 0, x: 2  }
+        commodity_cotton_16:      { y: 0, x: 3  }
+        commodity_furs_16:        { y: 0, x: 4  }
+        commodity_lumber_16:      { y: 0, x: 5  }
+        commodity_ore_16:         { y: 0, x: 6  }
+        commodity_silver_16:      { y: 0, x: 7  }
+        commodity_horses_16:      { y: 0, x: 8  }
+        commodity_rum_16:         { y: 0, x: 9  }
+        commodity_cigars_16:      { y: 0, x: 10 }
+        commodity_cloth_16:       { y: 0, x: 11 }
+        commodity_coats_16:       { y: 0, x: 12 }
+        commodity_trade_goods_16: { y: 0, x: 13 }
+        commodity_tools_16:       { y: 0, x: 14 }
+        commodity_muskets_16:     { y: 0, x: 15 }
+
         product_fish:          { y: 1, x: 0  }
         product_hammers:       { y: 1, x: 1  }
         product_crosses:       { y: 1, x: 2  }
         product_bells:         { y: 1, x: 3  }
         boycott:               { y: 1, x: 4  }
+      }
+    }
+    {
+      img_path: assets/art/tiles/commodities20.png
+      sprite_size: { w: 20, h: 20 }
+      sprites {
+        commodity_food_20:        { y: 0, x: 0  }
+        commodity_sugar_20:       { y: 0, x: 1  }
+        commodity_tobacco_20:     { y: 0, x: 2  }
+        commodity_cotton_20:      { y: 0, x: 3  }
+        commodity_furs_20:        { y: 0, x: 4  }
+        commodity_lumber_20:      { y: 0, x: 5  }
+        commodity_ore_20:         { y: 0, x: 6  }
+        commodity_silver_20:      { y: 0, x: 7  }
+        commodity_horses_20:      { y: 0, x: 8  }
+        commodity_rum_20:         { y: 0, x: 9  }
+        commodity_cigars_20:      { y: 0, x: 10 }
+        commodity_cloth_20:       { y: 0, x: 11 }
+        commodity_coats_20:       { y: 0, x: 12 }
+        commodity_trade_goods_20: { y: 0, x: 13 }
+        commodity_tools_20:       { y: 0, x: 14 }
+        commodity_muskets_20:     { y: 0, x: 15 }
       }
     }
     {

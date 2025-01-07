@@ -43,20 +43,20 @@ namespace rn {
 
 namespace {
 
-maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
+maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
   switch( slot ) {
     case e_colony_building_slot::muskets:
-      return e_tile::commodity_muskets;
+      return e_tile::commodity_muskets_16;
     case e_colony_building_slot::tools:
-      return e_tile::commodity_tools;
+      return e_tile::commodity_tools_16;
     case e_colony_building_slot::rum:
-      return e_tile::commodity_rum;
+      return e_tile::commodity_rum_16;
     case e_colony_building_slot::cloth:
-      return e_tile::commodity_cloth;
+      return e_tile::commodity_cloth_16;
     case e_colony_building_slot::coats:
-      return e_tile::commodity_furs;
+      return e_tile::commodity_furs_16;
     case e_colony_building_slot::cigars:
-      return e_tile::commodity_cigars;
+      return e_tile::commodity_cigars_16;
     case e_colony_building_slot::hammers:
       return e_tile::product_hammers;
     case e_colony_building_slot::town_hall:
@@ -68,7 +68,7 @@ maybe<e_tile> tile_for_slot( e_colony_building_slot slot ) {
     case e_colony_building_slot::offshore:
       return nothing;
     case e_colony_building_slot::horses:
-      return e_tile::commodity_horses;
+      return e_tile::commodity_horses_16;
     case e_colony_building_slot::wall:
       return nothing;
     case e_colony_building_slot::warehouses:
@@ -187,7 +187,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     maybe<int> quantity =
         production_for_slot( colview_production(), slot );
     if( quantity.has_value() ) {
-      UNWRAP_CHECK( tile, tile_for_slot( slot ) );
+      UNWRAP_CHECK( tile, tile_for_slot_16( slot ) );
       Coord pos =
           rect.upper_left() + Delta{ .w = 2 } +
           Delta{

@@ -390,7 +390,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
             break;
           }
           CASE( commodity ) {
-            render_commodity_annotated(
+            render_commodity_annotated_16(
                 renderer,
                 dst_coord + kCommodityInCargoHoldRenderingOffset,
                 commodity.obj );
