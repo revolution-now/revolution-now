@@ -26,7 +26,6 @@ enum.e_harbor_view_entity {
   in_port,
   outbound,
   inbound,
-  exit,
   backdrop,
   dock,
   rpt, # recruit/purchase/train buttons.

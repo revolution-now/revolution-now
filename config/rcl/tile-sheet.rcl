@@ -70,6 +70,54 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/exit-text.png
+      sprite_size: { w: 20, h: 18 }
+      sprites {
+        harbor_exit_text:       { y: 0, x: 0 }
+        harbor_exit_text_hover: { y: 0, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/slashes.png
+      sprite_size: { w: 4, h: 8 }
+      sprites {
+        harbor_market_slash_slim:   { y: 0, x: 0 }
+        harbor_market_slash_medium: { y: 0, x: 1 }
+        harbor_market_slash_wide:   { y: 0, x: 2 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/plates-slim.png
+      sprite_size: { w: 32, h: 36 }
+      sprites {
+        harbor_market_sign_left_slim: { y: 0, x: 0 }
+        harbor_market_plate_slim:     { y: 0, x: 1 }
+        harbor_market_sign_exit_slim: { y: 0, x: 2 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/plates-medium.png
+      sprite_size: { w: 36, h: 36 }
+      sprites {
+        harbor_market_plate_medium:     { y: 0, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/plates-wide.png
+      sprite_size: { w: 40, h: 40 }
+      sprites {
+        harbor_market_plate_wide:     { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/signs-wide.png
+      sprite_size: { w: 64, h: 40 }
+      sprites {
+        harbor_market_sign_left_wide: { y: 0, x: 0 }
+        harbor_market_sign_exit_wide: { y: 0, x: 1 }
+      }
+    }
+    {
       img_path: assets/art/tiles/dwellings.png
       sprite_size: { w: 44, h: 44 }
       sprites {
@@ -874,6 +922,8 @@ sheets {
         commodity_trade_goods_20: { y: 0, x: 13 }
         commodity_tools_20:       { y: 0, x: 14 }
         commodity_muskets_20:     { y: 0, x: 15 }
+
+        commodity_glow_20: { y: 1, x: 0 }
       }
     }
     {

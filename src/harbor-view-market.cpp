@@ -15,7 +15,9 @@
 #include "cheat.hpp"
 #include "commodity.hpp"
 #include "igui.hpp"
+#include "input.hpp"
 #include "market.hpp"
+#include "renderer.hpp"
 #include "tax.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
@@ -27,7 +29,11 @@
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
 
+// render
+#include "render/typer.hpp"
+
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/iter.hpp"
 
 // refl
@@ -37,20 +43,25 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+using ::refl::enum_values;
+
+} // namespace
 
 /****************************************************************
 ** HarborMarketCommodities
 *****************************************************************/
 Delta HarborMarketCommodities::delta() const {
-  int x_boxes = 16;
-  int y_boxes = 1;
-  if( stacked_ ) {
-    x_boxes = 8;
-    y_boxes = 2;
-  }
-  // +1 in each dimension for the border.
-  return Delta{ .w = 32 * x_boxes + 1, .h = 32 * y_boxes + 1 };
+  size sz;
+  sz.w = layout_.left_sign.size.w;
+  sz.w += layout_.exit_sign.size.w;
+  sz.w += 16 * layout_.plates[e_commodity::food].size.w;
+  sz.h = layout_.left_sign.size.h;
+  return sz;
 }
 
 maybe<int> HarborMarketCommodities::entity() const {
@@ -70,6 +81,8 @@ wait<> HarborMarketCommodities::perform_click(
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
   CHECK( event.pos.is_inside( rect( {} ) ) );
+  if( event.pos.is_inside( layout_.exit_sign ) )
+    throw harbor_view_exit_interrupt{};
   auto obj = object_here( event.pos );
   if( !obj.has_value() ) co_return;
   HarborDraggableObject const& harbor_obj = obj->obj;
@@ -94,23 +107,20 @@ wait<> HarborMarketCommodities::perform_click(
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborMarketCommodities::object_here(
     Coord const& where ) const {
-  Rect const r     = rect( Coord{} );
-  Rect const boxes = r / g_tile_delta;
-  UNWRAP_CHECK( comm_idx,
-                boxes.rasterize( where / g_tile_delta ) );
-  UNWRAP_CHECK( comm_type, commodity_from_index( comm_idx ) );
-  Coord const box_origin =
-      where.rounded_to_multiple_to_minus_inf( g_tile_delta ) +
-      kCommodityInCargoHoldRenderingOffset;
-  Rect const box =
-      Rect::from( box_origin, Delta{ .w = 1, .h = 1 } *
-                                  Delta{ .w = 16, .h = 16 } );
+  auto const comm_type = [&]() -> maybe<e_commodity> {
+    for( auto const comm : enum_values<e_commodity> ) {
+      if( point( where ).is_inside( layout_.plates[comm] ) )
+        return comm;
+    }
+    return nothing;
+  }();
+  if( !comm_type.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
     .obj =
         HarborDraggableObject::market_commodity{
           .comm =
-              Commodity{ .type = comm_type, .quantity = 100 } },
-    .bounds = box };
+              Commodity{ .type = *comm_type, .quantity = 100 } },
+    .bounds = layout_.comm_icon[*comm_type] };
 }
 
 bool HarborMarketCommodities::try_drag(
@@ -134,8 +144,7 @@ wait<maybe<HarborDraggableObject>>
 HarborMarketCommodities::user_edit_object() const {
   UNWRAP_CHECK( comm, dragging_.member( &Draggable::comm ) );
   string const text = fmt::format(
-      "What quantity of [{}] would you like to buy? "
-      "(0-100):",
+      "What quantity of [{}] would you like to buy? (0-100):",
       lowercase_commodity_display_name( comm.type ) );
 
   maybe<int> const quantity =
@@ -255,87 +264,253 @@ wait<> HarborMarketCommodities::drop(
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,
-                                    Coord coord ) const {
-  rr::Painter painter = renderer.painter();
-  auto bds            = rect( coord );
-  // Our delta for this view has one extra pixel added to the
-  // width and height to allow for the border, and so we need to
-  // remove that otherwise the subrects method below will create
-  // too many boxes.
-  --bds.w;
-  --bds.h;
-  auto comm_it = refl::enum_values<e_commodity>.begin();
-  auto label   = CommodityLabel::buy_sell{};
-  for( Rect const rect : gfx::subrects( bds, g_tile_delta ) ) {
-    CHECK( comm_it != refl::enum_values<e_commodity>.end() );
-    // FIXME: this color should be deduped with the one in the
-    // colony view.
-    static gfx::pixel const bg_color =
-        gfx::pixel{ .r = 0x90, .g = 0x90, .b = 0xc0, .a = 0xff };
-    painter.draw_solid_rect( rect, bg_color );
-    painter.draw_empty_rect( rect,
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel::white() );
-    CommodityPrice price = market_price( player_, *comm_it );
-    label.bid            = price.bid;
-    label.ask            = price.ask;
-    render_commodity_annotated_16(
-        renderer,
-        rect.upper_left() + kCommodityInCargoHoldRenderingOffset,
-        *comm_it,
-        CommodityRenderStyle{ .label  = label,
-                              .dulled = false } );
-    if( player_.old_world.market.commodities[*comm_it].boycott )
+                                    Coord const coord ) const {
+  SCOPED_RENDERER_MOD_ADD(
+      painter_mods.repos.translation,
+      point( coord ).distance_from_origin().to_double() );
+
+  render_sprite( renderer, layout_.left_sign.nw(),
+                 layout_.left_sign_tile );
+  render_sprite( renderer, layout_.exit_sign.nw(),
+                 layout_.exit_sign_tile );
+
+  point const mouse_pos = input::current_mouse_position()
+                              .to_gfx()
+                              .point_becomes_origin( coord );
+
+  bool const hover_over_exit =
+      mouse_pos.is_inside( layout_.exit_sign );
+  render_sprite( renderer, layout_.exit_text.nw(),
+                 hover_over_exit ? e_tile::harbor_exit_text_hover
+                                 : e_tile::harbor_exit_text );
+
+  for( auto const comm : enum_values<e_commodity> ) {
+    auto const& r = layout_.plates[comm];
+    render_sprite( renderer, r.nw(), layout_.comm_plate_tile );
+    if( mouse_pos.is_inside( layout_.panel_inner_rect[comm] ) )
+      // Glow behind commodity.
+      render_sprite( renderer, layout_.comm_icon[comm].origin,
+                     e_tile::commodity_glow_20 );
+
+    render_commodity_20( renderer,
+                         layout_.comm_icon[comm].origin, comm );
+
+#if 0
+    rr::Painter painter = renderer.painter();
+    painter.draw_solid_rect( layout_.bid_ask[comm],
+                             gfx::pixel::red() );
+#endif
+    CommodityPrice const price = market_price( player_, comm );
+    string const bid_str       = to_string( price.bid );
+    string const ask_str       = to_string( price.ask );
+    size const bid_text_size =
+        rr::rendered_text_line_size_pixels( bid_str );
+    size const ask_text_size =
+        rr::rendered_text_line_size_pixels( ask_str );
+    size const total_size{
+      .w = bid_text_size.w + layout_.bid_ask_padding +
+           layout_.slash_size.w + +layout_.bid_ask_padding +
+           ask_text_size.w,
+      .h =
+          std::max( std::max( bid_text_size.h, ask_text_size.h ),
+                    layout_.slash_size.h ) };
+    point const label_origin =
+        gfx::centered_in( total_size, layout_.bid_ask[comm] );
+
+    point const bid_text_origin = label_origin;
+    renderer.typer( bid_text_origin, gfx::pixel::black() )
+        .write( bid_str );
+    point const slash_origin =
+        bid_text_origin + size{ .w = layout_.bid_ask_padding } +
+        size{ .w = bid_text_size.w };
+    render_sprite( renderer, slash_origin, layout_.slash_tile );
+    point const ask_text_origin =
+        slash_origin + size{ .w = layout_.bid_ask_padding } +
+        size{ .w = layout_.slash_size.w };
+    renderer.typer( ask_text_origin, gfx::pixel::black() )
+        .write( ask_str );
+
+    if( player_.old_world.market.commodities[comm].boycott )
       render_sprite( renderer,
-                     rect.upper_left() +
-                         kCommodityInCargoHoldRenderingOffset,
+                     layout_.boycott_render_rect[comm].origin,
                      e_tile::boycott );
-    ++comm_it;
   }
-  CHECK( comm_it == refl::enum_values<e_commodity>.end() );
 }
 
 PositionedHarborSubView<HarborMarketCommodities>
 HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
                                  Rect canvas ) {
-  Delta const size = canvas.delta();
-  W comm_block_width =
-      size.w / SX{ refl::enum_count<e_commodity> };
-  comm_block_width =
-      clamp( comm_block_width, kCommodityTileSize.w, 32 );
+  size const sz = canvas.delta();
+
+  Layout layout;
+
+  // Scale.
+  e_harbor_market_scale const scale = [&] {
+    if( sz.w < 640 ) return e_harbor_market_scale::slim;
+    if( sz.w >= 768 ) return e_harbor_market_scale::wide;
+    return e_harbor_market_scale::medium;
+  }();
+  layout.scale = scale;
+
+  size const boycott_render_offset   = { .w = 2, .h = 2 };
+  size const panel_inner_rect_offset = { .w = 3, .h = 4 };
+
+  switch( scale ) {
+    case e_harbor_market_scale::slim:
+      layout.left_sign_tile =
+          e_tile::harbor_market_sign_left_slim;
+      layout.exit_sign_tile =
+          e_tile::harbor_market_sign_exit_slim;
+      layout.comm_plate_tile = e_tile::harbor_market_plate_slim;
+      for( auto const comm : enum_values<e_commodity> )
+        layout.panel_inner_rect[comm].size = { .w = 26,
+                                               .h = 22 };
+      for( auto const comm : enum_values<e_commodity> )
+        layout.bid_ask[comm] = { .origin = { .x = 4, .y = 29 },
+                                 .size   = { .w = 24, .h = 6 } };
+      layout.slash_tile      = e_tile::harbor_market_slash_slim;
+      layout.slash_size      = { .w = 3, .h = 8 };
+      layout.bid_ask_padding = 0;
+      break;
+    case e_harbor_market_scale::medium:
+      layout.left_sign_tile =
+          e_tile::harbor_market_sign_left_slim;
+      layout.exit_sign_tile =
+          e_tile::harbor_market_sign_exit_slim;
+      layout.comm_plate_tile =
+          e_tile::harbor_market_plate_medium;
+      for( auto const comm : enum_values<e_commodity> )
+        layout.panel_inner_rect[comm].size = { .w = 30,
+                                               .h = 22 };
+      for( auto const comm : enum_values<e_commodity> )
+        layout.bid_ask[comm] = { .origin = { .x = 5, .y = 29 },
+                                 .size   = { .w = 26, .h = 6 } };
+      layout.slash_tile = e_tile::harbor_market_slash_medium;
+      layout.slash_size = { .w = 4, .h = 8 };
+      layout.bid_ask_padding = 0;
+      break;
+    case e_harbor_market_scale::wide:
+      layout.left_sign_tile =
+          e_tile::harbor_market_sign_left_wide;
+      layout.exit_sign_tile =
+          e_tile::harbor_market_sign_exit_wide;
+      layout.comm_plate_tile = e_tile::harbor_market_plate_wide;
+      for( auto const comm : enum_values<e_commodity> )
+        layout.panel_inner_rect[comm].size = { .w = 34,
+                                               .h = 26 };
+      for( auto const comm : enum_values<e_commodity> )
+        layout.bid_ask[comm] = { .origin = { .x = 5, .y = 33 },
+                                 .size   = { .w = 30, .h = 6 } };
+      layout.slash_tile      = e_tile::harbor_market_slash_wide;
+      layout.slash_size      = { .w = 4, .h = 8 };
+      layout.bid_ask_padding = 1;
+      break;
+  }
+
+  size const panel_tile_size =
+      sprite_size( layout.comm_plate_tile );
+  size const comm_panels_size = { .w = panel_tile_size.w * 16,
+                                  .h = panel_tile_size.h };
+  point const comm_panels_nw =
+      centered_at_bottom( comm_panels_size, canvas );
+  rn::rect const comm_panels_rect{ .origin = comm_panels_nw,
+                                   .size   = comm_panels_size };
+  for( int i = 0; auto const comm : enum_values<e_commodity> ) {
+    layout.plates[comm].origin.x =
+        comm_panels_nw.x + panel_tile_size.w * i;
+    layout.plates[comm].origin.y = comm_panels_nw.y;
+    layout.plates[comm].size     = panel_tile_size;
+    ++i;
+  }
+
+  // Make the bid/ask text rects relative to the plate nw.
+  for( auto const comm : enum_values<e_commodity> )
+    layout.bid_ask[comm].origin +=
+        layout.plates[comm].origin.distance_from_origin();
+
+  size const left_sign_size =
+      sprite_size( layout.left_sign_tile );
+  point const left_sign_nw = {
+    .x = comm_panels_nw.x - left_sign_size.w,
+    .y = comm_panels_nw.y };
+  point const view_origin = left_sign_nw;
+
+  size const exit_sign_size =
+      sprite_size( layout.exit_sign_tile );
+  point const exit_sign_nw = comm_panels_rect.ne();
+  size const exit_text_size =
+      sprite_size( e_tile::harbor_exit_text );
+  layout.exit_text.origin = gfx::centered_in(
+      exit_text_size, gfx::rect{ .origin = exit_sign_nw,
+                                 .size   = exit_sign_size } );
+  layout.exit_text.origin.y += 2; // looks better.
+
+  size const comm_tile_size =
+      sprite_size( e_tile::commodity_food_20 );
+  size const boycott_tile_size = sprite_size( e_tile::boycott );
+  for( auto const comm : enum_values<e_commodity> ) {
+    layout.comm_icon[comm].origin =
+        layout.panel_inner_rect[comm].origin =
+            layout.plates[comm].origin + panel_inner_rect_offset;
+    layout.comm_icon[comm].origin = gfx::centered_in(
+        comm_tile_size, layout.panel_inner_rect[comm] );
+    layout.comm_icon[comm].size = comm_tile_size;
+    layout.boycott_render_rect[comm].origin =
+        layout.comm_icon[comm].origin + boycott_render_offset;
+    layout.boycott_render_rect[comm].size = boycott_tile_size;
+  }
+
+  // Now make all points relative to nw of view (left sign).
+
+  for( auto const comm : enum_values<e_commodity> )
+    layout.plates[comm].origin =
+        layout.plates[comm].origin.point_becomes_origin(
+            view_origin );
+
+  for( auto const comm : enum_values<e_commodity> )
+    layout.panel_inner_rect[comm].origin =
+        layout.panel_inner_rect[comm]
+            .origin.point_becomes_origin( view_origin );
+
+  layout.left_sign = {
+    .origin = left_sign_nw.point_becomes_origin( view_origin ),
+    .size   = left_sign_size };
+
+  layout.exit_sign = {
+    .origin = exit_sign_nw.point_becomes_origin( view_origin ),
+    .size   = exit_sign_size };
+  layout.exit_text.origin =
+      layout.exit_text.origin.point_becomes_origin(
+          view_origin );
+
+  for( auto const comm : enum_values<e_commodity> ) {
+    layout.comm_icon[comm].origin =
+        layout.comm_icon[comm].origin.point_becomes_origin(
+            view_origin );
+    layout.boycott_render_rect[comm].origin =
+        layout.boycott_render_rect[comm]
+            .origin.point_becomes_origin( view_origin );
+  }
+
+  for( auto const comm : enum_values<e_commodity> )
+    layout.bid_ask[comm].origin =
+        layout.bid_ask[comm].origin.point_becomes_origin(
+            view_origin );
+
   unique_ptr<HarborMarketCommodities> view;
   HarborSubView* harbor_sub_view = nullptr;
-  Coord pos;
-  bool stacked = false;
-  if( size.w >= HarborMarketCommodities::single_layer_width &&
-      size.h >= HarborMarketCommodities::single_layer_height ) {
-    stacked = false;
-    pos     = Coord{
-          .x = canvas.center().x -
-           HarborMarketCommodities::single_layer_width / 2,
-          .y = canvas.bottom_edge() -
-           HarborMarketCommodities::single_layer_height - 1 };
-  } else {
-    stacked = true;
-    pos     = Coord{
-          .x = canvas.center().x -
-           HarborMarketCommodities::double_layer_width / 2,
-          .y = canvas.bottom_edge() -
-           HarborMarketCommodities::double_layer_height - 1 };
-  };
   view = make_unique<HarborMarketCommodities>( ss, ts, player,
-                                               stacked );
+                                               layout );
   harbor_sub_view                   = view.get();
   HarborMarketCommodities* p_actual = view.get();
   return PositionedHarborSubView<HarborMarketCommodities>{
-    .owned  = { .view = std::move( view ), .coord = pos },
+    .owned = { .view = std::move( view ), .coord = view_origin },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }
 
-HarborMarketCommodities::HarborMarketCommodities( SS& ss, TS& ts,
-                                                  Player& player,
-                                                  bool stacked )
-  : HarborSubView( ss, ts, player ), stacked_( stacked ) {}
+HarborMarketCommodities::HarborMarketCommodities(
+    SS& ss, TS& ts, Player& player, Layout const& layout )
+  : HarborSubView( ss, ts, player ), layout_( layout ) {}
 
 } // namespace rn

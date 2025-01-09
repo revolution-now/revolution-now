@@ -27,6 +27,17 @@ struct SS;
 struct TS;
 struct Player;
 
+enum class e_tile;
+
+/****************************************************************
+** e_harbor_market_scale
+*****************************************************************/
+enum class e_harbor_market_scale {
+  slim,
+  medium,
+  wide,
+};
+
 /****************************************************************
 ** HarborMarketCommodities
 *****************************************************************/
@@ -38,11 +49,31 @@ struct HarborMarketCommodities
     public IDragSourceCheck<HarborDraggableObject>,
     public IDragSink<HarborDraggableObject>,
     public IDragSinkCheck<HarborDraggableObject> {
+  struct Layout {
+    using CommRect = refl::enum_map<e_commodity, gfx::rect>;
+    e_harbor_market_scale scale = {};
+    // All relative to nw of view.
+    gfx::rect left_sign;
+    gfx::rect exit_sign;
+    CommRect plates;
+    e_tile left_sign_tile  = {};
+    e_tile exit_sign_tile  = {};
+    e_tile comm_plate_tile = {};
+    e_tile slash_tile      = {};
+    gfx::size slash_size;
+    CommRect panel_inner_rect; // Area where comm is rendered.
+    CommRect comm_icon;
+    CommRect boycott_render_rect; // red x.
+    CommRect bid_ask;
+    int bid_ask_padding = {};
+    gfx::rect exit_text;
+  };
+
   static PositionedHarborSubView<HarborMarketCommodities> create(
       SS& ss, TS& ts, Player& player, Rect canvas );
 
   HarborMarketCommodities( SS& ss, TS& ts, Player& player,
-                           bool stacked );
+                           Layout const& layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -100,7 +131,9 @@ struct HarborMarketCommodities
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
 
-  bool stacked() const { return stacked_; }
+  auto scale() const { return layout_.scale; }
+
+  bool stacked() const { return false; }
 
  private:
   // Returns true if the commodity is boycotted and the player
@@ -130,9 +163,9 @@ struct HarborMarketCommodities
     Commodity comm           = {};
     PriceChange price_change = {};
   };
-
   maybe<Draggable> dragging_;
-  bool stacked_ = false;
+
+  Layout const layout_;
 };
 
 } // namespace rn

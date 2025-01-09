@@ -706,6 +706,7 @@ enum.e_tile {
   commodity_muskets_20,
 
   boycott,
+  commodity_glow_20,
 
   # =============================================================
   # Products
@@ -759,6 +760,23 @@ enum.e_tile {
   harbor_dock_left,
   harbor_dock_middle,
   harbor_dock_right,
+
+  harbor_market_plate_slim,
+  harbor_market_plate_medium,
+  harbor_market_plate_wide,
+
+  harbor_market_sign_left_slim,
+  harbor_market_sign_left_wide,
+
+  harbor_market_sign_exit_slim,
+  harbor_market_sign_exit_wide,
+
+  harbor_exit_text,
+  harbor_exit_text_hover,
+
+  harbor_market_slash_slim,
+  harbor_market_slash_medium,
+  harbor_market_slash_wide,
 
   # =============================================================
   # Mouse Cursors
