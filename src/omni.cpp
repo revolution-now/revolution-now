@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "omni.hpp"
 
+// rds
+#include "omni-impl.rds.hpp"
+
 // Revolution Now
 #include "aspect.hpp"
 #include "cheat.hpp"
@@ -19,6 +22,7 @@
 #include "imenu-server.hpp"
 #include "input.hpp"
 #include "plane.hpp"
+#include "query-enum.hpp"
 #include "screen.hpp"
 #include "text.hpp"
 #include "tiles.hpp"
@@ -54,7 +58,11 @@ namespace rn {
 
 namespace {
 
-bool g_debug_resolution_overlay = false;
+using ::refl::enum_count;
+using ::refl::enum_from_integral;
+using ::refl::enum_value_name;
+
+e_debug_overlay_level g_debug_overlay = {};
 
 auto const kSupportedMenuItems = [] {
   refl::enum_map<e_menu_item, bool> m;
@@ -66,9 +74,13 @@ auto const kSupportedMenuItems = [] {
   return m;
 }();
 
-string toggle_omni_overlay() {
-  g_debug_resolution_overlay = !g_debug_resolution_overlay;
-  return g_debug_resolution_overlay ? "on" : "off";
+string_view cycle_omni_overlay() {
+  UNWRAP_CHECK_T(
+      g_debug_overlay,
+      enum_from_integral<e_debug_overlay_level>(
+          ( static_cast<int>( g_debug_overlay ) + 1 ) %
+          enum_count<e_debug_overlay_level> ) );
+  return enum_value_name( g_debug_overlay );
 }
 
 string named_ratio_canonical_name(
@@ -413,10 +425,12 @@ struct OmniPlane::Impl : public IPlane {
   }
 
   void render_debug_overlays( rr::Renderer& renderer ) const {
-    render_framerate( renderer );
-    if( g_debug_resolution_overlay )
+    if( g_debug_overlay >= e_debug_overlay_level::fps )
+      render_framerate( renderer );
+    if( g_debug_overlay >= e_debug_overlay_level::resolution )
+      render_logical_resolution( renderer );
+    if( g_debug_overlay >= e_debug_overlay_level::full )
       render_resolution_info( renderer );
-    render_logical_resolution( renderer );
   }
 
   bool window_too_small() const {
@@ -497,7 +511,7 @@ struct OmniPlane::Impl : public IPlane {
             break;
           case ::SDLK_o:
             if( key_event.mod.ctrl_down ) {
-              toggle_omni_overlay();
+              cycle_omni_overlay();
               handled = e_input_handled::yes;
             }
             break;
@@ -549,7 +563,7 @@ OmniPlane::OmniPlane( IEngine& engine, IMenuServer& menu_server )
 *****************************************************************/
 namespace {
 
-LUA_AUTO_FN( toggle_omni_overlay );
+LUA_AUTO_FN( cycle_omni_overlay );
 
 }
 

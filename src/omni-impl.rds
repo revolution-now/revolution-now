@@ -1,0 +1,18 @@
+# ===============================================================
+# omni-impl.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-08.
+#
+# Description: Rds definitions for the omni-impl module.
+#
+# ===============================================================
+namespace "rn"
+
+enum.e_debug_overlay_level {
+  none,
+  fps,
+  resolution,
+  full,
+}
