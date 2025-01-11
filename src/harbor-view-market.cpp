@@ -334,6 +334,24 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
       render_sprite( renderer,
                      layout_.boycott_render_rect[comm].origin,
                      e_tile::boycott );
+
+    // Tooltip.
+    // TODO: need to move this to the window plane and make sure
+    // that it reflows the text so that it fits on-screen.
+    if( mouse_pos.is_inside( layout_.panel_inner_rect[comm] ) ) {
+      string const tooltip =
+          fmt::format( "{} (Bidding {}, Asking {})",
+                       uppercase_commodity_display_name( comm ),
+                       price.bid, price.ask );
+      size const tooltip_size =
+          rr::rendered_text_line_size_pixels( tooltip );
+      point const tooltip_origin = gfx::centered_at_bottom(
+          tooltip_size,
+          layout_.plates[comm].with_new_bottom_edge(
+              layout_.plates[comm].top() ) );
+      renderer.typer( tooltip_origin, gfx::pixel::black() )
+          .write( tooltip );
+    }
   }
 }
 
