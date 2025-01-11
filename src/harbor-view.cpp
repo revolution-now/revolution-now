@@ -27,6 +27,9 @@
 #include "config/nation.hpp"
 #include "config/text.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"

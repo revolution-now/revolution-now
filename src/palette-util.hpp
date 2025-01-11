@@ -12,9 +12,6 @@
 
 #include "core-config.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/pixel.hpp"
 

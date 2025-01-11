@@ -22,6 +22,10 @@
 #include "harbor-view-rpt.hpp"
 #include "views.hpp"
 
+// render
+#include "render/painter.hpp"
+#include "render/renderer.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 

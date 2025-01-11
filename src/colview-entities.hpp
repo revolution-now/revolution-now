@@ -24,9 +24,6 @@
 #include "view.hpp"
 #include "wait.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/coord.hpp"
 

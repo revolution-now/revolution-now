@@ -38,6 +38,9 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // gfx
 #include "gfx/iter.hpp"
 

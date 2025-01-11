@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// render
+#include "stencil.hpp"
+
 // gfx
 #include "gfx/cartesian.hpp"
 #include "gfx/pixel.hpp"
@@ -77,11 +80,6 @@ struct RepositionInfo {
 
 struct ColorCyclingInfo {
   base::maybe<int> plan = {};
-};
-
-struct StencilPlan {
-  int replacement_atlas_id = {};
-  gfx::pixel key_color     = {};
 };
 
 struct PainterMods {

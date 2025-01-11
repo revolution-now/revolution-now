@@ -18,6 +18,9 @@
 // config
 #include "config/ui.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // base
 #include "base/range-lite.hpp"
 #include "base/string.hpp"

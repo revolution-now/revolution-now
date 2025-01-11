@@ -16,16 +16,18 @@
 #include "config/tile-enum-fwd.hpp"
 
 // render
-#include "render/painter.hpp"
+#include "render/stencil.hpp"
 
 // gfx
 #include "gfx/coord.hpp"
+#include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <string_view>
 
 namespace rr {
 struct Renderer;
+struct Painter;
 }
 
 namespace rn {

@@ -15,6 +15,9 @@
 // Revolution Now
 #include "harbor-view-entities.hpp"
 
+// gfx
+#include "gfx/pixel.hpp"
+
 namespace rn {
 
 struct SS;

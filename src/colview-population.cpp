@@ -24,6 +24,9 @@
 #include "ss/settings.hpp"
 #include "ss/units.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 using namespace std;
 
 namespace rn {

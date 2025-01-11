@@ -16,6 +16,9 @@
 // config
 #include "config/tile-enum.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 using namespace std;
 
 namespace rn {

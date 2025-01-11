@@ -25,6 +25,8 @@
 
 // render
 #include "render/extra.hpp"
+#include "render/painter.hpp"
+#include "render/renderer.hpp"
 
 // gfx
 #include "gfx/coord.hpp"

@@ -43,7 +43,9 @@
 #include "views.hpp"
 
 // config
+#include "config/colony.rds.hpp"
 #include "config/unit-type.hpp"
+#include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
@@ -52,9 +54,8 @@
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
-// config
-#include "config/colony.rds.hpp"
-#include "config/unit-type.rds.hpp"
+// render
+#include "render/renderer.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"

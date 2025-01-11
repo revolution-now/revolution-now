@@ -19,6 +19,7 @@
 #include "text.hpp"
 
 // render
+#include "render/renderer.hpp"
 #include "render/typer.hpp"
 
 using namespace std;

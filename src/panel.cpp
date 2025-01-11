@@ -35,6 +35,10 @@
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+#include "render/typer.hpp"
+
 // ss
 #include "ss/land-view.rds.hpp"
 #include "ss/players.hpp"

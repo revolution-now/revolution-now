@@ -16,15 +16,16 @@
 // Revolution Now
 #include "font.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/coord.hpp"
 #include "gfx/pixel.hpp"
 
 // C++ standard library
 #include <tuple>
+
+namespace rr {
+struct Renderer;
+}
 
 namespace rn {
 

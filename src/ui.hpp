@@ -15,8 +15,9 @@
 // Revolution Now
 #include "input.hpp"
 
-// render
-#include "render/renderer.hpp"
+namespace rr {
+struct Renderer;
+}
 
 namespace rn::ui {
 

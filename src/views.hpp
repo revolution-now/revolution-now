@@ -29,9 +29,6 @@
 #include "ss/unit-type.hpp"
 #include "ss/unit.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // gfx
 #include "gfx/pixel.hpp"
 

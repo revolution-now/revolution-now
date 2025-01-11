@@ -25,6 +25,9 @@
 #include "config/gfx.rds.hpp"
 #include "config/rn.rds.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // gfx
 #include "gfx/logical.rds.hpp"
 
