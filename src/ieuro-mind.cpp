@@ -33,7 +33,7 @@ IEuroMind::IEuroMind( e_nation nation ) : nation_( nation ) {}
 ** NoopEuroMind
 *****************************************************************/
 NoopEuroMind::NoopEuroMind( SSConst const& ss, e_nation nation )
-  : IEuroMind( nation ), ss_(ss) {}
+  : IEuroMind( nation ), ss_( ss ) {}
 
 wait<> NoopEuroMind::message_box( string const& ) { co_return; }
 

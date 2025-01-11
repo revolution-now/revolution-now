@@ -33,7 +33,7 @@ check() {
     fi
   done
   erase_current_line
-  echo "all source files already formatted."
+  echo "All source files are already formatted."
 }
 
 # Actually format the files (in place).
@@ -42,4 +42,4 @@ format() {
 }
 
 check
-#format
+# format

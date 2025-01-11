@@ -82,7 +82,7 @@ struct heap_value : zero<heap_value<T>, T*> {
   // it must always do an allocation on any construction, in-
   // cluding move construction. On the bright side, it is
   // no-throw move assignable.
-  heap_value( heap_value&& rhs ) noexcept(false)
+  heap_value( heap_value&& rhs ) noexcept( false )
     : heap_value( std::move( *rhs ) ) {}
 
   // A copied heap_value will do a deep copy, performaing a heap
