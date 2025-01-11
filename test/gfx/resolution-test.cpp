@@ -63,8 +63,8 @@ TEST_CASE( "[gfx/resolution] resolution_size" ) {
 TEST_CASE( "[gfx/resolution] supported_resolutions" ) {
   using enum e_resolution;
   vector const expected{
-    _640x360, _768x432, _576x360,  _640x400,  _720x450, _640x480,
-    _960x720, _852x360, _1280x540, _1146x480, _860x360, _960x400,
+    _640x360, _768x432, _576x360, _640x400, _720x450,
+    _640x480, _852x360, _860x360, _960x400,
   };
   REQUIRE( supported_resolutions() == expected );
 }

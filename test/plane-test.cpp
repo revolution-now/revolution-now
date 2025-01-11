@@ -78,10 +78,7 @@ TEST_CASE( "[plane] on_logical_resolution_changed" ) {
     p.EXPECT__supports_resolution( _640x400 ).returns( false );
     p.EXPECT__supports_resolution( _720x450 ).returns( true );
     p.EXPECT__supports_resolution( _640x480 ).returns( true );
-    p.EXPECT__supports_resolution( _960x720 ).returns( true );
     p.EXPECT__supports_resolution( _852x360 ).returns( true );
-    p.EXPECT__supports_resolution( _1280x540 ).returns( true );
-    p.EXPECT__supports_resolution( _1146x480 ).returns( true );
     p.EXPECT__supports_resolution( _860x360 ).returns( true );
     p.EXPECT__supports_resolution( _960x400 ).returns( true );
 
