@@ -1576,6 +1576,35 @@ cdr::result<BLCS> from_canonical(
                          cdr::tag_t<BLCS> );
 
 /****************************************************************
+** Mission
+*****************************************************************/
+struct Mission {
+  nation_4bit_type nation_id : 4 = {};
+  bool expert : 1 = {};
+  uint8_t unknown : 3 = {};
+
+  bool operator==( Mission const& ) const = default;
+};
+
+// String conversion.
+void to_str( Mission const& o, std::string& out, base::tag<Mission> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Mission& o );
+
+bool write_binary( base::IBinaryIO& b, Mission const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Mission const& o,
+                         cdr::tag_t<Mission> );
+
+cdr::result<Mission> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Mission> );
+
+/****************************************************************
 ** TribeFlags
 *****************************************************************/
 struct TribeFlags {
@@ -2833,7 +2862,7 @@ struct DWELLING {
   nation_type nation_id = {};
   BLCS blcs = {};
   uint8_t population = {};
-  int8_t mission = {};
+  Mission mission = {};
   int8_t growth_counter = {};
   bytes<1> unknown28a = {};
   bytes<1> last_bought = {};

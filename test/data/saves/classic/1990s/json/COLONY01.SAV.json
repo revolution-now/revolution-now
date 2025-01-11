@@ -20188,7 +20188,11 @@
         "unused09": "0000"
       },
       "population": 13,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "0e",
@@ -20226,7 +20230,11 @@
         "unused09": "0000"
       },
       "population": 10,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20264,7 +20272,11 @@
         "unused09": "0000"
       },
       "population": 2,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 13,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20302,7 +20314,11 @@
         "unused09": "0000"
       },
       "population": 4,
-      "mission": 0,
+      "mission": {
+        "nation_id": "England",
+        "expert": false,
+        "unknown": "000"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20340,7 +20356,11 @@
         "unused09": "0000"
       },
       "population": 4,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20378,7 +20398,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20416,7 +20440,11 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20454,7 +20482,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20492,7 +20524,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20530,7 +20566,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20568,7 +20608,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20606,7 +20650,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20644,7 +20692,11 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20682,7 +20734,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20720,7 +20776,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20758,7 +20818,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20796,7 +20860,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20834,7 +20902,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20872,7 +20944,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20910,7 +20986,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20948,7 +21028,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -20986,7 +21070,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": 0,
+      "mission": {
+        "nation_id": "England",
+        "expert": false,
+        "unknown": "000"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21024,7 +21112,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21062,7 +21154,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21100,7 +21196,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21138,7 +21238,11 @@
         "unused09": "0000"
       },
       "population": 9,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "0b",
@@ -21176,7 +21280,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21214,7 +21322,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21252,7 +21364,11 @@
         "unused09": "0000"
       },
       "population": 7,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21290,7 +21406,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21328,7 +21448,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21366,7 +21490,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": 0,
+      "mission": {
+        "nation_id": "England",
+        "expert": false,
+        "unknown": "000"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21404,7 +21532,11 @@
         "unused09": "0000"
       },
       "population": 5,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -21442,7 +21574,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",

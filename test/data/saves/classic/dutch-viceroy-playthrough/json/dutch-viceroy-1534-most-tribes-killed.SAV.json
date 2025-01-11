@@ -6686,7 +6686,11 @@
         "unused09": "0000"
       },
       "population": 4,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6724,7 +6728,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6762,7 +6770,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6800,7 +6812,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6838,7 +6854,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6876,7 +6896,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6914,7 +6938,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6952,7 +6980,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -6990,7 +7022,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7028,7 +7064,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7066,7 +7106,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7104,7 +7148,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7142,7 +7190,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7180,7 +7232,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7218,7 +7274,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7256,7 +7316,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7294,7 +7358,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7332,7 +7400,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7370,7 +7442,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",
@@ -7408,7 +7484,11 @@
         "unused09": "0000"
       },
       "population": 3,
-      "mission": -1,
+      "mission": {
+        "nation_id": "None",
+        "expert": true,
+        "unknown": "111"
+      },
       "growth_counter": 0,
       "unknown28a": "ff",
       "last_bought": "ff",

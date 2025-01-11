@@ -3572,6 +3572,64 @@ cdr::result<BLCS> from_canonical(
 }
 
 /****************************************************************
+** Mission
+*****************************************************************/
+void to_str( Mission const& o, std::string& out, base::tag<Mission> ) {
+  out += "Mission{";
+  out += "nation_id="; base::to_str( o.nation_id, out ); out += ',';
+  out += "expert="; base::to_str( o.expert, out ); out += ',';
+  out += "unknown="; base::to_str( bits<3>{ o.unknown }, out );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Mission& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.nation_id = static_cast<nation_4bit_type>( bits & 0b1111 ); bits >>= 4;
+  o.expert = (bits & 0b1); bits >>= 1;
+  o.unknown = (bits & 0b111); bits >>= 3;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, Mission const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.unknown & 0b111); bits <<= 1;
+  bits |= (o.expert & 0b1); bits <<= 4;
+  bits |= (static_cast<uint8_t>( o.nation_id ) & 0b1111); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         Mission const& o,
+                         cdr::tag_t<Mission> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "nation_id", o.nation_id );
+  conv.to_field( tbl, "expert", o.expert );
+  conv.to_field( tbl, "unknown", bits<3>{ o.unknown } );
+  tbl["__key_order"] = cdr::list{
+    "nation_id",
+    "expert",
+    "unknown",
+  };
+  return tbl;
+}
+
+cdr::result<Mission> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Mission> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  Mission res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "nation_id", nation_id );
+  CONV_FROM_FIELD( "expert", expert );
+  CONV_FROM_BITSTRING_FIELD( "unknown", unknown, 3 );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** TribeFlags
 *****************************************************************/
 void to_str( TribeFlags const& o, std::string& out, base::tag<TribeFlags> ) {
