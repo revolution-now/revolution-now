@@ -273,6 +273,7 @@ HarborViewComposited recomposite_harbor_view(
   // [HarborBackdrop] -------------------------------------------
   PositionedHarborSubView<HarborBackdrop> backdrop =
       HarborBackdrop::create( ss, ts, player, canvas_rect );
+  auto const& backdrop_ref = *backdrop.actual;
   composition.entities[e_harbor_view_entity::backdrop] =
       backdrop.harbor;
   // NOTE: this one needs to be inserted at the beginning because
