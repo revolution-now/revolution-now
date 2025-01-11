@@ -24,13 +24,14 @@ struct SS;
 struct TS;
 struct Player;
 
+enum class e_tile;
+
 /****************************************************************
 ** HarborBackdrop
 *****************************************************************/
 struct HarborBackdrop : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborBackdrop> create(
-      SS& ss, TS& ts, Player& player, Rect canvas,
-      Coord cargo_upper_right, Coord inport_upper_right );
+      SS& ss, TS& ts, Player& player, Rect canvas );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -61,11 +62,14 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   static W const kDockEdgeThickness = 7;
   static W const kDockSegmentWidth  = 32;
   struct Layout {
+    gfx::pixel sky_color = gfx::pixel::from_hex_rgb( 0x86c2d3 );
+    gfx::rect ocean;
+    gfx::point clouds_origin;
+    std::vector<std::pair<gfx::size, e_tile>> clouds;
+
     // Distance from the bottom to the horizon.
-    H horizon              = {};
-    X land_tip             = {};
-    Coord dock_lower_right = {};
-    int num_dock_segments  = {};
+    int horizon_height = {};
+    int horizon_y      = {};
   };
 
  public:
@@ -73,11 +77,12 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
                   Layout layout );
 
  private:
-  static Layout recomposite( Delta size, Coord cargo_upper_right,
-                             Coord inport_upper_right );
+  static Layout recomposite( gfx::size size );
 
-  Delta size_;
-  Layout layout_;
+  static void insert_clouds( Layout& l, gfx::size shift );
+
+  Delta const size_;
+  Layout const layout_;
 };
 
 } // namespace rn
