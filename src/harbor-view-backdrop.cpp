@@ -64,6 +64,12 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
 
   // Ocean.
   tile_sprite( renderer, e_tile::harbor_ocean, layout_.ocean );
+
+  // Land.
+  render_sprite( renderer, layout_.land_origin,
+                 e_tile::harbor_land_shadows );
+  render_sprite( renderer, layout_.land_origin,
+                 e_tile::harbor_land_dirt );
 }
 
 HarborBackdrop::DockUnitsLayout
@@ -113,6 +119,7 @@ void HarborBackdrop::insert_clouds( Layout& l,
 HarborBackdrop::Layout HarborBackdrop::recomposite(
     size const sz ) {
   Layout l;
+  rect const all{ .size = sz };
 
   // Horizon.
   l.horizon_height = 152;
@@ -121,7 +128,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.horizon_y = sz.h - l.horizon_height;
 
   // Sun.
-  l.sun = rect{ .size = sz }.with_new_bottom_edge(
+  l.sun = all.with_new_bottom_edge(
       sprite_size( e_tile::harbor_sun ).h );
 
   // Clouds.
@@ -134,6 +141,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.ocean =
       rect{ .origin = { .x = 0, .y = sz.h - l.horizon_height },
             .size   = { .w = sz.w, .h = l.horizon_height } };
+
+  // Land.
+  l.land_origin =
+      all.se() - sprite_size( e_tile::harbor_land_dirt );
 
   return l;
 }

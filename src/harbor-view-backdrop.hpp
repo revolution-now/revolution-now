@@ -67,6 +67,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     gfx::point clouds_origin;
     std::vector<std::pair<gfx::size, e_tile>> clouds;
     gfx::rect sun;
+    gfx::point land_origin;
 
     // Distance from the bottom to the horizon.
     int horizon_height = {};

@@ -793,6 +793,10 @@ enum.e_tile {
   harbor_cloud_tiny_1,
   harbor_cloud_tiny_2,
 
+  # Land.
+  harbor_land_dirt,
+  harbor_land_shadows,
+
   # =============================================================
   # Mouse Cursors
   # =============================================================

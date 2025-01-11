@@ -44,6 +44,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::size;
+
 vector<int> cache;
 
 int atlas_lookup( e_tile tile ) {
@@ -68,7 +70,7 @@ void init_sprites( rr::Renderer& renderer ) {
 
 void deinit_sprites() { cache.clear(); }
 
-Delta sprite_size( e_tile tile ) {
+gfx::size sprite_size( e_tile tile ) {
   // FIXME: find a better way to do this. Maybe store it in the
   // renderer object.
   static auto const sizes = [] {
@@ -84,7 +86,7 @@ Delta sprite_size( e_tile tile ) {
     }
     return res;
   }();
-  return Delta::from_gfx( sizes[tile] );
+  return sizes[tile];
 }
 
 void render_sprite( rr::Painter& painter, Rect where,
@@ -190,7 +192,7 @@ void tile_sprite( rr::Renderer& renderer, e_tile tile,
 void render_rect_of_sprites_with_border(
     rr::Renderer& renderer, // where to draw it
     Coord dest_origin,      // pixel coord of upper left
-    Delta size_tiles,       // tile coords, including border
+    size size_tiles,        // tile coords, including border
     e_tile middle,          //
     e_tile top,             //
     e_tile bottom,          //

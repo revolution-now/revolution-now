@@ -54,7 +54,7 @@ inline constexpr Delta g_tile_delta = Delta{
 /****************************************************************
 ** Querying Tiles
 *****************************************************************/
-Delta sprite_size( e_tile tile );
+gfx::size sprite_size( e_tile tile );
 
 /****************************************************************
 ** Rendering Tiles
@@ -109,7 +109,7 @@ void tile_sprite( rr::Renderer& renderer, e_tile tile,
 void render_rect_of_sprites_with_border(
     rr::Renderer& renderer, // where to draw it
     Coord dest_origin,      // pixel coord of upper left
-    Delta size_tiles,       // tile coords, including border
+    gfx::size size_tiles,   // tile coords, including border
     e_tile middle,          //
     e_tile top,             //
     e_tile bottom,          //

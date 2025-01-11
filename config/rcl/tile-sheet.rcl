@@ -58,6 +58,20 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/land-dirt.png
+      sprite_size: { w: 310, h: 158 }
+      sprites {
+        harbor_land_dirt: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/land-shadows.png
+      sprite_size: { w: 310, h: 158 }
+      sprites {
+        harbor_land_shadows: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/clouds-large.png
       sprite_size: { w: 180, h: 40 }
       sprites {
