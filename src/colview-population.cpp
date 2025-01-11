@@ -90,7 +90,7 @@ void PopulationView::draw_sons_of_liberty(
       "{}% ({})", info.tory_integral_percent, info.tories );
   gfx::size const tories_text_width =
       rr::rendered_text_line_size_pixels( tories_str );
-  pos.x = rect( coord ).right_edge() - kIconPadding -
+  pos.x = bounds( coord ).right_edge() - kIconPadding -
           sprite_size( e_tile::crown ).w - kIconPadding -
           tories_text_width.w;
   rr::Typer typer = renderer.typer(
@@ -107,7 +107,7 @@ void PopulationView::draw( rr::Renderer& renderer,
   draw_sons_of_liberty( renderer, coord );
   // Draw colonists.
   rr::Painter painter = renderer.painter();
-  painter.draw_empty_rect( rect( coord ).with_inc_size(),
+  painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                            rr::Painter::e_border_mode::inside,
                            gfx::pixel::black() );
   vector<UnitId> units = colony_units_all( colony_ );

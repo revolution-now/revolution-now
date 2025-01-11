@@ -80,7 +80,7 @@ wait<> HarborMarketCommodities::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
-  CHECK( event.pos.is_inside( rect( {} ) ) );
+  CHECK( event.pos.is_inside( bounds( {} ) ) );
   if( event.pos.is_inside( layout_.exit_sign ) )
     throw harbor_view_exit_interrupt{};
   auto obj = object_here( event.pos );
@@ -459,8 +459,8 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
   size const exit_text_size =
       sprite_size( e_tile::harbor_exit_text );
   layout.exit_text.origin = gfx::centered_in(
-      exit_text_size, gfx::rect{ .origin = exit_sign_nw,
-                                 .size   = exit_sign_size } );
+      exit_text_size,
+      rect{ .origin = exit_sign_nw, .size = exit_sign_size } );
   layout.exit_text.origin.y += 2; // looks better.
 
   size const comm_tile_size =

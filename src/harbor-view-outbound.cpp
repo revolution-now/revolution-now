@@ -101,7 +101,7 @@ HarborOutboundShips::object_here( Coord const& where ) const {
 vector<HarborOutboundShips::UnitWithPosition>
 HarborOutboundShips::units( Coord origin ) const {
   vector<UnitWithPosition> units;
-  Rect const r = rect( origin );
+  Rect const r = bounds( origin );
   Coord coord  = r.lower_right() - g_tile_delta;
   for( UnitId id :
        harbor_units_outbound( ss_.units, player_.nation ) ) {
@@ -145,7 +145,7 @@ wait<> HarborOutboundShips::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
-  CHECK( event.pos.is_inside( rect( {} ) ) );
+  CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitWithPosition> const unit =
       unit_at_location( event.pos );
   if( !unit.has_value() ) co_return;
@@ -195,7 +195,7 @@ wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
 void HarborOutboundShips::draw( rr::Renderer& renderer,
                                 Coord coord ) const {
   rr::Painter painter = renderer.painter();
-  auto r              = rect( coord );
+  auto r              = bounds( coord );
   painter.draw_empty_rect( r, rr::Painter::e_border_mode::inside,
                            gfx::pixel::white() );
   rr::Typer typer =

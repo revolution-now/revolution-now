@@ -82,12 +82,13 @@ class HarborStatusBar : public ui::View, public HarborSubView {
   void draw( rr::Renderer& renderer,
              Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_solid_rect( rect( coord ), gfx::pixel::wood() );
+    painter.draw_solid_rect( bounds( coord ),
+                             gfx::pixel::wood() );
     renderer
         .typer( centered( Delta::from_gfx(
                               rr::rendered_text_line_size_pixels(
                                   status() ) ),
-                          rect( coord ) ),
+                          bounds( coord ) ),
                 gfx::pixel::banana() )
         .write( status() );
   }
@@ -166,7 +167,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
           p_view->upper_left.as_if_origin_were( pos_view.coord );
       return p_view;
     }
-    if( coord.is_inside( rect( {} ) ) )
+    if( coord.is_inside( bounds( {} ) ) )
       return PositionedDraggableSubView<HarborDraggableObject>{
         this, Coord{} };
     return nothing;
@@ -222,7 +223,7 @@ HarborViewComposited recomposite_harbor_view(
   composition.entities[e_harbor_view_entity::status_bar] =
       status_bar.get();
   Y const status_bar_bottom =
-      status_bar->rect( available.upper_left() ).bottom_edge();
+      status_bar->bounds( available.upper_left() ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
     .view  = std::move( status_bar ),
     .coord = available.upper_left() } );

@@ -476,7 +476,7 @@ void MiniMapView::draw_impl( rr::Renderer& renderer,
   // Finally we draw the white box. Actually we draw each segment
   // separately so that we can make rounded corners.
   gfx::rect const white_box =
-      white_box_pixels().clamped( rect( Coord{} ) );
+      white_box_pixels().clamped( bounds( Coord{} ) );
   gfx::rect const bounds = gfx::rect{
     .origin = {}, .size = mini_map_.size_screen_pixels() };
   gfx::pixel const kBoxColor =

@@ -71,7 +71,7 @@ class Object {
   // Given a position, returns a bounding rect.  We need to be
   // given a position here because Objects don't know their
   // position, only their size.
-  ND virtual Rect rect( Coord position ) const {
+  ND virtual Rect bounds( Coord position ) const {
     return Rect::from( position, delta() );
   }
   // Returns true is the input was handled. Mouse coordinates

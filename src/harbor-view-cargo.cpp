@@ -101,7 +101,7 @@ maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return nothing;
   Unit const& unit = ss_.units.unit_for( *active_unit );
-  auto boxes       = rect( Coord{} ) / g_tile_delta;
+  auto boxes       = bounds( Coord{} ) / g_tile_delta;
   UNWRAP_RETURN( slot, boxes.rasterize( where / g_tile_delta ) );
   if( slot >= unit.cargo().slots_total() ) return nothing;
   return slot;
@@ -348,7 +348,7 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
 void HarborCargo::draw( rr::Renderer& renderer,
                         Coord coord ) const {
   rr::Painter painter = renderer.painter();
-  auto r              = rect( coord );
+  auto r              = bounds( coord );
   // Our delta for this view has one extra pixel added to the
   // width and height to allow for the border, and so we need to
   // remove that otherwise the to-grid method below will create

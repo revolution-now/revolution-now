@@ -177,7 +177,7 @@ ui::View const& ColonyLandView::view() const noexcept {
 
 wait<> ColonyLandView::perform_click(
     input::mouse_button_event_t const& event ) {
-  CHECK( event.pos.is_inside( rect( {} ) ) );
+  CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitId> unit_id = unit_under_cursor( event.pos );
   if( !unit_id.has_value() ) co_return;
 
@@ -534,7 +534,7 @@ void ColonyLandView::draw( rr::Renderer& renderer,
       draw_land_3x3( renderer, coord );
       break;
     case e_render_mode::_5x5:
-      painter.draw_solid_rect( rect( coord ),
+      painter.draw_solid_rect( bounds( coord ),
                                gfx::pixel::wood() );
       draw_land_3x3( renderer, coord + g_tile_delta );
       break;

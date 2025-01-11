@@ -34,14 +34,14 @@ struct PositionedView {
   View* view;
   Coord coord;
 
-  Rect rect() const { return view->rect( coord ); }
+  Rect rect() const { return view->bounds( coord ); }
 };
 NOTHROW_MOVE( PositionedView );
 struct PositionedViewConst {
   View const* view;
   Coord coord;
 
-  Rect rect() const { return view->rect( coord ); }
+  Rect rect() const { return view->bounds( coord ); }
 };
 NOTHROW_MOVE( PositionedViewConst );
 
@@ -50,7 +50,7 @@ struct OwningPositionedView {
   std::unique_ptr<View> view;
   Coord coord;
 
-  Rect rect() const { return view->rect( coord ); }
+  Rect rect() const { return view->bounds( coord ); }
 };
 
 } // namespace rn::ui

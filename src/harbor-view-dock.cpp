@@ -87,7 +87,7 @@ HarborDockUnits::object_here( Coord const& where ) const {
 vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
     Coord origin ) const {
   vector<UnitWithPosition> units;
-  Rect const r    = rect( origin );
+  Rect const r    = bounds( origin );
   X const x_start = r.lower_left().x;
   Coord coord = r.lower_left() - Delta{ .h = g_tile_delta.h };
   for( UnitId id :
@@ -144,7 +144,7 @@ wait<> HarborDockUnits::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
-  CHECK( event.pos.is_inside( rect( {} ) ) );
+  CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitWithPosition> const unit =
       unit_at_location( event.pos );
   if( !unit.has_value() ) co_return;

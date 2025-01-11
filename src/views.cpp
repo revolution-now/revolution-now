@@ -86,7 +86,7 @@ void CompositeView::draw( rr::Renderer& renderer,
 }
 
 Delta CompositeView::delta() const {
-  auto uni0n = L2( _1.uni0n( _2.view->rect( _2.coord ) ) );
+  auto uni0n = L2( _1.uni0n( _2.view->bounds( _2.coord ) ) );
   auto rect  = accumulate( begin(), end(), Rect{}, uni0n );
   return { .w = rect.w, .h = rect.h };
 }
@@ -264,7 +264,7 @@ unique_ptr<View>& VectorView::mutable_at( int idx ) {
 *****************************************************************/
 void SolidRectView::draw( rr::Renderer& renderer,
                           Coord coord ) const {
-  renderer.painter().draw_solid_rect( rect( coord ), color_ );
+  renderer.painter().draw_solid_rect( bounds( coord ), color_ );
 }
 
 /****************************************************************
@@ -551,12 +551,13 @@ void LineEditorView::render_background( rr::Renderer& renderer,
 // Implement Object
 void LineEditorView::draw( rr::Renderer& renderer,
                            Coord coord ) const {
-  render_background( renderer, rect( coord ) );
+  render_background( renderer, bounds( coord ) );
   auto all_chars = prompt_ + current_rendering_;
   gfx::size text_size =
       rr::rendered_text_line_size_pixels( current_rendering_ );
   Y text_pos_y =
-      centered( Delta::from_gfx( text_size ), rect( coord ) ).y;
+      centered( Delta::from_gfx( text_size ), bounds( coord ) )
+          .y;
   rr::Typer typer = renderer.typer(
       Coord{ .x = coord.x + 1, .y = text_pos_y }, fg_ );
   typer.write( all_chars );
@@ -999,9 +1000,9 @@ void CheckBoxView::draw( rr::Renderer& renderer,
       config_ui.dialog_text.highlighted;
   static gfx::pixel const x_color_shaded =
       config_ui.dialog_text.highlighted.shaded( 1 );
-  painter.draw_solid_rect( rect( coord ), background_color );
+  painter.draw_solid_rect( bounds( coord ), background_color );
   render_shadow_hightlight_border(
-      renderer, rect( coord ).edges_removed(),
+      renderer, bounds( coord ).edges_removed(),
       config_ui.window.border_lighter.highlighted(),
       config_ui.window.border_darker.shaded() );
 

@@ -325,12 +325,13 @@ class TitleBar : public ui::View, public ColonySubView {
   void draw( rr::Renderer& renderer,
              Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_solid_rect( rect( coord ), gfx::pixel::wood() );
+    painter.draw_solid_rect( bounds( coord ),
+                             gfx::pixel::wood() );
     renderer
         .typer( centered( Delta::from_gfx(
                               rr::rendered_text_line_size_pixels(
                                   title() ) ),
-                          rect( coord ) ),
+                          bounds( coord ) ),
                 gfx::pixel::banana() )
         .write( title() );
   }
@@ -459,7 +460,7 @@ class MarketCommodities
 
   maybe<DraggableObjectWithBounds<ColViewObject>> object_here(
       Coord const& coord ) const override {
-    if( !coord.is_inside( rect( {} ) ) ) return nothing;
+    if( !coord.is_inside( bounds( {} ) ) ) return nothing;
     auto sprite_scale =
         Delta{ .w = SX{ block_width_ }, .h = SY{ 32 } };
     auto box_upper_left =
@@ -511,7 +512,7 @@ class MarketCommodities
   maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int /*from_entity*/,
       Coord const& where ) const override {
-    CHECK( where.is_inside( rect( {} ) ) );
+    CHECK( where.is_inside( bounds( {} ) ) );
     if( o.holds<ColViewObject::commodity>() )
       return CanReceiveDraggable<ColViewObject>::yes{
         .draggable = o };
@@ -593,7 +594,7 @@ class CargoView : public ui::View,
   // of this view.
   maybe<pair<bool, int>> slot_idx_from_coord(
       Coord const& c ) const {
-    if( !c.is_inside( rect( {} ) ) ) return nothing;
+    if( !c.is_inside( bounds( {} ) ) ) return nothing;
     if( c.y > 0 + g_tile_delta.h ) return nothing;
     int slot_idx = ( c / g_tile_delta ).distance_from_origin().w;
     bool is_open =
@@ -619,7 +620,7 @@ class CargoView : public ui::View,
   void draw( rr::Renderer& renderer,
              Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( rect( coord ),
+    painter.draw_empty_rect( bounds( coord ),
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::black() );
     auto unit = holder_.fmap(
@@ -679,7 +680,7 @@ class CargoView : public ui::View,
   maybe<CanReceiveDraggable<ColViewObject>> can_receive(
       ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
-    CHECK( where.is_inside( rect( {} ) ) );
+    CHECK( where.is_inside( bounds( {} ) ) );
     if( !holder_ ) return nothing;
     maybe<pair<bool, int>> slot_info =
         slot_idx_from_coord( where );
@@ -1042,7 +1043,7 @@ class UnitsAtGateColonyView
   void draw( rr::Renderer& renderer,
              Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+    painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
@@ -1073,7 +1074,7 @@ class UnitsAtGateColonyView
       input::mouse_button_event_t const& event ) override {
     if( event.buttons != input::e_mouse_button_event::left_up )
       co_return;
-    CHECK( event.pos.is_inside( rect( {} ) ) );
+    CHECK( event.pos.is_inside( bounds( {} ) ) );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( event.pos.is_inside(
               Rect::from( unit_pos, g_tile_delta ) ) ) {
@@ -1314,8 +1315,8 @@ class UnitsAtGateColonyView
       ColViewObject const& o, int from_entity,
       Coord const& where ) const override {
     CONVERT_ENTITY( from_enum, from_entity );
-    CHECK( where.is_inside( rect( {} ) ) );
-    if( !where.is_inside( rect( {} ) ) ) return nothing;
+    CHECK( where.is_inside( bounds( {} ) ) );
+    if( !where.is_inside( bounds( {} ) ) ) return nothing;
     return overload_visit(
         o, //
         [&]( ColViewObject::unit const& unit ) {
@@ -1588,7 +1589,7 @@ class ProductionView : public ui::View, public ColonySubView {
   void draw( rr::Renderer& renderer,
              Coord coord ) const override {
     rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( rect( coord ).with_inc_size(),
+    painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     SCOPED_RENDERER_MOD_ADD(
@@ -1610,7 +1611,7 @@ class ProductionView : public ui::View, public ColonySubView {
   // Implement AwaitView.
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override {
-    CHECK( event.pos.is_inside( rect( {} ) ) );
+    CHECK( event.pos.is_inside( bounds( {} ) ) );
     if( event.buttons ==
         input::e_mouse_button_event::right_up ) {
       maybe<RushConstruction> const invoice =
@@ -1686,7 +1687,7 @@ struct CompositeColSubView : public ui::InvisibleView,
           p_view->upper_left.as_if_origin_were( pos_view.coord );
       return p_view;
     }
-    if( coord.is_inside( rect( {} ) ) )
+    if( coord.is_inside( bounds( {} ) ) )
       return PositionedDraggableSubView<ColViewObject>{
         this, Coord{} };
     return nothing;
@@ -1742,7 +1743,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       title_bar.get();
   pos = Coord{};
   Y const title_bar_bottom =
-      title_bar->rect( pos ).bottom_edge();
+      title_bar->bounds( pos ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
     .view = std::move( title_bar ), .coord = pos } );
 
@@ -1775,7 +1776,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       population_view.get();
   pos = Coord{ .x = 0, .y = middle_strip_top };
   X const population_right_edge =
-      population_view->rect( pos ).right_edge();
+      population_view->bounds( pos ).right_edge();
   views.push_back( ui::OwningPositionedView{
     .view = std::move( population_view ), .coord = pos } );
 
@@ -1789,7 +1790,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
   pos = Coord{ .x = population_right_edge,
                .y = middle_strip_top + 32 + 16 };
   X const cargo_right_edge =
-      cargo_view->rect( pos ).right_edge();
+      cargo_view->bounds( pos ).right_edge();
   auto* p_cargo_view = cargo_view.get();
   views.push_back( ui::OwningPositionedView{
     .view = std::move( cargo_view ), .coord = pos } );
@@ -1836,7 +1837,7 @@ void recomposite( SS& ss, TS& ts, Player& player, Colony& colony,
       land_view.get();
   pos = g_composition.entities[e_colview_entity::title_bar]
             ->view()
-            .rect( Coord{} )
+            .bounds( Coord{} )
             .lower_right() -
         Delta{ .w = land_view->delta().w };
   X const land_view_left_edge = pos.x;
