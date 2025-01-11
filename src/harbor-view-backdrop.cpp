@@ -54,6 +54,9 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
   painter.draw_solid_rect( Rect::from( coord, size_ ),
                            layout_.sky_color );
 
+  // Sun.
+  tile_sprite( renderer, e_tile::harbor_sun, layout_.sun );
+
   // Clouds.
   for( auto const& [delta, tile] : layout_.clouds )
     render_sprite( renderer, layout_.clouds_origin + delta,
@@ -116,6 +119,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   CHECK( l.horizon_height ==
          sprite_size( e_tile::harbor_ocean ).h );
   l.horizon_y = sz.h - l.horizon_height;
+
+  // Sun.
+  l.sun = rect{ .size = sz }.with_new_bottom_edge(
+      sprite_size( e_tile::harbor_sun ).h );
 
   // Clouds.
   l.clouds_origin = point{ .x = sz.w / 2, .y = l.horizon_y };

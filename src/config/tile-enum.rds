@@ -773,6 +773,7 @@ enum.e_tile {
   harbor_market_slash_wide,
 
   # Sky
+  harbor_sun,
   harbor_cloud_large_1,
   harbor_cloud_large_2,
   harbor_cloud_large_3,

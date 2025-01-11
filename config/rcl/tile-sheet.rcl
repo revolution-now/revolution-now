@@ -51,6 +51,13 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/sun.png
+      sprite_size: { w: 16, h: 63 }
+      sprites {
+        harbor_sun: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/clouds-large.png
       sprite_size: { w: 180, h: 40 }
       sprites {
