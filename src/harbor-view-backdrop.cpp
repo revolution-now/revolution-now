@@ -118,7 +118,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.horizon_y = sz.h - l.horizon_height;
 
   // Clouds.
-  l.clouds_origin = point{ .x = sz.w / 2, l.horizon_y };
+  l.clouds_origin = point{ .x = sz.w / 2, .y = l.horizon_y };
   insert_clouds( l, /*shift=*/size{} );
   insert_clouds( l, /*shift=*/size{ .w = -600, .h = -25 } );
   insert_clouds( l, /*shift=*/size{ .w = 600, .h = -25 } );
