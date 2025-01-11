@@ -29,32 +29,6 @@ sheets {
       }
     }
     {
-      img_path: assets/art/harbor/harbor-water.png
-      sprite_size: { w: 100, h: 200 }
-      sprites {
-        harbor_water_slice: { y: 0, x: 0 }
-      }
-    }
-    {
-      img_path: assets/art/harbor/harbor-land.png
-      sprite_size: { w: 300, h: 200 }
-      sprites {
-        harbor_land_front:              { y: 0, x: 0 }
-        harbor_land_right_slice:        { y: 0, x: 1 }
-        harbor_land_bottom_slice:       { y: 1, x: 0 }
-        harbor_land_right_bottom_slice: { y: 1, x: 1 }
-      }
-    }
-    {
-      img_path: assets/art/harbor/harbor-dock.png
-      sprite_size: { w: 32, h: 32 }
-      sprites {
-        harbor_dock_left:   { y: 0, x: 0 }
-        harbor_dock_middle: { y: 0, x: 1 }
-        harbor_dock_right:  { y: 0, x: 2 }
-      }
-    }
-    {
       img_path: assets/art/tiles/natives.png
       sprite_size: { w: 32, h: 32 }
       sprites {
@@ -67,6 +41,55 @@ sheets {
         missionary_cross_accent: { y: 1, x: 2 }
         totem_pole:              { y: 2, x: 0 }
         capital_star:            { y: 2, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/ocean.png
+      sprite_size: { w: 144, h: 152 }
+      sprites {
+        harbor_ocean: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/clouds-large.png
+      sprite_size: { w: 180, h: 40 }
+      sprites {
+        harbor_cloud_large_1: { y: 0, x: 0 }
+        harbor_cloud_large_2: { y: 1, x: 0 }
+        harbor_cloud_large_3: { y: 2, x: 0 }
+        harbor_cloud_large_4: { y: 3, x: 0 }
+        harbor_cloud_large_5: { y: 4, x: 0 }
+        harbor_cloud_large_6: { y: 5, x: 0 }
+        harbor_cloud_large_7: { y: 6, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/clouds-medium.png
+      sprite_size: { w: 90, h: 20 }
+      sprites {
+        harbor_cloud_medium_1: { y: 0, x: 0 }
+        harbor_cloud_medium_2: { y: 1, x: 0 }
+        harbor_cloud_medium_3: { y: 2, x: 0 }
+        harbor_cloud_medium_4: { y: 3, x: 0 }
+        harbor_cloud_medium_5: { y: 4, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/clouds-small.png
+      sprite_size: { w: 45, h: 10 }
+      sprites {
+        harbor_cloud_small_1: { y: 0, x: 0 }
+        harbor_cloud_small_2: { y: 1, x: 0 }
+        harbor_cloud_small_3: { y: 2, x: 0 }
+        harbor_cloud_small_4: { y: 3, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/clouds-tiny.png
+      sprite_size: { w: 15, h: 5 }
+      sprites {
+        harbor_cloud_tiny_1: { y: 0, x: 0 }
+        harbor_cloud_tiny_2: { y: 1, x: 0 }
       }
     }
     {

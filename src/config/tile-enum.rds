@@ -752,15 +752,9 @@ enum.e_tile {
   # =============================================================
   # Harbor View.
   # =============================================================
-  harbor_water_slice,
-  harbor_land_front,
-  harbor_land_right_slice,
-  harbor_land_bottom_slice,
-  harbor_land_right_bottom_slice,
-  harbor_dock_left,
-  harbor_dock_middle,
-  harbor_dock_right,
+  harbor_ocean,
 
+  # Market
   harbor_market_plate_slim,
   harbor_market_plate_medium,
   harbor_market_plate_wide,
@@ -777,6 +771,26 @@ enum.e_tile {
   harbor_market_slash_slim,
   harbor_market_slash_medium,
   harbor_market_slash_wide,
+
+  # Sky
+  harbor_cloud_large_1,
+  harbor_cloud_large_2,
+  harbor_cloud_large_3,
+  harbor_cloud_large_4,
+  harbor_cloud_large_5,
+  harbor_cloud_large_6,
+  harbor_cloud_large_7,
+  harbor_cloud_medium_1,
+  harbor_cloud_medium_2,
+  harbor_cloud_medium_3,
+  harbor_cloud_medium_4,
+  harbor_cloud_medium_5,
+  harbor_cloud_small_1,
+  harbor_cloud_small_2,
+  harbor_cloud_small_3,
+  harbor_cloud_small_4,
+  harbor_cloud_tiny_1,
+  harbor_cloud_tiny_2,
 
   # =============================================================
   # Mouse Cursors
