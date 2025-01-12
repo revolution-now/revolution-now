@@ -802,6 +802,9 @@ enum.e_tile {
   harbor_dock_shadows,
   harbor_dock_overlay,
 
+  # Cargo.
+  harbor_cargo_hold,
+
   # =============================================================
   # Mouse Cursors
   # =============================================================

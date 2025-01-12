@@ -31,10 +31,17 @@ struct HarborCargo
     public IDragSource<HarborDraggableObject>,
     public IDragSourceUserEdit<HarborDraggableObject>,
     public IDragSink<HarborDraggableObject> {
-  static PositionedHarborSubView<HarborCargo> create(
-      SS& ss, TS& ts, Player& player, Rect canvas );
+  struct Layout {
+    gfx::point view_nw;
+    // Relative to view nw.
+    gfx::point cargohold_nw;
+  };
 
-  HarborCargo( SS& ss, TS& ts, Player& player );
+  static PositionedHarborSubView<HarborCargo> create(
+      SS& ss, TS& ts, Player& player, gfx::rect canvas );
+
+  HarborCargo( SS& ss, TS& ts, Player& player,
+               Layout const& layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -76,6 +83,8 @@ struct HarborCargo
                Coord const& where ) override;
 
  private:
+  static Layout create_layout( gfx::rect canvas );
+
   maybe<UnitId> get_active_unit() const;
 
   maybe<HarborDraggableObject> draggable_in_cargo_slot(
@@ -89,6 +98,7 @@ struct HarborCargo
   };
 
   maybe<Draggable> dragging_;
+  Layout const layout_;
 };
 
 } // namespace rn

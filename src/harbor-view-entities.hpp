@@ -34,6 +34,10 @@
                 refl::enum_from_integral<e_harbor_view_entity>( \
                     from_entity ) );
 
+namespace gfx {
+enum class e_resolution;
+}
+
 namespace rn {
 
 struct SS;
@@ -130,6 +134,7 @@ struct HarborViewComposited {
 };
 
 HarborViewComposited recomposite_harbor_view(
-    SS& ss, TS& ts, Player& player, Delta const& canvas_size );
+    SS& ss, TS& ts, Player& player,
+    gfx::e_resolution resolution );
 
 } // namespace rn

@@ -26,6 +26,9 @@
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
 
+// gfx
+#include "gfx/resolution-enum.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -36,7 +39,13 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::e_resolution;
+using ::gfx::rect;
+using ::gfx::size;
+
+} // namespace
 
 // Use this as the vtable key function.
 void HarborSubView::update_this_and_children() {}
@@ -209,17 +218,18 @@ struct CompositeHarborSubView : public ui::InvisibleView,
 ** Public API
 *****************************************************************/
 HarborViewComposited recomposite_harbor_view(
-    SS& ss, TS& ts, Player& player, Delta const& canvas_size ) {
+    SS& ss, TS& ts, Player& player,
+    e_resolution const resolution ) {
+  size const canvas_size = resolution_size( resolution );
+  rect const canvas_rect{ .size =
+                              resolution_size( resolution ) };
   lg.trace( "recompositing harbor view." );
 
-  Rect const canvas_rect = Rect::from( Coord{}, canvas_size );
   HarborViewComposited composition{ .canvas_size = canvas_size,
                                     .top_level   = nullptr,
                                     .entities    = {} };
 
   vector<ui::OwningPositionedView> views;
-
-  Rect available = canvas_rect;
 
   // [HarborStatusBar] ------------------------------------------
   auto status_bar = HarborStatusBar::create(
@@ -227,31 +237,26 @@ HarborViewComposited recomposite_harbor_view(
   composition.entities[e_harbor_view_entity::status_bar] =
       status_bar.get();
   Y const status_bar_bottom =
-      status_bar->bounds( available.upper_left() ).bottom_edge();
+      status_bar->bounds( canvas_rect.upper_left() ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
     .view  = std::move( status_bar ),
-    .coord = available.upper_left() } );
-  available = available.with_new_top_edge( status_bar_bottom );
+    .coord = canvas_rect.upper_left() } );
 
   // [HarborMarketCommodities] ----------------------------------
   PositionedHarborSubView<HarborMarketCommodities>
       market_commodities = HarborMarketCommodities::create(
-          ss, ts, player, available );
+          ss, ts, player, canvas_rect );
   HarborMarketCommodities const& market_commodities_ref =
       *market_commodities.actual;
   composition.entities[e_harbor_view_entity::market] =
       market_commodities.harbor;
-  available = available.with_new_bottom_edge(
-      market_commodities.owned.rect().top_edge() );
   views.push_back( std::move( market_commodities.owned ) );
 
   // [HarborCargo] ----------------------------------------------
   PositionedHarborSubView<HarborCargo> cargo =
-      HarborCargo::create( ss, ts, player, available );
+      HarborCargo::create( ss, ts, player, canvas_rect );
   composition.entities[e_harbor_view_entity::cargo] =
       cargo.harbor;
-  available = available.with_new_bottom_edge(
-      cargo.owned.rect().top_edge() );
   Coord const cargo_upper_left = cargo.owned.rect().upper_left();
   Coord const cargo_upper_right =
       cargo.owned.rect().upper_right();
@@ -259,7 +264,7 @@ HarborViewComposited recomposite_harbor_view(
 
   // [HarborInPortShips] ----------------------------------------
   PositionedHarborSubView<HarborInPortShips> in_port =
-      HarborInPortShips::create( ss, ts, player, available,
+      HarborInPortShips::create( ss, ts, player, canvas_rect,
                                  market_commodities_ref,
                                  cargo_upper_left );
   composition.entities[e_harbor_view_entity::in_port] =
@@ -283,7 +288,7 @@ HarborViewComposited recomposite_harbor_view(
   // [HarborOutboundShips]
   // ----------------------------------------
   PositionedHarborSubView<HarborOutboundShips> outbound =
-      HarborOutboundShips::create( ss, ts, player, available,
+      HarborOutboundShips::create( ss, ts, player, canvas_rect,
                                    market_commodities_ref,
                                    inport_upper_left );
   composition.entities[e_harbor_view_entity::outbound] =
@@ -295,7 +300,7 @@ HarborViewComposited recomposite_harbor_view(
   // [HarborInboundShips]
   // ----------------------------------------
   PositionedHarborSubView<HarborInboundShips> inbound =
-      HarborInboundShips::create( ss, ts, player, available,
+      HarborInboundShips::create( ss, ts, player, canvas_rect,
                                   market_commodities_ref,
                                   outbound_upper_left );
   composition.entities[e_harbor_view_entity::inbound] =
@@ -305,7 +310,7 @@ HarborViewComposited recomposite_harbor_view(
   // [HarborDockUnits]
   // ----------------------------------------
   PositionedHarborSubView<HarborDockUnits> dock =
-      HarborDockUnits::create( ss, ts, player, available,
+      HarborDockUnits::create( ss, ts, player, canvas_rect,
                                backdrop_ref );
   composition.entities[e_harbor_view_entity::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );

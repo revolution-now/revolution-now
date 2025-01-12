@@ -19,6 +19,9 @@
 #include "ts.hpp"
 #include "unit-ownership.hpp"
 
+// config
+#include "config/tile-enum.rds.hpp"
+
 // ss
 #include "ss/cargo.hpp"
 #include "ss/player.rds.hpp"
@@ -44,7 +47,13 @@ namespace rl = base::rl;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
+} // namespace
 
 /****************************************************************
 ** HarborCargo
@@ -350,6 +359,12 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
 
 void HarborCargo::draw( rr::Renderer& renderer,
                         Coord coord ) const {
+  SCOPED_RENDERER_MOD_ADD(
+      painter_mods.repos.translation,
+      point( coord ).distance_from_origin().to_double() );
+  render_sprite( renderer, layout_.cargohold_nw,
+                 e_tile::harbor_cargo_hold );
+#if 0
   rr::Painter painter = renderer.painter();
   auto r              = bounds( coord );
   // Our delta for this view has one extra pixel added to the
@@ -404,30 +419,37 @@ void HarborCargo::draw( rr::Renderer& renderer,
       }
     }
   }
+#endif
+}
+
+HarborCargo::Layout HarborCargo::create_layout(
+    gfx::rect const canvas ) {
+  Layout l;
+  Delta const size_pixels =
+      sprite_size( e_tile::harbor_cargo_hold );
+  l.view_nw      = { .x = canvas.center().x - size_pixels.w / 2,
+                     .y = canvas.bottom() - 106 };
+  l.cargohold_nw = {};
+  return l;
 }
 
 PositionedHarborSubView<HarborCargo> HarborCargo::create(
-    SS& ss, TS& ts, Player& player, Rect canvas ) {
-  // The canvas will exclude the market commodities.
-  unique_ptr<HarborCargo> view;
-  HarborSubView* harbor_sub_view = nullptr;
-  Coord pos;
+    SS& ss, TS& ts, Player& player, rect const canvas ) {
+  Layout const layout = create_layout( canvas );
 
-  // This is the size without the bottom/right border.
-  Delta const size_pixels = { .w = 32 * 6, .h = 32 * 1 };
-  pos = { .x = canvas.center().x - size_pixels.w / 2,
-          .y = canvas.bottom_edge() - size_pixels.h };
-
-  view            = make_unique<HarborCargo>( ss, ts, player );
-  harbor_sub_view = view.get();
-  HarborCargo* p_actual = view.get();
+  unique_ptr<HarborCargo> view =
+      make_unique<HarborCargo>( ss, ts, player, layout );
+  HarborSubView* harbor_sub_view = view.get();
+  HarborCargo* p_actual          = view.get();
   return PositionedHarborSubView<HarborCargo>{
-    .owned  = { .view = std::move( view ), .coord = pos },
+    .owned  = { .view  = std::move( view ),
+                .coord = layout.view_nw },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }
 
-HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player )
-  : HarborSubView( ss, ts, player ) {}
+HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player,
+                          Layout const& layout )
+  : HarborSubView( ss, ts, player ), layout_( layout ) {}
 
 } // namespace rn

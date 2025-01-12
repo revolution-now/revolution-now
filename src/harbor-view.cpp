@@ -87,17 +87,16 @@ struct HarborPlane::Impl : public IPlane {
       ss_( ss ),
       ts_( ts ),
       player_( player ) {
-    auto const new_canvas = main_window_logical_rect(
-        engine_.video(), engine_.window(),
-        engine_.resolutions() );
-    composition_ = recomposite_harbor_view( ss_, ts_, player_,
-                                            new_canvas.size );
+    if( auto const named = named_resolution( engine_ );
+        named.has_value() )
+      composition_ =
+          recomposite_harbor_view( ss_, ts_, player_, *named );
   }
 
   void on_logical_resolution_selected(
       gfx::e_resolution const resolution ) override {
-    composition_ = recomposite_harbor_view(
-        ss_, ts_, player_, resolution_size( resolution ) );
+    composition_ =
+        recomposite_harbor_view( ss_, ts_, player_, resolution );
   }
 
   HarborState& harbor_state() {

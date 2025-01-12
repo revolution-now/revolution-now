@@ -44,6 +44,13 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/cargohold.png
+      sprite_size: { w: 204, h: 39 }
+      sprites {
+        harbor_cargo_hold: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/ocean.png
       sprite_size: { w: 144, h: 152 }
       sprites {

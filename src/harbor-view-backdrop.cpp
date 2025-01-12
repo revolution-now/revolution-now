@@ -156,12 +156,16 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
             .size   = { .w = sz.w, .h = l.horizon_height } };
 
   // Land.
-  l.land_origin =
-      all.se() - sprite_size( e_tile::harbor_land_dirt );
+  size const land_shift = sz.w >= 600 ? size{} : size{ .w = 30 };
+
+  l.land_origin = all.se() -
+                  sprite_size( e_tile::harbor_land_dirt ) +
+                  land_shift;
 
   // Dock.
-  l.dock_physical_nw = all.se() - size{ .w = 201, .h = 113 };
-  l.dock_sprite_nw   = l.dock_physical_nw - size{ .w = 5 };
+  l.dock_physical_nw =
+      all.se() - size{ .w = 201, .h = 113 } + land_shift;
+  l.dock_sprite_nw = l.dock_physical_nw - size{ .w = 5 };
 
   return l;
 }
