@@ -797,6 +797,11 @@ enum.e_tile {
   harbor_land_dirt,
   harbor_land_shadows,
 
+  # Dock.
+  harbor_dock,
+  harbor_dock_shadows,
+  harbor_dock_overlay,
+
   # =============================================================
   # Mouse Cursors
   # =============================================================

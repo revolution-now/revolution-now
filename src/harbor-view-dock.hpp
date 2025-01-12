@@ -37,6 +37,7 @@ struct HarborDockUnits
       HarborBackdrop const& backdrop );
 
   HarborDockUnits( SS& ss, TS& ts, Player& player,
+                   HarborBackdrop const& backdrop,
                    Delta size_blocks );
 
   // Implement ui::Object.
@@ -98,6 +99,7 @@ struct HarborDockUnits
     UnitId unit_id = {};
   };
 
+  HarborBackdrop const& backdrop_;
   maybe<Draggable> dragging_;
   Delta size_blocks_ = {};
 };

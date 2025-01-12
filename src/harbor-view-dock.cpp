@@ -210,6 +210,9 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
                  ss_.units.unit_for( unit_id ),
                  UnitRenderOptions{} );
   }
+  // Must be done after units since they are supposed to appear
+  // behind it.
+  backdrop_.draw_dock_overlay( renderer, coord );
 }
 
 PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
@@ -230,9 +233,9 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
     .w = dock_layout.dock_length / g_tile_delta.w,
     .h = max_vertical_units };
 
-  view            = make_unique<HarborDockUnits>( ss, ts, player,
-                                                  size_blocks );
-  harbor_sub_view = view.get();
+  view = make_unique<HarborDockUnits>( ss, ts, player, backdrop,
+                                       size_blocks );
+  harbor_sub_view           = view.get();
   HarborDockUnits* p_actual = view.get();
   return PositionedHarborSubView<HarborDockUnits>{
     .owned  = { .view = std::move( view ), .coord = pos },
@@ -241,8 +244,10 @@ PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
 }
 
 HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,
+                                  HarborBackdrop const& backdrop,
                                   Delta size_blocks )
   : HarborSubView( ss, ts, player ),
+    backdrop_( backdrop ),
     size_blocks_( size_blocks ) {}
 
 } // namespace rn

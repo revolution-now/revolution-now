@@ -70,6 +70,19 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
                  e_tile::harbor_land_shadows );
   render_sprite( renderer, layout_.land_origin,
                  e_tile::harbor_land_dirt );
+
+  // Dock. NOTE: the dock overlay is draw in a separate function
+  // so that it can be drawn over the doc units.
+  render_sprite( renderer, layout_.dock_sprite_nw,
+                 e_tile::harbor_dock_shadows );
+  render_sprite( renderer, layout_.dock_sprite_nw,
+                 e_tile::harbor_dock );
+}
+
+void HarborBackdrop::draw_dock_overlay( rr::Renderer& renderer,
+                                        gfx::point ) const {
+  render_sprite( renderer, layout_.dock_sprite_nw,
+                 e_tile::harbor_dock_overlay );
 }
 
 HarborBackdrop::DockUnitsLayout
@@ -145,6 +158,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   // Land.
   l.land_origin =
       all.se() - sprite_size( e_tile::harbor_land_dirt );
+
+  // Dock.
+  l.dock_physical_nw = all.se() - size{ .w = 201, .h = 113 };
+  l.dock_sprite_nw   = l.dock_physical_nw - size{ .w = 5 };
 
   return l;
 }

@@ -51,6 +51,11 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     W dock_length           = {};
   };
 
+  // This is called by the dock units view so that we can draw it
+  // over the units.
+  void draw_dock_overlay( rr::Renderer& renderer,
+                          gfx::point where ) const;
+
   // Returns the lower right pixel of the l
   DockUnitsLayout dock_units_layout() const;
 
@@ -68,6 +73,8 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     std::vector<std::pair<gfx::size, e_tile>> clouds;
     gfx::rect sun;
     gfx::point land_origin;
+    gfx::point dock_physical_nw;
+    gfx::point dock_sprite_nw;
 
     // Distance from the bottom to the horizon.
     int horizon_height = {};

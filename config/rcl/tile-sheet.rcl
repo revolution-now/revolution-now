@@ -72,6 +72,27 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/dock-dock.png
+      sprite_size: { w: 174, h: 46 }
+      sprites {
+        harbor_dock: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/dock-shadows.png
+      sprite_size: { w: 174, h: 46 }
+      sprites {
+        harbor_dock_shadows: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/dock-overlay.png
+      sprite_size: { w: 174, h: 46 }
+      sprites {
+        harbor_dock_overlay: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/clouds-large.png
       sprite_size: { w: 180, h: 40 }
       sprites {
