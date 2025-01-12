@@ -347,6 +347,10 @@ struct rect {
   [[nodiscard]] rect with_inc_size( int n = 1 ) const;
   [[nodiscard]] rect with_dec_size( int n = 1 ) const;
 
+  // Result will be the smallest rect that encompasses both
+  // this one and the parameter.
+  [[nodiscard]] rect uni0n( rect rhs ) const;
+
   // New coord equal to this one unit of edge trimmed off
   // on all sides.  That is, we will have:
   //

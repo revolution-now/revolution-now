@@ -752,6 +752,18 @@ rect rect::with_dec_size( int n ) const {
   return r;
 }
 
+rect rect::uni0n( rect const rhs ) const {
+  auto const new_x1 = std::min( origin.x, rhs.origin.x );
+  auto const new_y1 = std::min( origin.y, rhs.origin.y );
+  auto const new_x2 =
+      std::max( origin.x + size.w, rhs.origin.x + rhs.size.w );
+  auto const new_y2 =
+      std::max( origin.y + size.h, rhs.origin.y + rhs.size.h );
+  return { .origin{ .x = new_x1, .y = new_y1 },
+           .size{ .w = ( new_x2 - new_x1 ),
+                  .h = ( new_y2 - new_y1 ) } };
+}
+
 rect rect::with_edges_removed( int n ) const {
   rect r( *this );
 
