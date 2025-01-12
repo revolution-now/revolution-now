@@ -357,7 +357,12 @@ void HarborCargo::draw( rr::Renderer& renderer,
                  e_tile::harbor_cargo_hold );
 
   maybe<UnitId> active_unit = get_active_unit();
-  if( !active_unit.has_value() ) return;
+  if( !active_unit.has_value() ) {
+    for( int i = 0; i < 6; ++i )
+      render_sprite( renderer, layout_.slots[i].origin,
+                     e_tile::harbor_cargo_front );
+    return;
+  }
 
   // Draw the contents of the cargo since we have a selected ship
   // in port.
