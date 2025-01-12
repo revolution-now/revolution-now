@@ -2,7 +2,12 @@ type {
   # strength:
   #
   #   General strength of the missionary relative to one created
-  #   by a free colonist.
+  #   by a free colonist. Note: the OG, despite claims from the
+  #   OST, does not seem to distinguish the non-expert levels in
+  #   missionaries (criminal, servant, and colonist), since it
+  #   does not store it in its data model. However, it does dif-
+  #   ferentiate between expert/non-expert. See the Differences
+  #   doc for more details about this.
   #
   # per_turn_convert.probability:
   #

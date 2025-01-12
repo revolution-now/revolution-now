@@ -176,3 +176,34 @@ in the corrections.txt doc or rebalancing.txt.
   bug/oversight that we will fix for consistency. In the NG, the
   go-to-harbor command will stil require those two hops as it
   would if you were moving the unit manually.
+
+                   Missionary Strength
+                   -------------------
+
+  The OG, despite claims from the OST, does not seem to distin-
+  guish the non-expert levels in missionaries (criminal, servant,
+  and colonist), since it does not store this info in its data
+  model (however, it does differentiate between jesuit and
+  non-jesuit). You can see this by making a criminal a mission-
+  ary, adding it into a dwelling, then destroying the dwelling to
+  release the missionary, and observe that it has become a free
+  colonist. And that is without saving, so the game doesn't store
+  it in memory either. That said, it's also been confirmed that
+  the sav files don't have that information either.
+
+  At the time of writing this has not been checked by observing
+  convert production time differences between e.g. criminals and
+  free colonists, but the data-model related evidence seems
+  strong enough.
+
+  Although it's hard to say for sure, this seems like an uninten-
+  tional omission or bug in the game, since the OST mentions the
+  difference in effectivness and such a difference would be con-
+  sistent with other production related strengths of those units
+  in colony buildings. From a design standpoint, it seems better
+  to differentiate those units when it comes to strength as mis-
+  sionaries, otherwise the player could just use all criminals as
+  missionaries and they'd be as effective as free colonies,
+  thereby making criminals more valuable than they probably
+  should be. So in the NG we will differentiate then in terms of
+  their effectiveness as missionaries.
