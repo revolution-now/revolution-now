@@ -45,6 +45,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
@@ -287,13 +288,17 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
   for( auto const comm : enum_values<e_commodity> ) {
     auto const& r = layout_.plates[comm];
     render_sprite( renderer, r.nw(), layout_.comm_plate_tile );
-    if( mouse_pos.is_inside( layout_.panel_inner_rect[comm] ) )
+    if( mouse_pos.is_inside( layout_.panel_inner_rect[comm] ) ) {
       // Glow behind commodity.
       render_sprite( renderer, layout_.comm_icon[comm].origin,
                      e_tile::commodity_glow_20 );
-
-    render_commodity_20( renderer,
-                         layout_.comm_icon[comm].origin, comm );
+      render_commodity_20_outline(
+          renderer, layout_.comm_icon[comm].origin, comm,
+          pixel::from_hex_rgb( 0x7ba9c9 ) );
+    } else {
+      render_commodity_20(
+          renderer, layout_.comm_icon[comm].origin, comm );
+    }
 
 #if 0
     rr::Painter painter = renderer.painter();
@@ -382,7 +387,7 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
       layout.comm_plate_tile = e_tile::harbor_market_plate_slim;
       for( auto const comm : enum_values<e_commodity> )
         layout.panel_inner_rect[comm].size = { .w = 26,
-                                               .h = 22 };
+                                               .h = 21 };
       for( auto const comm : enum_values<e_commodity> )
         layout.bid_ask[comm] = { .origin = { .x = 4, .y = 29 },
                                  .size   = { .w = 24, .h = 6 } };
@@ -399,7 +404,7 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
           e_tile::harbor_market_plate_medium;
       for( auto const comm : enum_values<e_commodity> )
         layout.panel_inner_rect[comm].size = { .w = 30,
-                                               .h = 22 };
+                                               .h = 21 };
       for( auto const comm : enum_values<e_commodity> )
         layout.bid_ask[comm] = { .origin = { .x = 5, .y = 29 },
                                  .size   = { .w = 26, .h = 6 } };
@@ -415,7 +420,7 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
       layout.comm_plate_tile = e_tile::harbor_market_plate_wide;
       for( auto const comm : enum_values<e_commodity> )
         layout.panel_inner_rect[comm].size = { .w = 34,
-                                               .h = 26 };
+                                               .h = 25 };
       for( auto const comm : enum_values<e_commodity> )
         layout.bid_ask[comm] = { .origin = { .x = 5, .y = 33 },
                                  .size   = { .w = 30, .h = 6 } };
@@ -467,9 +472,8 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
       sprite_size( e_tile::commodity_food_20 );
   size const boycott_tile_size = sprite_size( e_tile::boycott );
   for( auto const comm : enum_values<e_commodity> ) {
-    layout.comm_icon[comm].origin =
-        layout.panel_inner_rect[comm].origin =
-            layout.plates[comm].origin + panel_inner_rect_offset;
+    layout.panel_inner_rect[comm].origin =
+        layout.plates[comm].origin + panel_inner_rect_offset;
     layout.comm_icon[comm].origin = gfx::centered_in(
         comm_tile_size, layout.panel_inner_rect[comm] );
     layout.comm_icon[comm].size = comm_tile_size;

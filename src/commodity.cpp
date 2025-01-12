@@ -368,6 +368,14 @@ void render_commodity_20( rr::Renderer& renderer, Coord where,
                             /*dulled=*/false );
 }
 
+void render_commodity_20_outline(
+    rr::Renderer& renderer, gfx::point const where,
+    e_commodity const type, gfx::pixel const outline_color ) {
+  render_sprite_outline( renderer, where,
+                         tile_for_commodity_20( type ),
+                         outline_color );
+}
+
 void render_commodity_annotated_16(
     rr::Renderer& renderer, Coord where, e_commodity type,
     CommodityRenderStyle const& style ) {

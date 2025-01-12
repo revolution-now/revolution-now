@@ -85,6 +85,11 @@ void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
 void render_sprite_section( rr::Painter& painter, e_tile tile,
                             Coord pixel_coord, Rect source );
 
+// Unfortunately this requires rendering the sprite five times.
+void render_sprite_outline( rr::Renderer& renderer,
+                            gfx::point where, e_tile tile,
+                            gfx::pixel outline_color );
+
 /****************************************************************
 ** Stencils
 *****************************************************************/

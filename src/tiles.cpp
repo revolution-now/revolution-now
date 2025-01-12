@@ -110,6 +110,21 @@ void render_sprite_section( rr::Painter& painter, e_tile tile,
                                source );
 }
 
+void render_sprite_outline( rr::Renderer& renderer,
+                            gfx::point const where,
+                            e_tile const tile,
+                            gfx::pixel const outline_color ) {
+  render_sprite_silhouette( renderer, where + size{ .w = 1 },
+                            tile, outline_color );
+  render_sprite_silhouette( renderer, where + size{ .w = -1 },
+                            tile, outline_color );
+  render_sprite_silhouette( renderer, where + size{ .h = 1 },
+                            tile, outline_color );
+  render_sprite_silhouette( renderer, where + size{ .h = -1 },
+                            tile, outline_color );
+  render_sprite( renderer, where, tile );
+}
+
 void render_sprite_silhouette( rr::Renderer& renderer,
                                Coord where, e_tile tile,
                                gfx::pixel color ) {

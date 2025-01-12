@@ -19,11 +19,13 @@
 #include "maybe.hpp"
 #include "unit-id.hpp"
 
-// gs
+// ss
 #include "ss/commodity.rds.hpp"
 
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/coord.hpp"
+#include "gfx/pixel.hpp"
 
 // refl
 #include "refl/query-enum.hpp"
@@ -106,8 +108,14 @@ Delta commodity_tile_size_20( e_commodity type );
 
 void render_commodity_16( rr::Renderer& renderer, Coord where,
                           e_commodity type );
+
 void render_commodity_20( rr::Renderer& renderer, Coord where,
                           e_commodity type );
+
+void render_commodity_20_outline( rr::Renderer& renderer,
+                                  gfx::point where,
+                                  e_commodity type,
+                                  gfx::pixel outline_color );
 
 // The "annotated" functions will render the label just below the
 // commodity sprite and both will have their centers aligned hor-
