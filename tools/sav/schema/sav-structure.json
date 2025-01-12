@@ -1503,10 +1503,9 @@
         {
             "__key_order": [
                 "unknown34",
+                "nation_unit_count",
+                "nation_colony_count",
                 "unknown34a",
-                "unknown35",
-                "unknown35a",
-                "unknown36aa",
                 "foreign_affairs_report",
                 "unknown36ac",
                 "unknown36ad",
@@ -1525,11 +1524,32 @@
                 "viewport_x",
                 "viewport_y"
             ],
-            "unknown34": {"size": 15},
-            "unknown34a": {"size": 2},
-            "unknown35": {"size": 2},
-            "unknown35a": {"size": 2},
-            "unknown36aa": {"size": 7},
+            "unknown34": {"size": 12},
+            "nation_unit_count":
+            {
+                "__hint": "Number of free units the player has. See supplemental-info.md for more information.",
+                "struct":
+                {
+                    "__key_order": ["english", "french", "spanish", "dutch"],
+                    "english": {"size": 1, "type": "uint", "no_indent": true},
+                    "french": {"size": 1, "type": "uint", "no_indent": true},
+                    "spanish": {"size": 1, "type": "uint", "no_indent": true},
+                    "dutch": {"size": 1, "type": "uint", "no_indent": true}
+                }
+            },
+            "nation_colony_count":
+            {
+                "__hint": "Number of colonies of each nation.",
+                "struct":
+                {
+                    "__key_order": ["english", "french", "spanish", "dutch"],
+                    "english": {"size": 1, "type": "uint", "no_indent": true},
+                    "french": {"size": 1, "type": "uint", "no_indent": true},
+                    "spanish": {"size": 1, "type": "uint", "no_indent": true},
+                    "dutch": {"size": 1, "type": "uint", "no_indent": true}
+                }
+            },
+            "unknown34a": {"size": 8},
             "foreign_affairs_report":
             {
                 "struct":

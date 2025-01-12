@@ -22498,11 +22498,20 @@
     }
   ],
   "STUFF": {
-    "unknown34": "01 ff 00 00 01 00 01 00 ff ff 00 01 00 00 03",
-    "unknown34a": "95 09",
-    "unknown35": "08 00",
-    "unknown35a": "0a 00",
-    "unknown36aa": "01 00 00 4e 33 00 87",
+    "unknown34": "01 ff 00 00 01 00 01 00 ff ff 00 01",
+    "nation_unit_count": {
+      "english": 0,
+      "french": 0,
+      "spanish": 3,
+      "dutch": 149
+    },
+    "nation_colony_count": {
+      "english": 9,
+      "french": 8,
+      "spanish": 0,
+      "dutch": 10
+    },
+    "unknown34a": "00 01 00 00 4e 33 00 87",
     "foreign_affairs_report": {
       "populations": [
         124,

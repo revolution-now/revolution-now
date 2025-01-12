@@ -2931,6 +2931,66 @@ cdr::result<TRIBE> from_canonical(
                          cdr::tag_t<TRIBE> );
 
 /****************************************************************
+** NationUnitCount
+*****************************************************************/
+struct NationUnitCount {
+  uint8_t english = {};
+  uint8_t french = {};
+  uint8_t spanish = {};
+  uint8_t dutch = {};
+
+  bool operator==( NationUnitCount const& ) const = default;
+};
+
+// String conversion.
+void to_str( NationUnitCount const& o, std::string& out, base::tag<NationUnitCount> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationUnitCount& o );
+
+bool write_binary( base::IBinaryIO& b, NationUnitCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         NationUnitCount const& o,
+                         cdr::tag_t<NationUnitCount> );
+
+cdr::result<NationUnitCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationUnitCount> );
+
+/****************************************************************
+** NationColonyCount
+*****************************************************************/
+struct NationColonyCount {
+  uint8_t english = {};
+  uint8_t french = {};
+  uint8_t spanish = {};
+  uint8_t dutch = {};
+
+  bool operator==( NationColonyCount const& ) const = default;
+};
+
+// String conversion.
+void to_str( NationColonyCount const& o, std::string& out, base::tag<NationColonyCount> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationColonyCount& o );
+
+bool write_binary( base::IBinaryIO& b, NationColonyCount const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         NationColonyCount const& o,
+                         cdr::tag_t<NationColonyCount> );
+
+cdr::result<NationColonyCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationColonyCount> );
+
+/****************************************************************
 ** ForeignAffairsReport
 *****************************************************************/
 struct ForeignAffairsReport {
@@ -3168,11 +3228,10 @@ cdr::result<UnknownTribeData6> from_canonical(
 ** STUFF
 *****************************************************************/
 struct STUFF {
-  bytes<15> unknown34 = {};
-  bytes<2> unknown34a = {};
-  bytes<2> unknown35 = {};
-  bytes<2> unknown35a = {};
-  bytes<7> unknown36aa = {};
+  bytes<12> unknown34 = {};
+  NationUnitCount nation_unit_count = {};
+  NationColonyCount nation_colony_count = {};
+  bytes<8> unknown34a = {};
   ForeignAffairsReport foreign_affairs_report = {};
   std::array<bytes<64>, 8> unknown36ac = {};
   bytes<8> unknown36ad = {};

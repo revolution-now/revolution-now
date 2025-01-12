@@ -7043,6 +7043,132 @@ cdr::result<TRIBE> from_canonical(
 }
 
 /****************************************************************
+** NationUnitCount
+*****************************************************************/
+void to_str( NationUnitCount const& o, std::string& out, base::tag<NationUnitCount> ) {
+  out += "NationUnitCount{";
+  out += "english="; base::to_str( o.english, out ); out += ',';
+  out += "french="; base::to_str( o.french, out ); out += ',';
+  out += "spanish="; base::to_str( o.spanish, out ); out += ',';
+  out += "dutch="; base::to_str( o.dutch, out );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationUnitCount& o ) {
+  return true
+    && read_binary( b, o.english )
+    && read_binary( b, o.french )
+    && read_binary( b, o.spanish )
+    && read_binary( b, o.dutch )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, NationUnitCount const& o ) {
+  return true
+    && write_binary( b, o.english )
+    && write_binary( b, o.french )
+    && write_binary( b, o.spanish )
+    && write_binary( b, o.dutch )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         NationUnitCount const& o,
+                         cdr::tag_t<NationUnitCount> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "english", o.english );
+  conv.to_field( tbl, "french", o.french );
+  conv.to_field( tbl, "spanish", o.spanish );
+  conv.to_field( tbl, "dutch", o.dutch );
+  tbl["__key_order"] = cdr::list{
+    "english",
+    "french",
+    "spanish",
+    "dutch",
+  };
+  return tbl;
+}
+
+cdr::result<NationUnitCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationUnitCount> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  NationUnitCount res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "english", english );
+  CONV_FROM_FIELD( "french", french );
+  CONV_FROM_FIELD( "spanish", spanish );
+  CONV_FROM_FIELD( "dutch", dutch );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** NationColonyCount
+*****************************************************************/
+void to_str( NationColonyCount const& o, std::string& out, base::tag<NationColonyCount> ) {
+  out += "NationColonyCount{";
+  out += "english="; base::to_str( o.english, out ); out += ',';
+  out += "french="; base::to_str( o.french, out ); out += ',';
+  out += "spanish="; base::to_str( o.spanish, out ); out += ',';
+  out += "dutch="; base::to_str( o.dutch, out );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationColonyCount& o ) {
+  return true
+    && read_binary( b, o.english )
+    && read_binary( b, o.french )
+    && read_binary( b, o.spanish )
+    && read_binary( b, o.dutch )
+    ;
+}
+
+bool write_binary( base::IBinaryIO& b, NationColonyCount const& o ) {
+  return true
+    && write_binary( b, o.english )
+    && write_binary( b, o.french )
+    && write_binary( b, o.spanish )
+    && write_binary( b, o.dutch )
+    ;
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         NationColonyCount const& o,
+                         cdr::tag_t<NationColonyCount> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "english", o.english );
+  conv.to_field( tbl, "french", o.french );
+  conv.to_field( tbl, "spanish", o.spanish );
+  conv.to_field( tbl, "dutch", o.dutch );
+  tbl["__key_order"] = cdr::list{
+    "english",
+    "french",
+    "spanish",
+    "dutch",
+  };
+  return tbl;
+}
+
+cdr::result<NationColonyCount> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationColonyCount> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  NationColonyCount res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_FIELD( "english", english );
+  CONV_FROM_FIELD( "french", french );
+  CONV_FROM_FIELD( "spanish", spanish );
+  CONV_FROM_FIELD( "dutch", dutch );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
 ** ForeignAffairsReport
 *****************************************************************/
 void to_str( ForeignAffairsReport const& o, std::string& out, base::tag<ForeignAffairsReport> ) {
@@ -7633,10 +7759,9 @@ cdr::result<UnknownTribeData6> from_canonical(
 void to_str( STUFF const& o, std::string& out, base::tag<STUFF> ) {
   out += "STUFF{";
   out += "unknown34="; base::to_str( o.unknown34, out ); out += ',';
+  out += "nation_unit_count="; base::to_str( o.nation_unit_count, out ); out += ',';
+  out += "nation_colony_count="; base::to_str( o.nation_colony_count, out ); out += ',';
   out += "unknown34a="; base::to_str( o.unknown34a, out ); out += ',';
-  out += "unknown35="; base::to_str( o.unknown35, out ); out += ',';
-  out += "unknown35a="; base::to_str( o.unknown35a, out ); out += ',';
-  out += "unknown36aa="; base::to_str( o.unknown36aa, out ); out += ',';
   out += "foreign_affairs_report="; base::to_str( o.foreign_affairs_report, out ); out += ',';
   out += "unknown36ac="; base::to_str( o.unknown36ac, out ); out += ',';
   out += "unknown36ad="; base::to_str( o.unknown36ad, out ); out += ',';
@@ -7661,10 +7786,9 @@ void to_str( STUFF const& o, std::string& out, base::tag<STUFF> ) {
 bool read_binary( base::IBinaryIO& b, STUFF& o ) {
   return true
     && read_binary( b, o.unknown34 )
+    && read_binary( b, o.nation_unit_count )
+    && read_binary( b, o.nation_colony_count )
     && read_binary( b, o.unknown34a )
-    && read_binary( b, o.unknown35 )
-    && read_binary( b, o.unknown35a )
-    && read_binary( b, o.unknown36aa )
     && read_binary( b, o.foreign_affairs_report )
     && read_binary( b, o.unknown36ac )
     && read_binary( b, o.unknown36ad )
@@ -7688,10 +7812,9 @@ bool read_binary( base::IBinaryIO& b, STUFF& o ) {
 bool write_binary( base::IBinaryIO& b, STUFF const& o ) {
   return true
     && write_binary( b, o.unknown34 )
+    && write_binary( b, o.nation_unit_count )
+    && write_binary( b, o.nation_colony_count )
     && write_binary( b, o.unknown34a )
-    && write_binary( b, o.unknown35 )
-    && write_binary( b, o.unknown35a )
-    && write_binary( b, o.unknown36aa )
     && write_binary( b, o.foreign_affairs_report )
     && write_binary( b, o.unknown36ac )
     && write_binary( b, o.unknown36ad )
@@ -7717,10 +7840,9 @@ cdr::value to_canonical( cdr::converter& conv,
                          cdr::tag_t<STUFF> ) {
   cdr::table tbl;
   conv.to_field( tbl, "unknown34", o.unknown34 );
+  conv.to_field( tbl, "nation_unit_count", o.nation_unit_count );
+  conv.to_field( tbl, "nation_colony_count", o.nation_colony_count );
   conv.to_field( tbl, "unknown34a", o.unknown34a );
-  conv.to_field( tbl, "unknown35", o.unknown35 );
-  conv.to_field( tbl, "unknown35a", o.unknown35a );
-  conv.to_field( tbl, "unknown36aa", o.unknown36aa );
   conv.to_field( tbl, "foreign_affairs_report", o.foreign_affairs_report );
   conv.to_field( tbl, "unknown36ac", o.unknown36ac );
   conv.to_field( tbl, "unknown36ad", o.unknown36ad );
@@ -7740,10 +7862,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "viewport_y", o.viewport_y );
   tbl["__key_order"] = cdr::list{
     "unknown34",
+    "nation_unit_count",
+    "nation_colony_count",
     "unknown34a",
-    "unknown35",
-    "unknown35a",
-    "unknown36aa",
     "foreign_affairs_report",
     "unknown36ac",
     "unknown36ad",
@@ -7773,10 +7894,9 @@ cdr::result<STUFF> from_canonical(
   STUFF res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "unknown34", unknown34 );
+  CONV_FROM_FIELD( "nation_unit_count", nation_unit_count );
+  CONV_FROM_FIELD( "nation_colony_count", nation_colony_count );
   CONV_FROM_FIELD( "unknown34a", unknown34a );
-  CONV_FROM_FIELD( "unknown35", unknown35 );
-  CONV_FROM_FIELD( "unknown35a", unknown35a );
-  CONV_FROM_FIELD( "unknown36aa", unknown36aa );
   CONV_FROM_FIELD( "foreign_affairs_report", foreign_affairs_report );
   CONV_FROM_FIELD( "unknown36ac", unknown36ac );
   CONV_FROM_FIELD( "unknown36ad", unknown36ad );
