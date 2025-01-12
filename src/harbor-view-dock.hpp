@@ -20,6 +20,7 @@
 namespace rn {
 
 struct HarborBackdrop;
+struct DockUnitsLayout;
 struct SS;
 struct TS;
 struct Player;
@@ -36,9 +37,17 @@ struct HarborDockUnits
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborBackdrop const& backdrop );
 
+  struct Layout {
+    // Absolute coords.
+    gfx::rect view;
+    // Points are relative to nw of this view, which should be
+    // the nw corner of the top-left-most unit on the dock.
+    std::vector<gfx::rect> slots;
+  };
+
   HarborDockUnits( SS& ss, TS& ts, Player& player,
                    HarborBackdrop const& backdrop,
-                   Delta size_blocks );
+                   Layout layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -80,28 +89,28 @@ struct HarborDockUnits
                Coord const& where ) override;
 
  private:
-  struct UnitWithPosition {
+  static Layout create_layout( HarborBackdrop const& backdrop );
+
+  struct UnitWithRect {
     UnitId id;
-    Coord pixel_coord;
+    gfx::rect bounds;
   };
 
-  std::vector<UnitWithPosition> units( Coord origin ) const;
+  void update_units();
 
   // The coord is relative to the upper left of this view.
-  maybe<UnitWithPosition> unit_at_location( Coord where ) const;
+  maybe<UnitWithRect> unit_at_location( gfx::point where ) const;
 
   wait<> click_on_unit( UnitId unit_id );
-
-  Delta size_blocks() const;
-  Delta size_pixels() const;
 
   struct Draggable {
     UnitId unit_id = {};
   };
+  maybe<Draggable> dragging_;
 
   HarborBackdrop const& backdrop_;
-  maybe<Draggable> dragging_;
-  Delta size_blocks_ = {};
+  Layout const layout_;
+  std::vector<UnitWithRect> units_;
 };
 
 } // namespace rn

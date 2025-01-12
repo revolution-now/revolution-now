@@ -31,29 +31,34 @@
 #include "ss/ref.hpp"
 #include "ss/units.hpp"
 
+// render
+#include "render/renderer.hpp"
+
 // base
 #include "base/conv.hpp"
+#include "base/range-lite.hpp"
 
 using namespace std;
 
+namespace rl = base::rl;
+
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
+} // namespace
 
 /****************************************************************
 ** HarborDockUnits
 *****************************************************************/
-Delta HarborDockUnits::size_blocks() const {
-  return size_blocks_;
+Delta HarborDockUnits::delta() const {
+  return layout_.view.size;
 }
-
-// This is the size without the lower/right border.
-Delta HarborDockUnits::size_pixels() const {
-  Delta res = size_blocks();
-  return res * g_tile_delta;
-}
-
-Delta HarborDockUnits::delta() const { return size_pixels(); }
 
 maybe<int> HarborDockUnits::entity() const {
   return static_cast<int>( e_harbor_view_entity::dock );
@@ -65,41 +70,35 @@ ui::View const& HarborDockUnits::view() const noexcept {
   return *this;
 }
 
-maybe<HarborDockUnits::UnitWithPosition>
-HarborDockUnits::unit_at_location( Coord where ) const {
-  for( auto [id, coord] : units( Coord{} ) ) {
-    Rect const r = Rect::from( coord, g_tile_delta );
-    if( where.is_inside( r ) )
-      return UnitWithPosition{ .id = id, .pixel_coord = coord };
+void HarborDockUnits::update_units() {
+  units_.clear();
+  auto const& slots_layout = backdrop_.dock_units_layout();
+  auto spot_it             = slots_layout.units.begin();
+  for( UnitId const unit_id :
+       harbor_units_on_dock( ss_.units, player_.nation ) ) {
+    if( spot_it == slots_layout.units.end() ) break;
+    units_.push_back( { .id     = unit_id,
+                        .bounds = spot_it->point_becomes_origin(
+                            layout_.view.origin ) } );
+    ++spot_it;
   }
+}
+
+maybe<HarborDockUnits::UnitWithRect>
+HarborDockUnits::unit_at_location( point const where ) const {
+  for( auto [id, bounds] : rl::rall( units_ ) )
+    if( where.is_inside( bounds ) )
+      return UnitWithRect{ .id = id, .bounds = bounds };
   return nothing;
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborDockUnits::object_here( Coord const& where ) const {
-  maybe<UnitWithPosition> const unit = unit_at_location( where );
+  maybe<UnitWithRect> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
     .obj    = HarborDraggableObject::unit{ .id = unit->id },
-    .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
-}
-
-vector<HarborDockUnits::UnitWithPosition> HarborDockUnits::units(
-    Coord origin ) const {
-  vector<UnitWithPosition> units;
-  Rect const r    = bounds( origin );
-  X const x_start = r.lower_left().x;
-  Coord coord = r.lower_left() - Delta{ .h = g_tile_delta.h };
-  for( UnitId id :
-       harbor_units_on_dock( ss_.units, player_.nation ) ) {
-    units.push_back( { .id = id, .pixel_coord = coord } );
-    coord += Delta{ .w = g_tile_delta.w };
-    if( coord.x + g_tile_delta.w >= r.right_edge() ) {
-      coord.x = x_start;
-      coord.y -= g_tile_delta.h;
-    }
-  }
-  return units;
+    .bounds = unit->bounds };
 }
 
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
@@ -145,8 +144,7 @@ wait<> HarborDockUnits::perform_click(
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
   CHECK( event.pos.is_inside( bounds( {} ) ) );
-  maybe<UnitWithPosition> const unit =
-      unit_at_location( event.pos );
+  maybe<UnitWithRect> const unit = unit_at_location( event.pos );
   if( !unit.has_value() ) co_return;
   co_await click_on_unit( unit->id );
 }
@@ -167,6 +165,7 @@ wait<> HarborDockUnits::disown_dragged_object() {
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
   UnitOwnershipChanger( ss_, unit_id ).change_to_free();
+  update_units();
   co_return;
 }
 
@@ -198,56 +197,83 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
     co_return;
   }
   unit_move_to_port( ss_, draggable_unit.id );
-  co_return;
+  update_units();
 }
 
 void HarborDockUnits::draw( rr::Renderer& renderer,
-                            Coord coord ) const {
-  for( auto const& [unit_id, unit_coord] : units( coord ) ) {
+                            Coord const coord ) const {
+  point const mouse_pos = input::current_mouse_position()
+                              .to_gfx()
+                              .point_becomes_origin( coord );
+  // Because of how the units are layered on top of each other,
+  // we need to iterate backwards to find the unit that is high-
+  // lighted (if any) first before we start drawing, given that
+  // we draw in the opposite order (first to last).
+  auto const highlighted_unit = [&]() -> maybe<UnitId> {
+    if( dragging_.has_value() ) return nothing;
+    for( auto const& [unit_id, bounds] : rl::rall( units_ ) )
+      if( mouse_pos.is_inside( bounds ) ) return unit_id;
+    return nothing;
+  }();
+
+  for( auto const& [unit_id, bounds] : units_ ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
-    render_unit( renderer, unit_coord,
-                 ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{} );
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation,
+        point( coord ).distance_from_origin().to_double() );
+    Unit const& unit  = ss_.units.unit_for( unit_id );
+    e_tile const tile = unit.desc().tile;
+    if( unit_id == highlighted_unit )
+      render_sprite_silhouette(
+          renderer, bounds.nw() - size{ .w = 1 }, tile,
+          pixel::from_hex_rgb( 0xeeeeaa ) );
+    render_sprite( renderer, bounds.nw(), tile );
   }
   // Must be done after units since they are supposed to appear
   // behind it.
   backdrop_.draw_dock_overlay( renderer, coord );
 }
 
-PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
-    SS& ss, TS& ts, Player& player, Rect,
+HarborDockUnits::Layout HarborDockUnits::create_layout(
     HarborBackdrop const& backdrop ) {
-  // The canvas will exclude the market commodities.
-  unique_ptr<HarborDockUnits> view;
-  HarborSubView* harbor_sub_view = nullptr;
+  Layout l;
+  vector<rect> const& unit_slots =
+      backdrop.dock_units_layout().units;
+  CHECK( !unit_slots.empty() );
+  rect composite = unit_slots[0];
+  for( rect const& r : unit_slots )
+    composite = composite.uni0n( r );
+  l.view = composite;
+  for( rect const& r : unit_slots )
+    l.slots.push_back( rect{
+      .origin = r.nw().point_becomes_origin( l.view.nw() ),
+      .size   = g_tile_delta } );
+  return l;
+}
 
-  HarborBackdrop::DockUnitsLayout const dock_layout =
-      backdrop.dock_units_layout();
-  int max_vertical_units =
-      dock_layout.units_start_floor.y / g_tile_delta.h;
-  Coord const pos =
-      dock_layout.units_start_floor -
-      Delta{ .h = max_vertical_units * g_tile_delta.h };
-  Delta const size_blocks{
-    .w = dock_layout.dock_length / g_tile_delta.w,
-    .h = max_vertical_units };
-
-  view = make_unique<HarborDockUnits>( ss, ts, player, backdrop,
-                                       size_blocks );
-  harbor_sub_view           = view.get();
-  HarborDockUnits* p_actual = view.get();
+PositionedHarborSubView<HarborDockUnits> HarborDockUnits::create(
+    SS& ss, TS& ts, Player& player, Rect const,
+    HarborBackdrop const& backdrop ) {
+  Layout layout = create_layout( backdrop );
+  auto view     = make_unique<HarborDockUnits>( ss, ts, player,
+                                                backdrop, layout );
+  HarborSubView* const harbor_sub_view = view.get();
+  HarborDockUnits* p_actual            = view.get();
   return PositionedHarborSubView<HarborDockUnits>{
-    .owned  = { .view = std::move( view ), .coord = pos },
+    .owned  = { .view  = std::move( view ),
+                .coord = layout.view.origin },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }
 
 HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,
                                   HarborBackdrop const& backdrop,
-                                  Delta size_blocks )
+                                  Layout layout )
   : HarborSubView( ss, ts, player ),
     backdrop_( backdrop ),
-    size_blocks_( size_blocks ) {}
+    layout_( std::move( layout ) ) {
+  update_units();
+}
 
 } // namespace rn

@@ -26,6 +26,10 @@ struct Player;
 
 enum class e_tile;
 
+struct DockUnitsLayout {
+  std::vector<gfx::rect> units;
+};
+
 /****************************************************************
 ** HarborBackdrop
 *****************************************************************/
@@ -46,18 +50,13 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 
-  struct DockUnitsLayout {
-    Coord units_start_floor = {};
-    W dock_length           = {};
-  };
-
   // This is called by the dock units view so that we can draw it
   // over the units.
   void draw_dock_overlay( rr::Renderer& renderer,
                           gfx::point where ) const;
 
   // Returns the lower right pixel of the l
-  DockUnitsLayout dock_units_layout() const;
+  DockUnitsLayout const& dock_units_layout() const;
 
   // Distance from the bottom of the screen to the top of the
   // houses on the horizon.
@@ -79,6 +78,9 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     // Distance from the bottom to the horizon.
     int horizon_height = {};
     int horizon_y      = {};
+
+    // Unit positioning.
+    DockUnitsLayout dock_units;
   };
 
  public:
