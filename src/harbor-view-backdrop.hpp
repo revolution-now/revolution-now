@@ -60,7 +60,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
 
   // Distance from the bottom of the screen to the top of the
   // houses on the horizon.
-  H top_of_houses() const;
+  int horizon_y() const;
 
  private:
   static W const kDockEdgeThickness = 7;

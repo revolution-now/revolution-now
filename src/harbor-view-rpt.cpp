@@ -14,6 +14,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "harbor-view-backdrop.hpp"
+#include "harbor-view-dock.hpp"
 #include "markup.hpp"
 #include "rpt.hpp"
 #include "text.hpp"
@@ -116,6 +117,7 @@ wait<> HarborRptButtons::perform_click(
       co_await click_train( ss_, ts_, player_ );
       break;
   }
+  dock_units_.update_units();
 }
 
 wait<bool> HarborRptButtons::perform_key(
@@ -126,12 +128,15 @@ wait<bool> HarborRptButtons::perform_key(
   switch( event.keycode ) {
     case ::SDLK_r:
       co_await click_recruit( ss_, ts_, player_ );
+      dock_units_.update_units();
       co_return true;
     case ::SDLK_p:
       co_await click_purchase( ss_, ts_, player_ );
+      dock_units_.update_units();
       co_return true;
     case ::SDLK_t:
       co_await click_train( ss_, ts_, player_ );
+      dock_units_.update_units();
       co_return true;
   }
   co_return false; // not handled.
@@ -175,17 +180,19 @@ void HarborRptButtons::draw( rr::Renderer& renderer,
 PositionedHarborSubView<HarborRptButtons>
 HarborRptButtons::create( SS& ss, TS& ts, Player& player,
                           Rect const canvas,
-                          HarborBackdrop const& backdrop ) {
+                          HarborBackdrop const& backdrop,
+                          HarborDockUnits& dock_units ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborRptButtons> view;
   HarborSubView* harbor_sub_view = nullptr;
 
   Coord const lower_right{
     .x = canvas.right_edge() - 1 - 4,
-    .y = canvas.bottom_edge() - backdrop.top_of_houses() - 8 };
+    .y = canvas.bottom_edge() - backdrop.horizon_y() - 8 };
   Coord const upper_left = lower_right - total_size();
 
-  view = make_unique<HarborRptButtons>( ss, ts, player );
+  view = make_unique<HarborRptButtons>( ss, ts, player,
+                                        dock_units );
   harbor_sub_view            = view.get();
   HarborRptButtons* p_actual = view.get();
   return PositionedHarborSubView<HarborRptButtons>{
@@ -195,7 +202,8 @@ HarborRptButtons::create( SS& ss, TS& ts, Player& player,
 }
 
 HarborRptButtons::HarborRptButtons( SS& ss, TS& ts,
-                                    Player& player )
-  : HarborSubView( ss, ts, player ) {}
+                                    Player& player,
+                                    HarborDockUnits& dock_units )
+  : HarborSubView( ss, ts, player ), dock_units_( dock_units ) {}
 
 } // namespace rn

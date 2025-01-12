@@ -88,6 +88,10 @@ struct HarborDockUnits
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
 
+  // Should be called every time something happens that changes
+  // the units on the dock.
+  void update_units();
+
  private:
   static Layout create_layout( HarborBackdrop const& backdrop );
 
@@ -95,8 +99,6 @@ struct HarborDockUnits
     UnitId id;
     gfx::rect bounds;
   };
-
-  void update_units();
 
   // The coord is relative to the upper left of this view.
   maybe<UnitWithRect> unit_at_location( gfx::point where ) const;

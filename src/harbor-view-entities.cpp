@@ -319,7 +319,7 @@ HarborViewComposited recomposite_harbor_view(
   // ----------------------------------------
   PositionedHarborSubView<HarborRptButtons> buttons =
       HarborRptButtons::create( ss, ts, player, canvas_rect,
-                                backdrop_ref );
+                                backdrop_ref, dock_units_ref );
   composition.entities[e_harbor_view_entity::rpt] =
       buttons.harbor;
   views.push_back( std::move( buttons.owned ) );

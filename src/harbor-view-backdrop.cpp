@@ -90,7 +90,7 @@ DockUnitsLayout const& HarborBackdrop::dock_units_layout()
   return layout_.dock_units;
 }
 
-H HarborBackdrop::top_of_houses() const { return 0; }
+H HarborBackdrop::horizon_y() const { return layout_.horizon_y; }
 
 #define CLOUD( size, n ) e_tile::harbor_cloud_##size##_##n
 
