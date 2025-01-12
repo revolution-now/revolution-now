@@ -405,12 +405,12 @@ void HarborCargo::draw( rr::Renderer& renderer,
           }
           CASE( commodity ) {
             {
-              SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .15 );
+              SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .25 );
               render_commodity_20_outline(
                   renderer,
                   slot_rect.origin +
                       kLabeledCommodity20CargoRenderOffset,
-                  commodity.obj.type, pixel::white() );
+                  commodity.obj.type, pixel::banana() );
             }
             render_commodity_annotated_20(
                 renderer,
