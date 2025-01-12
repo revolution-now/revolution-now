@@ -237,10 +237,10 @@ HarborViewComposited recomposite_harbor_view(
   composition.entities[e_harbor_view_entity::status_bar] =
       status_bar.get();
   Y const status_bar_bottom =
-      status_bar->bounds( canvas_rect.upper_left() ).bottom_edge();
+      status_bar->bounds( canvas_rect.nw() ).bottom_edge();
   views.push_back( ui::OwningPositionedView{
     .view  = std::move( status_bar ),
-    .coord = canvas_rect.upper_left() } );
+    .coord = canvas_rect.nw() } );
 
   // [HarborMarketCommodities] ----------------------------------
   PositionedHarborSubView<HarborMarketCommodities>
