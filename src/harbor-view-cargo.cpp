@@ -32,9 +32,6 @@
 // render
 #include "render/renderer.hpp"
 
-// gfx
-#include "gfx/iter.hpp"
-
 // rds
 #include "rds/switch-macro.hpp"
 
@@ -49,6 +46,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
@@ -112,11 +110,13 @@ HarborCargo::draggable_in_cargo_slot( int slot ) const {
 maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return nothing;
-  Unit const& unit = ss_.units.unit_for( *active_unit );
-  auto boxes       = bounds( Coord{} ) / g_tile_delta;
-  UNWRAP_RETURN( slot, boxes.rasterize( where / g_tile_delta ) );
-  if( slot >= unit.cargo().slots_total() ) return nothing;
-  return slot;
+  Unit const& unit      = ss_.units.unit_for( *active_unit );
+  int const slots_total = unit.cargo().slots_total();
+  CHECK_LE( slots_total, 6 );
+  for( int i = 0; i < slots_total; ++i )
+    if( where.is_inside( layout_.slots[i] ) ) //
+      return i;
+  return nothing;
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -125,17 +125,8 @@ HarborCargo::object_here( Coord const& where ) const {
   maybe<HarborDraggableObject> const draggable =
       draggable_in_cargo_slot( slot );
   if( !draggable.has_value() ) return nothing;
-  Coord box_origin =
-      where.rounded_to_multiple_to_minus_inf( g_tile_delta );
-  Delta scale = g_tile_delta;
-  if( draggable
-          ->holds<HarborDraggableObject::cargo_commodity>() ) {
-    box_origin += kCommodityInCargoHoldRenderingOffset;
-    scale = kCommodityTileSize;
-  }
-  Rect const box = Rect::from( box_origin, scale );
   return DraggableObjectWithBounds<HarborDraggableObject>{
-    .obj = *draggable, .bounds = box };
+    .obj = *draggable, .bounds = layout_.slots[slot] };
 }
 
 bool HarborCargo::try_drag( HarborDraggableObject const& o,
@@ -364,21 +355,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
       point( coord ).distance_from_origin().to_double() );
   render_sprite( renderer, layout_.cargohold_nw,
                  e_tile::harbor_cargo_hold );
-#if 0
-  rr::Painter painter = renderer.painter();
-  auto r              = bounds( coord );
-  // Our delta for this view has one extra pixel added to the
-  // width and height to allow for the border, and so we need to
-  // remove that otherwise the to-grid method below will create
-  // too many grid boxes.
-  --r.w;
-  --r.h;
-  for( Rect const rect : gfx::subrects( r, g_tile_delta ) )
-    painter.draw_empty_rect( rect,
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel::white() );
-  for( Rect const rect : gfx::subrects( r, g_tile_delta ) )
-    painter.draw_solid_rect( rect, gfx::pixel::white() );
+
   maybe<UnitId> active_unit = get_active_unit();
   if( !active_unit.has_value() ) return;
 
@@ -386,31 +363,46 @@ void HarborCargo::draw( rr::Renderer& renderer,
   // in port.
   auto& unit              = ss_.units.unit_for( *active_unit );
   auto const& cargo_slots = unit.cargo().slots();
-  base::generator<Rect> grid = gfx::subrects( r, g_tile_delta );
-  auto zipped = rl::zip( rl::ints(), cargo_slots, grid );
-  for( auto const [idx, cargo_slot, rect] : zipped ) {
-    painter.draw_solid_rect(
-        rect.with_inc_size().edges_removed(),
-        gfx::pixel::wood() );
+  auto zipped =
+      rl::zip( rl::ints(), layout_.slots, cargo_slots );
+  // Need to draw any overflow tiles before the cargo contents,
+  // so run through those first.
+  for( auto const [idx, slot_rect, slot] : zipped ) {
+    SWITCH( slot ) {
+      CASE( overflow ) {
+        render_sprite( renderer, layout_.left_wall[idx].nw(),
+                       e_tile::harbor_cargo_overflow );
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  for( auto const [idx, slot_rect, slot] : zipped ) {
     if( dragging_.has_value() && dragging_->slot == idx )
       continue;
-    Coord const dst_coord      = rect.upper_left();
-    auto const cargo_slot_copy = cargo_slot;
-    SWITCH( cargo_slot_copy ) {
+    SWITCH( slot ) {
       CASE( empty ) { break; }
       CASE( overflow ) { break; }
       CASE( cargo ) {
         SWITCH( cargo.contents ) {
           CASE( unit ) {
-            render_unit( renderer, dst_coord,
+            // Non-ship units tend to have some space at the top
+            // because they are all grounded, i.e. feet/wheels
+            // touching the ground, i.e. they are not centered
+            // within their 32x32 tiles, so we'll bump them up-
+            // wards a bit which seems to look better.
+            render_unit( renderer,
+                         slot_rect.origin - size{ .h = 2 },
                          ss_.units.unit_for( unit.id ),
                          UnitRenderOptions{} );
             break;
           }
           CASE( commodity ) {
-            render_commodity_annotated_16(
-                renderer,
-                dst_coord + kCommodityInCargoHoldRenderingOffset,
+            // TODO: add white outline here so that they are more
+            // visible.
+            render_commodity_annotated_20(
+                renderer, slot_rect.origin + size{ .w = 6 },
                 commodity.obj );
             break;
           }
@@ -419,7 +411,9 @@ void HarborCargo::draw( rr::Renderer& renderer,
       }
     }
   }
-#endif
+  for( int i = cargo_slots.size(); i < 6; ++i )
+    render_sprite( renderer, layout_.slots[i].origin,
+                   e_tile::harbor_cargo_front );
 }
 
 HarborCargo::Layout HarborCargo::create_layout(
@@ -430,6 +424,35 @@ HarborCargo::Layout HarborCargo::create_layout(
   l.view_nw      = { .x = canvas.center().x - size_pixels.w / 2,
                      .y = canvas.bottom() - 106 };
   l.cargohold_nw = {};
+  l.slots[0].origin = point{ .x = 1, .y = 6 };
+  l.slots[0].size   = { .w = 32, .h = 32 };
+  l.left_wall[0]    = {};
+
+  l.slots[1] = l.slots[0];
+  l.slots[1].origin.x += 34;
+  l.left_wall[1] = { .origin = { .x = 32, .y = 6 },
+                     .size   = { .w = 10, .h = 32 } };
+
+  l.slots[2] = l.slots[1];
+  l.slots[2].origin.x += 34;
+  l.left_wall[2] = { .origin = { .x = 66, .y = 6 },
+                     .size   = { .w = 10, .h = 32 } };
+
+  l.slots[3] = l.slots[2];
+  l.slots[3].origin.x += 34;
+  l.left_wall[3] = { .origin = { .x = 100, .y = 6 },
+                     .size   = { .w = 10, .h = 32 } };
+
+  l.slots[4] = l.slots[3];
+  l.slots[4].origin.x += 34;
+  l.left_wall[4] = { .origin = { .x = 131, .y = 6 },
+                     .size   = { .w = 10, .h = 32 } };
+
+  l.slots[5] = l.slots[4];
+  l.slots[5].origin.x += 34;
+  l.left_wall[5] = { .origin = { .x = 162, .y = 6 },
+                     .size   = { .w = 10, .h = 32 } };
+
   return l;
 }
 

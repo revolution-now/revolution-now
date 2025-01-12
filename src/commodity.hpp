@@ -46,6 +46,8 @@ constexpr Delta const kCommodityInCargoHoldRenderingOffset{
   .w = 8, .h = 3 };
 
 constexpr Delta kCommodityTileSize = Delta{ .w = 16, .h = 16 };
+constexpr Delta kCommodityTileLargeSize =
+    Delta{ .w = 20, .h = 20 };
 
 /****************************************************************
 ** Commodity List

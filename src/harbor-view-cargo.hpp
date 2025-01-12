@@ -16,6 +16,9 @@
 #include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
 
+// C++ standard library
+#include <array>
+
 namespace rn {
 
 struct SS;
@@ -35,6 +38,13 @@ struct HarborCargo
     gfx::point view_nw;
     // Relative to view nw.
     gfx::point cargohold_nw;
+    std::array<gfx::rect, 6> slots;
+    // Gives the rect that covers the pixel area occupied by the
+    // dividing wall to the left of a slot. This is needed so
+    // that said walls can be removed when we have an overflow
+    // slot. Note that the first slow does not have a left di-
+    // viding wall so is not relevant/populated.
+    std::array<gfx::rect, 6> left_wall;
   };
 
   static PositionedHarborSubView<HarborCargo> create(

@@ -55,6 +55,7 @@ namespace {
 using namespace std;
 
 using ::gfx::point;
+using ::gfx::size;
 
 void check_selected_unit_in_harbor( SSConst const& ss,
                                     Player const& player ) {
@@ -158,8 +159,10 @@ struct HarborPlane::Impl : public IPlane {
                                o.comm.type );
         },
         [&]( HarborDraggableObject::cargo_commodity const& o ) {
-          render_commodity_20( renderer, sprite_upper_left,
-                               o.comm.type );
+          render_commodity_20(
+              renderer,
+              sprite_upper_left.to_gfx() + size{ .w = 6 },
+              o.comm.type );
         } );
     // Render any indicators on top of it.
     switch( state.indicator ) {

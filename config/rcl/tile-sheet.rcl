@@ -51,6 +51,14 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/cargo-walls.png
+      sprite_size: { w: 32, h: 32 }
+      sprites {
+        harbor_cargo_overflow: { y: 0, x: 0 }
+        harbor_cargo_front:    { y: 0, x: 1 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/ocean.png
       sprite_size: { w: 144, h: 152 }
       sprites {

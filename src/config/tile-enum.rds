@@ -804,6 +804,8 @@ enum.e_tile {
 
   # Cargo.
   harbor_cargo_hold,
+  harbor_cargo_overflow,
+  harbor_cargo_front,
 
   # =============================================================
   # Mouse Cursors
