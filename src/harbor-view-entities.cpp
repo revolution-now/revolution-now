@@ -312,6 +312,7 @@ HarborViewComposited recomposite_harbor_view(
   PositionedHarborSubView<HarborDockUnits> dock =
       HarborDockUnits::create( ss, ts, player, canvas_rect,
                                backdrop_ref );
+  auto& dock_units_ref = *dock.actual;
   composition.entities[e_harbor_view_entity::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );
 
