@@ -399,10 +399,18 @@ void HarborCargo::draw( rr::Renderer& renderer,
             break;
           }
           CASE( commodity ) {
-            // TODO: add white outline here so that they are more
-            // visible.
+            {
+              SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .15 );
+              render_commodity_20_outline(
+                  renderer,
+                  slot_rect.origin +
+                      kLabeledCommodity20CargoRenderOffset,
+                  commodity.obj.type, pixel::white() );
+            }
             render_commodity_annotated_20(
-                renderer, slot_rect.origin + size{ .w = 6 },
+                renderer,
+                slot_rect.origin +
+                    kLabeledCommodity20CargoRenderOffset,
                 commodity.obj );
             break;
           }

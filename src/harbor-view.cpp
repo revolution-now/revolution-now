@@ -161,7 +161,8 @@ struct HarborPlane::Impl : public IPlane {
         [&]( HarborDraggableObject::cargo_commodity const& o ) {
           render_commodity_20(
               renderer,
-              sprite_upper_left.to_gfx() + size{ .w = 6 },
+              sprite_upper_left.to_gfx() +
+                  kLabeledCommodity20CargoRenderOffset,
               o.comm.type );
         } );
     // Render any indicators on top of it.
