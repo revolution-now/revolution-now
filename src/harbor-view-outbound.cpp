@@ -244,7 +244,8 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
 
   // Draw in reverse order so that the front rows (and highlight
   // boxes around them) will be on top of back rows.
-  for( auto const& [unit_id, bounds] : rl::rall( units() ) ) {
+  auto const units = this->units();
+  for( auto const& [unit_id, bounds] : rl::rall( units ) ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
     SCOPED_RENDERER_MOD_ADD(
