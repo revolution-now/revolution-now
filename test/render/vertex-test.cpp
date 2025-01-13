@@ -166,15 +166,27 @@ TEST_CASE( "[render/vertex] scaling" ) {
   REQUIRE( vert.generic().scaling == .55f );
 }
 
-TEST_CASE( "[render/vertex] translation" ) {
+TEST_CASE( "[render/vertex] translation1" ) {
   SpriteVertex vert( point{ .x = 6, .y = 12 },
                      point{ .x = 3, .y = 4 },
                      rect{ .origin = point{ .x = 5, .y = 6 },
                            .size   = { .w = 1, .h = 2 } } );
-  REQUIRE( vert.generic().translation ==
+  REQUIRE( vert.generic().translation1 ==
            gl::vec2{ .x = 0, .y = 0 } );
-  vert.set_translation( gfx::dsize{ .w = 2, .h = -4 } );
-  REQUIRE( vert.generic().translation ==
+  vert.set_translation1( gfx::dsize{ .w = 2, .h = -4 } );
+  REQUIRE( vert.generic().translation1 ==
+           gl::vec2{ .x = 2, .y = -4 } );
+}
+
+TEST_CASE( "[render/vertex] translation2" ) {
+  SpriteVertex vert( point{ .x = 6, .y = 12 },
+                     point{ .x = 3, .y = 4 },
+                     rect{ .origin = point{ .x = 5, .y = 6 },
+                           .size   = { .w = 1, .h = 2 } } );
+  REQUIRE( vert.generic().translation2 ==
+           gl::vec2{ .x = 0, .y = 0 } );
+  vert.set_translation2( gfx::dsize{ .w = 2, .h = -4 } );
+  REQUIRE( vert.generic().translation2 ==
            gl::vec2{ .x = 2, .y = -4 } );
 }
 

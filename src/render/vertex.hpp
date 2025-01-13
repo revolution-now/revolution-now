@@ -86,7 +86,8 @@ struct VertexBase : protected GenericVertex {
 
   // *** Repositioning.
   void set_scaling( double scale );
-  void set_translation( gfx::dsize translation );
+  void set_translation1( gfx::dsize translation1 );
+  void set_translation2( gfx::dsize translation2 );
 
   // *** Auxiliary index.
   int32_t get_aux_idx() const;

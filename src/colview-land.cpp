@@ -326,7 +326,7 @@ wait<> ColonyLandView::disown_dragged_object() {
 void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
                                     Coord coord ) const {
   SCOPED_RENDERER_MOD_ADD(
-      painter_mods.repos.translation,
+      painter_mods.repos.translation2,
       gfx::size( coord.distance_from_origin() ).to_double() );
 
   // This alpha is to fade the land tiles behind the units so

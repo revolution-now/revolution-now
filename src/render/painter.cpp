@@ -128,8 +128,10 @@ void Painter::add_mods( VertexBase& vert,
     vert.set_depixelation_inversion( *mods.depixelate.inverted );
   if( mods.repos.scale.has_value() )
     vert.set_scaling( *mods.repos.scale );
-  if( mods.repos.translation.has_value() )
-    vert.set_translation( *mods.repos.translation );
+  if( mods.repos.translation1.has_value() )
+    vert.set_translation1( *mods.repos.translation1 );
+  if( mods.repos.translation2.has_value() )
+    vert.set_translation2( *mods.repos.translation2 );
   vert.set_use_camera( mods.repos.use_camera );
   if( mods.alpha.has_value() ) vert.set_alpha( *mods.alpha );
   if( mods.desaturate.has_value() )

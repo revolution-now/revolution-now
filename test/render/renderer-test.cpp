@@ -58,7 +58,8 @@ vector<tuple<int, string, bool>> const kExpectedAttributes{
   { GL_FLOAT_VEC4, "in_fixed_color", false },         //
   { GL_FLOAT, "in_alpha_multiplier", false },         //
   { GL_FLOAT, "in_scaling", false },                  //
-  { GL_FLOAT_VEC2, "in_translation", false },         //
+  { GL_FLOAT_VEC2, "in_translation1", false },        //
+  { GL_FLOAT_VEC2, "in_translation2", false },        //
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {

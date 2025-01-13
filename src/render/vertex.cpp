@@ -39,7 +39,8 @@ GenericVertex proto_vertex( vertex_type type,
     .fixed_color         = {},
     .alpha_multiplier    = 1.0f,
     .scaling             = 1.0,
-    .translation         = {},
+    .translation1        = {},
+    .translation2        = {},
   };
 }
 
@@ -105,8 +106,12 @@ void VertexBase::set_scaling( double scale ) {
   scaling = static_cast<float>( scale );
 }
 
-void VertexBase::set_translation( gfx::dsize trans ) {
-  translation = gl::vec2::from_dsize( trans );
+void VertexBase::set_translation1( gfx::dsize trans ) {
+  translation1 = gl::vec2::from_dsize( trans );
+}
+
+void VertexBase::set_translation2( gfx::dsize trans ) {
+  translation2 = gl::vec2::from_dsize( trans );
 }
 
 void VertexBase::set_aux_idx( int32_t const value ) {

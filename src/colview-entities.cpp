@@ -1594,7 +1594,7 @@ class ProductionView : public ui::View, public ColonySubView {
                              rr::Painter::e_border_mode::inside,
                              gfx::pixel::black() );
     SCOPED_RENDERER_MOD_ADD(
-        painter_mods.repos.translation,
+        painter_mods.repos.translation2,
         gfx::size( coord.distance_from_origin() ).to_double() );
     rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
                                       gfx::pixel::black() );

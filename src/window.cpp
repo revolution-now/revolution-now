@@ -300,7 +300,7 @@ void Window::draw( rr::Renderer& renderer, Coord where ) const {
     // FIXME: remove this once the translation is done automati-
     // cally.
     SCOPED_RENDERER_MOD_ADD(
-        painter_mods.repos.translation,
+        painter_mods.repos.translation2,
         gfx::size( where.distance_from_origin() ).to_double() );
     rr::Painter painter = renderer.painter();
     Rect r              = rect( Coord{} );

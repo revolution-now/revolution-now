@@ -169,9 +169,12 @@ struct.GenericVertex {
   # plied by this value. A value of 1.0 is a no-op.
   scaling 'float',
 
-  # This is a translation; the `position` attribute will be added
-  # to this value after scaling. A value of 0.0 is a no-op.
-  translation 'gl::vec2',
+  # This is a translation; translation1 will be added to position
+  # before scaling and translation2 is for after scaling. Thus,
+  # translation1 composes while translation2 does not. A value of
+  # 0.0 is a no-op.
+  translation1 'gl::vec2',
+  translation2 'gl::vec2',
 
   # Need this in all vertex structs since OpenGL needs to have
   # the offsets of each member of the struct.

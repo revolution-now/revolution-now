@@ -351,7 +351,7 @@ wait<> HarborCargo::drop( HarborDraggableObject const& o,
 void HarborCargo::draw( rr::Renderer& renderer,
                         Coord coord ) const {
   SCOPED_RENDERER_MOD_ADD(
-      painter_mods.repos.translation,
+      painter_mods.repos.translation2,
       point( coord ).distance_from_origin().to_double() );
   render_sprite( renderer, layout_.cargohold_nw,
                  e_tile::harbor_cargo_hold );

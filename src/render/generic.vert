@@ -23,7 +23,8 @@ layout (location = 9)  in vec4  in_stencil_key_color;
 layout (location = 10) in vec4  in_fixed_color;
 layout (location = 11) in float in_alpha_multiplier;
 layout (location = 12) in float in_scaling;
-layout (location = 13) in vec2  in_translation;
+layout (location = 13) in vec2  in_translation1;
+layout (location = 14) in vec2  in_translation2;
 
 flat out int   frag_type;
 flat out int   frag_aux_idx;
@@ -78,8 +79,9 @@ bool use_camera() {
 // adjusted by this function.
 vec2 shift_and_scale( in vec2 position ) {
   vec2 adjusted_position = position;
+  adjusted_position += in_translation1;
   adjusted_position *= in_scaling;
-  adjusted_position += in_translation;
+  adjusted_position += in_translation2;
   if( use_camera() ) {
     adjusted_position *= u_camera_zoom;
     adjusted_position += u_camera_translation;

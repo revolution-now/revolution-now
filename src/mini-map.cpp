@@ -521,7 +521,7 @@ void MiniMapView::draw( rr::Renderer& renderer,
       create_visibility_for(
           ss_, ts_.map_updater().options().nation );
   SCOPED_RENDERER_MOD_ADD(
-      painter_mods.repos.translation,
+      painter_mods.repos.translation2,
       where.distance_from_origin().to_gfx().to_double() );
   draw_impl( renderer, *viz );
 }

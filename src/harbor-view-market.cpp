@@ -267,7 +267,7 @@ wait<> HarborMarketCommodities::drop(
 void HarborMarketCommodities::draw( rr::Renderer& renderer,
                                     Coord const coord ) const {
   SCOPED_RENDERER_MOD_ADD(
-      painter_mods.repos.translation,
+      painter_mods.repos.translation2,
       point( coord ).distance_from_origin().to_double() );
 
   render_sprite( renderer, layout_.left_sign.nw(),

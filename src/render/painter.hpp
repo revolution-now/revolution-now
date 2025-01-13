@@ -69,13 +69,19 @@ struct DepixelateInfo {
 };
 
 // These options allow specifying a global rescaling and transla-
-// tion that will be done to all vertices. First a rescaling is
-// done around the origin (in screen coords), and then the trans-
-// lation.
+// tion that will be done to all vertices. Things happen in this
+// order:
+//
+//   1. Translation 1 is applied.
+//   2. Scaling is applied.
+//   3. Translation 2 is applied.
+//
+// Thus, translation 2 composes while translation 1 does not.
 struct RepositionInfo {
-  base::maybe<double> scale           = {};
-  base::maybe<gfx::dsize> translation = {};
-  bool use_camera                     = false;
+  base::maybe<gfx::dsize> translation1 = {};
+  base::maybe<double> scale            = {};
+  base::maybe<gfx::dsize> translation2 = {};
+  bool use_camera                      = false;
 };
 
 struct ColorCyclingInfo {

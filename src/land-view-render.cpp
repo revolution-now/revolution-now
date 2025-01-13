@@ -743,7 +743,7 @@ void LandViewRenderer::render_backdrop() const {
   int const kNumLayers   = 4;
   for( int i = 0; i < kNumLayers; ++i ) {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
-    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+    SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
                              gfx::size( shift ).to_double() );
     rr::Painter painter = renderer_.painter();
     for( Rect rect : gfx::subrects( tiled_rect, tile_size ) )
@@ -890,7 +890,7 @@ void LandViewRenderer::render_entities() const {
   // the shifting and scaling.
   SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
                            viewport_.get_zoom() );
-  SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation,
+  SCOPED_RENDERER_MOD_ADD( painter_mods.repos.translation2,
                            corner.distance_from_origin() );
   render_units_underneath();
   render_dwellings();

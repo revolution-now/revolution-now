@@ -130,7 +130,7 @@ maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
 void ColViewBuildings::draw( rr::Renderer& renderer,
                              Coord coord ) const {
   SCOPED_RENDERER_MOD_ADD(
-      painter_mods.repos.translation,
+      painter_mods.repos.translation2,
       gfx::size( coord.distance_from_origin() ).to_double() );
   rr::Painter painter = renderer.painter();
   for( e_colony_building_slot slot :
