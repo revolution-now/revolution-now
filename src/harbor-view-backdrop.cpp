@@ -90,7 +90,9 @@ DockUnitsLayout const& HarborBackdrop::dock_units_layout()
   return layout_.dock_units;
 }
 
-H HarborBackdrop::horizon_y() const { return layout_.horizon_y; }
+point HarborBackdrop::horizon_center() const {
+  return layout_.horizon_center;
+}
 
 #define CLOUD( size, n ) e_tile::harbor_cloud_##size##_##n
 
@@ -138,14 +140,16 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.horizon_height = 152;
   CHECK( l.horizon_height ==
          sprite_size( e_tile::harbor_ocean ).h );
-  l.horizon_y = sz.h - l.horizon_height;
+  l.horizon_center = { .x = sz.w / 2,
+                       .y = sz.h - l.horizon_height };
 
   // Sun.
   l.sun = all.with_new_bottom_edge(
       sprite_size( e_tile::harbor_sun ).h );
 
   // Clouds.
-  l.clouds_origin = point{ .x = sz.w / 2, .y = l.horizon_y };
+  l.clouds_origin =
+      point{ .x = sz.w / 2, .y = l.horizon_center.y };
   insert_clouds( l, /*shift=*/size{} );
   insert_clouds( l, /*shift=*/size{ .w = -600, .h = -25 } );
   insert_clouds( l, /*shift=*/size{ .w = 600, .h = -25 } );
@@ -172,7 +176,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   rect r_unit{ .size = g_tile_delta };
 
   // First row (on dock).
-  r_unit.origin = l.dock_physical_nw + size{ .w = 12, .h = -22 };
+  r_unit.origin = l.dock_physical_nw + size{ .w = 12, .h = -23 };
   units.push_back( r_unit );
   r_unit.origin.x += 32;
   units.push_back( r_unit );
@@ -181,7 +185,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   r_unit.origin.x += 32;
   units.push_back( r_unit );
 
-  // Second row.
+  // Second row (on ground).
   r_unit.origin = l.dock_physical_nw + size{ .w = 23, .h = 19 };
   units.push_back( r_unit );
   r_unit.origin.x += 32;
@@ -193,7 +197,7 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   r_unit.origin.x += 32;
   units.push_back( r_unit );
 
-  // Third row.
+  // Third row (on ground).
   r_unit.origin = l.dock_physical_nw + size{ .w = 40, .h = 35 };
   units.push_back( r_unit );
   r_unit.origin.x += 32;

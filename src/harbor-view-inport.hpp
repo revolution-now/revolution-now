@@ -20,6 +20,7 @@
 namespace rn {
 
 struct HarborMarketCommodities;
+struct HarborBackdrop;
 struct SS;
 struct TS;
 struct Player;
@@ -35,11 +36,20 @@ struct HarborInPortShips
     public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborInPortShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborMarketCommodities const& market_commodities,
-      Coord harbor_cargo_upper_left );
+      HarborBackdrop const& backdrop );
+
+  struct Layout {
+    // Absolute coordinates.
+    gfx::rect view = {}; // includes only the units.
+
+    // Relative to origin of view.
+    gfx::rect white_box  = {}; // larger than view.
+    gfx::rect label_area = {};
+    std::vector<gfx::rect> slots;
+  };
 
   HarborInPortShips( SS& ss, TS& ts, Player& player,
-                     bool is_wide );
+                     Layout layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -84,31 +94,34 @@ struct HarborInPortShips
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
 
+  // Should be called every time something happens that changes
+  // the units on the dock. To be safe, we just call it on scope
+  // exit of any non-const method.
+  void update_units();
+
  private:
   struct UnitWithPosition {
     UnitId id;
-    Coord pixel_coord;
+    gfx::rect bounds;
   };
-
-  std::vector<UnitWithPosition> units( Coord origin ) const;
 
   // The coord is relative to the upper left of this view.
   maybe<UnitWithPosition> unit_at_location( Coord where ) const;
+
+  static Layout create_layout( HarborBackdrop const& backdrop );
 
   maybe<UnitId> get_active_unit() const;
   void set_active_unit( UnitId unit_id );
 
   wait<> click_on_unit( UnitId unit_id );
 
-  static Delta size_blocks( bool is_wide );
-  static Delta size_pixels( bool is_wide );
-
   struct Draggable {
     UnitId unit_id = {};
   };
 
   maybe<Draggable> dragging_;
-  bool is_wide_ = false;
+  Layout const layout_;
+  std::vector<UnitWithPosition> units_;
 };
 
 } // namespace rn

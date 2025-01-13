@@ -60,7 +60,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
 
   // Distance from the bottom of the screen to the top of the
   // houses on the horizon.
-  int horizon_y() const;
+  gfx::point horizon_center() const;
 
  private:
   static W const kDockEdgeThickness = 7;
@@ -76,8 +76,8 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     gfx::point dock_sprite_nw;
 
     // Distance from the bottom to the horizon.
-    int horizon_height = {};
-    int horizon_y      = {};
+    int horizon_height        = {};
+    gfx::point horizon_center = {};
 
     // Unit positioning.
     DockUnitsLayout dock_units;

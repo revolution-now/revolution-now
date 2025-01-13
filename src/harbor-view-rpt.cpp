@@ -15,6 +15,7 @@
 #include "co-wait.hpp"
 #include "harbor-view-backdrop.hpp"
 #include "harbor-view-dock.hpp"
+#include "harbor-view-inport.hpp"
 #include "markup.hpp"
 #include "rpt.hpp"
 #include "text.hpp"
@@ -112,6 +113,7 @@ wait<> HarborRptButtons::perform_click(
       break;
     case e_rpt_button::purchase:
       co_await click_purchase( ss_, ts_, player_ );
+      in_port_ships_.update_units();
       break;
     case e_rpt_button::train:
       co_await click_train( ss_, ts_, player_ );
@@ -133,6 +135,7 @@ wait<bool> HarborRptButtons::perform_key(
     case ::SDLK_p:
       co_await click_purchase( ss_, ts_, player_ );
       dock_units_.update_units();
+      in_port_ships_.update_units();
       co_return true;
     case ::SDLK_t:
       co_await click_train( ss_, ts_, player_ );
@@ -181,18 +184,20 @@ PositionedHarborSubView<HarborRptButtons>
 HarborRptButtons::create( SS& ss, TS& ts, Player& player,
                           Rect const canvas,
                           HarborBackdrop const& backdrop,
-                          HarborDockUnits& dock_units ) {
+                          HarborDockUnits& dock_units,
+                          HarborInPortShips& in_port_ships ) {
   // The canvas will exclude the market commodities.
   unique_ptr<HarborRptButtons> view;
   HarborSubView* harbor_sub_view = nullptr;
 
   Coord const lower_right{
     .x = canvas.right_edge() - 1 - 4,
-    .y = canvas.bottom_edge() - backdrop.horizon_y() - 8 };
+    .y =
+        canvas.bottom_edge() - backdrop.horizon_center().y - 8 };
   Coord const upper_left = lower_right - total_size();
 
-  view = make_unique<HarborRptButtons>( ss, ts, player,
-                                        dock_units );
+  view = make_unique<HarborRptButtons>(
+      ss, ts, player, dock_units, in_port_ships );
   harbor_sub_view            = view.get();
   HarborRptButtons* p_actual = view.get();
   return PositionedHarborSubView<HarborRptButtons>{
@@ -201,9 +206,11 @@ HarborRptButtons::create( SS& ss, TS& ts, Player& player,
     .actual = p_actual };
 }
 
-HarborRptButtons::HarborRptButtons( SS& ss, TS& ts,
-                                    Player& player,
-                                    HarborDockUnits& dock_units )
-  : HarborSubView( ss, ts, player ), dock_units_( dock_units ) {}
+HarborRptButtons::HarborRptButtons(
+    SS& ss, TS& ts, Player& player, HarborDockUnits& dock_units,
+    HarborInPortShips& in_port_ships )
+  : HarborSubView( ss, ts, player ),
+    dock_units_( dock_units ),
+    in_port_ships_( in_port_ships ) {}
 
 } // namespace rn

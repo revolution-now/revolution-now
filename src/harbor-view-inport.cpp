@@ -15,6 +15,7 @@
 #include "commodity.hpp"
 #include "damaged.hpp"
 #include "harbor-units.hpp"
+#include "harbor-view-backdrop.hpp"
 #include "harbor-view-market.hpp"
 #include "igui.hpp"
 #include "render.hpp"
@@ -23,6 +24,7 @@
 #include "unit-ownership.hpp"
 
 // config
+#include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -32,36 +34,32 @@
 
 // render
 #include "render/renderer.hpp"
+#include "render/typer.hpp"
+
+// gfx
+#include "gfx/cartesian.hpp"
+
+// base
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
+} // namespace
 
 /****************************************************************
 ** HarborInPortShips
 *****************************************************************/
-Delta HarborInPortShips::size_blocks( bool is_wide ) {
-  static constexpr H height_blocks{ 3 };
-  static constexpr W width_wide{ 3 };
-  static constexpr W width_narrow{ 2 };
-  return Delta{ .w = is_wide ? width_wide : width_narrow,
-                .h = height_blocks };
-}
-
-// This is the size without the lower/right border.
-Delta HarborInPortShips::size_pixels( bool is_wide ) {
-  Delta res = size_blocks( is_wide );
-  return res * g_tile_delta;
-}
-
 Delta HarborInPortShips::delta() const {
-  Delta res = size_pixels( is_wide_ );
-  // +1 in each dimension for the border.
-  ++res.w;
-  ++res.h;
-  return res;
+  return layout_.view.size;
 }
 
 maybe<int> HarborInPortShips::entity() const {
@@ -79,6 +77,7 @@ maybe<UnitId> HarborInPortShips::get_active_unit() const {
 }
 
 void HarborInPortShips::set_active_unit( UnitId unit_id ) {
+  SCOPE_EXIT { update_units(); };
   CHECK( as_const( ss_.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::harbor>() );
@@ -87,11 +86,9 @@ void HarborInPortShips::set_active_unit( UnitId unit_id ) {
 
 maybe<HarborInPortShips::UnitWithPosition>
 HarborInPortShips::unit_at_location( Coord where ) const {
-  for( auto [id, coord] : units( Coord{} ) ) {
-    Rect const r = Rect::from( coord, g_tile_delta );
+  for( auto [id, r] : units_ )
     if( where.is_inside( r ) )
-      return UnitWithPosition{ .id = id, .pixel_coord = coord };
-  }
+      return UnitWithPosition{ .id = id, .bounds = r };
   return nothing;
 }
 
@@ -99,28 +96,28 @@ maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborInPortShips::object_here( Coord const& where ) const {
   maybe<UnitWithPosition> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
+  point const origin =
+      gfx::centered_in( g_tile_delta, unit->bounds );
   return DraggableObjectWithBounds<HarborDraggableObject>{
     .obj    = HarborDraggableObject::unit{ .id = unit->id },
-    .bounds = Rect::from( unit->pixel_coord, g_tile_delta ) };
+    .bounds = rect{ .origin = origin, .size = g_tile_delta } };
 }
 
-vector<HarborInPortShips::UnitWithPosition>
-HarborInPortShips::units( Coord origin ) const {
-  vector<UnitWithPosition> units;
-  Rect const r = bounds( origin );
-  Coord coord  = r.lower_right() - g_tile_delta;
-  for( UnitId id :
+void HarborInPortShips::update_units() {
+  units_.clear();
+  auto spot_it = layout_.slots.begin();
+  for( UnitId const unit_id :
        harbor_units_in_port( ss_.units, player_.nation ) ) {
-    units.push_back( { .id = id, .pixel_coord = coord } );
-    coord -= Delta{ .w = g_tile_delta.w };
-    if( coord.x < r.left_edge() )
-      coord = Coord{ ( r.lower_right() - g_tile_delta ).x,
-                     coord.y - g_tile_delta.h };
+    if( spot_it == layout_.slots.end() ) break;
+    units_.push_back( { .id     = unit_id,
+                        .bounds = spot_it->point_becomes_origin(
+                            layout_.view.origin ) } );
+    ++spot_it;
   }
-  return units;
 }
 
 wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
+  SCOPE_EXIT { update_units(); };
   if( get_active_unit() == unit_id ) {
     Unit const& unit = ss_.units.unit_for( unit_id );
     if( auto damaged =
@@ -158,6 +155,7 @@ wait<> HarborInPortShips::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
+  SCOPE_EXIT { update_units(); };
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitWithPosition> const unit =
       unit_at_location( event.pos );
@@ -175,6 +173,7 @@ bool HarborInPortShips::try_drag( HarborDraggableObject const& o,
 wait<base::valid_or<DragRejection>>
 HarborInPortShips::source_check( HarborDraggableObject const&,
                                  Coord const ) {
+  SCOPE_EXIT { update_units(); };
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
   Unit const& unit = ss_.units.unit_for( unit_id );
@@ -193,6 +192,7 @@ HarborInPortShips::source_check( HarborDraggableObject const&,
 void HarborInPortShips::cancel_drag() { dragging_ = nothing; }
 
 wait<> HarborInPortShips::disown_dragged_object() {
+  SCOPE_EXIT { update_units(); };
   // Ideally we should do as the API spec says and disown the ob-
   // ject here. However, we're not actually going to do that, be-
   // cause the object is a ship which is being dragged either to
@@ -300,6 +300,7 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
 
 wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
                                 Coord const& where ) {
+  SCOPE_EXIT { update_units(); };
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       auto const& alt = o.get<HarborDraggableObject::unit>();
@@ -342,59 +343,118 @@ wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
 
 void HarborInPortShips::draw( rr::Renderer& renderer,
                               Coord coord ) const {
+  SCOPED_RENDERER_MOD_ADD(
+      painter_mods.repos.translation2,
+      point( coord ).distance_from_origin().to_double() );
   rr::Painter painter = renderer.painter();
-  auto r              = bounds( coord );
-  painter.draw_empty_rect( r, rr::Painter::e_border_mode::inside,
-                           gfx::pixel::white() );
-  rr::Typer typer =
-      renderer.typer( r.upper_left() + Delta{ .w = 2, .h = 2 },
-                      gfx::pixel::white() );
-  typer.write( "In Port" );
+  painter.draw_empty_rect( layout_.white_box,
+                           rr::Painter::e_border_mode::inside,
+                           pixel::white().with_alpha( 128 ) );
 
   HarborState const& hb_state = player_.old_world.harbor_state;
 
-  for( auto const& [unit_id, unit_coord] : units( coord ) ) {
+  string const label =
+      units_.empty() ? "No Ships in Port"
+      : !hb_state.selected_unit.has_value()
+          ? "Loading Ship Cargo"
+          : fmt::format(
+                "Loading: {}",
+                ss_.units.unit_for( *hb_state.selected_unit )
+                    .desc()
+                    .name );
+  size const label_size =
+      rr::rendered_text_line_size_pixels( label );
+  point const label_nw =
+      gfx::centered_at_top( label_size, layout_.label_area );
+  rr::Typer typer = renderer.typer(
+      label_nw, config_ui.dialog_text.normal.shaded( 2 ) );
+  typer.write( label );
+
+  for( auto const& [unit_id, bounds] : units_ ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
-    render_unit( renderer, unit_coord,
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation2,
+        bounds.nw().distance_from_origin().to_double() );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
+                             double( bounds.size.w ) / 32 );
+    rr::Painter painter = renderer.painter();
+    render_unit( renderer, point{},
                  ss_.units.unit_for( unit_id ),
                  UnitRenderOptions{} );
     if( hb_state.selected_unit == unit_id )
       painter.draw_empty_rect(
-          Rect::from( unit_coord, g_tile_delta ) -
-              Delta{ .w = 1, .h = 1 },
-          rr::Painter::e_border_mode::in_out,
-          gfx::pixel::green() );
+          rect{ .origin = {}, .size = g_tile_delta } -
+              size{ .w = 1, .h = 1 },
+          rr::Painter::e_border_mode::in_out, pixel::green() );
   }
 }
 
+HarborInPortShips::Layout HarborInPortShips::create_layout(
+    HarborBackdrop const& backdrop ) {
+  Layout l;
+  l.view.origin =
+      backdrop.horizon_center() - size{ .w = 96, .h = 6 };
+  l.view.size = { .w = 192, .h = 56 };
+
+  // Relative to view origin.
+  l.white_box =
+      rect{ .origin = point{} - size{ .w = 9, .h = 40 },
+            .size   = { .w = 210, .h = 134 } };
+
+  l.label_area = l.white_box;
+  l.label_area.origin.y += 2;
+
+  // Slots. The counts in each row are chosen to conform to the
+  // perspective of the scene.
+  rect slot;
+
+  // Row 1 (32x32).
+  slot = { .origin = l.view.origin + size{ .h = 24 },
+           .size   = { .w = 32, .h = 32 } };
+  for( int i = 0; i < 6; ++i ) {
+    l.slots.push_back( slot );
+    slot.origin.x += slot.size.w;
+  }
+
+  // Row 2 (16x16).
+  slot = { .origin = l.view.origin + size{ .h = 8 },
+           .size   = { .w = 16, .h = 16 } };
+  for( int i = 0; i < 8; ++i ) {
+    l.slots.push_back( slot );
+    slot.origin.x += slot.size.w;
+  }
+
+  // Row 3 (8x8).
+  slot = { .origin = l.view.origin, .size = { .w = 8, .h = 8 } };
+  for( int i = 0; i < 12; ++i ) {
+    l.slots.push_back( slot );
+    slot.origin.x += slot.size.w;
+  }
+  return l;
+}
+
 PositionedHarborSubView<HarborInPortShips>
-HarborInPortShips::create(
-    SS& ss, TS& ts, Player& player, Rect,
-    HarborMarketCommodities const& market_commodities,
-    Coord harbor_cargo_upper_left ) {
-  // The canvas will exclude the market commodities.
-  unique_ptr<HarborInPortShips> view;
-  HarborSubView* harbor_sub_view = nullptr;
-
-  bool const is_wide = !market_commodities.stacked();
-  Delta const size   = size_pixels( is_wide );
-  Coord const pos =
-      harbor_cargo_upper_left - Delta{ .h = size.h };
-
-  view =
-      make_unique<HarborInPortShips>( ss, ts, player, is_wide );
-  harbor_sub_view             = view.get();
-  HarborInPortShips* p_actual = view.get();
+HarborInPortShips::create( SS& ss, TS& ts, Player& player, Rect,
+                           HarborBackdrop const& backdrop ) {
+  Layout layout = create_layout( backdrop );
+  auto view =
+      make_unique<HarborInPortShips>( ss, ts, player, layout );
+  HarborSubView* const harbor_sub_view = view.get();
+  HarborInPortShips* const p_actual    = view.get();
   return PositionedHarborSubView<HarborInPortShips>{
-    .owned  = { .view = std::move( view ), .coord = pos },
+    .owned  = { .view  = std::move( view ),
+                .coord = layout.view.origin },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }
 
 HarborInPortShips::HarborInPortShips( SS& ss, TS& ts,
                                       Player& player,
-                                      bool is_wide )
-  : HarborSubView( ss, ts, player ), is_wide_( is_wide ) {}
+                                      Layout layout )
+  : HarborSubView( ss, ts, player ),
+    layout_( std::move( layout ) ) {
+  SCOPE_EXIT { update_units(); };
+}
 
 } // namespace rn

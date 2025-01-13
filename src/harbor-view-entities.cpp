@@ -236,11 +236,9 @@ HarborViewComposited recomposite_harbor_view(
       ss, ts, player, Delta{ .w = canvas_size.w, .h = 10 } );
   composition.entities[e_harbor_view_entity::status_bar] =
       status_bar.get();
-  Y const status_bar_bottom =
-      status_bar->bounds( canvas_rect.nw() ).bottom_edge();
-  views.push_back( ui::OwningPositionedView{
-    .view  = std::move( status_bar ),
-    .coord = canvas_rect.nw() } );
+  views.push_back(
+      ui::OwningPositionedView{ .view  = std::move( status_bar ),
+                                .coord = canvas_rect.nw() } );
 
   // [HarborMarketCommodities] ----------------------------------
   PositionedHarborSubView<HarborMarketCommodities>
@@ -257,23 +255,7 @@ HarborViewComposited recomposite_harbor_view(
       HarborCargo::create( ss, ts, player, canvas_rect );
   composition.entities[e_harbor_view_entity::cargo] =
       cargo.harbor;
-  Coord const cargo_upper_left = cargo.owned.rect().upper_left();
-  Coord const cargo_upper_right =
-      cargo.owned.rect().upper_right();
   views.push_back( std::move( cargo.owned ) );
-
-  // [HarborInPortShips] ----------------------------------------
-  PositionedHarborSubView<HarborInPortShips> in_port =
-      HarborInPortShips::create( ss, ts, player, canvas_rect,
-                                 market_commodities_ref,
-                                 cargo_upper_left );
-  composition.entities[e_harbor_view_entity::in_port] =
-      in_port.harbor;
-  Coord const inport_upper_left =
-      in_port.owned.rect().upper_left();
-  Coord const inport_upper_right =
-      in_port.owned.rect().upper_right();
-  views.push_back( std::move( in_port.owned ) );
 
   // [HarborBackdrop] -------------------------------------------
   PositionedHarborSubView<HarborBackdrop> backdrop =
@@ -284,6 +266,17 @@ HarborViewComposited recomposite_harbor_view(
   // NOTE: this one needs to be inserted at the beginning because
   // it needs to be drawn first.
   views.insert( views.begin(), std::move( backdrop.owned ) );
+
+  // [HarborInPortShips] ----------------------------------------
+  PositionedHarborSubView<HarborInPortShips> in_port =
+      HarborInPortShips::create( ss, ts, player, canvas_rect,
+                                 backdrop_ref );
+  auto& in_port_ships_ref = *in_port.actual;
+  composition.entities[e_harbor_view_entity::in_port] =
+      in_port.harbor;
+  // Coord const inport_upper_left =
+  //     in_port.owned.rect().upper_left();
+  views.push_back( std::move( in_port.owned ) );
 
   // [HarborOutboundShips]
   // ----------------------------------------
@@ -320,7 +313,8 @@ HarborViewComposited recomposite_harbor_view(
   // ----------------------------------------
   PositionedHarborSubView<HarborRptButtons> buttons =
       HarborRptButtons::create( ss, ts, player, canvas_rect,
-                                backdrop_ref, dock_units_ref );
+                                backdrop_ref, dock_units_ref,
+                                in_port_ships_ref );
   composition.entities[e_harbor_view_entity::rpt] =
       buttons.harbor;
   views.push_back( std::move( buttons.owned ) );

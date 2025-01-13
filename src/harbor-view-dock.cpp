@@ -37,6 +37,7 @@
 // base
 #include "base/conv.hpp"
 #include "base/range-lite.hpp"
+#include "base/scope-exit.hpp"
 
 using namespace std;
 
@@ -102,6 +103,7 @@ HarborDockUnits::object_here( Coord const& where ) const {
 }
 
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
+  SCOPE_EXIT { update_units(); };
   Unit const& unit = ss_.units.unit_for( unit_id );
   ChoiceConfig config{
     .msg     = fmt::format( "European dock options for [{}]:",
@@ -141,6 +143,7 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
 
 wait<> HarborDockUnits::perform_click(
     input::mouse_button_event_t const& event ) {
+  SCOPE_EXIT { update_units(); };
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
   CHECK( event.pos.is_inside( bounds( {} ) ) );
@@ -162,10 +165,10 @@ bool HarborDockUnits::try_drag( HarborDraggableObject const& o,
 void HarborDockUnits::cancel_drag() { dragging_ = nothing; }
 
 wait<> HarborDockUnits::disown_dragged_object() {
+  SCOPE_EXIT { update_units(); };
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
   UnitOwnershipChanger( ss_, unit_id ).change_to_free();
-  update_units();
   co_return;
 }
 
@@ -183,6 +186,7 @@ HarborDockUnits::can_receive( HarborDraggableObject const& o,
 
 wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
                               Coord const& ) {
+  SCOPE_EXIT { update_units(); };
   UNWRAP_CHECK( draggable_unit,
                 o.get_if<HarborDraggableObject::unit>() );
   e_unit_type const type =
@@ -197,7 +201,6 @@ wait<> HarborDockUnits::drop( HarborDraggableObject const& o,
     co_return;
   }
   unit_move_to_port( ss_, draggable_unit.id );
-  update_units();
 }
 
 void HarborDockUnits::draw( rr::Renderer& renderer,
@@ -220,7 +223,7 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
     SCOPED_RENDERER_MOD_ADD(
-        painter_mods.repos.translation,
+        painter_mods.repos.translation2,
         point( coord ).distance_from_origin().to_double() );
     Unit const& unit  = ss_.units.unit_for( unit_id );
     e_tile const tile = unit.desc().tile;
@@ -245,10 +248,6 @@ HarborDockUnits::Layout HarborDockUnits::create_layout(
   for( rect const& r : unit_slots )
     composite = composite.uni0n( r );
   l.view = composite;
-  for( rect const& r : unit_slots )
-    l.slots.push_back( rect{
-      .origin = r.nw().point_becomes_origin( l.view.nw() ),
-      .size   = g_tile_delta } );
   return l;
 }
 
@@ -273,7 +272,7 @@ HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,
   : HarborSubView( ss, ts, player ),
     backdrop_( backdrop ),
     layout_( std::move( layout ) ) {
-  update_units();
+  SCOPE_EXIT { update_units(); };
 }
 
 } // namespace rn

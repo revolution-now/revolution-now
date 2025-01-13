@@ -24,6 +24,7 @@ namespace rn {
 
 struct HarborBackdrop;
 struct HarborDockUnits;
+struct HarborInPortShips;
 struct Player;
 struct SS;
 struct TS;
@@ -34,11 +35,12 @@ struct TS;
 struct HarborRptButtons : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborRptButtons> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop,
-      HarborDockUnits& doc_units );
+      HarborBackdrop const& backdrop, HarborDockUnits& doc_units,
+      HarborInPortShips& in_port_ships );
 
   HarborRptButtons( SS& ss, TS& ts, Player& player,
-                    HarborDockUnits& doc_units );
+                    HarborDockUnits& doc_units,
+                    HarborInPortShips& in_port_ships );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -73,6 +75,7 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   static maybe<e_rpt_button> button_for_coord( Coord where );
 
   HarborDockUnits& dock_units_;
+  HarborInPortShips& in_port_ships_;
 };
 
 } // namespace rn

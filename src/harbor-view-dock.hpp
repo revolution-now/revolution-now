@@ -40,9 +40,6 @@ struct HarborDockUnits
   struct Layout {
     // Absolute coords.
     gfx::rect view;
-    // Points are relative to nw of this view, which should be
-    // the nw corner of the top-left-most unit on the dock.
-    std::vector<gfx::rect> slots;
   };
 
   HarborDockUnits( SS& ss, TS& ts, Player& player,
@@ -89,7 +86,8 @@ struct HarborDockUnits
                Coord const& where ) override;
 
   // Should be called every time something happens that changes
-  // the units on the dock.
+  // the units on the dock. To be safe, we just call it on scope
+  // exit of any non-const method.
   void update_units();
 
  private:
