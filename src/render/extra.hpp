@@ -28,4 +28,16 @@ void render_shadow_hightlight_border( rr::Renderer& renderer,
                                       gfx::pixel left_and_bottom,
                                       gfx::pixel top_and_right );
 
+void write_centered( rr::Renderer& renderer,
+                     gfx::pixel const color_fg,
+                     gfx::point const center,
+                     std::string_view const text );
+
+// With a background color.
+void write_centered( rr::Renderer& renderer,
+                     gfx::pixel const color_fg,
+                     gfx::pixel const color_bg,
+                     gfx::point const center,
+                     std::string_view const text );
+
 } // namespace rr

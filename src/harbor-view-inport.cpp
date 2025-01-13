@@ -16,7 +16,6 @@
 #include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-backdrop.hpp"
-#include "harbor-view-market.hpp"
 #include "igui.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
@@ -40,9 +39,12 @@
 #include "gfx/cartesian.hpp"
 
 // base
+#include "base/range-lite.hpp"
 #include "base/scope-exit.hpp"
 
 using namespace std;
+
+namespace rl = base::rl;
 
 namespace rn {
 
@@ -77,7 +79,6 @@ maybe<UnitId> HarborInPortShips::get_active_unit() const {
 }
 
 void HarborInPortShips::set_active_unit( UnitId unit_id ) {
-  SCOPE_EXIT { update_units(); };
   CHECK( as_const( ss_.units )
              .ownership_of( unit_id )
              .holds<UnitOwnership::harbor>() );
@@ -86,7 +87,7 @@ void HarborInPortShips::set_active_unit( UnitId unit_id ) {
 
 maybe<HarborInPortShips::UnitWithPosition>
 HarborInPortShips::unit_at_location( Coord where ) const {
-  for( auto [id, r] : units_ )
+  for( auto [id, r] : units() )
     if( where.is_inside( r ) )
       return UnitWithPosition{ .id = id, .bounds = r };
   return nothing;
@@ -103,21 +104,25 @@ HarborInPortShips::object_here( Coord const& where ) const {
     .bounds = rect{ .origin = origin, .size = g_tile_delta } };
 }
 
-void HarborInPortShips::update_units() {
-  units_.clear();
+vector<HarborInPortShips::UnitWithPosition>
+HarborInPortShips::units() const {
+  vector<UnitWithPosition> units;
   auto spot_it = layout_.slots.begin();
   for( UnitId const unit_id :
        harbor_units_in_port( ss_.units, player_.nation ) ) {
     if( spot_it == layout_.slots.end() ) break;
-    units_.push_back( { .id     = unit_id,
-                        .bounds = spot_it->point_becomes_origin(
-                            layout_.view.origin ) } );
+    units.push_back( { .id = unit_id, .bounds = *spot_it } );
     ++spot_it;
   }
+  return units;
+}
+
+point HarborInPortShips::frame_nw() const {
+  return layout_.white_box.nw().origin_becomes_point(
+      layout_.view.origin );
 }
 
 wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
-  SCOPE_EXIT { update_units(); };
   if( get_active_unit() == unit_id ) {
     Unit const& unit = ss_.units.unit_for( unit_id );
     if( auto damaged =
@@ -155,7 +160,6 @@ wait<> HarborInPortShips::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
-  SCOPE_EXIT { update_units(); };
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   maybe<UnitWithPosition> const unit =
       unit_at_location( event.pos );
@@ -173,7 +177,6 @@ bool HarborInPortShips::try_drag( HarborDraggableObject const& o,
 wait<base::valid_or<DragRejection>>
 HarborInPortShips::source_check( HarborDraggableObject const&,
                                  Coord const ) {
-  SCOPE_EXIT { update_units(); };
   UNWRAP_CHECK( unit_id,
                 dragging_.member( &Draggable::unit_id ) );
   Unit const& unit = ss_.units.unit_for( unit_id );
@@ -192,7 +195,6 @@ HarborInPortShips::source_check( HarborDraggableObject const&,
 void HarborInPortShips::cancel_drag() { dragging_ = nothing; }
 
 wait<> HarborInPortShips::disown_dragged_object() {
-  SCOPE_EXIT { update_units(); };
   // Ideally we should do as the API spec says and disown the ob-
   // ject here. However, we're not actually going to do that, be-
   // cause the object is a ship which is being dragged either to
@@ -300,7 +302,6 @@ HarborInPortShips::can_receive( HarborDraggableObject const& o,
 
 wait<> HarborInPortShips::drop( HarborDraggableObject const& o,
                                 Coord const& where ) {
-  SCOPE_EXIT { update_units(); };
   switch( o.to_enum() ) {
     case HarborDraggableObject::e::unit: {
       auto const& alt = o.get<HarborDraggableObject::unit>();
@@ -353,8 +354,10 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
 
   HarborState const& hb_state = player_.old_world.harbor_state;
 
+  auto const units = this->units();
+
   string const label =
-      units_.empty() ? "No Ships in Port"
+      units.empty() ? "No Ships in Port"
       : !hb_state.selected_unit.has_value()
           ? "Loading Ship Cargo"
           : fmt::format(
@@ -366,11 +369,15 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
       rr::rendered_text_line_size_pixels( label );
   point const label_nw =
       gfx::centered_at_top( label_size, layout_.label_area );
-  rr::Typer typer = renderer.typer(
-      label_nw, config_ui.dialog_text.normal.shaded( 2 ) );
+  // This needs to be kept in sync with the other boxes.
+  static auto const kTextColor =
+      config_ui.dialog_text.normal.shaded( 2 );
+  rr::Typer typer = renderer.typer( label_nw, kTextColor );
   typer.write( label );
 
-  for( auto const& [unit_id, bounds] : units_ ) {
+  // Draw in reverse order so that the front rows (and highlight
+  // boxes around them) will be on top of back rows.
+  for( auto const& [unit_id, bounds] : rl::rall( units ) ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
     SCOPED_RENDERER_MOD_ADD(
@@ -410,7 +417,7 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
   rect slot;
 
   // Row 1 (32x32).
-  slot = { .origin = l.view.origin + size{ .h = 24 },
+  slot = { .origin = point{} + size{ .h = 24 },
            .size   = { .w = 32, .h = 32 } };
   for( int i = 0; i < 6; ++i ) {
     l.slots.push_back( slot );
@@ -418,7 +425,7 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
   }
 
   // Row 2 (16x16).
-  slot = { .origin = l.view.origin + size{ .h = 8 },
+  slot = { .origin = point{} + size{ .h = 8 },
            .size   = { .w = 16, .h = 16 } };
   for( int i = 0; i < 8; ++i ) {
     l.slots.push_back( slot );
@@ -426,7 +433,7 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
   }
 
   // Row 3 (8x8).
-  slot = { .origin = l.view.origin, .size = { .w = 8, .h = 8 } };
+  slot = { .origin = point{}, .size = { .w = 8, .h = 8 } };
   for( int i = 0; i < 12; ++i ) {
     l.slots.push_back( slot );
     slot.origin.x += slot.size.w;
@@ -453,8 +460,6 @@ HarborInPortShips::HarborInPortShips( SS& ss, TS& ts,
                                       Player& player,
                                       Layout layout )
   : HarborSubView( ss, ts, player ),
-    layout_( std::move( layout ) ) {
-  SCOPE_EXIT { update_units(); };
-}
+    layout_( std::move( layout ) ) {}
 
 } // namespace rn

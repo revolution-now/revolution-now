@@ -19,7 +19,7 @@
 
 namespace rn {
 
-struct HarborMarketCommodities;
+struct HarborInPortShips;
 struct SS;
 struct TS;
 struct Player;
@@ -34,11 +34,21 @@ struct HarborOutboundShips
     public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborOutboundShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborMarketCommodities const& market_commodities,
-      Coord harbor_inport_upper_left );
+      HarborInPortShips const& in_port_ships );
+
+  struct Layout {
+    // Absolute coordinates.
+    gfx::rect view = {}; // includes full white box.
+
+    // Relative to origin of view.
+    bool compact         = {};
+    gfx::rect units_area = {};
+    int label_top        = {};
+    std::vector<gfx::rect> slots;
+  };
 
   HarborOutboundShips( SS& ss, TS& ts, Player& player,
-                       bool is_wide );
+                       Layout layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -79,31 +89,34 @@ struct HarborOutboundShips
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
 
+  // In absolute coordinates.
+  gfx::point frame_nw() const;
+
  private:
   struct UnitWithPosition {
     UnitId id;
-    Coord pixel_coord;
+    gfx::rect bounds;
   };
-
-  std::vector<UnitWithPosition> units( Coord origin ) const;
 
   // The coord is relative to the upper left of this view.
   maybe<UnitWithPosition> unit_at_location( Coord where ) const;
+
+  std::vector<UnitWithPosition> units() const;
 
   maybe<UnitId> get_active_unit() const;
   void set_active_unit( UnitId unit_id );
 
   wait<> click_on_unit( UnitId unit_id );
 
-  static Delta size_blocks( bool is_wide );
-  static Delta size_pixels( bool is_wide );
+  static Layout create_layout(
+      gfx::rect canvas, HarborInPortShips const& in_port_ships );
 
   struct Draggable {
     UnitId unit_id = {};
   };
 
   maybe<Draggable> dragging_;
-  bool is_wide_ = false;
+  Layout const layout_;
 };
 
 } // namespace rn

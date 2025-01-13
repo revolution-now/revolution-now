@@ -133,8 +133,6 @@ struct HarborMarketCommodities
 
   auto scale() const { return layout_.scale; }
 
-  bool stacked() const { return false; }
-
  private:
   // Returns true if the commodity is boycotted and the player
   // did not lift it, i.e. we are blocked.

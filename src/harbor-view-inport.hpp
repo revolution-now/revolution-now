@@ -19,7 +19,6 @@
 
 namespace rn {
 
-struct HarborMarketCommodities;
 struct HarborBackdrop;
 struct SS;
 struct TS;
@@ -94,10 +93,8 @@ struct HarborInPortShips
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
 
-  // Should be called every time something happens that changes
-  // the units on the dock. To be safe, we just call it on scope
-  // exit of any non-const method.
-  void update_units();
+  // In absolute coordinates.
+  gfx::point frame_nw() const;
 
  private:
   struct UnitWithPosition {
@@ -110,6 +107,8 @@ struct HarborInPortShips
 
   static Layout create_layout( HarborBackdrop const& backdrop );
 
+  std::vector<UnitWithPosition> units() const;
+
   maybe<UnitId> get_active_unit() const;
   void set_active_unit( UnitId unit_id );
 
@@ -121,7 +120,6 @@ struct HarborInPortShips
 
   maybe<Draggable> dragging_;
   Layout const layout_;
-  std::vector<UnitWithPosition> units_;
 };
 
 } // namespace rn

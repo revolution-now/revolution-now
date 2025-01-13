@@ -274,20 +274,6 @@ struct DifficultyScreen : public IPlane {
     layout_ = layout_gen( resolution );
   }
 
-  void write_centered( rr::Renderer& renderer,
-                       pixel const color_fg,
-                       pixel const color_bg, point const center,
-                       string_view const text ) const {
-    size const text_size =
-        rr::rendered_text_line_size_pixels( text );
-    rect const text_rect = gfx::centered_on( text_size, center );
-    renderer.typer( text_rect.nw() + size{ .w = 1 }, color_bg )
-        .write( text );
-    renderer.typer( text_rect.nw() + size{ .h = 1 }, color_bg )
-        .write( text );
-    renderer.typer( text_rect.nw(), color_fg ).write( text );
-  }
-
   static void render_aged( rr::Renderer& renderer,
                            double const age, auto const& fn ) {
     fn();
@@ -322,9 +308,9 @@ struct DifficultyScreen : public IPlane {
     auto const write = [&]( size const center,
                             string_view const text ) {
       if( this_highlighted || this_selected )
-        write_centered( renderer, cell.selected_color,
-                        pixel::black(),
-                        cell.plate_origin + center, text );
+        rr::write_centered( renderer, cell.selected_color,
+                            pixel::black(),
+                            cell.plate_origin + center, text );
     };
     auto const write_text = [&] {
       write( l.center_for_label, cell.label );
@@ -356,10 +342,11 @@ struct DifficultyScreen : public IPlane {
     // Instructions box.
     static gfx::pixel const kUiTextColor =
         config_ui.dialog_text.normal;
-    write_centered( renderer, kUiTextColor, pixel::black(),
-                    l.instructions_cell.center_for_title_label,
-                    "Choose Difficulty Level" );
-    write_centered(
+    rr::write_centered(
+        renderer, kUiTextColor, pixel::black(),
+        l.instructions_cell.center_for_title_label,
+        "Choose Difficulty Level" );
+    rr::write_centered(
         renderer,
         hover_finished_ ? kUiTextColor.highlighted( 3 )
                         : kUiTextColor,

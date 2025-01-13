@@ -84,4 +84,27 @@ void render_shadow_hightlight_border(
   painter.draw_point( rect.se(), mixed );
 }
 
+void write_centered( rr::Renderer& renderer,
+                     pixel const color_fg, point const center,
+                     string_view const text ) {
+  size const text_size =
+      rr::rendered_text_line_size_pixels( text );
+  rect const text_rect = gfx::centered_on( text_size, center );
+  renderer.typer( text_rect.nw(), color_fg ).write( text );
+}
+
+void write_centered( rr::Renderer& renderer,
+                     pixel const color_fg, pixel const color_bg,
+                     point const center,
+                     string_view const text ) {
+  size const text_size =
+      rr::rendered_text_line_size_pixels( text );
+  rect const text_rect = gfx::centered_on( text_size, center );
+  renderer.typer( text_rect.nw() + size{ .w = 1 }, color_bg )
+      .write( text );
+  renderer.typer( text_rect.nw() + size{ .h = 1 }, color_bg )
+      .write( text );
+  renderer.typer( text_rect.nw(), color_fg ).write( text );
+}
+
 } // namespace rr

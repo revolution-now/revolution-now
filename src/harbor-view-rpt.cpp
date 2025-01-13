@@ -113,13 +113,11 @@ wait<> HarborRptButtons::perform_click(
       break;
     case e_rpt_button::purchase:
       co_await click_purchase( ss_, ts_, player_ );
-      in_port_ships_.update_units();
       break;
     case e_rpt_button::train:
       co_await click_train( ss_, ts_, player_ );
       break;
   }
-  dock_units_.update_units();
 }
 
 wait<bool> HarborRptButtons::perform_key(
@@ -130,16 +128,12 @@ wait<bool> HarborRptButtons::perform_key(
   switch( event.keycode ) {
     case ::SDLK_r:
       co_await click_recruit( ss_, ts_, player_ );
-      dock_units_.update_units();
       co_return true;
     case ::SDLK_p:
       co_await click_purchase( ss_, ts_, player_ );
-      dock_units_.update_units();
-      in_port_ships_.update_units();
       co_return true;
     case ::SDLK_t:
       co_await click_train( ss_, ts_, player_ );
-      dock_units_.update_units();
       co_return true;
   }
   co_return false; // not handled.
