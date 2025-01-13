@@ -513,9 +513,12 @@ struct OmniPlane::Impl : public IPlane {
           case ::SDLK_F3:
             // TODO: temporary until the menu system supports
             // shortcuts keys for menu items.
-            menu_server_.click_item(
-                e_menu_item::continental_congress );
-            handled = e_input_handled::yes;
+            if( menu_server_.can_handle_menu_click(
+                    e_menu_item::continental_congress ) ) {
+              menu_server_.click_item(
+                  e_menu_item::continental_congress );
+              handled = e_input_handled::yes;
+            }
             break;
           case ::SDLK_o:
             if( key_event.mod.ctrl_down ) {
