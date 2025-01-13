@@ -274,8 +274,8 @@ HarborViewComposited recomposite_harbor_view(
   auto& in_port_ships_ref = *in_port.actual;
   composition.entities[e_harbor_view_entity::in_port] =
       in_port.harbor;
-  // Coord const inport_upper_left =
-  //     in_port.owned.rect().upper_left();
+  Coord const inport_upper_left =
+      in_port.owned.rect().upper_left();
   views.push_back( std::move( in_port.owned ) );
 
   // [HarborOutboundShips]
