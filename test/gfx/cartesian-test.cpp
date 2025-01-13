@@ -818,6 +818,23 @@ TEST_CASE( "[gfx/cartesian] rect::nw, rect::se, etc." ) {
   REQUIRE( r.left() == 3 );
 }
 
+TEST_CASE(
+    "[gfx/cartesian] rect::{horizontal,vertical}_slice" ) {
+  rect const r1{ .origin = { .x = 3, .y = 4 },
+                 .size   = { .w = 1, .h = 3 } };
+  REQUIRE( r1.horizontal_slice() ==
+           interval{ .start = 3, .len = 1 } );
+  REQUIRE( r1.vertical_slice() ==
+           interval{ .start = 4, .len = 3 } );
+
+  rect const r2{ .origin = { .x = 3, .y = 4 },
+                 .size   = { .w = -1, .h = -3 } };
+  REQUIRE( r2.horizontal_slice() ==
+           interval{ .start = 3, .len = -1 } );
+  REQUIRE( r2.vertical_slice() ==
+           interval{ .start = 4, .len = -3 } );
+}
+
 TEST_CASE( "[gfx/cartesian] rect::corner" ) {
   rect r;
 

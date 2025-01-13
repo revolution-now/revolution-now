@@ -643,6 +643,14 @@ int rect::right() const {
   return norm.origin.x + norm.size.w;
 }
 
+interval rect::horizontal_slice() const {
+  return interval{ .start = origin.x, .len = size.w };
+}
+
+interval rect::vertical_slice() const {
+  return interval{ .start = origin.y, .len = size.h };
+}
+
 rect rect::with_new_right_edge( const int edge ) const {
   return rect{ .origin = { .x = origin.x, .y = origin.y },
                .size   = { .w = edge - origin.x, .h = size.h } }

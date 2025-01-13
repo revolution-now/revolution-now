@@ -270,8 +270,11 @@ inline auto point::to_double() const {
 *****************************************************************/
 // Kind of like a rect except one dimensional.
 struct interval {
-  int origin = {};
-  int size   = {};
+  int start = {};
+  int len   = {};
+
+  [[nodiscard]] bool operator==( interval const& ) const =
+      default;
 };
 
 /****************************************************************
@@ -342,6 +345,9 @@ struct rect {
   [[nodiscard]] int bottom() const;
   [[nodiscard]] int right() const;
   [[nodiscard]] int left() const;
+
+  [[nodiscard]] interval horizontal_slice() const;
+  [[nodiscard]] interval vertical_slice() const;
 
   [[nodiscard]] rect with_new_right_edge( int edge ) const;
   [[nodiscard]] rect with_new_left_edge( int edge ) const;
@@ -563,6 +569,26 @@ struct traits<gfx::size> {
   static constexpr std::tuple fields{
     refl::StructField{ "w", &gfx::size::w, offsetof( type, w ) },
     refl::StructField{ "h", &gfx::size::h, offsetof( type, h ) },
+  };
+};
+
+// Reflection info for struct interval.
+template<>
+struct traits<gfx::interval> {
+  using type = gfx::interval;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name       = "interval";
+  static constexpr bool is_sumtype_alternative = false;
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+    refl::StructField{ "start", &gfx::interval::start,
+                       offsetof( type, start ) },
+    refl::StructField{ "len", &gfx::interval::len,
+                       offsetof( type, len ) },
   };
 };
 
