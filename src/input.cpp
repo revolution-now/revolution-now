@@ -559,6 +559,7 @@ bool is_mod_key( key_event_t const& event ) {
     case ::SDLK_RSHIFT:
     case ::SDLK_LCTRL:
     case ::SDLK_RCTRL:
+    case ::SDLK_CAPSLOCK:
     case ::SDLK_LALT:
     case ::SDLK_RALT:
       return true;
