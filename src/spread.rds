@@ -1,0 +1,44 @@
+# ===============================================================
+# spread.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-12.
+#
+# Description: Rds definitions for the spread module.
+#
+# ===============================================================
+# config
+include "config/tile-enum-fwd.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+struct.IconSpreadSpec {
+  count 'int',
+  width 'int',
+}
+
+struct.IconSpreadSpecs {
+  bounds 'int',
+  specs 'std::vector<IconSpreadSpec>',
+  group_spacing 'int',
+}
+
+struct.IconSpread {
+  count 'int',
+  spacing 'int',
+  width 'int',  # icon width from input.
+}
+
+struct.IconSpreads {
+  spreads 'std::vector<IconSpread>',
+  group_spacing 'int',
+}
+
+struct.RenderableIconSpreads {
+  spreads 'IconSpreads',
+  icons 'std::vector<e_tile>',
+}

@@ -15,11 +15,13 @@
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
+#include "spread.hpp"
 #include "tiles.hpp"
 
 // config
 #include "config/nation.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -58,6 +60,7 @@ struct Layout {
   string expeditionary_force_title;
   point expeditionary_force_text_nw;
   rect expeditionary_force;
+  RenderableIconSpreads expeditionary_force_spreads;
 };
 
 /****************************************************************
@@ -87,6 +90,44 @@ Layout layout_auto( Player const& player,
     .origin = cur,
     .size   = { .w = l.canvas.left() - margin, .h = 32 } };
 
+  e_tile const regular_tile =
+      config_unit_type.composition
+          .unit_types[e_unit_type::regular]
+          .tile;
+  e_tile const cavalry_tile =
+      config_unit_type.composition
+          .unit_types[e_unit_type::cavalry]
+          .tile;
+  e_tile const artillery_tile =
+      config_unit_type.composition
+          .unit_types[e_unit_type::artillery]
+          .tile;
+  e_tile const man_o_war_tile =
+      config_unit_type.composition
+          .unit_types[e_unit_type::man_o_war]
+          .tile;
+  IconSpreadSpecs const expeditionary_force_spread_specs{
+    .bounds = l.canvas.size.w - 2 * margin,
+    .specs =
+        { { .count =
+                player.old_world.expeditionary_force.regulars,
+            .width = spread_width_for_tile( regular_tile ) },
+          { .count =
+                player.old_world.expeditionary_force.cavalry,
+            .width = spread_width_for_tile( cavalry_tile ) },
+          { .count =
+                player.old_world.expeditionary_force.artillery,
+            .width = spread_width_for_tile( artillery_tile ) },
+          { .count =
+                player.old_world.expeditionary_force.men_of_war,
+            .width = spread_width_for_tile( man_o_war_tile ) } },
+    .group_spacing = 4 };
+  IconSpreads const icon_spreads =
+      compute_icon_spread( expeditionary_force_spread_specs );
+  l.expeditionary_force_spreads = RenderableIconSpreads{
+    .spreads = icon_spreads,
+    .icons   = { regular_tile, cavalry_tile, artillery_tile,
+                 man_o_war_tile } };
   return l;
 }
 
@@ -151,8 +192,8 @@ struct ContinentalCongressReport : public IPlane {
         .typer( l.expeditionary_force_text_nw, pixel::banana() )
         .write( l.expeditionary_force_title );
 
-    render_sprite( renderer, l.expeditionary_force.nw(),
-                   e_tile::regular );
+    render_icon_spread( renderer, l.expeditionary_force.nw(),
+                        l.expeditionary_force_spreads );
   }
 
   void draw( rr::Renderer& renderer ) const override {
