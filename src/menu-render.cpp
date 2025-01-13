@@ -433,11 +433,12 @@ static void render_header_text( rr::Renderer& renderer,
                                 point const where,
                                 e_menu const menu,
                                 pixel const color ) {
-  char const shortcut = config_menu.menus[menu].shortcut;
-  string const name   = [&] {
+  auto const& shortcut = config_menu.menus[menu].shortcut;
+  string const name    = [&] {
     string res = config_menu.menus[menu].name;
+    if( !shortcut.has_value() ) return res;
     // Highlight the letter representing the shortcut key.
-    string const shortcut_str( 1, shortcut );
+    string const shortcut_str( 1, *shortcut );
     auto const pos = name.find_first_of( shortcut_str );
     if( pos != string::npos )
       res.replace( pos, 1, fmt::format( "[{}]", shortcut_str ) );

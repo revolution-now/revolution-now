@@ -39,9 +39,11 @@ base::valid_or<string> config::menu::MenuConfig::validate()
   REFL_VALIDATE( !name.empty(), "menu name is empty." );
 
   // Check that the shortcut key is in the menu name.
-  REFL_VALIDATE( name.find( shortcut ) != string_view::npos,
-                 "menu `{}` does not contain shortcut key `{}`",
-                 name, shortcut );
+  if( shortcut.has_value() )
+    REFL_VALIDATE(
+        name.find( *shortcut ) != string_view::npos,
+        "menu `{}` does not contain shortcut key `{}`", name,
+        *shortcut );
 
   return base::valid;
 }
@@ -50,7 +52,8 @@ base::valid_or<string> config_menu_t::validate() const {
   // Check that all menus have unique shortcut keys.
   unordered_set<char> keys;
   for( auto menu : refl::enum_values<e_menu> ) {
-    char const key = tolower( menus[menu].shortcut );
+    if( !menus[menu].shortcut.has_value() ) continue;
+    char const key = tolower( *menus[menu].shortcut );
     REFL_VALIDATE( !keys.contains( key ),
                    "multiple menus have `{}` as a shortcut key "
                    "in either uppercase or lowercase form.",

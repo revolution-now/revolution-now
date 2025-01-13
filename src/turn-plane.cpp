@@ -37,6 +37,7 @@ unordered_set<e_menu_item> const kSupportedMenuItems{
   e_menu_item::cheat_map_editor,
   e_menu_item::cheat_edit_fathers,
   e_menu_item::game_options,
+  e_menu_item::continental_congress,
 };
 
 /****************************************************************

@@ -17,9 +17,15 @@ menus {
     position: left
   }
 
-  advisors {
-    name:     Advisors
-    shortcut: A
+  reports {
+    name:     Reports
+    shortcut: R
+    position: left
+  }
+
+  trade {
+    name:     Trade
+    shortcut: T
     position: left
   }
 
@@ -31,7 +37,7 @@ menus {
 
   window {
     name:     Window
-    shortcut: W
+    shortcut: null
     position: left
   }
 
@@ -43,13 +49,13 @@ menus {
 
   pedia {
     name:     Revolopedia
-    shortcut: R
+    shortcut: p
     position: right
   }
 
   land_view {
     name:     Land View
-    shortcut: L
+    shortcut: null
     position: left
   }
 }
@@ -65,8 +71,6 @@ items {
   cheat_kill_natives.name: Kill Natives
   colony_report_options.name: Colony Report Options
   dump.name: Dump Cargo Overboard
-  economics_advisor.name: Economics Advisor
-  european_advisor.name: Europian Advisor
   exit.name: Exit to DOS
   find_blinking_unit.name: Find Blinking Unit
   fit_window.name: Shrink Window to Fit
@@ -76,7 +80,6 @@ items {
   harbor_view.name: European Status
   hidden_terrain.name: Show Hidden Terrain
   load.name: Load Game
-  military_advisor.name: Military Advisor
   music_next.name: Next Tune
   music_pause.name: Pause
   music_play.name: Play
@@ -113,6 +116,19 @@ items {
   return_to_europe.name: Return to Europe
   no_orders.name: No Orders This Turn
   disband.name: Disband Unit
+  terrain_information.name: Terrain Information
+  religious_advisor.name: Religious Advisor
+  continental_congress.name: Continental Congress
+  labor_advisor.name: Labor Advisor
+  economic_advisor.name: Economic Advisor
+  colony_advisor.name: Colony Advisor
+  naval_advisor.name: Naval Advisor
+  foreign_affairs_advisor.name: Foreign Affairs Advisor
+  indian_advisor.name: Indian Advisor
+  score.name: Game Score
+  edit_trade_route.name: Edit Trade Route
+  create_trade_route.name: Create Trade Route
+  delete_trade_route.name: Delete Trade Route
 }
 
 layout {
@@ -170,12 +186,6 @@ layout {
     .leaf.item: disband,
   ]
 
-  advisors.contents: [
-    .leaf.item: military_advisor,
-    .leaf.item: economics_advisor,
-    .leaf.item: european_advisor,
-  ]
-
   music.contents: [
     .leaf.item: music_play,
     .leaf.item: music_stop,
@@ -228,6 +238,28 @@ layout {
     .leaf.item: hidden_terrain,
     .leaf.item: terrain_help,
   ]
+
+  reports.contents: [
+    .leaf.item: terrain_information,
+    null,
+    .leaf.item: religious_advisor,
+    .leaf.item: continental_congress,
+    .leaf.item: labor_advisor,
+    .leaf.item: economic_advisor,
+    null,
+    .leaf.item: colony_advisor,
+    .leaf.item: naval_advisor,
+    .leaf.item: foreign_affairs_advisor,
+    .leaf.item: indian_advisor,
+    null,
+    .leaf.item: score,
+  ]
+
+  trade.contents: [
+    .leaf.item: edit_trade_route,
+    .leaf.item: create_trade_route,
+    .leaf.item: delete_trade_route,
+  ]
 }
 
 # This is the layout of the menu bar in the game.
@@ -235,7 +267,8 @@ menu_bar [
   game
   view
   orders
-  advisors
+  reports
+  trade
   music
   cheat
   pedia

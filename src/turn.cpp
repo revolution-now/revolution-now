@@ -45,6 +45,7 @@
 #include "plane.hpp"
 #include "plow.hpp"
 #include "rcl-game-storage.hpp"
+#include "report-congress.hpp"
 #include "road.hpp"
 #include "roles.hpp"
 #include "save-game.hpp"
@@ -493,6 +494,11 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
     case e_menu_item::harbor_view: {
       co_await show_harbor_view( engine, ss, ts, player,
                                  /*selected_unit=*/nothing );
+      break;
+    }
+    case e_menu_item::continental_congress: {
+      co_await show_continental_congress_report(
+          engine, ss, player, ts.planes );
       break;
     }
     case e_menu_item::cheat_explore_entire_map: {

@@ -190,8 +190,9 @@ bool MenuBar::handle_alt_shortcut(
   auto& st = state();
   // Check for an alt-shortcut key to open a menu.
   for( e_menu const menu : st.contents ) {
-    if( key_event.keycode ==
-        tolower( config_menu.menus[menu].shortcut ) ) {
+    auto const& shortcut = config_menu.menus[menu].shortcut;
+    if( shortcut.has_value() &&
+        key_event.keycode == tolower( *shortcut ) ) {
       if( st.anim_state.opened_menu() != menu )
         st.events.send( MenuBarEvent::click{ .menu = menu } );
       return true;

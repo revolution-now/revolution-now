@@ -204,6 +204,7 @@ void set_resolution_idx_to_optimal(
 //
 struct OmniPlane::Impl : public IPlane {
   IEngine& engine_;
+  IMenuServer& menu_server_;
   bool show_game_cursor_ = true;
   co::stream<char> alt_key_seq;
   wait<> magic_key_seq_thread;
@@ -211,7 +212,7 @@ struct OmniPlane::Impl : public IPlane {
   vector<IMenuServer::Deregistrar> dereg_;
 
   Impl( IEngine& engine, IMenuServer& menu_server )
-    : engine_( engine ) {
+    : engine_( engine ), menu_server_( menu_server ) {
     magic_key_seq_thread = run_alt_key_seq_monitor();
     for( auto const& [item, enabled] : kSupportedMenuItems )
       if( enabled )
@@ -507,6 +508,13 @@ struct OmniPlane::Impl : public IPlane {
             break;
           case ::SDLK_F11:
             this->toggle_fullscreen();
+            handled = e_input_handled::yes;
+            break;
+          case ::SDLK_F3:
+            // TODO: temporary until the menu system supports
+            // shortcuts keys for menu items.
+            menu_server_.click_item(
+                e_menu_item::continental_congress );
             handled = e_input_handled::yes;
             break;
           case ::SDLK_o:

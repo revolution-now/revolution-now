@@ -14,14 +14,20 @@ namespace "rn"
 # the top menu bar; some of them are pop-up menus. But all menus
 # need to be listed here.
 enum.e_menu {
-  advisors,
-  cheat,
+  # Traditional top-level menus.
   game,
-  music,
-  orders,
-  pedia,
   view,
+  orders,
+  reports,
+  trade,
+  cheat,
+  pedia,
+
+  # New menus.
+  music,
   window,
+
+  # Pop-up menus.
   land_view,
 }
 
@@ -39,8 +45,6 @@ enum.e_menu_item {
   colony_report_options,
   disband,
   dump,
-  economics_advisor,
-  european_advisor,
   exit,
   find_blinking_unit,
   fit_window,
@@ -52,7 +56,6 @@ enum.e_menu_item {
   hidden_terrain,
   load,
   load_cargo,
-  military_advisor,
   music_next,
   music_pause,
   music_play,
@@ -84,4 +87,17 @@ enum.e_menu_item {
   wait,
   zoom_in,
   zoom_out,
+  terrain_information,
+  religious_advisor,
+  continental_congress,
+  labor_advisor,
+  economic_advisor,
+  colony_advisor,
+  naval_advisor,
+  foreign_affairs_advisor,
+  indian_advisor,
+  score,
+  edit_trade_route,
+  create_trade_route,
+  delete_trade_route,
 }

@@ -31,7 +31,7 @@ struct.MenuItemConfig {
 
 struct.MenuConfig {
   name 'std::string',
-  shortcut 'char',
+  shortcut 'base::maybe<char>',
   position 'e_menu_side',
   _features { equality, validation }
 }
