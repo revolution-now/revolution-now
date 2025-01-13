@@ -266,6 +266,15 @@ inline auto point::to_double() const {
 }
 
 /****************************************************************
+** interval
+*****************************************************************/
+// Kind of like a rect except one dimensional.
+struct interval {
+  int origin = {};
+  int size   = {};
+};
+
+/****************************************************************
 ** rect
 *****************************************************************/
 // Be careful here since the rect is not guaranteed to be in
