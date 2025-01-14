@@ -152,11 +152,14 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
     return true;
   };
 
-  while( total_bounds( specs, spreads ) > specs.bounds )
-    if( !decrement_spacing_for_largest() )
+  while( total_bounds( specs, spreads ) > specs.bounds ) {
+    if( !decrement_spacing_for_largest() ) {
       // We can't decrease the spacing of any of the spreads any
       // further, so we have to just change their counts.
-      return compute_compressed_proportionate( specs );
+      spreads = compute_compressed_proportionate( specs );
+      break;
+    }
+  }
 
   return spreads;
 }
