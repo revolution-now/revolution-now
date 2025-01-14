@@ -22,12 +22,19 @@ struct Renderer;
 
 namespace rn {
 
-int spread_width_for_tile( e_tile tile );
-
+/****************************************************************
+** General Algos.
+*****************************************************************/
 IconSpreads compute_icon_spread( IconSpreadSpecs const& specs );
 
-void render_icon_spread( rr::Renderer& renderer,
-                         gfx::point where,
-                         RenderableIconSpreads const& rspreads );
+/****************************************************************
+** Spreads of Tiles.
+*****************************************************************/
+[[nodiscard]] TileSpreadRenderPlan rendered_tile_spread(
+    TileSpreads const& tile_spreads );
+
+void draw_rendered_icon_spread(
+    rr::Renderer& renderer, gfx::point origin,
+    TileSpreadRenderPlan const& plan );
 
 } // namespace rn

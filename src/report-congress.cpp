@@ -60,7 +60,7 @@ struct Layout {
   string expeditionary_force_title;
   point expeditionary_force_text_nw;
   rect expeditionary_force;
-  RenderableIconSpreads expeditionary_force_spreads;
+  TileSpreadRenderPlan expeditionary_force_spreads;
 };
 
 /****************************************************************
@@ -88,7 +88,7 @@ Layout layout_auto( Player const& player,
   cur.y += 10;
   l.expeditionary_force = {
     .origin = cur,
-    .size   = { .w = l.canvas.left() - margin, .h = 32 } };
+    .size   = { .w = l.canvas.left() + margin, .h = 32 } };
 
   e_tile const regular_tile =
       config_unit_type.composition
@@ -106,28 +106,53 @@ Layout layout_auto( Player const& player,
       config_unit_type.composition
           .unit_types[e_unit_type::man_o_war]
           .tile;
+  static vector const kExpeditionaryForceTiles{
+    regular_tile,
+    cavalry_tile,
+    artillery_tile,
+    man_o_war_tile,
+  };
   IconSpreadSpecs const expeditionary_force_spread_specs{
     .bounds = l.canvas.size.w - 2 * margin,
     .specs =
         { { .count =
                 player.old_world.expeditionary_force.regulars,
-            .width = spread_width_for_tile( regular_tile ) },
+            .width = opaque_area_for( regular_tile )
+                         .horizontal_slice()
+                         .len },
           { .count =
                 player.old_world.expeditionary_force.cavalry,
-            .width = spread_width_for_tile( cavalry_tile ) },
+            .width = opaque_area_for( cavalry_tile )
+                         .horizontal_slice()
+                         .len },
           { .count =
                 player.old_world.expeditionary_force.artillery,
-            .width = spread_width_for_tile( artillery_tile ) },
+            .width = opaque_area_for( artillery_tile )
+                         .horizontal_slice()
+                         .len },
           { .count =
                 player.old_world.expeditionary_force.men_of_war,
-            .width = spread_width_for_tile( man_o_war_tile ) } },
+            .width = opaque_area_for( man_o_war_tile )
+                         .horizontal_slice()
+                         .len } },
     .group_spacing = 4 };
   IconSpreads const icon_spreads =
       compute_icon_spread( expeditionary_force_spread_specs );
-  l.expeditionary_force_spreads = RenderableIconSpreads{
-    .spreads = icon_spreads,
-    .icons   = { regular_tile, cavalry_tile, artillery_tile,
-                 man_o_war_tile } };
+  TileSpreads tile_spreads;
+  tile_spreads.group_spacing = icon_spreads.group_spacing;
+  for( auto tile_it = kExpeditionaryForceTiles.begin();
+       IconSpread const& icon_spread : icon_spreads.spreads ) {
+    CHECK( tile_it != kExpeditionaryForceTiles.end() );
+    tile_spreads.spreads.push_back( TileSpread{
+      .icon_spread = icon_spread,
+      .tile        = *tile_it,
+      .opaque =
+          opaque_area_for( *tile_it ).horizontal_slice() } );
+    ++tile_it;
+  }
+  l.expeditionary_force_spreads =
+      rendered_tile_spread( tile_spreads );
+
   return l;
 }
 
@@ -192,8 +217,9 @@ struct ContinentalCongressReport : public IPlane {
         .typer( l.expeditionary_force_text_nw, pixel::banana() )
         .write( l.expeditionary_force_title );
 
-    render_icon_spread( renderer, l.expeditionary_force.nw(),
-                        l.expeditionary_force_spreads );
+    draw_rendered_icon_spread( renderer,
+                               l.expeditionary_force.nw(),
+                               l.expeditionary_force_spreads );
   }
 
   void draw( rr::Renderer& renderer ) const override {

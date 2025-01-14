@@ -89,6 +89,27 @@ gfx::size sprite_size( e_tile tile ) {
   return sizes[tile];
 }
 
+gfx::rect opaque_area_for( e_tile tile ) {
+  // FIXME: need to compute this automatically.
+  switch( tile ) {
+    case e_tile::regular:
+      return { .origin = { .x = 11, .y = 5 },
+               .size   = { .w = 13, .h = 27 } };
+    case e_tile::cavalry:
+      return { .origin = { .x = 2, .y = 2 },
+               .size   = { .w = 28, .h = 30 } };
+    case e_tile::artillery:
+      return { .origin = { .x = 1, .y = 19 },
+               .size   = { .w = 30, .h = 13 } };
+    case e_tile::man_o_war:
+      return { .origin = { .x = 0, .y = 0 },
+               .size   = { .w = 32, .h = 32 } };
+    default:
+      return { .origin = { .x = 0, .y = 0 },
+               .size   = sprite_size( tile ) };
+  }
+}
+
 void render_sprite( rr::Painter& painter, Rect where,
                     e_tile tile ) {
   painter.draw_sprite_scale( atlas_lookup( tile ), where );

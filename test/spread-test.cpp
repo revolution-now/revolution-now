@@ -24,13 +24,10 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[spread] spread_width_for_tile" ) {
-}
-
 TEST_CASE( "[spread] compute_icon_spread" ) {
 }
 
-TEST_CASE( "[spread] render_icon_spread" ) {
+TEST_CASE( "[spread] rendered_tile_spread" ) {
 }
 
 } // namespace

@@ -24,16 +24,99 @@ namespace rn {
 
 namespace {
 
-using ::base::maybe;
-using ::base::nothing;
 using ::gfx::point;
-using ::gfx::rect;
-using ::gfx::size;
 
-int bounds_for_output( IconSpreadSpec const& spec,
-                       IconSpread const& spread ) {
+int64_t bounds_for_output( IconSpreadSpec const& spec,
+                           IconSpread const& spread ) {
   if( spread.count == 0 ) return 0;
   return ( spread.count - 1 ) * spread.spacing + spec.width;
+}
+
+int64_t total_bounds( IconSpreadSpecs const& specs,
+                      IconSpreads const& spreads ) {
+  int64_t total = 0;
+  for( auto&& [spec, spread] :
+       rv::zip( specs.specs, spreads.spreads ) )
+    total += bounds_for_output( spec, spread );
+  total += specs.group_spacing *
+           std::max( spreads.spreads.size() - 1, 0ul );
+  return total;
+}
+
+IconSpread* find_largest( IconSpreadSpecs const& specs,
+                          IconSpreads& spreads ) {
+  IconSpread* largest    = {};
+  int64_t largest_bounds = 0;
+  for( auto&& [spec, spread] :
+       rv::zip( specs.specs, spreads.spreads ) ) {
+    int64_t const bounds = bounds_for_output( spec, spread );
+    if( bounds > largest_bounds ) {
+      largest_bounds = bounds;
+      largest        = &spread;
+    }
+  }
+  return largest;
+}
+
+int64_t compute_total_count( IconSpreadSpecs const& specs ) {
+  int64_t total = 0;
+  for( IconSpreadSpec const& spec : specs.specs )
+    total += spec.count;
+  return total;
+}
+
+// This method is called when we can't fit all the icons within
+// the bounds even when all of their spacings are reduced to one.
+// We will force it to fit in the bounds by rewriting the counts
+// of each spread, and it seems that a good way to do this would
+// be to just rewrite all them to be a fraction of the whole in
+// proportion to their original desired counts.
+IconSpreads compute_compressed_proportionate(
+    IconSpreadSpecs const& specs ) {
+  auto const total_count = compute_total_count( specs );
+  // Should have already handled this case. This can't be zero in
+  // this method because we will shortly use this value as a de-
+  // nominator.
+  CHECK_GT( total_count, 0 );
+  IconSpreads spreads;
+  spreads.group_spacing = specs.group_spacing;
+  for( IconSpreadSpec const& spec : specs.specs ) {
+    auto& spread        = spreads.spreads.emplace_back();
+    spread.spacing      = 1;
+    spread.width        = spec.width;
+    int const min_count = spec.count > 0 ? 1 : 0;
+    spread.count =
+        std::max( int( specs.bounds *
+                       ( double( spec.count ) / total_count ) ),
+                  min_count );
+  }
+
+  auto const decrement_count_for_largest = [&] {
+    IconSpread* const largest = find_largest( specs, spreads );
+    if( !largest ) return false;
+    // Not sure if this could happen here since "largest" depends
+    // on other parameters such as spacing and width, which the
+    // user could pass in as zero, so good to be defensive but
+    // not check-fail.
+    if( largest->count <= 0 ) return false;
+    --largest->count;
+    return true;
+  };
+
+  // At this point we should have gotten things approximately
+  // right, though we may have overshot just a bit due to the
+  // width of the icons and spacing between them, so we'll just
+  // decrement counts until we get under the bounds, which should
+  // only be a handful of iterations as it only scales with the
+  // width of the sprites and not any icon counts.
+  while( total_bounds( specs, spreads ) > specs.bounds )
+    if( !decrement_count_for_largest() )
+      // We can't decrease the count of any of the spreads any
+      // further, so just return what we have, which should have
+      // all zero counts.
+      break;
+
+  return spreads;
 }
 
 } // namespace
@@ -43,78 +126,67 @@ int bounds_for_output( IconSpreadSpec const& spec,
 *****************************************************************/
 IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
   IconSpreads spreads;
-  spreads.group_spacing = specs.group_spacing;
 
-  // Initially set all to max count and space.
+  // First compute the default spreads.
+  spreads.group_spacing = specs.group_spacing;
   for( IconSpreadSpec const& spec : specs.specs ) {
     auto& spread   = spreads.spreads.emplace_back();
-    spread.count   = spec.count;
     spread.spacing = spec.width + 1;
     spread.width   = spec.width;
+    spread.count   = spec.count;
   }
-
   CHECK_EQ( specs.specs.size(), spreads.spreads.size() );
 
-  auto const total_bounds = [&] {
-    int total = 0;
-    for( auto&& [spec, spread] :
-         rv::zip( specs.specs, spreads.spreads ) ) {
-      total += bounds_for_output( spec, spread );
-    }
-    total += specs.group_spacing *
-             std::max( spreads.spreads.size() - 1, 0ul );
-    return total;
-  };
+  auto const total_count = compute_total_count( specs );
+  if( total_count == 0 ) return spreads;
 
   auto const decrement_spacing_for_largest = [&] {
-    IconSpread* largest = {};
-    int largest_bounds  = 0;
-    for( auto&& [spec, spread] :
-         rv::zip( specs.specs, spreads.spreads ) ) {
-      int const bounds = bounds_for_output( spec, spread );
-      if( bounds > largest_bounds ) {
-        largest_bounds = bounds;
-        largest        = &spread;
-      }
-    }
-    CHECK( largest );
-    if( largest->spacing == 1 ) {
-      if( largest->count == 1 ) return false;
-      --largest->count;
-      return true;
-    }
+    IconSpread* const largest = find_largest( specs, spreads );
+    // Not sure if this could happen here since "largest" depends
+    // on other parameters such as spacing and width, which the
+    // user could pass in as zero, so good to be defensive but
+    // not check-fail.
+    if( !largest ) return false;
+    if( largest->spacing <= 1 ) return false;
     --largest->spacing;
     return true;
   };
 
-  while( total_bounds() > specs.bounds ) {
-    CHECK( decrement_spacing_for_largest() );
-  }
-
-  CHECK_LE( total_bounds(), specs.bounds );
+  while( total_bounds( specs, spreads ) > specs.bounds )
+    if( !decrement_spacing_for_largest() )
+      // We can't decrease the spacing of any of the spreads any
+      // further, so we have to just change their counts.
+      return compute_compressed_proportionate( specs );
 
   return spreads;
 }
 
-void render_icon_spread(
-    rr::Renderer& renderer, point where,
-    RenderableIconSpreads const& rspreads ) {
-  point p = where;
-  auto const tiled =
-      rv::zip( rspreads.spreads.spreads, rspreads.icons );
-  for( auto const [spread, tile] : tiled ) {
-    for( int i = 0; i < spread.count; ++i ) {
-      render_sprite( renderer, p, tile );
-      p.x += spread.spacing;
+TileSpreadRenderPlan rendered_tile_spread(
+    TileSpreads const& tile_spreads ) {
+  TileSpreadRenderPlan res;
+  point p = {};
+  for( TileSpread const& tile_spread : tile_spreads.spreads ) {
+    for( int i = 0; i < tile_spread.icon_spread.count; ++i ) {
+      point const p_drawn =
+          p.moved_left( tile_spread.opaque.start );
+      res.tiles.push_back( { tile_spread.tile, p_drawn } );
+      p.x += tile_spread.icon_spread.spacing;
     }
-    if( spread.count > 0 )
-      p.x += std::max( ( spread.width - spread.spacing ), 0 );
-    p.x += rspreads.spreads.group_spacing;
+    if( tile_spread.icon_spread.count > 0 )
+      p.x += std::max( ( tile_spread.icon_spread.width -
+                         tile_spread.icon_spread.spacing ),
+                       0 );
+    p.x += tile_spreads.group_spacing;
   }
+  return res;
 }
 
-int spread_width_for_tile( e_tile const tile ) {
-  return sprite_size( tile ).w;
+void draw_rendered_icon_spread(
+    rr::Renderer& renderer, point const origin,
+    TileSpreadRenderPlan const& plan ) {
+  for( auto const& [tile, p] : plan.tiles )
+    render_sprite( renderer, p.origin_becomes_point( origin ),
+                   tile );
 }
 
 } // namespace rn
