@@ -1792,6 +1792,85 @@ TEST_CASE( "[gfx/cartesian] centered_in (int)" ) {
   REQUIRE( centered_in( delta, r ) == expect );
 }
 
+TEST_CASE( "[coord] centered_at/e_cdirection" ) {
+  rect r;
+  size s;
+  e_cdirection d = {};
+  point expect;
+
+  auto f = [&] { return centered_at( s, r, d ); };
+
+  r      = { .origin = { .x = 1, .y = 1 },
+             .size   = { .w = 0, .h = 0 } };
+  s      = { .w = 4, .h = 3 };
+  d      = e_cdirection::c;
+  expect = { .x = -1, .y = 0 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::c;
+  expect = { .x = 2, .y = 3 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::s;
+  expect = { .x = 2, .y = 4 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::n;
+  expect = { .x = 2, .y = 2 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::w;
+  expect = { .x = 1, .y = 3 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 4, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::e;
+  expect = { .x = 2, .y = 3 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::sw;
+  expect = { .x = 1, .y = 4 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::nw;
+  expect = { .x = 1, .y = 2 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 5, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::se;
+  expect = { .x = 3, .y = 4 };
+  REQUIRE( f() == expect );
+
+  r      = { .origin = { .x = 1, .y = 2 },
+             .size   = { .w = 4, .h = 6 } };
+  s      = { .w = 3, .h = 4 };
+  d      = e_cdirection::ne;
+  expect = { .x = 2, .y = 2 };
+  REQUIRE( f() == expect );
+}
+
 TEST_CASE( "[coord] centered_at_*" ) {
   rect r;
   size s;

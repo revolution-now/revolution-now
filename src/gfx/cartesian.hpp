@@ -449,15 +449,20 @@ inline auto rect::to_double() const {
 [[nodiscard]] point centered_in( size s, rect r );
 
 // Will return the upper-left coordinate of a rect obtained by
-// centering the area s along the given "wall" of the rect.
-[[nodiscard]] point centered_at_bottom( size const& s,
-                                        rect const& r );
-[[nodiscard]] point centered_at_top( size const& s,
-                                     rect const& r );
-[[nodiscard]] point centered_at_left( size const& s,
-                                      rect const& r );
-[[nodiscard]] point centered_at_right( size const& s,
-                                       rect const& r );
+// placing (and centering, where relevant) the area s along the
+// given wall or corner of the rect.
+[[nodiscard]] point centered_at( size s, rect r,
+                                 e_cdirection d );
+
+// These are a few named versions of the centered_at above.
+[[nodiscard]] point centered_at_bottom( size const s,
+                                        rect const r );
+[[nodiscard]] point centered_at_top( size const s,
+                                     rect const r );
+[[nodiscard]] point centered_at_left( size const s,
+                                      rect const r );
+[[nodiscard]] point centered_at_right( size const s,
+                                       rect const r );
 
 // Get the rect obtained by centering the area of size s on p.
 [[nodiscard]] rect centered_on( size s, point p );

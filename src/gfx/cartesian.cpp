@@ -936,25 +936,53 @@ point centered_in( size s, rect r ) {
            .y = r.origin.y + r.size.h / 2 - s.h / 2 };
 }
 
-point centered_at_bottom( size const& s, rect const& r ) {
+point centered_at( size const s, rect const r,
+                   e_cdirection const d ) {
+  switch( d ) {
+    case e_cdirection::c:
+      return centered_in( s, r );
+    case e_cdirection::e:
+      return centered_at_right( s, r );
+    case e_cdirection::n:
+      return centered_at_top( s, r );
+    case e_cdirection::ne:
+      return { .x = centered_at_right( s, r ).x,
+               .y = centered_at_top( s, r ).y };
+    case e_cdirection::nw:
+      return { .x = centered_at_left( s, r ).x,
+               .y = centered_at_top( s, r ).y };
+    case e_cdirection::s:
+      return centered_at_bottom( s, r );
+    case e_cdirection::se:
+      return { .x = centered_at_right( s, r ).x,
+               .y = centered_at_bottom( s, r ).y };
+    case e_cdirection::sw:
+      return { .x = centered_at_left( s, r ).x,
+               .y = centered_at_bottom( s, r ).y };
+    case e_cdirection::w:
+      return centered_at_left( s, r );
+  }
+}
+
+point centered_at_bottom( size const s, rect const r ) {
   point upper_left = centered_in( s, r );
   upper_left.y     = r.bottom() - s.h;
   return upper_left;
 }
 
-point centered_at_top( size const& s, rect const& r ) {
+point centered_at_top( size const s, rect const r ) {
   point upper_left = centered_in( s, r );
   upper_left.y     = r.origin.y;
   return upper_left;
 }
 
-point centered_at_left( size const& s, rect const& r ) {
+point centered_at_left( size const s, rect const r ) {
   point upper_left = centered_in( s, r );
   upper_left.x     = r.origin.x;
   return upper_left;
 }
 
-point centered_at_right( size const& s, rect const& r ) {
+point centered_at_right( size const s, rect const r ) {
   point upper_left = centered_in( s, r );
   upper_left.x     = r.right() - s.w;
   return upper_left;
