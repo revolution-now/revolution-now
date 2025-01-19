@@ -1868,6 +1868,17 @@ TEST_CASE( "[maybe] bind" ) {
   }
 }
 
+TEST_CASE( "[maybe] visit" ) {
+  int i  = 0;
+  auto f = [&]( string const& s ) { i += s.size(); };
+  M<string> m;
+  m.visit( f );
+  REQUIRE( i == 0 );
+  m = "1234";
+  m.visit( f );
+  REQUIRE( i == 4 );
+}
+
 TEST_CASE( "[maybe] just" ) {
   auto m1 = just( 5 );
   ASSERT_VAR_TYPE( m1, maybe<int> );
@@ -2286,6 +2297,18 @@ TEST_CASE( "[maybe-ref] bind" ) {
     REQUIRE( !m3.has_value() );
     REQUIRE( m3 == nothing );
   }
+}
+
+TEST_CASE( "[maybe-ref] visit" ) {
+  int i  = 0;
+  auto f = [&]( string const& s ) { i += s.size(); };
+  M<string&> m1;
+  m1.visit( f );
+  REQUIRE( i == 0 );
+  string const s{ "1234" };
+  M<string const&> m2 = s;
+  m2.visit( f );
+  REQUIRE( i == 4 );
 }
 
 TEST_CASE( "[maybe-ref] just-ref" ) {

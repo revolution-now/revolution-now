@@ -1049,6 +1049,18 @@ class [[nodiscard]] maybe { /* clang-format on */
   }
 
   /**************************************************************
+  ** Visit
+  ***************************************************************/
+  template<typename Func>
+  void visit( Func&& func ) const
+  requires( std::is_invocable_v<Func, T const&> &&
+            !std::is_member_object_pointer_v<Func> )
+  {
+    if( has_value() )
+      std::invoke( std::forward<Func>( func ), **this );
+  }
+
+  /**************************************************************
   ** Storage
   ***************************************************************/
 
@@ -1379,6 +1391,18 @@ class [[nodiscard]] maybe<T&> { /* clang-format on */
       res.assign(
           std::invoke( std::forward<Func>( func ), **this ) );
     return res;
+  }
+
+  /**************************************************************
+  ** Visit
+  ***************************************************************/
+  template<typename Func>
+  void visit( Func&& func ) const
+  requires( std::is_invocable_v<Func, T&> &&
+            !std::is_member_object_pointer_v<Func> )
+  {
+    if( has_value() )
+      std::invoke( std::forward<Func>( func ), **this );
   }
 
  private:
