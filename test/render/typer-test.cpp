@@ -241,6 +241,17 @@ TEST_CASE( "[render/typer] frame position" ) {
   REQUIRE( typer2.line_start() == point{ .x = 35, .y = 63 } );
 }
 
+TEST_CASE( "[render/typer] rendered_text_line_size_pixels" ) {
+  REQUIRE( rendered_text_line_size_pixels( "" ) ==
+           size{ .w = 6 * 0, .h = 8 } );
+  REQUIRE( rendered_text_line_size_pixels( "h" ) ==
+           size{ .w = 6 * 1, .h = 8 } );
+  REQUIRE( rendered_text_line_size_pixels( "hello" ) ==
+           size{ .w = 6 * 5, .h = 8 } );
+  REQUIRE( rendered_text_line_size_pixels( "hello\nhello" ) ==
+           size{ .w = 6 * 11, .h = 8 } );
+}
+
 TEST_CASE( "[render/typer] multiply_scale" ) {
   vector<GenericVertex> v;
   Emitter emitter( v );
