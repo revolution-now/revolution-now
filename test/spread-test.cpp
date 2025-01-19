@@ -27,6 +27,9 @@ using namespace std;
 TEST_CASE( "[spread] compute_icon_spread" ) {
 }
 
+TEST_CASE( "[spread] requires_label" ) {
+}
+
 TEST_CASE( "[spread] rendered_tile_spread" ) {
 }
 

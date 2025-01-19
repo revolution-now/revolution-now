@@ -20,6 +20,7 @@
 
 // render
 #include "render/renderer.hpp"
+#include "render/typer.hpp"
 
 // base
 #include "base/range-lite.hpp"
@@ -345,6 +346,27 @@ void render_text_overlay_with_anchor(
     typer.write( line );
     typer.newline();
   }
+}
+
+void render_text_line_with_background(
+    rr::Renderer& renderer, std::string_view const line,
+    oriented_point const op, pixel const color_fg,
+    pixel const color_bg, int const padding ) {
+  size const text_dims =
+      rr::rendered_text_line_size_pixels( line );
+  size const padded_dims = [&] {
+    size sz = text_dims;
+    sz.w += padding * 2;
+    sz.h += padding * 2;
+    return sz;
+  }();
+  point const padded_p = gfx::find_placement( op, padded_dims );
+  rect const bg{ .origin = padded_p, .size = padded_dims };
+  rr::Painter painter = renderer.painter();
+  painter.draw_solid_rect( bg, color_bg );
+  point const text_p = gfx::centered_in( text_dims, bg );
+  rr::Typer typer    = renderer.typer( text_p, color_fg );
+  typer.write( line );
 }
 
 } // namespace rn

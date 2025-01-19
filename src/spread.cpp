@@ -11,6 +11,7 @@
 #include "spread.hpp"
 
 // Revolution Now
+#include "text.hpp"
 #include "tiles.hpp"
 
 // C++ standard library
@@ -24,7 +25,10 @@ namespace rn {
 
 namespace {
 
+using ::gfx::oriented_point;
+using ::gfx::pixel;
 using ::gfx::point;
+using ::gfx::size;
 
 int64_t bounds_for_output( IconSpreadSpec const& spec,
                            IconSpread const& spread ) {
@@ -164,11 +168,30 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
   return spreads;
 }
 
+bool requires_label( IconSpread const& spread ) {
+  if( spread.spacing <= 1 ) return true;
+  if( spread.count > 10 ) return true;
+  if( spread.width < 8 ) return true;
+  return false;
+}
+
 TileSpreadRenderPlan rendered_tile_spread(
     TileSpreads const& tile_spreads ) {
   TileSpreadRenderPlan res;
   point p = {};
   for( TileSpread const& tile_spread : tile_spreads.spreads ) {
+    int const tile_h = sprite_size( tile_spread.tile ).h;
+    if( auto const& label_spec = tile_spread.label;
+        label_spec.has_value() )
+      res.labels.push_back( SpreadLabelRenderPlan{
+        .options = *label_spec,
+        .text    = to_string( tile_spread.icon_spread.count ),
+        .p       = oriented_point{
+                .anchor =
+              p.moved_right( 2 ).moved_down( tile_h ).moved_up(
+                  2 ),
+                .placement = label_spec->placement.value_or(
+              e_cdirection::sw ) } } );
     for( int i = 0; i < tile_spread.icon_spread.count; ++i ) {
       point const p_drawn =
           p.moved_left( tile_spread.opaque.start );
@@ -190,6 +213,13 @@ void draw_rendered_icon_spread(
   for( auto const& [tile, p] : plan.tiles )
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
+  for( auto const& plan : plan.labels )
+    render_text_line_with_background(
+        renderer, plan.text,
+        plan.p.origin_becomes_point( origin ),
+        plan.options.color_fg.value_or( pixel::white() ),
+        plan.options.color_bg.value_or( pixel::black() ),
+        plan.options.text_padding.value_or( 1 ) );
 }
 
 } // namespace rn

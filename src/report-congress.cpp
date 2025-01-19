@@ -146,8 +146,9 @@ Layout layout_auto( Player const& player,
     tile_spreads.spreads.push_back( TileSpread{
       .icon_spread = icon_spread,
       .tile        = *tile_it,
-      .opaque =
-          opaque_area_for( *tile_it ).horizontal_slice() } );
+      .opaque = opaque_area_for( *tile_it ).horizontal_slice(),
+      // Need to specify this to get labels.
+      .label = SpreadLabelOptions{} } );
     ++tile_it;
   }
   l.expeditionary_force_spreads =

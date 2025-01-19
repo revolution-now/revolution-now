@@ -13,6 +13,7 @@ include "config/tile-enum-fwd.hpp"
 
 # gfx
 include "gfx/cartesian.hpp"
+include "gfx/pixel.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -47,12 +48,41 @@ struct.IconSpreads {
 }
 
 # ---------------------------------------------------------------
+# Spread labels.
+# ---------------------------------------------------------------
+# This struct is designed so that the default constructed value
+# will provide sensible defaults that should be good in most
+# cases (and reproduce what the OG does).
+struct.SpreadLabelOptions {
+  # Foreground color defaults to 0xffffff.
+  color_fg 'base::maybe<gfx::pixel>',
+  # Background color defaults to 0x000000.
+  color_bg 'base::maybe<gfx::pixel>',
+  # Placement defaults to the sw corner.
+  placement 'base::maybe<gfx::e_cdirection>',
+  # The padding is in addition to the one pixel of padding there
+  # will naturally be around any font. Default value is 1.
+  text_padding 'base::maybe<int>',
+}
+
+struct.SpreadLabelRenderPlan {
+  options 'SpreadLabelOptions',
+  text 'std::string',
+  p 'gfx::oriented_point',
+}
+
+# ---------------------------------------------------------------
 # Spreads of tiles.
 # ---------------------------------------------------------------
 struct.TileSpread {
   icon_spread 'IconSpread',
   tile 'e_tile',
   opaque 'gfx::interval',
+  # When this is omitted there will be no label. So if you want a
+  # label then it has to have a value, but it is recommended to
+  # let that value be default constructed since that will yield
+  # the options that are desired most of the time.
+  label 'base::maybe<SpreadLabelOptions>',
 }
 
 struct.TileSpreads {
@@ -62,4 +92,5 @@ struct.TileSpreads {
 
 struct.TileSpreadRenderPlan {
   tiles 'std::vector<std::pair<e_tile, gfx::point>>',
+  labels 'std::vector<SpreadLabelRenderPlan>',
 }

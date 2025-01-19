@@ -27,6 +27,14 @@ namespace rn {
 *****************************************************************/
 IconSpreads compute_icon_spread( IconSpreadSpecs const& specs );
 
+// Applies some heuristics to decide if the spread is such that
+// it would be difficult for the player to read the count visu-
+// ally, then we put a label on it. Note that in some cases this
+// method will either not be called or its result will be over-
+// ridden, e.g. in cases such as the colony view when the 'n' key
+// is pressed to enumerate all spreads unconditionally.
+[[nodiscard]] bool requires_label( IconSpread const& spread );
+
 /****************************************************************
 ** Spreads of Tiles.
 *****************************************************************/
