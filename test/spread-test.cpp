@@ -57,9 +57,10 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .count   = 0,
-                              .spacing = 1,
-                              .width   = 28 },
+          { .icon_spread  = { .real_count     = 0,
+                              .rendered_count = 0,
+                              .spacing        = 1,
+                              .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
             .label        = SpreadLabelOptions{} },
@@ -73,9 +74,10 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .count   = 1,
-                              .spacing = 1,
-                              .width   = 28 },
+          { .icon_spread  = { .real_count     = 1,
+                              .rendered_count = 1,
+                              .spacing        = 1,
+                              .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
             .label        = SpreadLabelOptions{} },
@@ -87,8 +89,32 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
     .labels = {
       SpreadLabelRenderPlan{
         .text = "1",
-        .p    = { .anchor    = { .x = 2, .y = 30 },
-                  .placement = e_cdirection::sw } },
+        .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
+      },
+    } };
+  REQUIRE( f() == expected );
+
+  // Label uses real count when different from rendered_count.
+  tile_spreads = {
+    .spreads =
+        {
+          { .icon_spread  = { .real_count     = 2,
+                              .rendered_count = 1,
+                              .spacing        = 1,
+                              .width          = 28 },
+            .tile         = e_tile::dragoon,
+            .opaque_start = 2,
+            .label        = SpreadLabelOptions{} },
+        },
+    .group_spacing = 1,
+  };
+  expected = {
+    .tiles  = { pair{ e_tile::dragoon, point{ -2, 0 } } },
+    .labels = {
+      SpreadLabelRenderPlan{
+        .text = "2",
+        .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
+      },
     } };
   REQUIRE( f() == expected );
 
@@ -96,21 +122,24 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .count   = 1,
-                              .spacing = 1,
-                              .width   = 28 },
+          { .icon_spread  = { .real_count     = 1,
+                              .rendered_count = 1,
+                              .spacing        = 1,
+                              .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
             .label        = SpreadLabelOptions{} },
-          { .icon_spread  = { .count   = 0,
-                              .spacing = 1,
-                              .width   = 28 },
+          { .icon_spread  = { .real_count     = 0,
+                              .rendered_count = 0,
+                              .spacing        = 1,
+                              .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
             .label        = SpreadLabelOptions{} },
-          { .icon_spread  = { .count   = 2,
-                              .spacing = 3,
-                              .width   = 13 },
+          { .icon_spread  = { .real_count     = 2,
+                              .rendered_count = 2,
+                              .spacing        = 3,
+                              .width          = 13 },
             .tile         = e_tile::soldier,
             .opaque_start = 11,
             .label        = SpreadLabelOptions{} },
@@ -126,12 +155,12 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
                .labels = {
                  SpreadLabelRenderPlan{
                    .text = "1",
-                   .p    = { .anchor    = { .x = 2, .y = 30 },
-                             .placement = e_cdirection::sw } },
+                   .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
+                 },
                  SpreadLabelRenderPlan{
                    .text = "2",
-                   .p    = { .anchor    = { .x = 31, .y = 30 },
-                             .placement = e_cdirection::sw } },
+                   .p    = { .x = 31, .y = 32 - 8 - 2 - 2 },
+                 },
                } };
   REQUIRE( f() == expected );
 }

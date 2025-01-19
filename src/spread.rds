@@ -35,7 +35,11 @@ struct.IconSpreadSpecs {
 }
 
 struct.IconSpread {
-  count 'int',
+  real_count 'int',
+  # NOTE: this may be different than the real count that was
+  # input in IconSpreadSpec; this count is for rendering icons
+  # only, but any labels should use the real count.
+  rendered_count 'int',
   spacing 'int',
   width 'int',  # icon width from input.
 }
@@ -68,7 +72,7 @@ struct.SpreadLabelOptions {
 struct.SpreadLabelRenderPlan {
   options 'SpreadLabelOptions',
   text 'std::string',
-  p 'gfx::oriented_point',
+  p 'gfx::point',
 }
 
 # ---------------------------------------------------------------

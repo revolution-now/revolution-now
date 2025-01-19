@@ -14,6 +14,9 @@
 #include "text.hpp"
 #include "tiles.hpp"
 
+// render
+#include "render/typer.hpp" // FIXME: remove
+
 // C++ standard library
 #include <ranges>
 
@@ -28,12 +31,17 @@ namespace {
 using ::gfx::oriented_point;
 using ::gfx::pixel;
 using ::gfx::point;
+using ::gfx::rect;
 using ::gfx::size;
+
+int constexpr kDefaultTextPadding        = 1;
+e_cdirection constexpr kDefaultPlacement = e_cdirection::sw;
 
 int64_t bounds_for_output( IconSpreadSpec const& spec,
                            IconSpread const& spread ) {
-  if( spread.count == 0 ) return 0;
-  return ( spread.count - 1 ) * spread.spacing + spec.width;
+  if( spread.rendered_count == 0 ) return 0;
+  return ( spread.rendered_count - 1 ) * spread.spacing +
+         spec.width;
 }
 
 int64_t total_bounds( IconSpreadSpecs const& specs,
@@ -86,10 +94,11 @@ IconSpreads compute_compressed_proportionate(
   spreads.group_spacing = specs.group_spacing;
   for( IconSpreadSpec const& spec : specs.specs ) {
     auto& spread        = spreads.spreads.emplace_back();
+    spread.real_count   = spec.count;
     spread.spacing      = 1;
     spread.width        = spec.width;
     int const min_count = spec.count > 0 ? 1 : 0;
-    spread.count =
+    spread.rendered_count =
         std::max( int( specs.bounds *
                        ( double( spec.count ) / total_count ) ),
                   min_count );
@@ -102,8 +111,8 @@ IconSpreads compute_compressed_proportionate(
     // on other parameters such as spacing and width, which the
     // user could pass in as zero, so good to be defensive but
     // not check-fail.
-    if( largest->count <= 0 ) return false;
-    --largest->count;
+    if( largest->rendered_count <= 0 ) return false;
+    --largest->rendered_count;
     return true;
   };
 
@@ -134,10 +143,11 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
   // First compute the default spreads.
   spreads.group_spacing = specs.group_spacing;
   for( IconSpreadSpec const& spec : specs.specs ) {
-    auto& spread   = spreads.spreads.emplace_back();
-    spread.spacing = spec.width + 1;
-    spread.width   = spec.width;
-    spread.count   = spec.count;
+    auto& spread          = spreads.spreads.emplace_back();
+    spread.real_count     = spec.count;
+    spread.spacing        = spec.width + 1;
+    spread.width          = spec.width;
+    spread.rendered_count = spec.count;
   }
   CHECK_EQ( specs.specs.size(), spreads.spreads.size() );
 
@@ -170,7 +180,7 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
 
 bool requires_label( IconSpread const& spread ) {
   if( spread.spacing <= 1 ) return true;
-  if( spread.count > 10 ) return true;
+  if( spread.rendered_count > 10 ) return true;
   if( spread.width < 8 ) return true;
   return false;
 }
@@ -180,29 +190,48 @@ TileSpreadRenderPlan rendered_tile_spread(
   TileSpreadRenderPlan res;
   point p = {};
   for( TileSpread const& tile_spread : tile_spreads.spreads ) {
-    if( tile_spread.icon_spread.count == 0 ) continue;
-    int const tile_h = sprite_size( tile_spread.tile ).h;
-    if( auto const& label_spec = tile_spread.label;
-        label_spec.has_value() )
-      res.labels.push_back( SpreadLabelRenderPlan{
-        .options = *label_spec,
-        .text    = to_string( tile_spread.icon_spread.count ),
-        .p       = oriented_point{
-                .anchor =
-              p.moved_right( 2 ).moved_down( tile_h ).moved_up(
-                  2 ),
-                .placement = label_spec->placement.value_or(
-              e_cdirection::sw ) } } );
-    for( int i = 0; i < tile_spread.icon_spread.count; ++i ) {
+    if( tile_spread.icon_spread.rendered_count == 0 ) continue;
+    point const p_start = p;
+    for( int i = 0; i < tile_spread.icon_spread.rendered_count;
+         ++i ) {
       point const p_drawn =
           p.moved_left( tile_spread.opaque_start );
       res.tiles.push_back( { tile_spread.tile, p_drawn } );
       p.x += tile_spread.icon_spread.spacing;
     }
-    if( tile_spread.icon_spread.count > 0 )
+    if( tile_spread.icon_spread.rendered_count > 0 )
       p.x += std::max( ( tile_spread.icon_spread.width -
                          tile_spread.icon_spread.spacing ),
                        0 );
+    // Need to do the label after the tiles but before we add the
+    // group spacing so that we know the total rect occupied by
+    // the tiles.
+    if( auto const& label_opts = tile_spread.label;
+        label_opts.has_value() ) {
+      int const tile_h = sprite_size( tile_spread.tile ).h;
+      rect const tiles_all{
+        .origin = p_start,
+        .size   = { .w = p.x - p_start.x, .h = tile_h } };
+      e_cdirection const placement =
+          label_opts->placement.value_or( kDefaultPlacement );
+      string const label_text =
+          to_string( tile_spread.icon_spread.real_count );
+      size const padded_label_size = [&] {
+        size const label_size =
+            rr::rendered_text_line_size_pixels( label_text );
+        int const padding = label_opts->text_padding.value_or(
+            kDefaultTextPadding );
+        return size{ .w = label_size.w + padding * 2,
+                     .h = label_size.h + padding * 2 };
+      }();
+      res.labels.push_back( SpreadLabelRenderPlan{
+        .options = *label_opts,
+        .text    = label_text,
+        .p       = gfx::centered_at( padded_label_size,
+                                     tiles_all.with_edges_removed( 2 ),
+                                     placement ),
+      } );
+    }
     p.x += tile_spreads.group_spacing;
   }
   return res;
@@ -217,10 +246,16 @@ void draw_rendered_icon_spread(
   for( auto const& plan : plan.labels )
     render_text_line_with_background(
         renderer, plan.text,
-        plan.p.origin_becomes_point( origin ),
+        oriented_point{
+          .anchor = plan.p.origin_becomes_point( origin ),
+          // This is always nw here because the placement calcu-
+          // lation has already been done, so the point we are
+          // given is always the nw.
+          .placement = gfx::e_cdirection::nw },
         plan.options.color_fg.value_or( pixel::white() ),
         plan.options.color_bg.value_or( pixel::black() ),
-        plan.options.text_padding.value_or( 1 ) );
+        plan.options.text_padding.value_or(
+            kDefaultTextPadding ) );
 }
 
 } // namespace rn
