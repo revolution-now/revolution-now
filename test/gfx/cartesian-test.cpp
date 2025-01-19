@@ -1940,6 +1940,97 @@ TEST_CASE( "[gfx/cartesian] centered_on" ) {
 }
 
 /****************************************************************
+** oriented_point
+*****************************************************************/
+TEST_CASE(
+    "[gfx/cartesian] oriented_point::point_becomes_origin" ) {
+  oriented_point const op{ .anchor    = { .x = 4, .y = 2 },
+                           .placement = e_cdirection::sw };
+  point const arg{ .x = 2, .y = 1 };
+  oriented_point const expected{ .anchor    = { .x = 2, .y = 1 },
+                                 .placement = e_cdirection::sw };
+  REQUIRE( op.point_becomes_origin( arg ) == expected );
+}
+
+TEST_CASE(
+    "[gfx/cartesian] oriented_point::origin_becomes_point" ) {
+  oriented_point const op{ .anchor    = { .x = 4, .y = 2 },
+                           .placement = e_cdirection::sw };
+  point const arg{ .x = 2, .y = 1 };
+  oriented_point const expected{ .anchor    = { .x = 6, .y = 3 },
+                                 .placement = e_cdirection::sw };
+  REQUIRE( op.origin_becomes_point( arg ) == expected );
+}
+
+TEST_CASE( "[gfx/cartesian] find_placement" ) {
+  size s;
+  oriented_point op;
+  point expect;
+
+  auto f = [&] { return find_placement( op, s ); };
+
+  op     = { .anchor    = { .x = 1, .y = 1 },
+             .placement = e_cdirection::c };
+  s      = { .w = 4, .h = 3 };
+  expect = { .x = -1, .y = 0 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 3, .y = 5 },
+             .placement = e_cdirection::c };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 3 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 3, .y = 8 },
+             .placement = e_cdirection::s };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 4 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 3, .y = 2 },
+             .placement = e_cdirection::n };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 2 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 1, .y = 5 },
+             .placement = e_cdirection::w };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 1, .y = 3 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 5, .y = 5 },
+             .placement = e_cdirection::e };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 3 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 1, .y = 8 },
+             .placement = e_cdirection::sw };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 1, .y = 4 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 1, .y = 2 },
+             .placement = e_cdirection::nw };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 1, .y = 2 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 6, .y = 8 },
+             .placement = e_cdirection::se };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 3, .y = 4 };
+  REQUIRE( f() == expect );
+
+  op     = { .anchor    = { .x = 5, .y = 2 },
+             .placement = e_cdirection::ne };
+  s      = { .w = 3, .h = 4 };
+  expect = { .x = 2, .y = 2 };
+  REQUIRE( f() == expect );
+}
+
+/****************************************************************
 ** std::hash<gfx::point>
 *****************************************************************/
 TEST_CASE( "[gfx/cartesian] hash point" ) {

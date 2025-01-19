@@ -468,6 +468,25 @@ inline auto rect::to_double() const {
 [[nodiscard]] rect centered_on( size s, point p );
 
 /****************************************************************
+** oriented_point.
+*****************************************************************/
+struct oriented_point {
+  point anchor           = {};
+  e_cdirection placement = {};
+
+  [[nodiscard]] oriented_point point_becomes_origin(
+      point p ) const;
+  [[nodiscard]] oriented_point origin_becomes_point(
+      point p ) const;
+
+  bool operator==( oriented_point const& ) const = default;
+};
+
+// Returns the nw corner of a rect whose size is sz and is lo-
+// cated at the place and orientation described by op.
+point find_placement( oriented_point const& op, size sz );
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 [[nodiscard]] point operator+( point const p, size const s );

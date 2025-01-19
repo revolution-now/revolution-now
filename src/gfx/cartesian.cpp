@@ -995,6 +995,59 @@ rect centered_on( size const s, point const p ) {
 }
 
 /****************************************************************
+** oriented_point.
+*****************************************************************/
+oriented_point oriented_point::point_becomes_origin(
+    point const p ) const {
+  return oriented_point{
+    .anchor    = anchor.point_becomes_origin( p ),
+    .placement = placement };
+}
+
+oriented_point oriented_point::origin_becomes_point(
+    point const p ) const {
+  return oriented_point{
+    .anchor    = anchor.origin_becomes_point( p ),
+    .placement = placement };
+}
+
+point find_placement( oriented_point const& op, size const sz ) {
+  point res = op.anchor;
+  switch( op.placement ) {
+    case e_cdirection::c:
+      res -= sz / 2;
+      break;
+    case e_cdirection::e:
+      res.x -= sz.w;
+      res.y -= sz.h / 2;
+      break;
+    case e_cdirection::n:
+      res.x -= sz.w / 2;
+      break;
+    case e_cdirection::ne:
+      res.x -= sz.w;
+      break;
+    case e_cdirection::nw:
+      break;
+    case e_cdirection::s:
+      res.x -= sz.w / 2;
+      res.y -= sz.h;
+      break;
+    case e_cdirection::se:
+      res.x -= sz.w;
+      res.y -= sz.h;
+      break;
+    case e_cdirection::sw:
+      res.y -= sz.h;
+      break;
+    case e_cdirection::w:
+      res.y -= sz.h / 2;
+      break;
+  }
+  return res;
+}
+
+/****************************************************************
 ** Combining Operators
 *****************************************************************/
 point operator+( point const p, size const s ) {
