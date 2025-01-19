@@ -116,12 +116,6 @@ struct Delta {
   // nearest multiple of that size.
   Delta round_up( Delta grid_size ) const;
 
-  // This will reduce the magnitude of each component by one.
-  // E.g., if the h component is -5, it will become -4, if the w
-  // component is 10, it will become 9. If a component is zero it
-  // will remain zero.
-  Delta trimmed_by_one() const;
-
   // Returns a new Delta with each component made non-negative.
   [[nodiscard]] Delta abs() const;
 

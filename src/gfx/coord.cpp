@@ -319,19 +319,6 @@ Delta Delta::round_up( Delta grid_size ) const {
       .distance_from_origin();
 }
 
-Delta Delta::trimmed_by_one() const {
-  auto res = *this;
-  if( res.w > 0 )
-    res.w -= 1;
-  else if( res.w < 0 )
-    res.w += 1;
-  if( res.h > 0 )
-    res.h -= 1;
-  else if( res.h < 0 )
-    res.h += 1;
-  return res;
-}
-
 [[nodiscard]] Delta Delta::abs() const {
   return Delta{ .w = std::abs( w ), .h = std::abs( h ) };
 }
