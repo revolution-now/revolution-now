@@ -72,7 +72,11 @@ struct.SpreadLabelOptions {
 sumtype.SpreadLabel {
   never       {}, # Should be first.
   always      { opts 'SpreadLabelOptions' },
-  auto_decide { opts 'SpreadLabelOptions' },
+  auto_decide {
+    opts 'SpreadLabelOptions',
+    # If one spread gets a label then they all will.
+    viral 'bool',
+  },
 }
 
 struct.SpreadLabelRenderPlan {
@@ -90,12 +94,12 @@ struct.TileSpread {
   # x coordinate relative to sprite origin containing the first
   # row with at least one non-transparent pixel.
   opaque_start 'int',
-  label 'SpreadLabel',
 }
 
 struct.TileSpreads {
   spreads 'std::vector<TileSpread>',
   group_spacing 'int',
+  label_policy 'SpreadLabel',
 }
 
 struct.TileSpreadRenderPlan {

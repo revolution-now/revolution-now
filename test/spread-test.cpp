@@ -57,15 +57,17 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .real_count     = 0,
+          {
+            .icon_spread  = { .real_count     = 0,
                               .rendered_count = 0,
                               .spacing        = 1,
                               .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
-            .label        = SpreadLabel::always{} },
+          },
         },
     .group_spacing = 1,
+    .label_policy  = SpreadLabel::always{},
   };
   expected = { .tiles = {}, .labels = {} };
   REQUIRE( f() == expected );
@@ -74,15 +76,17 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .real_count     = 1,
+          {
+            .icon_spread  = { .real_count     = 1,
                               .rendered_count = 1,
                               .spacing        = 1,
                               .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
-            .label        = SpreadLabel::always{} },
+          },
         },
     .group_spacing = 1,
+    .label_policy  = SpreadLabel::always{},
   };
   expected = {
     .tiles  = { pair{ e_tile::dragoon, point{ -2, 0 } } },
@@ -98,15 +102,17 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .real_count     = 2,
+          {
+            .icon_spread  = { .real_count     = 2,
                               .rendered_count = 1,
                               .spacing        = 1,
                               .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
-            .label        = SpreadLabel::always{} },
+          },
         },
     .group_spacing = 1,
+    .label_policy  = SpreadLabel::always{},
   };
   expected = {
     .tiles  = { pair{ e_tile::dragoon, point{ -2, 0 } } },
@@ -122,29 +128,33 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread  = { .real_count     = 1,
+          {
+            .icon_spread  = { .real_count     = 1,
                               .rendered_count = 1,
                               .spacing        = 1,
                               .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
-            .label        = SpreadLabel::always{} },
-          { .icon_spread  = { .real_count     = 0,
+          },
+          {
+            .icon_spread  = { .real_count     = 0,
                               .rendered_count = 0,
                               .spacing        = 1,
                               .width          = 28 },
             .tile         = e_tile::dragoon,
             .opaque_start = 2,
-            .label        = SpreadLabel::always{} },
-          { .icon_spread  = { .real_count     = 2,
+          },
+          {
+            .icon_spread  = { .real_count     = 2,
                               .rendered_count = 2,
                               .spacing        = 3,
                               .width          = 13 },
             .tile         = e_tile::soldier,
             .opaque_start = 11,
-            .label        = SpreadLabel::always{} },
+          },
         },
     .group_spacing = 1,
+    .label_policy  = SpreadLabel::always{},
   };
   expected = { .tiles =
                    {

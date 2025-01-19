@@ -140,16 +140,17 @@ Layout layout_auto( Player const& player,
       compute_icon_spread( expeditionary_force_spread_specs );
   TileSpreads tile_spreads;
   tile_spreads.group_spacing = icon_spreads.group_spacing;
+  tile_spreads.label_policy =
+      SpreadLabel::auto_decide{ .viral = true };
   for( auto tile_it = kExpeditionaryForceTiles.begin();
        IconSpread const& icon_spread : icon_spreads.spreads ) {
     CHECK( tile_it != kExpeditionaryForceTiles.end() );
-    tile_spreads.spreads.push_back( TileSpread{
-      .icon_spread = icon_spread,
-      .tile        = *tile_it,
-      .opaque_start =
-          opaque_area_for( *tile_it ).horizontal_slice().start,
-      // Need to specify this to get labels.
-      .label = SpreadLabel::auto_decide{} } );
+    tile_spreads.spreads.push_back(
+        TileSpread{ .icon_spread  = icon_spread,
+                    .tile         = *tile_it,
+                    .opaque_start = opaque_area_for( *tile_it )
+                                        .horizontal_slice()
+                                        .start } );
     ++tile_it;
   }
   l.expeditionary_force_spreads =

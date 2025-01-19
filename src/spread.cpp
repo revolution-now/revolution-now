@@ -31,6 +31,8 @@ namespace rn {
 
 namespace {
 
+using ::base::maybe;
+using ::base::nothing;
 using ::gfx::oriented_point;
 using ::gfx::pixel;
 using ::gfx::point;
@@ -191,7 +193,27 @@ bool requires_label( IconSpread const& spread ) {
 TileSpreadRenderPlan rendered_tile_spread(
     TileSpreads const& tile_spreads ) {
   TileSpreadRenderPlan res;
-  point p = {};
+  point p                       = {};
+  bool const has_required_label = [&] {
+    for( TileSpread const& tile_spread : tile_spreads.spreads )
+      if( requires_label( tile_spread.icon_spread ) )
+        return true;
+    return false;
+  }();
+  auto const label_options = [&]( IconSpread const& icon_spread )
+      -> maybe<SpreadLabelOptions const&> {
+    SWITCH( tile_spreads.label_policy ) {
+      CASE( never ) { return nothing; }
+      CASE( always ) { return always.opts; }
+      CASE( auto_decide ) {
+        bool const force =
+            has_required_label && auto_decide.viral;
+        if( force || requires_label( icon_spread ) )
+          return auto_decide.opts;
+        return nothing;
+      }
+    }
+  };
   for( TileSpread const& tile_spread : tile_spreads.spreads ) {
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
     point const p_start = p;
@@ -234,18 +256,7 @@ TileSpreadRenderPlan rendered_tile_spread(
                                      placement ),
       } );
     };
-    SWITCH( tile_spread.label ) {
-      CASE( always ) {
-        add_label( always.opts );
-        break;
-      }
-      CASE( auto_decide ) {
-        if( requires_label( tile_spread.icon_spread ) )
-          add_label( auto_decide.opts );
-        break;
-      }
-      CASE( never ) { break; }
-    }
+    label_options( tile_spread.icon_spread ).visit( add_label );
     p.x += tile_spreads.group_spacing;
   }
   return res;
