@@ -17,6 +17,9 @@
 // render
 #include "render/typer.hpp" // FIXME: remove
 
+// rds
+#include "rds/switch-macro.hpp"
+
 // C++ standard library
 #include <ranges>
 
@@ -206,31 +209,42 @@ TileSpreadRenderPlan rendered_tile_spread(
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
-    if( auto const& label_opts = tile_spread.label;
-        label_opts.has_value() ) {
+    auto add_label = [&]( SpreadLabelOptions const& options ) {
       int const tile_h = sprite_size( tile_spread.tile ).h;
       rect const tiles_all{
         .origin = p_start,
         .size   = { .w = p.x - p_start.x, .h = tile_h } };
       e_cdirection const placement =
-          label_opts->placement.value_or( kDefaultPlacement );
+          options.placement.value_or( kDefaultPlacement );
       string const label_text =
           to_string( tile_spread.icon_spread.real_count );
       size const padded_label_size = [&] {
         size const label_size =
             rr::rendered_text_line_size_pixels( label_text );
-        int const padding = label_opts->text_padding.value_or(
-            kDefaultTextPadding );
+        int const padding =
+            options.text_padding.value_or( kDefaultTextPadding );
         return size{ .w = label_size.w + padding * 2,
                      .h = label_size.h + padding * 2 };
       }();
       res.labels.push_back( SpreadLabelRenderPlan{
-        .options = *label_opts,
+        .options = options,
         .text    = label_text,
         .p       = gfx::centered_at( padded_label_size,
                                      tiles_all.with_edges_removed( 2 ),
                                      placement ),
       } );
+    };
+    SWITCH( tile_spread.label ) {
+      CASE( always ) {
+        add_label( always.opts );
+        break;
+      }
+      CASE( auto_decide ) {
+        if( requires_label( tile_spread.icon_spread ) )
+          add_label( auto_decide.opts );
+        break;
+      }
+      CASE( never ) { break; }
     }
     p.x += tile_spreads.group_spacing;
   }

@@ -149,7 +149,7 @@ Layout layout_auto( Player const& player,
       .opaque_start =
           opaque_area_for( *tile_it ).horizontal_slice().start,
       // Need to specify this to get labels.
-      .label = SpreadLabelOptions{} } );
+      .label = SpreadLabel::auto_decide{} } );
     ++tile_it;
   }
   l.expeditionary_force_spreads =

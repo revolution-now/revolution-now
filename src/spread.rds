@@ -69,6 +69,12 @@ struct.SpreadLabelOptions {
   text_padding 'base::maybe<int>',
 }
 
+sumtype.SpreadLabel {
+  never       {}, # Should be first.
+  always      { opts 'SpreadLabelOptions' },
+  auto_decide { opts 'SpreadLabelOptions' },
+}
+
 struct.SpreadLabelRenderPlan {
   options 'SpreadLabelOptions',
   text 'std::string',
@@ -84,11 +90,7 @@ struct.TileSpread {
   # x coordinate relative to sprite origin containing the first
   # row with at least one non-transparent pixel.
   opaque_start 'int',
-  # When this is omitted there will be no label. So if you want a
-  # label then it has to have a value, but it is recommended to
-  # let that value be default constructed since that will yield
-  # the options that are desired most of the time.
-  label 'base::maybe<SpreadLabelOptions>',
+  label 'SpreadLabel',
 }
 
 struct.TileSpreads {
