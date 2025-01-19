@@ -286,10 +286,9 @@ TEST_CASE( "[parse] table with duplicate keys" ) {
 
     auto doc = parse( "fake-file", input );
     REQUIRE( !doc.has_value() );
-    REQUIRE_THAT(
-        doc.error(),
-        Contains(
-            "fake-file:error:2:4: unexpected character" ) );
+    REQUIRE_THAT( doc.error(),
+                  Contains( "fake-file:error:2:4: duplicate key "
+                            "\"one\" in table" ) );
   }
   SECTION( "nested" ) {
     static string const input =
@@ -300,10 +299,9 @@ TEST_CASE( "[parse] table with duplicate keys" ) {
 
     auto doc = parse( "fake-file", input );
     REQUIRE( !doc.has_value() );
-    REQUIRE_THAT(
-        doc.error(),
-        Contains(
-            "fake-file:error:3:4: unexpected character" ) );
+    REQUIRE_THAT( doc.error(),
+                  Contains( "fake-file:error:3:4: duplicate key "
+                            "\"a\" in table" ) );
   }
 }
 

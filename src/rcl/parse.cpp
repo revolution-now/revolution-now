@@ -102,7 +102,7 @@ void eat_blanks() {
 // This function will parse a key and make sure that it is valid,
 // but will not transform it in any way (that is done by the
 // model post-processor).
-bool parse_key( string_view* out ) {
+bool parse_key( string_view* out, string& /*err*/ ) {
   eat_blanks();
   if( g_cur == g_end ) return false;
   char const* start = g_cur;
@@ -189,10 +189,10 @@ bool parse_assignment() {
   return has_space;
 }
 
-bool parse_value( value* out );
-bool parse_key_val( table* out );
+bool parse_value( value* out, string& err );
+bool parse_key_val( table* out, string& err );
 
-bool parse_table( table* out ) {
+bool parse_table( table* out, string& err ) {
   DCHECK( g_cur != g_end );
   DCHECK( *g_cur == '{' );
   ++g_cur;
@@ -201,7 +201,7 @@ bool parse_table( table* out ) {
   while( true ) {
     eat_blanks();
     char const* sav = g_cur;
-    bool success    = parse_key_val( &tbl );
+    bool success    = parse_key_val( &tbl, err );
     if( !success ) {
       if( g_cur != sav )
         // We failed but parsed some non-blank characters,
@@ -219,7 +219,7 @@ bool parse_table( table* out ) {
   return true;
 }
 
-bool parse_list( list* out ) {
+bool parse_list( list* out, string& err ) {
   DCHECK( g_cur != g_end );
   DCHECK( *g_cur == '[' );
   ++g_cur;
@@ -227,7 +227,7 @@ bool parse_list( list* out ) {
   vector<value> vs;
   while( true ) {
     value v;
-    if( !parse_value( &v ) ) break;
+    if( !parse_value( &v, err ) ) break;
     eat_blanks();
     // optional comma.
     if( g_cur != g_end && *g_cur == ',' ) ++g_cur;
@@ -334,14 +334,14 @@ bool parse_string( string* out, bool* unquoted ) {
   return true;
 }
 
-bool parse_value( value* out ) {
+bool parse_value( value* out, string& err ) {
   eat_blanks();
   if( g_cur == g_end ) return false;
 
   // table
   if( *g_cur == '{' ) {
     table tbl;
-    if( !parse_table( &tbl ) ) return false;
+    if( !parse_table( &tbl, err ) ) return false;
     *out = value( std::move( tbl ) );
     return true;
   }
@@ -351,7 +351,7 @@ bool parse_value( value* out ) {
       is_alpha( *( g_cur + 1 ) ) ) {
     table tbl;
     ++g_cur;
-    if( !parse_key_val( &tbl ) ) return false;
+    if( !parse_key_val( &tbl, err ) ) return false;
     *out = value( std::move( tbl ) );
     return true;
   }
@@ -359,7 +359,7 @@ bool parse_value( value* out ) {
   // list
   if( *g_cur == '[' ) {
     list lst;
-    if( !parse_list( &lst ) ) return false;
+    if( !parse_list( &lst, err ) ) return false;
     *out = value( std::move( lst ) );
     return true;
   }
@@ -401,14 +401,17 @@ bool parse_value( value* out ) {
   return true;
 }
 
-bool parse_key_val( table* out ) {
+bool parse_key_val( table* out, string& err ) {
   eat_blanks();
   string_view key;
-  if( !parse_key( &key ) ) return false;
-  if( out->contains( string( key ) ) ) return false;
+  if( !parse_key( &key, err ) ) return false;
+  if( out->contains( string( key ) ) ) {
+    err = fmt::format( "duplicate key \"{}\" in table", key );
+    return false;
+  }
   if( !parse_assignment() ) return false;
   value v;
-  if( !parse_value( &v ) ) return false;
+  if( !parse_value( &v, err ) ) return false;
   eat_blanks();
   // optional comma.
   if( g_cur != g_end && *g_cur == ',' ) ++g_cur;
@@ -485,21 +488,39 @@ base::expect<doc, string> parse(
   g_end          = in.end();
 
   table tbl;
+  // NOTE: Although this will be threaded through the various
+  // parser functions, most places that encounter failures don't
+  // really need to populate it since the default error message
+  // should be sufficient for the user to figure out what went
+  // wrong. But there are some cases where it is useful to popu-
+  // late it, e.g. if we fail due to a duplicate key in a table,
+  // we don't want to display the default error message that says
+  // "unexpected character" since that is not helpful.
+  string err;
   // At the top level, the document must be a table. However,
   // top-level braces are optional (unlike with JSON). So first
   // check if we are parsing a JSON-like document and, if not,
   // fall back to just parsing the key/value pairs directly.
   eat_blanks();
   if( g_cur != g_end && *g_cur == '{' )
-    parse_table( &tbl );
+    parse_table( &tbl, err );
   else
-    while( parse_key_val( &tbl ) ) {}
+    while( parse_key_val( &tbl, err ) ) {}
   eat_blanks();
 
   auto [line, col] = error_pos( in, g_cur - g_start );
-  if( g_cur != g_end )
-    return fmt::format( "{}:error:{}:{}: unexpected character",
-                        filename, line, col );
+  // Only check the err string if we didn't fully parse the docu-
+  // ment, in order to allow for cases where a parser function
+  // might encounter and error and populate it but which its
+  // caller can handle.
+  if( g_cur != g_end ) {
+    string const loc = ( g_cur != g_end )
+                           ? fmt::format( "{}:{}:", line, col )
+                           : "";
+    string const msg =
+        !err.empty() ? err : "unexpected character";
+    return fmt::format( "{}:error:{} {}", filename, loc, msg );
+  }
 
   return doc::create( std::move( tbl ), opts );
 }
