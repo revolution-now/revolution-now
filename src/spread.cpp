@@ -182,7 +182,8 @@ TileSpreadRenderPlan rendered_tile_spread(
   for( TileSpread const& tile_spread : tile_spreads.spreads ) {
     int const tile_h = sprite_size( tile_spread.tile ).h;
     if( auto const& label_spec = tile_spread.label;
-        label_spec.has_value() )
+        label_spec.has_value() &&
+        tile_spread.icon_spread.count > 0 )
       res.labels.push_back( SpreadLabelRenderPlan{
         .options = *label_spec,
         .text    = to_string( tile_spread.icon_spread.count ),
