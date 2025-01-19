@@ -180,10 +180,10 @@ TileSpreadRenderPlan rendered_tile_spread(
   TileSpreadRenderPlan res;
   point p = {};
   for( TileSpread const& tile_spread : tile_spreads.spreads ) {
+    if( tile_spread.icon_spread.count == 0 ) continue;
     int const tile_h = sprite_size( tile_spread.tile ).h;
     if( auto const& label_spec = tile_spread.label;
-        label_spec.has_value() &&
-        tile_spread.icon_spread.count > 0 )
+        label_spec.has_value() )
       res.labels.push_back( SpreadLabelRenderPlan{
         .options = *label_spec,
         .text    = to_string( tile_spread.icon_spread.count ),
@@ -195,7 +195,7 @@ TileSpreadRenderPlan rendered_tile_spread(
               e_cdirection::sw ) } } );
     for( int i = 0; i < tile_spread.icon_spread.count; ++i ) {
       point const p_drawn =
-          p.moved_left( tile_spread.opaque.start );
+          p.moved_left( tile_spread.opaque_start );
       res.tiles.push_back( { tile_spread.tile, p_drawn } );
       p.x += tile_spread.icon_spread.spacing;
     }

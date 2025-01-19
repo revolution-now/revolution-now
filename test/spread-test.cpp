@@ -57,12 +57,12 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread = { .count   = 0,
-                             .spacing = 1,
-                             .width   = 1 },
-            .tile        = e_tile::dragoon,
-            .opaque      = interval{ .start = 2, .len = 28 },
-            .label       = SpreadLabelOptions{} },
+          { .icon_spread  = { .count   = 0,
+                              .spacing = 1,
+                              .width   = 28 },
+            .tile         = e_tile::dragoon,
+            .opaque_start = 2,
+            .label        = SpreadLabelOptions{} },
         },
     .group_spacing = 1,
   };
@@ -73,12 +73,12 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread = { .count   = 1,
-                             .spacing = 1,
-                             .width   = 1 },
-            .tile        = e_tile::dragoon,
-            .opaque      = interval{ .start = 2, .len = 28 },
-            .label       = SpreadLabelOptions{} },
+          { .icon_spread  = { .count   = 1,
+                              .spacing = 1,
+                              .width   = 28 },
+            .tile         = e_tile::dragoon,
+            .opaque_start = 2,
+            .label        = SpreadLabelOptions{} },
         },
     .group_spacing = 1,
   };
@@ -90,6 +90,49 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
         .p    = { .anchor    = { .x = 2, .y = 30 },
                   .placement = e_cdirection::sw } },
     } };
+  REQUIRE( f() == expected );
+
+  // Three spreads, middle empty does not emit group spacing.
+  tile_spreads = {
+    .spreads =
+        {
+          { .icon_spread  = { .count   = 1,
+                              .spacing = 1,
+                              .width   = 28 },
+            .tile         = e_tile::dragoon,
+            .opaque_start = 2,
+            .label        = SpreadLabelOptions{} },
+          { .icon_spread  = { .count   = 0,
+                              .spacing = 1,
+                              .width   = 28 },
+            .tile         = e_tile::dragoon,
+            .opaque_start = 2,
+            .label        = SpreadLabelOptions{} },
+          { .icon_spread  = { .count   = 2,
+                              .spacing = 3,
+                              .width   = 13 },
+            .tile         = e_tile::soldier,
+            .opaque_start = 11,
+            .label        = SpreadLabelOptions{} },
+        },
+    .group_spacing = 1,
+  };
+  expected = { .tiles =
+                   {
+                     pair{ e_tile::dragoon, point{ -2, 0 } },
+                     pair{ e_tile::soldier, point{ 18, 0 } },
+                     pair{ e_tile::soldier, point{ 21, 0 } },
+                   },
+               .labels = {
+                 SpreadLabelRenderPlan{
+                   .text = "1",
+                   .p    = { .anchor    = { .x = 2, .y = 30 },
+                             .placement = e_cdirection::sw } },
+                 SpreadLabelRenderPlan{
+                   .text = "2",
+                   .p    = { .anchor    = { .x = 31, .y = 30 },
+                             .placement = e_cdirection::sw } },
+               } };
   REQUIRE( f() == expected );
 }
 
