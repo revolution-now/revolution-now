@@ -35,10 +35,16 @@ namespace {
 
 namespace rl = ::base::rl;
 
+using ::gfx::oriented_point;
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
 /****************************************************************
 ** Rendering
 *****************************************************************/
-void render_impl( rr::Typer& typer, gfx::pixel color,
+void render_impl( rr::Typer& typer, pixel color,
                   string_view text ) {
   typer.set_color( color );
   typer.write( text );
@@ -48,9 +54,9 @@ void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
                     TextMarkupInfo const& info ) {
   if( info.shadow.has_value() ) {
     rr::Typer typer_right =
-        typer.with_frame_offset( gfx::size{ .w = 1 } );
+        typer.with_frame_offset( size{ .w = 1 } );
     rr::Typer typer_down =
-        typer.with_frame_offset( gfx::size{ .h = 1 } );
+        typer.with_frame_offset( size{ .h = 1 } );
     render_impl( typer_right, *info.shadow, mk.text );
     render_impl( typer_down, *info.shadow, mk.text );
   }
@@ -63,7 +69,7 @@ void render_markup( rr::Typer& typer, MarkedUpChunk const& mk,
     render_impl( typer, info.normal, mk.text );
 }
 
-void render_line( rr::Typer& typer, gfx::pixel fg,
+void render_line( rr::Typer& typer, pixel fg,
                   string_view text ) {
   return render_impl( typer, fg, text );
 }
@@ -76,11 +82,11 @@ void render_line_markup( rr::Typer& typer,
       render_markup( typer, mut, info );
 }
 
-void render_lines( rr::Typer& typer, gfx::pixel fg,
+void render_lines( rr::Typer& typer, pixel fg,
                    vector<string> const& txt ) {
   for( string const& line : txt ) {
     render_line( typer, fg, line );
-    render_impl( typer, gfx::pixel{}, "\n" );
+    render_impl( typer, pixel{}, "\n" );
   }
 }
 
@@ -90,7 +96,7 @@ void render_lines_markup(
     TextMarkupInfo const& info ) {
   for( vector<MarkedUpChunk> const& muts : mk_text ) {
     render_line_markup( typer, muts, info );
-    render_impl( typer, gfx::pixel{}, "\n" );
+    render_impl( typer, pixel{}, "\n" );
   }
 }
 
@@ -209,51 +215,50 @@ vector<vector<MarkedUpChunk>> text_markup_reflow_impl(
 /****************************************************************
 ** TextMarkupInfo
 *****************************************************************/
-gfx::pixel TextMarkupInfo::default_normal_color() {
+pixel TextMarkupInfo::default_normal_color() {
   return config_ui.dialog_text.normal;
 }
 
-gfx::pixel TextMarkupInfo::default_highlight_color() {
+pixel TextMarkupInfo::default_highlight_color() {
   return config_ui.dialog_text.highlighted;
 }
 
 /****************************************************************
 ** Public API
 *****************************************************************/
-void render_text_markup( rr::Renderer& renderer,
-                         gfx::point where, e_font font,
-                         TextMarkupInfo const& info,
+void render_text_markup( rr::Renderer& renderer, point where,
+                         e_font font, TextMarkupInfo const& info,
                          std::string_view text ) {
   (void)font; // TODO
   // The color will be set later.
-  rr::Typer typer = renderer.typer( where, gfx::pixel{} );
+  rr::Typer typer = renderer.typer( where, pixel{} );
   UNWRAP_CHECK( mk_texts, parse_markup( text ) );
   render_lines_markup( typer, mk_texts.chunks, info );
 }
 
-void render_text( rr::Renderer& renderer, gfx::point where,
-                  e_font font, gfx::pixel color,
+void render_text( rr::Renderer& renderer, point where,
+                  e_font font, pixel color,
                   std::string_view text ) {
   (void)font; // TODO
   // The color will be set later.
-  rr::Typer typer = renderer.typer( where, gfx::pixel{} );
+  rr::Typer typer = renderer.typer( where, pixel{} );
   render_lines( typer, color, base::str_split( text, '\n' ) );
 }
 
-void render_text( rr::Renderer& renderer, gfx::point where,
-                  std::string_view text, gfx::pixel color ) {
+void render_text( rr::Renderer& renderer, point where,
+                  std::string_view text, pixel color ) {
   render_text( renderer, where, font::standard(), color, text );
 }
 
 void render_text_markup_reflow(
-    rr::Renderer& renderer, gfx::point where, e_font font,
+    rr::Renderer& renderer, point where, e_font font,
     TextMarkupInfo const& markup_info,
     TextReflowInfo const& reflow_info, string_view text ) {
   (void)font; // TODO
   vector<vector<MarkedUpChunk>> markedup_reflowed =
       text_markup_reflow_impl( reflow_info, text );
   // The color will be set later.
-  rr::Typer typer = renderer.typer( where, gfx::pixel{} );
+  rr::Typer typer = renderer.typer( where, pixel{} );
   render_lines_markup( typer, markedup_reflowed, markup_info );
 }
 
@@ -261,7 +266,7 @@ Delta rendered_text_size( TextReflowInfo const& reflow_info,
                           string_view text ) {
   vector<vector<MarkedUpChunk>> lines =
       text_markup_reflow_impl( reflow_info, text );
-  gfx::size const kCharSize =
+  size const kCharSize =
       rr::rendered_text_line_size_pixels( "X" );
   Delta res;
   res.h = H{ kCharSize.h * int( lines.size() ) };
@@ -283,7 +288,7 @@ Delta rendered_text_size_no_reflow( string_view text ) {
   string no_markup = remove_markup( text );
   vector<string_view> lines =
       util::split_on_any( no_markup, "\r\n" );
-  gfx::size const kCharSize =
+  size const kCharSize =
       rr::rendered_text_line_size_pixels( "X" );
   Delta res;
   res.h = H{ kCharSize.h * int( lines.size() ) };
@@ -296,18 +301,17 @@ Delta rendered_text_size_no_reflow( string_view text ) {
 
 void render_text_overlay_with_anchor(
     rr::Renderer& renderer, vector<string> const& lines,
-    gfx::point const anchor, e_cdirection const cdirection,
-    gfx::pixel const fg_color, gfx::pixel const bg_color,
-    int const scale ) {
-  gfx::rect const info_region = [&] {
-    gfx::size const info_region_size = [&] {
+    oriented_point const op, pixel const fg_color,
+    pixel const bg_color, int const scale ) {
+  rect const info_region = [&] {
+    size const info_region_size = [&] {
       auto delta_for = []( string_view const text ) {
         return rr::rendered_text_line_size_pixels( text );
       };
-      gfx::size res;
+      size res;
       for( auto const& line : lines ) {
-        gfx::size const delta = delta_for( line );
-        res.w                 = std::max( res.w, delta.w );
+        size const delta = delta_for( line );
+        res.w            = std::max( res.w, delta.w );
         res.h += delta.h;
         ++res.h; // space between lines.
       }
@@ -353,8 +357,8 @@ void render_text_overlay_with_anchor(
       return res;
     }();
 
-    return gfx::rect{ .origin = info_region_start,
-                      .size   = info_region_size };
+    return rect{ .origin = info_region_start,
+                 .size   = info_region_size };
   }();
 
   rr::Painter painter = renderer.painter();
