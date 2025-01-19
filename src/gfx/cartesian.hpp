@@ -714,6 +714,26 @@ struct traits<gfx::drect> {
                        offsetof( type, size ) } };
 };
 
+// Reflection info for struct oriented_point.
+template<>
+struct traits<gfx::oriented_point> {
+  using type = gfx::oriented_point;
+
+  static constexpr type_kind kind      = type_kind::struct_kind;
+  static constexpr std::string_view ns = "gfx";
+  static constexpr std::string_view name = "oriented_point";
+  static constexpr bool is_sumtype_alternative = false;
+
+  using template_types = std::tuple<>;
+
+  static constexpr std::tuple fields{
+    refl::StructField{ "anchor", &gfx::oriented_point::anchor,
+                       offsetof( type, anchor ) },
+    refl::StructField{ "placement",
+                       &gfx::oriented_point::placement,
+                       offsetof( type, placement ) } };
+};
+
 } // namespace refl
 
 /****************************************************************

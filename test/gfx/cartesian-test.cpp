@@ -1942,6 +1942,15 @@ TEST_CASE( "[gfx/cartesian] centered_on" ) {
 /****************************************************************
 ** oriented_point
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] oriented_point (refl/to_str)" ) {
+  oriented_point const op{ .anchor    = { .x = 4, .y = 2 },
+                           .placement = e_cdirection::sw };
+  static_assert( base::Show<oriented_point> );
+  REQUIRE( base::to_str( op ) ==
+           "gfx::oriented_point{anchor=gfx::point{x=4,y=2},"
+           "placement=sw}" );
+}
+
 TEST_CASE(
     "[gfx/cartesian] oriented_point::point_becomes_origin" ) {
   oriented_point const op{ .anchor    = { .x = 4, .y = 2 },
