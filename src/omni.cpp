@@ -58,6 +58,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::oriented_point;
 using ::refl::enum_count;
 using ::refl::enum_from_integral;
 using ::refl::enum_value_name;
@@ -324,8 +325,11 @@ struct OmniPlane::Impl : public IPlane {
     log( "f/s: {}", fmt::format( "{:.1f}", avg_frame_rate() ) );
 
     render_text_overlay_with_anchor(
-        renderer, lines, renderer.logical_screen_rect().se(),
-        e_cdirection::se, overlay_fg, overlay_bg, /*scale=*/1 );
+        renderer, lines,
+        oriented_point{
+          .anchor    = renderer.logical_screen_rect().se(),
+          .placement = e_cdirection::se },
+        overlay_fg, overlay_bg, /*scale=*/1 );
   }
 
   void render_bad_window_size_overlay(
@@ -342,8 +346,10 @@ struct OmniPlane::Impl : public IPlane {
                    physical_size.w, physical_size.h ),
       "Please expand the size of your window." };
     render_text_overlay_with_anchor(
-        renderer, help_msg, default_logical.center(),
-        e_cdirection::c, gfx::pixel::yellow(), SHADED_WOOD,
+        renderer, help_msg,
+        oriented_point{ .anchor    = default_logical.center(),
+                        .placement = e_cdirection::c },
+        gfx::pixel::yellow(), SHADED_WOOD,
         /*scale=*/2 );
   }
 
@@ -398,7 +404,9 @@ struct OmniPlane::Impl : public IPlane {
         gfx::point{ .x = 0, .y = 16 };
 
     render_text_overlay_with_anchor(
-        renderer, lines, info_region_anchor, e_cdirection::nw,
+        renderer, lines,
+        oriented_point{ .anchor    = info_region_anchor,
+                        .placement = e_cdirection::nw },
         overlay_fg, overlay_bg, /*scale=*/1 );
   }
 
@@ -421,7 +429,9 @@ struct OmniPlane::Impl : public IPlane {
             .moved_right( 2 );
 
     render_text_overlay_with_anchor(
-        renderer, lines, info_region_anchor, e_cdirection::nw,
+        renderer, lines,
+        oriented_point{ .anchor    = info_region_anchor,
+                        .placement = e_cdirection::nw },
         overlay_fg, overlay_bg, /*scale=*/1 );
   }
 

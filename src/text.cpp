@@ -321,41 +321,8 @@ void render_text_overlay_with_anchor(
       return res * scale;
     }();
 
-    gfx::point const info_region_start = [&] {
-      gfx::point res = anchor;
-      switch( cdirection ) {
-        case e_cdirection::c:
-          res -= info_region_size / 2;
-          break;
-        case e_cdirection::e:
-          res.x -= info_region_size.w;
-          res.y -= info_region_size.h / 2;
-          break;
-        case e_cdirection::n:
-          res.x -= info_region_size.w / 2;
-          break;
-        case e_cdirection::ne:
-          res.x -= info_region_size.w;
-          break;
-        case e_cdirection::nw:
-          break;
-        case e_cdirection::s:
-          res.x -= info_region_size.w / 2;
-          res.y -= info_region_size.h;
-          break;
-        case e_cdirection::se:
-          res.x -= info_region_size.w;
-          res.y -= info_region_size.h;
-          break;
-        case e_cdirection::sw:
-          res.y -= info_region_size.h;
-          break;
-        case e_cdirection::w:
-          res.y -= info_region_size.h / 2;
-          break;
-      }
-      return res;
-    }();
+    point const info_region_start =
+        gfx::find_placement( op, info_region_size );
 
     return rect{ .origin = info_region_start,
                  .size   = info_region_size };

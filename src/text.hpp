@@ -87,8 +87,8 @@ Delta rendered_text_size_no_reflow( std::string_view text );
 void render_text_overlay_with_anchor(
     rr::Renderer& renderer,
     std::vector<std::string> const& lines,
-    gfx::point const anchor, e_cdirection const cdirection,
-    gfx::pixel const fg_color, gfx::pixel const bg_color,
-    int scale );
+    gfx::oriented_point op, gfx::pixel color_fg,
+    gfx::pixel color_bg, int scale );
+
 
 } // namespace rn
