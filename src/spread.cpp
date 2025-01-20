@@ -14,6 +14,9 @@
 #include "text.hpp"
 #include "tiles.hpp"
 
+// config
+#include "config/ui.rds.hpp"
+
 // render
 #include "render/typer.hpp" // FIXME: remove
 
@@ -34,23 +37,19 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 using ::gfx::oriented_point;
-using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
-int constexpr kDefaultTextPadding        = 1;
-e_cdirection constexpr kDefaultPlacement = e_cdirection::sw;
-
-int64_t bounds_for_output( IconSpreadSpec const& spec,
-                           IconSpread const& spread ) {
+int64_t bounds_for_output( SpreadSpec const& spec,
+                           Spread const& spread ) {
   if( spread.rendered_count == 0 ) return 0;
   return ( spread.rendered_count - 1 ) * spread.spacing +
-         spec.width;
+         spec.trimmed.len;
 }
 
-int64_t total_bounds( IconSpreadSpecs const& specs,
-                      IconSpreads const& spreads ) {
+int64_t total_bounds( SpreadSpecs const& specs,
+                      Spreads const& spreads ) {
   int64_t total = 0;
   for( auto&& [spec, spread] :
        rv::zip( specs.specs, spreads.spreads ) )
@@ -60,9 +59,9 @@ int64_t total_bounds( IconSpreadSpecs const& specs,
   return total;
 }
 
-IconSpread* find_largest( IconSpreadSpecs const& specs,
-                          IconSpreads& spreads ) {
-  IconSpread* largest    = {};
+Spread* find_largest( SpreadSpecs const& specs,
+                      Spreads& spreads ) {
+  Spread* largest        = {};
   int64_t largest_bounds = 0;
   for( auto&& [spec, spread] :
        rv::zip( specs.specs, spreads.spreads ) ) {
@@ -75,9 +74,9 @@ IconSpread* find_largest( IconSpreadSpecs const& specs,
   return largest;
 }
 
-int64_t compute_total_count( IconSpreadSpecs const& specs ) {
+int64_t compute_total_count( SpreadSpecs const& specs ) {
   int64_t total = 0;
-  for( IconSpreadSpec const& spec : specs.specs )
+  for( SpreadSpec const& spec : specs.specs )
     total += spec.count;
   return total;
 }
@@ -88,20 +87,18 @@ int64_t compute_total_count( IconSpreadSpecs const& specs ) {
 // of each spread, and it seems that a good way to do this would
 // be to just rewrite all them to be a fraction of the whole in
 // proportion to their original desired counts.
-IconSpreads compute_compressed_proportionate(
-    IconSpreadSpecs const& specs ) {
+Spreads compute_compressed_proportionate(
+    SpreadSpecs const& specs ) {
   auto const total_count = compute_total_count( specs );
   // Should have already handled this case. This can't be zero in
   // this method because we will shortly use this value as a de-
   // nominator.
   CHECK_GT( total_count, 0 );
-  IconSpreads spreads;
-  spreads.group_spacing = specs.group_spacing;
-  for( IconSpreadSpec const& spec : specs.specs ) {
+  Spreads spreads;
+  for( SpreadSpec const& spec : specs.specs ) {
     auto& spread        = spreads.spreads.emplace_back();
-    spread.real_count   = spec.count;
+    spread.spec         = spec;
     spread.spacing      = 1;
-    spread.width        = spec.width;
     int const min_count = spec.count > 0 ? 1 : 0;
     spread.rendered_count =
         std::max( int( specs.bounds *
@@ -110,7 +107,7 @@ IconSpreads compute_compressed_proportionate(
   }
 
   auto const decrement_count_for_largest = [&] {
-    IconSpread* const largest = find_largest( specs, spreads );
+    Spread* const largest = find_largest( specs, spreads );
     if( !largest ) return false;
     // Not sure if this could happen here since "largest" depends
     // on other parameters such as spacing and width, which the
@@ -142,16 +139,14 @@ IconSpreads compute_compressed_proportionate(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
-  IconSpreads spreads;
+Spreads compute_icon_spread( SpreadSpecs const& specs ) {
+  Spreads spreads;
 
   // First compute the default spreads.
-  spreads.group_spacing = specs.group_spacing;
-  for( IconSpreadSpec const& spec : specs.specs ) {
+  for( SpreadSpec const& spec : specs.specs ) {
     auto& spread          = spreads.spreads.emplace_back();
-    spread.real_count     = spec.count;
-    spread.spacing        = spec.width + 1;
-    spread.width          = spec.width;
+    spread.spec           = spec;
+    spread.spacing        = spec.trimmed.len + 1;
     spread.rendered_count = spec.count;
   }
   CHECK_EQ( specs.specs.size(), spreads.spreads.size() );
@@ -160,7 +155,7 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
   if( total_count == 0 ) return spreads;
 
   auto const decrement_spacing_for_largest = [&] {
-    IconSpread* const largest = find_largest( specs, spreads );
+    Spread* const largest = find_largest( specs, spreads );
     // Not sure if this could happen here since "largest" depends
     // on other parameters such as spacing and width, which the
     // user could pass in as zero, so good to be defensive but
@@ -183,24 +178,25 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs ) {
   return spreads;
 }
 
-bool requires_label( IconSpread const& spread ) {
+bool requires_label( Spread const& spread ) {
   if( spread.spacing <= 1 ) return true;
   if( spread.rendered_count > 10 ) return true;
-  if( spread.width < 8 ) return true;
+  if( spread.spec.trimmed.len < 8 ) return true;
   return false;
 }
 
-TileSpreadRenderPlan rendered_tile_spread(
-    TileSpreads const& tile_spreads ) {
-  TileSpreadRenderPlan res;
+TileSpread rendered_tile_spread(
+    TileSpreadSpecs const& tile_spreads ) {
+  TileSpread res;
   point p                       = {};
   bool const has_required_label = [&] {
-    for( TileSpread const& tile_spread : tile_spreads.spreads )
+    for( TileSpreadSpec const& tile_spread :
+         tile_spreads.spreads )
       if( requires_label( tile_spread.icon_spread ) )
         return true;
     return false;
   }();
-  auto const label_options = [&]( IconSpread const& icon_spread )
+  auto const label_options = [&]( Spread const& icon_spread )
       -> maybe<SpreadLabelOptions const&> {
     SWITCH( tile_spreads.label_policy ) {
       CASE( never ) { return nothing; }
@@ -214,20 +210,22 @@ TileSpreadRenderPlan rendered_tile_spread(
       }
     }
   };
-  for( TileSpread const& tile_spread : tile_spreads.spreads ) {
+  for( TileSpreadSpec const& tile_spread :
+       tile_spreads.spreads ) {
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
     point const p_start = p;
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
-      point const p_drawn =
-          p.moved_left( tile_spread.opaque_start );
+      point const p_drawn = p.moved_left(
+          tile_spread.icon_spread.spec.trimmed.start );
       res.tiles.push_back( { tile_spread.tile, p_drawn } );
       p.x += tile_spread.icon_spread.spacing;
     }
     if( tile_spread.icon_spread.rendered_count > 0 )
-      p.x += std::max( ( tile_spread.icon_spread.width -
-                         tile_spread.icon_spread.spacing ),
-                       0 );
+      p.x +=
+          std::max( ( tile_spread.icon_spread.spec.trimmed.len -
+                      tile_spread.icon_spread.spacing ),
+                    0 );
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
@@ -236,24 +234,24 @@ TileSpreadRenderPlan rendered_tile_spread(
       rect const tiles_all{
         .origin = p_start,
         .size   = { .w = p.x - p_start.x, .h = tile_h } };
-      e_cdirection const placement =
-          options.placement.value_or( kDefaultPlacement );
+      e_cdirection const placement = options.placement.value_or(
+          config_ui.tile_spreads.default_label_placement );
       string const label_text =
-          to_string( tile_spread.icon_spread.real_count );
+          to_string( tile_spread.icon_spread.spec.count );
       size const padded_label_size = [&] {
         size const label_size =
             rr::rendered_text_line_size_pixels( label_text );
-        int const padding =
-            options.text_padding.value_or( kDefaultTextPadding );
+        int const padding = options.text_padding.value_or(
+            config_ui.tile_spreads.label_text_padding );
         return size{ .w = label_size.w + padding * 2,
                      .h = label_size.h + padding * 2 };
       }();
       res.labels.push_back( SpreadLabelRenderPlan{
         .options = options,
         .text    = label_text,
-        .p       = gfx::centered_at( padded_label_size,
-                                     tiles_all.with_edges_removed( 2 ),
-                                     placement ),
+        .where   = gfx::centered_at(
+            padded_label_size, tiles_all.with_edges_removed( 2 ),
+            placement ),
       } );
     };
     label_options( tile_spread.icon_spread ).visit( add_label );
@@ -262,9 +260,9 @@ TileSpreadRenderPlan rendered_tile_spread(
   return res;
 }
 
-void draw_rendered_icon_spread(
-    rr::Renderer& renderer, point const origin,
-    TileSpreadRenderPlan const& plan ) {
+void draw_rendered_icon_spread( rr::Renderer& renderer,
+                                point const origin,
+                                TileSpread const& plan ) {
   for( auto const& [tile, p] : plan.tiles )
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
@@ -272,15 +270,18 @@ void draw_rendered_icon_spread(
     render_text_line_with_background(
         renderer, plan.text,
         oriented_point{
-          .anchor = plan.p.origin_becomes_point( origin ),
+          .anchor = plan.where.origin_becomes_point( origin ),
           // This is always nw here because the placement calcu-
           // lation has already been done, so the point we are
           // given is always the nw.
           .placement = gfx::e_cdirection::nw },
-        plan.options.color_fg.value_or( pixel::white() ),
-        plan.options.color_bg.value_or( pixel::black() ),
+        plan.options.color_fg.value_or(
+            config_ui.tile_spreads.default_label_fg_color ),
+        plan.options.color_bg.value_or(
+            config_ui.tile_spreads.default_label_bg_color ),
         plan.options.text_padding.value_or(
-            kDefaultTextPadding ) );
+            config_ui.tile_spreads.label_text_padding ),
+        config_ui.tile_spreads.bg_box_has_corners );
 }
 
 } // namespace rn

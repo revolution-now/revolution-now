@@ -25,7 +25,7 @@ namespace rn {
 /****************************************************************
 ** General Algos.
 *****************************************************************/
-IconSpreads compute_icon_spread( IconSpreadSpecs const& specs );
+Spreads compute_icon_spread( SpreadSpecs const& specs );
 
 // Applies some heuristics to decide if the spread is such that
 // it would be difficult for the player to read the count visu-
@@ -33,16 +33,16 @@ IconSpreads compute_icon_spread( IconSpreadSpecs const& specs );
 // method will either not be called or its result will be over-
 // ridden, e.g. in cases such as the colony view when the 'n' key
 // is pressed to enumerate all spreads unconditionally.
-[[nodiscard]] bool requires_label( IconSpread const& spread );
+[[nodiscard]] bool requires_label( Spread const& spread );
 
 /****************************************************************
 ** Spreads of Tiles.
 *****************************************************************/
-[[nodiscard]] TileSpreadRenderPlan rendered_tile_spread(
-    TileSpreads const& tile_spreads );
+[[nodiscard]] TileSpread rendered_tile_spread(
+    TileSpreadSpecs const& tile_spreads );
 
-void draw_rendered_icon_spread(
-    rr::Renderer& renderer, gfx::point origin,
-    TileSpreadRenderPlan const& plan );
+void draw_rendered_icon_spread( rr::Renderer& renderer,
+                                gfx::point origin,
+                                TileSpread const& plan );
 
 } // namespace rn

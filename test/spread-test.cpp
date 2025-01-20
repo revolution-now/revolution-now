@@ -47,8 +47,8 @@ TEST_CASE( "[spread] requires_label" ) {
 }
 
 TEST_CASE( "[spread] rendered_tile_spread" ) {
-  TileSpreads tile_spreads;
-  TileSpreadRenderPlan expected;
+  TileSpreadSpecs tile_spreads;
+  TileSpread expected;
 
   auto f = [&] { return rendered_tile_spread( tile_spreads ); };
 
@@ -57,17 +57,16 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          {
-            .icon_spread  = { .real_count     = 0,
-                              .rendered_count = 0,
-                              .spacing        = 1,
-                              .width          = 28 },
-            .tile         = e_tile::dragoon,
-            .opaque_start = 2,
-          },
+          { .icon_spread = { .spec           = { .count   = 0,
+                                                 .trimmed = { .start = 2,
+                                                              .len =
+                                                                  28 } },
+                             .rendered_count = 0,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon },
         },
     .group_spacing = 1,
-    .label_policy  = SpreadLabel::always{},
+    .label_policy  = SpreadLabels::always{},
   };
   expected = { .tiles = {}, .labels = {} };
   REQUIRE( f() == expected );
@@ -76,24 +75,23 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          {
-            .icon_spread  = { .real_count     = 1,
-                              .rendered_count = 1,
-                              .spacing        = 1,
-                              .width          = 28 },
-            .tile         = e_tile::dragoon,
-            .opaque_start = 2,
-          },
+          { .icon_spread = { .spec           = { .count   = 1,
+                                                 .trimmed = { .start = 2,
+                                                              .len =
+                                                                  28 } },
+                             .rendered_count = 1,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon },
         },
     .group_spacing = 1,
-    .label_policy  = SpreadLabel::always{},
+    .label_policy  = SpreadLabels::always{},
   };
   expected = {
-    .tiles  = { pair{ e_tile::dragoon, point{ -2, 0 } } },
+    .tiles = { { .tile = e_tile::dragoon, .where = { -2, 0 } } },
     .labels = {
       SpreadLabelRenderPlan{
-        .text = "1",
-        .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
+        .text  = "1",
+        .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
       },
     } };
   REQUIRE( f() == expected );
@@ -102,24 +100,23 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          {
-            .icon_spread  = { .real_count     = 2,
-                              .rendered_count = 1,
-                              .spacing        = 1,
-                              .width          = 28 },
-            .tile         = e_tile::dragoon,
-            .opaque_start = 2,
-          },
+          { .icon_spread = { .spec           = { .count   = 2,
+                                                 .trimmed = { .start = 2,
+                                                              .len =
+                                                                  28 } },
+                             .rendered_count = 1,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon },
         },
     .group_spacing = 1,
-    .label_policy  = SpreadLabel::always{},
+    .label_policy  = SpreadLabels::always{},
   };
   expected = {
-    .tiles  = { pair{ e_tile::dragoon, point{ -2, 0 } } },
+    .tiles = { { .tile = e_tile::dragoon, .where = { -2, 0 } } },
     .labels = {
       SpreadLabelRenderPlan{
-        .text = "2",
-        .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
+        .text  = "2",
+        .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
       },
     } };
   REQUIRE( f() == expected );
@@ -128,50 +125,48 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          {
-            .icon_spread  = { .real_count     = 1,
-                              .rendered_count = 1,
-                              .spacing        = 1,
-                              .width          = 28 },
-            .tile         = e_tile::dragoon,
-            .opaque_start = 2,
-          },
-          {
-            .icon_spread  = { .real_count     = 0,
-                              .rendered_count = 0,
-                              .spacing        = 1,
-                              .width          = 28 },
-            .tile         = e_tile::dragoon,
-            .opaque_start = 2,
-          },
-          {
-            .icon_spread  = { .real_count     = 2,
-                              .rendered_count = 2,
-                              .spacing        = 3,
-                              .width          = 13 },
-            .tile         = e_tile::soldier,
-            .opaque_start = 11,
-          },
+          { .icon_spread = { .spec           = { .count   = 1,
+                                                 .trimmed = { .start = 2,
+                                                              .len =
+                                                                  28 } },
+                             .rendered_count = 1,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon },
+          { .icon_spread = { .spec           = { .count   = 0,
+                                                 .trimmed = { .start = 2,
+                                                              .len =
+                                                                  28 } },
+                             .rendered_count = 0,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon },
+          { .icon_spread = { .spec           = { .count   = 2,
+                                                 .trimmed = { .start = 11,
+                                                              .len =
+                                                                  13 } },
+                             .rendered_count = 2,
+                             .spacing        = 3 },
+            .tile        = e_tile::soldier },
         },
     .group_spacing = 1,
-    .label_policy  = SpreadLabel::always{},
+    .label_policy  = SpreadLabels::always{},
   };
-  expected = { .tiles =
-                   {
-                     pair{ e_tile::dragoon, point{ -2, 0 } },
-                     pair{ e_tile::soldier, point{ 18, 0 } },
-                     pair{ e_tile::soldier, point{ 21, 0 } },
-                   },
-               .labels = {
-                 SpreadLabelRenderPlan{
-                   .text = "1",
-                   .p    = { .x = 2, .y = 32 - 8 - 2 - 2 },
-                 },
-                 SpreadLabelRenderPlan{
-                   .text = "2",
-                   .p    = { .x = 31, .y = 32 - 8 - 2 - 2 },
-                 },
-               } };
+  expected = {
+    .tiles =
+        {
+          { .tile = e_tile::dragoon, .where = { -2, 0 } },
+          { .tile = e_tile::soldier, .where = { 18, 0 } },
+          { .tile = e_tile::soldier, .where = { 21, 0 } },
+        },
+    .labels = {
+      SpreadLabelRenderPlan{
+        .text  = "1",
+        .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
+      },
+      SpreadLabelRenderPlan{
+        .text  = "2",
+        .where = { .x = 31, .y = 32 - 8 - 2 - 2 },
+      },
+    } };
   REQUIRE( f() == expected );
 }
 

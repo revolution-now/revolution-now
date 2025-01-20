@@ -41,3 +41,35 @@ console {
 panel {
   width: 128
 }
+
+# This configures the way that "tile spreads" are rendered. These
+# are the graphic representations of unit/commodity counts that
+# the OG does by rendering an array of identical tiles each sepa-
+# rated by an amount that tends to decrease as the count goes up.
+# They can sometimes have numeric labels as well when the count
+# goes high enough that it would be visually difficult to infer.
+#
+# Note that some of these values are just defaults; they can
+# sometimes be overrided by the game in certain cases.
+tile_spreads {
+  # This is the extra space around the label text given to the
+  # box behind the text. The OG has 0 for this, but 1 seems to
+  # look slightly better.
+  label_text_padding: 1
+
+  # There on the tile spread is the label placed. The OG has "nw"
+  # for this. Valid values are: nw,n,ne,w,c,e,sw,s,se.
+  default_label_placement: sw
+
+  # Label text color. Should have strong contrast with the below
+  # background color.
+  default_label_fg_color: "#EEEEAA"
+
+  # There is a dark box behind the label that is rendered to make
+  # the label text visible. The color of it should have strong
+  # contrast with the foreground text color above.
+  default_label_bg_color: "#222211"
+
+  # This flag controls whether the box is given sharp corners.
+  bg_box_has_corners: false
+}

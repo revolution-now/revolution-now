@@ -63,6 +63,14 @@ struct.panel {
   width 'int',
 }
 
+struct.tile_spreads {
+  label_text_padding 'int',
+  default_label_placement 'gfx::e_cdirection',
+  default_label_fg_color 'gfx::pixel',
+  default_label_bg_color 'gfx::pixel',
+  bg_box_has_corners 'bool',
+}
+
 namespace "rn"
 
 struct.config_ui_t {
@@ -71,6 +79,7 @@ struct.config_ui_t {
   menus 'config::ui::menus',
   console 'config::ui::console',
   panel 'config::ui::panel',
+  tile_spreads 'config::ui::tile_spreads',
 }
 
 config.ui {}

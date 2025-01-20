@@ -23,55 +23,69 @@ namespace "rn"
 # ---------------------------------------------------------------
 # General.
 # ---------------------------------------------------------------
-struct.IconSpreadSpec {
+struct.SpreadSpec {
   count 'int',
-  width 'int',
+  # In the case of a sprite, this is intended to represent the
+  # the trimmed section of the sprite, i.e., the location and
+  # width of the span of columns that contain non-transparent
+  # pixels.
+  trimmed 'gfx::interval',
 }
 
-struct.IconSpreadSpecs {
+struct.SpreadSpecs {
+  # Maximum allowed width in pixels that can be used by the final
+  # rendered result. Note that not all of this will be used in
+  # general.
   bounds 'int',
-  specs 'std::vector<IconSpreadSpec>',
+  specs 'std::vector<SpreadSpec>',
+  # Spacing between groups.
   group_spacing 'int',
 }
 
-struct.IconSpread {
-  real_count 'int',
+# Computed output.
+struct.Spread {
+  # Spec copied from input as-is.
+  spec 'SpreadSpec',
   # NOTE: this may be different than the real count that was
-  # input in IconSpreadSpec; this count is for rendering icons
-  # only, but any labels should use the real count.
+  # input in SpreadSpec; this count is for rendering icons only,
+  # but any labels should use the real count.
   rendered_count 'int',
   spacing 'int',
-  width 'int',  # icon width from input.
 }
 
-struct.IconSpreads {
-  spreads 'std::vector<IconSpread>',
-  # This may not be the same as what was input, so this one
-  # should always be used for rendering.
-  group_spacing 'int',
+struct.Spreads {
+  spreads 'std::vector<Spread>',
 }
 
 # ---------------------------------------------------------------
 # Spread labels.
 # ---------------------------------------------------------------
-# This struct is designed so that the default constructed value
-# will provide sensible defaults that should be good in most
-# cases (and reproduce what the OG does).
+# When an option is not specified then a default value will be
+# used, and those default values are chosen so as to provide sen-
+# sible output that should be good in most cases (and roughly re-
+# produce what the OG does).
 struct.SpreadLabelOptions {
-  # Foreground color defaults to 0xffffff.
+  # Foreground color, defaults to white.
   color_fg 'base::maybe<gfx::pixel>',
-  # Background color defaults to 0x000000.
+  # Background color, defaults to black.
   color_bg 'base::maybe<gfx::pixel>',
-  # Placement defaults to the sw corner.
+  # Placement defaults to the sw corner (NOTE: OG does nw).
   placement 'base::maybe<gfx::e_cdirection>',
   # The padding is in addition to the one pixel of padding there
-  # will naturally be around any font. Default value is 1.
+  # will naturally be around any font. Default value is 1,
+  # whereas the OG has zero.
   text_padding 'base::maybe<int>',
 }
 
-sumtype.SpreadLabel {
-  never       {}, # Should be first.
-  always      { opts 'SpreadLabelOptions' },
+sumtype.SpreadLabels {
+  never {}, # default; should be first.
+
+  always {
+    opts 'SpreadLabelOptions',
+  },
+
+  # Use some heuristics on a per-spread basis to determine
+  # whether there should be a number or not.
   auto_decide {
     opts 'SpreadLabelOptions',
     # If one spread gets a label then they all will.
@@ -80,29 +94,36 @@ sumtype.SpreadLabel {
 }
 
 struct.SpreadLabelRenderPlan {
+  # Copied from input as-is.
   options 'SpreadLabelOptions',
   text 'std::string',
-  p 'gfx::point',
+  # nw corner of where to render the box.
+  where 'gfx::point',
 }
 
 # ---------------------------------------------------------------
 # Spreads of tiles.
 # ---------------------------------------------------------------
-struct.TileSpread {
-  icon_spread 'IconSpread',
+struct.TileSpreadSpec {
+  icon_spread 'Spread',
   tile 'e_tile',
-  # x coordinate relative to sprite origin containing the first
-  # row with at least one non-transparent pixel.
-  opaque_start 'int',
 }
 
-struct.TileSpreads {
-  spreads 'std::vector<TileSpread>',
+struct.TileSpreadSpecs {
+  spreads 'std::vector<TileSpreadSpec>',
+  # Should use the same one as was used in the input SpreadSpecs
+  # for correct behavior.
   group_spacing 'int',
-  label_policy 'SpreadLabel',
+  label_policy 'SpreadLabels',
 }
 
-struct.TileSpreadRenderPlan {
-  tiles 'std::vector<std::pair<e_tile, gfx::point>>',
+struct.TileRenderPlan {
+  tile 'e_tile',
+  where 'gfx::point',
+}
+
+# Final result which is directly renderable.
+struct.TileSpread {
+  tiles 'std::vector<TileRenderPlan>',
   labels 'std::vector<SpreadLabelRenderPlan>',
 }
