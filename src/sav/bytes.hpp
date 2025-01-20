@@ -85,7 +85,11 @@ struct bytes {
         res, detail::bytes_from_canonical_impl( conv, v, N ) );
     CHECK_EQ( res.size(), N );
     bytes bs;
-    std::copy( res.begin(), res.end(), bs.a.begin() );
+    // This check seems optional but suppresses a strange gcc
+    // warning. TODO: try removing this check in the future and
+    // running the copy unconditionally.
+    if constexpr( N > 0 )
+      std::copy( res.begin(), res.end(), bs.a.begin() );
     return bs;
   }
 };
