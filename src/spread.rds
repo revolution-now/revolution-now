@@ -8,12 +8,8 @@
 # Description: Rds definitions for the spread module.
 #
 # ===============================================================
-# config
-include "config/tile-enum-fwd.hpp"
-
 # gfx
 include "gfx/cartesian.hpp"
-include "gfx/pixel.hpp"
 
 # C++ standard library
 include "<vector>"
@@ -55,75 +51,4 @@ struct.Spread {
 
 struct.Spreads {
   spreads 'std::vector<Spread>',
-}
-
-# ---------------------------------------------------------------
-# Spread labels.
-# ---------------------------------------------------------------
-# When an option is not specified then a default value will be
-# used, and those default values are chosen so as to provide sen-
-# sible output that should be good in most cases (and roughly re-
-# produce what the OG does).
-struct.SpreadLabelOptions {
-  # Foreground color, defaults to white.
-  color_fg 'base::maybe<gfx::pixel>',
-  # Background color, defaults to black.
-  color_bg 'base::maybe<gfx::pixel>',
-  # Placement defaults to the sw corner (NOTE: OG does nw).
-  placement 'base::maybe<gfx::e_cdirection>',
-  # The padding is in addition to the one pixel of padding there
-  # will naturally be around any font. Default value is 1,
-  # whereas the OG has zero.
-  text_padding 'base::maybe<int>',
-}
-
-sumtype.SpreadLabels {
-  never {}, # default; should be first.
-
-  always {
-    opts 'SpreadLabelOptions',
-  },
-
-  # Use some heuristics on a per-spread basis to determine
-  # whether there should be a number or not.
-  auto_decide {
-    opts 'SpreadLabelOptions',
-    # If one spread gets a label then they all will.
-    viral 'bool',
-  },
-}
-
-struct.SpreadLabelRenderPlan {
-  # Copied from input as-is.
-  options 'SpreadLabelOptions',
-  text 'std::string',
-  # nw corner of where to render the box.
-  where 'gfx::point',
-}
-
-# ---------------------------------------------------------------
-# Spreads of tiles.
-# ---------------------------------------------------------------
-struct.TileSpreadSpec {
-  icon_spread 'Spread',
-  tile 'e_tile',
-}
-
-struct.TileSpreadSpecs {
-  spreads 'std::vector<TileSpreadSpec>',
-  # Should use the same one as was used in the input SpreadSpecs
-  # for correct behavior.
-  group_spacing 'int',
-  label_policy 'SpreadLabels',
-}
-
-struct.TileRenderPlan {
-  tile 'e_tile',
-  where 'gfx::point',
-}
-
-# Final result which is directly renderable.
-struct.TileSpread {
-  tiles 'std::vector<TileRenderPlan>',
-  labels 'std::vector<SpreadLabelRenderPlan>',
 }

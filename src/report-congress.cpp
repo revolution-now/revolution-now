@@ -15,7 +15,8 @@
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
-#include "spread.hpp"
+#include "spread.hpp" // FIXME: remove
+#include "tile-spread.hpp"
 #include "tiles.hpp"
 
 // config
@@ -137,6 +138,8 @@ Layout layout_auto( Player const& player,
   TileSpreadSpecs tile_spreads;
   tile_spreads.label_policy =
       SpreadLabels::auto_decide{ .viral = true };
+  tile_spreads.group_spacing =
+      expeditionary_force_spread_specs.group_spacing;
   for( auto tile_it = kExpeditionaryForceTiles.begin();
        Spread const& icon_spread : icon_spreads.spreads ) {
     CHECK( tile_it != kExpeditionaryForceTiles.end() );

@@ -13,36 +13,22 @@
 // rds
 #include "spread.rds.hpp"
 
-// gfx
-#include "gfx/cartesian.hpp"
-
-namespace rr {
-struct Renderer;
-}
-
 namespace rn {
 
 /****************************************************************
-** General Algos.
+** Public API.
 *****************************************************************/
+// This is a general method that just applies the core algorithm,
+// as it doesn't know anything about the game's tiles.
 Spreads compute_icon_spread( SpreadSpecs const& specs );
 
-// Applies some heuristics to decide if the spread is such that
-// it would be difficult for the player to read the count visu-
-// ally, then we put a label on it. Note that in some cases this
-// method will either not be called or its result will be over-
-// ridden, e.g. in cases such as the colony view when the 'n' key
-// is pressed to enumerate all spreads unconditionally.
+// In the OG sometimes labels can be turned on unconditionally
+// (e.g. in the colony view), but even when that does not happen,
+// the OG still sometimes puts labels on spreads that it deems to
+// be difficult to read, and that's what this function tries to
+// replicate by applying some heuristics to decide if the spread
+// is such that it would be difficult for the player to read the
+// count visually.
 [[nodiscard]] bool requires_label( Spread const& spread );
-
-/****************************************************************
-** Spreads of Tiles.
-*****************************************************************/
-[[nodiscard]] TileSpread rendered_tile_spread(
-    TileSpreadSpecs const& tile_spreads );
-
-void draw_rendered_icon_spread( rr::Renderer& renderer,
-                                gfx::point origin,
-                                TileSpread const& plan );
 
 } // namespace rn
