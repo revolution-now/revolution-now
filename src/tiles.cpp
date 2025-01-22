@@ -104,6 +104,9 @@ gfx::rect opaque_area_for( e_tile tile ) {
     case e_tile::man_o_war:
       return { .origin = { .x = 0, .y = 0 },
                .size   = { .w = 32, .h = 32 } };
+    case e_tile::boycott:
+      return { .origin = { .x = 2, .y = 2 },
+               .size   = { .w = 12, .h = 12 } };
     default:
       return { .origin = { .x = 0, .y = 0 },
                .size   = sprite_size( tile ) };

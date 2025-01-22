@@ -109,9 +109,20 @@ TileSpread render_plan_for_tile_spread(
           .size   = sprite_size( tile_spread.tile )
                       .with_w( tile_spread.icon_spread.spec
                                    .trimmed.len ) };
-        point const p_overlay_drawn = gfx::centered_at(
-            sprite_size( *tile_spread.overlay_tile ),
-            base_tile_trimmed_rect, e_cdirection::w );
+        point const p_overlay_drawn = [&] {
+          // Make sure that the trimmed X start of the overlay
+          // tile aligns with the trimmed X start of the base
+          // sprite. This is important so that the overlay sprite
+          // is still visible even when the spread is only one
+          // pixel apart.
+          point res = gfx::centered_at(
+              sprite_size( *tile_spread.overlay_tile ),
+              base_tile_trimmed_rect, e_cdirection::w );
+          res.x -= opaque_area_for( *tile_spread.overlay_tile )
+                       .horizontal_slice()
+                       .start;
+          return res;
+        }();
         res.tiles.push_back(
             TileRenderPlan{ .tile  = *tile_spread.overlay_tile,
                             .where = p_overlay_drawn } );
