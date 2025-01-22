@@ -1,5 +1,5 @@
 /****************************************************************
-**tile-spread.hpp
+**spread-render.hpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #pragma once
 
 // rds
-#include "tile-spread.rds.hpp"
+#include "spread-render.rds.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
@@ -25,7 +25,7 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-[[nodiscard]] TileSpread rendered_tile_spread(
+[[nodiscard]] TileSpread render_plan_for_tile_spread(
     TileSpreadSpecs const& tile_spreads );
 
 void draw_rendered_icon_spread( rr::Renderer& renderer,

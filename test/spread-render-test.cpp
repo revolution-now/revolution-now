@@ -1,17 +1,17 @@
 /****************************************************************
-**tile-spread-test.cpp
+**spread-render-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-01-20.
 *
-* Description: Unit tests for the tile-spread module.
+* Description: Unit tests for the spread-render module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/tile-spread.hpp"
+#include "src/spread-render.hpp"
 
 // config
 #include "src/config/tile-enum.rds.hpp"
@@ -33,11 +33,13 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[spread] rendered_tile_spread" ) {
+TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   TileSpreadSpecs tile_spreads;
   TileSpread expected;
 
-  auto f = [&] { return rendered_tile_spread( tile_spreads ); };
+  auto f = [&] {
+    return render_plan_for_tile_spread( tile_spreads );
+  };
 
   // Test that a zero-count spread with a label requested does
   // not render a label.
@@ -155,8 +157,6 @@ TEST_CASE( "[spread] rendered_tile_spread" ) {
       },
     } };
   REQUIRE( f() == expected );
-
-  // TODO
 }
 
 } // namespace

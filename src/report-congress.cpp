@@ -15,8 +15,8 @@
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
-#include "spread.hpp" // FIXME: remove
-#include "tile-spread.hpp"
+#include "spread-builder.hpp"
+#include "spread-render.hpp"
 #include "tiles.hpp"
 
 // config
@@ -107,48 +107,20 @@ Layout layout_auto( Player const& player,
       config_unit_type.composition
           .unit_types[e_unit_type::man_o_war]
           .tile;
-  static vector const kExpeditionaryForceTiles{
-    regular_tile,
-    cavalry_tile,
-    artillery_tile,
-    man_o_war_tile,
+  auto const& force = player.old_world.expeditionary_force;
+  TileSpreadOptions const expeditionary_force_spread_opts{
+    .tiles{
+      { .tile = regular_tile, .count = force.regulars },
+      { .tile = cavalry_tile, .count = force.cavalry },
+      { .tile = artillery_tile, .count = force.artillery },
+      { .tile = man_o_war_tile, .count = force.men_of_war },
+    },
+    .bounds        = l.canvas.size.w - 2 * margin,
+    .group_spacing = 4,
+    .label_policy  = SpreadLabels::auto_decide{ .viral = true },
   };
-  SpreadSpecs const expeditionary_force_spread_specs{
-    .bounds = l.canvas.size.w - 2 * margin,
-    .specs =
-        { { .count =
-                player.old_world.expeditionary_force.regulars,
-            .trimmed = opaque_area_for( regular_tile )
-                           .horizontal_slice() },
-          { .count =
-                player.old_world.expeditionary_force.cavalry,
-            .trimmed = opaque_area_for( cavalry_tile )
-                           .horizontal_slice() },
-          { .count =
-                player.old_world.expeditionary_force.artillery,
-            .trimmed = opaque_area_for( artillery_tile )
-                           .horizontal_slice() },
-          { .count =
-                player.old_world.expeditionary_force.men_of_war,
-            .trimmed = opaque_area_for( man_o_war_tile )
-                           .horizontal_slice() } },
-    .group_spacing = 4 };
-  Spreads const icon_spreads =
-      compute_icon_spread( expeditionary_force_spread_specs );
-  TileSpreadSpecs tile_spreads;
-  tile_spreads.label_policy =
-      SpreadLabels::auto_decide{ .viral = true };
-  tile_spreads.group_spacing =
-      expeditionary_force_spread_specs.group_spacing;
-  for( auto tile_it = kExpeditionaryForceTiles.begin();
-       Spread const& icon_spread : icon_spreads.spreads ) {
-    CHECK( tile_it != kExpeditionaryForceTiles.end() );
-    tile_spreads.spreads.push_back( TileSpreadSpec{
-      .icon_spread = icon_spread, .tile = *tile_it } );
-    ++tile_it;
-  }
   l.expeditionary_force_spreads =
-      rendered_tile_spread( tile_spreads );
+      build_tile_spread( expeditionary_force_spread_opts );
 
   return l;
 }

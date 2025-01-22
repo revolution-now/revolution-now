@@ -1,0 +1,33 @@
+# ===============================================================
+# spread-builder.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-01-20.
+#
+# Description: Rds definitions for the spread-builder module.
+#
+# ===============================================================
+# Revolution Now
+include "spread-render.rds.hpp"
+
+# config
+include "config/tile-enum-fwd.hpp"
+
+# C++ standard library
+include "<vector>"
+
+namespace "rn"
+
+struct.CountedTile {
+  tile 'e_tile',
+  count 'int',
+}
+
+struct.TileSpreadOptions {
+  tiles 'std::vector<CountedTile>',
+  # Total horizontal space in pixels available.
+  bounds 'int',
+  group_spacing 'int',
+  label_policy 'SpreadLabels',
+}

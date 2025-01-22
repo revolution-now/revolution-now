@@ -1,5 +1,5 @@
 /****************************************************************
-**tile-spread.cpp
+**spread-render.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Creates and renders spreads of tiles.
 *
 *****************************************************************/
-#include "tile-spread.hpp"
+#include "spread-render.hpp"
 
 // Revolution Now
 #include "text.hpp"
@@ -60,7 +60,7 @@ using ::gfx::size;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-TileSpread rendered_tile_spread(
+TileSpread render_plan_for_tile_spread(
     TileSpreadSpecs const& tile_spreads ) {
   TileSpread res;
   point p                       = {};
