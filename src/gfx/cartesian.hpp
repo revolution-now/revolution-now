@@ -87,6 +87,14 @@ struct size {
     return T{ .w = w, .h = h };
   }
 
+  [[nodiscard]] size with_w( int const new_w ) const {
+    return size{ .w = new_w, .h = h };
+  }
+
+  [[nodiscard]] size with_h( int const new_h ) const {
+    return size{ .w = w, .h = new_h };
+  }
+
   [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
   [[nodiscard]] bool fits_inside( size rhs ) const;

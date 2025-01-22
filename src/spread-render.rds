@@ -45,15 +45,10 @@ struct.SpreadLabelOptions {
 
 sumtype.SpreadLabels {
   never {}, # default; should be first.
-
-  always {
-    opts 'SpreadLabelOptions',
-  },
-
+  always {},
   # Use some heuristics on a per-spread basis to determine
   # whether there should be a number or not.
   auto_decide {
-    opts 'SpreadLabelOptions',
     # If one spread gets a label then they all will.
     viral 'bool',
   },
@@ -73,6 +68,12 @@ struct.SpreadLabelRenderPlan {
 struct.TileSpreadSpec {
   icon_spread 'Spread',
   tile 'e_tile',
+  # This can be used for e.g. a red X over each tile as would be
+  # done in the colony view to represent shortages.
+  overlay_tile 'base::maybe<e_tile>',
+  # If labels are rendered for this spread then they will use
+  # these options.
+  label_opts 'SpreadLabelOptions',
 }
 
 struct.TileSpreadSpecs {
@@ -90,6 +91,7 @@ struct.TileRenderPlan {
 
 # Final result which is directly renderable.
 struct.TileSpread {
+  # These must be rendered in order.
   tiles 'std::vector<TileRenderPlan>',
   labels 'std::vector<SpreadLabelRenderPlan>',
 }

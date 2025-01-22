@@ -180,6 +180,12 @@ TEST_CASE( "[gfx/cartesian] side_for( e_diagonal_direction )" ) {
 /****************************************************************
 ** size
 *****************************************************************/
+TEST_CASE( "[gfx/cartesian] side::with_w/with_h" ) {
+  size const s{ .w = 4, .h = 8 };
+  REQUIRE( s.with_w( 7 ) == size{ .w = 7, .h = 8 } );
+  REQUIRE( s.with_h( 7 ) == size{ .w = 4, .h = 7 } );
+}
+
 TEST_CASE( "[gfx/cartesian] empty/area" ) {
   size s1{ .w = 4, .h = 8 };
   size s2{ .w = 4, .h = 0 };

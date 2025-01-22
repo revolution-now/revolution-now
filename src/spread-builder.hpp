@@ -15,6 +15,7 @@
 
 namespace rn {
 
-TileSpread build_tile_spread( TileSpreadOptions const& options );
+TileSpread build_tile_spread(
+    TileSpreadConfigMulti const& configs );
 
 } // namespace rn

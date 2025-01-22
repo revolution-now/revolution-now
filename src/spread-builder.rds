@@ -19,13 +19,14 @@ include "<vector>"
 
 namespace "rn"
 
-struct.CountedTile {
+struct.TileSpreadConfig {
   tile 'e_tile',
   count 'int',
+  has_x 'bool',
 }
 
-struct.TileSpreadOptions {
-  tiles 'std::vector<CountedTile>',
+struct.TileSpreadConfigMulti {
+  tiles 'std::vector<TileSpreadConfig>',
   # Total horizontal space in pixels available.
   bounds 'int',
   group_spacing 'int',

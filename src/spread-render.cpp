@@ -20,6 +20,9 @@
 // render
 #include "render/typer.hpp" // FIXME: remove
 
+// gfx
+#include "gfx/cartesian.hpp"
+
 // rds
 #include "rds/switch-macro.hpp"
 
@@ -36,6 +39,7 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::gfx::e_cdirection;
 using ::gfx::oriented_point;
 using ::gfx::point;
 using ::gfx::rect;
@@ -71,16 +75,17 @@ TileSpread render_plan_for_tile_spread(
         return true;
     return false;
   }();
-  auto const label_options = [&]( Spread const& icon_spread )
+  auto const label_options =
+      [&]( TileSpreadSpec const& tile_spread )
       -> maybe<SpreadLabelOptions const&> {
     SWITCH( tile_spreads.label_policy ) {
       CASE( never ) { return nothing; }
-      CASE( always ) { return always.opts; }
+      CASE( always ) { return tile_spread.label_opts; }
       CASE( auto_decide ) {
         bool const force =
             has_required_label && auto_decide.viral;
-        if( force || requires_label( icon_spread ) )
-          return auto_decide.opts;
+        if( force || requires_label( tile_spread.icon_spread ) )
+          return tile_spread.label_opts;
         return nothing;
       }
     }
@@ -93,7 +98,24 @@ TileSpread render_plan_for_tile_spread(
          ++i ) {
       point const p_drawn = p.moved_left(
           tile_spread.icon_spread.spec.trimmed.start );
-      res.tiles.push_back( { tile_spread.tile, p_drawn } );
+      res.tiles.push_back( TileRenderPlan{
+        .tile = tile_spread.tile, .where = p_drawn } );
+      // Must appear just after the tile it is overlaying.
+      if( tile_spread.overlay_tile.has_value() ) {
+        // We need to place the overlay tile against the middle
+        // left wall of the trimmed (opaque) part of the sprite.
+        rect const base_tile_trimmed_rect{
+          .origin = p,
+          .size   = sprite_size( tile_spread.tile )
+                      .with_w( tile_spread.icon_spread.spec
+                                   .trimmed.len ) };
+        point const p_overlay_drawn = gfx::centered_at(
+            sprite_size( *tile_spread.overlay_tile ),
+            base_tile_trimmed_rect, e_cdirection::w );
+        res.tiles.push_back(
+            TileRenderPlan{ .tile  = *tile_spread.overlay_tile,
+                            .where = p_overlay_drawn } );
+      }
       p.x += tile_spread.icon_spread.spacing;
     }
     if( tile_spread.icon_spread.rendered_count > 0 )
@@ -129,7 +151,7 @@ TileSpread render_plan_for_tile_spread(
             placement ),
       } );
     };
-    label_options( tile_spread.icon_spread ).visit( add_label );
+    label_options( tile_spread ).visit( add_label );
     p.x += tile_spreads.group_spacing;
   }
   return res;
