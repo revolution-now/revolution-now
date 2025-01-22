@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "spread-render.hpp"
-#include "spread.hpp"
+#include "spread-algo.hpp"
 #include "tiles.hpp"
 
 using namespace std;

@@ -9,7 +9,7 @@
 #
 # ===============================================================
 # Revolution Now
-include "spread.rds.hpp"
+include "spread-algo.rds.hpp"
 
 # config
 include "config/tile-enum-fwd.hpp"

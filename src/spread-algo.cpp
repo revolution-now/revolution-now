@@ -1,5 +1,5 @@
 /****************************************************************
-**spread.cpp
+**spread-algo.cpp
 *
 * Project: Revolution Now
 *
@@ -8,7 +8,7 @@
 * Description: Algorithm for doing the icon spread.
 *
 *****************************************************************/
-#include "spread.hpp"
+#include "spread-algo.hpp"
 
 // C++ standard library
 #include <ranges>

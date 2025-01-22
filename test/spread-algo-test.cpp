@@ -1,17 +1,17 @@
 /****************************************************************
-**spread-test.cpp
+**spread-algo-test.cpp
 *
 * Project: Revolution Now
 *
 * Created by David P. Sicilia on 2025-01-12.
 *
-* Description: Unit tests for the spread module.
+* Description: Unit tests for the spread-algo module.
 *
 *****************************************************************/
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/spread.hpp"
+#include "src/spread-algo.hpp"
 
 // config
 #include "src/config/tile-enum.rds.hpp"

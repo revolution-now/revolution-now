@@ -1,5 +1,5 @@
 /****************************************************************
-**spread.hpp
+**spread-algo.hpp
 *
 * Project: Revolution Now
 *
@@ -11,7 +11,7 @@
 #pragma once
 
 // rds
-#include "spread.rds.hpp"
+#include "spread-algo.rds.hpp"
 
 namespace rn {
 
