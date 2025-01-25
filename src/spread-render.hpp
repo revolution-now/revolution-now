@@ -25,11 +25,11 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-[[nodiscard]] TileSpread render_plan_for_tile_spread(
+[[nodiscard]] TileSpreadRenderPlans render_plan_for_tile_spread(
     TileSpreadSpecs const& tile_spreads );
 
-void draw_rendered_icon_spread( rr::Renderer& renderer,
-                                gfx::point origin,
-                                TileSpread const& plan );
+void draw_rendered_icon_spread(
+    rr::Renderer& renderer, gfx::point origin,
+    TileSpreadRenderPlans const& plan );
 
 } // namespace rn

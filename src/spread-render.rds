@@ -89,9 +89,16 @@ struct.TileRenderPlan {
   where 'gfx::point',
 }
 
-# Final result which is directly renderable.
-struct.TileSpread {
+struct.TileSpreadRenderPlan {
+  # This will be relative to the origin of the entire group if
+  # there are multiple spreads involved.
+  bounds 'gfx::rect',
   # These must be rendered in order.
   tiles 'std::vector<TileRenderPlan>',
-  labels 'std::vector<SpreadLabelRenderPlan>',
+  label 'base::maybe<SpreadLabelRenderPlan>',
+}
+
+# Final result which is directly renderable.
+struct.TileSpreadRenderPlans {
+  plans 'std::vector<TileSpreadRenderPlan>',
 }

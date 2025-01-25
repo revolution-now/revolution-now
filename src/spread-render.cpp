@@ -64,9 +64,9 @@ using ::gfx::size;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-TileSpread render_plan_for_tile_spread(
+TileSpreadRenderPlans render_plan_for_tile_spread(
     TileSpreadSpecs const& tile_spreads ) {
-  TileSpread res;
+  TileSpreadRenderPlans plans;
   point p                       = {};
   bool const has_required_label = [&] {
     for( TileSpreadSpec const& tile_spread :
@@ -93,12 +93,13 @@ TileSpread render_plan_for_tile_spread(
   for( TileSpreadSpec const& tile_spread :
        tile_spreads.spreads ) {
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
+    auto& plan          = plans.plans.emplace_back();
     point const p_start = p;
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
       point const p_drawn = p.moved_left(
           tile_spread.icon_spread.spec.trimmed.start );
-      res.tiles.push_back( TileRenderPlan{
+      plan.tiles.push_back( TileRenderPlan{
         .tile = tile_spread.tile, .where = p_drawn } );
       // Must appear just after the tile it is overlaying.
       if( tile_spread.overlay_tile.has_value() ) {
@@ -123,7 +124,7 @@ TileSpread render_plan_for_tile_spread(
                        .start;
           return res;
         }();
-        res.tiles.push_back(
+        plan.tiles.push_back(
             TileRenderPlan{ .tile  = *tile_spread.overlay_tile,
                             .where = p_overlay_drawn } );
       }
@@ -134,14 +135,15 @@ TileSpread render_plan_for_tile_spread(
           std::max( ( tile_spread.icon_spread.spec.trimmed.len -
                       tile_spread.icon_spread.spacing ),
                     0 );
+    int const tile_h = sprite_size( tile_spread.tile ).h;
+    rect const tiles_all{
+      .origin = p_start,
+      .size   = { .w = p.x - p_start.x, .h = tile_h } };
+    plan.bounds = tiles_all;
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
     auto add_label = [&]( SpreadLabelOptions const& options ) {
-      int const tile_h = sprite_size( tile_spread.tile ).h;
-      rect const tiles_all{
-        .origin = p_start,
-        .size   = { .w = p.x - p_start.x, .h = tile_h } };
       e_cdirection const placement = options.placement.value_or(
           config_ui.tile_spreads.default_label_placement );
       string const label_text =
@@ -154,42 +156,46 @@ TileSpread render_plan_for_tile_spread(
         return size{ .w = label_size.w + padding * 2,
                      .h = label_size.h + padding * 2 };
       }();
-      res.labels.push_back( SpreadLabelRenderPlan{
+      plan.label = SpreadLabelRenderPlan{
         .options = options,
         .text    = label_text,
         .where   = gfx::centered_at(
             padded_label_size, tiles_all.with_edges_removed( 2 ),
             placement ),
-      } );
+      };
     };
     label_options( tile_spread ).visit( add_label );
     p.x += tile_spreads.group_spacing;
   }
-  return res;
+  return plans;
 }
 
-void draw_rendered_icon_spread( rr::Renderer& renderer,
-                                point const origin,
-                                TileSpread const& plan ) {
-  for( auto const& [tile, p] : plan.tiles )
-    render_sprite( renderer, p.origin_becomes_point( origin ),
-                   tile );
-  for( auto const& plan : plan.labels )
-    render_text_line_with_background(
-        renderer, plan.text,
-        oriented_point{
-          .anchor = plan.where.origin_becomes_point( origin ),
-          // This is always nw here because the placement calcu-
-          // lation has already been done, so the point we are
-          // given is always the nw.
-          .placement = gfx::e_cdirection::nw },
-        plan.options.color_fg.value_or(
-            config_ui.tile_spreads.default_label_fg_color ),
-        plan.options.color_bg.value_or(
-            config_ui.tile_spreads.default_label_bg_color ),
-        plan.options.text_padding.value_or(
-            config_ui.tile_spreads.label_text_padding ),
-        config_ui.tile_spreads.bg_box_has_corners );
+void draw_rendered_icon_spread(
+    rr::Renderer& renderer, point const origin,
+    TileSpreadRenderPlans const& plans ) {
+  for( auto const& plan : plans.plans ) {
+    for( auto const& [tile, p] : plan.tiles )
+      render_sprite( renderer, p.origin_becomes_point( origin ),
+                     tile );
+    if( auto const& label = plan.label; label.has_value() ) {
+      render_text_line_with_background(
+          renderer, label->text,
+          oriented_point{
+            .anchor =
+                label->where.origin_becomes_point( origin ),
+            // This is always nw here because the placement
+            // calcu- lation has already been done, so the point
+            // we are given is always the nw.
+            .placement = gfx::e_cdirection::nw },
+          label->options.color_fg.value_or(
+              config_ui.tile_spreads.default_label_fg_color ),
+          label->options.color_bg.value_or(
+              config_ui.tile_spreads.default_label_bg_color ),
+          label->options.text_padding.value_or(
+              config_ui.tile_spreads.label_text_padding ),
+          config_ui.tile_spreads.bg_box_has_corners );
+    }
+  }
 }
 
 } // namespace rn

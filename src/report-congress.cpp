@@ -61,7 +61,7 @@ struct Layout {
   string expeditionary_force_title;
   point expeditionary_force_text_nw;
   rect expeditionary_force;
-  TileSpread expeditionary_force_spreads;
+  TileSpreadRenderPlans expeditionary_force_spreads;
 };
 
 /****************************************************************
@@ -108,7 +108,7 @@ Layout layout_auto( Player const& player,
           .unit_types[e_unit_type::man_o_war]
           .tile;
   auto const& force = player.old_world.expeditionary_force;
-  TileSpreadOptions const expeditionary_force_spread_opts{
+  TileSpreadConfigMulti const expeditionary_force_spread_opts{
     .tiles{
       { .tile = regular_tile, .count = force.regulars },
       { .tile = cavalry_tile, .count = force.cavalry },

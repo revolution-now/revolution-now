@@ -25,7 +25,7 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-TileSpread build_tile_spread(
+TileSpreadRenderPlans build_tile_spread(
     TileSpreadConfigMulti const& configs ) {
   SpreadSpecs const specs = [&] {
     SpreadSpecs res;
