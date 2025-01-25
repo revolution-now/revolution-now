@@ -15,7 +15,10 @@
 
 namespace rn {
 
-TileSpreadRenderPlans build_tile_spread(
+TileSpreadRenderPlan build_tile_spread(
+    TileSpreadConfig const& config );
+
+TileSpreadRenderPlans build_tile_spread_multi(
     TileSpreadConfigMulti const& configs );
 
 } // namespace rn

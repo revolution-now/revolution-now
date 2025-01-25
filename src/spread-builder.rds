@@ -19,16 +19,24 @@ include "<vector>"
 
 namespace "rn"
 
-struct.TileSpreadConfig {
+struct.TileSpread {
   tile 'e_tile',
   count 'int',
   has_x 'bool',
 }
 
-struct.TileSpreadConfigMulti {
-  tiles 'std::vector<TileSpreadConfig>',
-  # Total horizontal space in pixels available.
-  bounds 'int',
-  group_spacing 'int',
+struct.TileSpreadOptions {
+  bounds 'int', # Total horizontal space in pixels available.
   label_policy 'SpreadLabels',
+}
+
+struct.TileSpreadConfig {
+  tile 'TileSpread',
+  options 'TileSpreadOptions',
+}
+
+struct.TileSpreadConfigMulti {
+  tiles 'std::vector<TileSpread>',
+  options 'TileSpreadOptions',
+  group_spacing 'int',
 }

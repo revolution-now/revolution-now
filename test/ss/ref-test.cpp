@@ -69,6 +69,10 @@ cdr::value cdr_game_state_default =
                 cdr::table{
                   "enabled"_key = false,
                 },
+            "colony_options"_key =
+                cdr::table{
+                  "numbers"_key = false,
+                },
           },
       "events"_key = cdr::table{},
       "units"_key =

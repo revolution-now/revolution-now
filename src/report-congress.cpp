@@ -115,12 +115,16 @@ Layout layout_auto( Player const& player,
       { .tile = artillery_tile, .count = force.artillery },
       { .tile = man_o_war_tile, .count = force.men_of_war },
     },
-    .bounds        = l.canvas.size.w - 2 * margin,
+    .options =
+        {
+          .bounds = l.canvas.size.w - 2 * margin,
+          .label_policy =
+              SpreadLabels::auto_decide{ .viral = true },
+        },
     .group_spacing = 4,
-    .label_policy  = SpreadLabels::auto_decide{ .viral = true },
   };
   l.expeditionary_force_spreads =
-      build_tile_spread( expeditionary_force_spread_opts );
+      build_tile_spread_multi( expeditionary_force_spread_opts );
 
   return l;
 }

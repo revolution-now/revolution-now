@@ -19,7 +19,8 @@
 #include "production.rds.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
-#include "text.hpp"
+#include "spread-builder.hpp"
+#include "spread-render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
@@ -35,6 +36,7 @@
 #include "ss/natives.hpp"
 #include "ss/player.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/terrain.hpp"
 #include "ss/units.hpp"
 
@@ -42,6 +44,7 @@
 #include "render/renderer.hpp"
 
 // gfx
+#include "gfx/cartesian.hpp"
 #include "gfx/iter.hpp"
 
 // base
@@ -53,26 +56,30 @@ namespace rn {
 
 namespace {
 
-e_tile tile_for_outdoor_job_16( e_outdoor_job job ) {
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
+e_tile tile_for_outdoor_job_20( e_outdoor_job const job ) {
   switch( job ) {
     case e_outdoor_job::food:
-      return e_tile::commodity_food_16;
+      return e_tile::commodity_food_20;
     case e_outdoor_job::fish:
-      return e_tile::product_fish;
+      return e_tile::product_fish_20;
     case e_outdoor_job::sugar:
-      return e_tile::commodity_sugar_16;
+      return e_tile::commodity_sugar_20;
     case e_outdoor_job::tobacco:
-      return e_tile::commodity_tobacco_16;
+      return e_tile::commodity_tobacco_20;
     case e_outdoor_job::cotton:
-      return e_tile::commodity_cotton_16;
+      return e_tile::commodity_cotton_20;
     case e_outdoor_job::furs:
-      return e_tile::commodity_furs_16;
+      return e_tile::commodity_furs_20;
     case e_outdoor_job::lumber:
-      return e_tile::commodity_lumber_16;
+      return e_tile::commodity_lumber_20;
     case e_outdoor_job::ore:
-      return e_tile::commodity_ore_16;
+      return e_tile::commodity_ore_20;
     case e_outdoor_job::silver:
-      return e_tile::commodity_silver_16;
+      return e_tile::commodity_silver_20;
   }
 }
 
@@ -432,6 +439,26 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   }
 }
 
+void ColonyLandView::draw_spread( rr::Renderer& renderer,
+                                  rect const box,
+                                  e_tile const tile,
+                                  int const quantity ) const {
+  rect const inner_box = box.with_edges_removed( 8 );
+  TileSpreadConfig const spread_config{
+    .tile    = { .tile = tile, .count = quantity },
+    .options = {
+      .bounds = inner_box.size.w,
+      .label_policy =
+          ss_.settings.colony_options.numbers
+              ? SpreadLabels{ SpreadLabels::always{} }
+              : SpreadLabels{ SpreadLabels::auto_decide{} } } };
+  TileSpreadRenderPlan const plan =
+      build_tile_spread( spread_config );
+  auto const spread_origin =
+      gfx::centered_in( plan.bounds.size, inner_box );
+  draw_rendered_icon_spread( renderer, spread_origin, plan );
+}
+
 void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
                                     Coord coord ) const {
   {
@@ -453,6 +480,14 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
         coord + ( center.moved( direction ) * g_tile_delta *
                   Delta{ .w = 2, .h = 2 } )
                     .distance_from_origin();
+    e_outdoor_job const job   = outdoor_unit->job;
+    e_tile const product_tile = tile_for_outdoor_job_20( job );
+    SquareProduction const& production =
+        colview_production().land_production[direction];
+    int const quantity    = production.quantity;
+    rect const spread_box = rect{ .origin = square_coord,
+                                  .size = { .w = 64, .h = 32 } };
+    draw_spread( renderer, spread_box, product_tile, quantity );
     Coord const unit_coord =
         square_coord +
         ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
@@ -463,27 +498,10 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     render_unit_type(
         renderer, unit_coord, desc.type,
         UnitRenderOptions{ .shadow = UnitShadow{} } );
-    e_outdoor_job const job   = outdoor_unit->job;
-    e_tile const product_tile = tile_for_outdoor_job_16( job );
-    Coord const product_coord =
-        square_coord + Delta{ .w = 4, .h = 4 };
-    render_sprite( renderer, product_coord, product_tile );
-    Delta const product_tile_size = sprite_size( product_tile );
-    SquareProduction const& production =
-        colview_production().land_production[direction];
-    int const quantity = production.quantity;
-    string const q_str = fmt::format( "x {}", quantity );
-    Coord const text_coord =
-        product_coord + Delta{ .w = product_tile_size.w };
-    render_text_markup(
-        renderer, text_coord, {},
-        TextMarkupInfo{ .highlight = gfx::pixel::white(),
-                        .shadow    = gfx::pixel::black() },
-        fmt::format( "[{}]", q_str ) );
   }
 
   // Center square.
-  Coord const square_coord =
+  point const square_coord =
       coord + ( center * g_tile_delta * Delta{ .w = 2, .h = 2 } )
                   .distance_from_origin();
   ColonyProduction const& production = colview_production();
@@ -491,41 +509,24 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   // food.
   {
     e_tile const product_tile =
-        tile_for_outdoor_job_16( e_outdoor_job::food );
-    Coord const product_coord =
-        square_coord + Delta{ .w = 12, .h = 4 };
-    render_sprite( renderer, product_coord, product_tile );
-    Delta const product_tile_size = sprite_size( product_tile );
-    int quantity       = production.center_food_production;
-    string const q_str = fmt::format( "x {}", quantity );
-    Coord const text_coord =
-        product_coord + Delta{ .w = product_tile_size.w };
-    render_text_markup(
-        renderer, text_coord, {},
-        TextMarkupInfo{ .highlight = gfx::pixel::white(),
-                        .shadow    = gfx::pixel::black() },
-        fmt::format( "[{}]", q_str ) );
+        tile_for_outdoor_job_20( e_outdoor_job::food );
+    int const quantity    = production.center_food_production;
+    rect const spread_box = rect{ .origin = square_coord,
+                                  .size = { .w = 64, .h = 32 } };
+    draw_spread( renderer, spread_box, product_tile, quantity );
   }
 
   // secondary.
   if( production.center_extra_production.has_value() ) {
     e_outdoor_job const job =
         production.center_extra_production->what;
-    e_tile const product_tile = tile_for_outdoor_job_16( job );
-    Coord const product_coord =
-        square_coord + Delta{ .w = 12, .h = 32 };
-    render_sprite( renderer, product_coord, product_tile );
-    Delta const product_tile_size = sprite_size( product_tile );
+    e_tile const product_tile = tile_for_outdoor_job_20( job );
     int const quantity =
         production.center_extra_production->quantity;
-    string const q_str = fmt::format( "x {}", quantity );
-    Coord const text_coord =
-        product_coord + Delta{ .w = product_tile_size.w };
-    render_text_markup(
-        renderer, text_coord, {},
-        TextMarkupInfo{ .highlight = gfx::pixel::white(),
-                        .shadow    = gfx::pixel::black() },
-        fmt::format( "[{}]", q_str ) );
+    rect const spread_box =
+        rect{ .origin = square_coord + size{ .h = 32 },
+              .size   = { .w = 64, .h = 32 } };
+    draw_spread( renderer, spread_box, product_tile, quantity );
   }
 }
 

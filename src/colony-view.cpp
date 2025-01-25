@@ -31,6 +31,7 @@
 #include "ss/colonies.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/units.hpp"
 
 // render
@@ -217,6 +218,10 @@ struct ColonyPlane : public IPlane {
     switch( event.keycode ) {
       case ::SDLK_ESCAPE: //
         co_return true;
+      case ::SDLK_n:
+        ss_.settings.colony_options.numbers =
+            !ss_.settings.colony_options.numbers;
+        break;
       default: //
         break;
     }

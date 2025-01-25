@@ -25,11 +25,11 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
-TileSpreadRenderPlans build_tile_spread(
+TileSpreadRenderPlans build_tile_spread_multi(
     TileSpreadConfigMulti const& configs ) {
   SpreadSpecs const specs = [&] {
     SpreadSpecs res;
-    res.bounds        = configs.bounds;
+    res.bounds        = configs.options.bounds;
     res.group_spacing = configs.group_spacing;
     for( auto const& config : configs.tiles ) {
       res.specs.push_back(
@@ -42,7 +42,7 @@ TileSpreadRenderPlans build_tile_spread(
   Spreads const icon_spreads = compute_icon_spread( specs );
   TileSpreadSpecs const tile_spreads = [&] {
     TileSpreadSpecs res;
-    res.label_policy  = configs.label_policy;
+    res.label_policy  = configs.options.label_policy;
     res.group_spacing = specs.group_spacing;
     for( auto config_it = configs.tiles.begin();
          Spread const& icon_spread : icon_spreads.spreads ) {
@@ -57,6 +57,16 @@ TileSpreadRenderPlans build_tile_spread(
     return res;
   }();
   return render_plan_for_tile_spread( tile_spreads );
+}
+
+TileSpreadRenderPlan build_tile_spread(
+    TileSpreadConfig const& config ) {
+  auto plans = build_tile_spread_multi(
+      TileSpreadConfigMulti{ .tiles         = { config.tile },
+                             .options       = config.options,
+                             .group_spacing = 0 } );
+  CHECK( plans.plans.size() == 1 );
+  return std::move( plans.plans[0] );
 }
 
 } // namespace rn

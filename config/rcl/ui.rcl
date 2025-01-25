@@ -59,7 +59,7 @@ tile_spreads {
 
   # There on the tile spread is the label placed. The OG has "nw"
   # for this. Valid values are: nw,n,ne,w,c,e,sw,s,se.
-  default_label_placement: sw
+  default_label_placement: nw
 
   # Label text color. Should have strong contrast with the below
   # background color.

@@ -90,7 +90,6 @@ gfx::size sprite_size( e_tile tile ) {
 }
 
 gfx::rect opaque_area_for( e_tile tile ) {
-  // FIXME: need to compute this automatically.
   switch( tile ) {
     case e_tile::regular:
       return { .origin = { .x = 11, .y = 5 },
@@ -107,6 +106,18 @@ gfx::rect opaque_area_for( e_tile tile ) {
     case e_tile::boycott:
       return { .origin = { .x = 2, .y = 2 },
                .size   = { .w = 12, .h = 12 } };
+    case e_tile::commodity_food_20:
+      return { .origin = { .x = 4, .y = 1 },
+               .size   = { .w = 12, .h = 18 } };
+    case e_tile::commodity_cotton_20:
+      return { .origin = { .x = 1, .y = 1 },
+               .size   = { .w = 19, .h = 17 } };
+    case e_tile::commodity_furs_20:
+      return { .origin = { .x = 2, .y = 1 },
+               .size   = { .w = 16, .h = 18 } };
+    case e_tile::product_fish_20:
+      return { .origin = { .x = 6, .y = 2 },
+               .size   = { .w = 9, .h = 17 } };
     default:
       return { .origin = { .x = 0, .y = 0 },
                .size   = sprite_size( tile ) };

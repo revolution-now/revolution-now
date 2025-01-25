@@ -711,7 +711,8 @@ enum.e_tile {
   # =============================================================
   # Products
   # =============================================================
-  product_fish,
+  product_fish_16,
+  product_fish_20,
   product_hammers,
   product_crosses,
   product_bells,

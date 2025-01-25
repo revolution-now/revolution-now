@@ -26,6 +26,8 @@ struct SS;
 struct TS;
 struct Player;
 
+enum class e_tile;
+
 struct ColonyLandView : public ui::View,
                         public ColonySubView,
                         public IDragSource<ColViewObject>,
@@ -113,6 +115,9 @@ struct ColonyLandView : public ui::View,
 
   // Implement IDragSource.
   wait<> disown_dragged_object() override;
+
+  void draw_spread( rr::Renderer& renderer, gfx::rect box,
+                    e_tile tile, int quantity ) const;
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord coord ) const;

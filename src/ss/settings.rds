@@ -39,6 +39,14 @@ struct.CheatOptions {
   enabled 'bool',
 }
 
+struct.ColonyOptions {
+  # Are numbers enabled over the production icon spreads in the
+  # colony view. When this is on they will always be shown, but
+  # note that even when it is off they may still be shown in cer-
+  # tain cases to aid readability.
+  numbers 'bool',
+}
+
 struct.SettingsState {
   # discoverer, explorer, etc.
   difficulty 'e_difficulty',
@@ -46,6 +54,8 @@ struct.SettingsState {
   game_options 'GameOptions',
 
   cheat_options 'CheatOptions',
+
+  colony_options 'ColonyOptions',
 
   _features { equality, validation }
 }

@@ -30,6 +30,10 @@ namespace rn {
 
 void draw_rendered_icon_spread(
     rr::Renderer& renderer, gfx::point origin,
+    TileSpreadRenderPlan const& plan );
+
+void draw_rendered_icon_spread(
+    rr::Renderer& renderer, gfx::point origin,
     TileSpreadRenderPlans const& plan );
 
 } // namespace rn

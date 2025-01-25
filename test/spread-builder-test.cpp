@@ -24,7 +24,7 @@ using namespace std;
 /****************************************************************
 ** Test Cases
 *****************************************************************/
-TEST_CASE( "[spread-builder] build_tile_spread" ) {
+TEST_CASE( "[spread-builder] build_tile_spread (multi)" ) {
 }
 
 } // namespace

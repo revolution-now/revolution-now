@@ -171,31 +171,43 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
 }
 
 void draw_rendered_icon_spread(
+    rr::Renderer& renderer, gfx::point origin,
+    TileSpreadRenderPlan const& plan ) {
+  for( auto const& [tile, p] : plan.tiles )
+    render_sprite( renderer, p.origin_becomes_point( origin ),
+                   tile );
+  if( auto const& label = plan.label; label.has_value() ) {
+    render_text_line_with_background(
+        renderer, label->text,
+        oriented_point{
+          .anchor = label->where.origin_becomes_point( origin ),
+          // This is always nw here because the placement
+          // calcu- lation has already been done, so the point
+          // we are given is always the nw.
+          .placement = gfx::e_cdirection::nw },
+        label->options.color_fg.value_or(
+            config_ui.tile_spreads.default_label_fg_color ),
+        label->options.color_bg.value_or(
+            config_ui.tile_spreads.default_label_bg_color ),
+        label->options.text_padding.value_or(
+            config_ui.tile_spreads.label_text_padding ),
+        config_ui.tile_spreads.bg_box_has_corners );
+  }
+#if 0
+  // render
+#  include "render/painter.hpp"  // FIXME: remove
+#  include "render/renderer.hpp" // FIXME: remove
+  renderer.painter().draw_empty_rect(
+      plan.bounds.origin_becomes_point( origin ),
+      rr::Painter::e_border_mode::inside, gfx::pixel::green() );
+#endif
+}
+
+void draw_rendered_icon_spread(
     rr::Renderer& renderer, point const origin,
     TileSpreadRenderPlans const& plans ) {
-  for( auto const& plan : plans.plans ) {
-    for( auto const& [tile, p] : plan.tiles )
-      render_sprite( renderer, p.origin_becomes_point( origin ),
-                     tile );
-    if( auto const& label = plan.label; label.has_value() ) {
-      render_text_line_with_background(
-          renderer, label->text,
-          oriented_point{
-            .anchor =
-                label->where.origin_becomes_point( origin ),
-            // This is always nw here because the placement
-            // calcu- lation has already been done, so the point
-            // we are given is always the nw.
-            .placement = gfx::e_cdirection::nw },
-          label->options.color_fg.value_or(
-              config_ui.tile_spreads.default_label_fg_color ),
-          label->options.color_bg.value_or(
-              config_ui.tile_spreads.default_label_bg_color ),
-          label->options.text_padding.value_or(
-              config_ui.tile_spreads.label_text_padding ),
-          config_ui.tile_spreads.bg_box_has_corners );
-    }
-  }
+  for( auto const& plan : plans.plans )
+    draw_rendered_icon_spread( renderer, origin, plan );
 }
 
 } // namespace rn

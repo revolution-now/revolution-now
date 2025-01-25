@@ -159,8 +159,8 @@ Spreads compute_icon_spread( SpreadSpecs const& specs ) {
 }
 
 bool requires_label( Spread const& spread ) {
-  if( spread.spacing <= 1 ) return true;
-  if( spread.rendered_count > 10 ) return true;
+  if( spread.spacing <= 2 ) return true;
+  if( spread.rendered_count > 100 ) return true;
   if( spread.spec.trimmed.len < 8 ) return true;
   return false;
 }
