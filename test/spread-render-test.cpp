@@ -80,6 +80,40 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
         .label =
             SpreadLabelRenderPlan{
               .text  = "1",
+              .where = { .x = 2, .y = 2 },
+            } },
+    } };
+  REQUIRE( f() == expected );
+
+  // One spread, one tile, with label, non-default label posi-
+  // tion.
+  tile_spreads = {
+    .spreads =
+        { { .icon_spread = { .spec =
+                                 SpreadSpec{
+                                   .count   = 1,
+                                   .trimmed = { .start = 2,
+                                                .len   = 28 } },
+                             .rendered_count = 1,
+                             .spacing        = 1 },
+            .tile        = e_tile::dragoon,
+            .label_opts =
+                SpreadLabelOptions{ .placement =
+                                        e_cdirection::sw } } },
+    .group_spacing = 1,
+    .label_policy  = SpreadLabels::always{} };
+  expected = {
+    .plans = {
+      TileSpreadRenderPlan{
+        .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+        .tiles  = { { .tile  = e_tile::dragoon,
+                      .where = { -2, 0 } } },
+        .label =
+            SpreadLabelRenderPlan{
+              .options =
+                  SpreadLabelOptions{ .placement =
+                                          e_cdirection::sw },
+              .text  = "1",
               .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
             } },
     } };
@@ -107,7 +141,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
         .label =
             SpreadLabelRenderPlan{
               .text  = "2",
-              .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
+              .where = { .x = 2, .y = 2 },
             } },
     } };
   REQUIRE( f() == expected );
@@ -155,7 +189,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
         .label =
             SpreadLabelRenderPlan{
               .text  = "1",
-              .where = { .x = 2, .y = 32 - 8 - 2 - 2 },
+              .where = { .x = 2, .y = 2 },
             } },
       TileSpreadRenderPlan{
         .bounds = { .origin = { .x = 28 + 1 },
@@ -168,7 +202,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
         .label =
             SpreadLabelRenderPlan{
               .text  = "2",
-              .where = { .x = 31, .y = 32 - 8 - 2 - 2 },
+              .where = { .x = 31, .y = 2 },
             },
       } } };
   REQUIRE( f() == expected );
