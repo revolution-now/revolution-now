@@ -11,12 +11,14 @@
 #include "spread-builder.hpp"
 
 // Revolution Now
-#include "spread-algo.hpp"
 #include "spread-render.hpp"
 #include "tiles.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
+
+// gfx
+#include "gfx/spread-algo.hpp"
 
 using namespace std;
 

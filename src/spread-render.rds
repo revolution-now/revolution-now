@@ -8,13 +8,11 @@
 # Description: Rds definitions for the spread-render module.
 #
 # ===============================================================
-# Revolution Now
-include "spread-algo.rds.hpp"
-
 # config
 include "config/tile-enum-fwd.hpp"
 
 # gfx
+include "gfx/spread-algo.rds.hpp"
 include "gfx/cartesian.hpp"
 include "gfx/pixel.hpp"
 

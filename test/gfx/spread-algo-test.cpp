@@ -11,7 +11,7 @@
 #include "test/testing.hpp"
 
 // Under test.
-#include "src/spread-algo.hpp"
+#include "src/gfx/spread-algo.hpp"
 
 // config
 #include "src/config/tile-enum.rds.hpp"
