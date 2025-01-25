@@ -510,9 +510,10 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
   {
     e_tile const product_tile =
         tile_for_outdoor_job_20( e_outdoor_job::food );
-    int const quantity    = production.center_food_production;
-    rect const spread_box = rect{ .origin = square_coord,
-                                  .size = { .w = 64, .h = 32 } };
+    int const quantity = production.center_food_production;
+    rect const spread_box =
+        rect{ .origin = square_coord + size{ .h = 11 },
+              .size   = { .w = 64, .h = 20 } };
     draw_spread( renderer, spread_box, product_tile, quantity );
   }
 
@@ -524,8 +525,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     int const quantity =
         production.center_extra_production->quantity;
     rect const spread_box =
-        rect{ .origin = square_coord + size{ .h = 32 },
-              .size   = { .w = 64, .h = 32 } };
+        rect{ .origin = square_coord + size{ .h = 32 + 2 },
+              .size   = { .w = 64, .h = 20 } };
     draw_spread( renderer, spread_box, product_tile, quantity );
   }
 }
