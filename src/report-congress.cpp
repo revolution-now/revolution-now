@@ -117,10 +117,9 @@ Layout layout_auto( Player const& player,
     },
     .options =
         {
-          .bounds = l.canvas.size.w - 2 * margin,
-          .label_policy =
-              SpreadLabels::auto_decide{ .viral = true },
-          .label_opts = { .placement = e_cdirection::sw },
+          .bounds       = l.canvas.size.w - 2 * margin,
+          .label_policy = SpreadLabels::always{},
+          .label_opts   = { .placement = e_cdirection::sw },
         },
     .group_spacing = 4,
   };
