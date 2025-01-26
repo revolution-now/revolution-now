@@ -340,7 +340,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // This alpha is to fade the land tiles behind the units so
   // as to make the units more visible. Not sure yet if we want
   // to do that.
-  double const alpha = 1.0;
+  double const alpha = 0.0;
 
   // FIXME: Should not be duplicating land-view rendering code
   // here.
