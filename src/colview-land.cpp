@@ -332,7 +332,11 @@ wait<> ColonyLandView::disown_dragged_object() {
 }
 
 void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
-                                    Coord coord ) const {
+                                    Coord const coord ) const {
+  point const mouse_pos =
+      input::current_mouse_position().to_gfx();
+  bool const hover = mouse_pos.is_inside( bounds( coord ) );
+
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation2,
       gfx::size( coord.distance_from_origin() ).to_double() );
@@ -340,7 +344,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // This alpha is to fade the land tiles behind the units so
   // as to make the units more visible. Not sure yet if we want
   // to do that.
-  double const alpha = 0.0;
+  double const alpha = hover ? 0.0 : 0.3;
 
   // FIXME: Should not be duplicating land-view rendering code
   // here.
@@ -357,21 +361,6 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     render_terrain_square_merged(
         renderer, local_coord * g_tile_delta, world_square, viz,
         TerrainRenderOptions{} );
-    {
-      // This must be drawn after the terrain square instead of
-      // the other way around because otherwise the tiles come
-      // out uneven because some tiles render more layers than
-      // others, which when alphas are accumulated, creates bad
-      // looking visuals, in particular between tiles that have
-      // some land stenciled onto them vs tiles that only have
-      // water in their cardinal directions (the former will
-      // render first a land tile then stencil'd water, whereas
-      // the latter will render only water).
-      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
-      renderer.painter().draw_solid_rect(
-          Rect::from( local_coord * g_tile_delta, g_tile_delta ),
-          pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
-    }
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
     if( local_coord == local_colony_loc ) continue;
@@ -448,6 +437,21 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     render_sprite( renderer, local_coord * g_tile_delta,
                    e_tile::totem_pole );
   }
+
+  // This must be drawn after the terrain square instead of the
+  // other way around because otherwise the tiles come out uneven
+  // because some tiles render more layers than others, which
+  // when alphas are accumulated, creates bad looking visuals, in
+  // particular between tiles that have some land stenciled onto
+  // them vs tiles that only have water in their cardinal direc-
+  // tions (the former will render first a land tile then sten-
+  // cil'd water, whereas the latter will render only water).
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+    renderer.painter().draw_solid_rect(
+        rect{ .size = { .w = 32 * 3, .h = 32 * 3 } },
+        pixel{ .r = 0, .g = 0, .b = 0, .a = 255 } );
+  }
 }
 
 void ColonyLandView::draw_spread( rr::Renderer& renderer,
@@ -486,7 +490,7 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
 }
 
 void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
-                                    Coord coord ) const {
+                                    Coord const coord ) const {
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, 2.0 );
     draw_land_3x3( renderer, coord );
