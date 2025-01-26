@@ -103,9 +103,12 @@ gfx::rect opaque_area_for( e_tile tile ) {
     case e_tile::man_o_war:
       return { .origin = { .x = 0, .y = 0 },
                .size   = { .w = 32, .h = 32 } };
-    case e_tile::boycott:
+    case e_tile::red_x_16:
       return { .origin = { .x = 2, .y = 2 },
                .size   = { .w = 12, .h = 12 } };
+    case e_tile::red_x_20:
+      return { .origin = { .x = 3, .y = 3 },
+               .size   = { .w = 14, .h = 14 } };
     case e_tile::commodity_food_20:
       return { .origin = { .x = 4, .y = 1 },
                .size   = { .w = 12, .h = 18 } };
@@ -115,6 +118,9 @@ gfx::rect opaque_area_for( e_tile tile ) {
     case e_tile::commodity_furs_20:
       return { .origin = { .x = 2, .y = 1 },
                .size   = { .w = 16, .h = 18 } };
+    case e_tile::commodity_tobacco_20:
+      return { .origin = { .x = 4, .y = 1 },
+               .size   = { .w = 13, .h = 19 } };
     case e_tile::product_fish_20:
       return { .origin = { .x = 6, .y = 2 },
                .size   = { .w = 9, .h = 17 } };

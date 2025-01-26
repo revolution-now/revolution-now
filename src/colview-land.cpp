@@ -56,6 +56,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
@@ -353,13 +354,24 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
     Coord world_square      = colony_square +
                          local_coord.distance_from_origin() -
                          Delta{ .w = 1, .h = 1 };
-    painter.draw_solid_rect(
-        Rect::from( local_coord * g_tile_delta, g_tile_delta ),
-        gfx::pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
-    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
     render_terrain_square_merged(
         renderer, local_coord * g_tile_delta, world_square, viz,
         TerrainRenderOptions{} );
+    {
+      // This must be drawn after the terrain square instead of
+      // the other way around because otherwise the tiles come
+      // out uneven because some tiles render more layers than
+      // others, which when alphas are accumulated, creates bad
+      // looking visuals, in particular between tiles that have
+      // some land stenciled onto them vs tiles that only have
+      // water in their cardinal directions (the former will
+      // render first a land tile then stencil'd water, whereas
+      // the latter will render only water).
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, alpha );
+      renderer.painter().draw_solid_rect(
+          Rect::from( local_coord * g_tile_delta, g_tile_delta ),
+          pixel{ .r = 128, .g = 128, .b = 128, .a = 255 } );
+    }
     static Coord const local_colony_loc =
         Coord{ .x = 1, .y = 1 };
     if( local_coord == local_colony_loc ) continue;
@@ -370,8 +382,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
       // colony (either friendly or foreign).
       painter.draw_empty_rect(
           Rect::from( local_coord * g_tile_delta, g_tile_delta ),
-          rr::Painter::e_border_mode::inside,
-          gfx::pixel::red() );
+          rr::Painter::e_border_mode::inside, pixel::red() );
   }
 
   // Render colonies.
@@ -451,12 +462,27 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
       .label_policy =
           ss_.settings.colony_options.numbers
               ? SpreadLabels{ SpreadLabels::always{} }
-              : SpreadLabels{ SpreadLabels::auto_decide{} } } };
-  TileSpreadRenderPlan const plan =
-      build_tile_spread( spread_config );
+              : SpreadLabels{ SpreadLabels::auto_decide{} },
+      .label_opts = SpreadLabelOptions{
+        .color_bg  = pixel::black(),
+        .placement = e_cdirection::w,
+      } } };
+  auto const plan = build_tile_spread( spread_config );
+  if( !plan.has_value() ) {
+    CHECK( quantity == 0 );
+    auto const draw = [&]( e_tile const tile ) {
+      size const sz = sprite_size( tile );
+      point const origin =
+          gfx::centered_at_left( sz, inner_box );
+      render_sprite( renderer, origin, tile );
+    };
+    draw( tile );
+    draw( e_tile::red_prohibition_20 );
+    return;
+  }
   auto const spread_origin =
-      gfx::centered_in( plan.bounds.size, inner_box );
-  draw_rendered_icon_spread( renderer, spread_origin, plan );
+      gfx::centered_in( plan->bounds.size, inner_box );
+  draw_rendered_icon_spread( renderer, spread_origin, *plan );
 }
 
 void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
@@ -476,7 +502,7 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     if( !outdoor_unit.has_value() ) continue;
     if( dragging_.has_value() && dragging_->d == direction )
       continue;
-    Coord const square_coord =
+    point const square_coord =
         coord + ( center.moved( direction ) * g_tile_delta *
                   Delta{ .w = 2, .h = 2 } )
                     .distance_from_origin();
@@ -484,13 +510,13 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     e_tile const product_tile = tile_for_outdoor_job_20( job );
     SquareProduction const& production =
         colview_production().land_production[direction];
-    int const quantity    = production.quantity;
-    rect const spread_box = rect{ .origin = square_coord,
-                                  .size = { .w = 64, .h = 32 } };
+    int const quantity = production.quantity;
+    rect const spread_box =
+        rect{ .origin = square_coord + size{ .h = 11 },
+              .size   = { .w = 64, .h = 20 } };
     draw_spread( renderer, spread_box, product_tile, quantity );
-    Coord const unit_coord =
-        square_coord +
-        ( g_tile_delta / Delta{ .w = 2, .h = 2 } );
+    point const unit_coord =
+        square_coord + size{ .w = 16, .h = 20 };
     UnitId const unit_id = outdoor_unit->unit_id;
     Unit const& unit     = ss_.units.unit_for( unit_id );
     UnitTypeAttributes const& desc = unit_attr( unit.type() );
@@ -539,8 +565,7 @@ void ColonyLandView::draw( rr::Renderer& renderer,
       draw_land_3x3( renderer, coord );
       break;
     case e_render_mode::_5x5:
-      painter.draw_solid_rect( bounds( coord ),
-                               gfx::pixel::wood() );
+      painter.draw_solid_rect( bounds( coord ), pixel::wood() );
       draw_land_3x3( renderer, coord + g_tile_delta );
       break;
     case e_render_mode::_6x6:

@@ -2409,11 +2409,12 @@ void render_landscape_square_if_not_fully_hidden(
                                  viz );
 
   // Always last.
-  rr::Painter painter = renderer.painter();
-  if( options.grid )
+  if( options.grid ) {
+    rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel{ 0, 0, 0, 30 } );
+  }
 }
 
 void render_obfuscation_overlay(

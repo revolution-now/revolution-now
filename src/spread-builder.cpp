@@ -24,6 +24,8 @@ using namespace std;
 
 namespace rn {
 
+using ::base::maybe;
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
@@ -50,9 +52,21 @@ TileSpreadRenderPlans build_tile_spread_multi(
          Spread const& icon_spread : icon_spreads.spreads ) {
       CHECK( config_it != configs.tiles.end() );
       TileSpreadSpec tile_spread_spec{
-        .icon_spread = icon_spread, .tile = config_it->tile };
-      if( config_it->has_x )
-        tile_spread_spec.overlay_tile = e_tile::boycott;
+        .icon_spread = icon_spread,
+        .tile        = config_it->tile,
+        .label_opts  = configs.options.label_opts };
+      if( config_it->has_x ) {
+        switch( ( *config_it->has_x ) ) {
+          case rn::e_red_x_size::small: {
+            tile_spread_spec.overlay_tile = e_tile::red_x_16;
+            break;
+          }
+          case rn::e_red_x_size::large: {
+            tile_spread_spec.overlay_tile = e_tile::red_x_20;
+            break;
+          }
+        }
+      }
       res.spreads.push_back( tile_spread_spec );
       ++config_it;
     }
@@ -61,14 +75,17 @@ TileSpreadRenderPlans build_tile_spread_multi(
   return render_plan_for_tile_spread( tile_spreads );
 }
 
-TileSpreadRenderPlan build_tile_spread(
+maybe<TileSpreadRenderPlan> build_tile_spread(
     TileSpreadConfig const& config ) {
+  maybe<TileSpreadRenderPlan> res;
   auto plans = build_tile_spread_multi(
       TileSpreadConfigMulti{ .tiles         = { config.tile },
                              .options       = config.options,
                              .group_spacing = 0 } );
-  CHECK( plans.plans.size() == 1 );
-  return std::move( plans.plans[0] );
+  // Could be length zero if the input config has zero count.
+  CHECK_LE( plans.plans.size(), 1u );
+  if( !plans.plans.empty() ) res = std::move( plans.plans[0] );
+  return res;
 }
 
 } // namespace rn

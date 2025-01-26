@@ -22,6 +22,7 @@
 
 // gfx
 #include "gfx/cartesian.hpp"
+#include "gfx/spread-algo.hpp"
 
 // rds
 #include "rds/switch-macro.hpp"
@@ -44,20 +45,6 @@ using ::gfx::oriented_point;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
-
-// In the OG sometimes labels can be turned on unconditionally
-// (e.g. in the colony view), but even when that does not happen,
-// the OG still sometimes puts labels on spreads that it deems to
-// be difficult to read, and that's what this function tries to
-// replicate by applying some heuristics to decide if the spread
-// is such that it would be difficult for the player to read the
-// count visually.
-[[nodiscard]] bool requires_label( Spread const& spread ) {
-  if( spread.spacing <= 1 ) return true;
-  if( spread.rendered_count > 10 ) return true;
-  if( spread.spec.trimmed.len < 8 ) return true;
-  return false;
-}
 
 } // namespace
 

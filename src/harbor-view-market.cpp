@@ -338,7 +338,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     if( player_.old_world.market.commodities[comm].boycott )
       render_sprite( renderer,
                      layout_.boycott_render_rect[comm].origin,
-                     e_tile::boycott );
+                     e_tile::red_x_16 );
 
     // Tooltip.
     // TODO: need to move this to the window plane and make sure
@@ -470,7 +470,7 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
 
   size const comm_tile_size =
       sprite_size( e_tile::commodity_food_20 );
-  size const boycott_tile_size = sprite_size( e_tile::boycott );
+  size const boycott_tile_size = sprite_size( e_tile::red_x_16 );
   for( auto const comm : enum_values<e_commodity> ) {
     layout.panel_inner_rect[comm].origin =
         layout.plates[comm].origin + panel_inner_rect_offset;

@@ -19,15 +19,22 @@ include "<vector>"
 
 namespace "rn"
 
+enum.e_red_x_size {
+  small, # 12x12
+  large, # 14x14
+}
+
 struct.TileSpread {
   tile 'e_tile',
   count 'int',
-  has_x 'bool',
+  has_x 'base::maybe<e_red_x_size>',
 }
 
 struct.TileSpreadOptions {
   bounds 'int', # Total horizontal space in pixels available.
   label_policy 'SpreadLabels',
+  # If labels are displayed then these options will be used.
+  label_opts 'SpreadLabelOptions',
 }
 
 struct.TileSpreadConfig {

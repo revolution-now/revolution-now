@@ -705,7 +705,10 @@ enum.e_tile {
   commodity_tools_20,
   commodity_muskets_20,
 
-  boycott,
+  red_x_16,
+  red_x_20,
+  red_prohibition_16,
+  red_prohibition_20,
   commodity_glow_20,
 
   # =============================================================
