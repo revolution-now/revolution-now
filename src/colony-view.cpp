@@ -221,6 +221,7 @@ struct ColonyPlane : public IPlane {
       case ::SDLK_n:
         ss_.settings.colony_options.numbers =
             !ss_.settings.colony_options.numbers;
+        update_colony_view( ss_, colony_ );
         break;
       default: //
         break;
@@ -256,6 +257,7 @@ struct ColonyPlane : public IPlane {
       co_return false;
     }
     co_await colview_top_level().perform_click( event );
+    update_colony_view( ss_, colony_ );
     co_return false;
   }
 

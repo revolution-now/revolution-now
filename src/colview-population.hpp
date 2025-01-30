@@ -62,7 +62,7 @@ class PopulationView : public ui::View, public ColonySubView {
   void update_this_and_children() override;
 
  private:
-  static Layout create_layout( gfx::size sz );
+  static Layout create_layout( SSConst const& ss, gfx::size sz );
 
   void draw_sons_of_liberty( rr::Renderer& renderer,
                              Coord coord ) const;

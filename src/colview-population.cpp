@@ -42,7 +42,8 @@ using ::gfx::rect;
 using ::gfx::size;
 
 TileSpreadRenderPlans create_production_spreads(
-    ColonyProduction const& production, int const width ) {
+    SSConst const& ss, ColonyProduction const& production,
+    int const width ) {
   int const food_deficit_without_stores =
       std::max( production.food_horses
                         .food_consumed_by_colonists_theoretical -
@@ -56,7 +57,7 @@ TileSpreadRenderPlans create_production_spreads(
         .count = production.food_horses.corn_produced },
       { .tile  = e_tile::commodity_food_20,
         .count = food_deficit_without_stores,
-        .has_x = e_red_x_size::large },
+        .has_x = e_red_x_size::small },
       { .tile  = e_tile::product_crosses,
         .count = production.crosses },
       { .tile  = e_tile::product_bells,
@@ -65,8 +66,11 @@ TileSpreadRenderPlans create_production_spreads(
     .options =
         {
           .bounds = width,
-          .label_policy = SpreadLabels::auto_decide{},
-          .label_opts   = {},
+          .label_policy =
+              ss.settings.colony_options.numbers
+                  ? SpreadLabels{ SpreadLabels::always{} }
+                  : SpreadLabels{ SpreadLabels::auto_decide{} },
+          .label_opts = {},
         },
     .group_spacing = 4,
   };
@@ -181,27 +185,27 @@ void PopulationView::draw( rr::Renderer& renderer,
 }
 
 PopulationView::Layout PopulationView::create_layout(
-    size const sz ) {
+    SSConst const& ss, size const sz ) {
   Layout l;
   l.size          = sz;
-  l.spread_margin = 2;
-  l.spread_origin = { .x = l.spread_margin, .y = 16 + 32 };
+  l.spread_margin = 6;
+  l.spread_origin = { .x = l.spread_margin, .y = 16 + 32 + 6 };
   int const spread_width = sz.w - 2 * l.spread_margin;
   l.production_spreads   = create_production_spreads(
-      colview_production(), spread_width );
+      ss, colview_production(), spread_width );
   return l;
 }
 
 void PopulationView::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
-  layout_ = create_layout( layout_.size );
+  layout_ = create_layout( ss_, layout_.size );
 }
 
 std::unique_ptr<PopulationView> PopulationView::create(
     SS& ss, TS& ts, Player& player, Colony& colony,
     Delta size ) {
-  Layout layout = create_layout( size );
+  Layout layout = create_layout( ss.as_const, size );
   return std::make_unique<PopulationView>(
       ss, ts, player, colony, std::move( layout ) );
 }

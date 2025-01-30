@@ -25,6 +25,7 @@ using namespace std;
 namespace rn {
 
 using ::base::maybe;
+using ::gfx::pixel;
 
 /****************************************************************
 ** Public API.
@@ -56,6 +57,7 @@ TileSpreadRenderPlans build_tile_spread_multi(
         .tile        = config_it->tile,
         .label_opts  = configs.options.label_opts };
       if( config_it->has_x ) {
+        tile_spread_spec.label_opts.color_fg = pixel::red();
         switch( ( *config_it->has_x ) ) {
           case rn::e_red_x_size::small: {
             tile_spread_spec.overlay_tile = e_tile::red_x_16;
