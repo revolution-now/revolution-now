@@ -21,19 +21,17 @@ namespace rn {
 
 namespace {
 
-int64_t bounds_for_output( SpreadSpec const& spec,
-                           Spread const& spread ) {
+int64_t bounds_for_output( Spread const& spread ) {
   if( spread.rendered_count == 0 ) return 0;
   return ( spread.rendered_count - 1 ) * spread.spacing +
-         spec.trimmed.len;
+         spread.spec.trimmed.len;
 }
 
 int64_t total_bounds( SpreadSpecs const& specs,
                       Spreads const& spreads ) {
   int64_t total = 0;
-  for( auto&& [spec, spread] :
-       rv::zip( specs.specs, spreads.spreads ) )
-    total += bounds_for_output( spec, spread );
+  for( auto const& spread : spreads.spreads )
+    total += bounds_for_output( spread );
   total += specs.group_spacing *
            std::max( spreads.spreads.size() - 1, 0ul );
   return total;
@@ -45,7 +43,7 @@ Spread* find_largest( SpreadSpecs const& specs,
   int64_t largest_bounds = 0;
   for( auto&& [spec, spread] :
        rv::zip( specs.specs, spreads.spreads ) ) {
-    int64_t const bounds = bounds_for_output( spec, spread );
+    int64_t const bounds = bounds_for_output( spread );
     if( bounds > largest_bounds ) {
       largest_bounds = bounds;
       largest        = &spread;
@@ -128,6 +126,7 @@ Spreads compute_icon_spread( SpreadSpecs const& specs ) {
     spread.spec           = spec;
     spread.spacing        = spec.trimmed.len + 1;
     spread.rendered_count = spec.count;
+    CHECK_GE( spec.count, 0 );
   }
   CHECK_EQ( specs.specs.size(), spreads.spreads.size() );
 

@@ -124,6 +124,12 @@ gfx::rect opaque_area_for( e_tile tile ) {
     case e_tile::product_fish_20:
       return { .origin = { .x = 6, .y = 2 },
                .size   = { .w = 9, .h = 17 } };
+    case e_tile::product_crosses:
+      return { .origin = { .x = 4, .y = 3 },
+               .size   = { .w = 8, .h = 11 } };
+    case e_tile::product_bells:
+      return { .origin = { .x = 2, .y = 2 },
+               .size   = { .w = 12, .h = 12 } };
     default:
       return { .origin = { .x = 0, .y = 0 },
                .size   = sprite_size( tile ) };

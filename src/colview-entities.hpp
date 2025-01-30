@@ -95,10 +95,10 @@ class ColonySubView
   // This will update any internal state held inside the view
   // that needs to be recomputed if any state external to the
   // view changes. Note: this assumes that the screen size has
-  // not been changed. If the screen size has not been changed,
-  // then we need to do a full recompositing instead. This is not
-  // supposed to be called directly, but should only be called
-  // via the update_colony_view method.
+  // not been changed. If the screen size has been changed, then
+  // we need to do a full recompositing instead. This is not sup-
+  // posed to be called directly, but should only be called via
+  // the update_colony_view method.
   virtual void update_this_and_children();
 
  protected:

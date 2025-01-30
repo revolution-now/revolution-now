@@ -12,8 +12,11 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "production.rds.hpp"
 #include "render.hpp"
 #include "sons-of-liberty.hpp"
+#include "spread-builder.hpp"
+#include "spread-render.hpp"
 #include "tiles.hpp"
 
 // config
@@ -31,11 +34,58 @@ using namespace std;
 
 namespace rn {
 
-namespace {} // namespace
+namespace {
+
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+
+TileSpreadRenderPlans create_production_spreads(
+    ColonyProduction const& production, int const width ) {
+  int const food_deficit_without_stores =
+      std::max( production.food_horses
+                        .food_consumed_by_colonists_theoretical -
+                    production.food_horses.food_produced,
+                0 );
+  TileSpreadConfigMulti const config{
+    .tiles{
+      { .tile  = e_tile::product_fish_20,
+        .count = production.food_horses.fish_produced },
+      { .tile  = e_tile::commodity_food_20,
+        .count = production.food_horses.corn_produced },
+      { .tile  = e_tile::commodity_food_20,
+        .count = food_deficit_without_stores,
+        .has_x = e_red_x_size::large },
+      { .tile  = e_tile::product_crosses,
+        .count = production.crosses },
+      { .tile  = e_tile::product_bells,
+        .count = production.bells },
+    },
+    .options =
+        {
+          .bounds = width,
+          .label_policy = SpreadLabels::auto_decide{},
+          .label_opts   = {},
+        },
+    .group_spacing = 4,
+  };
+  return build_tile_spread_multi( config );
+}
+
+} // namespace
 
 /****************************************************************
 ** PopulationView
 *****************************************************************/
+void PopulationView::draw_production_spreads(
+    rr::Renderer& renderer, Coord coord ) const {
+  point const origin =
+      layout_.spread_origin.origin_becomes_point( coord );
+  draw_rendered_icon_spread( renderer, origin,
+                             layout_.production_spreads );
+}
+
 void PopulationView::draw_sons_of_liberty(
     rr::Renderer& renderer, Coord coord ) const {
   Coord pos                    = coord;
@@ -107,12 +157,15 @@ void PopulationView::draw_sons_of_liberty(
 
 void PopulationView::draw( rr::Renderer& renderer,
                            Coord coord ) const {
-  draw_sons_of_liberty( renderer, coord );
-  // Draw colonists.
   rr::Painter painter = renderer.painter();
   painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                            rr::Painter::e_border_mode::inside,
                            gfx::pixel::black() );
+
+  // SoL.
+  draw_sons_of_liberty( renderer, coord );
+
+  // Colonists.
   vector<UnitId> units = colony_units_all( colony_ );
   auto unit_pos        = coord + Delta{ .h = 16 };
   unit_pos.x -= 3;
@@ -122,6 +175,35 @@ void PopulationView::draw( rr::Renderer& renderer,
                  UnitRenderOptions{} );
     unit_pos.x += 15;
   }
+
+  // Production Spreads.
+  draw_production_spreads( renderer, coord );
+}
+
+PopulationView::Layout PopulationView::create_layout(
+    size const sz ) {
+  Layout l;
+  l.size          = sz;
+  l.spread_margin = 2;
+  l.spread_origin = { .x = l.spread_margin, .y = 16 + 32 };
+  int const spread_width = sz.w - 2 * l.spread_margin;
+  l.production_spreads   = create_production_spreads(
+      colview_production(), spread_width );
+  return l;
+}
+
+void PopulationView::update_this_and_children() {
+  // This method is only called when the logical resolution
+  // hasn't changed, so we assume the size hasn't changed.
+  layout_ = create_layout( layout_.size );
+}
+
+std::unique_ptr<PopulationView> PopulationView::create(
+    SS& ss, TS& ts, Player& player, Colony& colony,
+    Delta size ) {
+  Layout layout = create_layout( size );
+  return std::make_unique<PopulationView>(
+      ss, ts, player, colony, std::move( layout ) );
 }
 
 } // namespace rn

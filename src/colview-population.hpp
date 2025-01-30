@@ -14,6 +14,7 @@
 
 // Revolution Now
 #include "colview-entities.hpp"
+#include "spread-render.rds.hpp"
 
 namespace rn {
 
@@ -27,34 +28,49 @@ class PopulationView : public ui::View, public ColonySubView {
   static std::unique_ptr<PopulationView> create( SS& ss, TS& ts,
                                                  Player& player,
                                                  Colony& colony,
-                                                 Delta size ) {
-    return std::make_unique<PopulationView>( ss, ts, player,
-                                             colony, size );
-  }
+                                                 Delta size );
+
+  struct Layout {
+    gfx::size size = {};
+    TileSpreadRenderPlans production_spreads;
+    // Relative to view origin.
+    int spread_margin        = {};
+    gfx::point spread_origin = {};
+  };
 
   PopulationView( SS& ss, TS& ts, Player& player, Colony& colony,
-                  Delta size )
-    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
+                  Layout layout )
+    : ColonySubView( ss, ts, player, colony ),
+      layout_( layout ) {}
 
-  Delta delta() const override { return size_; }
+ public: // ui::Object.
+  Delta delta() const override { return layout_.size; }
+
+  void draw( rr::Renderer& renderer,
+             Coord coord ) const override;
 
   maybe<int> entity() const override {
     return static_cast<int>( e_colview_entity::population );
   }
 
+ public: // ColonySubView.
   ui::View& view() noexcept override { return *this; }
   ui::View const& view() const noexcept override {
     return *this;
   }
 
-  void draw( rr::Renderer& renderer,
-             Coord coord ) const override;
+  void update_this_and_children() override;
 
  private:
+  static Layout create_layout( gfx::size sz );
+
   void draw_sons_of_liberty( rr::Renderer& renderer,
                              Coord coord ) const;
 
-  Delta size_;
+  void draw_production_spreads( rr::Renderer& renderer,
+                                Coord coord ) const;
+
+  Layout layout_;
 };
 
 } // namespace rn

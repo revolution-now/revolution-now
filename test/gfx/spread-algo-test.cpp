@@ -37,6 +37,48 @@ using ::gfx::point;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[spread] compute_icon_spread" ) {
+  SpreadSpecs specs;
+  Spreads expected;
+
+  auto f = [&] { return compute_icon_spread( specs ); };
+
+  specs = SpreadSpecs{
+    .bounds = 209,
+    .specs =
+        {
+          { .count = 14, .trimmed = { .start = 6, .len = 9 } },
+          { .count = 6, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 0, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 1, .trimmed = { .start = 4, .len = 8 } },
+          { .count = 15, .trimmed = { .start = 2, .len = 12 } },
+        },
+    .group_spacing = 4 };
+
+  expected = Spreads{
+    .spreads = {
+      { .spec           = { .count   = 14,
+                            .trimmed = { .start = 6, .len = 9 } },
+        .rendered_count = 14,
+        .spacing        = 4 },
+      { .spec           = { .count   = 6,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 6,
+        .spacing        = 11 },
+      { .spec           = { .count   = 0,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 0,
+        .spacing        = 13 },
+      { .spec           = { .count   = 1,
+                            .trimmed = { .start = 4, .len = 8 } },
+        .rendered_count = 1,
+        .spacing        = 9 },
+      { .spec           = { .count   = 15,
+                            .trimmed = { .start = 2, .len = 12 } },
+        .rendered_count = 15,
+        .spacing        = 3 },
+    } };
+
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[spread] requires_label" ) {
