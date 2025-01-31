@@ -58,9 +58,9 @@ maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
     case e_colony_building_slot::cigars:
       return e_tile::commodity_cigars_16;
     case e_colony_building_slot::hammers:
-      return e_tile::product_hammers;
+      return e_tile::product_hammers_16;
     case e_colony_building_slot::town_hall:
-      return e_tile::product_bells;
+      return e_tile::product_bells_16;
     case e_colony_building_slot::newspapers:
       return nothing;
     case e_colony_building_slot::schools:
@@ -74,7 +74,7 @@ maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
     case e_colony_building_slot::warehouses:
       return nothing;
     case e_colony_building_slot::crosses:
-      return e_tile::product_crosses;
+      return e_tile::product_crosses_16;
     case e_colony_building_slot::custom_house:
       return nothing;
   }

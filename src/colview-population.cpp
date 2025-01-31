@@ -58,9 +58,9 @@ TileSpreadRenderPlans create_production_spreads(
       { .tile  = e_tile::commodity_food_20,
         .count = food_deficit_without_stores,
         .has_x = e_red_x_size::small },
-      { .tile  = e_tile::product_crosses,
+      { .tile  = e_tile::product_crosses_20,
         .count = production.crosses },
-      { .tile  = e_tile::product_bells,
+      { .tile  = e_tile::product_bells_20,
         .count = production.bells },
     },
     .options =
@@ -70,7 +70,7 @@ TileSpreadRenderPlans create_production_spreads(
               ss.settings.colony_options.numbers
                   ? SpreadLabels{ SpreadLabels::always{} }
                   : SpreadLabels{ SpreadLabels::auto_decide{} },
-          .label_opts = {},
+          .label_opts = { .placement = e_cdirection::w },
         },
     .group_spacing = 4,
   };

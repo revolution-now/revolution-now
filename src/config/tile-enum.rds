@@ -716,9 +716,12 @@ enum.e_tile {
   # =============================================================
   product_fish_16,
   product_fish_20,
-  product_hammers,
-  product_crosses,
-  product_bells,
+  product_hammers_16,
+  product_hammers_20,
+  product_crosses_16,
+  product_crosses_20,
+  product_bells_16,
+  product_bells_20,
 
   # =============================================================
   # Roads
