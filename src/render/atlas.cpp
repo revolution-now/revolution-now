@@ -13,6 +13,9 @@
 // render
 #include "rect-pack.hpp"
 
+// gfx
+#include "gfx/image.hpp"
+
 // base
 #include "base/error.hpp"
 
@@ -28,9 +31,21 @@ using ::gfx::size;
 /****************************************************************
 ** AtlasMap
 *****************************************************************/
-rect const& AtlasMap::lookup( int id ) const {
-  DCHECK( id >= 0 && id < int( rects_.size() ) );
+AtlasMap::AtlasMap( std::vector<gfx::rect> rects,
+                    std::vector<gfx::rect> trimmed_rects )
+  : rects_( std::move( rects ) ),
+    trimmed_rects_( std::move( trimmed_rects ) ) {
+  CHECK_EQ( rects_.size(), trimmed_rects_.size() );
+}
+
+rect const& AtlasMap::lookup( int const id ) const {
+  CHECK( id >= 0 && id < int( rects_.size() ) );
   return rects_[id];
+}
+
+rect const& AtlasMap::trimmed_bounds( int const id ) const {
+  CHECK( id >= 0 && id < int( trimmed_rects_.size() ) );
+  return trimmed_rects_[id];
 }
 
 /****************************************************************
@@ -38,10 +53,18 @@ rect const& AtlasMap::lookup( int id ) const {
 *****************************************************************/
 int AtlasBuilder::ImageBuilder::add_sprite(
     rect const r ) const {
-  DCHECK( !atlas_builder_.images_.empty() );
-  ++atlas_builder_.images_.back().count;
-  int id = int( atlas_builder_.rects_.size() );
+  CHECK( !atlas_builder_.images_.empty() );
+  AtlasImage& atlas_img = atlas_builder_.images_.back();
+  ++atlas_img.count;
+  int const id = int( atlas_builder_.rects_.size() );
   atlas_builder_.rects_.push_back( r );
+  rect const trimmed = atlas_img.img.find_trimmed_bounds_in( r );
+  CHECK( trimmed.is_inside( r ) );
+  // We want to store the trimmed rect relative to the untrimmed
+  // one (not relative to the atlas image origin) because it is
+  // more useful that way.
+  atlas_builder_.trimmed_rects_.push_back(
+      trimmed.point_becomes_origin( r.origin ) );
   return id;
 }
 
@@ -52,12 +75,13 @@ AtlasBuilder::ImageBuilder AtlasBuilder::add_image(
   return ImageBuilder( *this );
 }
 
-maybe<Atlas> AtlasBuilder::build( size max_size ) const {
+maybe<Atlas> AtlasBuilder::build( size const max_size ) const {
+  CHECK( rects_.size() == trimmed_rects_.size() );
   // First pack the rects.
   vector<rect> packed_rects = rects_;
   UNWRAP_RETURN( packed_size,
                  pack_rects( packed_rects, max_size ) );
-  DCHECK( rects_.size() == packed_rects.size() );
+  CHECK( rects_.size() == packed_rects.size() );
 
   // Now copy them to a large image.
   image atlas_img = gfx::new_empty_image( packed_size );
@@ -67,18 +91,20 @@ maybe<Atlas> AtlasBuilder::build( size max_size ) const {
     for( int j = 0; j < img_and_count.count; ++j ) {
       rect const& src             = rects_[id];
       gfx::point const& dst_point = packed_rects[id].origin;
-      DCHECK( src.is_inside( rect{
+      CHECK( src.is_inside( rect{
         .origin = {}, .size = src_img.size_pixels() } ) );
-      DCHECK( ( rect{ .origin = {},
-                      .size   = atlas_img.size_pixels() } )
-                  .contains( dst_point ) );
+      CHECK( ( rect{ .origin = {},
+                     .size   = atlas_img.size_pixels() } )
+                 .contains( dst_point ) );
       atlas_img.blit_from( src_img, src, dst_point );
       ++id;
     }
   }
 
-  return Atlas{ .img  = std::move( atlas_img ),
-                .dict = AtlasMap( std::move( packed_rects ) ) };
+  return Atlas{
+    .img  = std::move( atlas_img ),
+    .dict = AtlasMap( std::move( packed_rects ),
+                      std::move( trimmed_rects_ ) ) };
 }
 
 } // namespace rr

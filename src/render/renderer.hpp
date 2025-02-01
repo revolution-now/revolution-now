@@ -229,6 +229,11 @@ struct Renderer : IRenderer {
   std::unordered_map<std::string_view, int> const& atlas_ids()
       const;
 
+  // Given a globally unique name for a texture in the atlas,
+  // this will return its trimmed rect.
+  std::unordered_map<std::string, gfx::rect> const&
+  atlas_trimmed_rects() const;
+
   void present();
 
   RendererMods const& mods() const;

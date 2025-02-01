@@ -44,27 +44,45 @@ namespace rn {
 
 namespace {
 
+using ::gfx::rect;
 using ::gfx::size;
 
 vector<int> cache;
+vector<rect> trimmed_cache;
 
-int atlas_lookup( e_tile tile ) {
-  int idx = static_cast<int>( tile );
-  DCHECK( idx < int( cache.size() ) );
+int atlas_lookup( e_tile const tile ) {
+  int const idx = static_cast<int>( tile );
+  CHECK( idx < int( cache.size() ) );
   return cache[idx];
+}
+
+rect atlas_lookup_trimmed( e_tile const tile ) {
+  int const idx = static_cast<int>( tile );
+  CHECK( idx < int( trimmed_cache.size() ) );
+  return trimmed_cache[idx];
 }
 
 } // namespace
 
 void init_sprites( rr::Renderer& renderer ) {
   cache.resize( refl::enum_count<e_tile> );
-  auto& atlas_ids = renderer.atlas_ids();
-  int i           = 0;
-  for( e_tile tile : refl::enum_values<e_tile> ) {
+  trimmed_cache.resize( refl::enum_count<e_tile> );
+  auto const& atlas_ids = renderer.atlas_ids();
+  auto const& atlas_trimmed_rects =
+      renderer.atlas_trimmed_rects();
+  int i = 0;
+  for( e_tile const tile : refl::enum_values<e_tile> ) {
     UNWRAP_CHECK( atlas_id,
                   base::lookup( atlas_ids, refl::enum_value_name(
                                                tile ) ) );
-    cache[i++] = atlas_id;
+    UNWRAP_CHECK(
+        atlas_trimmed,
+        base::lookup(
+            atlas_trimmed_rects,
+            string( refl::enum_value_name( tile ) ) ) );
+    cache[i]         = atlas_id;
+    trimmed_cache[i] = atlas_trimmed;
+    ++i;
   }
 }
 
@@ -89,57 +107,8 @@ gfx::size sprite_size( e_tile tile ) {
   return sizes[tile];
 }
 
-gfx::rect opaque_area_for( e_tile tile ) {
-  switch( tile ) {
-    case e_tile::regular:
-      return { .origin = { .x = 11, .y = 5 },
-               .size   = { .w = 13, .h = 27 } };
-    case e_tile::cavalry:
-      return { .origin = { .x = 2, .y = 2 },
-               .size   = { .w = 28, .h = 30 } };
-    case e_tile::artillery:
-      return { .origin = { .x = 1, .y = 19 },
-               .size   = { .w = 30, .h = 13 } };
-    case e_tile::man_o_war:
-      return { .origin = { .x = 0, .y = 0 },
-               .size   = { .w = 32, .h = 32 } };
-    case e_tile::red_x_16:
-      return { .origin = { .x = 2, .y = 2 },
-               .size   = { .w = 12, .h = 12 } };
-    case e_tile::red_x_20:
-      return { .origin = { .x = 3, .y = 3 },
-               .size   = { .w = 14, .h = 14 } };
-    case e_tile::commodity_food_20:
-      return { .origin = { .x = 4, .y = 1 },
-               .size   = { .w = 12, .h = 18 } };
-    case e_tile::commodity_cotton_20:
-      return { .origin = { .x = 1, .y = 1 },
-               .size   = { .w = 19, .h = 17 } };
-    case e_tile::commodity_furs_20:
-      return { .origin = { .x = 2, .y = 1 },
-               .size   = { .w = 16, .h = 18 } };
-    case e_tile::commodity_tobacco_20:
-      return { .origin = { .x = 4, .y = 1 },
-               .size   = { .w = 13, .h = 19 } };
-    case e_tile::product_fish_20:
-      return { .origin = { .x = 6, .y = 2 },
-               .size   = { .w = 9, .h = 17 } };
-    case e_tile::product_crosses_16:
-      return { .origin = { .x = 2, .y = 1 },
-               .size   = { .w = 12, .h = 14 } };
-    case e_tile::product_bells_16:
-      return { .origin = { .x = 1, .y = 1 },
-               .size   = { .w = 14, .h = 14 } };
-    case e_tile::product_crosses_20:
-      return { .origin = { .x = 3, .y = 1 },
-               .size   = { .w = 14, .h = 18 } };
-    case e_tile::product_bells_20:
-      return { .origin = { .x = 1, .y = 2 },
-               .size   = { .w = 18, .h = 16 } };
-    default:
-      return { .origin = { .x = 0, .y = 0 },
-               .size   = sprite_size( tile ) };
-  }
+rect trimmed_area_for( e_tile const tile ) {
+  return atlas_lookup_trimmed( tile );
 }
 
 void render_sprite( rr::Painter& painter, Rect where,

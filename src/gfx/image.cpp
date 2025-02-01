@@ -10,11 +10,14 @@
 *****************************************************************/
 #include "image.hpp"
 
-// C++ standard library
-#include <cstring>
+// gfx
+#include "iter.hpp"
 
 // base
 #include "base/to-str-ext-std.hpp"
+
+// C++ standard library
+#include <cstring>
 
 using namespace std;
 
@@ -143,6 +146,19 @@ void image::blit_from( image const& other,
     ++src_point.y;
     ++dst_point.y;
   }
+}
+
+rect image::find_trimmed_bounds_in( rect const r ) const {
+  point p_min = r.center();
+  point p_max = r.center();
+  for( auto const p : rect_iterator( r ) ) {
+    if( at( p ).a == 0 ) continue;
+    p_min.x = std::min( p_min.x, p.x );
+    p_min.y = std::min( p_min.y, p.y );
+    p_max.x = std::max( p_max.x, p.x + 1 );
+    p_max.y = std::max( p_max.y, p.y + 1 );
+  }
+  return rect::from( p_min, p_max );
 }
 
 /****************************************************************

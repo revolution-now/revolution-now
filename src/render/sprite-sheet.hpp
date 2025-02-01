@@ -16,9 +16,6 @@
 // Rds
 #include "sprite-sheet.rds.hpp"
 
-// gfx
-#include "gfx/image.hpp"
-
 // base
 #include "base/valid.hpp"
 
@@ -26,6 +23,10 @@
 #include <array>
 #include <string>
 #include <unordered_map>
+
+namespace gfx {
+struct image;
+}
 
 namespace rr {
 
@@ -35,13 +36,13 @@ struct AtlasBuilder;
 ** Loading from images.
 *****************************************************************/
 base::valid_or<std::string> load_sprite_sheet(
-    AtlasBuilder& builder, gfx::image sheet,
+    AtlasBuilder& builder, gfx::image&& sheet,
     gfx::size sprite_size,
     std::unordered_map<std::string, gfx::point> const& names,
     std::unordered_map<std::string, int>& atlas_ids );
 
 base::expect<AsciiFont> load_ascii_font_sheet(
-    AtlasBuilder& builder, gfx::image sheet );
+    AtlasBuilder& builder, gfx::image&& sheet );
 
 /****************************************************************
 ** Loading from config info.

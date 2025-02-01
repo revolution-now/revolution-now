@@ -56,7 +56,7 @@ inline constexpr Delta g_tile_delta = Delta{
 *****************************************************************/
 gfx::size sprite_size( e_tile tile );
 
-gfx::rect opaque_area_for( e_tile tile );
+gfx::rect trimmed_area_for( e_tile tile );
 
 /****************************************************************
 ** Rendering Tiles

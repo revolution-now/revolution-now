@@ -48,6 +48,7 @@ AsciiFont const& ascii_font() {
 AtlasMap const& atlas_map() {
   static const auto m = [] {
     vector<rect> rects( 356, rect{} );
+    vector<rect> trimmed( 356, rect{} );
     for( int i = 100; i < 100 + 256; ++i ) {
       int char_idx = i - 100;
       int row      = char_idx / 16;
@@ -55,7 +56,7 @@ AtlasMap const& atlas_map() {
       rects[i] = rect{ .origin = { .x = col * 2, .y = row * 4 },
                        .size   = { .w = 2, .h = 4 } };
     }
-    return AtlasMap( std::move( rects ) );
+    return AtlasMap( std::move( rects ), std::move( trimmed ) );
   }();
   return m;
 }

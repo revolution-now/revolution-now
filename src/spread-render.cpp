@@ -106,7 +106,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           point res = gfx::centered_at(
               sprite_size( *tile_spread.overlay_tile ),
               base_tile_trimmed_rect, e_cdirection::w );
-          res.x -= opaque_area_for( *tile_spread.overlay_tile )
+          res.x -= trimmed_area_for( *tile_spread.overlay_tile )
                        .horizontal_slice()
                        .start;
           return res;

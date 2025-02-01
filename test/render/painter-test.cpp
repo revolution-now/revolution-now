@@ -36,23 +36,38 @@ using ::gfx::rect;
 using ::gfx::size;
 
 AtlasMap const& atlas_map() {
-  static const auto m = AtlasMap( vector<rect>{
-    /*id=0*/ { .origin = { .x = 0, .y = 1 },
-               .size   = { .w = 2, .h = 3 } },
-    /*id=1*/
-    { .origin = { .x = 2, .y = 3 }, .size = { .w = 4, .h = 5 } },
-    /*id=2*/
-    { .origin = { .x = 3, .y = 4 }, .size = { .w = 5, .h = 6 } },
-    /*id=3*/
-    { .origin = { .x = 4, .y = 5 }, .size = { .w = 6, .h = 7 } },
-    /*id=4*/
-    { .origin = { .x = 5, .y = 6 }, .size = { .w = 7, .h = 8 } },
-    /*id=5*/
-    { .origin = { .x = 6, .y = 7 }, .size = { .w = 8, .h = 9 } },
-    /*id=6*/
-    { .origin = { .x = 7, .y = 10 },
-      .size   = { .w = 8, .h = 9 } },
-  } );
+  static const auto m = AtlasMap(
+      /*rects=*/vector<rect>{
+        /*id=0*/ { .origin = { .x = 0, .y = 1 },
+                   .size   = { .w = 2, .h = 3 } },
+        /*id=1*/
+        { .origin = { .x = 2, .y = 3 },
+          .size   = { .w = 4, .h = 5 } },
+        /*id=2*/
+        { .origin = { .x = 3, .y = 4 },
+          .size   = { .w = 5, .h = 6 } },
+        /*id=3*/
+        { .origin = { .x = 4, .y = 5 },
+          .size   = { .w = 6, .h = 7 } },
+        /*id=4*/
+        { .origin = { .x = 5, .y = 6 },
+          .size   = { .w = 7, .h = 8 } },
+        /*id=5*/
+        { .origin = { .x = 6, .y = 7 },
+          .size   = { .w = 8, .h = 9 } },
+        /*id=6*/
+        { .origin = { .x = 7, .y = 10 },
+          .size   = { .w = 8, .h = 9 } },
+      },
+      /*trimmed_rects=*/vector<rect>{
+        /*id=0*/ {},
+        /*id=1*/ {},
+        /*id=2*/ {},
+        /*id=3*/ {},
+        /*id=4*/ {},
+        /*id=5*/ {},
+        /*id=6*/ {},
+      } );
   return m;
 }
 

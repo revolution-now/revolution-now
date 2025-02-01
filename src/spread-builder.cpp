@@ -39,7 +39,7 @@ TileSpreadRenderPlans build_tile_spread_multi(
     for( auto const& config : configs.tiles ) {
       res.specs.push_back(
           SpreadSpec{ .count   = config.count,
-                      .trimmed = opaque_area_for( config.tile )
+                      .trimmed = trimmed_area_for( config.tile )
                                      .horizontal_slice() } );
     }
     return res;

@@ -14,11 +14,12 @@
 #include "bindable.hpp"
 #include "types.hpp"
 
-// gfx
-#include "gfx/image.hpp"
-
 // base
 #include "base/zero.hpp"
+
+namespace gfx {
+struct image;
+}
 
 namespace gl {
 

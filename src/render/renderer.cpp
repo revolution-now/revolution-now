@@ -132,6 +132,7 @@ struct Renderer::Impl {
         size atlas_size_arg, gl::Texture atlas_tx_arg,
         unordered_map<string, int> atlas_ids_arg,
         unordered_map<string_view, int> atlas_ids_fast_arg,
+        unordered_map<string, gfx::rect> atlas_trimmed_rects_arg,
         unordered_map<string, AsciiFont> ascii_fonts_arg,
         unordered_map<string_view, AsciiFont*>
             ascii_fonts_fast_arg,
@@ -146,6 +147,8 @@ struct Renderer::Impl {
       atlas_tx_binder( atlas_tx.bind() ),
       atlas_ids( std::move( atlas_ids_arg ) ),
       atlas_ids_fast( std::move( atlas_ids_fast_arg ) ),
+      atlas_trimmed_rects(
+          std::move( atlas_trimmed_rects_arg ) ),
       ascii_fonts( std::move( ascii_fonts_arg ) ),
       ascii_fonts_fast( std::move( ascii_fonts_fast_arg ) ),
       logical_screen_size( logical_screen_size_arg ) {
@@ -253,6 +256,12 @@ struct Renderer::Impl {
         "may need to increase the maximum size.",
         config.max_atlas_size );
 
+    unordered_map<string, gfx::rect> atlas_trimmed_rects;
+    for( auto const& [name, id] : atlas_ids )
+      atlas_trimmed_rects[name] =
+          atlas.dict.trimmed_bounds( id );
+    CHECK( atlas_trimmed_rects.size() == atlas_ids_fast.size() );
+
     if( config.dump_atlas_png.has_value() ) {
       CHECK_HAS_VALUE(
           stb::save_image( *config.dump_atlas_png, atlas.img ) );
@@ -274,6 +283,7 @@ struct Renderer::Impl {
         /*atlas_tx=*/std::move( atlas_tx ),
         /*atlas_ids=*/std::move( atlas_ids ),
         /*atlas_ids_fast=*/std::move( atlas_ids_fast ),
+        /*atlas_trimmed_rects=*/std::move( atlas_trimmed_rects ),
         /*ascii_fonts=*/std::move( ascii_fonts ),
         /*ascii_fonts_fast=*/std::move( ascii_fonts_fast ),
         /*logical_screen_size=*/logical_screen_size );
@@ -342,6 +352,11 @@ struct Renderer::Impl {
 
   unordered_map<string_view, int> const& atlas_ids_fn() const {
     return atlas_ids_fast;
+  }
+
+  unordered_map<string, gfx::rect> const&
+  atlas_trimmed_rects_fn() const {
+    return atlas_trimmed_rects;
   }
 
   RendererMods const& mods() const {
@@ -478,6 +493,7 @@ struct Renderer::Impl {
   TextureBinder atlas_tx_binder;
   unordered_map<string, int> const atlas_ids;
   unordered_map<string_view, int> const atlas_ids_fast;
+  unordered_map<string, gfx::rect> atlas_trimmed_rects;
   unordered_map<string, AsciiFont> const ascii_fonts;
   unordered_map<string_view, AsciiFont*> const ascii_fonts_fast;
   gfx::size logical_screen_size;
@@ -542,6 +558,11 @@ void Renderer::set_viewport( gfx::rect const viewport ) {
 unordered_map<string_view, int> const& Renderer::atlas_ids()
     const {
   return impl_->atlas_ids_fn();
+}
+
+unordered_map<string, gfx::rect> const&
+Renderer::atlas_trimmed_rects() const {
+  return impl_->atlas_trimmed_rects_fn();
 }
 
 unique_ptr<Renderer> Renderer::create(

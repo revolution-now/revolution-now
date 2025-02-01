@@ -13,6 +13,9 @@
 // render
 #include "atlas.hpp"
 
+// gfx
+#include "gfx/image.hpp"
+
 // refl
 #include "refl/to-str.hpp"
 
@@ -27,7 +30,7 @@ namespace rr {
 ** Loading from images.
 *****************************************************************/
 base::valid_or<string> load_sprite_sheet(
-    AtlasBuilder& builder, gfx::image sheet,
+    AtlasBuilder& builder, gfx::image&& sheet,
     gfx::size sprite_size,
     unordered_map<string, gfx::point> const& names,
     unordered_map<string, int>& atlas_ids ) {
@@ -59,7 +62,7 @@ base::valid_or<string> load_sprite_sheet(
 }
 
 base::expect<AsciiFont> load_ascii_font_sheet(
-    AtlasBuilder& builder, gfx::image sheet ) {
+    AtlasBuilder& builder, gfx::image&& sheet ) {
   AtlasBuilder::ImageBuilder img_builder =
       builder.add_image( std::move( sheet ) );
   gfx::size size = sheet.size_pixels();

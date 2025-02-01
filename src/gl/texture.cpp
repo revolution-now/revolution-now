@@ -14,6 +14,9 @@
 #include "error.hpp"
 #include "iface.hpp"
 
+// gfx
+#include "gfx/image.hpp"
+
 using namespace std;
 
 namespace gl {

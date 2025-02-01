@@ -218,5 +218,8 @@ TEST_CASE( "[image] blit_from" ) {
   REQUIRE( testing::image_equals( dst, expected_dst ) );
 }
 
+TEST_CASE( "[image] find_trimmed_bounds_in" ) {
+}
+
 } // namespace
 } // namespace gfx

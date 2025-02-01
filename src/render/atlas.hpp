@@ -29,16 +29,23 @@ namespace rr {
 // given its ID. The ID of a sprite is what is returned from the
 // add_sprite method below when building the atlas.
 struct AtlasMap {
-  AtlasMap( std::vector<gfx::rect> rects )
-    : rects_( std::move( rects ) ) {}
+  AtlasMap( std::vector<gfx::rect> rects,
+            std::vector<gfx::rect> trimmed_rects );
 
   gfx::rect const& lookup( int id ) const;
+
+  gfx::rect const& trimmed_bounds( int id ) const;
 
   int size() const { return rects_.size(); }
 
  private:
   // The ID of the sprite is just the index into this vector.
   std::vector<gfx::rect> rects_;
+
+  // There is one of these for each sprite rect and their origins
+  // are relative to the sprite origin and give the minimal
+  // bounds of non-tranparent pixels in the sprite.
+  std::vector<gfx::rect> trimmed_rects_;
 };
 
 /****************************************************************
@@ -98,6 +105,11 @@ struct AtlasBuilder {
   // All the rects are just appended here, and each rect's ID is
   // just its index in the vector.
   std::vector<gfx::rect> rects_;
+
+  // There is one of these for each sprite rect and their origins
+  // are relative to the sprite origin and give the minimal
+  // bounds of non-tranparent pixels in the sprite.
+  std::vector<gfx::rect> trimmed_rects_;
 
  public:
   // For testing.

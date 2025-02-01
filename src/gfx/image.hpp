@@ -61,6 +61,12 @@ struct image : base::zero<image, unsigned char*> {
   void blit_from( image const& other, rect const src,
                   point const dst_origin );
 
+  // Find the minimal bounds inside this rect that contains all
+  // non-transparent pixels. The returned value has its origin
+  // relative to the image origin, and will always be contained
+  // inside the input rect.
+  rect find_trimmed_bounds_in( rect r ) const;
+
   static int constexpr kBytesPerPixel = 4;
 
   unsigned char* data() const;

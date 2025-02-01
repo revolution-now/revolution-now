@@ -17,6 +17,9 @@
 // Testing
 #include "test/mocks/gl/iface.hpp"
 
+// gfx
+#include "src/gfx/image.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp"
 
