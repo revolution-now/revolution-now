@@ -122,7 +122,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           std::max( ( tile_spread.icon_spread.spec.trimmed.len -
                       tile_spread.icon_spread.spacing ),
                     0 );
-    int const tile_h = sprite_size( tile_spread.tile ).h;
+    size const tile_size = sprite_size( tile_spread.tile );
+    int const tile_h     = tile_size.h;
     rect const tiles_all{
       .origin = p_start,
       .size   = { .w = p.x - p_start.x, .h = tile_h } };
@@ -131,8 +132,40 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     // group spacing so that we know the total rect occupied by
     // the tiles.
     auto add_label = [&]( SpreadLabelOptions const& options ) {
-      e_cdirection const placement = options.placement.value_or(
-          config_ui.tile_spreads.default_label_placement );
+      rect const first_tile_rect =
+          tiles_all.with_size( tiles_all.size.with_w(
+              tile_spread.icon_spread.spec.trimmed.len ) );
+      rect const placement_rect = [&] {
+        if( !options.placement.has_value() )
+          return first_tile_rect;
+        SWITCH( *options.placement ) {
+          CASE( left_middle_adjusted ) {
+            return first_tile_rect;
+          }
+          CASE( in_first_tile ) { return first_tile_rect; }
+          CASE( in_total_rect ) { return tiles_all; }
+        }
+      }();
+      e_cdirection const placement = [&] {
+        if( !options.placement.has_value() )
+          return config_ui.tile_spreads.default_label_placement;
+        SWITCH( *options.placement ) {
+          CASE( left_middle_adjusted ) {
+            if( tile_spread.icon_spread.rendered_count == 1 )
+              return e_cdirection::c;
+            if( tile_spread.icon_spread.spacing <
+                tile_spread.icon_spread.spec.trimmed.len )
+              return e_cdirection::w;
+            return e_cdirection::c;
+          }
+          CASE( in_first_tile ) {
+            return in_first_tile.placement;
+          }
+          CASE( in_total_rect ) {
+            return in_total_rect.placement;
+          }
+        }
+      }();
       string const label_text =
           to_string( tile_spread.icon_spread.spec.count );
       size const padded_label_size = [&] {
@@ -146,9 +179,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
       plan.label = SpreadLabelRenderPlan{
         .options = options,
         .text    = label_text,
-        .where   = gfx::centered_at(
-            padded_label_size, tiles_all.with_edges_removed( 2 ),
-            placement ),
+        .where   = gfx::centered_at( padded_label_size,
+                                     placement_rect, placement ),
       };
     };
     label_options( tile_spread ).visit( add_label );

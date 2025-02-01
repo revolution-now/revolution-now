@@ -24,6 +24,22 @@ namespace "rn"
 # ---------------------------------------------------------------
 # Spread labels.
 # ---------------------------------------------------------------
+sumtype.SpreadLabelPlacement {
+  # This will put the label on the left side of the first tile in
+  # the middle, but with the exact x coordinate tweaked depending
+  # on the count and spacing of the icons in order to produce a
+  # more polished look.
+  left_middle_adjusted {},
+
+  in_first_tile {
+    placement 'gfx::e_cdirection',
+  },
+
+  in_total_rect {
+    placement 'gfx::e_cdirection',
+  },
+}
+
 # When an option is not specified then a default value will be
 # used, and those default values are chosen so as to provide sen-
 # sible output that should be good in most cases (and roughly re-
@@ -34,7 +50,7 @@ struct.SpreadLabelOptions {
   # Background color, defaults to black.
   color_bg 'base::maybe<gfx::pixel>',
   # Placement defaults to the sw corner (NOTE: OG does nw).
-  placement 'base::maybe<gfx::e_cdirection>',
+  placement 'base::maybe<SpreadLabelPlacement>',
   # The padding is in addition to the one pixel of padding there
   # will naturally be around any font. Default value is 1,
   # whereas the OG has zero.

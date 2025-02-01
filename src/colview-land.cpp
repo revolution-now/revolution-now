@@ -468,8 +468,9 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
               ? SpreadLabels{ SpreadLabels::always{} }
               : SpreadLabels{ SpreadLabels::auto_decide{} },
       .label_opts = SpreadLabelOptions{
-        .color_bg  = pixel::black(),
-        .placement = e_cdirection::w,
+        .color_bg = pixel::black(),
+        .placement =
+            SpreadLabelPlacement::left_middle_adjusted{},
       } } };
   auto const plan = build_tile_spread( spread_config );
   if( !plan.has_value() ) {

@@ -70,7 +70,8 @@ TileSpreadRenderPlans create_production_spreads(
               ss.settings.colony_options.numbers
                   ? SpreadLabels{ SpreadLabels::always{} }
                   : SpreadLabels{ SpreadLabels::auto_decide{} },
-          .label_opts = { .placement = e_cdirection::w },
+          .label_opts = { .placement = SpreadLabelPlacement::
+                              left_middle_adjusted{} },
         },
     .group_spacing = 4,
   };

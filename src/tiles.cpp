@@ -134,8 +134,8 @@ gfx::rect opaque_area_for( e_tile tile ) {
       return { .origin = { .x = 3, .y = 1 },
                .size   = { .w = 14, .h = 18 } };
     case e_tile::product_bells_20:
-      return { .origin = { .x = 2, .y = 2 },
-               .size   = { .w = 19, .h = 16 } };
+      return { .origin = { .x = 1, .y = 2 },
+               .size   = { .w = 18, .h = 16 } };
     default:
       return { .origin = { .x = 0, .y = 0 },
                .size   = sprite_size( tile ) };
