@@ -72,14 +72,10 @@ void init_sprites( rr::Renderer& renderer ) {
       renderer.atlas_trimmed_rects();
   int i = 0;
   for( e_tile const tile : refl::enum_values<e_tile> ) {
-    UNWRAP_CHECK( atlas_id,
-                  base::lookup( atlas_ids, refl::enum_value_name(
-                                               tile ) ) );
-    UNWRAP_CHECK(
-        atlas_trimmed,
-        base::lookup(
-            atlas_trimmed_rects,
-            string( refl::enum_value_name( tile ) ) ) );
+    string const name( refl::enum_value_name( tile ) );
+    UNWRAP_CHECK( atlas_id, base::lookup( atlas_ids, name ) );
+    UNWRAP_CHECK( atlas_trimmed,
+                  base::lookup( atlas_trimmed_rects, name ) );
     cache[i]         = atlas_id;
     trimmed_cache[i] = atlas_trimmed;
     ++i;
