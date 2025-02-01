@@ -454,6 +454,11 @@ void compute_food_production(
   out.food_consumed_by_colonists_theoretical = population * 2;
   CHECK_GE( out.food_consumed_by_colonists_theoretical, 0 );
 
+  out.food_deficit_without_stores =
+      std::max( out.food_consumed_by_colonists_theoretical -
+                    out.food_produced,
+                0 );
+
   int const current_food = colony.commodities[e_commodity::food];
   out.food_consumed_by_colonists_actual =
       ( current_food + out.food_produced ) >=

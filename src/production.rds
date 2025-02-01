@@ -77,6 +77,16 @@ struct.FoodProduction {
 
   food_consumed_by_colonists_theoretical 'int',
 
+  # This is not the actual deficient subtracted from the store,
+  # but instead is the deficit that is shown in the colony view.
+  # This does not take into account the store because it is in-
+  # tended to communicate to the player whether food production
+  # is sufficient or not in the colony. Note that if this is pos-
+  # itive then there is a deficit and thus horses will be con-
+  # suming nothing, thus this deficit is not contributed to by
+  # horses (can never be).
+  food_deficit_without_stores 'int',
+
   # This could be less than the theoretical if there isn't enough
   # food in the warehouse.
   food_consumed_by_colonists_actual 'int',

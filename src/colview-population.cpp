@@ -44,19 +44,15 @@ using ::gfx::size;
 TileSpreadRenderPlans create_production_spreads(
     SSConst const& ss, ColonyProduction const& production,
     int const width ) {
-  int const food_deficit_without_stores =
-      std::max( production.food_horses
-                        .food_consumed_by_colonists_theoretical -
-                    production.food_horses.food_produced,
-                0 );
   TileSpreadConfigMulti const config{
     .tiles{
       { .tile  = e_tile::product_fish_20,
         .count = production.food_horses.fish_produced },
       { .tile  = e_tile::commodity_food_20,
         .count = production.food_horses.corn_produced },
-      { .tile  = e_tile::commodity_food_20,
-        .count = food_deficit_without_stores,
+      { .tile = e_tile::commodity_food_20,
+        .count =
+            production.food_horses.food_deficit_without_stores,
         .has_x = e_red_x_size::small },
       { .tile  = e_tile::product_crosses_20,
         .count = production.crosses },
