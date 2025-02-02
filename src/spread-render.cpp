@@ -79,6 +79,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
   };
   for( TileSpreadSpec const& tile_spread :
        tile_spreads.spreads ) {
+    CHECK_LE( tile_spread.icon_spread.rendered_count,
+              tile_spread.icon_spread.spec.count );
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
     auto& plan          = plans.plans.emplace_back();
     point const p_start = p;

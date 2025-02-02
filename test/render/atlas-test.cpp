@@ -120,6 +120,9 @@ TEST_CASE( "[render/atlas] single image" ) {
                  .size   = { .w = 2, .h = 3 } } );
 }
 
+TEST_CASE( "[render/atlas] trimmed area" ) {
+}
+
 TEST_CASE( "[render/atlas] multiple images" ) {
   AtlasBuilder builder;
 

@@ -79,6 +79,42 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
     } };
 
   REQUIRE( f() == expected );
+
+  specs = SpreadSpecs{
+    .bounds = 201,
+    .specs =
+        {
+          { .count = 14, .trimmed = { .start = 6, .len = 9 } },
+          { .count = 9, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 0, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 12, .trimmed = { .start = 3, .len = 14 } },
+          { .count = 43, .trimmed = { .start = 2, .len = 16 } },
+        },
+    .group_spacing = 4 };
+
+  expected = Spreads{
+    .spreads = {
+      { .spec           = { .count   = 14,
+                            .trimmed = { .start = 6, .len = 9 } },
+        .rendered_count = 14,
+        .spacing        = 2 },
+      { .spec           = { .count   = 9,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 9,
+        .spacing        = 4 },
+      { .spec           = { .count   = 0,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 0,
+        .spacing        = 13 },
+      { .spec           = { .count   = 12,
+                            .trimmed = { .start = 3, .len = 14 } },
+        .rendered_count = 12,
+        .spacing        = 3 },
+      { .spec           = { .count   = 43,
+                            .trimmed = { .start = 2, .len = 16 } },
+        .rendered_count = 43,
+        .spacing        = 1 } } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[spread] requires_label" ) {

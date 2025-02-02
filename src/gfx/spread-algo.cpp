@@ -10,12 +10,7 @@
 *****************************************************************/
 #include "spread-algo.hpp"
 
-// C++ standard library
-#include <ranges>
-
 using namespace std;
-
-namespace rv = std::ranges::views;
 
 namespace rn {
 
@@ -37,12 +32,25 @@ int64_t total_bounds( SpreadSpecs const& specs,
   return total;
 }
 
-Spread* find_largest( SpreadSpecs const& specs,
-                      Spreads& spreads ) {
+Spread* find_largest( Spreads& spreads ) {
   Spread* largest        = {};
   int64_t largest_bounds = 0;
-  for( auto&& [spec, spread] :
-       rv::zip( specs.specs, spreads.spreads ) ) {
+  for( Spread& spread : spreads.spreads ) {
+    int64_t const bounds = bounds_for_output( spread );
+    if( bounds > largest_bounds ) {
+      largest_bounds = bounds;
+      largest        = &spread;
+    }
+  }
+  return largest;
+}
+
+Spread* find_largest_with_non_adjacent_spacing(
+    Spreads& spreads ) {
+  Spread* largest        = {};
+  int64_t largest_bounds = 0;
+  for( Spread& spread : spreads.spreads ) {
+    if( spread.spacing <= 1 ) continue;
     int64_t const bounds = bounds_for_output( spread );
     if( bounds > largest_bounds ) {
       largest_bounds = bounds;
@@ -74,18 +82,18 @@ Spreads compute_compressed_proportionate(
   CHECK_GT( total_count, 0 );
   Spreads spreads;
   for( SpreadSpec const& spec : specs.specs ) {
-    auto& spread        = spreads.spreads.emplace_back();
-    spread.spec         = spec;
-    spread.spacing      = 1;
-    int const min_count = spec.count > 0 ? 1 : 0;
-    spread.rendered_count =
-        std::max( int( specs.bounds *
-                       ( double( spec.count ) / total_count ) ),
-                  min_count );
+    auto& spread          = spreads.spreads.emplace_back();
+    spread.spec           = spec;
+    spread.spacing        = 1;
+    int const min_count   = spec.count > 0 ? 1 : 0;
+    int const max_count   = spec.count;
+    spread.rendered_count = std::clamp(
+        int( specs.bounds * double( spec.count ) / total_count ),
+        min_count, max_count );
   }
 
   auto const decrement_count_for_largest = [&] {
-    Spread* const largest = find_largest( specs, spreads );
+    Spread* const largest = find_largest( spreads );
     if( !largest ) return false;
     // Not sure if this could happen here since "largest" depends
     // on other parameters such as spacing and width, which the
@@ -134,7 +142,8 @@ Spreads compute_icon_spread( SpreadSpecs const& specs ) {
   if( total_count == 0 ) return spreads;
 
   auto const decrement_spacing_for_largest = [&] {
-    Spread* const largest = find_largest( specs, spreads );
+    Spread* const largest =
+        find_largest_with_non_adjacent_spacing( spreads );
     // Not sure if this could happen here since "largest" depends
     // on other parameters such as spacing and width, which the
     // user could pass in as zero, so good to be defensive but
@@ -154,6 +163,9 @@ Spreads compute_icon_spread( SpreadSpecs const& specs ) {
     }
   }
 
+  for( auto const& spread : spreads.spreads ) {
+    CHECK_LE( spread.rendered_count, spread.spec.count );
+  }
   return spreads;
 }
 
