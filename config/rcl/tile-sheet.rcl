@@ -45,9 +45,22 @@ sheets {
     }
     {
       img_path: assets/art/harbor2/post.png
-      sprite_size: { w: 58, h: 145 }
+      sprite_size: { w: 59, h: 145 }
       sprites {
         harbor_post: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/rpt-buttons.png
+      sprite_size: { w: 49, h: 12 }
+      sprites {
+        harbor_rpt_button_normal: { y: 0, x: 0 }
+        harbor_rpt_button_hover:  { y: 1, x: 0 }
+        harbor_rpt_button_press:  { y: 2, x: 0 }
+        harbor_rpt_recruit:       { y: 0, x: 1 }
+        harbor_rpt_purchase:      { y: 1, x: 1 }
+        harbor_rpt_train:         { y: 2, x: 1 }
+        harbor_rpt_hangers:       { y: 3, x: 0 }
       }
     }
     {

@@ -20,6 +20,9 @@
 #include "harbor-view-entities.hpp"
 #include "wait.hpp"
 
+// refl
+#include "refl/enum-map.hpp"
+
 namespace rn {
 
 struct HarborBackdrop;
@@ -29,53 +32,88 @@ struct Player;
 struct SS;
 struct TS;
 
+enum class e_tile;
+
+// For some strange reason we need to keep this outside of the
+// below class otherwise it fails the enum_map's test for default
+// constructibility. It has something to do with the struct not
+// being marked as "complete" since it is nested. See this bug:
+//
+//   https://bugs.llvm.org/show_bug.cgi?id=38374
+//
+// Ideally we would have nested this inside Layout.
+struct RptButton {
+  gfx::rect bounds = {};
+  e_tile text_tile = {};
+};
+
 /****************************************************************
 ** HarborRptButtons
 *****************************************************************/
 struct HarborRptButtons : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborRptButtons> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop, HarborDockUnits& doc_units,
-      HarborInPortShips& in_port_ships );
+      HarborBackdrop const& backdrop );
+
+  struct Layout {
+    // Absolute coordinates. The nw of this view is the left-most
+    // point of the sign post (the one extending to the left).
+    gfx::rect view = {};
+    // Relative to the nw of the view.
+    gfx::point post_left_point    = {};
+    gfx::point post_sprite_origin = {};
+
+    refl::enum_map<e_rpt_button, RptButton> buttons = {};
+  };
 
   HarborRptButtons( SS& ss, TS& ts, Player& player,
-                    HarborDockUnits& doc_units,
-                    HarborInPortShips& in_port_ships );
+                    Layout layout );
 
-  // Implement ui::Object.
+ public: // ui::Object
   Delta delta() const override;
 
-  // Implement IDraggableObjectsView.
-  maybe<int> entity() const override;
-
-  ui::View& view() noexcept override;
-  ui::View const& view() const noexcept override;
-
-  // Implement ui::Object.
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 
-  // Override ui::AwaitView.
+  bool on_mouse_move(
+      input::mouse_move_event_t const& event ) override;
+
+  void on_mouse_leave( Coord from ) override;
+  void on_mouse_enter( Coord from ) override;
+
+ public: // IDraggableObjectsView.
+  maybe<int> entity() const override;
+
+ public: // HarborSubView
+  ui::View& view() noexcept override;
+
+  ui::View const& view() const noexcept override;
+
+ public: // ui::AwaitView.
   virtual wait<> perform_click(
       input::mouse_button_event_t const& event ) override;
 
-  // Override ui::AwaitView.
   virtual wait<bool> perform_key(
       input::key_event_t const& event ) override;
 
  private:
-  static constexpr H kVerticalSpacing = 4;
+  // Mouse position is relative to this view.
+  void update_mouse_hover( gfx::point mouse_pos );
 
-  static Delta button_size();
-  static Delta total_size();
+  maybe<e_rpt_button> button_for_coord( gfx::point where ) const;
 
-  static Rect button_rect( e_rpt_button button );
-  static std::string button_text_markup( e_rpt_button button );
+  static Layout create_layout( gfx::rect canvas,
+                               HarborBackdrop const& backdrop );
 
-  static maybe<e_rpt_button> button_for_coord( Coord where );
-
-  HarborDockUnits& dock_units_;
-  HarborInPortShips& in_port_ships_;
+  Layout const layout_;
+  // The reason that we need to store the hover state instead of
+  // just measuring it directly in the draw method to determine
+  // button highlighting state is that we want this hover be-
+  // havior to respect the presence of modal windows and other
+  // views that are on top of this one, which we do by hooking
+  // into the usual input events and recording the state that
+  // way, rather than querying the input device directly.
+  maybe<e_rpt_button> mouse_hover_;
 };
 
 } // namespace rn

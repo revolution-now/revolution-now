@@ -288,7 +288,11 @@ struct HarborPlane::Impl : public IPlane {
                                 drag_state_, ts_.gui, event );
   }
 
-  wait<> handle_event( auto const& ) { co_return; }
+  wait<> handle_event( auto const& e ) {
+    [[maybe_unused]] bool const handled =
+        harbor_view_top_level().view().input( e );
+    co_return;
+  }
 
   // Remove all input events from the queue corresponding to
   // normal user input, but save the ones that we always need to

@@ -814,8 +814,15 @@ enum.e_tile {
   harbor_cargo_overflow,
   harbor_cargo_front,
 
-  # RPT
+  # RPT,
   harbor_post,
+  harbor_rpt_hangers,
+  harbor_rpt_button_normal,
+  harbor_rpt_button_hover,
+  harbor_rpt_button_press,
+  harbor_rpt_recruit,
+  harbor_rpt_purchase,
+  harbor_rpt_train,
 
   # =============================================================
   # Mouse Cursors

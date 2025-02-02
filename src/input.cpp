@@ -49,9 +49,9 @@ using ::gfx::point;
 // the current mouse position whenever it changes.
 Coord g_prev_mouse_pos{};
 
-using mouse_button_state_t =
+using sdl_mouse_button_state =
     decltype( declval<::SDL_Event>().button.state );
-mouse_button_state_t g_mouse_buttons{};
+sdl_mouse_button_state g_mouse_buttons{};
 
 // These maintain the dragging state.
 drag_phase l_drag{ drag_phase::none{} };
@@ -580,6 +580,14 @@ bool has_mod_key( key_event_t const& event ) {
          || event.mod.r_ctrl_down //
          || event.mod.ctrl_down   //
       ;
+}
+
+mouse_buttons_state get_mouse_buttons_state() {
+  mouse_buttons_state state;
+  state.l_down = bool( g_mouse_buttons & SDL_BUTTON_LMASK );
+  state.m_down = bool( g_mouse_buttons & SDL_BUTTON_MMASK );
+  state.r_down = bool( g_mouse_buttons & SDL_BUTTON_RMASK );
+  return state;
 }
 
 void move_mouse_origin( event_t& event, Delta const delta ) {
