@@ -79,18 +79,17 @@ out vec4 final_color;
 //       opengl-4-4-texture-atlas-artifacts
 //
 vec2 fix_atlas_pos( in vec2 atlas_pos, in vec4 bounds ) {
-  float BUFFER = 0.002;
+  const float BUFFER = 0.002;
   vec2 delta = vec2( BUFFER )/u_atlas_size;
-  vec2 atlas_pos_min = vec2(bounds.x+delta.x, bounds.y+delta.y);
-  vec2 atlas_pos_max = vec2(bounds.x+bounds.z-delta.x,
-                            bounds.y+bounds.w-delta.y);
+  vec2 atlas_pos_min = bounds.xy+delta;
+  vec2 atlas_pos_max = bounds.xy+bounds.zw-delta;
   return clamp( atlas_pos, atlas_pos_min, atlas_pos_max );
 }
 
 vec4 atlas_lookup( in vec2 atlas_pos, in vec4 atlas_rect ) {
   atlas_pos /= u_atlas_size;
   atlas_rect /= vec4(u_atlas_size.xy, u_atlas_size.xy);
-  atlas_pos =fix_atlas_pos( atlas_pos, atlas_rect );
+  atlas_pos = fix_atlas_pos( atlas_pos, atlas_rect );
   return texture( u_atlas, atlas_pos );
 }
 

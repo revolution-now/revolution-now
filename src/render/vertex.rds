@@ -70,7 +70,7 @@ struct.GenericVertex {
 
   # General integral parameter:
   #   * When color cycling is on, this selects which array is used to
-  #   * select the target colors.
+  #     select the target colors.
   aux_idx 'int32_t',
 
   # Depixelation. This triangle will have individual pixels ran-
