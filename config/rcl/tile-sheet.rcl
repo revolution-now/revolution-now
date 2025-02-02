@@ -44,6 +44,13 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/post.png
+      sprite_size: { w: 58, h: 145 }
+      sprites {
+        harbor_post: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/cargohold.png
       sprite_size: { w: 204, h: 39 }
       sprites {
