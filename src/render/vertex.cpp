@@ -30,6 +30,7 @@ GenericVertex proto_vertex( vertex_type type,
   return GenericVertex{
     .type                = static_cast<int32_t>( type ),
     .flags               = 0,
+    .aux_bits_1          = 0,
     .depixelate          = gl::vec4{},
     .depixelate_stages   = gl::vec4{},
     .position            = gl::vec2::from_point( position ),
@@ -114,11 +115,31 @@ void VertexBase::set_translation2( gfx::dsize trans ) {
   translation2 = gl::vec2::from_dsize( trans );
 }
 
-void VertexBase::set_aux_idx( int32_t const value ) {
-  aux_idx = value;
+uint32_t VertexBase::get_color_cycle_plan() const {
+  static auto constexpr kMask  = VERTEX_AUX_BITS_1_COLOR_CYCLE;
+  static auto constexpr kShift = countr_zero( kMask );
+  return ( aux_bits_1 & kMask ) >> kShift;
 }
 
-int32_t VertexBase::get_aux_idx() const { return aux_idx; }
+void VertexBase::set_color_cycle_plan( uint32_t const arr ) {
+  static auto constexpr kMask  = VERTEX_AUX_BITS_1_COLOR_CYCLE;
+  static auto constexpr kShift = countr_zero( kMask );
+  aux_bits_1 &= ~kMask;
+  aux_bits_1 |= ( arr & ( kMask >> kShift ) ) << kShift;
+}
+
+uint32_t VertexBase::get_downsampling_power() const {
+  static auto constexpr kMask  = VERTEX_AUX_BITS_1_DOWNSAMPLE;
+  static auto constexpr kShift = countr_zero( kMask );
+  return ( aux_bits_1 & kMask ) >> kShift;
+}
+
+void VertexBase::set_downsampling_power( uint32_t const arr ) {
+  static auto constexpr kMask  = VERTEX_AUX_BITS_1_DOWNSAMPLE;
+  static auto constexpr kShift = countr_zero( kMask );
+  aux_bits_1 &= ~kMask;
+  aux_bits_1 |= ( arr & ( kMask >> kShift ) ) << kShift;
+}
 
 void VertexBase::set_color_cycle( bool enabled ) {
   auto constexpr mask = VERTEX_FLAG_COLOR_CYCLE;

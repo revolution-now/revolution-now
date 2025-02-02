@@ -88,6 +88,10 @@ struct ColorCyclingInfo {
   base::maybe<int> plan = {};
 };
 
+struct SamplingInfo {
+  base::maybe<int> downsample = {};
+};
+
 struct PainterMods {
   DepixelateInfo depixelate              = {};
   base::maybe<double> alpha              = {};
@@ -97,6 +101,7 @@ struct PainterMods {
   base::maybe<gfx::pixel> fixed_color    = {};
   base::maybe<bool> uniform_depixelation = {};
   base::maybe<StencilPlan> stencil       = {};
+  SamplingInfo sampling                  = {};
 };
 
 /****************************************************************

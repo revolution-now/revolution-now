@@ -41,6 +41,14 @@ namespace rr {
 #define VERTEX_FLAG_UNIFORM_DEPIXELATION ( uint32_t{ 1 } << 4 )
 
 /****************************************************************
+** aux_bits_1 masks.
+*****************************************************************/
+// These need to be kept in sync with the corresponding ones in
+// the shader.
+#define VERTEX_AUX_BITS_1_COLOR_CYCLE ( uint32_t{ 0xf } << 0 )
+#define VERTEX_AUX_BITS_1_DOWNSAMPLE  ( uint32_t{ 0x7 } << 4 )
+
+/****************************************************************
 ** Concept
 *****************************************************************/
 template<typename T>
@@ -89,9 +97,11 @@ struct VertexBase : protected GenericVertex {
   void set_translation1( gfx::dsize translation1 );
   void set_translation2( gfx::dsize translation2 );
 
-  // *** Auxiliary index.
-  int32_t get_aux_idx() const;
-  void set_aux_idx( int32_t value );
+  // *** Auxiliary bits 1.
+  uint32_t get_color_cycle_plan() const;
+  void set_color_cycle_plan( uint32_t arr );
+  uint32_t get_downsampling_power() const;
+  void set_downsampling_power( uint32_t arr );
 
   // *** Color Cycling.
   bool get_color_cycle() const;

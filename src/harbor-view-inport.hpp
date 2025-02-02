@@ -98,7 +98,7 @@ struct HarborInPortShips
 
  private:
   struct UnitWithPosition {
-    UnitId id;
+    UnitId id = {};
     gfx::rect bounds;
   };
 

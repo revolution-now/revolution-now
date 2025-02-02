@@ -911,7 +911,39 @@ TEST_CASE( "[render/painter] mod cycling.plan" ) {
   auto Vert = [&]( point p ) {
     auto vert = SolidVertex( p, G );
     vert.set_color_cycle( true );
-    vert.set_aux_idx( 555 );
+    vert.set_color_cycle_plan( 555 );
+    return vert.generic();
+  };
+
+  r = rect{ .origin = { .x = 20, .y = 30 },
+            .size   = { .w = 100, .h = 200 } };
+  painter.draw_solid_rect( r, G );
+  expected = {
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 20, .y = 230 } ),
+    Vert( { .x = 120, .y = 230 } ),
+    Vert( { .x = 20, .y = 30 } ),
+    Vert( { .x = 120, .y = 30 } ),
+    Vert( { .x = 120, .y = 230 } ),
+  };
+  REQUIRE( v == expected );
+}
+
+TEST_CASE( "[render/painter] mod sampling.downsample" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter unmodded_painter( atlas_map(), emitter );
+
+  PainterMods mods;
+  mods.sampling.downsample = 3;
+  Painter painter          = unmodded_painter.with_mods( mods );
+
+  rect r;
+
+  auto Vert = [&]( point p ) {
+    auto vert = SolidVertex( p, G );
+    vert.set_downsampling_power( 3 );
     return vert.generic();
   };
 

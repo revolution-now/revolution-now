@@ -243,6 +243,12 @@ void HarborInboundShips::draw( rr::Renderer& renderer,
         bounds.nw().distance_from_origin().to_double() );
     SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale,
                              double( bounds.size.w ) / 32 );
+    // NOTE: can remove this once we can render to an offscreen
+    // buffer to automatically downsample.
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.sampling.downsample,
+        countr_zero( 32u ) -
+            countr_zero( uint32_t( bounds.size.w ) ) );
     rr::Painter painter = renderer.painter();
     render_unit( renderer, point{},
                  ss_.units.unit_for( unit_id ),

@@ -190,12 +190,39 @@ TEST_CASE( "[render/vertex] translation2" ) {
            gl::vec2{ .x = 2, .y = -4 } );
 }
 
-TEST_CASE( "[render/vertex] aux_idx" ) {
+TEST_CASE( "[render/vertex] aux_bits_1" ) {
   SpriteVertex vert( point{}, point{}, rect{} );
-  REQUIRE( vert.generic().aux_idx == 0 );
-  vert.set_aux_idx( 5 );
-  REQUIRE( vert.generic().aux_idx == 5 );
-  REQUIRE( vert.get_aux_idx() == 5 );
+  REQUIRE( vert.generic().aux_bits_1 == 0 );
+
+  vert.set_color_cycle_plan( 5 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000005 );
+  REQUIRE( vert.get_color_cycle_plan() == 5 );
+
+  vert.set_downsampling_power( 6 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000065 );
+  REQUIRE( vert.get_color_cycle_plan() == 5 );
+  REQUIRE( vert.get_downsampling_power() == 6 );
+
+  vert.set_downsampling_power( 8 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000005 );
+  REQUIRE( vert.get_color_cycle_plan() == 5 );
+  REQUIRE( vert.get_downsampling_power() == 0 );
+
+  vert.set_downsampling_power( 7 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000075 );
+  REQUIRE( vert.get_color_cycle_plan() == 5 );
+  REQUIRE( vert.get_downsampling_power() == 7 );
+
+  // Unset.
+  vert.set_color_cycle_plan( 0 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000070 );
+  REQUIRE( vert.get_color_cycle_plan() == 0 );
+  REQUIRE( vert.get_downsampling_power() == 7 );
+
+  vert.set_downsampling_power( 0 );
+  REQUIRE( vert.generic().aux_bits_1 == 0x00000000 );
+  REQUIRE( vert.get_downsampling_power() == 0 );
+  REQUIRE( vert.get_downsampling_power() == 0 );
 }
 
 TEST_CASE( "[render/vertex] color_cycle" ) {

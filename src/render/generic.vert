@@ -12,7 +12,7 @@
 
 layout (location = 0)  in int   in_type;
 layout (location = 1)  in uint  in_flags;
-layout (location = 2)  in int   in_aux_idx;
+layout (location = 2)  in uint  in_aux_bits_1;
 layout (location = 3)  in vec4  in_depixelate;
 layout (location = 4)  in vec4  in_depixelate_stages;
 layout (location = 5)  in vec2  in_position;
@@ -28,6 +28,8 @@ layout (location = 14) in vec2  in_translation2;
 
 flat out int   frag_type;
 flat out int   frag_aux_idx;
+flat out int   frag_color_cycle_plan;
+flat out int   frag_downsample;
 flat out int   frag_color_cycle;
 flat out int   frag_desaturate;
 flat out int   frag_use_fixed_color;
@@ -73,6 +75,22 @@ bool use_camera() {
 }
 
 /****************************************************************
+** aux_bits_1 bit masks.
+*****************************************************************/
+// These need to be kept in sync with the corresponding ones in
+// the C++ code.
+#define VERTEX_AUX_BITS_1_COLOR_CYCLE ( uint(0xf) << 0 )
+#define VERTEX_AUX_BITS_1_DOWNSAMPLE  ( uint(0x7) << 4 )
+
+uint get_color_cycle() {
+  return (in_aux_bits_1 & VERTEX_AUX_BITS_1_COLOR_CYCLE) >> 0;
+}
+
+uint get_downsample() {
+  return (in_aux_bits_1 & VERTEX_AUX_BITS_1_DOWNSAMPLE) >> 4;
+}
+
+/****************************************************************
 ** Helpers.
 *****************************************************************/
 // Any input that refers to screen (game) coordinates needs to be
@@ -105,7 +123,8 @@ vec2 inverse_scale( in vec2 v ) {
 // screen position of something must be scaled/translated.
 void forwarding() {
   frag_type                 = in_type;
-  frag_aux_idx              = in_aux_idx;
+  frag_color_cycle_plan     = int( get_color_cycle() );
+  frag_downsample           = int( get_downsample() );
   frag_color_cycle          = get_flag( VERTEX_FLAG_COLOR_CYCLE );
   frag_desaturate           = get_flag( VERTEX_FLAG_DESATURATE );
   frag_use_fixed_color      = get_flag( VERTEX_FLAG_FIXED_COLOR );

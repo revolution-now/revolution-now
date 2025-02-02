@@ -11,7 +11,8 @@
 #version 330 core
 
 flat in int   frag_type;
-flat in int   frag_aux_idx;
+flat in int   frag_color_cycle_plan;
+flat in int   frag_downsample;
 flat in int   frag_color_cycle;
 flat in int   frag_desaturate;
 flat in int   frag_use_fixed_color;
@@ -86,7 +87,41 @@ vec2 fix_atlas_pos( in vec2 atlas_pos, in vec4 bounds ) {
   return clamp( atlas_pos, atlas_pos_min, atlas_pos_max );
 }
 
+// Downsample the sprite by the given factor. E.g., if factor is
+// 2 then the sprite will be rendered at the same size, but will
+// have only half as many "pixels" rendered along each dimension,
+// so pixels will appear twice as big. It does this by throwing
+// away every second pixel.
+vec2 downsample_sprite( in vec2 atlas_pos, in vec4 atlas_rect,
+                        in float factor ) {
+  // We need to round down, but we need to do so with the origin
+  // at the sprite's origin in the atlas, otherwise our results
+  // are at the mercy of the (arbitrary) location that the sprite
+  // happens to be in the atlas.
+  vec2 relative = atlas_pos-atlas_rect.xy;
+  // This does the downsampling; it effectively rounds down to
+  // the nearest multiple of factor.
+  relative = floor( relative/factor )*factor;
+  // After the above transformation our atlas coordinate is going
+  // to be an integer, which means that it is referring to the
+  // point/line right between two pixels in the atlas. In these
+  // circumstances there is sometimes an ambiguity to the sampler
+  // as to which pixel to actually take, which distorts things.
+  // The fix_atlas_pos function fixes this for pixels at the
+  // edges of the sprite, but this is needed for the pixels in
+  // the middle, and will put the coordinate such that it is
+  // squarely within the area of the pixel we want so that there
+  // is no ambiguity to the sampler. That's the theory anyway...
+  relative = relative + vec2( .01 );
+  return atlas_rect.xy + relative;
+}
+
 vec4 atlas_lookup( in vec2 atlas_pos, in vec4 atlas_rect ) {
+  if( frag_downsample != 0 ) {
+    int n = 1;
+    for( int i = 0; i < frag_downsample; ++i ) n *= 2;
+    atlas_pos = downsample_sprite( atlas_pos, atlas_rect, n );
+  }
   atlas_pos /= u_atlas_size;
   atlas_rect /= vec4(u_atlas_size.xy, u_atlas_size.xy);
   atlas_pos = fix_atlas_pos( atlas_pos, atlas_rect );
@@ -289,7 +324,7 @@ vec4 color_cycle( in vec4 color ) {
   // between the two immune to rounding errors we will convert
   // the [0,1] color to [0,255] with rounding.
   vec3 rgb_ubyte = round( color.rgb*255.0 );
-  int plan_start = frag_aux_idx*CYCLE_PLAN_SPAN;
+  int plan_start = frag_color_cycle_plan*CYCLE_PLAN_SPAN;
   for( int i = 0; i < u_color_cycle_keys.length(); ++i ) {
     if( u_color_cycle_keys[i] != rgb_ubyte ) continue;
     int dst_idx = (i + u_color_cycle_stage) % CYCLE_PLAN_SPAN;
@@ -382,7 +417,7 @@ vec3 saturate_slow( in vec3 c, in float factor ) {
 vec4 use_me() {
   vec4 dummy = vec4( 0 )
     // List variables here to "use".
-    + vec4( frag_aux_idx )
+    + vec4( frag_color_cycle_plan )
     ;
   return .000000000000000000000001*dummy;
 }

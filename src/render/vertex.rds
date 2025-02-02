@@ -68,10 +68,18 @@ struct.GenericVertex {
   #
   flags 'uint32_t',
 
-  # General integral parameter:
-  #   * When color cycling is on, this selects which array is used to
-  #     select the target colors.
-  aux_idx 'int32_t',
+  # Bit field:
+  #
+  #   bits 0-4: Four-bit integer that, when color cycling is on,
+  #             selects which array is used to select the target
+  #             colors. Values can be 0-15.
+  #   bits 5-7: Three-bit integer n such that the downsampling
+  #             factor will be 2^n. Values:
+  #               0:   downsampling off.
+  #               1-7: enable downsampling with factor anywhere
+  #                    from 2^1=2 up to 2^7=128.
+  #
+  aux_bits_1 'uint32_t',
 
   # Depixelation. This triangle will have individual pixels ran-
   # domly removed depending on the stage of the animation, which
