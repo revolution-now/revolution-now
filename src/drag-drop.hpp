@@ -403,14 +403,14 @@ wait<> drag_drop_routine(
       CHECK( drag->state.phase != input::e_drag_phase::begin );
     }
 
-    if( auto win_event = latest.get_if<input::win_event_t>();
-        win_event &&
-        win_event->type == input::e_win_event_type::resized ) {
-      // If the window is getting resized then our coordinates
-      // might get messed up. It seems safest just ot cancel the
-      // drag.
+    if( auto res_event =
+            latest.get_if<input::resolution_event_t>();
+        res_event ) {
+      // If the resolution is changing then our coordinates might
+      // get messed up. It seems safest just ot cancel the drag.
       lg.warn(
-          "cancelling drag operation due to window resize." );
+          "cancelling drag operation due to resolution "
+          "change." );
       //
       // WARNING: do not force a re-composite here, since there
       // are SCOPE_EXIT's above that are hanging onto pointers
@@ -420,8 +420,8 @@ wait<> drag_drop_routine(
       // without invalidating the pointers to the views.
       //
       // We know that this event is not the last drag event,
-      // since it is a window resize event.  So we need to eat
-      // the remainder of the drag events.
+      // since it is a resolution event. So we need to eat the
+      // remainder of the drag events.
       co_await detail::eat_remaining_drag_events( input );
       co_return; // no rubber banding.
     }
