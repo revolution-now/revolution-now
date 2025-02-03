@@ -20,6 +20,7 @@
 #include "harbor-view-market.hpp"
 #include "harbor-view-outbound.hpp"
 #include "harbor-view-rpt.hpp"
+#include "harbor-view-status.hpp"
 #include "views.hpp"
 
 // render
@@ -63,53 +64,6 @@ void HarborViewComposited::update() {
 // This file only contains some small entities that don't need
 // their own files. The larger ones go in their own files for the
 // sake of not having this module get too large.
-
-/****************************************************************
-** HarborStatusBar
-*****************************************************************/
-class HarborStatusBar : public ui::View, public HarborSubView {
- public:
-  static unique_ptr<HarborStatusBar> create( SS& ss, TS& ts,
-                                             Player& player,
-                                             Delta size ) {
-    return make_unique<HarborStatusBar>( ss, ts, player, size );
-  }
-
-  HarborStatusBar( SS& ss, TS& ts, Player& player, Delta size )
-    : HarborSubView( ss, ts, player ), size_( size ) {}
-
-  Delta delta() const override { return size_; }
-
-  // Implement IDraggableObjectsView.
-  maybe<int> entity() const override {
-    return static_cast<int>( e_harbor_view_entity::status_bar );
-  }
-
-  ui::View& view() noexcept override { return *this; }
-  ui::View const& view() const noexcept override {
-    return *this;
-  }
-
-  string status() const { return status_; }
-
-  void draw( rr::Renderer& renderer,
-             Coord coord ) const override {
-    rr::Painter painter = renderer.painter();
-    painter.draw_solid_rect( bounds( coord ),
-                             gfx::pixel::wood() );
-    renderer
-        .typer( centered( Delta::from_gfx(
-                              rr::rendered_text_line_size_pixels(
-                                  status() ) ),
-                          bounds( coord ) ),
-                gfx::pixel::banana() )
-        .write( status() );
-  }
-
- private:
-  Delta size_;
-  string status_;
-};
 
 /****************************************************************
 ** CompositeHarborSubView
@@ -232,25 +186,25 @@ HarborViewComposited recomposite_harbor_view(
   vector<ui::OwningPositionedView> views;
 
   // [HarborStatusBar] ------------------------------------------
-  auto status_bar = HarborStatusBar::create(
-      ss, ts, player, Delta{ .w = canvas_size.w, .h = 10 } );
+  auto status_bar =
+      HarborStatusBar::create( ss, ts, player, canvas_rect );
+  auto& status_bar_ref = *status_bar.actual;
   composition.entities[e_harbor_view_entity::status_bar] =
-      status_bar.get();
-  views.push_back(
-      ui::OwningPositionedView{ .view  = std::move( status_bar ),
-                                .coord = canvas_rect.nw() } );
+      status_bar.harbor;
+  views.push_back( std::move( status_bar.owned ) );
 
   // [HarborMarketCommodities] ----------------------------------
   PositionedHarborSubView<HarborMarketCommodities>
       market_commodities = HarborMarketCommodities::create(
-          ss, ts, player, canvas_rect );
+          ss, ts, player, canvas_rect, status_bar_ref );
   composition.entities[e_harbor_view_entity::market] =
       market_commodities.harbor;
   views.push_back( std::move( market_commodities.owned ) );
 
   // [HarborCargo] ----------------------------------------------
   PositionedHarborSubView<HarborCargo> cargo =
-      HarborCargo::create( ss, ts, player, canvas_rect );
+      HarborCargo::create( ss, ts, player, canvas_rect,
+                           status_bar_ref );
   composition.entities[e_harbor_view_entity::cargo] =
       cargo.harbor;
   views.push_back( std::move( cargo.owned ) );

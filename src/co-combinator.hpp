@@ -24,9 +24,16 @@
 #include "base/variant.hpp"
 
 // C++ standard library
+#include <chrono>
 #include <concepts>
 #include <queue>
 #include <vector>
+
+namespace rn {
+// Fwd decl. so that we don't have to include co-time.hpp.
+wait<std::chrono::microseconds> wait_for_duration(
+    std::chrono::microseconds us );
+}
 
 namespace rn::co {
 
@@ -558,5 +565,19 @@ inline constexpr DetectSuspend detect_suspend{};
 ** halt
 *****************************************************************/
 wait<> halt();
+
+/****************************************************************
+** timeout
+*****************************************************************/
+template<typename T>
+wait<maybe<T>> timeout( std::chrono::microseconds const timeout,
+                        wait<T> w ) {
+  auto res_or_timeout = co_await first(
+      std::move( w ), wait_for_duration( timeout ) );
+  maybe<T> res;
+  if( res_or_timeout.index() == 0 )
+    res = std::move( std::get<0>( res_or_timeout ) );
+  co_return res;
+}
 
 } // namespace rn::co

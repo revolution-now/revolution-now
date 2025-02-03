@@ -112,30 +112,6 @@ struct HarborPlane::Impl : public IPlane {
   void draw( rr::Renderer& renderer ) const override {
     harbor_view_top_level().view().draw( renderer, point{} );
     harbor_view_drag_n_drop_draw( renderer );
-    draw_stats( renderer );
-  }
-
-  void draw_stats( rr::Renderer& renderer ) const {
-    auto const canvas = main_window_logical_rect(
-        engine_.video(), engine_.window(),
-        engine_.resolutions() );
-    auto& nation       = nation_obj( player_.nation );
-    string const stats = fmt::format(
-        "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
-        nation.harbor_city_name, nation.country_name,
-        // FIXME
-        ts_.gui.identifier_to_display_name(
-            refl::enum_value_name(
-                ss_.turn.time_point.season ) ),
-        ss_.turn.time_point.year,
-        player_.old_world.taxes.tax_rate, player_.money,
-        config_text.special_chars.currency );
-    Coord start = canvas.center();
-    start.y     = 1;
-    start.x -= rr::rendered_text_line_size_pixels( stats ).w / 2;
-    rr::Typer typer =
-        renderer.typer( start, gfx::pixel::banana() );
-    typer.write( stats );
   }
 
   void harbor_view_drag_n_drop_draw(

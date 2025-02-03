@@ -13,13 +13,16 @@
 // Revolution Now
 #include "commodity.hpp"
 #include "harbor-units.hpp"
+#include "harbor-view-status.hpp"
 #include "igui.hpp"
+#include "market.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 #include "unit-ownership.hpp"
 
 // config
+#include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
 // ss
@@ -129,6 +132,23 @@ HarborCargo::object_here( Coord const& where ) const {
     .obj = *draggable, .bounds = layout_.slots[slot] };
 }
 
+void HarborCargo::clear_status_bar_msg() const {
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::default_msg{} );
+}
+
+void HarborCargo::send_sell_info_to_status_bar(
+    e_commodity const comm ) {
+  CommodityPrice const price = market_price( player_, comm );
+  string const comm_name =
+      uppercase_commodity_display_name( comm );
+  string const msg = fmt::format(
+      "Selling {} at {}{}", comm_name, price.bid * 100,
+      config_text.special_chars.currency );
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::sticky_override{ .msg = msg } );
+}
+
 bool HarborCargo::try_drag( HarborDraggableObject const& o,
                             Coord const& ) {
   dragging_ = nothing;
@@ -159,15 +179,22 @@ bool HarborCargo::try_drag( HarborDraggableObject const& o,
       int const quantity =
           o.get<HarborDraggableObject::cargo_commodity>()
               .comm.quantity;
+      e_commodity const type =
+          o.get<HarborDraggableObject::cargo_commodity>()
+              .comm.type;
       dragging_ =
           Draggable{ .slot = slot, .quantity = quantity };
+      send_sell_info_to_status_bar( type );
       break;
     }
   }
   return true;
 }
 
-void HarborCargo::cancel_drag() { dragging_ = nothing; }
+void HarborCargo::cancel_drag() {
+  dragging_ = nothing;
+  clear_status_bar_msg();
+}
 
 wait<maybe<HarborDraggableObject>>
 HarborCargo::user_edit_object() const {
@@ -470,11 +497,12 @@ HarborCargo::Layout HarborCargo::create_layout(
 }
 
 PositionedHarborSubView<HarborCargo> HarborCargo::create(
-    SS& ss, TS& ts, Player& player, rect const canvas ) {
+    SS& ss, TS& ts, Player& player, rect const canvas,
+    HarborStatusBar& harbor_status_bar ) {
   Layout const layout = create_layout( canvas );
 
-  unique_ptr<HarborCargo> view =
-      make_unique<HarborCargo>( ss, ts, player, layout );
+  unique_ptr<HarborCargo> view = make_unique<HarborCargo>(
+      ss, ts, player, harbor_status_bar, layout );
   HarborSubView* harbor_sub_view = view.get();
   HarborCargo* p_actual          = view.get();
   return PositionedHarborSubView<HarborCargo>{
@@ -485,7 +513,10 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
 }
 
 HarborCargo::HarborCargo( SS& ss, TS& ts, Player& player,
+                          HarborStatusBar& harbor_status_bar,
                           Layout const& layout )
-  : HarborSubView( ss, ts, player ), layout_( layout ) {}
+  : HarborSubView( ss, ts, player ),
+    harbor_status_bar_( harbor_status_bar ),
+    layout_( layout ) {}
 
 } // namespace rn

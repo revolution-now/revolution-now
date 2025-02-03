@@ -1,0 +1,26 @@
+# ===============================================================
+# harbor-view-status.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-02-02.
+#
+# Description: Rds definitions for the harbor-view-status module.
+#
+# ===============================================================
+# C++ standard library
+include "<string>"
+
+namespace "rn"
+
+sumtype.HarborStatusMsg {
+  default_msg {},
+
+  sticky_override {
+    msg 'std::string',
+  },
+
+  transient_override {
+    msg 'std::string',
+  },
+}

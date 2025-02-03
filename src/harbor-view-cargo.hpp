@@ -24,6 +24,7 @@ namespace rn {
 struct SS;
 struct TS;
 struct Player;
+struct HarborStatusBar;
 
 /****************************************************************
 ** HarborCargo
@@ -48,9 +49,11 @@ struct HarborCargo
   };
 
   static PositionedHarborSubView<HarborCargo> create(
-      SS& ss, TS& ts, Player& player, gfx::rect canvas );
+      SS& ss, TS& ts, Player& player, gfx::rect canvas,
+      HarborStatusBar& harbor_status_bar );
 
   HarborCargo( SS& ss, TS& ts, Player& player,
+               HarborStatusBar& harbor_status_bar,
                Layout const& layout );
 
   // Implement ui::Object.
@@ -95,6 +98,10 @@ struct HarborCargo
  private:
   static Layout create_layout( gfx::rect canvas );
 
+  // For managing the status bar.
+  void send_sell_info_to_status_bar( e_commodity comm );
+  void clear_status_bar_msg() const;
+
   maybe<UnitId> get_active_unit() const;
 
   maybe<HarborDraggableObject> draggable_in_cargo_slot(
@@ -108,6 +115,7 @@ struct HarborCargo
   };
 
   maybe<Draggable> dragging_;
+  HarborStatusBar& harbor_status_bar_;
   Layout const layout_;
 };
 

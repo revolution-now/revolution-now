@@ -14,6 +14,7 @@
 // Revolution Now
 #include "cheat.hpp"
 #include "commodity.hpp"
+#include "harbor-view-status.hpp"
 #include "igui.hpp"
 #include "input.hpp"
 #include "market.hpp"
@@ -23,6 +24,7 @@
 #include "ts.hpp"
 
 // config
+#include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
 // ss
@@ -124,6 +126,48 @@ HarborMarketCommodities::object_here(
     .bounds = layout_.comm_icon[*comm_type] };
 }
 
+void HarborMarketCommodities::clear_status_bar_msg() const {
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::default_msg{} );
+}
+
+void HarborMarketCommodities::send_purchase_info_to_status_bar(
+    e_commodity const comm ) {
+  CommodityPrice const price = market_price( player_, comm );
+  string const comm_name =
+      uppercase_commodity_display_name( comm );
+  string const msg = fmt::format(
+      "Purchasing {} at {}{}", comm_name, price.ask * 100,
+      config_text.special_chars.currency );
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::sticky_override{ .msg = msg } );
+}
+
+void HarborMarketCommodities::send_invoice_msg_to_status_bar(
+    Invoice const& invoice ) const {
+  e_transaction const buy_sell =
+      invoice.money_delta_before_taxes < 0 ? e_transaction::buy
+                                           : e_transaction::sell;
+  string const comm_name =
+      uppercase_commodity_display_name( invoice.what.type );
+  string const msg = [&] {
+    switch( buy_sell ) {
+      case e_transaction::sell:
+        return fmt::format(
+            "{} {} sold for {}. {}% Tax: {}. Net: {}",
+            invoice.what.quantity, comm_name,
+            invoice.money_delta_before_taxes, invoice.tax_rate,
+            invoice.tax_amount, invoice.money_delta_final );
+      case e_transaction::buy:
+        return fmt::format( "{} {} purchased for {}",
+                            invoice.what.quantity, comm_name,
+                            -invoice.money_delta_before_taxes );
+    }
+  }();
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::transient_override{ .msg = msg } );
+}
+
 bool HarborMarketCommodities::try_drag(
     HarborDraggableObject const& o, Coord const& ) {
   UNWRAP_CHECK(
@@ -134,11 +178,13 @@ bool HarborMarketCommodities::try_drag(
   // Note that we allow this even if there is an active boycott
   // on the commodity, since we will handle that in the interac-
   // tive confirmation process.
+  send_purchase_info_to_status_bar( comm.comm.type );
   return true;
 }
 
 void HarborMarketCommodities::cancel_drag() {
   dragging_ = nothing;
+  clear_status_bar_msg();
 }
 
 wait<maybe<HarborDraggableObject>>
@@ -210,7 +256,7 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
   Invoice const invoice = transaction_invoice(
       ss_, player_, comm, e_transaction::buy,
       e_immediate_price_change_allowed::allowed );
-  dragging_->price_change = invoice.price_change;
+  dragging_->invoice = invoice;
   apply_invoice( ss_, player_, invoice );
   co_return;
 }
@@ -218,9 +264,10 @@ wait<> HarborMarketCommodities::disown_dragged_object() {
 wait<> HarborMarketCommodities::post_successful_source(
     HarborDraggableObject const&, Coord const& ) {
   CHECK( dragging_.has_value() );
-  if( dragging_->price_change.delta != 0 )
+  send_invoice_msg_to_status_bar( dragging_->invoice );
+  if( dragging_->invoice.price_change.delta != 0 )
     co_await display_price_change_notification(
-        ts_, player_, dragging_->price_change );
+        ts_, player_, dragging_->invoice.price_change );
 }
 
 maybe<CanReceiveDraggable<HarborDraggableObject>>
@@ -259,6 +306,7 @@ wait<> HarborMarketCommodities::drop(
       ss_, player_, comm, e_transaction::sell,
       e_immediate_price_change_allowed::allowed );
   apply_invoice( ss_, player_, invoice );
+  send_invoice_msg_to_status_bar( invoice );
   if( invoice.price_change.delta != 0 )
     co_await display_price_change_notification(
         ts_, player_, invoice.price_change );
@@ -361,8 +409,9 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
 }
 
 PositionedHarborSubView<HarborMarketCommodities>
-HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
-                                 Rect canvas ) {
+HarborMarketCommodities::create(
+    SS& ss, TS& ts, Player& player, Rect canvas,
+    HarborStatusBar& harbor_status_bar ) {
   size const sz = canvas.delta();
 
   Layout layout;
@@ -521,8 +570,8 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
 
   unique_ptr<HarborMarketCommodities> view;
   HarborSubView* harbor_sub_view = nullptr;
-  view = make_unique<HarborMarketCommodities>( ss, ts, player,
-                                               layout );
+  view = make_unique<HarborMarketCommodities>(
+      ss, ts, player, harbor_status_bar, layout );
   harbor_sub_view                   = view.get();
   HarborMarketCommodities* p_actual = view.get();
   return PositionedHarborSubView<HarborMarketCommodities>{
@@ -532,7 +581,10 @@ HarborMarketCommodities::create( SS& ss, TS& ts, Player& player,
 }
 
 HarborMarketCommodities::HarborMarketCommodities(
-    SS& ss, TS& ts, Player& player, Layout const& layout )
-  : HarborSubView( ss, ts, player ), layout_( layout ) {}
+    SS& ss, TS& ts, Player& player,
+    HarborStatusBar& harbor_status_bar, Layout const& layout )
+  : HarborSubView( ss, ts, player ),
+    harbor_status_bar_( harbor_status_bar ),
+    layout_( layout ) {}
 
 } // namespace rn

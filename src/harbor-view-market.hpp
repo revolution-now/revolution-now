@@ -26,6 +26,7 @@ namespace rn {
 struct SS;
 struct TS;
 struct Player;
+struct HarborStatusBar;
 
 enum class e_tile;
 
@@ -70,9 +71,11 @@ struct HarborMarketCommodities
   };
 
   static PositionedHarborSubView<HarborMarketCommodities> create(
-      SS& ss, TS& ts, Player& player, Rect canvas );
+      SS& ss, TS& ts, Player& player, Rect canvas,
+      HarborStatusBar& harbor_status_bar );
 
   HarborMarketCommodities( SS& ss, TS& ts, Player& player,
+                           HarborStatusBar& harbor_status_bar,
                            Layout const& layout );
 
   // Implement ui::Object.
@@ -138,6 +141,12 @@ struct HarborMarketCommodities
   // did not lift it, i.e. we are blocked.
   wait<base::NoDiscard<bool>> check_boycott( e_commodity type );
 
+  // For managing the status bar.
+  void send_invoice_msg_to_status_bar(
+      Invoice const& invoice ) const;
+  void send_purchase_info_to_status_bar( e_commodity comm );
+  void clear_status_bar_msg() const;
+
   static constexpr W single_layer_blocks_width  = 16;
   static constexpr W double_layer_blocks_width  = 8;
   static constexpr H single_layer_blocks_height = 1;
@@ -158,11 +167,12 @@ struct HarborMarketCommodities
       double_layer_blocks_height * sprite_scale.h;
 
   struct Draggable {
-    Commodity comm           = {};
-    PriceChange price_change = {};
+    Commodity comm  = {};
+    Invoice invoice = {};
   };
   maybe<Draggable> dragging_;
 
+  HarborStatusBar& harbor_status_bar_;
   Layout const layout_;
 };
 
