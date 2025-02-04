@@ -24,6 +24,7 @@ using namespace std;
 namespace gfx {
 
 using ::base::maybe;
+using ::base::nothing;
 
 /****************************************************************
 ** image
@@ -149,16 +150,28 @@ void image::blit_from( image const& other,
 }
 
 rect image::find_trimmed_bounds_in( rect const r ) const {
-  point p_min = r.center();
-  point p_max = r.center();
+  CHECK( r.is_inside( rect_pixels() ) );
+  maybe<point> p_min = nothing;
+  maybe<point> p_max = nothing;
   for( auto const p : rect_iterator( r ) ) {
     if( at( p ).a == 0 ) continue;
-    p_min.x = std::min( p_min.x, p.x );
-    p_min.y = std::min( p_min.y, p.y );
-    p_max.x = std::max( p_max.x, p.x + 1 );
-    p_max.y = std::max( p_max.y, p.y + 1 );
+    if( !p_min.has_value() ) {
+      CHECK( !p_max.has_value() );
+      p_min = p;
+      p_max = p;
+    }
+    CHECK( p_min.has_value() );
+    CHECK( p_max.has_value() );
+    p_min->x = std::min( p_min->x, p.x );
+    p_min->y = std::min( p_min->y, p.y );
+    p_max->x = std::max( p_max->x, p.x + 1 );
+    p_max->y = std::max( p_max->y, p.y + 1 );
   }
-  return rect::from( p_min, p_max );
+  if( !p_min.has_value() ) {
+    CHECK( !p_max.has_value() );
+    return rect{ .origin = r.center() };
+  }
+  return rect::from( *p_min, *p_max );
 }
 
 /****************************************************************
