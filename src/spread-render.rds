@@ -68,14 +68,6 @@ sumtype.SpreadLabels {
   },
 }
 
-struct.SpreadLabelRenderPlan {
-  # Copied from input as-is.
-  options 'SpreadLabelOptions',
-  text 'std::string',
-  # nw corner of where to render the box.
-  where 'gfx::point',
-}
-
 # ---------------------------------------------------------------
 # Spreads of tiles.
 # ---------------------------------------------------------------
@@ -96,6 +88,17 @@ struct.TileSpreadSpecs {
   # for correct behavior.
   group_spacing 'int',
   label_policy 'SpreadLabels',
+}
+
+# ---------------------------------------------------------------
+# Render Plans.
+# ---------------------------------------------------------------
+struct.SpreadLabelRenderPlan {
+  # Copied from input as-is.
+  options 'SpreadLabelOptions',
+  text 'std::string',
+  # nw corner of where to render the box.
+  where 'gfx::point',
 }
 
 struct.TileRenderPlan {
