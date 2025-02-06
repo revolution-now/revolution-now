@@ -31,7 +31,27 @@ using ::gfx::pixel;
 ** Public API.
 *****************************************************************/
 TileSpreadRenderPlans build_tile_spread_multi(
-    TileSpreadConfigMulti const& configs ) {
+    TileSpreadConfigMulti const& configs_unadjusted ) {
+  TileSpreadConfigMulti const configs = [&] {
+    TileSpreadConfigMulti res = configs_unadjusted;
+    for( auto& tile_spread : res.tiles ) {
+      if( tile_spread.progress_count.has_value() )
+        // This is done for two reasons: one because if the
+        // progress happens to be larger than the total (which
+        // can happen, e.g. if the player transiently has more
+        // liberty bells than are needed for the next founding
+        // father) then the below spread algo will crash. Second,
+        // in that same scenario, if we were to instead cap the
+        // player's progress count then there would be a visual
+        // discrepancy between how many tiles are rendered and
+        // what is shown on the label. So we just increase the
+        // total to be equal to the progress, which should lead
+        // to the right thing visually happening.
+        tile_spread.count = std::max(
+            tile_spread.count, *tile_spread.progress_count );
+    }
+    return res;
+  }();
   SpreadSpecs const specs = [&] {
     SpreadSpecs res;
     res.bounds        = configs.options.bounds;
@@ -44,7 +64,19 @@ TileSpreadRenderPlans build_tile_spread_multi(
     }
     return res;
   }();
-  Spreads const icon_spreads = compute_icon_spread( specs );
+  Spreads const icon_spreads = [&] {
+    Spreads spreads = compute_icon_spread( specs );
+    for( auto tiles_it = configs.tiles.begin();
+         auto& spread : spreads.spreads ) {
+      CHECK( tiles_it != configs.tiles.end() );
+      if( tiles_it->progress_count.has_value() ) {
+        adjust_rendered_count_for_progress_count(
+            spread, *tiles_it->progress_count );
+      }
+      ++tiles_it;
+    }
+    return spreads;
+  }();
   TileSpreadSpecs const tile_spreads = [&] {
     TileSpreadSpecs res;
     res.label_policy  = configs.options.label_policy;
@@ -55,7 +87,8 @@ TileSpreadRenderPlans build_tile_spread_multi(
       TileSpreadSpec tile_spread_spec{
         .icon_spread = icon_spread,
         .tile        = config_it->tile,
-        .label_opts  = configs.options.label_opts };
+        .label_opts  = configs.options.label_opts,
+        .label_count = config_it->progress_count };
       if( config_it->has_x ) {
         tile_spread_spec.label_opts.color_fg = pixel::red();
         switch( ( *config_it->has_x ) ) {

@@ -168,8 +168,9 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           }
         }
       }();
-      string const label_text =
-          to_string( tile_spread.icon_spread.spec.count );
+      int const label_count = tile_spread.label_count.value_or(
+          tile_spread.icon_spread.spec.count );
+      string const label_text      = to_string( label_count );
       size const padded_label_size = [&] {
         size const label_size =
             rr::rendered_text_line_size_pixels( label_text );

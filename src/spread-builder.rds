@@ -28,6 +28,25 @@ struct.TileSpread {
   tile 'e_tile',
   count 'int',
   has_x 'base::maybe<e_red_x_size>',
+  # If this is set then only this many tiles will actually be
+  # rendered (also reflected in the label), though they will
+  # still be rendered with the same spacing parameters as other-
+  # wise. This is used to represent progress indicators where we
+  # want the spacing to give an indication of the maximum goal
+  # value and the rendered count to give current progress. An ex-
+  # ample of this would be on the Continental Congress report
+  # page where we show the number of bells as a progress indi-
+  # cator toward the total needed for the next founding father.
+  # If this value is larger than the count that would have been
+  # rendered otherwise then it will be truncated; i.e., it can
+  # never increase the number that would have been rendered.
+  #
+  # NOTE: This can be larger than the total, in which case things
+  # will be adjusted to lead to a rendered output that should
+  # make sense to the player. This could happen if e.g. the
+  # player transiently has a few more bells than are needed for
+  # the next founding father.
+  progress_count 'base::maybe<int>',
 }
 
 struct.TileSpreadOptions {

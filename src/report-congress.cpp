@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "fathers.hpp"
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
@@ -20,6 +21,7 @@
 #include "tiles.hpp"
 
 // config
+#include "config/fathers.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/unit-type.rds.hpp"
@@ -58,26 +60,94 @@ struct Layout {
   string title;
   point title_center;
 
+  // Next founding father.
+  string founding_father_title;
+  point founding_father_text_nw;
+  rect founding_father_bounds;
+  TileSpreadRenderPlans founding_father_spreads;
+
+  // Expeditionary force.
   string expeditionary_force_title;
   point expeditionary_force_text_nw;
-  rect expeditionary_force;
+  rect expeditionary_force_bounds;
   TileSpreadRenderPlans expeditionary_force_spreads;
 };
 
 /****************************************************************
 ** Auto-Layout.
 *****************************************************************/
-Layout layout_auto( Player const& player,
+Layout layout_auto( SSConst const& ss, Player const& player,
                     e_resolution const resolution ) {
   Layout l;
   l.canvas = { .size = resolution_size( resolution ) };
 
   int const margin = 7;
+  point cur{ .x = margin, .y = margin };
 
-  l.title        = "AFFAIRS OF THE CONTINENTAL CONGRESS";
-  l.title_center = { .x = l.canvas.center().x, .y = margin };
+  int const kBufferAfterTitle   = 12;
+  int const kBufferAfterSection = 10;
+  int const kHalfTextHeight     = 4; // TODO
+  int spread_tile_height        = 0;
 
-  point cur{ .x = 5, .y = 15 };
+  l.title = "AFFAIRS OF THE CONTINENTAL CONGRESS";
+  // We need kHalfTextHeight here because the text is centered on
+  // the point that we give it.
+  l.title_center = { .x = l.canvas.center().x,
+                     .y = cur.y + kHalfTextHeight };
+  cur.y += kBufferAfterTitle + kHalfTextHeight;
+  cur.y += kBufferAfterTitle;
+
+  // This will be nothing if the player has all fathers, in which
+  // case we won't bother showing this section.
+  auto const bells_needed =
+      bells_needed_for_next_father( ss, player );
+  if( bells_needed.has_value() ) {
+    l.founding_father_title = fmt::format(
+        "Next Continental Congress Session{}:",
+        player.fathers.in_progress.has_value()
+            ? fmt::format(
+                  " ({})",
+                  config_fathers
+                      .fathers[*player.fathers.in_progress]
+                      .name )
+            : "" );
+    l.founding_father_text_nw = cur;
+    cur.y += kBufferAfterTitle;
+    l.founding_father_bounds = {
+      .origin = cur,
+      .size   = { .w = l.canvas.left() + margin, .h = 32 } };
+    e_tile const kBellsTile = e_tile::product_bells_20;
+    spread_tile_height      = sprite_size( kBellsTile ).h;
+    // Should have been checked above; we shouldn't be rendering
+    // this section if it is not true.
+    CHECK( bells_needed.has_value() );
+    // In the OG this is only revealed in cheat mode, but there
+    // doesn't seem to be a good reason to hide this from the
+    // player normally, so we'll just show it.
+    l.founding_father_title += fmt::format(
+        " [{}/{}]", player.fathers.bells, *bells_needed );
+    TileSpreadConfigMulti const founding_father_spread_opts{
+      .tiles{
+        { .tile           = kBellsTile,
+          .count          = *bells_needed,
+          .progress_count = player.fathers.bells },
+      },
+      .options =
+          {
+            .bounds       = l.canvas.size.w - 2 * margin,
+            .label_policy = SpreadLabels::always{},
+            .label_opts =
+                { .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::sw } },
+          },
+      .group_spacing = 4,
+    };
+    l.founding_father_spreads =
+        build_tile_spread_multi( founding_father_spread_opts );
+    cur.y += spread_tile_height;
+    cur.y += kBufferAfterSection;
+  }
 
   // Always use the "pre declaration" form here because this
   // refers to the King's army.
@@ -86,11 +156,10 @@ Layout layout_auto( Player const& player,
                    config_nation.nations[player.nation]
                        .possessive_pre_declaration );
   l.expeditionary_force_text_nw = cur;
-  cur.y += 10;
-  l.expeditionary_force = {
+  cur.y += kBufferAfterTitle;
+  l.expeditionary_force_bounds = {
     .origin = cur,
     .size   = { .w = l.canvas.left() + margin, .h = 32 } };
-
   e_tile const regular_tile =
       config_unit_type.composition
           .unit_types[e_unit_type::regular]
@@ -107,7 +176,8 @@ Layout layout_auto( Player const& player,
       config_unit_type.composition
           .unit_types[e_unit_type::man_o_war]
           .tile;
-  auto const& force = player.old_world.expeditionary_force;
+  spread_tile_height = sprite_size( regular_tile ).h;
+  auto const& force  = player.old_world.expeditionary_force;
   TileSpreadConfigMulti const expeditionary_force_spread_opts{
     .tiles{
       { .tile = regular_tile, .count = force.regulars },
@@ -128,6 +198,8 @@ Layout layout_auto( Player const& player,
   };
   l.expeditionary_force_spreads =
       build_tile_spread_multi( expeditionary_force_spread_opts );
+  cur.y += spread_tile_height;
+  cur.y += kBufferAfterSection;
 
   return l;
 }
@@ -153,7 +225,7 @@ struct ContinentalCongressReport : public IPlane {
   }
 
   Layout layout_gen( e_resolution const resolution ) {
-    return layout_auto( player_, resolution );
+    return layout_auto( ss_, player_, resolution );
   }
 
   void on_logical_resolution_selected(
@@ -189,12 +261,19 @@ struct ContinentalCongressReport : public IPlane {
                     /*color_bg=*/nothing, l.title_center,
                     l.title );
 
+    // Founding father.
+    renderer.typer( l.founding_father_text_nw, pixel::banana() )
+        .write( l.founding_father_title );
+    draw_rendered_icon_spread( renderer,
+                               l.founding_father_bounds.nw(),
+                               l.founding_father_spreads );
+
+    // Expeditionary force.
     renderer
         .typer( l.expeditionary_force_text_nw, pixel::banana() )
         .write( l.expeditionary_force_title );
-
     draw_rendered_icon_spread( renderer,
-                               l.expeditionary_force.nw(),
+                               l.expeditionary_force_bounds.nw(),
                                l.expeditionary_force_spreads );
   }
 

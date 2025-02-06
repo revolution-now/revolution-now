@@ -80,6 +80,13 @@ struct.TileSpreadSpec {
   # If labels are rendered for this spread then they will use
   # these options.
   label_opts 'SpreadLabelOptions',
+  # If this is set then it will override the count shown in the
+  # label, if the label is shown. This is used to represent
+  # progress indicators where we want the spacing/algo done on
+  # the full count, but then we only display a subset. In that
+  # case we want the label to represent the progress count and
+  # not the total count.
+  label_count 'base::maybe<int>',
 }
 
 struct.TileSpreadSpecs {
