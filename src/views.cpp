@@ -859,6 +859,19 @@ unique_ptr<View>& OkCancelView::mutable_at( int idx ) {
   return ( idx == 0 ) ? ok_ : cancel_;
 }
 
+bool OkCancelView::on_key( input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down ) return false;
+  // It's a key down.
+  switch( event.keycode ) {
+    case ::SDLK_ESCAPE:
+      cancel_ref_->click();
+      return true;
+    default:
+      break;
+  }
+  return false;
+}
+
 /****************************************************************
 ** OkButtonView
 *****************************************************************/

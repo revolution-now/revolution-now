@@ -576,6 +576,9 @@ class OkCancelView : public CompositeView {
   // Implement CompositeView
   void notify_children_updated() override {}
 
+  // Override ui::Object.
+  bool on_key( input::key_event_t const& event ) override;
+
   ButtonView* ok_button() { return ok_ref_; }
   ButtonView* cancel_button() { return cancel_ref_; }
 
