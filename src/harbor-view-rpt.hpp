@@ -53,7 +53,8 @@ struct RptButton {
 struct HarborRptButtons : public ui::View, public HarborSubView {
   static PositionedHarborSubView<HarborRptButtons> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop );
+      HarborBackdrop const& backdrop,
+      HarborDockUnits& harbor_dock_units );
 
   struct Layout {
     // Absolute coordinates. The nw of this view is the left-most
@@ -67,6 +68,7 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   };
 
   HarborRptButtons( SS& ss, TS& ts, Player& player,
+                    HarborDockUnits& harbor_dock_units,
                     Layout layout );
 
  public: // ui::Object
@@ -105,6 +107,7 @@ struct HarborRptButtons : public ui::View, public HarborSubView {
   static Layout create_layout( gfx::rect canvas,
                                HarborBackdrop const& backdrop );
 
+  HarborDockUnits& harbor_dock_units_;
   Layout const layout_;
   // The reason that we need to store the hover state instead of
   // just measuring it directly in the draw method to determine
