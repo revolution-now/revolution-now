@@ -59,12 +59,7 @@ using ::gfx::size;
 /****************************************************************
 ** HarborCargo
 *****************************************************************/
-Delta HarborCargo::delta() const {
-  int x_boxes = 6;
-  int y_boxes = 1;
-  // +1 in each dimension for the border.
-  return Delta{ .w = 32 * x_boxes + 1, .h = 32 * y_boxes + 1 };
-}
+Delta HarborCargo::delta() const { return layout_.view.size; }
 
 maybe<int> HarborCargo::entity() const {
   return static_cast<int>( e_harbor_view_entity::cargo );
@@ -461,8 +456,9 @@ HarborCargo::Layout HarborCargo::create_layout(
   Layout l;
   Delta const size_pixels =
       sprite_size( e_tile::harbor_cargo_hold );
-  l.view_nw      = { .x = canvas.center().x - size_pixels.w / 2,
+  l.view.origin  = { .x = canvas.center().x - size_pixels.w / 2,
                      .y = canvas.bottom() - 106 };
+  l.view.size    = size_pixels;
   l.cargohold_nw = {};
   l.slots[0].origin = point{ .x = 1, .y = 6 };
   l.slots[0].size   = { .w = 32, .h = 32 };
@@ -493,6 +489,11 @@ HarborCargo::Layout HarborCargo::create_layout(
   l.left_wall[5] = { .origin = { .x = 162, .y = 6 },
                      .size   = { .w = 10, .h = 32 } };
 
+  // Expand the slots' bounding regions by one pixel so that when
+  // the mouse is over a divider it can still accept drags. Oth-
+  // erwise the behavior might seem a bit inconsistent or con-
+  // fusing to a new player.
+  for( auto& slot : l.slots ) slot = slot.with_border_added( 1 );
   return l;
 }
 
@@ -507,7 +508,7 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
   HarborCargo* p_actual          = view.get();
   return PositionedHarborSubView<HarborCargo>{
     .owned  = { .view  = std::move( view ),
-                .coord = layout.view_nw },
+                .coord = layout.view.nw() },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }
