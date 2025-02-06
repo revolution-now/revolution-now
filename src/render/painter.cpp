@@ -186,10 +186,15 @@ Painter& Painter::draw_vertical_line( point start, int length,
 
 void Painter::draw_empty_box( rect r, pixel color ) {
   r = r.normalized();
+  // Here we need to be careful not to let any of the lines
+  // overlap even by one pixel, since if alpha compositing is in-
+  // volved that can cause the corners to be more opaque than the
+  // sides, which does not look good.
   draw_horizontal_line( r.nw(), r.size.w, color );
   draw_vertical_line( r.ne(), r.size.h + 1, color );
   draw_horizontal_line( r.sw(), r.size.w, color );
-  draw_vertical_line( r.nw(), r.size.h + 1, color );
+  draw_vertical_line( r.nw() + size{ .h = 1 }, r.size.h - 1,
+                      color );
 }
 
 Painter& Painter::draw_empty_rect( rect r, e_border_mode mode,

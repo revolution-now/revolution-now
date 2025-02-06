@@ -408,13 +408,13 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
       Vert( { .x = 20, .y = 39 } ),
       Vert( { .x = 29, .y = 39 } ),
       Vert( { .x = 29, .y = 40 } ),
-      // Vertical line from (20,30) with length 10.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 40 } ),
-      Vert( { .x = 21, .y = 40 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 40 } ),
+      // Vertical line from (20,30) with length 8.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 39 } ),
+      Vert( { .x = 21, .y = 39 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 39 } ),
     };
     REQUIRE( v == expected );
   }
@@ -445,13 +445,13 @@ TEST_CASE( "[render/painter] draw_empty_rect inner" ) {
       Vert( { .x = 20, .y = 31 } ),
       Vert( { .x = 21, .y = 31 } ),
       Vert( { .x = 21, .y = 32 } ),
-      // Vertical line from (20,30) with length 2.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 32 } ),
-      Vert( { .x = 21, .y = 32 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 32 } ),
+      // Vertical line from (20,30) with length 0.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -496,13 +496,13 @@ TEST_CASE( "[render/painter] draw_empty_rect in_out" ) {
       Vert( { .x = 20, .y = 40 } ),
       Vert( { .x = 30, .y = 40 } ),
       Vert( { .x = 30, .y = 41 } ),
-      // Vertical line from (20,30) with length 11.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 41 } ),
-      Vert( { .x = 21, .y = 41 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 41 } ),
+      // Vertical line from (20,30) with length 9.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 40 } ),
+      Vert( { .x = 21, .y = 40 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 40 } ),
     };
     REQUIRE( v == expected );
   }
@@ -547,13 +547,13 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
       Vert( { .x = 20, .y = 31 } ),
       Vert( { .x = 21, .y = 31 } ),
       Vert( { .x = 21, .y = 32 } ),
-      // Vertical line from (20,30) with length 2.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 32 } ),
-      Vert( { .x = 21, .y = 32 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 32 } ),
+      // Vertical line from (20,30) with length 0.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
     };
     REQUIRE( v == expected );
   }
@@ -584,13 +584,13 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
       Vert( { .x = 20, .y = 32 } ),
       Vert( { .x = 22, .y = 32 } ),
       Vert( { .x = 22, .y = 33 } ),
-      // Vertical line from (20,30) with length 3.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 33 } ),
-      Vert( { .x = 21, .y = 33 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 33 } ),
+      // Vertical line from (20,30) with length 1.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 32 } ),
+      Vert( { .x = 21, .y = 32 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 32 } ),
     };
     REQUIRE( v == expected );
   }
@@ -621,13 +621,13 @@ TEST_CASE( "[render/painter] draw_empty_rect outter" ) {
       Vert( { .x = 20, .y = 41 } ),
       Vert( { .x = 31, .y = 41 } ),
       Vert( { .x = 31, .y = 42 } ),
-      // Vertical line from (20,30) with length 12.
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 20, .y = 42 } ),
-      Vert( { .x = 21, .y = 42 } ),
-      Vert( { .x = 20, .y = 30 } ),
-      Vert( { .x = 21, .y = 30 } ),
-      Vert( { .x = 21, .y = 42 } ),
+      // Vertical line from (20,30) with length 10.
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 20, .y = 41 } ),
+      Vert( { .x = 21, .y = 41 } ),
+      Vert( { .x = 20, .y = 31 } ),
+      Vert( { .x = 21, .y = 31 } ),
+      Vert( { .x = 21, .y = 41 } ),
     };
     REQUIRE( v == expected );
   }
