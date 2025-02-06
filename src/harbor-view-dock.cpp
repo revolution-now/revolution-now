@@ -24,6 +24,7 @@
 #include "unit-ownership.hpp"
 
 // config
+#include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
 // ss
@@ -230,7 +231,7 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
     if( unit_id == highlighted_unit )
       render_sprite_silhouette(
           renderer, bounds.nw() - size{ .w = 1 }, tile,
-          pixel::from_hex_rgb( 0xeeeeaa ) );
+          config_ui.harbor.unit_highlight_color );
     render_sprite( renderer, bounds.nw(), tile );
   }
   // Must be done after units since they are supposed to appear

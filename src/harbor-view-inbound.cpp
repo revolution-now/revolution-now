@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-outbound.hpp"
+#include "harbor-view-ships.hpp"
 #include "igui.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
@@ -232,9 +233,21 @@ void HarborInboundShips::draw( rr::Renderer& renderer,
   rr::write_centered( renderer, kTextColor, center,
                       label_line_3 );
 
+  auto const units = this->units();
+
+  point const mouse_pos = input::current_mouse_position()
+                              .to_gfx()
+                              .point_becomes_origin( coord );
+  auto const hover_unit = [&]() -> maybe<UnitId> {
+    if( dragging_.has_value() ) return nothing;
+    for( auto const& [unit_id, bounds] : units )
+      if( mouse_pos.is_inside( bounds ) ) //
+        return unit_id;
+    return nothing;
+  }();
+
   // Draw in reverse order so that the front rows (and highlight
   // boxes around them) will be on top of back rows.
-  auto const units = this->units();
   for( auto const& [unit_id, bounds] : rl::rall( units ) ) {
     if( dragging_.has_value() && dragging_->unit_id == unit_id )
       continue;
@@ -249,10 +262,14 @@ void HarborInboundShips::draw( rr::Renderer& renderer,
         painter_mods.sampling.downsample,
         countr_zero( 32u ) -
             countr_zero( uint32_t( bounds.size.w ) ) );
+    auto const& unit = ss_.units.unit_for( unit_id );
+    if( unit_id == hover_unit ) {
+      CHECK( bounds.size.w > 0 );
+      render_unit_glow( renderer, point{}, unit.type(),
+                        32 / bounds.size.w );
+    }
+    render_unit( renderer, point{}, unit, UnitRenderOptions{} );
     rr::Painter painter = renderer.painter();
-    render_unit( renderer, point{},
-                 ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{} );
     if( hb_state.selected_unit == unit_id )
       painter.draw_empty_rect(
           rect{ .origin = {}, .size = g_tile_delta } -
