@@ -22,6 +22,9 @@ namespace rn {
 // as it doesn't know anything about the game's tiles.
 Spreads compute_icon_spread( SpreadSpecs const& specs );
 
+void adjust_rendered_count_for_progress_count(
+    Spread& spread, int progress_count );
+
 // In the OG sometimes labels can be turned on unconditionally
 // (e.g. in the colony view), but even when that does not happen,
 // the OG still sometimes puts labels on spreads that it deems to

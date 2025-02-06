@@ -176,4 +176,26 @@ bool requires_label( Spread const& spread ) {
   return false;
 }
 
+void adjust_rendered_count_for_progress_count(
+    Spread& spread, int const progress_count ) {
+  int const total_count = spread.spec.count;
+  CHECK_LE( progress_count, total_count );
+  int& rendered_count = spread.rendered_count;
+  CHECK_LE( rendered_count, total_count );
+  if( rendered_count == 0 ) return;
+  if( rendered_count == total_count ) {
+    CHECK_LE( progress_count, rendered_count );
+    rendered_count = progress_count;
+    return;
+  }
+  // Rendered count is less than total count here, so therefore
+  // we need to also recompute progress_count to be proportional.
+  rendered_count = clamp( 0,
+                          int( double( progress_count ) /
+                               total_count * rendered_count ),
+                          rendered_count );
+  if( progress_count > 0 && rendered_count == 0 )
+    rendered_count = 1;
+}
+
 } // namespace rn

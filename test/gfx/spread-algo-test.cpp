@@ -120,5 +120,9 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
 TEST_CASE( "[spread] requires_label" ) {
 }
 
+TEST_CASE(
+    "[spread] adjust_rendered_count_for_progress_count" ) {
+}
+
 } // namespace
 } // namespace rn
