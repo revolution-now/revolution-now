@@ -73,6 +73,8 @@ struct.tile_spreads {
 
 struct.harbor {
   unit_highlight_color 'gfx::pixel',
+  cargo_label_color 'gfx::pixel',
+  cargo_label_color_full_highlight_intensity 'int',
 }
 
 namespace "rn"

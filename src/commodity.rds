@@ -21,6 +21,14 @@ enum.e_commodity_label_render_colors {
 
   # When the custom house is selling a commodity.
   custom_house_selling,
+
+  # Colors to use for commodities sitting in the cargo of a ship
+  # in the harbor. These need to be a bit different so that they
+  # can be seen over the background. Also, there is no high-
+  # lighting on the hundreds digit since a cargo slot can never
+  # more than 100.
+  harbor_cargo,
+  harbor_cargo_100, # This one is a bit brighter.
 }
 
 sumtype.CommodityLabel {

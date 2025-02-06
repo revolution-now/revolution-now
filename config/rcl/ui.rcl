@@ -75,5 +75,11 @@ tile_spreads {
 }
 
 harbor {
-  unit_highlight_color: "#eeeeaa"
+  unit_highlight_color:   "#eeeeaa"
+  # Color of cargo commodity quantity label for slots that have
+  # less than 100 quantity of the cargo.
+  cargo_label_color:      "#eeaa80"
+  # For slots that have a full 100 quantity of the cargo, the
+  # label color will be brightened this number of times.
+  cargo_label_color_full_highlight_intensity: 2
 }

@@ -40,6 +40,8 @@ struct HarborCargo
     // Relative to view nw.
     gfx::point cargohold_nw;
     std::array<gfx::rect, 6> slots;
+    int drag_box_buffer = {};
+    std::array<gfx::rect, 6> slot_drag_boxes;
     // Gives the rect that covers the pixel area occupied by the
     // dividing wall to the left of a slot. This is needed so
     // that said walls can be removed when we have an overflow

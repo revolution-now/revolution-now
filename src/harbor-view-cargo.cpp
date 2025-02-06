@@ -112,7 +112,7 @@ maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   int const slots_total = unit.cargo().slots_total();
   CHECK_LE( slots_total, 6 );
   for( int i = 0; i < slots_total; ++i )
-    if( where.is_inside( layout_.slots[i] ) ) //
+    if( where.is_inside( layout_.slot_drag_boxes[i] ) ) //
       return i;
   return nothing;
 }
@@ -434,11 +434,21 @@ void HarborCargo::draw( rr::Renderer& renderer,
                       kLabeledCommodity20CargoRenderOffset,
                   commodity.obj.type, pixel::banana() );
             }
+            Commodity const& comm = commodity.obj;
+            bool const full       = ( comm.quantity == 100 );
+            using enum e_commodity_label_render_colors;
             render_commodity_annotated_20(
                 renderer,
                 slot_rect.origin +
                     kLabeledCommodity20CargoRenderOffset,
-                commodity.obj );
+                comm.type,
+                CommodityRenderStyle{
+                  .label =
+                      CommodityLabel::quantity{
+                        .value  = comm.quantity,
+                        .colors = full ? harbor_cargo_100
+                                       : harbor_cargo },
+                  .dulled = !full } );
             break;
           }
         }
@@ -493,7 +503,10 @@ HarborCargo::Layout HarborCargo::create_layout(
   // the mouse is over a divider it can still accept drags. Oth-
   // erwise the behavior might seem a bit inconsistent or con-
   // fusing to a new player.
-  for( auto& slot : l.slots ) slot = slot.with_border_added( 1 );
+  l.drag_box_buffer = 1;
+  l.slot_drag_boxes = l.slots;
+  for( auto& slot : l.slot_drag_boxes )
+    slot = slot.with_border_added( l.drag_box_buffer );
   return l;
 }
 
