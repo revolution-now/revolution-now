@@ -64,7 +64,7 @@ struct Layout {
   string founding_father_title;
   point founding_father_text_nw;
   rect founding_father_bounds;
-  TileSpreadRenderPlans founding_father_spreads;
+  TileSpreadRenderPlan founding_father_spreads;
 
   // Expeditionary force.
   string expeditionary_force_title;
@@ -126,12 +126,10 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     // player normally, so we'll just show it.
     l.founding_father_title += fmt::format(
         " [{}/{}]", player.fathers.bells, *bells_needed );
-    TileSpreadConfigMulti const founding_father_spread_opts{
-      .tiles{
-        { .tile           = kBellsTile,
-          .count          = *bells_needed,
-          .progress_count = player.fathers.bells },
-      },
+    TileSpreadConfig const founding_father_spread_opts{
+      .tile = { .tile           = kBellsTile,
+                .count          = *bells_needed,
+                .progress_count = player.fathers.bells },
       .options =
           {
             .bounds       = l.canvas.size.w - 2 * margin,
@@ -141,10 +139,9 @@ Layout layout_auto( SSConst const& ss, Player const& player,
                       SpreadLabelPlacement::in_first_tile{
                         .placement = e_cdirection::sw } },
           },
-      .group_spacing = 4,
     };
     l.founding_father_spreads =
-        build_tile_spread_multi( founding_father_spread_opts );
+        build_tile_spread( founding_father_spread_opts );
     cur.y += spread_tile_height;
     cur.y += kBufferAfterSection;
   }

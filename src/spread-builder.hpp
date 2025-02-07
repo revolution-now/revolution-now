@@ -15,9 +15,7 @@
 
 namespace rn {
 
-// This might not return a value in the case that the config has
-// no count.
-base::maybe<TileSpreadRenderPlan> build_tile_spread(
+TileSpreadRenderPlan build_tile_spread(
     TileSpreadConfig const& config );
 
 TileSpreadRenderPlans build_tile_spread_multi(

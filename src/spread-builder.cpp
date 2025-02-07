@@ -110,9 +110,9 @@ TileSpreadRenderPlans build_tile_spread_multi(
   return render_plan_for_tile_spread( tile_spreads );
 }
 
-maybe<TileSpreadRenderPlan> build_tile_spread(
+TileSpreadRenderPlan build_tile_spread(
     TileSpreadConfig const& config ) {
-  maybe<TileSpreadRenderPlan> res;
+  TileSpreadRenderPlan res;
   auto plans = build_tile_spread_multi(
       TileSpreadConfigMulti{ .tiles         = { config.tile },
                              .options       = config.options,

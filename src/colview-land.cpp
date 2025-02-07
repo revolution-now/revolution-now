@@ -472,9 +472,7 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
         .placement =
             SpreadLabelPlacement::left_middle_adjusted{},
       } } };
-  auto const plan = build_tile_spread( spread_config );
-  if( !plan.has_value() ) {
-    CHECK( quantity == 0 );
+  if( quantity == 0 ) {
     auto const draw = [&]( e_tile const tile ) {
       size const sz = sprite_size( tile );
       point const origin =
@@ -485,9 +483,10 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
     draw( e_tile::red_prohibition_20 );
     return;
   }
+  auto const plan = build_tile_spread( spread_config );
   auto const spread_origin =
-      gfx::centered_in( plan->bounds.size, inner_box );
-  draw_rendered_icon_spread( renderer, spread_origin, *plan );
+      gfx::centered_in( plan.bounds.size, inner_box );
+  draw_rendered_icon_spread( renderer, spread_origin, plan );
 }
 
 void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,

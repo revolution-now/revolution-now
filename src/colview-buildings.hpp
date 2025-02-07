@@ -14,8 +14,9 @@
 
 // Revolution Now
 #include "colview-entities.hpp"
+#include "spread-render.rds.hpp"
 
-// gs
+// ss
 #include "ss/colony-enums.rds.hpp"
 
 namespace rn {
@@ -35,18 +36,25 @@ class ColViewBuildings : public ui::View,
  public:
   static std::unique_ptr<ColViewBuildings> create(
       SS& ss, TS& ts, Player& player, Colony& colony,
-      Delta size ) {
-    return std::make_unique<ColViewBuildings>( ss, ts, player,
-                                               colony, size );
-  }
+      Delta size );
+
+  struct Layout {
+    gfx::size size = {};
+
+    struct Slot {
+      gfx::rect bounds;
+      TileSpreadRenderPlan plan;
+    };
+    refl::enum_map<e_colony_building_slot, Slot> slots;
+  };
 
   ColViewBuildings( SS& ss, TS& ts, Player& player,
-                    Colony& colony, Delta size )
+                    Colony& colony, Layout layout )
     : ColonySubView( ss, ts, player, colony ),
-      size_( size ),
-      colony_( colony ) {}
+      colony_( colony ),
+      layout_( std::move( layout ) ) {}
 
-  Delta delta() const override { return size_; }
+  Delta delta() const override { return layout_.size; }
 
   // Implement ui::Object.
   void draw( rr::Renderer& renderer,
@@ -97,9 +105,9 @@ class ColViewBuildings : public ui::View,
   wait<> perform_click(
       input::mouse_button_event_t const& event ) override;
 
- private:
-  Rect rect_for_slot( e_colony_building_slot slot ) const;
+  void update_this_and_children() override;
 
+ private:
   Rect visible_rect_for_unit_in_slot(
       e_colony_building_slot slot, int unit_idx ) const;
 
@@ -110,14 +118,16 @@ class ColViewBuildings : public ui::View,
       Coord where ) const;
 
  private:
+  static Layout create_layout( SSConst const& ss, gfx::size sz );
+
   struct Dragging {
     UnitId id                   = {};
     e_colony_building_slot slot = {};
   };
 
-  Delta size_;
   Colony& colony_;
   maybe<Dragging> dragging_ = {};
+  Layout layout_;
 };
 
 } // namespace rn

@@ -15,6 +15,8 @@
 #include "custom-house.hpp"
 #include "production.hpp"
 #include "render.hpp"
+#include "spread-builder.hpp"
+#include "spread-render.hpp"
 #include "teaching.hpp"
 #include "tiles.hpp"
 #include "unit-ownership.hpp"
@@ -25,6 +27,7 @@
 // ss
 #include "ss/colony.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/units.hpp"
 
 // config
@@ -43,24 +46,31 @@ namespace rn {
 
 namespace {
 
-maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
+using ::refl::enum_values;
+
+maybe<e_tile> tile_for_slot_20(
+    e_colony_building_slot const slot ) {
   switch( slot ) {
     case e_colony_building_slot::muskets:
-      return e_tile::commodity_muskets_16;
+      return e_tile::commodity_muskets_20;
     case e_colony_building_slot::tools:
-      return e_tile::commodity_tools_16;
+      return e_tile::commodity_tools_20;
     case e_colony_building_slot::rum:
-      return e_tile::commodity_rum_16;
+      return e_tile::commodity_rum_20;
     case e_colony_building_slot::cloth:
-      return e_tile::commodity_cloth_16;
+      return e_tile::commodity_cloth_20;
     case e_colony_building_slot::coats:
-      return e_tile::commodity_furs_16;
+      return e_tile::commodity_coats_20;
     case e_colony_building_slot::cigars:
-      return e_tile::commodity_cigars_16;
+      return e_tile::commodity_cigars_20;
     case e_colony_building_slot::hammers:
-      return e_tile::product_hammers_16;
+      return e_tile::product_hammers_20;
     case e_colony_building_slot::town_hall:
-      return e_tile::product_bells_16;
+      return e_tile::product_bells_20;
     case e_colony_building_slot::newspapers:
       return nothing;
     case e_colony_building_slot::schools:
@@ -68,16 +78,37 @@ maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
     case e_colony_building_slot::offshore:
       return nothing;
     case e_colony_building_slot::horses:
-      return e_tile::commodity_horses_16;
+      return e_tile::commodity_horses_20;
     case e_colony_building_slot::wall:
       return nothing;
     case e_colony_building_slot::warehouses:
       return nothing;
     case e_colony_building_slot::crosses:
-      return e_tile::product_crosses_16;
+      return e_tile::product_crosses_20;
     case e_colony_building_slot::custom_house:
       return nothing;
   }
+}
+
+TileSpreadRenderPlan create_production_spread(
+    SSConst const& ss, ColonyProduction const& production,
+    e_colony_building_slot const slot, int const width ) {
+  auto const tile = tile_for_slot_20( slot );
+  if( !tile.has_value() ) return {};
+  auto const quantity = production_for_slot( production, slot );
+  TileSpreadConfig const config{
+    .tile = { .tile = *tile, .count = quantity.value_or( 0 ) },
+    .options = {
+      .bounds = width,
+      .label_policy =
+          ss.settings.colony_options.numbers
+              ? SpreadLabels{ SpreadLabels::always{} }
+              : SpreadLabels{ SpreadLabels::auto_decide{} },
+      .label_opts =
+          { .placement =
+                SpreadLabelPlacement::left_middle_adjusted{} },
+    } };
+  return build_tile_spread( config );
 }
 
 } // namespace
@@ -85,23 +116,11 @@ maybe<e_tile> tile_for_slot_16( e_colony_building_slot slot ) {
 /****************************************************************
 ** Buildings
 *****************************************************************/
-Rect ColViewBuildings::rect_for_slot(
-    e_colony_building_slot slot ) const {
-  // TODO: Temporary.
-  Delta const box_size = delta() / Delta{ .w = 4, .h = 4 };
-  int const idx        = static_cast<int>( slot );
-  Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
-  Coord const upper_left = coord * box_size;
-  Coord lower_right      = upper_left + box_size;
-  if( idx / 4 == 3 ) lower_right.y = 0 + delta().h;
-  return Rect::from( upper_left, lower_right );
-}
-
 int const kEffectiveUnitWidthPixels = g_tile_delta.w / 2;
 
 Rect ColViewBuildings::visible_rect_for_unit_in_slot(
     e_colony_building_slot slot, int unit_idx ) const {
-  Rect rect = rect_for_slot( slot );
+  Rect rect = layout_.slots[slot].bounds;
   Coord pos = rect.lower_left() - Delta{ .h = g_tile_delta.h };
   pos.x += 3;
   pos.x += W{ kEffectiveUnitWidthPixels } * unit_idx;
@@ -122,7 +141,7 @@ maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
     Coord where ) const {
   for( e_colony_building_slot slot :
        refl::enum_values<e_colony_building_slot> )
-    if( where.is_inside( rect_for_slot( slot ) ) ) //
+    if( where.is_inside( layout_.slots[slot].bounds ) ) //
       return slot;
   return nothing;
 }
@@ -135,7 +154,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   for( e_colony_building_slot slot :
        refl::enum_values<e_colony_building_slot> ) {
-    Rect const rect = rect_for_slot( slot );
+    Rect const rect = layout_.slots[slot].bounds;
     painter.draw_empty_rect( rect,
                              rr::Painter::e_border_mode::in_out,
                              gfx::pixel::black() );
@@ -187,17 +206,12 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     maybe<int> quantity =
         production_for_slot( colview_production(), slot );
     if( quantity.has_value() ) {
-      UNWRAP_CHECK( tile, tile_for_slot_16( slot ) );
-      Coord pos =
-          rect.upper_left() + Delta{ .w = 2 } +
-          Delta{
-            .h = H{
-              rr::rendered_text_line_size_pixels( "x" ).h } };
-      render_sprite( renderer, pos, tile );
-      pos.x += sprite_size( tile ).w;
-      rr::Typer typer =
-          renderer.typer( pos, gfx::pixel::black() );
-      typer.write( "x {}", *quantity );
+      point const origin =
+          rect.upper_left().to_gfx() + size{ .w = 2 } +
+          size{
+            .h = rr::rendered_text_line_size_pixels( "x" ).h };
+      draw_rendered_icon_spread( renderer, origin,
+                                 layout_.slots[slot].plan );
     }
   }
 }
@@ -356,6 +370,43 @@ wait<> ColViewBuildings::perform_click(
       break;
   }
   co_return;
+}
+
+ColViewBuildings::Layout ColViewBuildings::create_layout(
+    SSConst const& ss, size const sz ) {
+  Layout l;
+  l.size = sz;
+
+  for( e_colony_building_slot const slot :
+       enum_values<e_colony_building_slot> ) {
+    // TODO: temporary
+    Delta const box_size = sz / size{ .w = 4, .h = 4 };
+    int const idx        = static_cast<int>( slot );
+    Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
+    Coord const upper_left = coord * box_size;
+    Coord lower_right      = upper_left + box_size;
+    if( idx / 4 == 3 ) lower_right.y = 0 + sz.h;
+    rect const bounds = rect::from( upper_left, lower_right );
+
+    l.slots[slot] = Layout::Slot{
+      .bounds = bounds,
+      .plan = create_production_spread( ss, colview_production(),
+                                        slot, bounds.size.w ) };
+  }
+  return l;
+}
+
+void ColViewBuildings::update_this_and_children() {
+  // This method is only called when the logical resolution
+  // hasn't changed, so we assume the size hasn't changed.
+  layout_ = create_layout( ss_, layout_.size );
+}
+
+std::unique_ptr<ColViewBuildings> ColViewBuildings::create(
+    SS& ss, TS& ts, Player& player, Colony& colony, Delta sz ) {
+  Layout layout = create_layout( ss, sz );
+  return std::make_unique<ColViewBuildings>(
+      ss, ts, player, colony, std::move( layout ) );
 }
 
 } // namespace rn
