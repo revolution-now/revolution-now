@@ -36,6 +36,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // gfx
@@ -60,6 +61,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::pixel;
 
 bool last_unit_input_is_in_stack_indirect(
     SSConst const& ss, UnitId last_unit_input,
@@ -986,7 +989,7 @@ void LandViewRenderer::render_non_entities() const {
       };
       rr::Painter painter = renderer.painter();
       painter.draw_solid_rect(
-          shadow_rect, gfx::pixel::black().with_alpha( 100 ) );
+          shadow_rect, pixel::black().with_alpha( 100 ) );
     }
   }
 
@@ -1010,8 +1013,8 @@ void LandViewRenderer::render_white_box() const {
   // The white box needs to be above the obfuscation layers.
   SCOPED_RENDERER_MOD_SET( buffer_mods.buffer,
                            rr::e_render_buffer::normal );
-  rr::Painter painter = renderer_.painter();
-  painter.draw_empty_rect( box, gfx::pixel::white() );
+  rr::draw_empty_rect_faded_corners( renderer, box,
+                                     pixel::white() );
 }
 
 } // namespace rn
