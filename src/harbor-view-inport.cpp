@@ -16,6 +16,7 @@
 #include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-backdrop.hpp"
+#include "harbor-view-ships.hpp"
 #include "igui.hpp"
 #include "render.hpp"
 #include "tiles.hpp"
@@ -32,6 +33,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
 
@@ -350,10 +352,9 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation2,
       point( coord ).distance_from_origin().to_double() );
-  rr::Painter painter = renderer.painter();
-  painter.draw_empty_rect( layout_.white_box,
-                           rr::Painter::e_border_mode::inside,
-                           pixel::white().with_alpha( 128 ) );
+  renderer.painter().draw_empty_rect(
+      layout_.white_box, rr::Painter::e_border_mode::inside,
+      pixel::white().with_alpha( 128 ) );
 
   HarborState const& hb_state = player_.old_world.harbor_state;
 
@@ -378,6 +379,17 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
   rr::Typer typer = renderer.typer( label_nw, kTextColor );
   typer.write( label );
 
+  point const mouse_pos = input::current_mouse_position()
+                              .to_gfx()
+                              .point_becomes_origin( coord );
+  auto const hover_unit = [&]() -> maybe<UnitId> {
+    if( dragging_.has_value() ) return nothing;
+    for( auto const& [unit_id, bounds] : units )
+      if( mouse_pos.is_inside( bounds ) ) //
+        return unit_id;
+    return nothing;
+  }();
+
   // Draw in reverse order so that the front rows (and highlight
   // boxes around them) will be on top of back rows.
   for( auto const& [unit_id, bounds] : rl::rall( units ) ) {
@@ -394,15 +406,19 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
         painter_mods.sampling.downsample,
         countr_zero( 32u ) -
             countr_zero( uint32_t( bounds.size.w ) ) );
-    rr::Painter painter = renderer.painter();
-    render_unit( renderer, point{},
-                 ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{} );
+    auto const& unit = ss_.units.unit_for( unit_id );
+    if( unit_id == hover_unit ) {
+      CHECK( bounds.size.w > 0 );
+      render_unit_glow( renderer, point{}, unit.type(),
+                        32 / bounds.size.w );
+    }
+    render_unit( renderer, point{}, unit, UnitRenderOptions{} );
     if( hb_state.selected_unit == unit_id )
-      painter.draw_empty_rect(
+      rr::draw_empty_rect_faded_corners(
+          renderer,
           rect{ .origin = {}, .size = g_tile_delta } -
               size{ .w = 1, .h = 1 },
-          rr::Painter::e_border_mode::in_out, pixel::green() );
+          config_ui.harbor.ship_select_box_color );
   }
 }
 

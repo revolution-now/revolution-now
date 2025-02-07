@@ -67,6 +67,20 @@ void draw_empty_rect_no_corners( rr::Painter& painter,
   }
 }
 
+void draw_empty_rect_faded_corners( rr::Renderer& renderer,
+                                    gfx::rect box,
+                                    gfx::pixel color ) {
+  {
+    Painter painter = renderer.painter();
+    draw_empty_rect_no_corners( painter, box, color );
+  }
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    Painter painter = renderer.painter();
+    painter.draw_empty_rect( box, color );
+  }
+}
+
 void render_shadow_hightlight_border(
     rr::Renderer& renderer, rect const rect,
     pixel const left_and_bottom, pixel const top_and_right ) {

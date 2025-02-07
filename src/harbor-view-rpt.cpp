@@ -87,6 +87,7 @@ wait<> HarborRptButtons::perform_click(
             .to_gfx()
             .point_becomes_origin( layout_.view.origin ) );
   };
+  SCOPE_EXIT { harbor_dock_units_.update_units(); };
   switch( *button ) {
     case e_rpt_button::recruit:
       co_await click_recruit( ss_, ts_, player_ );
@@ -115,14 +116,17 @@ wait<bool> HarborRptButtons::perform_key(
     case ::SDLK_r:
       mouse_hover_.reset();
       co_await click_recruit( ss_, ts_, player_ );
+      harbor_dock_units_.update_units();
       co_return true;
     case ::SDLK_p:
       mouse_hover_.reset();
       co_await click_purchase( ss_, ts_, player_ );
+      harbor_dock_units_.update_units();
       co_return true;
     case ::SDLK_t:
       mouse_hover_.reset();
       co_await click_train( ss_, ts_, player_ );
+      harbor_dock_units_.update_units();
       co_return true;
   }
   co_return false; // not handled.
@@ -221,10 +225,11 @@ HarborRptButtons::Layout HarborRptButtons::create_layout(
 PositionedHarborSubView<HarborRptButtons>
 HarborRptButtons::create( SS& ss, TS& ts, Player& player,
                           Rect const canvas,
-                          HarborBackdrop const& backdrop ) {
+                          HarborBackdrop const& backdrop,
+                          HarborDockUnits& harbor_dock_units ) {
   Layout layout = create_layout( canvas, backdrop );
   auto view     = make_unique<HarborRptButtons>(
-      ss, ts, player, std::move( layout ) );
+      ss, ts, player, harbor_dock_units, std::move( layout ) );
   HarborSubView* const harbor_sub_view = view.get();
   HarborRptButtons* p_actual           = view.get();
   return PositionedHarborSubView<HarborRptButtons>{
@@ -234,9 +239,11 @@ HarborRptButtons::create( SS& ss, TS& ts, Player& player,
     .actual = p_actual };
 }
 
-HarborRptButtons::HarborRptButtons( SS& ss, TS& ts,
-                                    Player& player,
-                                    Layout layout )
-  : HarborSubView( ss, ts, player ), layout_( layout ) {}
+HarborRptButtons::HarborRptButtons(
+    SS& ss, TS& ts, Player& player,
+    HarborDockUnits& harbor_dock_units, Layout layout )
+  : HarborSubView( ss, ts, player ),
+    harbor_dock_units_( harbor_dock_units ),
+    layout_( layout ) {}
 
 } // namespace rn

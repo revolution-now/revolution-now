@@ -71,6 +71,13 @@ struct.tile_spreads {
   bg_box_has_corners 'bool',
 }
 
+struct.harbor {
+  unit_highlight_color 'gfx::pixel',
+  cargo_label_color 'gfx::pixel',
+  cargo_label_color_full_highlight_intensity 'int',
+  ship_select_box_color 'gfx::pixel',
+}
+
 namespace "rn"
 
 struct.config_ui_t {
@@ -79,6 +86,7 @@ struct.config_ui_t {
   menus 'config::ui::menus',
   console 'config::ui::console',
   panel 'config::ui::panel',
+  harbor 'config::ui::harbor',
   tile_spreads 'config::ui::tile_spreads',
 }
 

@@ -59,12 +59,7 @@ using ::gfx::size;
 /****************************************************************
 ** HarborCargo
 *****************************************************************/
-Delta HarborCargo::delta() const {
-  int x_boxes = 6;
-  int y_boxes = 1;
-  // +1 in each dimension for the border.
-  return Delta{ .w = 32 * x_boxes + 1, .h = 32 * y_boxes + 1 };
-}
+Delta HarborCargo::delta() const { return layout_.view.size; }
 
 maybe<int> HarborCargo::entity() const {
   return static_cast<int>( e_harbor_view_entity::cargo );
@@ -117,7 +112,7 @@ maybe<int> HarborCargo::slot_under_cursor( Coord where ) const {
   int const slots_total = unit.cargo().slots_total();
   CHECK_LE( slots_total, 6 );
   for( int i = 0; i < slots_total; ++i )
-    if( where.is_inside( layout_.slots[i] ) ) //
+    if( where.is_inside( layout_.slot_drag_boxes[i] ) ) //
       return i;
   return nothing;
 }
@@ -439,11 +434,21 @@ void HarborCargo::draw( rr::Renderer& renderer,
                       kLabeledCommodity20CargoRenderOffset,
                   commodity.obj.type, pixel::banana() );
             }
+            Commodity const& comm = commodity.obj;
+            bool const full       = ( comm.quantity == 100 );
+            using enum e_commodity_label_render_colors;
             render_commodity_annotated_20(
                 renderer,
                 slot_rect.origin +
                     kLabeledCommodity20CargoRenderOffset,
-                commodity.obj );
+                comm.type,
+                CommodityRenderStyle{
+                  .label =
+                      CommodityLabel::quantity{
+                        .value  = comm.quantity,
+                        .colors = full ? harbor_cargo_100
+                                       : harbor_cargo },
+                  .dulled = !full } );
             break;
           }
         }
@@ -461,8 +466,9 @@ HarborCargo::Layout HarborCargo::create_layout(
   Layout l;
   Delta const size_pixels =
       sprite_size( e_tile::harbor_cargo_hold );
-  l.view_nw      = { .x = canvas.center().x - size_pixels.w / 2,
+  l.view.origin  = { .x = canvas.center().x - size_pixels.w / 2,
                      .y = canvas.bottom() - 106 };
+  l.view.size    = size_pixels;
   l.cargohold_nw = {};
   l.slots[0].origin = point{ .x = 1, .y = 6 };
   l.slots[0].size   = { .w = 32, .h = 32 };
@@ -493,6 +499,14 @@ HarborCargo::Layout HarborCargo::create_layout(
   l.left_wall[5] = { .origin = { .x = 162, .y = 6 },
                      .size   = { .w = 10, .h = 32 } };
 
+  // Expand the slots' bounding regions by one pixel so that when
+  // the mouse is over a divider it can still accept drags. Oth-
+  // erwise the behavior might seem a bit inconsistent or con-
+  // fusing to a new player.
+  l.drag_box_buffer = 1;
+  l.slot_drag_boxes = l.slots;
+  for( auto& slot : l.slot_drag_boxes )
+    slot = slot.with_border_added( l.drag_box_buffer );
   return l;
 }
 
@@ -507,7 +521,7 @@ PositionedHarborSubView<HarborCargo> HarborCargo::create(
   HarborCargo* p_actual          = view.get();
   return PositionedHarborSubView<HarborCargo>{
     .owned  = { .view  = std::move( view ),
-                .coord = layout.view_nw },
+                .coord = layout.view.nw() },
     .harbor = harbor_sub_view,
     .actual = p_actual };
 }

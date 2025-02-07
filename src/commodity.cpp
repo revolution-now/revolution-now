@@ -18,6 +18,7 @@
 // config
 #include "config/commodity.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/units.hpp"
@@ -46,6 +47,8 @@ using namespace std;
 namespace rn {
 
 namespace {
+
+using ::gfx::pixel;
 
 e_tile tile_for_commodity_16( e_commodity const c ) {
   switch( c ) {
@@ -135,20 +138,37 @@ void render_commodity_label(
   TextMarkupInfo info;
   switch( colors ) {
     case e_commodity_label_render_colors::standard:
-      info = { /*normal=*/gfx::pixel{
-                 .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
-               /*highlight=*/gfx::pixel::green() };
+      info = {
+        .normal =
+            pixel{ .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
+        .highlight = pixel::green() };
       break;
     case e_commodity_label_render_colors::over_limit:
-      info = { /*normal=*/gfx::pixel{
-                 .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
-               /*highlight=*/gfx::pixel::red() };
+      info = {
+        .normal =
+            pixel{ .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
+        .highlight = pixel::red() };
       break;
     case e_commodity_label_render_colors::custom_house_selling:
-      info = { /*normal=*/gfx::pixel{
-                 .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
-               /*highlight=*/gfx::pixel::yellow() };
+      info = {
+        .normal =
+            pixel{ .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
+        .highlight = pixel::yellow() };
       break;
+    case e_commodity_label_render_colors::harbor_cargo: {
+      static pixel const color =
+          config_ui.harbor.cargo_label_color;
+      info = { .normal = color, .highlight = color };
+      break;
+    }
+    case e_commodity_label_render_colors::harbor_cargo_100: {
+      static pixel const color =
+          config_ui.harbor.cargo_label_color.highlighted(
+              config_ui.harbor
+                  .cargo_label_color_full_highlight_intensity );
+      info = { .normal = color, .highlight = color };
+      break;
+    }
   }
   render_commodity_label_impl( renderer, where, label, info );
 }
@@ -368,9 +388,10 @@ void render_commodity_20( rr::Renderer& renderer, Coord where,
                             /*dulled=*/false );
 }
 
-void render_commodity_20_outline(
-    rr::Renderer& renderer, gfx::point const where,
-    e_commodity const type, gfx::pixel const outline_color ) {
+void render_commodity_20_outline( rr::Renderer& renderer,
+                                  gfx::point const where,
+                                  e_commodity const type,
+                                  pixel const outline_color ) {
   render_sprite_outline( renderer, where,
                          tile_for_commodity_20( type ),
                          outline_color );
