@@ -121,6 +121,65 @@ TEST_CASE( "[render/atlas] single image" ) {
 }
 
 TEST_CASE( "[render/atlas] trimmed area" ) {
+  AtlasBuilder builder;
+
+  pixel img_pixels[] = {
+    /* clang-format off
+    0  1  2  3  4  5  6  7  8  9  a  */
+    _, _, _, _, _, _, _, _, _, _, _, // 0
+    _, _, _, _, _, _, _, _, _, _, _, // 1
+    _, _, _, _, _, _, _, _, _, _, _, // 2
+    _, _, _, _, _, _, R, R, _, _, _, // 3
+    _, _, _, _, _, _, R, R, _, _, _, // 4
+    _, _, _, _, _, _, _, _, _, _, _, // 5
+    _, _, _, _, _, _, _, _, _, _, _, // 6
+    _, _, _, _, _, _, _, _, _, _, _, // 7
+    _, _, _, _, _, _, _, _, _, _, _, // 8
+    _, _, _, G, _, _, B, B, B, B, _, // 9
+    _, _, _, _, _, _, _, _, B, _, _, // a
+    _, _, _, _, _, _, _, _, B, _, _, // b
+    _, _, _, _, _, _, _, _, _, _, _, // c
+    _, _, _, _, _, _, _, _, _, _, _, // d
+    // clang-format on
+  };
+  gfx::image img = new_image_from_pixels(
+      size{ .w = 11, .h = 14 }, img_pixels );
+
+  AtlasBuilder::ImageBuilder img_builder =
+      builder.add_image( std::move( img ) );
+
+  int const empty_id = img_builder.add_sprite( rect{
+    .origin = { .x = 1, .y = 1 }, .size = { .w = 3, .h = 4 } } );
+  REQUIRE( empty_id == 0 );
+
+  int const green_id = img_builder.add_sprite( rect{
+    .origin = { .x = 0, .y = 8 }, .size = { .w = 5, .h = 4 } } );
+  REQUIRE( green_id == 1 );
+
+  int const blue_id = img_builder.add_sprite( rect{
+    .origin = { .x = 5, .y = 8 }, .size = { .w = 6, .h = 6 } } );
+  REQUIRE( blue_id == 2 );
+
+  int const red_id = img_builder.add_sprite( rect{
+    .origin = { .x = 6, .y = 3 }, .size = { .w = 2, .h = 2 } } );
+  REQUIRE( red_id == 3 );
+
+  maybe<Atlas> atlas = builder.build( size{ .w = 11, .h = 14 } );
+  REQUIRE( atlas.has_value() );
+
+  REQUIRE( atlas->dict.size() == 4 );
+  REQUIRE( atlas->dict.trimmed_bounds( 0 ) ==
+           rect{ .origin = { .x = 2 - 1, .y = 3 - 1 },
+                 .size   = { .w = 0, .h = 0 } } );
+  REQUIRE( atlas->dict.trimmed_bounds( 1 ) ==
+           rect{ .origin = { .x = 3 - 0, .y = 9 - 8 },
+                 .size   = { .w = 1, .h = 1 } } );
+  REQUIRE( atlas->dict.trimmed_bounds( 2 ) ==
+           rect{ .origin = { .x = 6 - 5, .y = 9 - 8 },
+                 .size   = { .w = 4, .h = 3 } } );
+  REQUIRE( atlas->dict.trimmed_bounds( 3 ) ==
+           rect{ .origin = { .x = 6 - 6, .y = 3 - 3 },
+                 .size   = { .w = 2, .h = 2 } } );
 }
 
 TEST_CASE( "[render/atlas] multiple images" ) {
