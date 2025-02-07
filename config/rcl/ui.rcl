@@ -82,4 +82,7 @@ harbor {
   # For slots that have a full 100 quantity of the cargo, the
   # label color will be brightened this number of times.
   cargo_label_color_full_highlight_intensity: 2
+  # Color of the box used to indicate the currently selected
+  # ship.
+  ship_select_box_color: "#1d5aac"
 }

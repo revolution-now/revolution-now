@@ -33,6 +33,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
 
@@ -351,10 +352,9 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation2,
       point( coord ).distance_from_origin().to_double() );
-  rr::Painter painter = renderer.painter();
-  painter.draw_empty_rect( layout_.white_box,
-                           rr::Painter::e_border_mode::inside,
-                           pixel::white().with_alpha( 128 ) );
+  renderer.painter().draw_empty_rect(
+      layout_.white_box, rr::Painter::e_border_mode::inside,
+      pixel::white().with_alpha( 128 ) );
 
   HarborState const& hb_state = player_.old_world.harbor_state;
 
@@ -413,12 +413,12 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
                         32 / bounds.size.w );
     }
     render_unit( renderer, point{}, unit, UnitRenderOptions{} );
-    rr::Painter painter = renderer.painter();
     if( hb_state.selected_unit == unit_id )
-      painter.draw_empty_rect(
+      rr::draw_empty_rect_faded_corners(
+          renderer,
           rect{ .origin = {}, .size = g_tile_delta } -
               size{ .w = 1, .h = 1 },
-          rr::Painter::e_border_mode::in_out, pixel::green() );
+          config_ui.harbor.ship_select_box_color );
   }
 }
 

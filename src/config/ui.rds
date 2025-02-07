@@ -75,6 +75,7 @@ struct.harbor {
   unit_highlight_color 'gfx::pixel',
   cargo_label_color 'gfx::pixel',
   cargo_label_color_full_highlight_intensity 'int',
+  ship_select_box_color 'gfx::pixel',
 }
 
 namespace "rn"
