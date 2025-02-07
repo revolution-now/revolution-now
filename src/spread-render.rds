@@ -124,5 +124,6 @@ struct.TileSpreadRenderPlan {
 
 # Final result which is directly renderable.
 struct.TileSpreadRenderPlans {
+  bounds 'gfx::size',
   plans 'std::vector<TileSpreadRenderPlan>',
 }

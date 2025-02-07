@@ -72,15 +72,16 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
-    .plans = {
+    .bounds = { .w = 28, .h = 32 },
+    .plans  = {
       TileSpreadRenderPlan{
-        .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
-        .tiles  = { { .tile  = e_tile::dragoon,
-                      .where = { -2, 0 } } },
-        .label =
+         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+         .tiles  = { { .tile  = e_tile::dragoon,
+                       .where = { -2, 0 } } },
+         .label =
             SpreadLabelRenderPlan{
-              .text  = "1",
-              .where = { .x = 0, .y = 0 },
+               .text  = "1",
+               .where = { .x = 0, .y = 0 },
             } },
     } };
   REQUIRE( f() == expected );
@@ -105,20 +106,21 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
-    .plans = {
+    .bounds = { .w = 28, .h = 32 },
+    .plans  = {
       TileSpreadRenderPlan{
-        .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
-        .tiles  = { { .tile  = e_tile::dragoon,
-                      .where = { -2, 0 } } },
-        .label =
+         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+         .tiles  = { { .tile  = e_tile::dragoon,
+                       .where = { -2, 0 } } },
+         .label =
             SpreadLabelRenderPlan{
-              .options =
+               .options =
                   SpreadLabelOptions{
-                    .placement =
+                     .placement =
                         SpreadLabelPlacement::in_first_tile{
-                          .placement = e_cdirection::sw } },
-              .text  = "1",
-              .where = { .x = 0, .y = 32 - 8 - 2 },
+                           .placement = e_cdirection::sw } },
+               .text  = "1",
+               .where = { .x = 0, .y = 32 - 8 - 2 },
             } },
     } };
   REQUIRE( f() == expected );
@@ -137,15 +139,16 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
-    .plans = {
+    .bounds = { .w = 28, .h = 32 },
+    .plans  = {
       TileSpreadRenderPlan{
-        .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
-        .tiles  = { { .tile  = e_tile::dragoon,
-                      .where = { -2, 0 } } },
-        .label =
+         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+         .tiles  = { { .tile  = e_tile::dragoon,
+                       .where = { -2, 0 } } },
+         .label =
             SpreadLabelRenderPlan{
-              .text  = "2",
-              .where = { .x = 0, .y = 0 },
+               .text  = "2",
+               .where = { .x = 0, .y = 0 },
             } },
     } };
   REQUIRE( f() == expected );
@@ -183,30 +186,31 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     .label_policy  = SpreadLabels::always{},
   };
   expected = {
-    .plans = {
+    .bounds = { .w = 28 + 1 + 16, .h = 32 },
+    .plans  = {
       TileSpreadRenderPlan{
-        .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
-        .tiles =
-            {
+         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+         .tiles =
+             {
               { .tile = e_tile::dragoon, .where = { -2, 0 } },
             },
-        .label =
+         .label =
             SpreadLabelRenderPlan{
-              .text  = "1",
-              .where = { .x = 0, .y = 0 },
+               .text  = "1",
+               .where = { .x = 0, .y = 0 },
             } },
       TileSpreadRenderPlan{
-        .bounds = { .origin = { .x = 28 + 1 },
-                    .size   = { .w = 13 + 3, .h = 32 } },
-        .tiles =
-            {
+         .bounds = { .origin = { .x = 28 + 1 },
+                     .size   = { .w = 13 + 3, .h = 32 } },
+         .tiles =
+             {
               { .tile = e_tile::soldier, .where = { 18, 0 } },
               { .tile = e_tile::soldier, .where = { 21, 0 } },
             },
-        .label =
+         .label =
             SpreadLabelRenderPlan{
-              .text  = "2",
-              .where = { .x = 29, .y = 0 },
+               .text  = "2",
+               .where = { .x = 29, .y = 0 },
             },
       } } };
   REQUIRE( f() == expected );

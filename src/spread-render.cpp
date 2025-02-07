@@ -189,6 +189,11 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     label_options( tile_spread ).visit( add_label );
     p.x += tile_spreads.group_spacing;
   }
+  // Populate total bounds.
+  rect bounds;
+  for( auto const& plan : plans.plans )
+    bounds = bounds.uni0n( plan.bounds );
+  plans.bounds = bounds.size;
   return plans;
 }
 
