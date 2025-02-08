@@ -750,12 +750,17 @@ TEST_CASE( "[gfx/cartesian] rect::from" ) {
   point p1{ .x = 4, .y = 2 };
   point p2{ .x = 2, .y = 4 };
   REQUIRE( rect::from( p1, p2 ) ==
-           rect{ .origin = { .x = 4, .y = 2 },
-                 .size   = { .w = -2, .h = 2 } } );
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
   REQUIRE( rect::from( p2, p1 ) ==
-           rect{ .origin = { .x = 2, .y = 4 },
-                 .size   = { .w = 2, .h = -2 } } );
-  REQUIRE( rect::from( p1, p2 ).normalized() ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+  point p3{ .x = 2, .y = 2 };
+  point p4{ .x = 4, .y = 4 };
+  REQUIRE( rect::from( p3, p4 ) ==
+           rect{ .origin = { .x = 2, .y = 2 },
+                 .size   = { .w = 2, .h = 2 } } );
+  REQUIRE( rect::from( p4, p3 ) ==
            rect{ .origin = { .x = 2, .y = 2 },
                  .size   = { .w = 2, .h = 2 } } );
 }

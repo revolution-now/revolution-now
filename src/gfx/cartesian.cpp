@@ -572,7 +572,7 @@ bool rect::is_inside( rect const other ) const {
 
 rect rect::normalized() const {
   if( size.w >= 0 && size.h >= 0 )
-    // Fase path for the (likely) usual case when the rect is al-
+    // Fast path for the (likely) usual case when the rect is al-
     // ready normalized.
     return *this;
   rect res = *this;
@@ -588,7 +588,8 @@ rect rect::normalized() const {
 }
 
 rect rect::from( point first, point opposite ) {
-  return rect{ .origin = first, .size = ( opposite - first ) };
+  return rect{ .origin = first, .size = ( opposite - first ) }
+      .normalized();
 }
 
 point rect::nw() const { return normalized().origin; }
