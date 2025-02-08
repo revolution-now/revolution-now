@@ -44,6 +44,8 @@ namespace rn {
 
 namespace {
 
+using ::base::valid;
+using ::base::valid_or;
 using ::gfx::rect;
 using ::gfx::size;
 
@@ -82,7 +84,40 @@ void init_sprites( rr::Renderer& renderer ) {
   }
 }
 
-void deinit_sprites() { cache.clear(); }
+valid_or<string> validate_sprites( rr::Renderer& ) {
+  // Check that food and fish tiles have the same trimmed rect.
+  // This is necessary because they sometimes need to be rendered
+  // within the same tile spread (i.e. in the colony population
+  // view).
+  {
+    rect const food_20 =
+        atlas_lookup_trimmed( e_tile::commodity_food_20 );
+    rect const fish_20 =
+        atlas_lookup_trimmed( e_tile::product_fish_20 );
+    rect const food_16 =
+        atlas_lookup_trimmed( e_tile::commodity_food_16 );
+    rect const fish_16 =
+        atlas_lookup_trimmed( e_tile::product_fish_16 );
+    if( food_20 != fish_20 )
+      return fmt::format(
+          "The 20x20 food and fish tiles must have the same "
+          "bounding box within their sprites, but instead the "
+          "food tile has {} and the fish tile has {}.",
+          food_20, fish_20 );
+    if( food_16 != fish_16 )
+      return fmt::format(
+          "The 16x16 food and fish tiles must have the same "
+          "bounding box within their sprites, but instead the "
+          "food tile has {} and the fish tile has {}.",
+          food_16, fish_16 );
+  }
+  return valid;
+}
+
+void deinit_sprites() {
+  cache.clear();
+  trimmed_cache.clear();
+}
 
 gfx::size sprite_size( e_tile tile ) {
   // FIXME: find a better way to do this. Maybe store it in the

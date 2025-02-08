@@ -37,6 +37,9 @@ namespace rn {
 *****************************************************************/
 void init_sprites( rr::Renderer& renderer );
 
+base::valid_or<std::string> validate_sprites(
+    rr::Renderer& renderer );
+
 void deinit_sprites();
 
 /****************************************************************

@@ -255,7 +255,10 @@ struct Engine::Impl {
   // ============================================================
   // Sprite caches.
   // ============================================================
-  void init_sprites() { rn::init_sprites( renderer() ); }
+  void init_sprites() {
+    rn::init_sprites( renderer() );
+    CHECK_HAS_VALUE( validate_sprites( renderer() ) );
+  }
 
   void deinit_sprites() { rn::deinit_sprites(); }
 
