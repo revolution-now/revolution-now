@@ -11,7 +11,10 @@
 #include "harbor-view-backdrop.hpp"
 
 // Revolution Now
+#include "co-time.hpp"
+#include "irand.hpp"
 #include "tiles.hpp"
+#include "ts.hpp"
 
 // config
 #include "config/tile-enum.rds.hpp"
@@ -46,6 +49,44 @@ ui::View const& HarborBackdrop::view() const noexcept {
   return *this;
 }
 
+wait<> HarborBackdrop::birds_thread() {
+  using namespace std::chrono_literals;
+  auto& birds_state = birds_state_.emplace();
+  SCOPE_EXIT { birds_state_.reset(); };
+  birds_state.frame_states.resize( layout_.birds_states.size() );
+  CHECK( !birds_state.frame_states.empty() );
+  for( int frame_idx = 0;
+       auto& frame : birds_state.frame_states ) {
+    frame.frame   = frame_idx++;
+    frame.visible = 0;
+  }
+  birds_state.frame_states[0].visible =
+      BirdsFrameState::kVisTotal;
+  int constexpr kDelta = 5;
+  static_assert( BirdsFrameState::kVisTotal % kDelta == 0 );
+  int constexpr kCycles = BirdsFrameState::kVisTotal / kDelta;
+  chrono::milliseconds constexpr kDepixelateInterval = 50ms;
+
+  while( true ) {
+    co_await 10s;
+
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kDepixelateInterval;
+      auto it = find_if( birds_state.frame_states.begin(),
+                         birds_state.frame_states.end(),
+                         []( BirdsFrameState const& state ) {
+                           return state.visible > 0;
+                         } );
+      if( it == birds_state.frame_states.end() ) co_return;
+      it->visible = std::max( it->visible - kDelta, 0 );
+      ++it;
+      if( it == birds_state.frame_states.end() ) continue;
+      it->visible = std::min( it->visible + kDelta,
+                              BirdsFrameState::kVisTotal );
+    }
+  }
+}
+
 void HarborBackdrop::draw( rr::Renderer& renderer,
                            Coord coord ) const {
   rr::Painter painter = renderer.painter();
@@ -64,6 +105,20 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
   for( auto const& [delta, tile] : layout_.clouds )
     render_sprite( renderer, layout_.clouds_origin + delta,
                    tile );
+
+  // Birds.
+  if( birds_state_.has_value() ) {
+    for( BirdsFrameState const& state :
+         birds_state_->frame_states ) {
+      CHECK_LT( state.frame,
+                int( layout_.birds_states.size() ) );
+      auto const& birds_state =
+          layout_.birds_states[state.frame];
+      SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                               ( 100 - state.visible ) / 100.0 );
+      render_sprite( renderer, birds_state.p, birds_state.tile );
+    }
+  }
 
   // Ocean.
   tile_sprite( renderer, e_tile::harbor_ocean, layout_.ocean );
@@ -139,7 +194,7 @@ void HarborBackdrop::insert_clouds( Layout& l,
 }
 
 HarborBackdrop::Layout HarborBackdrop::recomposite(
-    size const sz ) {
+    TS& ts, size const sz ) {
   Layout l;
   rect const all{ .size = sz };
 
@@ -196,12 +251,33 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   for( int i = 0; i < 30; ++i ) {
     l.dock_units.ground_rows.push_back( ground );
     ++ground.y;
-    if( i % 2 == 1 ) ++ground.x;
-    if( i % 2 == 1 ) ++ground.x;
-    // if( i % 4 == 1 ) ++ground.x;
+    if( i % 2 == 1 ) ground.x += 2;
   }
   l.dock_units.bottom_edge = ground.y;
 
+  // Birds.
+  rect const birds_available_space =
+      all.with_new_bottom_edge( l.horizon_center.y - 107 );
+  point p_birds{
+    .x = ts.rand.between_ints( birds_available_space.left(),
+                               birds_available_space.right() ),
+    .y =
+        ts.rand.between_ints( birds_available_space.top(),
+                              birds_available_space.bottom() ) };
+  l.birds_states.emplace_back() = Layout::BirdsLayout{
+    .p = p_birds, .tile = e_tile::harbor_birds_1 };
+  p_birds += size{ .w = 9, .h = 6 };
+  l.birds_states.emplace_back() = Layout::BirdsLayout{
+    .p = p_birds, .tile = e_tile::harbor_birds_2 };
+  p_birds += size{ .w = 6, .h = 5 };
+  l.birds_states.emplace_back() = Layout::BirdsLayout{
+    .p = p_birds, .tile = e_tile::harbor_birds_3 };
+  p_birds += size{ .w = 3, .h = 3 };
+  l.birds_states.emplace_back() = Layout::BirdsLayout{
+    .p = p_birds, .tile = e_tile::harbor_birds_4 };
+  p_birds += size{ .w = 1, .h = 2 };
+  l.birds_states.emplace_back() = Layout::BirdsLayout{
+    .p = p_birds, .tile = e_tile::harbor_birds_5 };
   return l;
 }
 
@@ -211,7 +287,7 @@ PositionedHarborSubView<HarborBackdrop> HarborBackdrop::create(
   unique_ptr<HarborBackdrop> view;
   HarborSubView* harbor_sub_view = nullptr;
 
-  Layout const layout = recomposite( canvas.delta() );
+  Layout const layout = recomposite( ts, canvas.delta() );
   point const origin  = {};
 
   view            = make_unique<HarborBackdrop>( ss, ts, player,
@@ -228,6 +304,7 @@ HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,
                                 Delta size, Layout layout )
   : HarborSubView( ss, ts, player ),
     size_( size ),
-    layout_( layout ) {}
+    layout_( layout ),
+    birds_thread_( birds_thread() ) {}
 
 } // namespace rn

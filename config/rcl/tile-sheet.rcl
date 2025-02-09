@@ -94,6 +94,17 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/birds.png
+      sprite_size: { w: 67, h: 26 }
+      sprites {
+        harbor_birds_1: { y: 0, x: 0 }
+        harbor_birds_2: { y: 1, x: 0 }
+        harbor_birds_3: { y: 2, x: 0 }
+        harbor_birds_4: { y: 3, x: 0 }
+        harbor_birds_5: { y: 4, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/land-dirt.png
       sprite_size: { w: 310, h: 158 }
       sprites {

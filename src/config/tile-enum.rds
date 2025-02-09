@@ -800,6 +800,13 @@ enum.e_tile {
   harbor_cloud_tiny_1,
   harbor_cloud_tiny_2,
 
+  # Birds
+  harbor_birds_1,
+  harbor_birds_2,
+  harbor_birds_3,
+  harbor_birds_4,
+  harbor_birds_5,
+
   # Land.
   harbor_land_dirt,
   harbor_land_shadows,

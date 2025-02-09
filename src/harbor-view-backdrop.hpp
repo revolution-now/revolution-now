@@ -10,10 +10,9 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "harbor-view-entities.hpp"
+#include "wait.hpp"
 
 // gfx
 #include "gfx/pixel.hpp"
@@ -90,6 +89,12 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
 
     // Unit positioning.
     DockUnitsLayout dock_units;
+
+    struct BirdsLayout {
+      gfx::point p;
+      e_tile tile = {};
+    };
+    std::vector<BirdsLayout> birds_states;
   };
 
  public:
@@ -97,12 +102,26 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
                   Layout layout );
 
  private:
-  static Layout recomposite( gfx::size size );
+  static Layout recomposite( TS& ts, gfx::size size );
 
   static void insert_clouds( Layout& l, gfx::size shift );
 
+  wait<> birds_thread();
+
   Delta const size_;
   Layout const layout_;
+
+  struct BirdsFrameState {
+    int frame = {};
+
+    static int constexpr kVisTotal = 100;
+    int visible                    = {};
+  };
+  struct BirdsState {
+    std::vector<BirdsFrameState> frame_states = {};
+  };
+  maybe<BirdsState> birds_state_;
+  wait<> birds_thread_;
 };
 
 } // namespace rn
