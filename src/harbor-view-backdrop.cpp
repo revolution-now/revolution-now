@@ -97,6 +97,10 @@ point HarborBackdrop::horizon_center() const {
   return layout_.horizon_center;
 }
 
+int HarborBackdrop::extra_space_for_ships() const {
+  return layout_.extra_space_for_ships;
+}
+
 #define CLOUD( size, n ) e_tile::harbor_cloud_##size##_##n
 
 void HarborBackdrop::insert_clouds( Layout& l,
@@ -168,6 +172,8 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.land_origin = all.se() -
                   sprite_size( e_tile::harbor_land_dirt ) +
                   land_shift;
+
+  l.extra_space_for_ships = l.land_origin.x - l.horizon_center.x;
 
   // Dock.
   l.dock_physical_nw =

@@ -460,16 +460,19 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
   }
 
   // Row 2 (16x16).
-  slot = { .origin = point{} + size{ .h = 8 },
+  slot = { .origin = point{ .x = 16 } + size{ .h = 8 },
            .size   = { .w = 16, .h = 16 } };
-  for( int i = 0; i < 8; ++i ) {
+  int const row_2_extra = backdrop.extra_space_for_ships() / 16;
+  for( int i = 0; i < std::min( 9 + row_2_extra, 9 ); ++i ) {
     l.slots.push_back( slot );
     slot.origin.x += slot.size.w;
   }
 
   // Row 3 (8x8).
-  slot = { .origin = point{}, .size = { .w = 8, .h = 8 } };
-  for( int i = 0; i < 12; ++i ) {
+  slot                  = { .origin = point{ .x = 24 },
+                            .size   = { .w = 8, .h = 8 } };
+  int const row_3_extra = backdrop.extra_space_for_ships() / 8;
+  for( int i = 0; i < std::min( 9 + row_3_extra, 15 ); ++i ) {
     l.slots.push_back( slot );
     slot.origin.x += slot.size.w;
   }
