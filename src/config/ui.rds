@@ -78,6 +78,11 @@ struct.harbor {
   ship_select_box_color 'gfx::pixel',
 }
 
+struct.tooltips {
+  default_fg_color 'gfx::pixel',
+  default_bg_color 'gfx::pixel',
+}
+
 namespace "rn"
 
 struct.config_ui_t {
@@ -88,6 +93,7 @@ struct.config_ui_t {
   panel 'config::ui::panel',
   harbor 'config::ui::harbor',
   tile_spreads 'config::ui::tile_spreads',
+  tooltips 'config::ui::tooltips',
 }
 
 config.ui {}

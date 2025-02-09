@@ -20,12 +20,14 @@
 #include "market.hpp"
 #include "renderer.hpp"
 #include "tax.hpp"
+#include "text.hpp"
 #include "tiles.hpp"
 #include "ts.hpp"
 
 // config
 #include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+#include "config/ui.rds.hpp"
 
 // ss
 #include "ss/player.rds.hpp"
@@ -390,20 +392,35 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
 
     // Tooltip.
     // TODO: need to move this to the window plane and make sure
-    // that it reflows the text so that it fits on-screen.
+    // that it reflows the text so that it fits on screen. Maybe
+    // we want to make some kind of general tooltip framework
+    // that handles the delay and showing of the tooltip.
     if( mouse_pos.is_inside( layout_.panel_inner_rect[comm] ) ) {
       string const tooltip =
-          fmt::format( "{} (Bidding {}, Asking {})",
+          fmt::format( "{}: Bidding {}, Asking {}",
                        uppercase_commodity_display_name( comm ),
                        price.bid, price.ask );
       size const tooltip_size =
           rr::rendered_text_line_size_pixels( tooltip );
-      point const tooltip_origin = gfx::centered_at_bottom(
-          tooltip_size,
-          layout_.plates[comm].with_new_bottom_edge(
-              layout_.plates[comm].top() ) );
-      renderer.typer( tooltip_origin, gfx::pixel::black() )
-          .write( tooltip );
+      point anchor = layout_.plates[comm].center().with_y(
+          layout_.plates[comm].top() - 1 );
+      e_cdirection placement = e_cdirection::s;
+      if( anchor.x - tooltip_size.w / 2 < 0 ) {
+        anchor.x  = 0;
+        placement = e_cdirection::sw;
+      }
+      if( anchor.x + tooltip_size.w / 2 >=
+          renderer.logical_screen_size().w ) {
+        anchor.x  = renderer.logical_screen_size().w;
+        placement = e_cdirection::se;
+      }
+      render_text_line_with_background(
+          renderer, tooltip,
+          gfx::oriented_point{ .anchor    = anchor,
+                               .placement = placement },
+          config_ui.tooltips.default_fg_color,
+          config_ui.tooltips.default_bg_color, /*padding=*/1,
+          /*draw_corners=*/false );
     }
   }
 }

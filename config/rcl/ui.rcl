@@ -86,3 +86,8 @@ harbor {
   # ship.
   ship_select_box_color: "#1d5aac"
 }
+
+tooltips {
+  default_fg_color: "#eeeeaa"
+  default_bg_color: "#222211"
+}
