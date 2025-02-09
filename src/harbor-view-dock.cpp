@@ -213,6 +213,10 @@ wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
   // This will change the unit type.
   PriceChange const price_change = perform_harbor_equip_option(
       ss_, ts_, player_, unit.id(), equip_opts[chosen_idx] );
+  // Need to update the dock units before popping up a box so
+  // that when the unit sprite changes the other units will be
+  // repositioned accordingly.
+  update_units();
   // Will only display something if there is a price change.
   co_await display_price_change_notification( ts_, player_,
                                               price_change );
