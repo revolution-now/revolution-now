@@ -72,35 +72,111 @@ ui::View const& HarborDockUnits::view() const noexcept {
   return *this;
 }
 
-void HarborDockUnits::update_units() {
+bool HarborDockUnits::update_units_impl( int const row_inc ) {
   units_.clear();
-  auto const& slots_layout = backdrop_.dock_units_layout();
-  auto spot_it             = slots_layout.units.begin();
-  for( UnitId const unit_id :
-       harbor_units_on_dock( ss_.units, player_.nation ) ) {
-    if( spot_it == slots_layout.units.end() ) break;
-    units_.push_back( { .id     = unit_id,
-                        .bounds = spot_it->point_becomes_origin(
-                            layout_.view.origin ) } );
-    ++spot_it;
+  auto const& units_layout = backdrop_.dock_units_layout();
+  vector<UnitId> const dock_units =
+      harbor_units_on_dock( ss_.units, player_.nation );
+
+  auto units_iter = dock_units.begin();
+
+  auto const sizes_for_curr_unit = [&] {
+    CHECK( units_iter != dock_units.end() );
+    UnitId const unit_id = *units_iter;
+    Unit const& unit     = ss_.units.unit_for( unit_id );
+    e_tile const tile    = unit.desc().tile;
+    rect const trimmed   = trimmed_area_for( tile );
+    return pair{ trimmed, sprite_size( tile ) };
+  };
+
+  auto const place_unit = [&]( point const p ) {
+    auto const [trimmed, sprite] = sizes_for_curr_unit();
+    rect const trimmed_bounds =
+        rect{
+          .origin = p,
+          .size = { .w = trimmed.size.w, .h = -trimmed.size.h } }
+            .normalized()
+            .point_becomes_origin( layout_.view.origin );
+    size const delta = trimmed.origin.distance_from_origin();
+    units_.push_back( UnitPlacement{
+      .id             = *units_iter,
+      .trimmed_bounds = trimmed_bounds,
+      .sprite_bounds =
+          rect{ .origin = trimmed_bounds.origin - delta,
+                .size   = sprite } } );
+    ++units_iter;
+    return trimmed.size.w;
+  };
+
+  int const kUnitDockSpacing = 2;
+
+  auto const place_along_line_right = [&]( point const start ) {
+    point p = start;
+    while( units_iter != dock_units.end() &&
+           p.x < units_layout.right_edge ) {
+      auto const [trimmed, _] = sizes_for_curr_unit();
+      if( p.x + trimmed.size.w + kUnitDockSpacing >=
+          units_layout.right_edge )
+        break;
+      p.x += place_unit( p ) + kUnitDockSpacing;
+    }
+  };
+
+  auto const place_along_line_left = [&]( point const end ) {
+    point p = end;
+    p.x     = units_layout.right_edge;
+    while( units_iter != dock_units.end() ) {
+      auto const [trimmed, _] = sizes_for_curr_unit();
+      p.x -= ( trimmed.size.w + kUnitDockSpacing );
+      if( p.x < end.x ) break;
+      place_unit( p );
+    }
+  };
+
+  // Place units on the dock.
+  place_along_line_right( units_layout.dock_row_start );
+
+  // Place units on the hill.
+  place_along_line_left( units_layout.hill_row_start );
+
+  // Place units on the ground.
+  auto rows_iter = units_layout.ground_rows.begin();
+  bool move_left = true;
+  while( true ) {
+    if( rows_iter == units_layout.ground_rows.end() ) break;
+    if( move_left )
+      place_along_line_left( *rows_iter );
+    else
+      place_along_line_right( *rows_iter );
+    move_left = !move_left;
+    if( units_layout.ground_rows.end() - rows_iter < row_inc )
+      break;
+    rows_iter += row_inc;
   }
+
+  return units_iter == dock_units.end();
 }
 
-maybe<HarborDockUnits::UnitWithRect>
+void HarborDockUnits::update_units() {
+  for( int row_inc = 12; row_inc > 0; --row_inc )
+    if( update_units_impl( row_inc ) ) return;
+}
+
+maybe<HarborDockUnits::UnitPlacement>
 HarborDockUnits::unit_at_location( point const where ) const {
-  for( auto [id, bounds] : rl::rall( units_ ) )
-    if( where.is_inside( bounds ) )
-      return UnitWithRect{ .id = id, .bounds = bounds };
+  for( auto const& unit_with_bounds : rl::rall( units_ ) )
+    if( where.is_inside( unit_with_bounds.trimmed_bounds ) )
+      return unit_with_bounds;
   return nothing;
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
 HarborDockUnits::object_here( Coord const& where ) const {
-  maybe<UnitWithRect> const unit = unit_at_location( where );
+  maybe<UnitPlacement> const unit = unit_at_location( where );
   if( !unit.has_value() ) return nothing;
   return DraggableObjectWithBounds<HarborDraggableObject>{
     .obj    = HarborDraggableObject::unit{ .id = unit->id },
-    .bounds = unit->bounds };
+    .bounds = unit->sprite_bounds };
 }
 
 wait<> HarborDockUnits::click_on_unit( UnitId unit_id ) {
@@ -148,7 +224,8 @@ wait<> HarborDockUnits::perform_click(
   if( event.buttons != input::e_mouse_button_event::left_up )
     co_return;
   CHECK( event.pos.is_inside( bounds( {} ) ) );
-  maybe<UnitWithRect> const unit = unit_at_location( event.pos );
+  maybe<UnitPlacement> const unit =
+      unit_at_location( event.pos );
   if( !unit.has_value() ) co_return;
   co_await click_on_unit( unit->id );
 }
@@ -213,26 +290,32 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
   // we need to iterate backwards to find the unit that is high-
   // lighted (if any) first before we start drawing, given that
   // we draw in the opposite order (first to last).
-  auto const highlighted_unit = [&]() -> maybe<UnitId> {
+  auto const highlighted_unit = [&]() -> maybe<UnitPlacement> {
     if( dragging_.has_value() ) return nothing;
-    for( auto const& [unit_id, bounds] : rl::rall( units_ ) )
-      if( mouse_pos.is_inside( bounds ) ) return unit_id;
+    for( auto const& unit_with_bounds : rl::rall( units_ ) )
+      if( mouse_pos.is_inside(
+              unit_with_bounds.trimmed_bounds ) )
+        return unit_with_bounds;
     return nothing;
   }();
 
-  for( auto const& [unit_id, bounds] : units_ ) {
-    if( dragging_.has_value() && dragging_->unit_id == unit_id )
+  for( auto const& unit_with_bounds : units_ ) {
+    if( dragging_.has_value() &&
+        dragging_->unit_id == unit_with_bounds.id )
       continue;
     SCOPED_RENDERER_MOD_ADD(
         painter_mods.repos.translation2,
         point( coord ).distance_from_origin().to_double() );
-    Unit const& unit  = ss_.units.unit_for( unit_id );
+    Unit const& unit = ss_.units.unit_for( unit_with_bounds.id );
     e_tile const tile = unit.desc().tile;
-    if( unit_id == highlighted_unit )
+    if( highlighted_unit.has_value() &&
+        unit_with_bounds.id == highlighted_unit->id )
       render_sprite_silhouette(
-          renderer, bounds.nw() - size{ .w = 1 }, tile,
-          config_ui.harbor.unit_highlight_color );
-    render_sprite( renderer, bounds.nw(), tile );
+          renderer,
+          unit_with_bounds.sprite_bounds.nw() - size{ .w = 1 },
+          tile, config_ui.harbor.unit_highlight_color );
+    render_sprite( renderer, unit_with_bounds.sprite_bounds.nw(),
+                   tile );
   }
   // Must be done after units since they are supposed to appear
   // behind it.
@@ -242,13 +325,13 @@ void HarborDockUnits::draw( rr::Renderer& renderer,
 HarborDockUnits::Layout HarborDockUnits::create_layout(
     HarborBackdrop const& backdrop ) {
   Layout l;
-  vector<rect> const& unit_slots =
-      backdrop.dock_units_layout().units;
-  CHECK( !unit_slots.empty() );
-  rect composite = unit_slots[0];
-  for( rect const& r : unit_slots )
-    composite = composite.uni0n( r );
-  l.view = composite;
+  auto const& dock_layout = backdrop.dock_units_layout();
+
+  l.view = rect::from(
+      point{ .x = dock_layout.dock_row_start.x,
+             .y = dock_layout.dock_row_start.y - 32 },
+      point{ .x = dock_layout.right_edge,
+             .y = dock_layout.bottom_edge } );
   return l;
 }
 
@@ -273,7 +356,7 @@ HarborDockUnits::HarborDockUnits( SS& ss, TS& ts, Player& player,
   : HarborSubView( ss, ts, player ),
     backdrop_( backdrop ),
     layout_( std::move( layout ) ) {
-  SCOPE_EXIT { update_units(); };
+  update_units();
 }
 
 } // namespace rn

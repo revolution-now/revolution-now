@@ -193,14 +193,6 @@ HarborViewComposited recomposite_harbor_view(
       status_bar.harbor;
   views.push_back( std::move( status_bar.owned ) );
 
-  // [HarborMarketCommodities] ----------------------------------
-  PositionedHarborSubView<HarborMarketCommodities>
-      market_commodities = HarborMarketCommodities::create(
-          ss, ts, player, canvas_rect, status_bar_ref );
-  composition.entities[e_harbor_view_entity::market] =
-      market_commodities.harbor;
-  views.push_back( std::move( market_commodities.owned ) );
-
   // [HarborCargo] ----------------------------------------------
   PositionedHarborSubView<HarborCargo> cargo =
       HarborCargo::create( ss, ts, player, canvas_rect,
@@ -249,12 +241,24 @@ HarborViewComposited recomposite_harbor_view(
 
   // [HarborDockUnits]
   // ----------------------------------------
+  // NOTE: this must be rendered before the market commodities so
+  // that the overflow units remain behind the market panel.
   PositionedHarborSubView<HarborDockUnits> dock =
       HarborDockUnits::create( ss, ts, player, canvas_rect,
                                backdrop_ref );
   auto& dock_ref = *dock.actual;
   composition.entities[e_harbor_view_entity::dock] = dock.harbor;
   views.push_back( std::move( dock.owned ) );
+
+  // [HarborMarketCommodities] ----------------------------------
+  // NOTE: this must be rendered after dock units so that it re-
+  // mains on top of the rows of overflow units.
+  PositionedHarborSubView<HarborMarketCommodities>
+      market_commodities = HarborMarketCommodities::create(
+          ss, ts, player, canvas_rect, status_bar_ref );
+  composition.entities[e_harbor_view_entity::market] =
+      market_commodities.harbor;
+  views.push_back( std::move( market_commodities.owned ) );
 
   // [HarborRptButtons]
   // ----------------------------------------

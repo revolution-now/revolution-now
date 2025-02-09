@@ -27,7 +27,12 @@ struct Player;
 enum class e_tile;
 
 struct DockUnitsLayout {
-  std::vector<gfx::rect> units;
+  int right_edge  = {};
+  int bottom_edge = {};
+
+  gfx::point dock_row_start;
+  gfx::point hill_row_start;
+  std::vector<gfx::point> ground_rows;
 };
 
 /****************************************************************
@@ -74,6 +79,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     gfx::point land_origin;
     gfx::point dock_physical_nw;
     gfx::point dock_sprite_nw;
+    gfx::point dock_board_nw;
 
     // Distance from the bottom to the horizon.
     int horizon_height        = {};

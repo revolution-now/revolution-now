@@ -93,15 +93,19 @@ struct HarborDockUnits
  private:
   static Layout create_layout( HarborBackdrop const& backdrop );
 
-  struct UnitWithRect {
-    UnitId id;
-    gfx::rect bounds;
+  struct UnitPlacement {
+    UnitId id = {};
+    gfx::rect trimmed_bounds;
+    gfx::rect sprite_bounds;
   };
 
   // The coord is relative to the upper left of this view.
-  maybe<UnitWithRect> unit_at_location( gfx::point where ) const;
+  maybe<UnitPlacement> unit_at_location(
+      gfx::point where ) const;
 
   wait<> click_on_unit( UnitId unit_id );
+
+  bool update_units_impl( int try_spacing );
 
   struct Draggable {
     UnitId unit_id = {};
@@ -110,7 +114,7 @@ struct HarborDockUnits
 
   HarborBackdrop const& backdrop_;
   Layout const layout_;
-  std::vector<UnitWithRect> units_;
+  std::vector<UnitPlacement> units_;
 };
 
 } // namespace rn

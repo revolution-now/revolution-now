@@ -170,44 +170,28 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.dock_physical_nw =
       all.se() - size{ .w = 201, .h = 113 } + land_shift;
   l.dock_sprite_nw = l.dock_physical_nw - size{ .w = 5 };
+  l.dock_board_nw  = l.dock_sprite_nw + size{ .w = 5, .h = 6 };
 
-  // Dock unit positions.
-  auto& units = l.dock_units.units;
-  rect r_unit{ .size = g_tile_delta };
+  l.dock_units.right_edge = all.right() - 8;
 
   // First row (on dock).
-  r_unit.origin = l.dock_physical_nw + size{ .w = 12, .h = -23 };
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
+  l.dock_units.dock_row_start =
+      l.dock_board_nw + size{ .w = 13, .h = 3 };
 
-  // Second row (on ground).
-  r_unit.origin = l.dock_physical_nw + size{ .w = 23, .h = 19 };
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
+  // Second row (on hill).
+  l.dock_units.hill_row_start =
+      l.dock_board_nw + size{ .w = 160, .h = 24 };
 
-  // Third row (on ground).
-  r_unit.origin = l.dock_physical_nw + size{ .w = 40, .h = 35 };
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
-  r_unit.origin.x += 32;
-  units.push_back( r_unit );
+  // Extra rows (on ground).
+  point ground = l.dock_board_nw + size{ .w = 30, .h = 44 };
+  for( int i = 0; i < 30; ++i ) {
+    l.dock_units.ground_rows.push_back( ground );
+    ++ground.y;
+    if( i % 2 == 1 ) ++ground.x;
+    if( i % 2 == 1 ) ++ground.x;
+    // if( i % 4 == 1 ) ++ground.x;
+  }
+  l.dock_units.bottom_edge = ground.y;
 
   return l;
 }
