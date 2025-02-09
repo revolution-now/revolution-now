@@ -269,10 +269,20 @@ void HarborInboundShips::draw( rr::Renderer& renderer,
                         32 / bounds.size.w );
     }
     render_unit( renderer, point{}, unit, UnitRenderOptions{} );
+  }
+
+  // Draw the select box after all units so that it is never par-
+  // tially covered by any unit.
+  for( auto const& [unit_id, bounds] : rl::rall( units ) ) {
+    if( dragging_.has_value() && dragging_->unit_id == unit_id )
+      continue;
+    SCOPED_RENDERER_MOD_ADD(
+        painter_mods.repos.translation2,
+        bounds.nw().distance_from_origin().to_double() );
     if( hb_state.selected_unit == unit_id )
       rr::draw_empty_rect_faded_corners(
           renderer,
-          rect{ .origin = {}, .size = g_tile_delta } -
+          rect{ .origin = {}, .size = bounds.size } -
               size{ .w = 1, .h = 1 },
           config_ui.harbor.ship_select_box_color );
   }
