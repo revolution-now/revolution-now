@@ -108,7 +108,7 @@ bool HarborDockUnits::update_units_impl( int const row_inc ) {
     return trimmed.size.w;
   };
 
-  int const kUnitDockSpacing = 2;
+  int const kUnitDockSpacing = 4;
 
   auto const place_along_line_right = [&]( point const start ) {
     point p = start;
