@@ -266,10 +266,10 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
                               birds_available_space.bottom() ) };
   l.birds_states.emplace_back() = Layout::BirdsLayout{
     .p = p_birds, .tile = e_tile::harbor_birds_1 };
-  p_birds += size{ .w = 9, .h = 6 };
+  p_birds += size{ .w = 5, .h = 6 };
   l.birds_states.emplace_back() = Layout::BirdsLayout{
     .p = p_birds, .tile = e_tile::harbor_birds_2 };
-  p_birds += size{ .w = 6, .h = 5 };
+  p_birds += size{ .w = 5, .h = 5 };
   l.birds_states.emplace_back() = Layout::BirdsLayout{
     .p = p_birds, .tile = e_tile::harbor_birds_3 };
   p_birds += size{ .w = 3, .h = 3 };
