@@ -109,6 +109,17 @@ struct HarborPlane::Impl : public IPlane {
     return *composition_.top_level;
   }
 
+  wait<> clear_status_bar_msg() const {
+    // Just a hack to tell the status bar to revert back to a de-
+    // fault message. This allows us to replicate the OG's be-
+    // havior which has a good feel in that a click anywhere im-
+    // mediately creates a reponse that clears the status bar and
+    // returns the text to the default.
+    co_await composition_
+        .entities[e_harbor_view_entity::status_bar]
+        ->perform_click( input::mouse_button_event_t() );
+  }
+
   void draw( rr::Renderer& renderer ) const override {
     harbor_view_top_level().view().draw( renderer, point{} );
     harbor_view_drag_n_drop_draw( renderer );
@@ -256,6 +267,10 @@ struct HarborPlane::Impl : public IPlane {
       // If not handled then fall through, since some cheat com-
       // mands are implemented in the individual views.
     }
+    // The OG has this nice UI behavior where clicking anywhere
+    // will immediately remove any transient status bar messages
+    // back to the default status bar, which is nice.
+    co_await clear_status_bar_msg();
     co_await harbor_view_top_level().perform_click( event );
   }
 

@@ -22,6 +22,9 @@
 #include "view.hpp"
 #include "wait.hpp"
 
+// refl
+#include "refl/enum-map.hpp"
+
 // C++ standard library
 #include <memory>
 #include <unordered_map>
@@ -127,8 +130,7 @@ void update_harbor_view( SSConst const& ss );
 struct HarborViewComposited {
   Delta canvas_size;
   std::unique_ptr<HarborSubView> top_level;
-  std::unordered_map<e_harbor_view_entity, HarborSubView*>
-      entities;
+  refl::enum_map<e_harbor_view_entity, HarborSubView*> entities;
 
   void update();
 };

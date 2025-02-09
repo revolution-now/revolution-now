@@ -129,8 +129,17 @@ HarborMarketCommodities::object_here(
 }
 
 void HarborMarketCommodities::clear_status_bar_msg() const {
+  // This will clear the status bar but only if there is not a
+  // transient message visible. That way, at the completion of a
+  // drag where there is a transient message, it won't automati-
+  // cally get removed by the fact that the cancel_drag method
+  // (which always gets called at the end of a drag) will call
+  // this. The only time we want to actually clear the status bar
+  // is when the drag did not complete and still holds the
+  // "sticky" status bar message that it shows while the drag is
+  // in progress.
   harbor_status_bar_.inject_message(
-      HarborStatusMsg::default_msg{} );
+      HarborStatusMsg::default_msg_ignore_when_transient{} );
 }
 
 void HarborMarketCommodities::send_purchase_info_to_status_bar(

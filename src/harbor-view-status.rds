@@ -23,4 +23,6 @@ sumtype.HarborStatusMsg {
   transient_override {
     msg 'std::string',
   },
+
+  default_msg_ignore_when_transient {},
 }

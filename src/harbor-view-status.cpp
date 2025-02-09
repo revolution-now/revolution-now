@@ -72,6 +72,17 @@ maybe<int> HarborStatusBar::entity() const {
   return static_cast<int>( e_harbor_view_entity::status_bar );
 }
 
+wait<> HarborStatusBar::perform_click(
+    input::mouse_button_event_t const& ) {
+  // Just a hack to tell the status bar to revert back to a de-
+  // fault message. This allows us to replicate the OG's behavior
+  // which has a good feel in that a click anywhere immediately
+  // creates a reponse that clears the status bar and returns the
+  // text to the default.
+  inject_message( HarborStatusMsg::default_msg{} );
+  co_return;
+}
+
 void HarborStatusBar::draw_text( rr::Renderer& renderer ) const {
   string const text =
       status_override_.value_or( build_status_normal() );
@@ -97,9 +108,11 @@ void HarborStatusBar::inject_message(
 }
 
 wait<HarborStatusMsg> HarborStatusBar::wait_for_override() {
-  HarborStatusMsg msg = HarborStatusMsg::default_msg{};
-  while( msg.holds<HarborStatusMsg::default_msg>() )
+  HarborStatusMsg msg;
+  do {
     msg = co_await injected_msgs_.next();
+  } while( msg.holds<HarborStatusMsg::
+                         default_msg_ignore_when_transient>() );
   co_return msg;
 }
 
@@ -108,6 +121,13 @@ wait<> HarborStatusBar::status_generator() {
   do {
     SWITCH( next ) {
       CASE( default_msg ) {
+        // Display default text until an override comes in.
+        status_override_.reset();
+        text_color_override_.reset();
+        next = co_await wait_for_override();
+        break;
+      }
+      CASE( default_msg_ignore_when_transient ) {
         // Display default text until an override comes in.
         status_override_.reset();
         text_color_override_.reset();

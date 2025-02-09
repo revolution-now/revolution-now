@@ -55,6 +55,10 @@ struct HarborStatusBar : public ui::View, public HarborSubView {
   void draw( rr::Renderer& renderer,
              Coord coord ) const override;
 
+ public: // ui::AwaitView.
+  wait<> perform_click(
+      input::mouse_button_event_t const& ) override;
+
  public: // IDraggableObjectsView.
   maybe<int> entity() const override;
 

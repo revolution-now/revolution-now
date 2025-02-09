@@ -276,7 +276,7 @@ HarborViewComposited recomposite_harbor_view(
   composition.top_level = std::move( invisible_view );
 
   for( auto e : refl::enum_values<e_harbor_view_entity> ) {
-    CHECK( composition.entities.contains( e ),
+    CHECK( composition.entities[e] != nullptr,
            "harbor view entity {} is missing.", e );
   }
   return composition;
