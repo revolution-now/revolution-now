@@ -144,7 +144,11 @@ struct HarborMarketCommodities
   // For managing the status bar.
   void send_invoice_msg_to_status_bar(
       Invoice const& invoice ) const;
-  void send_purchase_info_to_status_bar( e_commodity comm );
+  void send_purchase_info_to_status_bar(
+      e_commodity comm ) const;
+  void send_no_afford_msg_to_status_bar(
+      Commodity const& comm ) const;
+  void send_error_to_status_bar( std::string const& err ) const;
   void clear_status_bar_msg() const;
 
   static constexpr W single_layer_blocks_width  = 16;

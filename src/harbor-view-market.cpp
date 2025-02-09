@@ -143,7 +143,7 @@ void HarborMarketCommodities::clear_status_bar_msg() const {
 }
 
 void HarborMarketCommodities::send_purchase_info_to_status_bar(
-    e_commodity const comm ) {
+    e_commodity const comm ) const {
   CommodityPrice const price = market_price( player_, comm );
   string const comm_name =
       uppercase_commodity_display_name( comm );
@@ -177,6 +177,23 @@ void HarborMarketCommodities::send_invoice_msg_to_status_bar(
   }();
   harbor_status_bar_.inject_message(
       HarborStatusMsg::transient_override{ .msg = msg } );
+}
+
+void HarborMarketCommodities::send_no_afford_msg_to_status_bar(
+    Commodity const& comm ) const {
+  string const comm_name =
+      uppercase_commodity_display_name( comm.type );
+  string const msg =
+      fmt::format( "{} tons of {} is too expensive!",
+                   comm.quantity, comm_name );
+  send_error_to_status_bar( msg );
+}
+
+void HarborMarketCommodities::send_error_to_status_bar(
+    string const& err ) const {
+  harbor_status_bar_.inject_message(
+      HarborStatusMsg::transient_override{ .msg   = err,
+                                           .error = true } );
 }
 
 bool HarborMarketCommodities::try_drag(
@@ -249,14 +266,26 @@ HarborMarketCommodities::source_check(
       ss_, player_, comm, e_transaction::buy,
       e_immediate_price_change_allowed::allowed );
   CHECK_LE( invoice.money_delta_final, 0 );
-  if( -invoice.money_delta_final > player_.money )
-    co_return DragRejection{
-      .reason = fmt::format(
-          "We do not have enough in our treasury to purchase "
-          "[{} {}]. Try holding down the [shift] key to "
+  if( -invoice.money_delta_final > player_.money ) {
+    send_no_afford_msg_to_status_bar( comm );
+    string reason = fmt::format(
+        "We do not have enough in our treasury to purchase "
+        "[{} {}].",
+        comm.quantity,
+        lowercase_commodity_display_name( comm.type ) );
+    if( comm.quantity < 100 )
+      reason += fmt::format(
+          " Try further reducing the quantity of your purchase.",
+          comm.quantity,
+          lowercase_commodity_display_name( comm.type ) );
+    else
+      reason += fmt::format(
+          " Try holding down the [shift] key while draggin to "
           "reduce the quantity of your purchase.",
           comm.quantity,
-          lowercase_commodity_display_name( comm.type ) ) };
+          lowercase_commodity_display_name( comm.type ) );
+    co_return DragRejection{ .reason = std::move( reason ) };
+  }
   co_return base::valid;
 }
 

@@ -145,8 +145,11 @@ wait<> HarborStatusBar::status_generator() {
         // Display an override for up to 3 secs or until another
         // override comes in.
         using namespace std::chrono_literals;
-        status_override_     = transient_override.msg;
-        text_color_override_ = config_ui.dialog_text.highlighted;
+        status_override_ = transient_override.msg;
+        text_color_override_ =
+            transient_override.error
+                ? pixel::red()
+                : config_ui.dialog_text.highlighted;
         auto const override =
             co_await co::timeout( 3s, wait_for_override() );
         next =

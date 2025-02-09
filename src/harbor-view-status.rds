@@ -22,6 +22,8 @@ sumtype.HarborStatusMsg {
 
   transient_override {
     msg 'std::string',
+    # Will show the text in red.
+    error 'bool',
   },
 
   default_msg_ignore_when_transient {},
