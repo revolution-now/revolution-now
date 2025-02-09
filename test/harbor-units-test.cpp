@@ -170,9 +170,9 @@ TEST_CASE( "[harbor-units] harbor_units_?" ) {
   w.add_unit_on_map( e_unit_type::soldier, coord );
 
   REQUIRE( harbor_units_on_dock( w.units(), e_nation::dutch ) ==
-           vector<UnitId>{ free_colonist1, free_colonist2 } );
+           vector<UnitId>{ free_colonist2, free_colonist1 } );
   REQUIRE( harbor_units_in_port( w.units(), e_nation::dutch ) ==
-           vector<UnitId>{ caravel1, caravel2 } );
+           vector<UnitId>{ caravel2, caravel1 } );
   REQUIRE( harbor_units_inbound( w.units(), e_nation::dutch ) ==
            vector<UnitId>{ merchantman2 } );
   REQUIRE( harbor_units_outbound( w.units(), e_nation::dutch ) ==
@@ -930,6 +930,98 @@ TEST_CASE(
   update_harbor_selected_unit( W.units(), player );
   REQUIRE( player.old_world.harbor_state.selected_unit ==
            nothing );
+}
+
+TEST_CASE( "[harbor-units] unit ordering on dock" ) {
+  World w;
+  vector<UnitId> expected;
+
+  auto const f = [&] {
+    return harbor_units_on_dock( w.units(), w.default_nation() );
+  };
+
+  UnitId const unit1 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit2 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit3 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit4 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit5 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit6 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+  UnitId const unit7 =
+      w.add_free_unit( e_unit_type::free_colonist ).id();
+
+  expected = {};
+  REQUIRE( f() == expected );
+
+  unit_move_to_port( w.ss(), unit4 );
+  unit_move_to_port( w.ss(), unit6 );
+  unit_move_to_port( w.ss(), unit1 );
+  unit_move_to_port( w.ss(), unit3 );
+  unit_move_to_port( w.ss(), unit2 );
+  unit_move_to_port( w.ss(), unit7 );
+  unit_move_to_port( w.ss(), unit5 );
+
+  REQUIRE( w.units().unit_ordering( unit4 ) == 1 );
+  REQUIRE( w.units().unit_ordering( unit6 ) == 2 );
+  REQUIRE( w.units().unit_ordering( unit1 ) == 3 );
+  REQUIRE( w.units().unit_ordering( unit3 ) == 4 );
+  REQUIRE( w.units().unit_ordering( unit2 ) == 5 );
+  REQUIRE( w.units().unit_ordering( unit7 ) == 6 );
+  REQUIRE( w.units().unit_ordering( unit5 ) == 7 );
+
+  expected = { unit5, unit7, unit2, unit3, unit1, unit6, unit4 };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[harbor-units] unit ordering in port" ) {
+  World w;
+  vector<UnitId> expected;
+
+  auto const f = [&] {
+    return harbor_units_in_port( w.units(), w.default_nation() );
+  };
+
+  UnitId const unit1 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit2 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit3 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit4 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit5 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit6 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+  UnitId const unit7 =
+      w.add_free_unit( e_unit_type::caravel ).id();
+
+  expected = {};
+  REQUIRE( f() == expected );
+
+  unit_move_to_port( w.ss(), unit4 );
+  unit_move_to_port( w.ss(), unit6 );
+  unit_move_to_port( w.ss(), unit1 );
+  unit_move_to_port( w.ss(), unit3 );
+  unit_move_to_port( w.ss(), unit2 );
+  unit_move_to_port( w.ss(), unit7 );
+  unit_move_to_port( w.ss(), unit5 );
+
+  REQUIRE( w.units().unit_ordering( unit4 ) == 1 );
+  REQUIRE( w.units().unit_ordering( unit6 ) == 2 );
+  REQUIRE( w.units().unit_ordering( unit1 ) == 3 );
+  REQUIRE( w.units().unit_ordering( unit3 ) == 4 );
+  REQUIRE( w.units().unit_ordering( unit2 ) == 5 );
+  REQUIRE( w.units().unit_ordering( unit7 ) == 6 );
+  REQUIRE( w.units().unit_ordering( unit5 ) == 7 );
+
+  expected = { unit5, unit7, unit2, unit3, unit1, unit6, unit4 };
+  REQUIRE( f() == expected );
 }
 
 } // namespace

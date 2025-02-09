@@ -114,5 +114,31 @@ struct.UnitsState {
   next_unit_id 'GenericUnitId',
   units 'std::unordered_map<GenericUnitId, UnitState>',
 
+  # In some cases units need to have an ordering that is
+  # well-defined and deterministic (and persistent) but that is
+  # different from their creation order and/or which can change
+  # dynamically. Such cases are units at the gate of a colony,
+  # units on the harbor dock, ships in the harbor port, etc. Even
+  # though each of these has its own set of ordered units, any
+  # given unit can only be in one place at one time. Therefore we
+  # can simplify the representation of this by just using a
+  # single ordering list for all units. Then the ordering of a
+  # specific subset of units is just determined by the relative
+  # values of the indices in this map, and other units are ig-
+  # nored. Any unit that is in a state that requires ordering
+  # must have an entry in this map.
+  #
+  # What also allows us to simplify this representation is that,
+  # when the ordering of a unit is changed with respect to other
+  # units, said change is always done by moving the unit to the
+  # "front". Therefore, we never need to insert a unit in the
+  # middle of an ordering, which would be tricky with this repre-
+  # sentation. Instead, we just bump the unit's index to a new
+  # value that is larger than any ever used. That is guaranteed
+  # to put it at the front of whatever grouping it is a part of.
+  unit_ordering 'std::map<UnitId, int64_t>',
+  # Holds the last value used; only ever increases.
+  curr_unit_ordering_index 'int64_t',
+
   _features { equality, validation }
 }

@@ -41,6 +41,8 @@ bool is_unit_outbound( UnitsState const& units_state,
                        UnitId id );
 bool is_unit_in_port( UnitsState const& units_state, UnitId id );
 
+// NOTE: these will return the list of units ordered as they are
+// in the ordering map.
 std::vector<UnitId> harbor_units_on_dock(
     UnitsState const& units_state,
     e_nation nation ); // Sorted by arrival.

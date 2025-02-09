@@ -55,6 +55,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // rds
@@ -77,6 +78,11 @@ namespace rn {
 void ColonySubView::update_this_and_children() {}
 
 namespace {
+
+using ::gfx::pixel;
+using ::gfx::point;
+using ::gfx::rect;
+using ::gfx::size;
 
 /****************************************************************
 ** Constants
@@ -1062,11 +1068,11 @@ class UnitsAtGateColonyView
               .color = config_colony.colors
                            .unit_shadow_color_light } } );
       if( selected_ == unit_id )
-        painter.draw_empty_rect(
-            Rect::from( draw_pos, g_tile_delta ) -
-                Delta{ .w = 1, .h = 1 },
-            rr::Painter::e_border_mode::in_out,
-            gfx::pixel::green() );
+        rr::draw_empty_rect_faded_corners(
+            renderer,
+            rect{ .origin = draw_pos, .size = g_tile_delta } -
+                size{ .w = 1, .h = 1 },
+            pixel::green() );
     }
   }
 
@@ -1520,10 +1526,29 @@ class UnitsAtGateColonyView
     }
   }
 
+  void sort_by_ordering( vector<UnitId>& sort_me ) const {
+    sort( sort_me.begin(), sort_me.end(),
+          [&]( UnitId const lhs, UnitId const rhs ) {
+            // Reverse sorting since later ordered units are
+            // always considered at the "front" in the colony.
+            return ss_.units.unit_ordering( rhs ) <
+                   ss_.units.unit_ordering( lhs );
+          } );
+  }
+
   void update_this_and_children() override {
     auto const& colony = ss_.colonies.colony_for( colony_.id );
-    auto const& units  = ss_.units.from_coord( colony.location );
-    auto unit_pos      = Coord{} + Delta{ .w = 1, .h = 16 };
+    auto const units   = [&] {
+      auto const& units_set =
+          ss_.units.from_coord( colony.location );
+      vector<UnitId> res;
+      res.reserve( units_set.size() );
+      for( GenericUnitId const generic_id : units_set )
+        res.push_back( ss_.units.check_euro_unit( generic_id ) );
+      sort_by_ordering( res );
+      return res;
+    }();
+    auto unit_pos = Coord{} + Delta{ .w = 1, .h = 16 };
     positioned_units_.clear();
     maybe<UnitId> first_with_cargo;
     for( GenericUnitId generic_id : units ) {
@@ -1537,8 +1562,8 @@ class UnitsAtGateColonyView
         first_with_cargo = unit_id;
     }
     if( selected_.has_value() &&
-        !units.contains(
-            GenericUnitId{ to_underlying( *selected_ ) } ) )
+        find( units.begin(), units.end(), *selected_ ) ==
+            units.end() )
       set_selected_unit( nothing );
     if( !selected_.has_value() )
       set_selected_unit( first_with_cargo );

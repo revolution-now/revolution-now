@@ -34,6 +34,11 @@ struct SSConst;
 // factored out into a common location because it needs to be
 // consistent across various places in the code base in order to
 // ensure a consistent UI/UX.
+//
+// NOTE: this ordering mechanism is not related to the one stored
+// in the units state that is used to order units displayed in
+// the harbor and at the colony gate; this is just for visual
+// UI/UX purposes on the map.
 
 // Top unit will be first in the vector.
 void sort_unit_stack( SSConst const& ss,

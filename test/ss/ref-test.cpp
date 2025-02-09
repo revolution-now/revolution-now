@@ -37,268 +37,262 @@ namespace {
 using namespace ::std;
 using namespace ::cdr::literals;
 
+using ::cdr::list;
+using ::cdr::null;
+using ::cdr::table;
+using ::cdr::value;
 using ::cdr::testing::conv_from_bt;
 
-cdr::value cdr_game_state_default =
-    cdr::table{
-      "version"_key =
-          cdr::table{
-            "major"_key = 0,
-            "minor"_key = 0,
-            "patch"_key = 0,
-          },
-      "settings"_key =
-          cdr::table{
-            "difficulty"_key = "discoverer",
-            "game_options"_key =
-                cdr::table{
-                  "flags"_key =
-                      cdr::table{
-                        "show_indian_moves"_key   = false,
-                        "show_foreign_moves"_key  = false,
-                        "fast_piece_slide"_key    = false,
-                        "end_of_turn"_key         = false,
-                        "autosave"_key            = false,
-                        "combat_analysis"_key     = false,
-                        "water_color_cycling"_key = false,
-                        "tutorial_hints"_key      = false,
-                        "show_fog_of_war"_key     = false,
-                      },
-                },
-            "cheat_options"_key =
-                cdr::table{
-                  "enabled"_key = false,
-                },
-            "colony_options"_key =
-                cdr::table{
-                  "numbers"_key = false,
-                },
-          },
-      "events"_key = cdr::table{},
-      "units"_key =
-          cdr::table{
-            "next_unit_id"_key = 1,
-            "units"_key        = cdr::list{},
-          },
-      "players"_key =
-          cdr::table{
-            "players"_key =
-                cdr::table{
-                  "dutch"_key   = cdr::null,
-                  "english"_key = cdr::null,
-                  "french"_key  = cdr::null,
-                  "spanish"_key = cdr::null,
-                },
-            "humans"_key =
-                cdr::table{
-                  "dutch"_key   = false,
-                  "english"_key = false,
-                  "french"_key  = false,
-                  "spanish"_key = false,
-                },
-            "global_market_state"_key =
-                cdr::table{
-                  "commodities"_key =
-                      cdr::table{
-                        "food"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "sugar"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "tobacco"_key = cdr::
-                            table{ "intrinsic_volume"_key = 0 },
-                        "cotton"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "furs"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "lumber"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "ore"_key = cdr::
-                            table{ "intrinsic_volume"_key = 0 },
-                        "silver"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "horses"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "rum"_key = cdr::
-                            table{ "intrinsic_volume"_key = 0 },
-                        "cigars"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "cloth"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "coats"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "trade_goods"_key = cdr::table{ "intrinsic_volume"_key =
-                                                            0 },
-                        "tools"_key =
-                            cdr::table{ "intrinsic_volume"_key =
-                                            0 },
-                        "muskets"_key = cdr::
-                            table{ "intrinsic_volume"_key = 0 },
-                      },
-                },
-          },
-      "turn"_key =
-          cdr::table{
-            "time_point"_key =
-                cdr::table{
-                  "year"_key   = 0,
-                  "season"_key = "winter",
-                  "turns"_key  = 0,
-                },
-            "autosave"_key =
-                cdr::table{
-                  "last_save"_key = cdr::null,
-                },
-            "cycle"_key =
-                cdr::table{
-                  "not_started"_key = cdr::table{},
-                },
-          },
-      "colonies"_key =
-          cdr::table{
-            "next_colony_id"_key = 1,
-            "colonies"_key       = cdr::list{},
-          },
-      "natives"_key =
-          cdr::table{
-            "next_dwelling_id"_key = 1,
-            "tribes"_key =
-                cdr::table{
-                  "apache"_key   = cdr::null,
-                  "sioux"_key    = cdr::null,
-                  "tupi"_key     = cdr::null,
-                  "arawak"_key   = cdr::null,
-                  "cherokee"_key = cdr::null,
-                  "iroquois"_key = cdr::null,
-                  "aztec"_key    = cdr::null,
-                  "inca"_key     = cdr::null,
-                },
-            "dwellings"_key                 = cdr::list{},
-            "owned_land_without_minuit"_key = cdr::list{},
-          },
-      "land_view"_key =
-          cdr::table{
-            "viewport"_key =
-                cdr::table{
-                  "zoom"_key     = 0.0,
-                  "center_x"_key = 0.0,
-                  "center_y"_key = 0.0,
-                },
-            "minimap"_key =
-                cdr::table{
-                  "origin"_key =
-                      cdr::table{
-                        "x"_key = 0.0,
-                        "y"_key = 0.0,
-                      },
-                },
-            "map_revealed"_key =
-                cdr::table{
-                  "no_special_view"_key = cdr::table{},
-                },
-            "white_box"_key =
-                cdr::table{
-                  "x"_key = 0,
-                  "y"_key = 0,
-                },
-          },
-      "map"_key =
-          cdr::table{
-            "depletion"_key =
-                cdr::table{
-                  "counters"_key = cdr::list{},
-                },
-          },
-      "zzz_terrain"_key =
-          cdr::table{
-            "placement_seed"_key = 0,
-            "player_terrain"_key =
-                cdr::table{
-                  "dutch"_key   = cdr::null,
-                  "english"_key = cdr::null,
-                  "french"_key  = cdr::null,
-                  "spanish"_key = cdr::null,
-                },
-            "real_terrain"_key =
-                cdr::table{
-                  "map"_key =
-                      cdr::table{
-                        "size"_key =
-                            cdr::table{
-                              "h"_key = 0,
-                              "w"_key = 0,
-                            },
-                        "data"_key       = cdr::list{},
-                        "has_coords"_key = false,
-                      },
-                },
-            "proto_squares"_key =
-                cdr::table{
-                  "n"_key =
-                      cdr::table{
-                        "surface"_key         = "water",
-                        "ground"_key          = "arctic",
-                        "overlay"_key         = cdr::null,
-                        "river"_key           = cdr::null,
-                        "ground_resource"_key = cdr::null,
-                        "forest_resource"_key = cdr::null,
-                        "irrigation"_key      = false,
-                        "road"_key            = false,
-                        "sea_lane"_key        = false,
-                        "lost_city_rumor"_key = false,
-                      },
-                  "w"_key =
-                      cdr::table{
-                        "surface"_key         = "water",
-                        "ground"_key          = "arctic",
-                        "overlay"_key         = cdr::null,
-                        "river"_key           = cdr::null,
-                        "ground_resource"_key = cdr::null,
-                        "forest_resource"_key = cdr::null,
-                        "irrigation"_key      = false,
-                        "road"_key            = false,
-                        "sea_lane"_key        = false,
-                        "lost_city_rumor"_key = false,
-                      },
-                  "s"_key =
-                      cdr::table{
-                        "surface"_key         = "water",
-                        "ground"_key          = "arctic",
-                        "overlay"_key         = cdr::null,
-                        "river"_key           = cdr::null,
-                        "ground_resource"_key = cdr::null,
-                        "forest_resource"_key = cdr::null,
-                        "irrigation"_key      = false,
-                        "road"_key            = false,
-                        "sea_lane"_key        = false,
-                        "lost_city_rumor"_key = false,
-                      },
-                  "e"_key =
-                      cdr::table{
-                        "surface"_key         = "water",
-                        "ground"_key          = "arctic",
-                        "overlay"_key         = cdr::null,
-                        "river"_key           = cdr::null,
-                        "ground_resource"_key = cdr::null,
-                        "forest_resource"_key = cdr::null,
-                        "irrigation"_key      = false,
-                        "road"_key            = false,
-                        "sea_lane"_key        = false,
-                        "lost_city_rumor"_key = false,
-                      },
-                },
-            "pacific_ocean_endpoints"_key = cdr::list{},
-          },
-    };
+value cdr_game_state_default = table{
+  "version"_key =
+      table{
+        "major"_key = 0,
+        "minor"_key = 0,
+        "patch"_key = 0,
+      },
+  "settings"_key =
+      table{
+        "difficulty"_key = "discoverer",
+        "game_options"_key =
+            table{
+              "flags"_key =
+                  table{
+                    "show_indian_moves"_key   = false,
+                    "show_foreign_moves"_key  = false,
+                    "fast_piece_slide"_key    = false,
+                    "end_of_turn"_key         = false,
+                    "autosave"_key            = false,
+                    "combat_analysis"_key     = false,
+                    "water_color_cycling"_key = false,
+                    "tutorial_hints"_key      = false,
+                    "show_fog_of_war"_key     = false,
+                  },
+            },
+        "cheat_options"_key =
+            table{
+              "enabled"_key = false,
+            },
+        "colony_options"_key =
+            table{
+              "numbers"_key = false,
+            },
+      },
+  "events"_key = table{},
+  "units"_key =
+      table{
+        "next_unit_id"_key             = 1,
+        "units"_key                    = list{},
+        "unit_ordering"_key            = list{},
+        "curr_unit_ordering_index"_key = 0,
+      },
+  "players"_key =
+      table{
+        "players"_key =
+            table{
+              "dutch"_key   = null,
+              "english"_key = null,
+              "french"_key  = null,
+              "spanish"_key = null,
+            },
+        "humans"_key =
+            table{
+              "dutch"_key   = false,
+              "english"_key = false,
+              "french"_key  = false,
+              "spanish"_key = false,
+            },
+        "global_market_state"_key =
+            table{
+              "commodities"_key =
+                  table{
+                    "food"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "sugar"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "tobacco"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "cotton"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "furs"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "lumber"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "ore"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "silver"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "horses"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "rum"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "cigars"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "cloth"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "coats"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "trade_goods"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "tools"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                    "muskets"_key =
+                        table{ "intrinsic_volume"_key = 0 },
+                  },
+            },
+      },
+  "turn"_key =
+      table{
+        "time_point"_key =
+            table{
+              "year"_key   = 0,
+              "season"_key = "winter",
+              "turns"_key  = 0,
+            },
+        "autosave"_key =
+            table{
+              "last_save"_key = null,
+            },
+        "cycle"_key =
+            table{
+              "not_started"_key = table{},
+            },
+      },
+  "colonies"_key =
+      table{
+        "next_colony_id"_key = 1,
+        "colonies"_key       = list{},
+      },
+  "natives"_key =
+      table{
+        "next_dwelling_id"_key = 1,
+        "tribes"_key =
+            table{
+              "apache"_key   = null,
+              "sioux"_key    = null,
+              "tupi"_key     = null,
+              "arawak"_key   = null,
+              "cherokee"_key = null,
+              "iroquois"_key = null,
+              "aztec"_key    = null,
+              "inca"_key     = null,
+            },
+        "dwellings"_key                 = list{},
+        "owned_land_without_minuit"_key = list{},
+      },
+  "land_view"_key =
+      table{
+        "viewport"_key =
+            table{
+              "zoom"_key     = 0.0,
+              "center_x"_key = 0.0,
+              "center_y"_key = 0.0,
+            },
+        "minimap"_key =
+            table{
+              "origin"_key =
+                  table{
+                    "x"_key = 0.0,
+                    "y"_key = 0.0,
+                  },
+            },
+        "map_revealed"_key =
+            table{
+              "no_special_view"_key = table{},
+            },
+        "white_box"_key =
+            table{
+              "x"_key = 0,
+              "y"_key = 0,
+            },
+      },
+  "map"_key =
+      table{
+        "depletion"_key =
+            table{
+              "counters"_key = list{},
+            },
+      },
+  "zzz_terrain"_key =
+      table{
+        "placement_seed"_key = 0,
+        "player_terrain"_key =
+            table{
+              "dutch"_key   = null,
+              "english"_key = null,
+              "french"_key  = null,
+              "spanish"_key = null,
+            },
+        "real_terrain"_key =
+            table{
+              "map"_key =
+                  table{
+                    "size"_key =
+                        table{
+                          "h"_key = 0,
+                          "w"_key = 0,
+                        },
+                    "data"_key       = list{},
+                    "has_coords"_key = false,
+                  },
+            },
+        "proto_squares"_key =
+            table{
+              "n"_key =
+                  table{
+                    "surface"_key         = "water",
+                    "ground"_key          = "arctic",
+                    "overlay"_key         = null,
+                    "river"_key           = null,
+                    "ground_resource"_key = null,
+                    "forest_resource"_key = null,
+                    "irrigation"_key      = false,
+                    "road"_key            = false,
+                    "sea_lane"_key        = false,
+                    "lost_city_rumor"_key = false,
+                  },
+              "w"_key =
+                  table{
+                    "surface"_key         = "water",
+                    "ground"_key          = "arctic",
+                    "overlay"_key         = null,
+                    "river"_key           = null,
+                    "ground_resource"_key = null,
+                    "forest_resource"_key = null,
+                    "irrigation"_key      = false,
+                    "road"_key            = false,
+                    "sea_lane"_key        = false,
+                    "lost_city_rumor"_key = false,
+                  },
+              "s"_key =
+                  table{
+                    "surface"_key         = "water",
+                    "ground"_key          = "arctic",
+                    "overlay"_key         = null,
+                    "river"_key           = null,
+                    "ground_resource"_key = null,
+                    "forest_resource"_key = null,
+                    "irrigation"_key      = false,
+                    "road"_key            = false,
+                    "sea_lane"_key        = false,
+                    "lost_city_rumor"_key = false,
+                  },
+              "e"_key =
+                  table{
+                    "surface"_key         = "water",
+                    "ground"_key          = "arctic",
+                    "overlay"_key         = null,
+                    "river"_key           = null,
+                    "ground_resource"_key = null,
+                    "forest_resource"_key = null,
+                    "irrigation"_key      = false,
+                    "road"_key            = false,
+                    "sea_lane"_key        = false,
+                    "lost_city_rumor"_key = false,
+                  },
+            },
+        "pacific_ocean_endpoints"_key = list{},
+      },
+};
 
 // static_assert( equality_comparable<FormatVersion> );
 // static_assert( equality_comparable<SettingsState> );
@@ -316,7 +310,7 @@ cdr::value cdr_game_state_default =
 TEST_CASE( "[game-state] some test" ) {
   cdr::converter conv;
   RootState root_def;
-  cdr::value v = conv.to( root_def );
+  value const v = conv.to( root_def );
   REQUIRE( v == cdr_game_state_default );
   // Round trip.
   REQUIRE( conv_from_bt<RootState>( conv, v ) == root_def );

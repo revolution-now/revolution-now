@@ -161,6 +161,14 @@ struct UnitsState {
   // Should not be holding any references to the unit after this.
   void destroy_unit( NativeUnitId id );
 
+  // The unit must be in the ordering map.
+  int64_t unit_ordering( UnitId id ) const;
+
+  // The unit must exist and must be in the ordering map (in
+  // practice, this means that it is owned by either the map or
+  // the harbor, which are the ones where ordering is needed).
+  void bump_unit_ordering( UnitId id );
+
  public:
   // This should probably only be used in unit tests. Returns
   // false if the unit currently exists; returns true if the unit
@@ -224,6 +232,13 @@ struct UnitsState {
   void disown_unit( UnitId id );
 
  private:
+  // Friends used by the unit test of this module.
+  friend void testing_friend_disown_unit( UnitsState& units,
+                                          UnitId id );
+  friend void testing_friend_destroy_unit( UnitsState& units,
+                                           UnitId id );
+
+ private:
   [[nodiscard]] GenericUnitId next_unit_id();
 
   UnitState& state_of( GenericUnitId id );
@@ -231,6 +246,8 @@ struct UnitsState {
   UnitState::native& state_of( NativeUnitId id );
   UnitOwnership& ownership_of( UnitId id );
   NativeUnitOwnership& ownership_of( NativeUnitId id );
+
+  void add_or_bump_unit_ordering_index( UnitId id );
 
   // ----- Serializable state.
   wrapped::UnitsState o_;

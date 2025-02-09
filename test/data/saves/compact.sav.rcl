@@ -481,7 +481,6 @@ settings {
   game_options.flags {
     autosave: true
     combat_analysis: true
-    show_fog_of_war: true
     show_foreign_moves: true
     show_indian_moves: true
     water_color_cycling: true
@@ -494,7 +493,14 @@ turn.time_point {
 }
 
 units {
+  curr_unit_ordering_index: 1
   next_unit_id: 11
+  unit_ordering: [
+    {
+      key: 8
+      val: 1
+    },
+  ]
   units: [
     {
       key: 1

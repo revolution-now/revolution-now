@@ -29,6 +29,10 @@
 #include "base/to-str-ext-std.hpp"
 #include "base/variant-util.hpp"
 
+// TODO: This is temporary while we migrate any existing save
+// files to adhere to the new ordering map constraints.
+#define WRITE_ORDERING_MAP 0
+
 using namespace std;
 
 namespace rn {
@@ -94,6 +98,87 @@ valid_or<string> wrapped::UnitsState::validate() const {
       CASE( native ) { break; }
     }
   }
+
+  // Check that the indices in the ordering map are valid.
+  unordered_set<int64_t> used_ordering_indices;
+  for( auto const& [unit_id, index] : unit_ordering ) {
+    REFL_VALIDATE( index > 0,
+                   "unit {} has an ordering index less than or "
+                   "equal to zero which is not allowed.",
+                   unit_id );
+    REFL_VALIDATE(
+        index <= curr_unit_ordering_index,
+        "unit {} has an ordering index greater than "
+        "curr_unit_ordering_index which is not allowed.",
+        unit_id );
+    REFL_VALIDATE( !used_ordering_indices.contains( index ),
+                   "unit ordering index {} appears in ordering "
+                   "map multiple times.",
+                   index );
+    used_ordering_indices.insert( index );
+  }
+
+  // Check that all units in the ordering map 1) exist and 2) are
+  // owned by either the map or the harbor.
+  for( auto const& [unit_id, _] : unit_ordering ) {
+    auto const iter = units.find( unit_id );
+    REFL_VALIDATE(
+        iter != units.end(),
+        "unit {} is in the ordering map but does not exist.",
+        unit_id );
+    auto const& [__, state] = *iter;
+    SWITCH( state ) {
+      CASE( euro ) {
+        bool const correct_ownership =
+            euro.ownership.holds<UnitOwnership::world>() ||
+            euro.ownership.holds<UnitOwnership::harbor>();
+        REFL_VALIDATE( correct_ownership,
+                       "unit {} is in the ordering map but is "
+                       "not owned by either the map or the "
+                       "harbor, instead its ownership is {}.",
+                       unit_id, euro.ownership );
+        break;
+      }
+      CASE( native ) {}
+    }
+  }
+
+#if !WRITE_ORDERING_MAP
+  // Check that all units owned by the map or the harbor are
+  // present in the ordering map.
+  for( auto const& [id, unit_state] : units ) {
+    SWITCH( unit_state ) {
+      CASE( euro ) {
+        UnitId const unit_id = euro.unit.id();
+        SWITCH( euro.ownership ) {
+          CASE( cargo ) { break; }
+          CASE( colony ) { break; }
+          CASE( dwelling ) { break; }
+          CASE( free ) { break; }
+          CASE( harbor ) {
+            REFL_VALIDATE(
+                unit_ordering.contains( unit_id ),
+                "unit {} is in the harbor but does not have an "
+                "entry in the unit ordering map.",
+                unit_id );
+            break;
+          }
+          CASE( world ) {
+            REFL_VALIDATE(
+                unit_ordering.contains( unit_id ),
+                "unit {} is on the map but does not have an "
+                "entry in the unit ordering map.",
+                unit_id );
+            break;
+          }
+        }
+        break;
+      }
+      CASE( native ) { break; }
+    }
+  }
+#endif
+
   return base::valid;
 }
 
@@ -222,6 +307,30 @@ UnitsState::UnitsState( wrapped::UnitsState&& o )
       }
     }
   }
+
+#if WRITE_ORDERING_MAP
+  // TODO: temporary. Add any missing map/harbor units into the
+  // ordering map so that we can load existing saves. Remove this
+  // once all existing saves have been migrated.
+  for( auto& [id, unit_state] : o_.units ) {
+    switch( unit_state.to_enum() ) {
+      case UnitState::e::euro: {
+        auto const& o = unit_state.get<UnitState::euro>();
+        auto const& ownership = o.ownership;
+        bool const needs_ordering =
+            ownership.holds<UnitOwnership::world>() ||
+            ownership.holds<UnitOwnership::harbor>();
+        UnitId const unit_id{ to_underlying( id ) };
+        if( needs_ordering &&
+            !o_.unit_ordering.contains( unit_id ) )
+          add_or_bump_unit_ordering_index( unit_id );
+        break;
+      }
+      case UnitState::e::native:
+        break;
+    }
+  }
+#endif
 }
 
 UnitsState::UnitsState()
@@ -493,6 +602,30 @@ UnitOwnership::harbor& UnitsState::harbor_view_state_of(
   return st;
 }
 
+void UnitsState::bump_unit_ordering( UnitId const id ) {
+  CHECK( o_.unit_ordering.contains( id ),
+         "unit {} was asked to bump its ordering index but it "
+         "is not in the ordering map.",
+         id );
+  add_or_bump_unit_ordering_index( id );
+}
+
+void UnitsState::add_or_bump_unit_ordering_index(
+    UnitId const id ) {
+  o_.unit_ordering.erase( id );
+  ++o_.curr_unit_ordering_index;
+  o_.unit_ordering[id] = o_.curr_unit_ordering_index;
+}
+
+int64_t UnitsState::unit_ordering( UnitId const id ) const {
+  auto const iter = o_.unit_ordering.find( id );
+  CHECK( iter != o_.unit_ordering.end(),
+         "unit {} was asked to bump its ordering index but it "
+         "is not in the ordering map.",
+         id );
+  return iter->second;
+}
+
 void UnitsState::move_unit_on_map( NativeUnitId id,
                                    Coord target ) {
   auto& [curr_coord, dwelling_id] = ownership_of( id );
@@ -510,8 +643,9 @@ void UnitsState::move_unit_on_map( NativeUnitId id,
   curr_coord = target;
 }
 
-void UnitsState::disown_unit( UnitId id ) {
+void UnitsState::disown_unit( UnitId const id ) {
   auto& ownership = ownership_of( id );
+  o_.unit_ordering.erase( id );
   switch( auto& v = ownership; v.to_enum() ) {
     case UnitOwnership::e::free: //
       break;
@@ -562,6 +696,7 @@ void UnitsState::change_to_map( UnitId id, Coord target ) {
   units_from_coords_[target].insert(
       GenericUnitId{ to_underlying( id ) } );
   ownership_of( id ) = UnitOwnership::world{ /*coord=*/target };
+  add_or_bump_unit_ordering_index( id );
 }
 
 void UnitsState::change_to_cargo( UnitId new_holder, UnitId held,
@@ -604,6 +739,7 @@ void UnitsState::change_to_harbor_view(
     disown_unit( id );
   ownership = UnitOwnership::harbor{
     .port_status = port_status, .sailed_from = sailed_from };
+  add_or_bump_unit_ordering_index( id );
 }
 
 void UnitsState::change_to_dwelling( UnitId unit_id,
