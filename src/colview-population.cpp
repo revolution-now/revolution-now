@@ -44,15 +44,33 @@ using ::gfx::size;
 TileSpreadRenderPlans create_production_spreads(
     SSConst const& ss, ColonyProduction const& production,
     int const width ) {
+  int const deficit =
+      production.food_horses.food_deficit_without_stores;
+  CHECK_GE( deficit, 0 );
+  int const total_shown =
+      ( deficit > 0 )
+          ? production.food_horses
+                .food_consumed_by_colonists_theoretical
+          : production.food_horses.food_produced;
+  int const total_produced =
+      production.food_horses.food_produced;
+  CHECK_GE( total_produced, 0 );
+  int const available = total_shown - deficit;
+  CHECK_GE( available, 0 );
+  int const consumed =
+      available -
+      std::max( production.food_horses.food_delta_final, 0 );
+  CHECK_GE( consumed, 0 );
+  int const surplus = available - consumed;
+  CHECK_GE( surplus, 0 );
+  CHECK_EQ( consumed + surplus + deficit, total_shown );
+  CHECK_EQ( consumed + surplus, total_produced );
   TileSpreadConfigMulti const config{
     .tiles{
-      { .tile  = e_tile::product_fish_20,
-        .count = production.food_horses.fish_produced },
+      { .tile = e_tile::commodity_food_20, .count = consumed },
+      { .tile = e_tile::commodity_food_20, .count = surplus },
       { .tile  = e_tile::commodity_food_20,
-        .count = production.food_horses.corn_produced },
-      { .tile = e_tile::commodity_food_20,
-        .count =
-            production.food_horses.food_deficit_without_stores,
+        .count = deficit,
         .has_x = e_red_x_size::small },
       { .tile  = e_tile::product_crosses_20,
         .count = production.crosses },
@@ -69,9 +87,27 @@ TileSpreadRenderPlans create_production_spreads(
           .label_opts = { .placement = SpreadLabelPlacement::
                               left_middle_adjusted{} },
         },
-    .group_spacing = 4,
+    .group_spacing = 6,
   };
-  return build_tile_spread_multi( config );
+  TileSpreadRenderPlans plans =
+      build_tile_spread_multi( config );
+  int fish_countdown = production.food_horses.fish_produced;
+  for( auto& plan : plans.plans ) {
+    for( auto& tile : plan.tiles ) {
+      switch( tile.tile ) {
+        case e_tile::red_x_16:
+        case e_tile::red_x_20:
+          continue;
+        default:
+          break;
+      }
+      if( fish_countdown-- == 0 ) goto no_more_fish;
+      CHECK_EQ( tile.tile, e_tile::commodity_food_20 );
+      tile.tile = e_tile::product_fish_20;
+    }
+  }
+no_more_fish:
+  return plans;
 }
 
 } // namespace
