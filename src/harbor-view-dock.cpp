@@ -262,6 +262,13 @@ HarborDockUnits::can_receive( HarborDraggableObject const& o,
   if( !unit.has_value() ) return nothing;
   if( ss_.units.unit_for( unit->id ).desc().ship )
     return nothing;
+  if( as_const( ss_.units )
+          .ownership_of( unit->id )
+          .holds<UnitOwnership::harbor>() )
+    // Prevent dragging dock units onto the dock, since there is
+    // no purpose in doing that and it would cause a reordering
+    // of the units.
+    return nothing;
   return CanReceiveDraggable<HarborDraggableObject>::yes{
     .draggable = o };
 }
