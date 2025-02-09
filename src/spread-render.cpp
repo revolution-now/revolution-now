@@ -88,8 +88,10 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
          ++i ) {
       point const p_drawn = p.moved_left(
           tile_spread.icon_spread.spec.trimmed.start );
-      plan.tiles.push_back( TileRenderPlan{
-        .tile = tile_spread.tile, .where = p_drawn } );
+      plan.tiles.push_back(
+          TileRenderPlan{ .tile       = tile_spread.tile,
+                          .where      = p_drawn,
+                          .is_overlay = false } );
       // Must appear just after the tile it is overlaying.
       if( tile_spread.overlay_tile.has_value() ) {
         // We need to place the overlay tile against the middle
@@ -115,7 +117,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
         }();
         plan.tiles.push_back(
             TileRenderPlan{ .tile  = *tile_spread.overlay_tile,
-                            .where = p_overlay_drawn } );
+                            .where = p_overlay_drawn,
+                            .is_overlay = true } );
       }
       p.x += tile_spread.icon_spread.spacing;
     }
@@ -197,10 +200,30 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
   return plans;
 }
 
+void replace_first_n_tiles( TileSpreadRenderPlans& plans,
+                            int const n_replace,
+                            e_tile const from,
+                            e_tile const to ) {
+  int countdown = n_replace;
+  for( auto& plan : plans.plans ) {
+    for( auto& tile : plan.tiles ) {
+      if( tile.is_overlay ) continue;
+      if( countdown-- == 0 ) return;
+      if( tile.tile != from )
+        // Sometimes there may not be as many `from` tiles as we
+        // expect, which can happen if there was not enough space
+        // and the spread algo had to reduce the number of tiles
+        // emitted in order to fit.
+        return;
+      tile.tile = to;
+    }
+  }
+}
+
 void draw_rendered_icon_spread(
     rr::Renderer& renderer, gfx::point origin,
     TileSpreadRenderPlan const& plan ) {
-  for( auto const& [tile, p] : plan.tiles )
+  for( auto const& [tile, p, is_overlay] : plan.tiles )
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
   if( auto const& label = plan.label; label.has_value() ) {

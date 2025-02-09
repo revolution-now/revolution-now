@@ -111,6 +111,7 @@ struct.SpreadLabelRenderPlan {
 struct.TileRenderPlan {
   tile 'e_tile',
   where 'gfx::point',
+  is_overlay 'bool',
 }
 
 struct.TileSpreadRenderPlan {

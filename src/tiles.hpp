@@ -61,6 +61,13 @@ gfx::size sprite_size( e_tile tile );
 
 gfx::rect trimmed_area_for( e_tile tile );
 
+// Use this to set a value in the trimmed tile cache for unit
+// testing purposes. Computing this cache for unit tests proved
+// to be too tricky because currently it requires access to the
+// renderer which itself can't be initialized without initial-
+// izing video, etc. So easier just to do it this way.
+void testing_set_trimmed_cache( e_tile tile, gfx::rect trimmed );
+
 /****************************************************************
 ** Rendering Tiles
 *****************************************************************/

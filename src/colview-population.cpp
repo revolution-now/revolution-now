@@ -91,22 +91,46 @@ TileSpreadRenderPlans create_production_spreads(
   };
   TileSpreadRenderPlans plans =
       build_tile_spread_multi( config );
-  int fish_countdown = production.food_horses.fish_produced;
-  for( auto& plan : plans.plans ) {
-    for( auto& tile : plan.tiles ) {
-      switch( tile.tile ) {
-        case e_tile::red_x_16:
-        case e_tile::red_x_20:
-          continue;
-        default:
-          break;
-      }
-      if( fish_countdown-- == 0 ) goto no_more_fish;
-      CHECK_EQ( tile.tile, e_tile::commodity_food_20 );
-      tile.tile = e_tile::product_fish_20;
-    }
-  }
-no_more_fish:
+  // The tile spread framework does not support rendering a
+  // single spread with multiple different tiles. But that is
+  // what we must do in order to replicate the behavior of the
+  // OG, which, although it considers fish and corn to be equiva-
+  // lent in term of their effects within the colony, it does
+  // distinguish them when rendering production/surplus spreads
+  // in the population view. Namely, it takes the total number of
+  // non-deficit food tiles (the total produced) and it renders
+  // the first Nf tiles as fish where Nf is the number of fish
+  // produced, and the remainer as corn. This way it makes sense
+  // to the player since the tile counts of each type match what
+  // is actually being produced. However, the tiles can switch
+  // from fish to corn within any of the spread groups, and at
+  // any position within it, depending on the relative number of
+  // fish and food produced. This is tricky to do with the ex-
+  // isting spread algo because not only would a single spread
+  // potentially have to be rendered with both fish and corn, but
+  // the point at which fish changes to corn might happen in ei-
+  // ther the first (consumed) spread or the second (surplus)
+  // spread. So the solution here (which is a bit hacky, but
+  // should be ok because this should be the only place in the
+  // game where we do this) is to just compute the spread as-
+  // suming all food tiles are corn, then after we will replace
+  // the first Nf corn tiles with fish tiles. In order to work
+  // properly, this requires that the corn and fish tiles have
+  // the same trimmed dimensions, which we validate when brining
+  // up the engine.
+  //
+  // A subtle point here is that the spread algo, depending on
+  // how much space you give it, is not required to emit the
+  // exact number of tiles that you ask it; it might emit less in
+  // a given spread if there is limited space. So we need to be
+  // defensive below and allow that we may not encounter as many
+  // food icons as we've produced. This function will detect that
+  // and just stop early. The visual effect that results is that
+  // all of the tiles are fish, even though there might be some
+  // corn being produced.
+  replace_first_n_tiles(
+      plans, production.food_horses.fish_produced,
+      e_tile::commodity_food_20, e_tile::product_fish_20 );
   return plans;
 }
 

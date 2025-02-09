@@ -13,10 +13,14 @@
 // Under test.
 #include "src/spread-render.hpp"
 
+// Revolution Now
+#include "src/tiles.hpp"
+
 // config
 #include "src/config/tile-enum.rds.hpp"
 
 // refl
+#include "src/refl/query-enum.hpp"
 #include "src/refl/to-str.hpp"
 
 // base
@@ -29,6 +33,10 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::base::nothing;
+using ::gfx::rect;
+using ::refl::enum_count;
 
 /****************************************************************
 ** Test Cases
@@ -214,6 +222,45 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
             },
       } } };
   REQUIRE( f() == expected );
+
+  // One spread, one tile, with overlay.
+  testing_set_trimmed_cache(
+      e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
+                              .size   = { .w = 14, .h = 14 } } );
+  tile_spreads = {
+    .spreads       = { {
+            .icon_spread  = { .spec =
+                                  SpreadSpec{
+                                    .count   = 1,
+                                    .trimmed = { .start = 2,
+                                                 .len   = 28 } },
+                              .rendered_count = 1,
+                              .spacing        = 1 },
+            .tile         = e_tile::dragoon,
+            .overlay_tile = e_tile::red_x_20,
+    } },
+    .group_spacing = 1,
+    .label_policy  = {} };
+  expected = {
+    .bounds = { .w = 28, .h = 32 },
+    .plans  = {
+      TileSpreadRenderPlan{
+         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+         .tiles =
+             {
+              { .tile       = e_tile::dragoon,
+                 .where      = { -2, 0 },
+                 .is_overlay = false },
+              { .tile       = e_tile::red_x_20,
+                 .where      = { -2, 6 },
+                 .is_overlay = true },
+            },
+         .label = nothing },
+    } };
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[spread] replace_first_n_tiles" ) {
 }
 
 } // namespace

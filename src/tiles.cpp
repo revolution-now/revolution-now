@@ -48,6 +48,7 @@ using ::base::valid;
 using ::base::valid_or;
 using ::gfx::rect;
 using ::gfx::size;
+using ::refl::enum_count;
 
 vector<int> cache;
 vector<rect> trimmed_cache;
@@ -61,10 +62,35 @@ int atlas_lookup( e_tile const tile ) {
 rect atlas_lookup_trimmed( e_tile const tile ) {
   int const idx = static_cast<int>( tile );
   CHECK( idx < int( trimmed_cache.size() ) );
-  return trimmed_cache[idx];
+  auto const& res = trimmed_cache[idx];
+  // This is only expected to ever fail in unit tests when we
+  // forget to initialize a tile in the trimmed cache.
+  CHECK( res.origin.x >= 0,
+         "trimmed cache not initialized properly or has invalid "
+         "value for tile {}.  If you are in a unit test then "
+         "you must call testing_set_trimmed_cache to set a "
+         "trimmed rect for the tile.",
+         tile );
+  return res;
 }
 
 } // namespace
+
+void testing_set_trimmed_cache( e_tile const tile,
+                                rect const trimmed ) {
+  if( trimmed_cache.empty() ) {
+    trimmed_cache.resize( enum_count<e_tile> );
+    // Use this to mark the values as uninitialized (a negative
+    // value is guaranteed to never come from the trimming algo)
+    // so that we can easily cache uninitialized entries in unit
+    // tests.
+    for( auto& e : trimmed_cache ) e.origin.x = -1;
+  }
+  CHECK( !trimmed_cache.empty() );
+  int const idx = static_cast<int>( tile );
+  CHECK_LT( idx, ssize( trimmed_cache ) );
+  trimmed_cache[idx] = trimmed;
+}
 
 void init_sprites( rr::Renderer& renderer ) {
   cache.resize( refl::enum_count<e_tile> );
