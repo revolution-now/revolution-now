@@ -76,6 +76,7 @@ sheets {
       sprites {
         harbor_cargo_overflow: { y: 0, x: 0 }
         harbor_cargo_front:    { y: 0, x: 1 }
+        harbor_cargo_lock:     { y: 0, x: 2 }
       }
     }
     {

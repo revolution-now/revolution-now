@@ -385,6 +385,8 @@ void HarborCargo::draw( rr::Renderer& renderer,
                      e_tile::harbor_cargo_front );
     return;
   }
+  bool const in_port =
+      is_unit_in_port( ss_.units, *active_unit );
 
   // Draw the contents of the cargo since we have a selected ship
   // in port.
@@ -454,6 +456,15 @@ void HarborCargo::draw( rr::Renderer& renderer,
         }
         break;
       }
+    }
+    if( !in_port ) {
+      {
+        SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+        render_sprite( renderer, layout_.slots[idx].origin,
+                       e_tile::harbor_cargo_front );
+      }
+      render_sprite( renderer, layout_.slots[idx].origin,
+                     e_tile::harbor_cargo_lock );
     }
   }
   for( int i = cargo_slots.size(); i < 6; ++i )

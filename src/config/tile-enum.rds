@@ -813,6 +813,7 @@ enum.e_tile {
   harbor_cargo_hold,
   harbor_cargo_overflow,
   harbor_cargo_front,
+  harbor_cargo_lock,
 
   # RPT,
   harbor_post,
