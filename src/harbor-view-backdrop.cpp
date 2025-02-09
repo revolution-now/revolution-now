@@ -55,7 +55,10 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
                            layout_.sky_color );
 
   // Sun.
-  tile_sprite( renderer, e_tile::harbor_sun, layout_.sun );
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .5 );
+    tile_sprite( renderer, e_tile::harbor_sun, layout_.sun );
+  }
 
   // Clouds.
   for( auto const& [delta, tile] : layout_.clouds )
