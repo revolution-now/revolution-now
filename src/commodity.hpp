@@ -51,7 +51,7 @@ constexpr Delta kCommodityTileLargeSize =
 
 // Keep this here because it is needed in multiple places.
 gfx::size const kLabeledCommodity20CargoRenderOffset{ .w = 6,
-                                                      .h = 1 };
+                                                      .h = 2 };
 
 /****************************************************************
 ** Commodity List

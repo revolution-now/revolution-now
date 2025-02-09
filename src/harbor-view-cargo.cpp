@@ -421,8 +421,7 @@ void HarborCargo::draw( rr::Renderer& renderer,
             // touching the ground, i.e. they are not centered
             // within their 32x32 tiles, so we'll bump them up-
             // wards a bit which seems to look better.
-            render_unit( renderer,
-                         slot_rect.origin - size{ .h = 2 },
+            render_unit( renderer, slot_rect.origin,
                          ss_.units.unit_for( unit.id ),
                          UnitRenderOptions{} );
             break;
