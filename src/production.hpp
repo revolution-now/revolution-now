@@ -43,4 +43,9 @@ maybe<e_commodity> product_from_raw( e_commodity raw );
 int const& final_production_delta_for_commodity(
     ColonyProduction const& pr, e_commodity c );
 
+// Takes production stats and computes the values that are actu-
+// ally displayed as tile spreads in the colony view.
+ColonyViewFoodStats compute_colony_view_food_stats(
+    ColonyProduction const& production );
+
 } // namespace rn

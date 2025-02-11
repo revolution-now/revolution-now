@@ -1056,4 +1056,51 @@ ColonyProduction production_for_colony( SSConst const& ss,
   return res;
 }
 
+ColonyViewFoodStats compute_colony_view_food_stats(
+    ColonyProduction const& production ) {
+  auto const& fh = production.food_horses;
+  CHECK( ( fh.food_delta_final >= 0 ) ||
+         ( -fh.food_deficit_without_stores <=
+           fh.food_delta_final ) );
+  // The total number of food-related tiles shown is different
+  // depending on whether or not there is a deficit. If there is
+  // a deficit then the total is the amount of food that the
+  // colonist theoretically need, with some of them rendered with
+  // red Xs. If there is not a deficit then the total is the
+  // amount of food produced, with some consumed and some sur-
+  // plus. This replicates OG behavior, and also just simply
+  // seems to make the most sense visually.
+  // ============================================================
+  // | -------- total_shown ------- |
+  // | - total_produced - |
+  // | consumed | surplus | deficit |
+  // ============================================================
+
+  int const deficit = fh.food_deficit_without_stores;
+  CHECK_GE( deficit, 0 );
+
+  int const total_produced = fh.food_produced;
+  CHECK_GE( total_produced, 0 );
+
+  int const total_shown =
+      ( deficit > 0 ) ? fh.food_consumed_by_colonists_theoretical
+                      : total_produced;
+  CHECK_GE( total_shown, 0 );
+
+  int const surplus = std::max( fh.food_delta_final, 0 );
+  CHECK_GE( surplus, 0 );
+
+  int const consumed = total_produced - surplus;
+  CHECK_GE( consumed, 0 );
+
+  CHECK( !( ( deficit > 0 ) && ( surplus > 0 ) ) );
+  CHECK_EQ( consumed + surplus + deficit, total_shown );
+  CHECK( ( fh.food_delta_final < 0 ) ||
+         ( consumed <= fh.food_produced ) );
+
+  return ColonyViewFoodStats{ .consumed = consumed,
+                              .surplus  = surplus,
+                              .deficit  = deficit };
+}
+
 } // namespace rn

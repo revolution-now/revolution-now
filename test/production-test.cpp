@@ -6727,5 +6727,141 @@ TEST_CASE(
   }
 }
 
+TEST_CASE( "[production] compute_colony_view_food_stats" ) {
+  World w;
+
+  ColonyProduction pr;
+  auto& fh = pr.food_horses;
+  ColonyViewFoodStats expected;
+
+  auto const f = [&] {
+    return compute_colony_view_food_stats( pr );
+  };
+
+  // Default, all zeros.
+  expected = {
+    .consumed = 0,
+    .surplus  = 0,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+
+  // Verify unused fields. This verifies that we are only using
+  // the fields that we are testing below, that way we don't have
+  // to populate them in subsequent tests.
+  fh = FoodProduction{
+    .corn_produced                          = 99,
+    .fish_produced                          = 999,
+    .food_produced                          = 0,
+    .food_consumed_by_colonists_theoretical = 0,
+    .food_deficit_without_stores            = 0,
+    .food_consumed_by_colonists_actual      = 9999,
+    .food_deficit                           = 99999,
+    .food_surplus_before_horses             = 999999,
+    .horses_produced_theoretical            = 88,
+    .max_horse_food_consumption_allowed     = 888,
+    .max_new_horses_allowed                 = 8888,
+    .horses_produced_actual                 = 88888,
+    .food_consumed_by_horses                = 888888,
+    .horses_delta_final                     = 8888888,
+    .food_delta_final                       = 0,
+    .colonist_starved                       = true,
+  };
+  expected = {
+    .consumed = 0,
+    .surplus  = 0,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+
+  // NOTE: from this point on, we only set the fields that are
+  // zero in the test above, meaning that they are actually used
+  // by the function.
+
+  // consumed>0, surplus=0, deficit=0.
+  fh = FoodProduction{
+    .food_produced                          = 4,
+    .food_consumed_by_colonists_theoretical = 4,
+    .food_deficit_without_stores            = 0,
+    .food_delta_final                       = 0,
+  };
+  expected = {
+    .consumed = 4,
+    .surplus  = 0,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+
+  // consumed>0, surplus=0, deficit=0. Some consumed by horses.
+  fh = FoodProduction{
+    .food_produced                          = 6,
+    .food_consumed_by_colonists_theoretical = 4,
+    .food_deficit_without_stores            = 0,
+    .food_delta_final                       = 0,
+  };
+  expected = {
+    .consumed = 6,
+    .surplus  = 0,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+
+  // consumed>0, surplus>0, deficit=0. All consumed by colonists.
+  fh = FoodProduction{
+    .food_produced                          = 6,
+    .food_consumed_by_colonists_theoretical = 4,
+    .food_deficit_without_stores            = 0,
+    .food_delta_final                       = 2,
+  };
+  expected = {
+    .consumed = 4,
+    .surplus  = 2,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+
+  // consumed>0, surplus=0, deficit>0. All consumed by colonists.
+  fh = FoodProduction{
+    .food_produced                          = 6,
+    .food_consumed_by_colonists_theoretical = 8,
+    .food_deficit_without_stores            = 2,
+    .food_delta_final                       = 0,
+  };
+  expected = {
+    .consumed = 6,
+    .surplus  = 0,
+    .deficit  = 2,
+  };
+  REQUIRE( f() == expected );
+
+  // consumed>0, surplus=0, deficit>0. All consumed by colonists.
+  fh = FoodProduction{
+    .food_produced                          = 6,
+    .food_consumed_by_colonists_theoretical = 8,
+    .food_deficit_without_stores            = 2,
+    .food_delta_final                       = -2,
+  };
+  expected = {
+    .consumed = 6,
+    .surplus  = 0,
+    .deficit  = 2,
+  };
+  REQUIRE( f() == expected );
+
+  // consumed=0, surplus=4, deficit=0.
+  fh = FoodProduction{
+    .food_produced                          = 4,
+    .food_consumed_by_colonists_theoretical = 0,
+    .food_deficit_without_stores            = 0,
+    .food_delta_final                       = 4,
+  };
+  expected = {
+    .consumed = 0,
+    .surplus  = 4,
+    .deficit  = 0,
+  };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

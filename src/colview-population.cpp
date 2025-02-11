@@ -12,7 +12,7 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
-#include "production.rds.hpp"
+#include "production.hpp"
 #include "render.hpp"
 #include "sons-of-liberty.hpp"
 #include "spread-builder.hpp"
@@ -44,33 +44,16 @@ using ::gfx::size;
 TileSpreadRenderPlans create_production_spreads(
     SSConst const& ss, ColonyProduction const& production,
     int const width ) {
-  int const deficit =
-      production.food_horses.food_deficit_without_stores;
-  CHECK_GE( deficit, 0 );
-  int const total_shown =
-      ( deficit > 0 )
-          ? production.food_horses
-                .food_consumed_by_colonists_theoretical
-          : production.food_horses.food_produced;
-  int const total_produced =
-      production.food_horses.food_produced;
-  CHECK_GE( total_produced, 0 );
-  int const available = total_shown - deficit;
-  CHECK_GE( available, 0 );
-  int const consumed =
-      available -
-      std::max( production.food_horses.food_delta_final, 0 );
-  CHECK_GE( consumed, 0 );
-  int const surplus = available - consumed;
-  CHECK_GE( surplus, 0 );
-  CHECK_EQ( consumed + surplus + deficit, total_shown );
-  CHECK_EQ( consumed + surplus, total_produced );
+  ColonyViewFoodStats const food_stats =
+      compute_colony_view_food_stats( production );
   TileSpreadConfigMulti const config{
     .tiles{
-      { .tile = e_tile::commodity_food_20, .count = consumed },
-      { .tile = e_tile::commodity_food_20, .count = surplus },
       { .tile  = e_tile::commodity_food_20,
-        .count = deficit,
+        .count = food_stats.consumed },
+      { .tile  = e_tile::commodity_food_20,
+        .count = food_stats.surplus },
+      { .tile  = e_tile::commodity_food_20,
+        .count = food_stats.deficit,
         .has_x = e_red_x_size::small },
       { .tile  = e_tile::product_crosses_20,
         .count = production.crosses },
