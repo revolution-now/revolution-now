@@ -18,8 +18,8 @@
 #include "colview-buildings.hpp"
 #include "colview-land.hpp"
 #include "colview-population.hpp"
+#include "colview-production.hpp"
 #include "commodity.hpp"
-#include "construction.hpp"
 #include "damaged.hpp"
 #include "equip.hpp"
 #include "iengine.hpp"
@@ -1584,78 +1584,6 @@ class UnitsAtGateColonyView
   CargoView* cargo_view_;
   Delta size_;
   maybe<UnitId> dragging_;
-};
-
-class ProductionView : public ui::View, public ColonySubView {
- public:
-  static unique_ptr<ProductionView> create( SS& ss, TS& ts,
-                                            Player& player,
-                                            Colony& colony,
-                                            Delta size ) {
-    return make_unique<ProductionView>( ss, ts, player, colony,
-                                        size );
-  }
-
-  ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
-                  Delta size )
-    : ColonySubView( ss, ts, player, colony ), size_( size ) {}
-
-  Delta delta() const override { return size_; }
-
-  // Implement IDraggableObjectsView.
-  maybe<int> entity() const override {
-    return static_cast<int>( e_colview_entity::production );
-  }
-
-  ui::View& view() noexcept override { return *this; }
-  ui::View const& view() const noexcept override {
-    return *this;
-  }
-
-  void draw( rr::Renderer& renderer,
-             Coord coord ) const override {
-    rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( bounds( coord ).with_inc_size(),
-                             rr::Painter::e_border_mode::inside,
-                             gfx::pixel::black() );
-    SCOPED_RENDERER_MOD_ADD(
-        painter_mods.repos.translation2,
-        gfx::size( coord.distance_from_origin() ).to_double() );
-    rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
-                                      gfx::pixel::black() );
-    typer.write( "Hammers:      {}\n", colony_.hammers );
-    typer.write( "Construction: " );
-    if( colony_.construction.has_value() ) {
-      typer.write( "{}\n",
-                   construction_name( *colony_.construction ) );
-      typer.write( "right-click to buy.\n" );
-    } else {
-      typer.write( "nothing\n" );
-    }
-  }
-
-  // Implement AwaitView.
-  wait<> perform_click(
-      input::mouse_button_event_t const& event ) override {
-    CHECK( event.pos.is_inside( bounds( {} ) ) );
-    if( event.buttons ==
-        input::e_mouse_button_event::right_up ) {
-      maybe<RushConstruction> const invoice =
-          rush_construction_cost( ss_, colony_ );
-      if( !invoice.has_value() )
-        // This can happen if either the colony is not building
-        // anything or if it is building something that it al-
-        // ready has.
-        co_return;
-      co_await rush_construction_prompt( player_, colony_,
-                                         ts_.gui, *invoice );
-      co_return;
-    }
-    co_await select_colony_construction( ss_, ts_, colony_ );
-  }
-
- private:
-  Delta size_;
 };
 
 /****************************************************************
