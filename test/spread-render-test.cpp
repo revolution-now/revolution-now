@@ -258,6 +258,69 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .label = nothing },
     } };
   REQUIRE( f() == expected );
+
+  // One spread, one tile, with label, with line breaks.
+  tile_spreads = {
+    .spreads =
+        { { .icon_spread = { .spec =
+                                 SpreadSpec{
+                                   .count   = 10,
+                                   .trimmed = { .start = 2,
+                                                .len   = 10 } },
+                             .rendered_count = 10,
+                             .spacing        = 5 },
+            .tile        = e_tile::commodity_food_20,
+            .label_opts =
+                SpreadLabelOptions{
+                  .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::sw } },
+            .line_breaks =
+                TileSpreadLineBreaks{ .line_width   = 20,
+                                      .line_spacing = 6 } } },
+    .group_spacing = 1,
+    .label_policy  = SpreadLabels::always{} };
+  expected = {
+    .bounds = { .w = 20, .h = 20 + 3 * 6 },
+    .plans  = {
+      TileSpreadRenderPlan{
+         .bounds = { .origin = {},
+                     .size   = { .w = 20, .h = 20 + 3 * 6 } },
+         .tiles =
+             {
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { -2, 0 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 3, 0 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 8, 0 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { -2, 6 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 3, 6 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 8, 6 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { -2, 12 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 3, 12 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { 8, 12 } },
+              { .tile  = e_tile::commodity_food_20,
+                 .where = { -2, 18 } },
+            },
+         .label =
+            SpreadLabelRenderPlan{
+               .options =
+                  SpreadLabelOptions{
+                     .placement =
+                        SpreadLabelPlacement::in_first_tile{
+                           .placement = e_cdirection::sw } },
+               .text  = "10",
+               .where = { .x = 0, .y = 20 - 10 },
+            } },
+    } };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[spread] replace_first_n_tiles" ) {

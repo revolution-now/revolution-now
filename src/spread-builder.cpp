@@ -88,7 +88,8 @@ TileSpreadRenderPlans build_tile_spread_multi(
         .icon_spread = icon_spread,
         .tile        = config_it->tile,
         .label_opts  = configs.options.label_opts,
-        .label_count = config_it->progress_count };
+        .label_count = config_it->progress_count,
+        .line_breaks = config_it->line_breaks };
       if( config_it->has_x ) {
         tile_spread_spec.label_opts.color_fg = pixel::red();
         switch( ( *config_it->has_x ) ) {

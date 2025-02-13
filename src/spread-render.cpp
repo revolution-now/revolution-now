@@ -84,10 +84,20 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
     auto& plan          = plans.plans.emplace_back();
     point const p_start = p;
+    auto const& tile_trimmed_len =
+        tile_spread.icon_spread.spec.trimmed.len;
+    auto const& tile_trimmed_start =
+        tile_spread.icon_spread.spec.trimmed.start;
+    size const tile_size = sprite_size( tile_spread.tile );
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
-      point const p_drawn = p.moved_left(
-          tile_spread.icon_spread.spec.trimmed.start );
+      int const right_most = p.x + tile_trimmed_len;
+      if( tile_spread.line_breaks.has_value() &&
+          right_most > tile_spread.line_breaks->line_width ) {
+        p.x = p_start.x;
+        p.y += tile_spread.line_breaks->line_spacing;
+      }
+      point const p_drawn = p.moved_left( tile_trimmed_start );
       plan.tiles.push_back(
           TileRenderPlan{ .tile       = tile_spread.tile,
                           .where      = p_drawn,
@@ -99,8 +109,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
         rect const base_tile_trimmed_rect{
           .origin = p,
           .size   = sprite_size( tile_spread.tile )
-                      .with_w( tile_spread.icon_spread.spec
-                                   .trimmed.len ) };
+                      .with_w( tile_trimmed_len ) };
         point const p_overlay_drawn = [&] {
           // Make sure that the trimmed X start of the overlay
           // tile aligns with the trimmed X start of the base
@@ -123,23 +132,28 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
       p.x += tile_spread.icon_spread.spacing;
     }
     if( tile_spread.icon_spread.rendered_count > 0 )
-      p.x +=
-          std::max( ( tile_spread.icon_spread.spec.trimmed.len -
-                      tile_spread.icon_spread.spacing ),
-                    0 );
-    size const tile_size = sprite_size( tile_spread.tile );
-    int const tile_h     = tile_size.h;
-    rect const tiles_all{
-      .origin = p_start,
-      .size   = { .w = p.x - p_start.x, .h = tile_h } };
+      p.x += std::max(
+          ( tile_trimmed_len - tile_spread.icon_spread.spacing ),
+          0 );
+    rect const tiles_all = [&] {
+      rect res{ .origin = p_start };
+      for( auto const& tile : plan.tiles )
+        if( !tile.is_overlay )
+          res = res.uni0n( rect{
+            .origin =
+                tile.where + size{ .w = tile_trimmed_start },
+            .size = { .w = tile_trimmed_len,
+                      .h = tile_size.h } } );
+      return res;
+    }();
     plan.bounds = tiles_all;
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
     auto add_label = [&]( SpreadLabelOptions const& options ) {
-      rect const first_tile_rect =
-          tiles_all.with_size( tiles_all.size.with_w(
-              tile_spread.icon_spread.spec.trimmed.len ) );
+      rect const first_tile_rect = tiles_all.with_size(
+          size{ .w = tile_spread.icon_spread.spec.trimmed.len,
+                .h = tile_size.h } );
       rect const placement_rect = [&] {
         if( !options.placement.has_value() )
           return first_tile_rect;
