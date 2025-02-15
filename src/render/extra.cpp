@@ -130,14 +130,14 @@ void draw_rect_noisy_filled( rr::Renderer& renderer,
             .size   = renderer.logical_screen_size() },
       center_color );
   {
-    static pixel const noise_color =
+    pixel const noise_color =
         center_color.shaded( options.color_divergence );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              1.0 - options.intensity / 2.0 )
     renderer.painter().draw_solid_rect( area, noise_color );
   }
   {
-    static pixel const noise_color =
+    pixel const noise_color =
         center_color.highlighted( options.color_divergence );
     SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
                              options.intensity / 2.0 )
