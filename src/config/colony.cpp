@@ -80,6 +80,19 @@ config::colony::construction_requirements::validate() const {
                  "The minimum-required popoulation for a "
                  "construction item must be > 0." );
 
+  // This is needed because in the OG there are precisely four
+  // rows of hammers in the construction pane of the colony win-
+  // dow, and all four rows need to fill up with hammers (an
+  // equal number in each row, filling the available area) at the
+  // point that construction is complete. The density of hammers
+  // varies depending on the total number needed, but there are
+  // always exactly four rows that get filled. Therefore, the re-
+  // quired number of hammers must be divisible by four.
+  REFL_VALIDATE(
+      hammers % 4 == 0,
+      "The number of hammers required for construction of any "
+      "given item must be a multiple of four." );
+
   return base::valid;
 }
 

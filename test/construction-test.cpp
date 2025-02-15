@@ -312,7 +312,7 @@ TEST_CASE( "[construction] select building, borders ocean" ) {
               .display_name =
                   "Church                  64 hammers" },
             { .key          = "custom_house",
-              .display_name = "Custom House           150 "
+              .display_name = "Custom House           160 "
                               "hammers,  50 tools" },
             { .key = "wagon_train",
               .display_name =
@@ -584,7 +584,7 @@ TEST_CASE(
               .display_name =
                   "Church                  64 hammers" },
             { .key          = "custom_house",
-              .display_name = "Custom House           150 "
+              .display_name = "Custom House           160 "
                               "hammers,  50 tools" },
             { .key = "wagon_train",
               .display_name =

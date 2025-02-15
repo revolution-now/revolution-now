@@ -118,8 +118,15 @@ requirements_for_building {
   # interest game mode to play in, where you start with no build-
   # ings and have to earn enough money to buy a carpenter's shop
   # so that you can start building other things.
+  #
+  # NOTE: we make our hammers cost 40 instead of 39 because they
+  # all need to be a multiple of four for rendering purposes in
+  # the colony view. All other items' cost obey this property ex-
+  # cept for the carpenter's shop, which the developers in the OG
+  # probably didn't notice because it isn't normally visible
+  # buildable.
   carpenters_shop: {
-    hammers:             39
+    hammers:             40
     tools:               0
     required_building:   null
     minimum_population:  1
@@ -452,7 +459,7 @@ requirements_for_building {
   }
 
   custom_house: {
-    hammers:             150
+    hammers:             160
     tools:               50
     required_building:   null
     minimum_population:  1
