@@ -14,6 +14,12 @@
 #include "colview-entities.hpp"
 #include "spread-render.rds.hpp"
 
+// config
+#include "config/colony-constants.hpp"
+
+// C++ standard library
+#include <array>
+
 namespace rn {
 
 /****************************************************************
@@ -33,11 +39,11 @@ class ProductionView : public ui::View, public ColonySubView {
 
     // Hammer spread.
     gfx::rect hammer_spread_rect = {};
-    TileSpreadRenderPlan hammer_spread;
-    e_tile hammer_tile                = {};
-    int hammer_row_interval           = {};
-    int num_hammer_rows               = {};
-    int effective_hammer_spread_width = {};
+    using HammerArray = std::array<TileSpreadRenderPlan,
+                                   kNumHammerRowsInColonyView>;
+    HammerArray hammer_spreads;
+    e_tile hammer_tile      = {};
+    int hammer_row_interval = {};
   };
 
   ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
@@ -69,7 +75,7 @@ class ProductionView : public ui::View, public ColonySubView {
  private:
   static Layout create_layout( gfx::size sz );
 
-  TileSpreadRenderPlan create_hammer_spread() const;
+  void create_hammer_spreads( Layout::HammerArray& out ) const;
 
   void update_hammer_spread();
 

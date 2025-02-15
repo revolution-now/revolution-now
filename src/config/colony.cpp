@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "colony.hpp"
 
+// config
+#include "colony-constants.hpp"
+
 // C++ standard library
 #include <algorithm>
 
@@ -88,8 +91,9 @@ config::colony::construction_requirements::validate() const {
   // varies depending on the total number needed, but there are
   // always exactly four rows that get filled. Therefore, the re-
   // quired number of hammers must be divisible by four.
+  static_assert( kNumHammerRowsInColonyView == 4 );
   REFL_VALIDATE(
-      hammers % 4 == 0,
+      hammers % kNumHammerRowsInColonyView == 0,
       "The number of hammers required for construction of any "
       "given item must be a multiple of four." );
 

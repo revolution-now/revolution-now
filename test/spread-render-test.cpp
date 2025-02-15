@@ -261,8 +261,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
 
   // One spread, one tile, with label, with line breaks.
   tile_spreads = {
-    .spreads =
-        { { .icon_spread = { .spec =
+    .spreads       = { {
+            .icon_spread = { .spec =
                                  SpreadSpec{
                                    .count   = 10,
                                    .trimmed = { .start = 2,
@@ -271,21 +271,18 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                              .spacing        = 5 },
             .tile        = e_tile::commodity_food_20,
             .label_opts =
-                SpreadLabelOptions{
+          SpreadLabelOptions{
                   .placement =
-                      SpreadLabelPlacement::in_first_tile{
+                SpreadLabelPlacement::in_first_tile{
                         .placement = e_cdirection::sw } },
-            .line_breaks =
-                TileSpreadLineBreaks{ .line_width   = 20,
-                                      .line_spacing = 6 } } },
+    } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
-    .bounds = { .w = 20, .h = 20 + 3 * 6 },
+    .bounds = { .w = 55, .h = 20 },
     .plans  = {
       TileSpreadRenderPlan{
-         .bounds = { .origin = {},
-                     .size   = { .w = 20, .h = 20 + 3 * 6 } },
+         .bounds = { .origin = {}, .size = { .w = 55, .h = 20 } },
          .tiles =
              {
               { .tile  = e_tile::commodity_food_20,
@@ -295,19 +292,19 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile  = e_tile::commodity_food_20,
                  .where = { 8, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { -2, 6 } },
+                 .where = { 13, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { 3, 6 } },
+                 .where = { 18, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { 8, 6 } },
+                 .where = { 23, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { -2, 12 } },
+                 .where = { 28, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { 3, 12 } },
+                 .where = { 33, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { 8, 12 } },
+                 .where = { 38, 0 } },
               { .tile  = e_tile::commodity_food_20,
-                 .where = { -2, 18 } },
+                 .where = { 43, 0 } },
             },
          .label =
             SpreadLabelRenderPlan{

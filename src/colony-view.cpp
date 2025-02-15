@@ -211,6 +211,14 @@ struct ColonyPlane : public IPlane {
               RealColonyEvolver( ss_, ts_ ), colony_ );
           update_colony_view( ss_, colony_ );
           break;
+        case ::SDLK_LEFTBRACKET:
+          if( colony_.hammers > 0 ) --colony_.hammers;
+          update_colony_view( ss_, colony_ );
+          break;
+        case ::SDLK_RIGHTBRACKET:
+          ++colony_.hammers;
+          update_colony_view( ss_, colony_ );
+          break;
         default: //
           break;
       }

@@ -91,12 +91,6 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     size const tile_size = sprite_size( tile_spread.tile );
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
-      int const right_most = p.x + tile_trimmed_len;
-      if( tile_spread.line_breaks.has_value() &&
-          right_most > tile_spread.line_breaks->line_width ) {
-        p.x = p_start.x;
-        p.y += tile_spread.line_breaks->line_spacing;
-      }
       point const p_drawn = p.moved_left( tile_trimmed_start );
       plan.tiles.push_back(
           TileRenderPlan{ .tile       = tile_spread.tile,

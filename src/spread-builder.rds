@@ -47,9 +47,9 @@ struct.TileSpread {
   # player transiently has a few more bells than are needed for
   # the next founding father.
   progress_count 'base::maybe<int>',
-  # When a single spread needs to be split onto multiple lines,
-  # e.g. the hammer spread in the colony view.
-  line_breaks 'base::maybe<TileSpreadLineBreaks>',
+  # After all is said and done, the number on the label (if ren-
+  # dered) can be overridden with this.
+  label_override 'base::maybe<int>',
 }
 
 struct.TileSpreadOptions {

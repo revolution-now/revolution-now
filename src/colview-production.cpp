@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "co-wait.hpp"
+#include "colony-constants.hpp"
 #include "colview-entities.hpp"
 #include "construction.hpp"
 #include "production.rds.hpp"
@@ -60,37 +61,53 @@ maybe<construction_requirements> requirements_for_construction(
 /****************************************************************
 ** ProductionView
 *****************************************************************/
-TileSpreadRenderPlan ProductionView::create_hammer_spread()
-    const {
-  if( !colony_.construction.has_value() ) return {};
+void ProductionView::create_hammer_spreads(
+    Layout::HammerArray& out ) const {
+  out = {};
+  if( !colony_.construction.has_value() ) return;
   // This will check-fail if it is not possible to construct the
   // thing being constructed, e.g. if we are trying to construct
   // a free colonist, which means that the game is in an invalid
   // state.
   UNWRAP_CHECK_T( auto const reqs, requirements_for_construction(
                                        *colony_.construction ) );
+
   int const total_hammers_needed = reqs.hammers;
-  TileSpreadConfig const config{
-    .tile    = { .tile           = e_tile::product_hammers_20,
-                 .count          = total_hammers_needed,
-                 .progress_count = colony_.hammers,
-                 .line_breaks =
-                     TileSpreadLineBreaks{
-                       .line_width =
-                        layout_.hammer_spread_rect.size.w,
-                       .line_spacing =
-                        layout_.hammer_row_interval } },
-    .options = {
-      .bounds = layout_.effective_hammer_spread_width,
-      .label_policy =
-          ss_.settings.colony_options.numbers
-              ? SpreadLabels{ SpreadLabels::always{} }
-              : SpreadLabels{ SpreadLabels::auto_decide{} },
-      .label_opts =
-          { .placement =
-                SpreadLabelPlacement::left_middle_adjusted{} },
-    } };
-  return build_tile_spread( config );
+  static_assert(
+      std::tuple_size_v<decltype( layout_.hammer_spreads )> ==
+      kNumHammerRowsInColonyView );
+  int const max_hammers_per_row =
+      total_hammers_needed / kNumHammerRowsInColonyView;
+
+  int hammers_remaining = colony_.hammers;
+  SpreadLabels label_policy =
+      ss_.settings.colony_options.numbers
+          ? SpreadLabels{ SpreadLabels::always{} }
+          : SpreadLabels{ SpreadLabels::auto_decide{} };
+  maybe<int> label_override = colony_.hammers;
+  for( int i = 0; i < int( kNumHammerRowsInColonyView ); ++i ) {
+    CHECK_GE( hammers_remaining, 0 );
+    if( hammers_remaining == 0 ) break;
+    int const hammers_in_row =
+        std::min( hammers_remaining, max_hammers_per_row );
+    hammers_remaining -= hammers_in_row;
+    TileSpreadConfig const config{
+      .tile    = { .tile           = e_tile::product_hammers_20,
+                   .count          = max_hammers_per_row,
+                   .progress_count = hammers_in_row,
+                   .label_override = label_override },
+      .options = {
+        .bounds       = layout_.hammer_spread_rect.size.w,
+        .label_policy = label_policy,
+        .label_opts   = { .placement =
+                              SpreadLabelPlacement::in_first_tile{
+                                .placement = e_cdirection::c } },
+      } };
+    out[i] = build_tile_spread( config );
+    // Label only on first row.
+    label_policy   = SpreadLabels::never{};
+    label_override = nothing;
+  }
 }
 
 void ProductionView::draw_production_spreads(
@@ -98,9 +115,14 @@ void ProductionView::draw_production_spreads(
   renderer.painter().draw_empty_rect(
       layout_.hammer_spread_rect,
       rr::Painter::e_border_mode::inside, pixel::red() );
-  draw_rendered_icon_spread( renderer,
-                             layout_.hammer_spread_rect.origin,
-                             layout_.hammer_spread );
+  int y = layout_.hammer_spread_rect.origin.y;
+  for( TileSpreadRenderPlan const& plan :
+       layout_.hammer_spreads ) {
+    draw_rendered_icon_spread(
+        renderer, layout_.hammer_spread_rect.origin.with_y( y ),
+        plan );
+    y += layout_.hammer_row_interval;
+  }
 }
 
 void ProductionView::draw( rr::Renderer& renderer,
@@ -154,7 +176,7 @@ void ProductionView::update_this_and_children() {
 }
 
 void ProductionView::update_hammer_spread() {
-  layout_.hammer_spread = create_hammer_spread();
+  create_hammer_spreads( layout_.hammer_spreads );
 }
 
 ProductionView::Layout ProductionView::create_layout(
@@ -167,6 +189,8 @@ ProductionView::Layout ProductionView::create_layout(
   int const text_height = 2 * 8;
 
   // Hammer spread.
+  l.hammer_tile             = e_tile::product_hammers_20;
+  auto const hammer_trimmed = trimmed_area_for( l.hammer_tile );
   l.hammer_spread_rect.size = sz;
   l.hammer_spread_rect =
       l.hammer_spread_rect
@@ -176,22 +200,10 @@ ProductionView::Layout ProductionView::create_layout(
           .with_new_left_edge( kMargin )
           .with_new_right_edge( l.hammer_spread_rect.right() -
                                 kMargin );
-  l.hammer_tile             = e_tile::product_hammers_20;
-  auto const hammer_trimmed = trimmed_area_for( l.hammer_tile );
-  int const hammer_top_padding = hammer_trimmed.origin.y;
-  int const hammer_bottom_padding =
-      sprite_size( l.hammer_tile ).h - hammer_trimmed.bottom();
-  l.hammer_row_interval = hammer_trimmed.size.h / 2;
-  l.num_hammer_rows =
-      std::max( ( l.hammer_spread_rect.size.h -
-                  hammer_top_padding - hammer_bottom_padding ) /
-                        l.hammer_row_interval -
-                    0,
-                1 );
-  // FIXME: the total width of the last row is not being used.
-  l.effective_hammer_spread_width =
-      l.num_hammer_rows * l.hammer_spread_rect.size.w -
-      ( hammer_trimmed.size.w + 1 ) * l.num_hammer_rows;
+  l.hammer_spread_rect.size.w =
+      std::min( l.hammer_spread_rect.size.w,
+                ( hammer_trimmed.size.w + 1 ) * 13 );
+  l.hammer_row_interval = hammer_trimmed.size.h - 3;
   return l;
 }
 
