@@ -130,4 +130,8 @@ void colview_drag_n_drop_draw(
     DragState<ColViewObject> const& state,
     Coord const& canvas_origin );
 
+// TODO: temporary.
+inline auto const BROWN_COLOR =
+    gfx::pixel::parse_from_hex( "f1cf81" ).value().shaded( 14 );
+
 } // namespace rn

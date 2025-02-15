@@ -35,6 +35,7 @@
 #include "ss/units.hpp"
 
 // render
+#include "render/extra.hpp"
 #include "render/renderer.hpp"
 
 // refl
@@ -56,18 +57,22 @@ namespace {
 
 struct IMapUpdater;
 
+using ::gfx::e_resolution;
+using ::gfx::pixel;
 using ::gfx::point;
+using ::gfx::rect;
 
 /****************************************************************
 ** Drawing
 *****************************************************************/
 void draw_colony_view( IEngine& engine, Colony const&,
                        rr::Renderer& renderer ) {
-  static gfx::pixel background_color =
-      gfx::pixel::parse_from_hex( "f1cf81" ).value();
-  renderer.painter().draw_solid_rect(
-      gfx::rect{ .origin = {},
-                 .size   = renderer.logical_screen_size() },
+  static pixel const background_color =
+      pixel::parse_from_hex( "f1cf81" ).value();
+  draw_rect_noisy_filled(
+      renderer,
+      rect{ .origin = {},
+            .size   = renderer.logical_screen_size() },
       background_color );
   auto const canvas = main_window_logical_rect(
       engine.video(), engine.window(), engine.resolutions() );
@@ -152,7 +157,7 @@ struct ColonyPlane : public IPlane {
   }
 
   void on_logical_resolution_selected(
-      gfx::e_resolution const ) override {
+      e_resolution const ) override {
     set_colview_colony( engine_, ss_, ts_, player_, colony_ );
   }
 

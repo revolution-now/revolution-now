@@ -72,7 +72,9 @@ struct pixel {
   //
   // Calling with iterations == 0 returns *this.
   //
-  // TODO: these need to cache results.
+  // WARNING: !! these use caching and are not guarded by a
+  //             mutex and thus are NOT thread-safe.
+  //
   pixel highlighted( int iterations = 1 ) const;
   pixel shaded( int iterations = 1 ) const;
 

@@ -32,16 +32,30 @@ void render_shadow_hightlight_border( rr::Renderer& renderer,
                                       gfx::pixel left_and_bottom,
                                       gfx::pixel top_and_right );
 
-void write_centered( rr::Renderer& renderer,
-                     gfx::pixel const color_fg,
-                     gfx::point const center,
-                     std::string_view const text );
+void write_centered( rr::Renderer& renderer, gfx::pixel color_fg,
+                     gfx::point center, std::string_view text );
 
 // With a background color.
-void write_centered( rr::Renderer& renderer,
-                     gfx::pixel const color_fg,
-                     gfx::pixel const color_bg,
-                     gfx::point const center,
-                     std::string_view const text );
+void write_centered( rr::Renderer& renderer, gfx::pixel color_fg,
+                     gfx::pixel color_bg, gfx::point center,
+                     std::string_view text );
+
+struct NoisyFillOptions {
+  // What percentage of pixels are colored with the variant col-
+  // ors. This percentage will be divided equally between the
+  // lighter and darker colors. So if this is 0.4 that means that
+  // 20% will be the lighter color and 20% (non-overlapping) will
+  // be the darker color, with all remaining being the center
+  // color. Must be in [0.0, 1.0].
+  double intensity = 0.4;
+  // The center color will be shaded (highlighted) this many
+  // times to get the variant colors.
+  int color_divergence = 1;
+};
+
+void draw_rect_noisy_filled(
+    rr::Renderer& renderer, gfx::rect area,
+    gfx::pixel center_color,
+    NoisyFillOptions const& options = {} );
 
 } // namespace rr

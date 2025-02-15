@@ -155,12 +155,11 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
   for( e_colony_building_slot slot :
        refl::enum_values<e_colony_building_slot> ) {
     Rect const rect = layout_.slots[slot].bounds;
-    painter.draw_empty_rect( rect,
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel::black() );
+    painter.draw_empty_rect(
+        rect, rr::Painter::e_border_mode::in_out, BROWN_COLOR );
     rr::Typer typer = renderer.typer(
         rect.upper_left() + Delta{ .w = 1 } + Delta{ .h = 1 },
-        gfx::pixel::black() );
+        BROWN_COLOR );
     maybe<e_colony_building> const building =
         building_for_slot( colony_, slot );
     if( !building.has_value() ) {

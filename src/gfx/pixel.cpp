@@ -22,6 +22,28 @@ using namespace std;
 using ::base::maybe;
 using ::base::nothing;
 
+using CachedColorShiftKey =
+    std::pair<gfx::pixel, /*iterations=*/uint32_t>;
+
+/****************************************************************
+** std::hash
+*****************************************************************/
+namespace std {
+
+template<>
+struct hash<CachedColorShiftKey> {
+  auto operator()(
+      CachedColorShiftKey const& p ) const noexcept {
+    return hash<uint64_t>{}(
+        ( uint64_t{ p.first.to_uint32() } << 32 ) + p.second );
+  }
+};
+
+}
+
+/****************************************************************
+** pixel
+*****************************************************************/
 namespace gfx {
 
 namespace {
@@ -212,15 +234,32 @@ pixel pixel::with_alpha( uint8_t a_new ) const {
   return res;
 }
 
-pixel pixel::highlighted( int iterations ) const {
+// WARNING: uses a cache -- NOT thead safe.
+pixel pixel::highlighted( int const iterations ) const {
+  // Stop recursion.
   if( iterations == 0 ) return *this;
-  return shift_color( *this, true )
-      .highlighted( iterations - 1 );
+  static unordered_map<CachedColorShiftKey, pixel> cache;
+  CachedColorShiftKey const key{ *this, iterations };
+  auto const iter = cache.find( key );
+  if( iter != cache.end() ) return iter->second;
+  pixel const res =
+      shift_color( *this, true ).highlighted( iterations - 1 );
+  cache[key] = res;
+  return res;
 }
 
-pixel pixel::shaded( int iterations ) const {
+// WARNING: uses a cache -- NOT thead safe.
+pixel pixel::shaded( int const iterations ) const {
+  // Stop recursion.
   if( iterations == 0 ) return *this;
-  return shift_color( *this, false ).shaded( iterations - 1 );
+  static unordered_map<CachedColorShiftKey, pixel> cache;
+  CachedColorShiftKey const key{ *this, iterations };
+  auto const iter = cache.find( key );
+  if( iter != cache.end() ) return iter->second;
+  pixel const res =
+      shift_color( *this, false ).shaded( iterations - 1 );
+  cache[key] = res;
+  return res;
 }
 
 pixel pixel::banana() {

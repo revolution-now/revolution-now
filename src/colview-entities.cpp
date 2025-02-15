@@ -89,6 +89,10 @@ using ::gfx::size;
 *****************************************************************/
 constexpr W kCommodityTileWidth = kCommodityTileSize.w;
 
+// TODO: temporary.
+auto const BROWN_COLOR =
+    pixel::parse_from_hex( "f1cf81" ).value().shaded( 14 );
+
 /****************************************************************
 ** Globals
 *****************************************************************/
@@ -414,7 +418,7 @@ class MarketCommodities
       painter.draw_solid_rect( rect, bg_color );
       painter.draw_empty_rect(
           rect, rr::Painter::e_border_mode::in_out,
-          gfx::pixel::black() );
+          pixel::black() );
       label.value = colony.commodities[*comm_it];
       // Regarding the choice of colors: the OG will color the
       // label red when it exceeds the warehouse capacity of the
@@ -629,7 +633,7 @@ class CargoView : public ui::View,
     rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( bounds( coord ),
                              rr::Painter::e_border_mode::in_out,
-                             gfx::pixel::black() );
+                             pixel::black() );
     auto unit = holder_.fmap(
         [&]( UnitId id ) { return ss_.units.unit_for( id ); } );
     for( int idx{ 0 }; idx < max_slots_drawable(); ++idx ) {
@@ -1052,7 +1056,7 @@ class UnitsAtGateColonyView
     rr::Painter painter = renderer.painter();
     painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                              rr::Painter::e_border_mode::inside,
-                             gfx::pixel::black() );
+                             BROWN_COLOR );
     for( auto [unit_id, unit_pos] : positioned_units_ ) {
       if( dragging_ == unit_id ) continue;
       Coord draw_pos   = unit_pos.as_if_origin_were( coord );

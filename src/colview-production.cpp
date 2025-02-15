@@ -130,12 +130,12 @@ void ProductionView::draw( rr::Renderer& renderer,
   rr::Painter painter = renderer.painter();
   painter.draw_empty_rect( bounds( coord ).with_inc_size(),
                            rr::Painter::e_border_mode::inside,
-                           gfx::pixel::black() );
+                           BROWN_COLOR );
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation2,
       gfx::size( coord.distance_from_origin() ).to_double() );
-  rr::Typer typer = renderer.typer( Coord{ .x = 2, .y = 2 },
-                                    gfx::pixel::black() );
+  rr::Typer typer =
+      renderer.typer( Coord{ .x = 2, .y = 2 }, BROWN_COLOR );
   typer.write( "Construction: " );
   if( colony_.construction.has_value() ) {
     typer.write( "{}\n",
