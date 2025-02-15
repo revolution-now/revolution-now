@@ -35,7 +35,8 @@ struct hash<CachedColorShiftKey> {
   auto operator()(
       CachedColorShiftKey const& p ) const noexcept {
     return hash<uint64_t>{}(
-        ( uint64_t{ p.first.to_uint32() } << 32 ) + p.second );
+        ( uint64_t{ p.first.to_uint32() } << 32 ) +
+        uint64_t{ p.second } );
   }
 };
 

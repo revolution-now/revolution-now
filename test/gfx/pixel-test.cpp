@@ -75,41 +75,78 @@ TEST_CASE( "[gfx/pixel] from_hex_rgb" ) {
 }
 
 TEST_CASE( "[gfx/pixel] shaded" ) {
-  pixel const p{ .r = 30, .g = 50, .b = 70, .a = 255 };
+  pixel const p1{ .r = 30, .g = 50, .b = 70, .a = 255 };
+  pixel const p2{ .r = 60, .g = 100, .b = 140, .a = 100 };
 
-  REQUIRE( p.shaded( 1 ) != p.shaded( 2 ) );
-  REQUIRE( p.shaded( 1 ) != p.shaded( 3 ) );
-  REQUIRE( p.shaded( 2 ) != p.shaded( 3 ) );
+  REQUIRE( p1.shaded( 1 ) != p1.shaded( 2 ) );
+  REQUIRE( p1.shaded( 1 ) != p1.shaded( 3 ) );
+  REQUIRE( p1.shaded( 2 ) != p1.shaded( 3 ) );
 
-  REQUIRE( p.shaded( 1 ) ==
+  REQUIRE( p1.shaded( 1 ) ==
            pixel{ .r = 0x1c, .g = 0x2a, .b = 0x3d, .a = 0xff } );
-  REQUIRE( p.shaded( 3 ) ==
+  REQUIRE( p1.shaded( 3 ) ==
            pixel{ .r = 0x18, .g = 0x1f, .b = 0x2e, .a = 255 } );
 
   // Same again: test that caching doesn't mess things up.
-  REQUIRE( p.shaded( 1 ) ==
+  REQUIRE( p1.shaded( 1 ) ==
            pixel{ .r = 0x1c, .g = 0x2a, .b = 0x3d, .a = 0xff } );
-  REQUIRE( p.shaded( 3 ) ==
+  REQUIRE( p1.shaded( 3 ) ==
            pixel{ .r = 0x18, .g = 0x1f, .b = 0x2e, .a = 255 } );
+
+  REQUIRE( p2.shaded( 1 ) != p2.shaded( 2 ) );
+  REQUIRE( p2.shaded( 1 ) != p2.shaded( 3 ) );
+  REQUIRE( p2.shaded( 2 ) != p2.shaded( 3 ) );
+
+  REQUIRE( p2.shaded( 1 ) ==
+           pixel{ .r = 0x39, .g = 0x55, .b = 0x7a, .a = 0x64 } );
+  REQUIRE( p2.shaded( 3 ) ==
+           pixel{ .r = 0x32, .g = 0x3f, .b = 0x5d, .a = 0x64 } );
+
+  // Same again: test that caching doesn't mess things up.
+  REQUIRE( p2.shaded( 1 ) ==
+           pixel{ .r = 0x39, .g = 0x55, .b = 0x7a, .a = 0x64 } );
+  REQUIRE( p2.shaded( 3 ) ==
+           pixel{ .r = 0x32, .g = 0x3f, .b = 0x5d, .a = 0x64 } );
 }
 
 TEST_CASE( "[gfx/pixel] highlighted" ) {
-  pixel const p{ .r = 30, .g = 50, .b = 70, .a = 255 };
+  pixel const p1{ .r = 30, .g = 50, .b = 70, .a = 255 };
+  pixel const p2{ .r = 60, .g = 100, .b = 140, .a = 100 };
 
-  REQUIRE( p.highlighted( 1 ) != p.highlighted( 2 ) );
-  REQUIRE( p.highlighted( 1 ) != p.highlighted( 3 ) );
-  REQUIRE( p.highlighted( 2 ) != p.highlighted( 3 ) );
+  REQUIRE( p1.highlighted( 1 ) != p1.highlighted( 2 ) );
+  REQUIRE( p1.highlighted( 1 ) != p1.highlighted( 3 ) );
+  REQUIRE( p1.highlighted( 2 ) != p1.highlighted( 3 ) );
 
-  REQUIRE( p.highlighted( 1 ) ==
+  REQUIRE( p1.highlighted( 1 ) ==
            pixel{ .r = 0x21, .g = 0x3f, .b = 0x56, .a = 0xff } );
-  REQUIRE( p.highlighted( 3 ) ==
+  REQUIRE( p1.highlighted( 3 ) ==
            pixel{ .r = 0x25, .g = 0x5f, .b = 0x79, .a = 255 } );
 
   // Same again: test that caching doesn't mess things up.
-  REQUIRE( p.highlighted( 1 ) ==
+  REQUIRE( p1.highlighted( 1 ) ==
            pixel{ .r = 0x21, .g = 0x3f, .b = 0x56, .a = 0xff } );
-  REQUIRE( p.highlighted( 3 ) ==
+  REQUIRE( p1.highlighted( 3 ) ==
            pixel{ .r = 0x25, .g = 0x5f, .b = 0x79, .a = 255 } );
+
+  REQUIRE( p2.highlighted( 1 ) != p2.highlighted( 2 ) );
+  REQUIRE( p2.highlighted( 1 ) != p2.highlighted( 3 ) );
+  REQUIRE( p2.highlighted( 2 ) != p2.highlighted( 3 ) );
+
+  REQUIRE( p2.highlighted( 1 ) ==
+           pixel{ .r = 0x3d, .g = 0x74, .b = 0x9e, .a = 0x64 } );
+  REQUIRE( p2.highlighted( 3 ) ==
+           pixel{ .r = 0x3e, .g = 0x9c, .b = 0xc3, .a = 0x64 } );
+
+  // Same again: test that caching doesn't mess things up.
+  REQUIRE( p2.highlighted( 1 ) ==
+           pixel{ .r = 0x3d, .g = 0x74, .b = 0x9e, .a = 0x64 } );
+  REQUIRE( p2.highlighted( 3 ) ==
+           pixel{ .r = 0x3e, .g = 0x9c, .b = 0xc3, .a = 0x64 } );
+}
+
+TEST_CASE( "[gfx/pixel] to_uint32" ) {
+  pixel const p{ .r = 0x21, .g = 0x3f, .b = 0x56, .a = 0x64 };
+  REQUIRE( p.to_uint32() == 0x213f5664 );
 }
 
 } // namespace
