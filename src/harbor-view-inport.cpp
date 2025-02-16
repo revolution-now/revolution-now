@@ -128,7 +128,7 @@ point HarborInPortShips::frame_nw() const {
       layout_.view.origin );
 }
 
-wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
+wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
   if( get_active_unit() == unit_id ) {
     Unit const& unit = ss_.units.unit_for( unit_id );
     if( auto damaged =
@@ -145,14 +145,29 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
       .sort    = false,
     };
     config.options.push_back(
+        { .key = "move", .display_name = "Move to front." } );
+    config.options.push_back(
         { .key          = "set sail",
           .display_name = "Set sail for the New World." } );
+    config.options.push_back(
+        { .key          = "unload",
+          .display_name = "Unload all cargo." } );
     config.options.push_back(
         { .key = "no changes", .display_name = "No Changes." } );
 
     maybe<string> choice =
         co_await ts_.gui.optional_choice( config );
     if( !choice.has_value() ) co_return;
+    if( choice == "move" ) {
+      ss_.units.bump_unit_ordering( unit_id );
+      set_active_unit( unit_id );
+      co_return;
+    }
+    if( choice == "unload" ) {
+      co_await ts_.gui.message_box(
+          "Auto-unload not implemented." );
+      co_return;
+    }
     if( choice == "set sail" ) {
       unit_sail_to_new_world( ss_, unit_id );
       if( harbor_units_in_port( ss_.units, player_.nation )
