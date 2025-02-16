@@ -197,4 +197,90 @@ void adjust_rendered_count_for_progress_count(
     rendered_count = 1;
 }
 
+Spreads compute_icon_spread_OG( SpreadSpecs const& specs ) {
+  int64_t const total_trimmed = [&] {
+    int64_t res = 0;
+    for( SpreadSpec const& spec : specs.specs )
+      if( spec.count > 0 ) res += spec.trimmed.len;
+    return res;
+  }();
+  int64_t const num_spreads = [&] {
+    int64_t res = 0;
+    for( SpreadSpec const& spec : specs.specs )
+      if( spec.count > 0 ) ++res;
+    return res;
+  }();
+  Spreads res;
+  // This will be the number of non-empty spreads.
+  if( num_spreads == 0 ) return res;
+  res.spreads.reserve( specs.specs.size() );
+
+  // One can derive this formula for the total space used given a
+  // proposed (max) value of spacing:
+  //
+  //   total_space = (count_1-1)*S_spec_1
+  //               + (count_2-1)*S_spec_2
+  //               + (count_3-1)*S_spec_3
+  //               + (count_4-1)*S_spec_4
+  //               + ...
+  //               + total_trimmed
+  //               + group_spacing*(num_spreads-1)
+  //
+  // Where S is a function that gives the spacing for a given
+  // spread given the max uniform spacing being proposed.
+  //
+  // We then keep incrementing the proposed spacing until we
+  // cover the maximum area possible in the allowed bounds.
+  //
+  auto const S = [&]( SpreadSpec const& spec,
+                      int64_t const max_spacing ) -> int {
+    return std::min( max_spacing,
+                     int64_t{ spec.trimmed.len + 1 } );
+  };
+  auto const total_space = [&]( int64_t const spacing ) {
+    int64_t res = total_trimmed +
+                  specs.group_spacing * ( num_spreads - 1 );
+    for( SpreadSpec const& spec : specs.specs )
+      if( spec.count > 0 )
+        res += ( spec.count - 1 ) * S( spec, spacing );
+    return res;
+  };
+  int64_t const proposed_spacing = [&] {
+    int64_t proposed_spacing = 0;
+    int64_t most_space_used  = {};
+    while( true ) {
+      int64_t const space_used =
+          total_space( proposed_spacing + 1 );
+      if( space_used > specs.bounds ) break;
+      // Eventually we may get to a point where we haven't yet
+      // cov- ered all of the allowed bounds but where we can't
+      // space out any of the spreads any more (since the empty
+      // space be- tween them can be at most one). In that case
+      // we're done.
+      if( space_used == most_space_used ) break;
+      most_space_used = space_used;
+      ++proposed_spacing;
+      // Circuit breaker, just in case something funny happens
+      // with overflow and we go into an infinite loop.
+      if( proposed_spacing > specs.bounds * 2 ) {
+        proposed_spacing = 0;
+        break;
+      }
+    }
+    return proposed_spacing;
+  }();
+  if( proposed_spacing == 0 )
+    // This means that we couldn't fit everything in the allowed
+    // bounds even with a spacing of 1. So switch to a different
+    // algorithm that is made to handle that situation.
+    return compute_compressed_proportionate( specs );
+  for( SpreadSpec const& spec : specs.specs )
+    res.spreads.push_back(
+        Spread{ .spec           = spec,
+                .rendered_count = spec.count,
+                .spacing = S( spec, proposed_spacing ) } );
+  CHECK_EQ( res.spreads.size(), specs.specs.size() );
+  return res;
+}
+
 } // namespace rn

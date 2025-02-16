@@ -18,9 +18,13 @@ namespace rn {
 /****************************************************************
 ** Public API.
 *****************************************************************/
+// TODO: remove if unused.
+[[deprecated]] Spreads compute_icon_spread(
+    SpreadSpecs const& specs );
+
 // This is a general method that just applies the core algorithm,
 // as it doesn't know anything about the game's tiles.
-Spreads compute_icon_spread( SpreadSpecs const& specs );
+Spreads compute_icon_spread_OG( SpreadSpecs const& specs );
 
 void adjust_rendered_count_for_progress_count(
     Spread& spread, int progress_count );
