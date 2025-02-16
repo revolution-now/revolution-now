@@ -101,8 +101,6 @@ using namespace std;
 
 namespace rn {
 
-struct IMapUpdater;
-
 namespace {
 
 using ::gfx::point;
@@ -285,6 +283,12 @@ void map_all_euro_units(
     base::function_ref<void( Unit& )> func ) {
   for( auto& p : units_state.euro_all() )
     func( units_state.unit_for( p.first ) );
+}
+
+bool is_unit_on_high_seas( SSConst const& ss,
+                           UnitId const unit_id ) {
+  return is_unit_inbound( ss.units, unit_id ) ||
+         is_unit_outbound( ss.units, unit_id );
 }
 
 vector<UnitId> units_on_tile_to_activate( SSConst const& ss,
@@ -939,9 +943,10 @@ wait<> show_view_mode( IEngine& engine, SS& ss, TS& ts,
 // Returns true if the unit needs to ask the user for input.
 wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
                          Player& player, UnitId id ) {
-  IEuroMind& euro_mind = ts.euro_minds()[player.nation];
-  Unit& unit           = ss.units.unit_for( id );
+  Unit& unit = ss.units.unit_for( id );
   CHECK( !should_remove_unit_from_queue( unit ) );
+  CHECK( !is_unit_on_high_seas( ss, id ),
+         "units on the high seas are advanced elsewhere." );
 
   if( unit.orders().holds<unit_orders::fortifying>() ) {
     // Any units that are in the "fortifying" state at the start
@@ -1039,61 +1044,6 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
     co_return false; // do not ask for orders.
   }
 
-  // If it is a ship on the high seas then advance it. If it has
-  // arrived in the old world then jump to the old world screen.
-  if( is_unit_inbound( ss.units, id ) ||
-      is_unit_outbound( ss.units, id ) ) {
-    e_high_seas_result res =
-        advance_unit_on_high_seas( ss, player, id );
-    switch( res ) {
-      case e_high_seas_result::still_traveling:
-        finish_turn( unit );
-        co_return false; // do not ask for orders.
-      case e_high_seas_result::arrived_in_new_world: {
-        lg.debug( "unit has arrived in new world." );
-        maybe<Coord> const dst_coord =
-            find_new_world_arrival_square(
-                ss, ts, player,
-                ss.units.harbor_view_state_of( id )
-                    .sailed_from );
-        if( !dst_coord.has_value() ) {
-          co_await ts.gui.message_box(
-              "Unfortunately, while our [{}] has arrived in the "
-              "new world, there are no appropriate water "
-              "squares on which to place it.  We will try again "
-              "next turn.",
-              ss.units.unit_for( id ).desc().name );
-          finish_turn( unit );
-          break;
-        }
-        ss.units.unit_for( id ).clear_orders();
-        maybe<UnitDeleted> const unit_deleted =
-            co_await UnitOwnershipChanger( ss, id )
-                .change_to_map( ts, *dst_coord );
-        // There are no LCR tiles on water squares.
-        CHECK( !unit_deleted.has_value() );
-        // This is not required, but it is for a good player ex-
-        // perience. If there are more ships still in port then
-        // select one of them, because ideally if there are ships
-        // in port then when the player goes to the harbor view,
-        // one of them should always be selected.
-        update_harbor_selected_unit( ss.units, player );
-        co_return true; // needs to ask for orders.
-      }
-      case e_high_seas_result::arrived_in_harbor: {
-        lg.debug( "unit has arrived in old world." );
-        finish_turn( unit );
-        if( unit.cargo()
-                .count_items_of_type<Cargo::commodity>() > 0 )
-          co_await show_woodcut_if_needed(
-              player, euro_mind,
-              e_woodcut::cargo_from_the_new_world );
-        co_await show_harbor_view( engine, ss, ts, player, id );
-        co_return false; // do not ask for orders.
-      }
-    }
-  }
-
   if( !is_unit_on_map_indirect( ss.units, id ) ) {
     finish_turn( unit );
     co_return false;
@@ -1103,19 +1053,113 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
   co_return true;
 }
 
-wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
-                            Player& player,
-                            NationTurnState::units& nat_units,
-                            deque<UnitId>& q ) {
+// Accumulates results of advancing units on the high seas so
+// that at the end of advancing all such units we can know
+// whether e.g. to go to the harbor screen, which we only want to
+// do once and not for each unit.
+struct HighSeasStatus {
+  bool arrived_in_harbor             = false;
+  bool arrived_in_harbor_with_cargo  = false;
+  UnitId last_unit_arrived_in_harbor = {};
+
+  HighSeasStatus combined_with(
+      HighSeasStatus const& rhs ) const {
+    HighSeasStatus combined = *this;
+    combined.arrived_in_harbor =
+        combined.arrived_in_harbor || rhs.arrived_in_harbor;
+    combined.arrived_in_harbor_with_cargo =
+        combined.arrived_in_harbor_with_cargo ||
+        rhs.arrived_in_harbor_with_cargo;
+    combined.last_unit_arrived_in_harbor =
+        rhs.last_unit_arrived_in_harbor;
+    return combined;
+  }
+};
+
+wait<HighSeasStatus> advance_high_seas_unit(
+    SS& ss, TS& ts, Player& player, UnitId const unit_id ) {
+  HighSeasStatus res;
+  CHECK( is_unit_on_high_seas( ss, unit_id ) );
+  Unit& unit = ss.units.unit_for( unit_id );
+  CHECK( !should_remove_unit_from_queue( unit ) );
+  e_high_seas_result const type =
+      advance_unit_on_high_seas( ss, player, unit_id );
+  switch( type ) {
+    case e_high_seas_result::still_traveling:
+      finish_turn( unit );
+      break;
+    case e_high_seas_result::arrived_in_new_world: {
+      lg.debug( "unit {} has arrived in new world.", unit_id );
+      maybe<Coord> const dst_coord =
+          find_new_world_arrival_square(
+              ss, ts, player,
+              ss.units.harbor_view_state_of( unit_id )
+                  .sailed_from );
+      if( !dst_coord.has_value() ) {
+        co_await ts.gui.message_box(
+            "Unfortunately, while our [{}] has arrived in the "
+            "new world, there are no appropriate water "
+            "squares on which to place it.  We will try again "
+            "next turn.",
+            ss.units.unit_for( unit_id ).desc().name );
+        finish_turn( unit );
+        break;
+      }
+      ss.units.unit_for( unit_id ).clear_orders();
+      maybe<UnitDeleted> const unit_deleted =
+          co_await UnitOwnershipChanger( ss, unit_id )
+              .change_to_map( ts, *dst_coord );
+      // There are no LCR tiles on water squares.
+      CHECK( !unit_deleted.has_value() );
+      // This is not required, but it is for a good player ex-
+      // perience. If there are more ships still in port then
+      // select one of them, because ideally if there are ships
+      // in port then when the player goes to the harbor view,
+      // one of them should always be selected.
+      update_harbor_selected_unit( ss.units, player );
+      // Don't finish turn; will ask for orders.
+      break;
+    }
+    case e_high_seas_result::arrived_in_harbor: {
+      lg.debug( "unit {} has arrived in old world.", unit_id );
+      finish_turn( unit );
+      res.arrived_in_harbor           = true;
+      res.last_unit_arrived_in_harbor = unit_id;
+      res.arrived_in_harbor_with_cargo =
+          ( unit.cargo()
+                .count_items_of_type<Cargo::commodity>() > 0 );
+      break;
+    }
+  }
+  co_return res;
+}
+
+wait<> move_remaining_units( IEngine& engine, SS& ss, TS& ts,
+                             Player& player,
+                             NationTurnState::units& nat_units,
+                             deque<UnitId>& q ) {
   while( !q.empty() ) {
-    // lg.trace( "q: {}", q );
-    UnitId id = q.front();
+    UnitId const id = q.front();
+
+    // For e.g. units that are disbanded mid-loop.
+    if( !ss.units.exists( id ) ) {
+      q.pop_front();
+      continue;
+    }
+
+    // High seas units are supposed to all be moved at the start
+    // of the units turn in a separate location and should not be
+    // given to us in the queue here, however we can still end up
+    // with one if we are moving a ship in this function and tell
+    // it to go to the high seas.
+    if( is_unit_on_high_seas( ss, id ) ) {
+      q.pop_front();
+      continue;
+    }
+
     // We need this check because units can be added into the
-    // queue in this loop by user input. Also, the very first
-    // check that we must do needs to be to check if the unit
-    // still exists, which it might not if e.g. it was disbanded.
-    if( !ss.units.exists( id ) ||
-        should_remove_unit_from_queue(
+    // queue in this loop by user input.
+    if( should_remove_unit_from_queue(
             ss.units.unit_for( id ) ) ) {
       q.pop_front();
       continue;
@@ -1142,7 +1186,87 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
     // !! The unit may no longer exist at this point, e.g. if
     // they were disbanded or if they lost a battle to the na-
     // tives.
+    //
+    // NOTE: we should not pop the unit off of the queue here be-
+    // cause the above function may have inserted additional
+    // units into the front of the queue, so the front unit may
+    // not be as it was at the start of this loop.
   }
+}
+
+// The idea of this function is that we advance all of the high
+// seas units first, then if any have made it to the harbor then
+// we take the player to the harbor. That way we don't see it re-
+// peatedly for every unit.
+wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
+                             Player& player, deque<UnitId>& q ) {
+  HighSeasStatus status_union;
+  while( !q.empty() ) {
+    UnitId const id = q.front();
+    // I think this should always hold here...
+    CHECK( ss.units.exists( id ) );
+
+    if( !is_unit_on_high_seas( ss, id ) )
+      // We've exausted the high seas units, since the caller
+      // should have put them all at the front of the queue.
+      break;
+
+    CHECK( !should_remove_unit_from_queue(
+        ss.units.unit_for( id ) ) );
+
+    HighSeasStatus const status =
+        co_await advance_high_seas_unit( ss, ts, player, id );
+    status_union = status_union.combined_with( status );
+
+    // Should not have inserted any new units.
+    CHECK( q.front() == id );
+
+    // NOTE: it is possible in the future that the unit at the
+    // front of the queue might have been destroyed, depending on
+    // how we handle the seizing of ships by the crown after in-
+    // dependence.
+
+    q.pop_front();
+  }
+
+  if( status_union.arrived_in_harbor ) {
+    CHECK( status_union.last_unit_arrived_in_harbor !=
+           UnitId{} );
+    if( status_union.arrived_in_harbor_with_cargo )
+      co_await show_woodcut_if_needed(
+          player, ts.euro_minds()[player.nation],
+          e_woodcut::cargo_from_the_new_world );
+    co_await show_harbor_view(
+        engine, ss, ts, player,
+        status_union.last_unit_arrived_in_harbor );
+  }
+}
+
+wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
+                            Player& player,
+                            NationTurnState::units& nat_units,
+                            deque<UnitId>& q ) {
+  // Put all the high-seas units at the start of the q, pre-
+  // serving order. Return the iterator to the first non high
+  // seas unit, which we then use to determine how many high seas
+  // units there are.
+  auto const first_non_high_seas_iter = stable_partition(
+      q.begin(), q.end(),
+      bind_front( is_unit_on_high_seas, ref( ss.as_const ) ) );
+  if( first_non_high_seas_iter != q.begin() ) {
+    co_await move_high_seas_units( engine, ss, ts, player, q );
+    // Empty the queue and return so that the entire unit queue
+    // gets remade, that way any ships that have just made it to
+    // the new world from the high seas will ask for orders in
+    // the correct order. Note that when this function is called
+    // next, there should be no high seas units in it since
+    // they've all just been moved, thus we should not get into
+    // this branch.
+    q = {};
+    co_return;
+  }
+  co_await move_remaining_units( engine, ss, ts, player,
+                                 nat_units, q );
 }
 
 wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
