@@ -1070,8 +1070,9 @@ struct HighSeasStatus {
     combined.arrived_in_harbor_with_cargo =
         combined.arrived_in_harbor_with_cargo ||
         rhs.arrived_in_harbor_with_cargo;
-    combined.last_unit_arrived_in_harbor =
-        rhs.last_unit_arrived_in_harbor;
+    if( rhs.last_unit_arrived_in_harbor != UnitId{} )
+      combined.last_unit_arrived_in_harbor =
+          rhs.last_unit_arrived_in_harbor;
     return combined;
   }
 };
