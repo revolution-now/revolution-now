@@ -31,7 +31,8 @@ struct HarborOutboundShips
   : public ui::View,
     public HarborSubView,
     public IDragSource<HarborDraggableObject>,
-    public IDragSink<HarborDraggableObject> {
+    public IDragSink<HarborDraggableObject>,
+    public IDragSinkCheck<HarborDraggableObject> {
   static PositionedHarborSubView<HarborOutboundShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
       HarborInPortShips const& in_port_ships );
@@ -50,44 +51,50 @@ struct HarborOutboundShips
   HarborOutboundShips( SS& ss, TS& ts, Player& player,
                        Layout layout );
 
-  // Implement ui::Object.
+ public: // ui::Object.
   Delta delta() const override;
 
-  // Implement IDraggableObjectsView.
-  maybe<int> entity() const override;
+  void draw( rr::Renderer& renderer,
+             Coord coord ) const override;
 
-  ui::View& view() noexcept override;
-  ui::View const& view() const noexcept override;
+ public: // IDraggableObjectsView
+  maybe<int> entity() const override;
 
   maybe<DraggableObjectWithBounds<HarborDraggableObject>>
   object_here( Coord const& where ) const override;
 
-  // Implement ui::Object.
-  void draw( rr::Renderer& renderer,
-             Coord coord ) const override;
+ public: // HarborSubView
+  ui::View& view() noexcept override;
+  ui::View const& view() const noexcept override;
 
-  // Implement ui::AwaitView.
+ public: // ui::AwaitView
   virtual wait<> perform_click(
       input::mouse_button_event_t const& ) override;
 
-  // Implement IDragSource.
+ public: // IDragSource
   bool try_drag( HarborDraggableObject const& a,
                  Coord const& where ) override;
 
-  // Implement IDragSource.
   void cancel_drag() override;
 
-  // Implement IDragSource.
   wait<> disown_dragged_object() override;
 
-  // Impelement IDragSink.
+ public: // IDragSink
   maybe<CanReceiveDraggable<HarborDraggableObject>> can_receive(
       HarborDraggableObject const& a, int from_entity,
       Coord const& where ) const override;
 
-  // Impelement IDragSink.
   wait<> drop( HarborDraggableObject const& a,
                Coord const& where ) override;
+
+  wait<> post_successful_sink( HarborDraggableObject const& o,
+                               int from_entity,
+                               Coord const& where ) override;
+
+ public: // IDragSinkCheck.
+  wait<base::valid_or<DragRejection>> sink_check(
+      HarborDraggableObject const&, int from_entity,
+      Coord const ) override;
 
   // In absolute coordinates.
   gfx::point frame_nw() const;

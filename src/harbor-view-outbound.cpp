@@ -49,6 +49,7 @@ using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
+using ::refl::enum_from_integral;
 
 } // namespace
 
@@ -186,11 +187,68 @@ HarborOutboundShips::can_receive( HarborDraggableObject const& a,
   return nothing;
 }
 
+wait<base::valid_or<DragRejection>>
+HarborOutboundShips::sink_check( HarborDraggableObject const&,
+                                 int const from_entity,
+                                 Coord const ) {
+  UNWRAP_CHECK_T(
+      e_harbor_view_entity const from,
+      enum_from_integral<e_harbor_view_entity>( from_entity ) );
+
+  switch( from ) {
+    case e_harbor_view_entity::in_port: {
+      maybe<ui::e_confirm> const answer =
+          co_await ts_.gui.optional_yes_no( YesNoConfig{
+            .msg = "Shall we set sail for the [New World], Your "
+                   "Excellency?",
+            .yes_label      = "Yes, steady as she goes.",
+            .no_label       = "No, let us remain in port.",
+            .no_comes_first = false } );
+      if( answer != ui::e_confirm::yes )
+        co_return DragRejection{};
+      break;
+    }
+    default:
+      break;
+  }
+
+  co_return base::valid; // proceed.
+}
+
 wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
                                   Coord const& ) {
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_new_world( ss_, dragged_id );
+  co_return;
+}
+
+wait<> HarborOutboundShips::post_successful_sink(
+    HarborDraggableObject const&, int const from_entity,
+    Coord const& ) {
+  UNWRAP_CHECK_T(
+      e_harbor_view_entity const from,
+      enum_from_integral<e_harbor_view_entity>( from_entity ) );
+
+  switch( from ) {
+    case e_harbor_view_entity::in_port: {
+      // If the player is moved the last in-port ship to set sail
+      // for the new world then exit the harbor screen as a con-
+      // venience to the user (as the OG does).
+      //
+      // NOTE: Technically the player can drag a ship to the out-
+      // bound box from the inbound box as well, but we only do
+      // this when they are dragging from the in port box since
+      // that is what the OG does and it feels better somehow.
+      if( harbor_units_in_port( ss_.units, player_.nation )
+              .empty() )
+        throw harbor_view_exit_interrupt{};
+      break;
+    }
+    default:
+      break;
+  }
+
   co_return;
 }
 

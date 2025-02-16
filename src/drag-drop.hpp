@@ -226,6 +226,21 @@ struct IDragSink {
   // sink MUST accept the object as-is.
   virtual wait<> drop( Draggable const& o,
                        Coord const& where ) = 0;
+
+  // Optional. After a successful drag this will be called to do
+  // anything that needs to be done on the sink side post-drag.
+  //
+  // This is not too useful because typically the sink can just
+  // use the `drop` method above to do what it needs to do post
+  // drag. However, the one downside with that is that if the ac-
+  // tion that the sink wants to take is to throw an exception
+  // (e.g. exit the harbor view) then it will cause the source's
+  // post method to get skipped, which may not be desirable.
+  virtual wait<> post_successful_sink( Draggable const&,
+                                       int const /*from_entity*/,
+                                       Coord const& ) {
+    co_return;
+  }
 };
 
 template<typename Draggable>
@@ -684,12 +699,18 @@ wait<> drag_drop_routine(
     // Drag happened successfully.
     lg.debug( "drag of object {} successful.", source_object );
 
-    // Now call the post-successful-drag hook on the source. We
-    // don't have one for the sink because the sink can just use
-    // the "drop" method.
+    // Now call the post-successful-drag hooks. The one on the
+    // sink is not too useful because typically the sink can just
+    // use the `drop` method to do what it needs to do post drag.
+    // However, the one downside with that is that if the action
+    // that the sink wants to take is to throw an exception (e.g.
+    // exit the harbor view) then it will cause the source's post
+    // method to get skipped, which may not be desirable.
     co_await drag_source.post_successful_source(
         source_object,
         origin.with_new_origin( source_upper_left ) );
+    co_await drag_sink.post_successful_sink(
+        source_object, *source_entity, sink_coord );
 
     // This will ensure that the drag source clears its locally
     // held dragging state so that it doesn't have to remember to

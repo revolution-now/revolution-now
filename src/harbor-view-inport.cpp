@@ -11,6 +11,7 @@
 #include "harbor-view-inport.hpp"
 
 // Revolution Now
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "commodity.hpp"
 #include "damaged.hpp"
@@ -154,6 +155,16 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
     if( !choice.has_value() ) co_return;
     if( choice == "set sail" ) {
       unit_sail_to_new_world( ss_, unit_id );
+      if( harbor_units_in_port( ss_.units, player_.nation )
+              .empty() ) {
+        using namespace std::chrono_literals;
+        // Small delay so that the user can see the ship moving
+        // into the outbound box briefly before the screen
+        // closes, otherwise things happen instantaneously and
+        // might seem confusing to the player.
+        co_await 200ms;
+        throw harbor_view_exit_interrupt{};
+      }
       co_return;
     }
   }
