@@ -18,6 +18,9 @@ include "refl/enum-map.hpp"
 # base
 include "base/maybe.hpp"
 
+# C++ standard library
+include "<chrono>"
+
 namespace "rn.config.harbor"
 
 # Configures things related to the "Purchase" popup menu that ap-
@@ -61,6 +64,8 @@ struct.config_harbor_t {
   purchases 'config::harbor::Purchases',
 
   train 'config::harbor::Train',
+
+  sleep_before_auto_close_ms 'std::chrono::milliseconds',
 }
 
 config.harbor {}

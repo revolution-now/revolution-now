@@ -25,6 +25,7 @@
 #include "unit-ownership.hpp"
 
 // config
+#include "config/harbor.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
 
@@ -172,12 +173,11 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
       unit_sail_to_new_world( ss_, unit_id );
       if( harbor_units_in_port( ss_.units, player_.nation )
               .empty() ) {
-        using namespace std::chrono_literals;
         // Small delay so that the user can see the ship moving
         // into the outbound box briefly before the screen
         // closes, otherwise things happen instantaneously and
         // might seem confusing to the player.
-        co_await 200ms;
+        co_await config_harbor.sleep_before_auto_close_ms;
         throw harbor_view_exit_interrupt{};
       }
       try_select_in_port_ship( ss_.units, player_ );

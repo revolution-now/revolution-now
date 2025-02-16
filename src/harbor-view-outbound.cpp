@@ -11,6 +11,7 @@
 #include "harbor-view-outbound.hpp"
 
 // Revolution Now
+#include "co-time.hpp"
 #include "co-wait.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-inport.hpp"
@@ -21,6 +22,7 @@
 #include "ts.hpp"
 
 // config
+#include "config/harbor.rds.hpp"
 #include "config/nation.rds.hpp"
 #include "config/ui.rds.hpp"
 #include "config/unit-type.rds.hpp"
@@ -242,8 +244,14 @@ wait<> HarborOutboundShips::post_successful_sink(
       // this when they are dragging from the in port box since
       // that is what the OG does and it feels better somehow.
       if( harbor_units_in_port( ss_.units, player_.nation )
-              .empty() )
+              .empty() ) {
+        // Small delay so that the user can see the ship moving
+        // into the outbound box briefly before the screen
+        // closes, otherwise things happen instantaneously and
+        // might seem confusing to the player.
+        co_await config_harbor.sleep_before_auto_close_ms;
         throw harbor_view_exit_interrupt{};
+      }
       break;
     }
     default:

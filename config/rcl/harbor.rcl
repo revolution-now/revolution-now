@@ -75,3 +75,12 @@ train {
     treasure:                null
   }
 }
+
+# There are some actions that can cause the harbor view screen to
+# automatically close and return to the map view (e.g., moving
+# the last in-port ship to the outbound box). This is the (short)
+# delay that is added before that happens so that the player can
+# briefly see the effect of the action that caused it. It is ok
+# if this is zero, but it seems to feel a bit better UX wise when
+# this is a couple hundred milliseconds.
+sleep_before_auto_close_ms: 200
