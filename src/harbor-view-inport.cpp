@@ -165,6 +165,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId unit_id ) {
         co_await 200ms;
         throw harbor_view_exit_interrupt{};
       }
+      try_select_in_port_ship( ss_.units, player_ );
       co_return;
     }
   }

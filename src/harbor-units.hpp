@@ -113,6 +113,16 @@ maybe<Coord> find_new_world_arrival_square(
 void update_harbor_selected_unit( UnitsState const& units_state,
                                   Player& player );
 
+// This is to be called just after a ship that was in port is
+// sent to sail to the new world, and will check if there is an-
+// other ship in port and, if so, will select that unit for a
+// better UX. The difference between this one and the one above
+// (update_harbor_selected_unit) is that this one will always
+// prefer an in-port unit if there is one, whereas the one above
+// is happy with any unit in the harbor being selected.
+void try_select_in_port_ship( UnitsState const& units,
+                              Player& player );
+
 UnitId create_unit_in_harbor( SS& ss, Player& player,
                               UnitComposition comp );
 

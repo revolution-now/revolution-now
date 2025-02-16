@@ -220,6 +220,7 @@ wait<> HarborOutboundShips::drop( HarborDraggableObject const& o,
   UNWRAP_CHECK( unit, o.get_if<HarborDraggableObject::unit>() );
   UnitId const dragged_id = unit.id;
   unit_sail_to_new_world( ss_, dragged_id );
+  try_select_in_port_ship( ss_.units, player_ );
   co_return;
 }
 

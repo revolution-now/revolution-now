@@ -1024,5 +1024,51 @@ TEST_CASE( "[harbor-units] unit ordering in port" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[harbor-units] try_select_in_port_ship" ) {
+  World w;
+
+  Player& player = w.default_player();
+
+  maybe<UnitId>& selected_unit =
+      player.old_world.harbor_state.selected_unit;
+
+  auto f = [&] { try_select_in_port_ship( w.units(), player ); };
+
+  UnitId const galleon_id =
+      w.add_free_unit( e_unit_type::galleon ).id();
+
+  REQUIRE( selected_unit == nothing );
+
+  UnitId const privateer_id =
+      w.add_unit_in_port( e_unit_type::privateer ).id();
+  REQUIRE( selected_unit == privateer_id );
+
+  f();
+  REQUIRE( selected_unit == privateer_id );
+
+  UnitId const caravel_id =
+      w.add_unit_in_port( e_unit_type::caravel ).id();
+  REQUIRE( selected_unit == privateer_id );
+
+  f();
+  REQUIRE( selected_unit == privateer_id );
+
+  unit_sail_to_new_world( w.ss(), privateer_id );
+  f();
+  REQUIRE( selected_unit == caravel_id );
+
+  unit_sail_to_new_world( w.ss(), caravel_id );
+  f();
+  REQUIRE( selected_unit == caravel_id );
+
+  unit_move_to_port( w.ss(), galleon_id );
+  REQUIRE( selected_unit == caravel_id );
+  f();
+  REQUIRE( selected_unit == galleon_id );
+
+  f();
+  REQUIRE( selected_unit == galleon_id );
+}
+
 } // namespace
 } // namespace rn

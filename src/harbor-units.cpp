@@ -194,6 +194,21 @@ void update_harbor_selected_unit( UnitsState const& units,
   if( !ships.empty() ) selected_unit = ships[0];
 }
 
+void try_select_in_port_ship( UnitsState const& units,
+                              Player& player ) {
+  update_harbor_selected_unit( units, player );
+  maybe<UnitId>& selected_unit =
+      player.old_world.harbor_state.selected_unit;
+  // The above update function should have ensured that any se-
+  // lected unit exists and that it is owned by the harbor.
+  if( selected_unit.has_value() &&
+      is_unit_in_port( units, *selected_unit ) )
+    return;
+  vector<UnitId> const ships =
+      harbor_units_in_port( units, player.nation );
+  if( !ships.empty() ) selected_unit = ships[0];
+}
+
 // Find the right place to put a ship which has just arrived from
 // europe.
 maybe<Coord> find_new_world_arrival_square(
