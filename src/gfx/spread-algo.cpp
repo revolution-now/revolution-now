@@ -210,10 +210,8 @@ Spreads compute_icon_spread_OG( SpreadSpecs const& specs ) {
       if( spec.count > 0 ) ++res;
     return res;
   }();
-  Spreads res;
   // This will be the number of non-empty spreads.
-  if( num_spreads == 0 ) return res;
-  res.spreads.reserve( specs.specs.size() );
+  if( num_spreads == 0 ) return {};
 
   // One can derive this formula for the total space used given a
   // proposed (max) value of spacing:
@@ -274,6 +272,8 @@ Spreads compute_icon_spread_OG( SpreadSpecs const& specs ) {
     // bounds even with a spacing of 1. So switch to a different
     // algorithm that is made to handle that situation.
     return compute_compressed_proportionate( specs );
+  Spreads res;
+  res.spreads.reserve( specs.specs.size() );
   for( SpreadSpec const& spec : specs.specs )
     res.spreads.push_back(
         Spread{ .spec           = spec,
