@@ -86,5 +86,10 @@ TEST_CASE( "[vocab] NoCopy NoCopy" ) {
   REQUIRE( x == "5" );
 }
 
+TEST_CASE( "[vocab] NoDiscard const implicit conversion" ) {
+  NoDiscard<bool> b = true;
+  REQUIRE( as_const( b ) );
+}
+
 } // namespace
 } // namespace base
