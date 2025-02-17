@@ -291,6 +291,15 @@ bool is_unit_on_high_seas( SSConst const& ss,
          is_unit_outbound( ss.units, unit_id );
 }
 
+void remove_deleted_units( SSConst const& ss,
+                           deque<UnitId>& q ) {
+  q.erase( remove_if( q.begin(), q.end(),
+                      [&]( UnitId const unit_id ) {
+                        return !ss.units.exists( unit_id );
+                      } ),
+           q.end() );
+}
+
 vector<UnitId> units_on_tile_to_activate( SSConst const& ss,
                                           Player const& player,
                                           point const tile ) {
@@ -1247,6 +1256,9 @@ wait<> units_turn_one_pass( IEngine& engine, SS& ss, TS& ts,
                             Player& player,
                             NationTurnState::units& nat_units,
                             deque<UnitId>& q ) {
+  // There may be some units in the queue that e.g. we disbanded
+  // while in view mode just before having called this method.
+  remove_deleted_units( ss, q );
   // Put all the high-seas units at the start of the q, pre-
   // serving order. Return the iterator to the first non high
   // seas unit, which we then use to determine how many high seas
