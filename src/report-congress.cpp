@@ -39,6 +39,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/scope-exit.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -87,7 +90,6 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   int const kBufferAfterTitle   = 12;
   int const kBufferAfterSection = 10;
   int const kHalfTextHeight     = 4; // TODO
-  int spread_tile_height        = 0;
 
   l.title = "AFFAIRS OF THE CONTINENTAL CONGRESS";
   // We need kHalfTextHeight here because the text is centered on
@@ -97,11 +99,18 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   cur.y += kBufferAfterTitle + kHalfTextHeight;
   cur.y += kBufferAfterTitle;
 
-  // This will be nothing if the player has all fathers, in which
-  // case we won't bother showing this section.
-  auto const bells_needed =
-      bells_needed_for_next_father( ss, player );
-  if( bells_needed.has_value() ) {
+  [&] {
+    // This will be nothing if the player has all fathers, in
+    // which case we won't bother showing this section.
+    auto const bells_needed =
+        bells_needed_for_next_father( ss, player );
+    if( !bells_needed.has_value() ) return;
+    e_tile const kBellsTile      = e_tile::product_bells_20;
+    int const spread_tile_height = sprite_size( kBellsTile ).h;
+    SCOPE_EXIT {
+      cur.y += spread_tile_height;
+      cur.y += kBufferAfterSection;
+    };
     l.founding_father_title = fmt::format(
         "Next Continental Congress Session{}:",
         player.fathers.in_progress.has_value()
@@ -113,11 +122,10 @@ Layout layout_auto( SSConst const& ss, Player const& player,
             : "" );
     l.founding_father_text_nw = cur;
     cur.y += kBufferAfterTitle;
+    if( !player.fathers.in_progress.has_value() ) return;
     l.founding_father_bounds = {
       .origin = cur,
       .size   = { .w = l.canvas.left() + margin, .h = 32 } };
-    e_tile const kBellsTile = e_tile::product_bells_20;
-    spread_tile_height      = sprite_size( kBellsTile ).h;
     // Should have been checked above; we shouldn't be rendering
     // this section if it is not true.
     CHECK( bells_needed.has_value() );
@@ -142,61 +150,63 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     };
     l.founding_father_spreads =
         build_tile_spread( founding_father_spread_opts );
-    cur.y += spread_tile_height;
-    cur.y += kBufferAfterSection;
-  }
+  }();
 
-  // Always use the "pre declaration" form here because this
-  // refers to the King's army.
-  l.expeditionary_force_title =
-      fmt::format( "{} Expeditionary Force",
-                   config_nation.nations[player.nation]
-                       .possessive_pre_declaration );
-  l.expeditionary_force_text_nw = cur;
-  cur.y += kBufferAfterTitle;
-  l.expeditionary_force_bounds = {
-    .origin = cur,
-    .size   = { .w = l.canvas.left() + margin, .h = 32 } };
-  e_tile const regular_tile =
-      config_unit_type.composition
-          .unit_types[e_unit_type::regular]
-          .tile;
-  e_tile const cavalry_tile =
-      config_unit_type.composition
-          .unit_types[e_unit_type::cavalry]
-          .tile;
-  e_tile const artillery_tile =
-      config_unit_type.composition
-          .unit_types[e_unit_type::artillery]
-          .tile;
-  e_tile const man_o_war_tile =
-      config_unit_type.composition
-          .unit_types[e_unit_type::man_o_war]
-          .tile;
-  spread_tile_height = sprite_size( regular_tile ).h;
-  auto const& force  = player.old_world.expeditionary_force;
-  TileSpreadConfigMulti const expeditionary_force_spread_opts{
-    .tiles{
-      { .tile = regular_tile, .count = force.regulars },
-      { .tile = cavalry_tile, .count = force.cavalry },
-      { .tile = artillery_tile, .count = force.artillery },
-      { .tile = man_o_war_tile, .count = force.men_of_war },
-    },
-    .options =
-        {
-          .bounds       = l.canvas.size.w - 2 * margin,
-          .label_policy = SpreadLabels::always{},
-          .label_opts =
-              { .placement =
-                    SpreadLabelPlacement::in_first_tile{
-                      .placement = e_cdirection::sw } },
-        },
-    .group_spacing = 4,
-  };
-  l.expeditionary_force_spreads =
-      build_tile_spread_multi( expeditionary_force_spread_opts );
-  cur.y += spread_tile_height;
-  cur.y += kBufferAfterSection;
+  [&] {
+    e_tile const regular_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::regular]
+            .tile;
+    e_tile const cavalry_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::cavalry]
+            .tile;
+    e_tile const artillery_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::artillery]
+            .tile;
+    e_tile const man_o_war_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::man_o_war]
+            .tile;
+    int const spread_tile_height = sprite_size( regular_tile ).h;
+    SCOPE_EXIT {
+      cur.y += spread_tile_height;
+      cur.y += kBufferAfterSection;
+    };
+    // Always use the "pre declaration" form here because this
+    // refers to the King's army.
+    l.expeditionary_force_title =
+        fmt::format( "{} Expeditionary Force",
+                     config_nation.nations[player.nation]
+                         .possessive_pre_declaration );
+    l.expeditionary_force_text_nw = cur;
+    cur.y += kBufferAfterTitle;
+    l.expeditionary_force_bounds = {
+      .origin = cur,
+      .size   = { .w = l.canvas.left() + margin, .h = 32 } };
+    auto const& force = player.old_world.expeditionary_force;
+    TileSpreadConfigMulti const expeditionary_force_spread_opts{
+      .tiles{
+        { .tile = regular_tile, .count = force.regulars },
+        { .tile = cavalry_tile, .count = force.cavalry },
+        { .tile = artillery_tile, .count = force.artillery },
+        { .tile = man_o_war_tile, .count = force.men_of_war },
+      },
+      .options =
+          {
+            .bounds       = l.canvas.size.w - 2 * margin,
+            .label_policy = SpreadLabels::always{},
+            .label_opts =
+                { .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::sw } },
+          },
+      .group_spacing = 4,
+    };
+    l.expeditionary_force_spreads = build_tile_spread_multi(
+        expeditionary_force_spread_opts );
+  }();
 
   return l;
 }
