@@ -304,6 +304,128 @@ TEST_CASE( "[spread] requires_label" ) {
 
 TEST_CASE(
     "[spread] adjust_rendered_count_for_progress_count" ) {
+  Spread spread;
+  Spread expected;
+  int progress_count = {};
+
+  auto const f = [&]() -> auto const& {
+    adjust_rendered_count_for_progress_count( spread,
+                                              progress_count );
+    return spread;
+  };
+
+  // Default.
+  spread         = {};
+  progress_count = 0;
+  expected       = {};
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=total_count.
+  spread.spec.count       = 1;
+  spread.rendered_count   = 1;
+  progress_count          = 1;
+  expected                = spread;
+  expected.rendered_count = 1;
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=0.
+  spread.spec.count       = 1;
+  spread.rendered_count   = 1;
+  progress_count          = 0;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=total_count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 100;
+  progress_count          = 100;
+  expected                = spread;
+  expected.rendered_count = 100;
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=0.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 100;
+  progress_count          = 0;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=30.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 100;
+  progress_count          = 30;
+  expected                = spread;
+  expected.rendered_count = 30;
+  REQUIRE( f() == expected );
+
+  // rendered_count=total count, progress_count=-30.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 100;
+  progress_count          = -30;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=total_count.
+  spread.spec.count       = 1;
+  spread.rendered_count   = 0;
+  progress_count          = 1;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=0.
+  spread.spec.count       = 1;
+  spread.rendered_count   = 0;
+  progress_count          = 0;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=total_count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 50;
+  progress_count          = 100;
+  expected                = spread;
+  expected.rendered_count = 50;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=0.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 50;
+  progress_count          = 0;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=30.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 50;
+  progress_count          = 30;
+  expected                = spread;
+  expected.rendered_count = 15;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=-30.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 50;
+  progress_count          = -30;
+  expected                = spread;
+  expected.rendered_count = 0;
+  REQUIRE( f() == expected );
+
+  // rendered_count<total count, progress_count=1.
+  // NOTE: this one tests that rendered_count is lifted to 1 in
+  // the case that rendered count is left as zero after the frac-
+  // tional calculation but progress_count is non-zero.
+  spread.spec.count       = 1000;
+  spread.rendered_count   = 50;
+  progress_count          = 1;
+  expected                = spread;
+  expected.rendered_count = 1;
+  REQUIRE( f() == expected );
 }
 
 } // namespace

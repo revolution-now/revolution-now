@@ -74,10 +74,9 @@ TileSpreadRenderPlans build_tile_spread_multi(
     for( auto tiles_it = configs.tiles.begin();
          auto& spread : spreads.spreads ) {
       CHECK( tiles_it != configs.tiles.end() );
-      if( tiles_it->progress_count.has_value() ) {
+      if( tiles_it->progress_count.has_value() )
         adjust_rendered_count_for_progress_count(
             spread, *tiles_it->progress_count );
-      }
       ++tiles_it;
     }
     return spreads;

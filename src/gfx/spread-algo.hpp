@@ -35,6 +35,11 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs );
 Spreads compute_icon_spread_proportionate(
     SpreadSpecs const& specs );
 
+// In the case where the tile spread represents a progress indi-
+// cator, we may have to adjust the rendered count to represent
+// that progress, with special handling of the case when rendered
+// count is already less than total count (which can happen when
+// the proportional algo is used).
 void adjust_rendered_count_for_progress_count(
     Spread& spread, int progress_count );
 

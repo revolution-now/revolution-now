@@ -74,16 +74,16 @@ void adjust_rendered_count_for_progress_count(
   CHECK_LE( rendered_count, total_count );
   if( rendered_count == 0 ) return;
   if( rendered_count == total_count ) {
-    CHECK_LE( progress_count, rendered_count );
-    rendered_count = progress_count;
+    rendered_count = std::max( progress_count, 0 );
     return;
   }
   // Rendered count is less than total count here, so therefore
   // we need to also recompute progress_count to be proportional.
-  rendered_count = clamp( 0,
-                          int( double( progress_count ) /
-                               total_count * rendered_count ),
-                          rendered_count );
+  double const progress_percent =
+      double( progress_count ) / total_count;
+  rendered_count =
+      clamp( 0, int( rendered_count * progress_percent ),
+             rendered_count );
   if( progress_count > 0 && rendered_count == 0 )
     rendered_count = 1;
 }
@@ -171,6 +171,9 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
                 .rendered_count = spec.count,
                 .spacing = S( spec, proposed_spacing ) } );
   CHECK_EQ( res.spreads.size(), specs.specs.size() );
+  // Sanity check.
+  for( Spread const& spread : res.spreads )
+    CHECK_EQ( spread.spec.count, spread.rendered_count );
   return res;
 }
 
