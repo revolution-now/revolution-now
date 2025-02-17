@@ -98,6 +98,9 @@ struct HarborMarketCommodities
   wait<> perform_click(
       input::mouse_button_event_t const& ) override;
 
+  wait<bool> perform_key(
+      input::key_event_t const& event ) override;
+
   // Implement IDragSource.
   bool try_drag( HarborDraggableObject const& a,
                  Coord const& where ) override;
@@ -136,6 +139,10 @@ struct HarborMarketCommodities
 
   auto scale() const { return layout_.scale; }
 
+ public: // API
+  wait<> unload_one();
+  wait<> unload_all();
+
  private:
   // Returns true if the commodity is boycotted and the player
   // did not lift it, i.e. we are blocked.
@@ -151,24 +158,11 @@ struct HarborMarketCommodities
   void send_error_to_status_bar( std::string const& err ) const;
   void clear_status_bar_msg() const;
 
-  static constexpr W single_layer_blocks_width  = 16;
-  static constexpr W double_layer_blocks_width  = 8;
-  static constexpr H single_layer_blocks_height = 1;
-  static constexpr H double_layer_blocks_height = 2;
+  wait<> unload_impl( UnitId unit_id, Commodity comm, int slot );
 
-  // Commodities will be 24x24 + 8 pixels for text.
-  static constexpr auto sprite_scale = Delta{ .w = 32, .h = 32 };
-  static inline auto sprite_delta =
-      Delta{ .w = 1, .h = 1 } * sprite_scale;
+  wait<> sell( Commodity const& comm ) const;
 
-  static constexpr W single_layer_width =
-      single_layer_blocks_width * sprite_scale.w;
-  static constexpr W double_layer_width =
-      double_layer_blocks_width * sprite_scale.w;
-  static constexpr H single_layer_height =
-      single_layer_blocks_height * sprite_scale.h;
-  static constexpr H double_layer_height =
-      double_layer_blocks_height * sprite_scale.h;
+  maybe<UnitId> get_active_unit() const;
 
   struct Draggable {
     Commodity comm  = {};

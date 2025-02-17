@@ -116,7 +116,7 @@ struct CompositeHarborSubView : public ui::InvisibleView,
     for( int i = count() - 1; i >= 0; --i ) {
       bool const handled =
           co_await ptrs_[i]->perform_key( event );
-      if( handled ) break;
+      if( handled ) co_return true;
     }
     co_return false; // not handled.
   }
@@ -211,10 +211,33 @@ HarborViewComposited recomposite_harbor_view(
   // it needs to be drawn first.
   views.insert( views.begin(), std::move( backdrop.owned ) );
 
+  // [HarborDockUnits]
+  // ----------------------------------------
+  // NOTE: this must be rendered before the market commodities so
+  // that the overflow units remain behind the market panel.
+  PositionedHarborSubView<HarborDockUnits> dock =
+      HarborDockUnits::create( ss, ts, player, canvas_rect,
+                               backdrop_ref );
+  auto& dock_ref = *dock.actual;
+  composition.entities[e_harbor_view_entity::dock] = dock.harbor;
+  views.push_back( std::move( dock.owned ) );
+
+  // [HarborMarketCommodities] ----------------------------------
+  // NOTE: this must be rendered after dock units so that it re-
+  // mains on top of the rows of overflow units.
+  PositionedHarborSubView<HarborMarketCommodities>
+      market_commodities = HarborMarketCommodities::create(
+          ss, ts, player, canvas_rect, status_bar_ref );
+  auto& market_commodities_ref = *market_commodities.actual;
+  composition.entities[e_harbor_view_entity::market] =
+      market_commodities.harbor;
+  views.push_back( std::move( market_commodities.owned ) );
+
   // [HarborInPortShips] ----------------------------------------
   PositionedHarborSubView<HarborInPortShips> in_port =
       HarborInPortShips::create( ss, ts, player, canvas_rect,
-                                 backdrop_ref );
+                                 backdrop_ref,
+                                 market_commodities_ref );
   auto& in_port_ships_ref = *in_port.actual;
   composition.entities[e_harbor_view_entity::in_port] =
       in_port.harbor;
@@ -238,27 +261,6 @@ HarborViewComposited recomposite_harbor_view(
   composition.entities[e_harbor_view_entity::inbound] =
       inbound.harbor;
   views.push_back( std::move( inbound.owned ) );
-
-  // [HarborDockUnits]
-  // ----------------------------------------
-  // NOTE: this must be rendered before the market commodities so
-  // that the overflow units remain behind the market panel.
-  PositionedHarborSubView<HarborDockUnits> dock =
-      HarborDockUnits::create( ss, ts, player, canvas_rect,
-                               backdrop_ref );
-  auto& dock_ref = *dock.actual;
-  composition.entities[e_harbor_view_entity::dock] = dock.harbor;
-  views.push_back( std::move( dock.owned ) );
-
-  // [HarborMarketCommodities] ----------------------------------
-  // NOTE: this must be rendered after dock units so that it re-
-  // mains on top of the rows of overflow units.
-  PositionedHarborSubView<HarborMarketCommodities>
-      market_commodities = HarborMarketCommodities::create(
-          ss, ts, player, canvas_rect, status_bar_ref );
-  composition.entities[e_harbor_view_entity::market] =
-      market_commodities.harbor;
-  views.push_back( std::move( market_commodities.owned ) );
 
   // [HarborRptButtons]
   // ----------------------------------------

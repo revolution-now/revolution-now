@@ -13,7 +13,10 @@
 
 // Revolution Now
 #include "cheat.hpp"
+#include "co-time.hpp"
 #include "commodity.hpp"
+#include "harbor-extra.hpp"
+#include "harbor-units.hpp"
 #include "harbor-view-status.hpp"
 #include "igui.hpp"
 #include "input.hpp"
@@ -32,6 +35,7 @@
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/units.hpp"
 
 // render
 #include "render/typer.hpp"
@@ -81,6 +85,10 @@ ui::View const& HarborMarketCommodities::view() const noexcept {
   return *this;
 }
 
+maybe<UnitId> HarborMarketCommodities::get_active_unit() const {
+  return player_.old_world.harbor_state.selected_unit;
+}
+
 wait<> HarborMarketCommodities::perform_click(
     input::mouse_button_event_t const& event ) {
   if( event.buttons != input::e_mouse_button_event::left_up )
@@ -107,6 +115,84 @@ wait<> HarborMarketCommodities::perform_click(
   // If the commodity is boycotted this will allow the player to
   // pay the back taxes.
   (void)co_await check_boycott( type );
+}
+
+wait<bool> HarborMarketCommodities::perform_key(
+    input::key_event_t const& event ) {
+  if( event.change != input::e_key_change::down )
+    co_return false;
+  switch( event.keycode ) {
+    case ::SDLK_u:
+      co_await unload_one();
+      co_return true;
+    default:
+      break;
+  }
+  co_return false;
+}
+
+wait<> HarborMarketCommodities::unload_impl(
+    UnitId const unit_id, Commodity const comm,
+    int const slot ) {
+  Unit& ship = ss_.units.unit_for( unit_id );
+  rm_commodity_from_cargo( ss_.units, ship.cargo(), slot );
+  co_await sell( comm );
+}
+
+wait<> HarborMarketCommodities::unload_one() {
+  auto const unit_id = get_active_unit();
+  if( !unit_id.has_value() ) co_return;
+  if( !is_unit_in_port( ss_.units, *unit_id ) ) co_return;
+  auto const unloadables =
+      find_unloadable_slots_in_harbor( ss_, *unit_id );
+  if( unloadables.items.empty() ) co_return;
+  auto unloadable = unloadables.items[0];
+  if( unloadable.boycott ) {
+    // Give the player the opportunity to lift the boycott.
+    int const back_tax = back_tax_for_boycotted_commodity(
+        player_, unloadable.comm.type );
+    unloadable.boycott = co_await try_trade_boycotted_commodity(
+        ts_, player_, unloadable.comm.type, back_tax );
+  }
+  if( !unloadable.boycott )
+    co_await unload_impl( *unit_id, unloadable.comm,
+                          unloadable.slot );
+}
+
+wait<> HarborMarketCommodities::unload_all() {
+  auto const unit_id = get_active_unit();
+  if( !unit_id.has_value() ) co_return;
+  if( !is_unit_in_port( ss_.units, *unit_id ) ) co_return;
+  HarborUnloadables const unloadables =
+      find_unloadable_slots_in_harbor( ss_, *unit_id );
+  if( unloadables.items.empty() ) co_return;
+  bool const has_boycotted_item = [&] {
+    for( auto const& [slot, comm, boycott] : unloadables.items )
+      if( boycott ) return true;
+    return false;
+  }();
+  using namespace std::chrono_literals;
+  chrono::milliseconds delay = 0ms;
+  for( auto const& [slot, comm, boycott] : unloadables.items ) {
+    if( boycott ) continue;
+    co_await delay;
+    delay = 500ms;
+    bool const suspended =
+        ( co_await co::detect_suspend(
+              unload_impl( *unit_id, comm, slot ) ) )
+            .suspended;
+    if( suspended )
+      // This typically means that a window popped up notifying
+      // the player of a price change as a result of the sell. In
+      // that case, we can skip the delay on the next one.
+      delay = 0ms;
+  }
+  if( has_boycotted_item )
+    co_await ts_.gui.message_box(
+        "We were unable to unload all commodities because some "
+        "of them are under boycott. Click on those boycotted "
+        "commodities in the market to lift the boycott." );
+  co_return;
 }
 
 maybe<DraggableObjectWithBounds<HarborDraggableObject>>
@@ -196,6 +282,21 @@ void HarborMarketCommodities::send_error_to_status_bar(
                                            .error = true } );
 }
 
+wait<> HarborMarketCommodities::sell(
+    Commodity const& comm ) const {
+  // The player is selling. Here the market is officially ac-
+  // cepting the goods from the player, and so we must pay the
+  // player now.
+  Invoice const invoice = transaction_invoice(
+      ss_, player_, comm, e_transaction::sell,
+      e_immediate_price_change_allowed::allowed );
+  apply_invoice( ss_, player_, invoice );
+  send_invoice_msg_to_status_bar( invoice );
+  if( invoice.price_change.delta != 0 )
+    co_await display_price_change_notification(
+        ts_, player_, invoice.price_change );
+}
+
 bool HarborMarketCommodities::try_drag(
     HarborDraggableObject const& o, Coord const& ) {
   UNWRAP_CHECK(
@@ -242,14 +343,13 @@ HarborMarketCommodities::user_edit_object() const {
 
 wait<base::NoDiscard<bool>>
 HarborMarketCommodities::check_boycott( e_commodity type ) {
-  bool const& boycott =
+  bool const boycott =
       player_.old_world.market.commodities[type].boycott;
   if( !boycott ) co_return false;
   int const back_tax =
       back_tax_for_boycotted_commodity( player_, type );
-  co_await try_trade_boycotted_commodity( ts_, player_, type,
-                                          back_tax );
-  co_return boycott;
+  co_return co_await try_trade_boycotted_commodity(
+      ts_, player_, type, back_tax );
 }
 
 wait<base::valid_or<DragRejection>>
@@ -338,18 +438,7 @@ wait<> HarborMarketCommodities::drop(
   UNWRAP_CHECK(
       cargo_comm,
       o.get_if<HarborDraggableObject::cargo_commodity>() );
-  Commodity const& comm = cargo_comm.comm;
-  // The player is selling. Here the market is officially ac-
-  // cepting the goods from the player, and so we must pay the
-  // player now.
-  Invoice const invoice = transaction_invoice(
-      ss_, player_, comm, e_transaction::sell,
-      e_immediate_price_change_allowed::allowed );
-  apply_invoice( ss_, player_, invoice );
-  send_invoice_msg_to_status_bar( invoice );
-  if( invoice.price_change.delta != 0 )
-    co_await display_price_change_notification(
-        ts_, player_, invoice.price_change );
+  co_await sell( cargo_comm.comm );
 }
 
 void HarborMarketCommodities::draw( rr::Renderer& renderer,

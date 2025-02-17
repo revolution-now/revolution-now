@@ -17,6 +17,7 @@
 #include "damaged.hpp"
 #include "harbor-units.hpp"
 #include "harbor-view-backdrop.hpp"
+#include "harbor-view-market.hpp"
 #include "harbor-view-ships.hpp"
 #include "igui.hpp"
 #include "render.hpp"
@@ -165,8 +166,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
       co_return;
     }
     if( choice == "unload" ) {
-      co_await ts_.gui.message_box(
-          "Auto-unload not implemented." );
+      co_await harbor_market_commodities_.unload_all();
       co_return;
     }
     if( choice == "set sail" ) {
@@ -507,11 +507,13 @@ HarborInPortShips::Layout HarborInPortShips::create_layout(
 }
 
 PositionedHarborSubView<HarborInPortShips>
-HarborInPortShips::create( SS& ss, TS& ts, Player& player, Rect,
-                           HarborBackdrop const& backdrop ) {
+HarborInPortShips::create(
+    SS& ss, TS& ts, Player& player, Rect,
+    HarborBackdrop const& backdrop,
+    HarborMarketCommodities& harbor_market_commodities ) {
   Layout layout = create_layout( backdrop );
-  auto view =
-      make_unique<HarborInPortShips>( ss, ts, player, layout );
+  auto view     = make_unique<HarborInPortShips>(
+      ss, ts, player, harbor_market_commodities, layout );
   HarborSubView* const harbor_sub_view = view.get();
   HarborInPortShips* const p_actual    = view.get();
   return PositionedHarborSubView<HarborInPortShips>{
@@ -521,10 +523,12 @@ HarborInPortShips::create( SS& ss, TS& ts, Player& player, Rect,
     .actual = p_actual };
 }
 
-HarborInPortShips::HarborInPortShips( SS& ss, TS& ts,
-                                      Player& player,
-                                      Layout layout )
+HarborInPortShips::HarborInPortShips(
+    SS& ss, TS& ts, Player& player,
+    HarborMarketCommodities& harbor_market_commodities,
+    Layout layout )
   : HarborSubView( ss, ts, player ),
+    harbor_market_commodities_( harbor_market_commodities ),
     layout_( std::move( layout ) ) {}
 
 } // namespace rn

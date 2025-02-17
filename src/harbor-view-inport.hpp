@@ -20,6 +20,7 @@
 namespace rn {
 
 struct HarborBackdrop;
+struct HarborMarketCommodities;
 struct SS;
 struct TS;
 struct Player;
@@ -35,7 +36,8 @@ struct HarborInPortShips
     public IDragSink<HarborDraggableObject> {
   static PositionedHarborSubView<HarborInPortShips> create(
       SS& ss, TS& ts, Player& player, Rect canvas,
-      HarborBackdrop const& backdrop );
+      HarborBackdrop const& backdrop,
+      HarborMarketCommodities& harbor_market_commodities );
 
   struct Layout {
     // Absolute coordinates.
@@ -47,8 +49,10 @@ struct HarborInPortShips
     std::vector<gfx::rect> slots;
   };
 
-  HarborInPortShips( SS& ss, TS& ts, Player& player,
-                     Layout layout );
+  HarborInPortShips(
+      SS& ss, TS& ts, Player& player,
+      HarborMarketCommodities& harbor_market_commodities,
+      Layout layout );
 
   // Implement ui::Object.
   Delta delta() const override;
@@ -67,7 +71,7 @@ struct HarborInPortShips
              Coord coord ) const override;
 
   // Implement ui::AwaitView.
-  virtual wait<> perform_click(
+  wait<> perform_click(
       input::mouse_button_event_t const& ) override;
 
   // Implement IDragSource.
@@ -118,6 +122,7 @@ struct HarborInPortShips
     UnitId unit_id = {};
   };
 
+  HarborMarketCommodities& harbor_market_commodities_;
   maybe<Draggable> dragging_;
   Layout const layout_;
 };
