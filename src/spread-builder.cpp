@@ -65,7 +65,12 @@ TileSpreadRenderPlans build_tile_spread_multi(
     return res;
   }();
   Spreads const icon_spreads = [&] {
-    Spreads spreads = compute_icon_spread( specs );
+    Spreads spreads;
+    if( auto spreads_main_algo = compute_icon_spread( specs );
+        spreads_main_algo.has_value() )
+      spreads = std::move( *spreads_main_algo );
+    else
+      spreads = compute_icon_spread_proportionate( specs );
     for( auto tiles_it = configs.tiles.begin();
          auto& spread : spreads.spreads ) {
       CHECK( tiles_it != configs.tiles.end() );

@@ -155,7 +155,151 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
+  SpreadSpecs specs;
+  Spreads expected;
+
+  auto f = [&] {
+    return compute_icon_spread_proportionate( specs );
+  };
+
+  specs = SpreadSpecs{
+    .bounds = 209,
+    .specs =
+        {
+          { .count = 14, .trimmed = { .start = 6, .len = 9 } },
+          { .count = 6, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 0, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 1, .trimmed = { .start = 4, .len = 8 } },
+          { .count = 15, .trimmed = { .start = 2, .len = 12 } },
+        },
+    .group_spacing = 4 };
+
+  expected = Spreads{
+    .spreads = {
+      { .spec           = { .count   = 14,
+                            .trimmed = { .start = 6, .len = 9 } },
+        .rendered_count = 14,
+        .spacing        = 1 },
+      { .spec           = { .count   = 6,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 6,
+        .spacing        = 1 },
+      { .spec           = { .count   = 0,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 0,
+        .spacing        = 1 },
+      { .spec           = { .count   = 1,
+                            .trimmed = { .start = 4, .len = 8 } },
+        .rendered_count = 1,
+        .spacing        = 1 },
+      { .spec           = { .count   = 15,
+                            .trimmed = { .start = 2, .len = 12 } },
+        .rendered_count = 15,
+        .spacing        = 1 },
+    } };
+
+  REQUIRE( f() == expected );
+
+  specs = SpreadSpecs{
+    .bounds = 201,
+    .specs =
+        {
+          { .count = 14, .trimmed = { .start = 6, .len = 9 } },
+          { .count = 9, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 0, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 12, .trimmed = { .start = 3, .len = 14 } },
+          { .count = 43, .trimmed = { .start = 2, .len = 16 } },
+        },
+    .group_spacing = 4 };
+
+  expected = Spreads{
+    .spreads = {
+      { .spec           = { .count   = 14,
+                            .trimmed = { .start = 6, .len = 9 } },
+        .rendered_count = 14,
+        .spacing        = 1 },
+      { .spec           = { .count   = 9,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 9,
+        .spacing        = 1 },
+      { .spec           = { .count   = 0,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 0,
+        .spacing        = 1 },
+      { .spec           = { .count   = 12,
+                            .trimmed = { .start = 3, .len = 14 } },
+        .rendered_count = 12,
+        .spacing        = 1 },
+      { .spec           = { .count   = 43,
+                            .trimmed = { .start = 2, .len = 16 } },
+        .rendered_count = 43,
+        .spacing        = 1 } } };
+  REQUIRE( f() == expected );
+
+  specs = SpreadSpecs{
+    .bounds = 1000,
+    .specs =
+        {
+          { .count = 14, .trimmed = { .start = 6, .len = 9 } },
+          { .count = 6, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 0, .trimmed = { .start = 4, .len = 12 } },
+          { .count = 1, .trimmed = { .start = 4, .len = 8 } },
+          { .count = 15, .trimmed = { .start = 2, .len = 12 } },
+        },
+    .group_spacing = 4 };
+
+  expected = Spreads{
+    .spreads = {
+      { .spec           = { .count   = 14,
+                            .trimmed = { .start = 6, .len = 9 } },
+        .rendered_count = 14,
+        .spacing        = 1 },
+      { .spec           = { .count   = 6,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 6,
+        .spacing        = 1 },
+      { .spec           = { .count   = 0,
+                            .trimmed = { .start = 4, .len = 12 } },
+        .rendered_count = 0,
+        .spacing        = 1 },
+      { .spec           = { .count   = 1,
+                            .trimmed = { .start = 4, .len = 8 } },
+        .rendered_count = 1,
+        .spacing        = 1 },
+      { .spec           = { .count   = 15,
+                            .trimmed = { .start = 2, .len = 12 } },
+        .rendered_count = 15,
+        .spacing        = 1 },
+    } };
+
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[spread] requires_label" ) {
+  Spread spread;
+
+  auto const f = [&] { return requires_label( spread ); };
+
+  REQUIRE( f() == true );
+
+  spread.spacing = 1;
+  REQUIRE( f() == true );
+
+  spread.spacing = 2;
+  REQUIRE( f() == false );
+
+  spread.spacing = 3;
+  REQUIRE( f() == false );
+
+  spread.rendered_count = 49;
+  REQUIRE( f() == false );
+
+  spread.rendered_count = 50;
+  REQUIRE( f() == true );
+
+  spread.rendered_count = 51;
+  REQUIRE( f() == true );
 }
 
 TEST_CASE(
