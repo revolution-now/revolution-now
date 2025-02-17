@@ -19,42 +19,6 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 
-int64_t bounds_for_output( Spread const& spread ) {
-  if( spread.rendered_count == 0 ) return 0;
-  return ( spread.rendered_count - 1 ) * spread.spacing +
-         spread.spec.trimmed.len;
-}
-
-int64_t total_bounds( SpreadSpecs const& specs,
-                      Spreads const& spreads ) {
-  int64_t total = 0;
-  for( auto const& spread : spreads.spreads )
-    total += bounds_for_output( spread );
-  total += specs.group_spacing *
-           std::max( spreads.spreads.size() - 1, 0ul );
-  return total;
-}
-
-Spread* find_largest( Spreads& spreads ) {
-  Spread* largest        = {};
-  int64_t largest_bounds = 0;
-  for( Spread& spread : spreads.spreads ) {
-    int64_t const bounds = bounds_for_output( spread );
-    if( bounds > largest_bounds ) {
-      largest_bounds = bounds;
-      largest        = &spread;
-    }
-  }
-  return largest;
-}
-
-int64_t compute_total_count( SpreadSpecs const& specs ) {
-  int64_t total = 0;
-  for( SpreadSpec const& spec : specs.specs )
-    total += spec.count;
-  return total;
-}
-
 } // namespace
 
 /****************************************************************
@@ -179,47 +143,50 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
 
 Spreads compute_icon_spread_proportionate(
     SpreadSpecs const& specs ) {
-  auto const total_count = compute_total_count( specs );
-  // Should have already handled this case. This can't be zero in
-  // this method because we will shortly use this value as a de-
-  // nominator.
-  CHECK_GT( total_count, 0 );
   Spreads spreads;
+
+  auto const total_count = [&] {
+    int64_t total = 0;
+    for( SpreadSpec const& spec : specs.specs )
+      total += spec.count;
+    return total;
+  }();
+
+  int const num_nonempty_spreads = [&] {
+    int non_empty_count = 0;
+    for( SpreadSpec const& spec : specs.specs )
+      if( spec.count > 0 ) ++non_empty_count;
+    return non_empty_count;
+  }();
+
+  // We already know that we will be spacing the tiles one pixel
+  // apart. Given that, find the total number of slots that we
+  // have available after subtracting overhead space from the
+  // total bounds (e.g. spaces between groups, and spaces occu-
+  // pied by the last tile in a spread).
+  int const available_slots = [&] {
+    int res = specs.bounds;
+    for( SpreadSpec const& spec : specs.specs )
+      if( spec.count > 0 )
+        res -= std::max( spec.trimmed.len - 1, 0 );
+    if( num_nonempty_spreads > 0 )
+      res -= specs.group_spacing * ( num_nonempty_spreads - 1 );
+    return std::max( res, 0 );
+  }();
+
   for( SpreadSpec const& spec : specs.specs ) {
-    auto& spread          = spreads.spreads.emplace_back();
-    spread.spec           = spec;
-    spread.spacing        = 1;
-    int const min_count   = spec.count > 0 ? 1 : 0;
-    int const max_count   = spec.count;
-    spread.rendered_count = std::clamp(
-        int( specs.bounds * double( spec.count ) / total_count ),
-        min_count, max_count );
+    auto& spread   = spreads.spreads.emplace_back();
+    spread.spec    = spec;
+    spread.spacing = 1;
+    if( spec.count == 0 ) continue;
+    int const max_count = spec.count;
+    CHECK_GT( total_count, 0 );
+    double const percent_occupied =
+        double( spec.count ) / total_count;
+    spread.rendered_count =
+        std::clamp( int( available_slots * percent_occupied ), 1,
+                    max_count );
   }
-
-  auto const decrement_count_for_largest = [&] {
-    Spread* const largest = find_largest( spreads );
-    if( !largest ) return false;
-    // Not sure if this could happen here since "largest" depends
-    // on other parameters such as spacing and width, which the
-    // user could pass in as zero, so good to be defensive but
-    // not check-fail.
-    if( largest->rendered_count <= 0 ) return false;
-    --largest->rendered_count;
-    return true;
-  };
-
-  // At this point we should have gotten things approximately
-  // right, though we may have overshot just a bit due to the
-  // width of the icons and spacing between them, so we'll just
-  // decrement counts until we get under the bounds, which should
-  // only be a handful of iterations as it only scales with the
-  // width of the sprites and not any icon counts.
-  while( total_bounds( specs, spreads ) > specs.bounds )
-    if( !decrement_count_for_largest() )
-      // We can't decrease the count of any of the spreads any
-      // further, so just return what we have, which should have
-      // all zero counts.
-      break;
 
   return spreads;
 }
