@@ -125,50 +125,6 @@ Spreads compute_compressed_proportionate(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-Spreads compute_icon_spread( SpreadSpecs const& specs ) {
-  Spreads spreads;
-
-  // First compute the default spreads.
-  for( SpreadSpec const& spec : specs.specs ) {
-    auto& spread          = spreads.spreads.emplace_back();
-    spread.spec           = spec;
-    spread.spacing        = spec.trimmed.len + 1;
-    spread.rendered_count = spec.count;
-    CHECK_GE( spec.count, 0 );
-  }
-  CHECK_EQ( specs.specs.size(), spreads.spreads.size() );
-
-  auto const total_count = compute_total_count( specs );
-  if( total_count == 0 ) return spreads;
-
-  auto const decrement_spacing_for_largest = [&] {
-    Spread* const largest =
-        find_largest_with_non_adjacent_spacing( spreads );
-    // Not sure if this could happen here since "largest" depends
-    // on other parameters such as spacing and width, which the
-    // user could pass in as zero, so good to be defensive but
-    // not check-fail.
-    if( !largest ) return false;
-    if( largest->spacing <= 1 ) return false;
-    --largest->spacing;
-    return true;
-  };
-
-  while( total_bounds( specs, spreads ) > specs.bounds ) {
-    if( !decrement_spacing_for_largest() ) {
-      // We can't decrease the spacing of any of the spreads any
-      // further, so we have to just change their counts.
-      spreads = compute_compressed_proportionate( specs );
-      break;
-    }
-  }
-
-  for( auto const& spread : spreads.spreads ) {
-    CHECK_LE( spread.rendered_count, spread.spec.count );
-  }
-  return spreads;
-}
-
 bool requires_label( Spread const& spread ) {
   if( spread.spacing <= 2 ) return true;
   if( spread.rendered_count > 100 ) return true;
@@ -197,7 +153,7 @@ void adjust_rendered_count_for_progress_count(
     rendered_count = 1;
 }
 
-Spreads compute_icon_spread_OG( SpreadSpecs const& specs ) {
+Spreads compute_icon_spread( SpreadSpecs const& specs ) {
   int64_t const total_trimmed = [&] {
     int64_t res = 0;
     for( SpreadSpec const& spec : specs.specs )

@@ -65,7 +65,7 @@ TileSpreadRenderPlans build_tile_spread_multi(
     return res;
   }();
   Spreads const icon_spreads = [&] {
-    Spreads spreads = compute_icon_spread_OG( specs );
+    Spreads spreads = compute_icon_spread( specs );
     for( auto tiles_it = configs.tiles.begin();
          auto& spread : spreads.spreads ) {
       CHECK( tiles_it != configs.tiles.end() );
