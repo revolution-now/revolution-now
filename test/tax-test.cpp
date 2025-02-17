@@ -22,13 +22,16 @@
 #include "src/connectivity.hpp"
 
 // config
-#include "config/old-world.rds.hpp"
+#include "src/config/old-world.rds.hpp"
 
 // ss
-#include "ss/player.rds.hpp"
-#include "ss/ref.hpp"
-#include "ss/settings.rds.hpp"
-#include "ss/turn.rds.hpp"
+#include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
+#include "src/ss/turn.rds.hpp"
+
+// base
+#include "src/base/vocab.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp"
@@ -80,11 +83,12 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
 
   auto f = [&] {
     player.old_world.market.commodities[type].boycott = true;
-    wait<> w =
+    auto const w =
         try_trade_boycotted_commodity( W.ts(), player, type,
                                        /*back_taxes=*/33 );
     BASE_CHECK( !w.exception() );
     BASE_CHECK( w.ready() );
+    return *w;
   };
 
   SECTION( "food, not enough money" ) {
@@ -100,7 +104,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
         .EXPECT__message_box( expected_msg )
         .returns( make_wait<>() );
 
-    f();
+    REQUIRE( f() );
     REQUIRE( player.money == 32 );
     REQUIRE( player.old_world.market.commodities[type].boycott );
     REQUIRE( player.old_world.taxes.tax_rate == 7 );
@@ -130,7 +134,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "no" ) );
 
-    f();
+    REQUIRE( f() );
     REQUIRE( player.money == 33 );
     REQUIRE( player.old_world.market.commodities[type].boycott );
     REQUIRE( player.old_world.taxes.tax_rate == 7 );
@@ -160,7 +164,7 @@ TEST_CASE( "[tax] try_trade_boycotted_commodity" ) {
     W.gui().EXPECT__choice( config ).returns(
         make_wait<maybe<string>>( "yes" ) );
 
-    f();
+    REQUIRE_FALSE( f() );
     REQUIRE( player.money == 1 );
     REQUIRE(
         !player.old_world.market.commodities[type].boycott );

@@ -11,14 +11,15 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
-// Rds
+// rds
 #include "tax.rds.hpp"
-#include "wait.hpp"
 
 // Revolution Now
 #include "maybe.hpp"
+#include "wait.hpp"
+
+// base
+#include "base/vocab.hpp"
 
 namespace rn {
 
@@ -63,9 +64,9 @@ int back_tax_for_boycotted_commodity( Player const& player,
 // player tries to trade a boycotted commodity. It will present
 // them with the back tax amount and ask if they want to pay it.
 // The commodity should be boycotted here otherwise it will
-// check-fail.
-wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
-                                      e_commodity type,
-                                      int back_taxes );
+// check-fail. Returns the new boycott status (for convenience;
+// if the status changed, the state will have been updated).
+wait<base::NoDiscard<bool>> try_trade_boycotted_commodity(
+    TS& ts, Player& player, e_commodity type, int back_taxes );
 
 } // namespace rn

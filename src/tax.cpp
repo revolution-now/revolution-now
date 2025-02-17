@@ -38,6 +38,8 @@ namespace rn {
 
 namespace {
 
+using ::base::NoDiscard;
+
 int rand_int_range( TS& ts, auto const& int_range ) {
   int const min = int_range.min;
   int const max = int_range.max;
@@ -371,9 +373,8 @@ int back_tax_for_boycotted_commodity( Player const& player,
          config_old_world.boycotts.back_taxes_ask_multiplier;
 }
 
-wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
-                                      e_commodity type,
-                                      int back_taxes ) {
+wait<NoDiscard<bool>> try_trade_boycotted_commodity(
+    TS& ts, Player& player, e_commodity type, int back_taxes ) {
   bool& boycott =
       player.old_world.market.commodities[type].boycott;
   CHECK( boycott );
@@ -390,7 +391,7 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
     // Player can't afford it.
     co_await ts.gui.message_box(
         msg + fmt::format( " Treasury: {}.", player.money ) );
-    co_return;
+    co_return boycott;
   }
   YesNoConfig const config{
     .msg            = msg,
@@ -406,10 +407,11 @@ wait<> try_trade_boycotted_commodity( TS& ts, Player& player,
       boycott = false;
       player.money -= back_taxes;
       CHECK_GE( player.money, 0 );
-      co_return;
+      break;
     case ui::e_confirm::no:
-      co_return;
+      break;
   }
+  co_return boycott;
 }
 
 } // namespace rn
