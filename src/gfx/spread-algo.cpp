@@ -53,20 +53,25 @@ void adjust_rendered_count_for_progress_count(
 }
 
 maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
+  auto const total_count = [&] {
+    int64_t total = 0;
+    for( SpreadSpec const& spec : specs.specs )
+      total += spec.count;
+    return total;
+  }();
   int64_t const total_trimmed = [&] {
     int64_t res = 0;
     for( SpreadSpec const& spec : specs.specs )
       if( spec.count > 0 ) res += spec.trimmed.len;
     return res;
   }();
+  // This will be the number of non-empty spreads.
   int64_t const num_spreads = [&] {
     int64_t res = 0;
     for( SpreadSpec const& spec : specs.specs )
       if( spec.count > 0 ) ++res;
     return res;
   }();
-  // This will be the number of non-empty spreads.
-  if( num_spreads == 0 ) return {};
 
   // One can derive this formula for the total space used given a
   // proposed (max) value of spacing:
@@ -76,8 +81,8 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
   //               + (count_3-1)*S_spec_3
   //               + (count_4-1)*S_spec_4
   //               + ...
-  //               + total_trimmed
-  //               + group_spacing*(num_spreads-1)
+  //               + total_trimmed (for non-empty groups)
+  //               + group_spacing*(num_nonempty_spreads-1)
   //
   // Where S is a function that gives the spacing for a given
   // spread given the max uniform spacing being proposed.
@@ -98,7 +103,7 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
         res += ( spec.count - 1 ) * S( spec, spacing );
     return res;
   };
-  int64_t const proposed_spacing = [&] {
+  int64_t const final_spacing = [&] {
     int64_t proposed_spacing = 0;
     int64_t most_space_used  = {};
     while( true ) {
@@ -106,9 +111,9 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
           total_space( proposed_spacing + 1 );
       if( space_used > specs.bounds ) break;
       // Eventually we may get to a point where we haven't yet
-      // cov- ered all of the allowed bounds but where we can't
+      // covered all of the allowed bounds but where we can't
       // space out any of the spreads any more (since the empty
-      // space be- tween them can be at most one). In that case
+      // space between them can be at most one). In that case
       // we're done.
       if( space_used == most_space_used ) break;
       most_space_used = space_used;
@@ -122,7 +127,7 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
     }
     return proposed_spacing;
   }();
-  if( proposed_spacing == 0 )
+  if( final_spacing == 0 && total_count > 0 )
     // This means that we couldn't fit everything in the allowed
     // bounds even with a spacing of 1. So switch to a different
     // algorithm that is made to handle that situation.
@@ -133,7 +138,7 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
     res.spreads.push_back(
         Spread{ .spec           = spec,
                 .rendered_count = spec.count,
-                .spacing = S( spec, proposed_spacing ) } );
+                .spacing        = S( spec, final_spacing ) } );
   CHECK_EQ( res.spreads.size(), specs.specs.size() );
   // Sanity check.
   for( Spread const& spread : res.spreads )
@@ -188,6 +193,7 @@ Spreads compute_icon_spread_proportionate(
                     max_count );
   }
 
+  CHECK_EQ( spreads.spreads.size(), specs.specs.size() );
   return spreads;
 }
 
