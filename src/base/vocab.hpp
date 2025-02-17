@@ -101,6 +101,7 @@ struct [[nodiscard]] NoDiscard {
   template<typename U>
   NoDiscard( U&& val_ ) : val( std::forward<U>( val_ ) ){};
   operator T&() { return val; }
+  operator T const&() const { return val; }
   T& get() { return val; }
   T const& get() const { return val; }
   T val;
