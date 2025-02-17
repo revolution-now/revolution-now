@@ -178,7 +178,6 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 15, .trimmed = { .start = 2, .len = 12 } },
         },
     .group_spacing = 4 };
-
   expected = Spreads{
     .spreads = {
       { .spec           = { .count   = 14,
@@ -202,7 +201,6 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
         .rendered_count = 15,
         .spacing        = 1 },
     } };
-
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -216,7 +214,6 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 43, .trimmed = { .start = 2, .len = 16 } },
         },
     .group_spacing = 4 };
-
   expected = Spreads{
     .spreads = {
       { .spec           = { .count   = 14,
@@ -252,7 +249,6 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 15, .trimmed = { .start = 2, .len = 12 } },
         },
     .group_spacing = 4 };
-
   expected = Spreads{
     .spreads = {
       { .spec           = { .count   = 14,
