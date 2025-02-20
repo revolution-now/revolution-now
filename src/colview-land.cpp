@@ -454,10 +454,9 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   }
 }
 
-void ColonyLandView::draw_spread( rr::Renderer& renderer,
-                                  rect const box,
-                                  e_tile const tile,
-                                  int const quantity ) const {
+void ColonyLandView::draw_spread(
+    rr::Renderer& renderer, rect const box, e_tile const tile,
+    int const quantity, bool const is_colony_tile ) const {
   rect const inner_box = box.with_edges_removed( 8 );
   TileSpreadConfig const spread_config{
     .tile    = { .tile = tile, .count = quantity },
@@ -476,7 +475,9 @@ void ColonyLandView::draw_spread( rr::Renderer& renderer,
     auto const draw = [&]( e_tile const tile ) {
       size const sz = sprite_size( tile );
       point const origin =
-          gfx::centered_at_left( sz, inner_box );
+          is_colony_tile
+              ? gfx::centered_in( sz, inner_box )
+              : gfx::centered_at_left( sz, inner_box );
       render_sprite( renderer, origin, tile );
     };
     draw( tile );
@@ -518,7 +519,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     rect const spread_box =
         rect{ .origin = square_coord + size{ .h = 11 },
               .size   = { .w = 64, .h = 20 } };
-    draw_spread( renderer, spread_box, product_tile, quantity );
+    draw_spread( renderer, spread_box, product_tile, quantity,
+                 /*is_colony_tile=*/false );
     point const unit_coord =
         square_coord + size{ .w = 16, .h = 20 };
     UnitId const unit_id = outdoor_unit->unit_id;
@@ -544,7 +546,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     rect const spread_box =
         rect{ .origin = square_coord + size{ .h = 11 },
               .size   = { .w = 64, .h = 20 } };
-    draw_spread( renderer, spread_box, product_tile, quantity );
+    draw_spread( renderer, spread_box, product_tile, quantity,
+                 /*is_colony_tile=*/true );
   }
 
   // secondary.
@@ -557,7 +560,8 @@ void ColonyLandView::draw_land_6x6( rr::Renderer& renderer,
     rect const spread_box =
         rect{ .origin = square_coord + size{ .h = 32 + 2 },
               .size   = { .w = 64, .h = 20 } };
-    draw_spread( renderer, spread_box, product_tile, quantity );
+    draw_spread( renderer, spread_box, product_tile, quantity,
+                 /*is_colony_tile=*/true );
   }
 }
 

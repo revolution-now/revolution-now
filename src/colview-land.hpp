@@ -117,7 +117,8 @@ struct ColonyLandView : public ui::View,
   wait<> disown_dragged_object() override;
 
   void draw_spread( rr::Renderer& renderer, gfx::rect box,
-                    e_tile tile, int quantity ) const;
+                    e_tile tile, int quantity,
+                    bool is_colony_tile ) const;
 
   void draw_land_3x3( rr::Renderer& renderer,
                       Coord coord ) const;
