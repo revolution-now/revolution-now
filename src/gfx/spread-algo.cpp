@@ -31,11 +31,14 @@ bool requires_label( Spread const& spread ) {
 }
 
 void adjust_rendered_count_for_progress_count(
-    Spread& spread, int const progress_count ) {
+    Spread& spread, int const progress_count_uncapped ) {
   int const total_count = spread.spec.count;
-  CHECK_LE( progress_count, total_count );
+  int const progress_count =
+      std::min( progress_count_uncapped, total_count );
   int& rendered_count = spread.rendered_count;
-  CHECK_LE( rendered_count, total_count );
+  // This should theoretically not be necessary, but let's just
+  // be defensive.
+  rendered_count = std::min( rendered_count, total_count );
   if( rendered_count == 0 ) return;
   if( rendered_count == total_count ) {
     rendered_count = std::max( progress_count, 0 );

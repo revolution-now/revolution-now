@@ -535,6 +535,40 @@ TEST_CASE(
   expected                = spread;
   expected.rendered_count = 1;
   REQUIRE( f() == expected );
+
+  // Test progress count larger than total count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 100;
+  progress_count          = 200;
+  expected                = spread;
+  expected.rendered_count = 100;
+  REQUIRE( f() == expected );
+
+  // Test progress count larger than total count with
+  // rendered_count < total_count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 50;
+  progress_count          = 200;
+  expected                = spread;
+  expected.rendered_count = 50;
+  REQUIRE( f() == expected );
+
+  // Test rendered_count > total_count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 200;
+  progress_count          = 100;
+  expected                = spread;
+  expected.rendered_count = 100;
+  REQUIRE( f() == expected );
+
+  // Test rendered_count > total_count with progress_count <
+  // total_count.
+  spread.spec.count       = 100;
+  spread.rendered_count   = 200;
+  progress_count          = 50;
+  expected                = spread;
+  expected.rendered_count = 50;
+  REQUIRE( f() == expected );
 }
 
 } // namespace
