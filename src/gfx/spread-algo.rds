@@ -40,8 +40,6 @@ struct.SpreadSpecs {
 
 # Computed output.
 struct.Spread {
-  # Spec copied from input as-is.
-  spec 'SpreadSpec',
   # NOTE: this may be different than the real count that was
   # input in SpreadSpec; this count is for rendering icons only,
   # but any labels should use the real count.

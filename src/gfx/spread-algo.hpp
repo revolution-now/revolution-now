@@ -41,7 +41,7 @@ Spreads compute_icon_spread_proportionate(
 // count is already less than total count (which can happen when
 // the proportional algo is used).
 void adjust_rendered_count_for_progress_count(
-    Spread& spread, int progress_count );
+    SpreadSpec const& spec, Spread& spread, int progress_count );
 
 // In the OG sometimes labels can be turned on unconditionally
 // (e.g. in the colony view), but even when that does not happen,

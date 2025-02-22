@@ -56,8 +56,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
   TileSpreadRenderPlans plans;
   point p                       = {};
   bool const has_required_label = [&] {
-    for( TileSpreadSpec const& tile_spread :
-         tile_spreads.spreads )
+    for( auto const& [spec, tile_spread] : tile_spreads.spreads )
       if( requires_label( tile_spread.icon_spread ) )
         return true;
     return false;
@@ -77,17 +76,14 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
       }
     }
   };
-  for( TileSpreadSpec const& tile_spread :
-       tile_spreads.spreads ) {
+  for( auto const& [spec, tile_spread] : tile_spreads.spreads ) {
     CHECK_LE( tile_spread.icon_spread.rendered_count,
-              tile_spread.icon_spread.spec.count );
+              spec.count );
     if( tile_spread.icon_spread.rendered_count == 0 ) continue;
-    auto& plan          = plans.plans.emplace_back();
-    point const p_start = p;
-    auto const& tile_trimmed_len =
-        tile_spread.icon_spread.spec.trimmed.len;
-    auto const& tile_trimmed_start =
-        tile_spread.icon_spread.spec.trimmed.start;
+    auto& plan                     = plans.plans.emplace_back();
+    point const p_start            = p;
+    auto const& tile_trimmed_len   = spec.trimmed.len;
+    auto const& tile_trimmed_start = spec.trimmed.start;
     size const tile_size = sprite_size( tile_spread.tile );
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
@@ -146,8 +142,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     // the tiles.
     auto add_label = [&]( SpreadLabelOptions const& options ) {
       rect const first_tile_rect = tiles_all.with_size(
-          size{ .w = tile_spread.icon_spread.spec.trimmed.len,
-                .h = tile_size.h } );
+          size{ .w = spec.trimmed.len, .h = tile_size.h } );
       rect const placement_rect = [&] {
         if( !options.placement.has_value() )
           return first_tile_rect;
@@ -167,7 +162,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
             if( tile_spread.icon_spread.rendered_count == 1 )
               return e_cdirection::c;
             if( tile_spread.icon_spread.spacing <
-                tile_spread.icon_spread.spec.trimmed.len )
+                spec.trimmed.len )
               return e_cdirection::w;
             return e_cdirection::c;
           }
@@ -179,8 +174,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           }
         }
       }();
-      int const label_count = tile_spread.label_count.value_or(
-          tile_spread.icon_spread.spec.count );
+      int const label_count =
+          tile_spread.label_count.value_or( spec.count );
       string const label_text      = to_string( label_count );
       size const padded_label_size = [&] {
         size const label_size =

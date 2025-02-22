@@ -58,29 +58,13 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
         },
     .group_spacing = 4 };
 
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 4 },
-      { .spec           = { .count   = 6,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 6,
-        .spacing        = 4 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 4 },
-      { .spec           = { .count   = 1,
-                            .trimmed = { .start = 4, .len = 8 } },
-        .rendered_count = 1,
-        .spacing        = 4 },
-      { .spec           = { .count   = 15,
-                            .trimmed = { .start = 2, .len = 12 } },
-        .rendered_count = 15,
-        .spacing        = 4 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 14, .spacing = 4 },
+                        { .rendered_count = 6, .spacing = 4 },
+                        { .rendered_count = 0, .spacing = 4 },
+                        { .rendered_count = 1, .spacing = 4 },
+                        { .rendered_count = 15, .spacing = 4 },
+                      } };
 
   REQUIRE( f() == expected );
 
@@ -97,27 +81,11 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
     .group_spacing = 4 };
 
   expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 1 },
-      { .spec           = { .count   = 9,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 9,
-        .spacing        = 1 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-      { .spec           = { .count   = 12,
-                            .trimmed = { .start = 3, .len = 14 } },
-        .rendered_count = 12,
-        .spacing        = 1 },
-      { .spec           = { .count   = 43,
-                            .trimmed = { .start = 2, .len = 16 } },
-        .rendered_count = 43,
-        .spacing        = 1 } } };
+    .spreads = { { .rendered_count = 14, .spacing = 1 },
+                 { .rendered_count = 9, .spacing = 1 },
+                 { .rendered_count = 0, .spacing = 1 },
+                 { .rendered_count = 12, .spacing = 1 },
+                 { .rendered_count = 43, .spacing = 1 } } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -132,29 +100,13 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
         },
     .group_spacing = 4 };
 
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 10 },
-      { .spec           = { .count   = 6,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 6,
-        .spacing        = 13 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 13 },
-      { .spec           = { .count   = 1,
-                            .trimmed = { .start = 4, .len = 8 } },
-        .rendered_count = 1,
-        .spacing        = 9 },
-      { .spec           = { .count   = 15,
-                            .trimmed = { .start = 2, .len = 12 } },
-        .rendered_count = 15,
-        .spacing        = 13 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 14, .spacing = 10 },
+                        { .rendered_count = 6, .spacing = 13 },
+                        { .rendered_count = 0, .spacing = 13 },
+                        { .rendered_count = 1, .spacing = 9 },
+                        { .rendered_count = 15, .spacing = 13 },
+                      } };
 
   REQUIRE( f() == expected );
 
@@ -178,13 +130,9 @@ TEST_CASE( "[spread] compute_icon_spread" ) {
           { .count = 0, .trimmed = { .start = 4, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 0, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -220,29 +168,13 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 15, .trimmed = { .start = 2, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 1 },
-      { .spec           = { .count   = 6,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 6,
-        .spacing        = 1 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-      { .spec           = { .count   = 1,
-                            .trimmed = { .start = 4, .len = 8 } },
-        .rendered_count = 1,
-        .spacing        = 1 },
-      { .spec           = { .count   = 15,
-                            .trimmed = { .start = 2, .len = 12 } },
-        .rendered_count = 15,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 14, .spacing = 1 },
+                        { .rendered_count = 6, .spacing = 1 },
+                        { .rendered_count = 0, .spacing = 1 },
+                        { .rendered_count = 1, .spacing = 1 },
+                        { .rendered_count = 15, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -257,27 +189,11 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
         },
     .group_spacing = 4 };
   expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 1 },
-      { .spec           = { .count   = 9,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 9,
-        .spacing        = 1 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-      { .spec           = { .count   = 12,
-                            .trimmed = { .start = 3, .len = 14 } },
-        .rendered_count = 12,
-        .spacing        = 1 },
-      { .spec           = { .count   = 43,
-                            .trimmed = { .start = 2, .len = 16 } },
-        .rendered_count = 43,
-        .spacing        = 1 } } };
+    .spreads = { { .rendered_count = 14, .spacing = 1 },
+                 { .rendered_count = 9, .spacing = 1 },
+                 { .rendered_count = 0, .spacing = 1 },
+                 { .rendered_count = 12, .spacing = 1 },
+                 { .rendered_count = 43, .spacing = 1 } } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -291,29 +207,13 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 15, .trimmed = { .start = 2, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 14,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 14,
-        .spacing        = 1 },
-      { .spec           = { .count   = 6,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 6,
-        .spacing        = 1 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-      { .spec           = { .count   = 1,
-                            .trimmed = { .start = 4, .len = 8 } },
-        .rendered_count = 1,
-        .spacing        = 1 },
-      { .spec           = { .count   = 15,
-                            .trimmed = { .start = 2, .len = 12 } },
-        .rendered_count = 15,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 14, .spacing = 1 },
+                        { .rendered_count = 6, .spacing = 1 },
+                        { .rendered_count = 0, .spacing = 1 },
+                        { .rendered_count = 1, .spacing = 1 },
+                        { .rendered_count = 15, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -327,29 +227,13 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 150, .trimmed = { .start = 2, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 140,
-                            .trimmed = { .start = 6, .len = 9 } },
-        .rendered_count = 19,
-        .spacing        = 1 },
-      { .spec           = { .count   = 60,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 8,
-        .spacing        = 1 },
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-      { .spec           = { .count   = 10,
-                            .trimmed = { .start = 4, .len = 8 } },
-        .rendered_count = 1,
-        .spacing        = 1 },
-      { .spec           = { .count   = 150,
-                            .trimmed = { .start = 2, .len = 12 } },
-        .rendered_count = 21,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 19, .spacing = 1 },
+                        { .rendered_count = 8, .spacing = 1 },
+                        { .rendered_count = 0, .spacing = 1 },
+                        { .rendered_count = 1, .spacing = 1 },
+                        { .rendered_count = 21, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -359,13 +243,9 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 0, .trimmed = { .start = 4, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 0,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 0,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 0, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 
   specs = SpreadSpecs{
@@ -375,13 +255,9 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
           { .count = 100, .trimmed = { .start = 4, .len = 12 } },
         },
     .group_spacing = 4 };
-  expected = Spreads{
-    .spreads = {
-      { .spec           = { .count   = 100,
-                            .trimmed = { .start = 4, .len = 12 } },
-        .rendered_count = 89,
-        .spacing        = 1 },
-    } };
+  expected = Spreads{ .spreads = {
+                        { .rendered_count = 89, .spacing = 1 },
+                      } };
   REQUIRE( f() == expected );
 }
 
@@ -413,12 +289,13 @@ TEST_CASE( "[spread] requires_label" ) {
 
 TEST_CASE(
     "[spread] adjust_rendered_count_for_progress_count" ) {
+  SpreadSpec spec;
   Spread spread;
   Spread expected;
   int progress_count = {};
 
   auto const f = [&]() -> auto const& {
-    adjust_rendered_count_for_progress_count( spread,
+    adjust_rendered_count_for_progress_count( spec, spread,
                                               progress_count );
     return spread;
   };
@@ -430,7 +307,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=total_count.
-  spread.spec.count       = 1;
+  spec.count              = 1;
   spread.rendered_count   = 1;
   progress_count          = 1;
   expected                = spread;
@@ -438,7 +315,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=0.
-  spread.spec.count       = 1;
+  spec.count              = 1;
   spread.rendered_count   = 1;
   progress_count          = 0;
   expected                = spread;
@@ -446,7 +323,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=total_count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 100;
   progress_count          = 100;
   expected                = spread;
@@ -454,7 +331,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=0.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 100;
   progress_count          = 0;
   expected                = spread;
@@ -462,7 +339,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=30.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 100;
   progress_count          = 30;
   expected                = spread;
@@ -470,7 +347,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count=total count, progress_count=-30.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 100;
   progress_count          = -30;
   expected                = spread;
@@ -478,7 +355,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=total_count.
-  spread.spec.count       = 1;
+  spec.count              = 1;
   spread.rendered_count   = 0;
   progress_count          = 1;
   expected                = spread;
@@ -486,7 +363,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=0.
-  spread.spec.count       = 1;
+  spec.count              = 1;
   spread.rendered_count   = 0;
   progress_count          = 0;
   expected                = spread;
@@ -494,7 +371,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=total_count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 50;
   progress_count          = 100;
   expected                = spread;
@@ -502,7 +379,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=0.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 50;
   progress_count          = 0;
   expected                = spread;
@@ -510,7 +387,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=30.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 50;
   progress_count          = 30;
   expected                = spread;
@@ -518,7 +395,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // rendered_count<total count, progress_count=-30.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 50;
   progress_count          = -30;
   expected                = spread;
@@ -529,7 +406,7 @@ TEST_CASE(
   // NOTE: this one tests that rendered_count is lifted to 1 in
   // the case that rendered count is left as zero after the frac-
   // tional calculation but progress_count is non-zero.
-  spread.spec.count       = 1000;
+  spec.count              = 1000;
   spread.rendered_count   = 50;
   progress_count          = 1;
   expected                = spread;
@@ -537,7 +414,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // Test progress count larger than total count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 100;
   progress_count          = 200;
   expected                = spread;
@@ -546,7 +423,7 @@ TEST_CASE(
 
   // Test progress count larger than total count with
   // rendered_count < total_count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 50;
   progress_count          = 200;
   expected                = spread;
@@ -554,7 +431,7 @@ TEST_CASE(
   REQUIRE( f() == expected );
 
   // Test rendered_count > total_count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 200;
   progress_count          = 100;
   expected                = spread;
@@ -563,7 +440,7 @@ TEST_CASE(
 
   // Test rendered_count > total_count with progress_count <
   // total_count.
-  spread.spec.count       = 100;
+  spec.count              = 100;
   spread.rendered_count   = 200;
   progress_count          = 50;
   expected                = spread;

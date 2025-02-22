@@ -53,14 +53,13 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   // not render a label.
   tile_spreads = {
     .spreads =
-        { { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 0,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 0,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon } },
+        { { .algo_spec = SpreadSpec{ .count   = 0,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+
+            .tile_spec = { .icon_spread = { .rendered_count = 0,
+                                            .spacing = 1 },
+                           .tile        = e_tile::dragoon } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {};
@@ -69,14 +68,12 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   // One spread, one tile, with label.
   tile_spreads = {
     .spreads =
-        { { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 1,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 1,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon } },
+        { { .algo_spec = SpreadSpec{ .count   = 1,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec = { .icon_spread = { .rendered_count = 1,
+                                            .spacing = 1 },
+                           .tile        = e_tile::dragoon } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
@@ -98,19 +95,19 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   // tion.
   tile_spreads = {
     .spreads =
-        { { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 1,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 1,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon,
-            .label_opts =
-                SpreadLabelOptions{
-                  .placement =
-                      SpreadLabelPlacement::in_first_tile{
-                        .placement = e_cdirection::sw } } } },
+        { { .algo_spec = SpreadSpec{ .count   = 1,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec =
+                { .icon_spread = { .rendered_count = 1,
+                                   .spacing        = 1 },
+                  .tile        = e_tile::dragoon,
+                  .label_opts =
+                      SpreadLabelOptions{
+                        .placement =
+                            SpreadLabelPlacement::in_first_tile{
+                              .placement =
+                                  e_cdirection::sw } } } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
@@ -136,14 +133,12 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   // Label uses real count when different from rendered_count.
   tile_spreads = {
     .spreads =
-        { { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 2,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 1,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon } },
+        { { .algo_spec = SpreadSpec{ .count   = 2,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec = { .icon_spread = { .rendered_count = 1,
+                                            .spacing = 1 },
+                           .tile        = e_tile::dragoon } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {
@@ -165,30 +160,33 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   tile_spreads = {
     .spreads =
         {
-          { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 1,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 1,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon },
-          { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 0,
-                                   .trimmed = { .start = 2,
-                                                .len   = 28 } },
-                             .rendered_count = 0,
-                             .spacing        = 1 },
-            .tile        = e_tile::dragoon },
-          { .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 2,
-                                   .trimmed = { .start = 11,
-                                                .len   = 13 } },
-                             .rendered_count = 2,
-                             .spacing        = 3 },
-            .tile        = e_tile::soldier },
+          { .algo_spec = SpreadSpec{ .count   = 1,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec = { .icon_spread =
+                               {
+
+                                 .rendered_count = 1,
+                                 .spacing        = 1 },
+                           .tile = e_tile::dragoon } },
+          { .algo_spec = SpreadSpec{ .count   = 0,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec = { .icon_spread =
+                               {
+
+                                 .rendered_count = 0,
+                                 .spacing        = 1 },
+                           .tile = e_tile::dragoon } },
+          { .algo_spec = SpreadSpec{ .count   = 2,
+                                     .trimmed = { .start = 11,
+                                                  .len = 13 } },
+            .tile_spec = { .icon_spread =
+                               {
+
+                                 .rendered_count = 2,
+                                 .spacing        = 3 },
+                           .tile = e_tile::soldier } },
         },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{},
@@ -228,17 +226,20 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
       e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
   tile_spreads = {
-    .spreads       = { {
-            .icon_spread  = { .spec =
-                                  SpreadSpec{
-                                    .count   = 1,
-                                    .trimmed = { .start = 2,
-                                                 .len   = 28 } },
-                              .rendered_count = 1,
-                              .spacing        = 1 },
-            .tile         = e_tile::dragoon,
-            .overlay_tile = e_tile::red_x_20,
-    } },
+    .spreads       = { { .algo_spec =
+                             SpreadSpec{
+                               .count   = 1,
+                               .trimmed = { .start = 2, .len = 28 } },
+                         .tile_spec =
+                             {
+                               .icon_spread =
+                             {
+
+                                     .rendered_count = 1,
+                                     .spacing        = 1 },
+                               .tile         = e_tile::dragoon,
+                               .overlay_tile = e_tile::red_x_20,
+                       } } },
     .group_spacing = 1,
     .label_policy  = {} };
   expected = {
@@ -261,21 +262,23 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
 
   // One spread, one tile, with label, with line breaks.
   tile_spreads = {
-    .spreads       = { {
-            .icon_spread = { .spec =
-                                 SpreadSpec{
-                                   .count   = 10,
-                                   .trimmed = { .start = 2,
-                                                .len   = 10 } },
-                             .rendered_count = 10,
-                             .spacing        = 5 },
-            .tile        = e_tile::commodity_food_20,
-            .label_opts =
-          SpreadLabelOptions{
-                  .placement =
-                SpreadLabelPlacement::in_first_tile{
-                        .placement = e_cdirection::sw } },
-    } },
+    .spreads =
+        { { .algo_spec = SpreadSpec{ .count   = 10,
+                                     .trimmed = { .start = 2,
+                                                  .len = 10 } },
+            .tile_spec =
+                {
+                  .icon_spread =
+                      {
+
+                        .rendered_count = 10, .spacing = 5 },
+                  .tile = e_tile::commodity_food_20,
+                  .label_opts =
+                      SpreadLabelOptions{
+                        .placement =
+                            SpreadLabelPlacement::in_first_tile{
+                              .placement = e_cdirection::sw } },
+                } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
   expected = {

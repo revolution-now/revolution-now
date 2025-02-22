@@ -20,12 +20,18 @@
 // gfx
 #include "gfx/spread-algo.hpp"
 
+// C++ standard library
+#include <ranges>
+
 using namespace std;
+
+namespace rv = std::ranges::views;
 
 namespace rn {
 
 using ::base::maybe;
 using ::gfx::pixel;
+using ::std::ranges::views::zip;
 
 /****************************************************************
 ** Public API.
@@ -71,12 +77,14 @@ TileSpreadRenderPlans build_tile_spread_multi(
       spreads = std::move( *spreads_main_algo );
     else
       spreads = compute_icon_spread_proportionate( specs );
+    CHECK_EQ( spreads.spreads.size(), specs.specs.size() );
     for( auto tiles_it = configs.tiles.begin();
-         auto& spread : spreads.spreads ) {
+         auto const [spec, spread] :
+         zip( specs.specs, spreads.spreads ) ) {
       CHECK( tiles_it != configs.tiles.end() );
       if( tiles_it->progress_count.has_value() )
         adjust_rendered_count_for_progress_count(
-            spread, *tiles_it->progress_count );
+            spec, spread, *tiles_it->progress_count );
       ++tiles_it;
     }
     return spreads;
@@ -86,7 +94,8 @@ TileSpreadRenderPlans build_tile_spread_multi(
     res.label_policy  = configs.options.label_policy;
     res.group_spacing = specs.group_spacing;
     for( auto config_it = configs.tiles.begin();
-         Spread const& icon_spread : icon_spreads.spreads ) {
+         auto const [spec, icon_spread] :
+         zip( specs.specs, icon_spreads.spreads ) ) {
       CHECK( config_it != configs.tiles.end() );
       TileSpreadSpec tile_spread_spec{
         .icon_spread = icon_spread,
@@ -108,7 +117,8 @@ TileSpreadRenderPlans build_tile_spread_multi(
           }
         }
       }
-      res.spreads.push_back( tile_spread_spec );
+      res.spreads.push_back(
+          { .algo_spec = spec, .tile_spec = tile_spread_spec } );
       ++config_it;
     }
     return res;

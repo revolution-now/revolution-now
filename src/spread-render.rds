@@ -89,8 +89,13 @@ struct.TileSpreadSpec {
   label_count 'base::maybe<int>',
 }
 
+struct.TileSpreadSpecWithSourceSpec {
+  algo_spec 'SpreadSpec',
+  tile_spec 'TileSpreadSpec',
+}
+
 struct.TileSpreadSpecs {
-  spreads 'std::vector<TileSpreadSpec>',
+  spreads 'std::vector<TileSpreadSpecWithSourceSpec>',
   # Should use the same one as was used in the input SpreadSpecs
   # for correct behavior.
   group_spacing 'int',

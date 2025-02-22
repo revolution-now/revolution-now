@@ -10,7 +10,12 @@
 *****************************************************************/
 #include "spread-algo.hpp"
 
+// C++ standard library
+#include <ranges>
+
 using namespace std;
+
+namespace rv = std::ranges::views;
 
 namespace rn {
 
@@ -18,6 +23,7 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::std::ranges::views::zip;
 
 } // namespace
 
@@ -31,8 +37,9 @@ bool requires_label( Spread const& spread ) {
 }
 
 void adjust_rendered_count_for_progress_count(
-    Spread& spread, int const progress_count_uncapped ) {
-  int const total_count = spread.spec.count;
+    SpreadSpec const& spec, Spread& spread,
+    int const progress_count_uncapped ) {
+  int const total_count = spec.count;
   int const progress_count =
       std::min( progress_count_uncapped, total_count );
   int& rendered_count = spread.rendered_count;
@@ -139,13 +146,13 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
   res.spreads.reserve( specs.specs.size() );
   for( SpreadSpec const& spec : specs.specs )
     res.spreads.push_back(
-        Spread{ .spec           = spec,
-                .rendered_count = spec.count,
+        Spread{ .rendered_count = spec.count,
                 .spacing        = S( spec, final_spacing ) } );
   CHECK_EQ( res.spreads.size(), specs.specs.size() );
   // Sanity check.
-  for( Spread const& spread : res.spreads )
-    CHECK_EQ( spread.spec.count, spread.rendered_count );
+  for( auto const [spec, spread] :
+       zip( specs.specs, res.spreads ) )
+    CHECK_EQ( spec.count, spread.rendered_count );
   return res;
 }
 
@@ -184,7 +191,6 @@ Spreads compute_icon_spread_proportionate(
 
   for( SpreadSpec const& spec : specs.specs ) {
     auto& spread   = spreads.spreads.emplace_back();
-    spread.spec    = spec;
     spread.spacing = 1;
     if( spec.count == 0 ) continue;
     int const max_count = spec.count;
