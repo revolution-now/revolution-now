@@ -20,6 +20,7 @@
 #include "base/logger.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <cmath>
 
 using namespace std;

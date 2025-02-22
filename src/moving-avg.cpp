@@ -17,6 +17,9 @@
 // base
 #include "base/math.hpp"
 
+// C++ standard library
+#include <algorithm>
+
 namespace rn {
 
 using namespace std;
