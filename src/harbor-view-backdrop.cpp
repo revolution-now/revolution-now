@@ -17,7 +17,11 @@
 #include "ts.hpp"
 
 // config
+#include "config/nation.rds.hpp"
 #include "config/tile-enum.rds.hpp"
+
+// ss
+#include "ss/player.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -121,6 +125,35 @@ wait<> HarborBackdrop::smoke_thread() {
   }
 }
 
+wait<> HarborBackdrop::flag_thread() {
+  using namespace std::chrono_literals;
+  using namespace std::chrono;
+  int constexpr kCycles            = 20;
+  milliseconds constexpr kInterval = 150ms;
+  auto& l_stage                    = flag_state_.l_stage;
+  auto& r_stage                    = flag_state_.r_stage;
+
+  auto const move_to_target =
+      [&]( FlagState const state ) -> wait<> {
+    double const l_delta = ( state.l_stage - l_stage ) / kCycles;
+    double const r_delta = ( state.r_stage - r_stage ) / kCycles;
+    SCOPE_EXIT { flag_state_ = state; };
+    if( abs( l_delta ) < 0.001 && abs( r_delta ) < 0.001 )
+      co_return;
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kInterval;
+      l_stage += l_delta;
+      r_stage += r_delta;
+    }
+  };
+
+  flag_state_ = { 1.0, 0.0 };
+  while( true ) {
+    co_await move_to_target( { 1.0, 1.0 } );
+    co_await move_to_target( { 1.0, 0.0 } );
+  }
+}
+
 void HarborBackdrop::draw( rr::Renderer& renderer,
                            Coord coord ) const {
   rr::Painter painter = renderer.painter();
@@ -163,9 +196,37 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
   render_sprite( renderer, layout_.land_origin,
                  e_tile::harbor_land_dirt );
 
-  // Houses.
+  // Flag. Needs to be behind houses because in some configura-
+  // tions the bottom of the pole needs to go behind a building.
+  auto const render_flag_no_pole = [&]( point const p ) {
+    render_sprite_silhouette(
+        renderer, p, e_tile::harbor_flag_silhouette,
+        config_nation.nations[player_.nation].flag_color );
+    {
+      SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, 0.3 );
+      render_sprite( renderer, p, e_tile::harbor_flag_shades );
+    }
+  };
+  render_sprite( renderer, layout_.flag_origin,
+                 e_tile::harbor_flag_pole );
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             1.0 - flag_state_.l_stage );
+    render_flag_no_pole( layout_.flag_origin );
+  }
+  {
+    SCOPED_RENDERER_MOD_MUL( painter_mods.depixelate.stage,
+                             1.0 - flag_state_.r_stage );
+    render_flag_no_pole( layout_.flag_origin + size{ .w = 1 } );
+  }
+
+  // Houses.  These need to be in order.
+  render_sprite( renderer, layout_.houses_origin,
+                 e_tile::harbor_houses_trees_far );
   render_sprite( renderer, layout_.houses_origin,
                  e_tile::harbor_houses_buildings );
+  render_sprite( renderer, layout_.houses_origin,
+                 e_tile::harbor_houses_road );
   render_sprite( renderer, layout_.houses_origin,
                  e_tile::harbor_houses_docks );
 
@@ -301,6 +362,14 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   // in the houses file.
   l.houses_origin = land_point - size{ .w = 10, .h = 53 };
 
+  // Flag. For most resolutions the flag goes over the parliament
+  // tower building, but for narrow screens it goes over the
+  // church otherwise it would be hidden by the rpt buttons.
+  l.flag_origin =
+      land_point + ( sz.w > 600
+                         ? size{ .w = 228, .h = -48 }
+                         : size{ .w = 228 - 24, .h = -48 } );
+
   // Dock.
   l.dock_physical_nw =
       all.se() - size{ .w = 201, .h = 113 } + land_shift;
@@ -377,6 +446,7 @@ HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,
     size_( size ),
     layout_( layout ),
     birds_thread_( birds_thread() ),
-    smoke_thread_( smoke_thread() ) {}
+    smoke_thread_( smoke_thread() ),
+    flag_thread_( flag_thread() ) {}
 
 } // namespace rn

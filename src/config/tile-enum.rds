@@ -834,8 +834,15 @@ enum.e_tile {
 
   # Houses.
   harbor_houses_buildings,
+  harbor_houses_road,
   harbor_houses_docks,
   harbor_houses_smoke,
+  harbor_houses_trees_far,
+
+  # Misc. tiles.
+  harbor_flag_silhouette,
+  harbor_flag_shades,
+  harbor_flag_pole,
 
   # =============================================================
   # Mouse Cursors

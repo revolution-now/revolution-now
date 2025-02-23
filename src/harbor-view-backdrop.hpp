@@ -79,6 +79,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     gfx::rect sun;
     gfx::point land_origin;
     gfx::point houses_origin;
+    gfx::point flag_origin;
     gfx::point dock_physical_nw;
     gfx::point dock_sprite_nw;
     gfx::point dock_board_nw;
@@ -133,6 +134,15 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   SmokeState smoke_state_;
   wait<> smoke_thread_;
   wait<> smoke_thread();
+
+  // Flag animation.
+  struct FlagState {
+    double l_stage = {};
+    double r_stage = {};
+  };
+  FlagState flag_state_;
+  wait<> flag_thread_;
+  wait<> flag_thread();
 };
 
 } // namespace rn
