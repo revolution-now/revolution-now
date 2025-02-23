@@ -126,9 +126,9 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
 
   // Smoke animation.
   struct SmokeState {
-    double l_stage = 1.0;
-    double m_stage = 1.0;
-    double r_stage = 0.0;
+    double l_stage = {};
+    double m_stage = {};
+    double r_stage = {};
   };
   SmokeState smoke_state_;
   wait<> smoke_thread_;

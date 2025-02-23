@@ -89,41 +89,35 @@ wait<> HarborBackdrop::birds_thread() {
 
 wait<> HarborBackdrop::smoke_thread() {
   using namespace std::chrono_literals;
-  int constexpr kCycles = 20;
-  double const kDelta   = 1.0 / kCycles;
+  using namespace std::chrono;
+  int constexpr kCycles            = 20;
+  milliseconds constexpr kInterval = 150ms;
+  auto& l_stage                    = smoke_state_.l_stage;
+  auto& m_stage                    = smoke_state_.m_stage;
+  auto& r_stage                    = smoke_state_.r_stage;
 
-  chrono::milliseconds constexpr kInterval = 150ms;
+  auto const move_to_target =
+      [&]( SmokeState const state ) -> wait<> {
+    double const l_delta = ( state.l_stage - l_stage ) / kCycles;
+    double const m_delta = ( state.m_stage - m_stage ) / kCycles;
+    double const r_delta = ( state.r_stage - r_stage ) / kCycles;
+    SCOPE_EXIT { smoke_state_ = state; };
+    if( abs( l_delta ) < 0.001 && abs( m_delta ) < 0.001 &&
+        abs( r_delta ) < 0.001 )
+      co_return;
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kInterval;
+      l_stage += l_delta;
+      m_stage += m_delta;
+      r_stage += r_delta;
+    }
+  };
 
+  smoke_state_ = { 0.0, 0.0, 1.0 };
   while( true ) {
-    smoke_state_.l_stage = 0.0;
-    smoke_state_.m_stage = 0.0;
-    smoke_state_.r_stage = 1.0;
-    for( int i = 0; i < kCycles; ++i ) {
-      co_await kInterval;
-      smoke_state_.l_stage += 0.0;
-      smoke_state_.m_stage += kDelta;
-      smoke_state_.r_stage += -kDelta;
-    }
-
-    smoke_state_.l_stage = 0.0;
-    smoke_state_.m_stage = 1.0;
-    smoke_state_.r_stage = 0.0;
-    for( int i = 0; i < kCycles; ++i ) {
-      co_await kInterval;
-      smoke_state_.l_stage += kDelta;
-      smoke_state_.m_stage += -kDelta;
-      smoke_state_.r_stage += kDelta / 2;
-    }
-
-    smoke_state_.l_stage = 1.0;
-    smoke_state_.m_stage = 0.0;
-    smoke_state_.r_stage = 0.5;
-    for( int i = 0; i < kCycles; ++i ) {
-      co_await kInterval;
-      smoke_state_.l_stage += -kDelta;
-      smoke_state_.m_stage += 0.0;
-      smoke_state_.r_stage += kDelta / 2;
-    }
+    co_await move_to_target( { 0.0, 0.0, 1.0 } );
+    co_await move_to_target( { 0.0, 1.0, 0.0 } );
+    co_await move_to_target( { 1.0, 0.0, 0.5 } );
   }
 }
 
@@ -177,7 +171,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
 
   // Smoke.
   {
-    point const p = layout_.houses_origin - size{ .w = 10 };
+    point const p = layout_.houses_origin - size{ .w = 8 };
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                              p );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
@@ -185,7 +179,7 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
     render_sprite( renderer, p, e_tile::harbor_houses_smoke );
   }
   {
-    point const p = layout_.houses_origin - size{ .w = 5 };
+    point const p = layout_.houses_origin - size{ .w = 4 };
     SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
                              p );
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
