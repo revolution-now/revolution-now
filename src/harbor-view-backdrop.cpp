@@ -87,6 +87,46 @@ wait<> HarborBackdrop::birds_thread() {
   }
 }
 
+wait<> HarborBackdrop::smoke_thread() {
+  using namespace std::chrono_literals;
+  int constexpr kCycles = 20;
+  double const kDelta   = 1.0 / kCycles;
+
+  chrono::milliseconds constexpr kInterval = 150ms;
+
+  while( true ) {
+    smoke_state_.l_stage = 0.0;
+    smoke_state_.m_stage = 0.0;
+    smoke_state_.r_stage = 1.0;
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kInterval;
+      smoke_state_.l_stage += 0.0;
+      smoke_state_.m_stage += kDelta;
+      smoke_state_.r_stage += -kDelta;
+    }
+
+    smoke_state_.l_stage = 0.0;
+    smoke_state_.m_stage = 1.0;
+    smoke_state_.r_stage = 0.0;
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kInterval;
+      smoke_state_.l_stage += kDelta;
+      smoke_state_.m_stage += -kDelta;
+      smoke_state_.r_stage += kDelta / 2;
+    }
+
+    smoke_state_.l_stage = 1.0;
+    smoke_state_.m_stage = 0.0;
+    smoke_state_.r_stage = 0.5;
+    for( int i = 0; i < kCycles; ++i ) {
+      co_await kInterval;
+      smoke_state_.l_stage += -kDelta;
+      smoke_state_.m_stage += 0.0;
+      smoke_state_.r_stage += kDelta / 2;
+    }
+  }
+}
+
 void HarborBackdrop::draw( rr::Renderer& renderer,
                            Coord coord ) const {
   rr::Painter painter = renderer.painter();
@@ -128,6 +168,38 @@ void HarborBackdrop::draw( rr::Renderer& renderer,
                  e_tile::harbor_land_shadows );
   render_sprite( renderer, layout_.land_origin,
                  e_tile::harbor_land_dirt );
+
+  // Houses.
+  render_sprite( renderer, layout_.houses_origin,
+                 e_tile::harbor_houses_buildings );
+  render_sprite( renderer, layout_.houses_origin,
+                 e_tile::harbor_houses_docks );
+
+  // Smoke.
+  {
+    point const p = layout_.houses_origin - size{ .w = 10 };
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             p );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             smoke_state_.l_stage );
+    render_sprite( renderer, p, e_tile::harbor_houses_smoke );
+  }
+  {
+    point const p = layout_.houses_origin - size{ .w = 5 };
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             p );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             smoke_state_.m_stage );
+    render_sprite( renderer, p, e_tile::harbor_houses_smoke );
+  }
+  {
+    point const p = layout_.houses_origin - size{ .w = 0 };
+    SCOPED_RENDERER_MOD_SET( painter_mods.depixelate.hash_anchor,
+                             p );
+    SCOPED_RENDERER_MOD_MUL( painter_mods.alpha,
+                             smoke_state_.r_stage );
+    render_sprite( renderer, p, e_tile::harbor_houses_smoke );
+  }
 
   // Dock. NOTE: the dock overlay is draw in a separate function
   // so that it can be drawn over the doc units.
@@ -227,8 +299,13 @@ HarborBackdrop::Layout HarborBackdrop::recomposite(
   l.land_origin = all.se() -
                   sprite_size( e_tile::harbor_land_dirt ) +
                   land_shift;
+  point const land_point = l.land_origin + size{ .h = 8 };
 
   l.extra_space_for_ships = l.land_origin.x - l.horizon_center.x;
+
+  // Houses. This is the origin of the various sprites (layers)
+  // in the houses file.
+  l.houses_origin = land_point - size{ .w = 10, .h = 53 };
 
   // Dock.
   l.dock_physical_nw =
@@ -305,6 +382,7 @@ HarborBackdrop::HarborBackdrop( SS& ss, TS& ts, Player& player,
   : HarborSubView( ss, ts, player ),
     size_( size ),
     layout_( layout ),
-    birds_thread_( birds_thread() ) {}
+    birds_thread_( birds_thread() ),
+    smoke_thread_( smoke_thread() ) {}
 
 } // namespace rn

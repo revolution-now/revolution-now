@@ -51,6 +51,27 @@ sheets {
       }
     }
     {
+      img_path: assets/art/harbor2/houses-buildings.png
+      sprite_size: { w: 320, h: 102 }
+      sprites {
+        harbor_houses_buildings: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/houses-docks.png
+      sprite_size: { w: 320, h: 102 }
+      sprites {
+        harbor_houses_docks: { y: 0, x: 0 }
+      }
+    }
+    {
+      img_path: assets/art/harbor2/houses-smoke.png
+      sprite_size: { w: 320, h: 102 }
+      sprites {
+        harbor_houses_smoke: { y: 0, x: 0 }
+      }
+    }
+    {
       img_path: assets/art/harbor2/rpt-buttons.png
       sprite_size: { w: 49, h: 12 }
       sprites {

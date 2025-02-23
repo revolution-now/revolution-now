@@ -78,6 +78,7 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
     std::vector<std::pair<gfx::size, e_tile>> clouds;
     gfx::rect sun;
     gfx::point land_origin;
+    gfx::point houses_origin;
     gfx::point dock_physical_nw;
     gfx::point dock_sprite_nw;
     gfx::point dock_board_nw;
@@ -106,11 +107,10 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
 
   static void insert_clouds( Layout& l, gfx::size shift );
 
-  wait<> birds_thread();
-
   Delta const size_;
   Layout const layout_;
 
+  // Birds animation.
   struct BirdsFrameState {
     int frame = {};
 
@@ -122,6 +122,17 @@ struct HarborBackdrop : public ui::View, public HarborSubView {
   };
   maybe<BirdsState> birds_state_;
   wait<> birds_thread_;
+  wait<> birds_thread();
+
+  // Smoke animation.
+  struct SmokeState {
+    double l_stage = 1.0;
+    double m_stage = 1.0;
+    double r_stage = 0.0;
+  };
+  SmokeState smoke_state_;
+  wait<> smoke_thread_;
+  wait<> smoke_thread();
 };
 
 } // namespace rn

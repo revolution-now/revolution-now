@@ -832,6 +832,11 @@ enum.e_tile {
   harbor_rpt_purchase,
   harbor_rpt_train,
 
+  # Houses.
+  harbor_houses_buildings,
+  harbor_houses_docks,
+  harbor_houses_smoke,
+
   # =============================================================
   # Mouse Cursors
   # =============================================================
