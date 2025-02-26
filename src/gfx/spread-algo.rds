@@ -67,5 +67,4 @@ struct.ProgressSpreadSpacing {
 
 struct.ProgressSpread {
   spacings 'std::vector<ProgressSpreadSpacing>',
-  rendered_count 'int',
 }

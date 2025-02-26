@@ -139,11 +139,13 @@ TileSpreadRenderPlan build_progress_tile_spread(
   if( auto progress_spread =
           compute_icon_spread_progress_bar( progress_spec );
       progress_spread.has_value() ) {
-    adjust_rendered_count_for_progress_count(
-        progress_spec, *progress_spread, config.progress_count );
+    int const rendered_count =
+        clamp( progress_spec.spread_spec.count, 0,
+               config.progress_count );
     ProgressTileSpreadSpec const tile_spec{
       .source_spec     = progress_spec,
       .progress_spread = *progress_spread,
+      .rendered_count  = rendered_count,
       .tile            = config.tile,
       .label_opts      = config.options.label_opts,
       .label_count     = config.label_override.has_value()

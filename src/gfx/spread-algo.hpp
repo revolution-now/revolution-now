@@ -60,10 +60,6 @@ Spreads compute_icon_spread_proportionate(
 void adjust_rendered_count_for_progress_count(
     SpreadSpec const& spec, Spread& spread, int progress_count );
 
-void adjust_rendered_count_for_progress_count(
-    ProgressSpreadSpec const& spec, ProgressSpread& spread,
-    int progress_count );
-
 // In the OG sometimes labels can be turned on unconditionally
 // (e.g. in the colony view), but even when that does not happen,
 // the OG still sometimes puts labels on spreads that it deems to

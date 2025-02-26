@@ -105,6 +105,7 @@ struct.TileSpreadSpecs {
 struct.ProgressTileSpreadSpec {
   source_spec 'ProgressSpreadSpec',
   progress_spread 'ProgressSpread',
+  rendered_count 'int',
   tile 'e_tile',
   # If labels are rendered for this spread then they will use
   # these options.

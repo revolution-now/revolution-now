@@ -1028,6 +1028,33 @@ TEST_CASE( "[spread] requires_label/ProgressSpread" ) {
   auto const f = [&] { return requires_label( spread ); };
 
   REQUIRE( f() == false );
+
+  spread = { .spacings = {} };
+  REQUIRE( f() == false );
+
+  spread = { .spacings = {} };
+  REQUIRE( f() == false );
+
+  spread = { .spacings = { ProgressSpreadSpacing{} } };
+  REQUIRE( f() == false );
+
+  spread = { .spacings = { ProgressSpreadSpacing{
+               .mod = 0, .spacing = 0 } } };
+  REQUIRE( f() == false );
+
+  spread = { .spacings = { ProgressSpreadSpacing{
+               .mod = 1, .spacing = 0 } } };
+  REQUIRE( f() == false );
+
+  spread = { .spacings = { ProgressSpreadSpacing{
+               .mod = 1, .spacing = 1 } } };
+  REQUIRE( f() == true );
+
+  spread = { .spacings = {
+               ProgressSpreadSpacing{ .mod = 1, .spacing = 1 },
+               ProgressSpreadSpacing{ .mod = 0, .spacing = 0 },
+             } };
+  REQUIRE( f() == true );
 }
 
 TEST_CASE(
@@ -1192,23 +1219,6 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
-TEST_CASE(
-    "[spread] adjust_rendered_count_for_progress_count "
-    "(ProgressSpread)" ) {
-  ProgressSpreadSpec spec;
-  ProgressSpread spread;
-  ProgressSpread expected;
-  int progress_count = {};
-
-  auto const f = [&]() -> auto const& {
-    adjust_rendered_count_for_progress_count( spec, spread,
-                                              progress_count );
-    return spread;
-  };
-
-  (void)f;
-}
-
 TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
   ProgressSpreadSpec spec;
   ProgressSpread expected;
@@ -1229,11 +1239,10 @@ TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
       .count   = 161,
       .trimmed = interval{ .start = 2, .len = 16 } } };
   expected = ProgressSpread{
-    .spacings       = { { .mod = 1, .spacing = 3 },
-                        { .mod = 2, .spacing = 1 },
-                        { .mod = 4, .spacing = 1 },
-                        { .mod = 15, .spacing = 1 } },
-    .rendered_count = 161 };
+    .spacings = { { .mod = 1, .spacing = 3 },
+                  { .mod = 2, .spacing = 1 },
+                  { .mod = 4, .spacing = 1 },
+                  { .mod = 15, .spacing = 1 } } };
   REQUIRE( f() == expected );
 }
 

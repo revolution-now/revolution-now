@@ -70,15 +70,6 @@ void adjust_rendered_count_for_progress_count(
     rendered_count = 1;
 }
 
-void adjust_rendered_count_for_progress_count(
-    ProgressSpreadSpec const& spec, ProgressSpread& spread,
-    int const progress_count_uncapped ) {
-  int const total_count = spec.spread_spec.count;
-  int const progress_count =
-      std::min( progress_count_uncapped, total_count );
-  spread.rendered_count = progress_count;
-}
-
 maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
   auto const total_count = [&] {
     int64_t total = 0;
@@ -251,9 +242,8 @@ maybe<ProgressSpread> compute_icon_spread_progress_bar(
     return res;
 
   // From here on we should always be able to return a value.
-  auto& progress_spread          = res.emplace();
-  progress_spread.spacings       = { { 1, 1 } };
-  progress_spread.rendered_count = spec.spread_spec.count;
+  auto& progress_spread    = res.emplace();
+  progress_spread.spacings = { { 1, 1 } };
 
   if( int const max_bounds_possible =
           space_used_with_uniform_spacing( max_spacing );

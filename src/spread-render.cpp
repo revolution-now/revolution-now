@@ -231,8 +231,7 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   auto const& tile_trimmed_len   = trimmed.len;
   auto const& tile_trimmed_start = trimmed.start;
   size const tile_size           = sprite_size( tile_spec.tile );
-  int const rendered_count =
-      tile_spec.progress_spread.rendered_count;
+  int const rendered_count       = tile_spec.rendered_count;
   CHECK_LE( rendered_count,
             tile_spec.source_spec.spread_spec.count );
   if( rendered_count == 0 ) return plan;
@@ -258,7 +257,7 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
                       .h = tile_size.h } } );
     return res;
   }();
-  plan.bounds = tiles_all;
+  plan.bounds    = tiles_all;
   auto add_label = [&]( SpreadLabelOptions const& options ) {
     rect const first_tile_rect = tiles_all.with_size(
         size{ .w = trimmed.len, .h = tile_size.h } );
@@ -276,7 +275,7 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
         return config_ui.tile_spreads.default_label_placement;
       SWITCH( *options.placement ) {
         CASE( left_middle_adjusted ) {
-          if( tile_spec.progress_spread.rendered_count == 1 )
+          if( tile_spec.rendered_count == 1 )
             return e_cdirection::c;
           return e_cdirection::c;
         }
