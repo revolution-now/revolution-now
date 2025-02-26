@@ -996,7 +996,7 @@ TEST_CASE( "[spread] compute_icon_spread_proportionate" ) {
   REQUIRE( f() == expected );
 }
 
-TEST_CASE( "[spread] requires_label" ) {
+TEST_CASE( "[spread] requires_label/Spread" ) {
   Spread spread;
 
   auto const f = [&] { return requires_label( spread ); };
@@ -1022,8 +1022,17 @@ TEST_CASE( "[spread] requires_label" ) {
   REQUIRE( f() == true );
 }
 
+TEST_CASE( "[spread] requires_label/ProgressSpread" ) {
+  ProgressSpread spread;
+
+  auto const f = [&] { return requires_label( spread ); };
+
+  REQUIRE( f() == false );
+}
+
 TEST_CASE(
-    "[spread] adjust_rendered_count_for_progress_count" ) {
+    "[spread] adjust_rendered_count_for_progress_count "
+    "(Spread)" ) {
   SpreadSpec spec;
   Spread spread;
   Spread expected;
@@ -1180,6 +1189,51 @@ TEST_CASE(
   progress_count          = 50;
   expected                = spread;
   expected.rendered_count = 50;
+  REQUIRE( f() == expected );
+}
+
+TEST_CASE(
+    "[spread] adjust_rendered_count_for_progress_count "
+    "(ProgressSpread)" ) {
+  ProgressSpreadSpec spec;
+  ProgressSpread spread;
+  ProgressSpread expected;
+  int progress_count = {};
+
+  auto const f = [&]() -> auto const& {
+    adjust_rendered_count_for_progress_count( spec, spread,
+                                              progress_count );
+    return spread;
+  };
+
+  (void)f;
+}
+
+TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
+  ProgressSpreadSpec spec;
+  ProgressSpread expected;
+
+  auto f = [&] {
+    return compute_icon_spread_progress_bar( spec );
+  };
+
+  // Default case.
+  spec     = {};
+  expected = {};
+  REQUIRE( f() == expected );
+
+  // Case 1.
+  spec = ProgressSpreadSpec{
+    .bounds      = 626,
+    .spread_spec = SpreadSpec{
+      .count   = 161,
+      .trimmed = interval{ .start = 2, .len = 16 } } };
+  expected = ProgressSpread{
+    .spacings       = { { .mod = 1, .spacing = 3 },
+                        { .mod = 2, .spacing = 1 },
+                        { .mod = 4, .spacing = 1 },
+                        { .mod = 15, .spacing = 1 } },
+    .rendered_count = 161 };
   REQUIRE( f() == expected );
 }
 

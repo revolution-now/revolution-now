@@ -28,6 +28,10 @@ namespace rn {
 [[nodiscard]] TileSpreadRenderPlans render_plan_for_tile_spread(
     TileSpreadSpecs const& tile_spreads );
 
+[[nodiscard]] TileSpreadRenderPlan
+render_plan_for_tile_progress_spread(
+    ProgressTileSpreadSpec const& tile_spec );
+
 // Iterate through the non-overlay tiles and keep replacing
 // `from` tiles with `to` tiles until either N is reached or we
 // encounter a non-`from` tile.

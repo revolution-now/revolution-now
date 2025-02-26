@@ -134,10 +134,11 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     // player normally, so we'll just show it.
     l.founding_father_title += fmt::format(
         " [{}/{}]", player.fathers.bells, *bells_needed );
-    TileSpreadConfig const founding_father_spread_opts{
-      .tile = { .tile           = kBellsTile,
-                .count          = *bells_needed,
-                .progress_count = player.fathers.bells },
+    ProgressTileSpreadConfig const founding_father_spread_opts{
+      .tile           = kBellsTile,
+      .count          = *bells_needed,
+      .progress_count = player.fathers.bells,
+      .label_override = nothing,
       .options =
           {
             .bounds       = l.canvas.size.w - 2 * margin,
@@ -148,8 +149,8 @@ Layout layout_auto( SSConst const& ss, Player const& player,
                         .placement = e_cdirection::sw } },
           },
     };
-    l.founding_father_spreads =
-        build_tile_spread( founding_father_spread_opts );
+    l.founding_father_spreads = build_progress_tile_spread(
+        founding_father_spread_opts );
   }();
 
   [&] {

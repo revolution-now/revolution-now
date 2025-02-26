@@ -36,6 +36,14 @@ bool requires_label( Spread const& spread ) {
   return false;
 }
 
+bool requires_label( ProgressSpread const& spread ) {
+  if( spread.spacings.size() >= 1 &&
+      spread.spacings[0].mod == 1 &&
+      spread.spacings[0].spacing == 1 )
+    return true;
+  return false;
+}
+
 void adjust_rendered_count_for_progress_count(
     SpreadSpec const& spec, Spread& spread,
     int const progress_count_uncapped ) {
@@ -60,6 +68,15 @@ void adjust_rendered_count_for_progress_count(
              rendered_count );
   if( progress_count > 0 && rendered_count == 0 )
     rendered_count = 1;
+}
+
+void adjust_rendered_count_for_progress_count(
+    ProgressSpreadSpec const& spec, ProgressSpread& spread,
+    int const progress_count_uncapped ) {
+  int const total_count = spec.spread_spec.count;
+  int const progress_count =
+      std::min( progress_count_uncapped, total_count );
+  spread.rendered_count = progress_count;
 }
 
 maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs ) {
@@ -204,6 +221,118 @@ Spreads compute_icon_spread_proportionate(
 
   CHECK_EQ( spreads.spreads.size(), specs.specs.size() );
   return spreads;
+}
+
+#define DEBUG_PRINT( ... )
+
+maybe<ProgressSpread> compute_icon_spread_progress_bar(
+    ProgressSpreadSpec const& spec ) {
+  maybe<ProgressSpread> res;
+  int const bounds      = spec.bounds;
+  int const tile_width  = spec.spread_spec.trimmed.len;
+  int const max_spacing = tile_width + 1;
+  int const count       = spec.spread_spec.count;
+
+  if( count <= 0 ) {
+    res.emplace();
+    return res;
+  }
+  CHECK_GE( count, 0 );
+
+  auto const space_used_with_uniform_spacing =
+      [&]( int const spacing ) {
+        return std::max( ( count - 1 ) * spacing + tile_width,
+                         0 );
+      };
+
+  if( int const min_bounds_needed =
+          space_used_with_uniform_spacing( 1 );
+      min_bounds_needed > bounds )
+    return res;
+
+  // From here on we should always be able to return a value.
+  auto& progress_spread          = res.emplace();
+  progress_spread.spacings       = { { 1, 1 } };
+  progress_spread.rendered_count = spec.spread_spec.count;
+
+  if( int const max_bounds_possible =
+          space_used_with_uniform_spacing( max_spacing );
+      max_bounds_possible <= bounds ) {
+    progress_spread.spacings = { { 1, max_spacing } };
+    return res;
+  }
+
+  vector<ProgressSpreadSpacing> spacings;
+
+  auto const space_used_by_elem =
+      [&]( ProgressSpreadSpacing const& elem ) {
+        CHECK_GT( elem.mod, 0 );
+        int const count_affected = ( count - 1 ) / elem.mod;
+        return elem.spacing * count_affected;
+      };
+
+  auto const space_used =
+      [&]( ProgressSpreadSpacing const& proposed ) {
+        int total = 0;
+        for( auto const& elem : spacings )
+          total += space_used_by_elem( elem );
+        total += space_used_by_elem( proposed );
+        total += tile_width;
+        return total;
+      };
+
+  auto const space_remaining_with_proposed =
+      [&]( ProgressSpreadSpacing const& proposed ) {
+        maybe<int> remaining;
+        remaining = bounds - space_used( proposed );
+        if( *remaining < 0 ) remaining.reset();
+        return remaining;
+      };
+
+  auto const space_remaining = [&] {
+    ProgressSpreadSpacing const empty{ .mod = 1, .spacing = 0 };
+    return space_remaining_with_proposed( empty );
+  };
+
+  int const max_mod = count - 1;
+  ProgressSpreadSpacing next{ .mod = 1, .spacing = 0 };
+  int circuit_breaker = 10000; // TODO
+  DEBUG_PRINT( "spec: {}", spec );
+  // Makes sure we don't try a mod more than once.
+  int last_mod = 1;
+  while( true ) {
+    DEBUG_PRINT( "--------------------------------------" );
+    DEBUG_PRINT( "curcuit_breaker: {}", circuit_breaker );
+    DEBUG_PRINT( "next: {}", next );
+    while( true ) {
+      auto const remaining =
+          space_remaining_with_proposed( ProgressSpreadSpacing{
+            .mod = next.mod, .spacing = next.spacing + 1 } );
+      if( !remaining.has_value() ) break;
+      ++next.spacing;
+    }
+    DEBUG_PRINT( "found: {}", next );
+    if( next.spacing > 0 ) spacings.push_back( next );
+    auto const remaining = space_remaining();
+    DEBUG_PRINT( "remaining: {}", remaining );
+    if( !remaining.has_value() )
+      // TODO: needed?
+      break;
+    if( *remaining == 0 ) break;
+    int const next_mod =
+        std::max( 1 + count / ( *remaining + 1 ), last_mod + 1 );
+    last_mod = next_mod;
+    DEBUG_PRINT( "next_mod: {}", next_mod );
+    if( next_mod > max_mod ) break;
+    if( next_mod == 1 ) break;
+    CHECK_GT( next_mod, 0 );
+    next =
+        ProgressSpreadSpacing{ .mod = next_mod, .spacing = 0 };
+    CHECK_GT( circuit_breaker--, 0 );
+  }
+
+  res->spacings = std::move( spacings );
+  return res;
 }
 
 } // namespace rn

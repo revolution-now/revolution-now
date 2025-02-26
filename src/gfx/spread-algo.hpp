@@ -25,6 +25,23 @@ namespace rn {
 // as it doesn't know anything about the game's tiles.
 maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs );
 
+// This is for the case where we just have a single spread that
+// will be partially rendered to represent a progress bar. The
+// main difference between this algo and the usual spread algo is
+// that in this one we relax the requirement that individual
+// tiles in a spread must all have the same spacing: non-uniform
+// spacings are used to try to fill the entire bounds with the
+// tiles, which is better for a progress indicator since that way
+// the viewer gets a sense of the progress by comparing the total
+// number of rendered tiles against the total bounds, which they
+// would not be able to do with the usual spread algo (which
+// often settles for using only part of the total bounds).
+//
+// This will return nothing if it cannot fit within the bounds
+// even when all tiles are spaced just one pixel apart.
+maybe<ProgressSpread> compute_icon_spread_progress_bar(
+    ProgressSpreadSpec const& spec );
+
 // This one is called when we can't fit all the icons within the
 // bounds even when all of their spacings are reduced to one
 // (i.e., where the principle method above returns nothing). We
@@ -43,6 +60,10 @@ Spreads compute_icon_spread_proportionate(
 void adjust_rendered_count_for_progress_count(
     SpreadSpec const& spec, Spread& spread, int progress_count );
 
+void adjust_rendered_count_for_progress_count(
+    ProgressSpreadSpec const& spec, ProgressSpread& spread,
+    int progress_count );
+
 // In the OG sometimes labels can be turned on unconditionally
 // (e.g. in the colony view), but even when that does not happen,
 // the OG still sometimes puts labels on spreads that it deems to
@@ -51,5 +72,8 @@ void adjust_rendered_count_for_progress_count(
 // is such that it would be difficult for the player to read the
 // count visually.
 [[nodiscard]] bool requires_label( Spread const& spread );
+
+[[nodiscard]] bool requires_label(
+    ProgressSpread const& spread );
 
 } // namespace rn

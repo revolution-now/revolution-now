@@ -38,6 +38,15 @@ struct.SpreadSpecs {
   group_spacing 'int',
 }
 
+struct.ProgressSpreadSpec {
+  # Maximum allowed width in pixels that can be used by the final
+  # rendered result. While it will never be exceeded, we will try
+  # to use as much of it as possible.
+  bounds 'int',
+  spread_spec 'SpreadSpec',
+}
+
+
 # Computed output.
 struct.Spread {
   # NOTE: this may be different than the real count that was
@@ -49,4 +58,14 @@ struct.Spread {
 
 struct.Spreads {
   spreads 'std::vector<Spread>',
+}
+
+struct.ProgressSpreadSpacing {
+  mod 'int',
+  spacing 'int',
+}
+
+struct.ProgressSpread {
+  spacings 'std::vector<ProgressSpreadSpacing>',
+  rendered_count 'int',
 }

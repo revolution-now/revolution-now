@@ -203,6 +203,109 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
   return plans;
 }
 
+TileSpreadRenderPlan render_plan_for_tile_progress_spread(
+    ProgressTileSpreadSpec const& tile_spec ) {
+  TileSpreadRenderPlan plan;
+  point p = {};
+  bool const has_required_label =
+      requires_label( tile_spec.progress_spread );
+  // TODO: dedupe
+  auto const label_options =
+      [&]() -> maybe<SpreadLabelOptions const&> {
+    SWITCH( tile_spec.label_policy ) {
+      CASE( never ) { return nothing; }
+      CASE( always ) { return tile_spec.label_opts; }
+      CASE( auto_decide ) {
+        bool const force =
+            has_required_label && auto_decide.viral;
+        if( force ||
+            requires_label( tile_spec.progress_spread ) )
+          return tile_spec.label_opts;
+        return nothing;
+      }
+    }
+  };
+  point const p_start = p;
+  auto const& trimmed =
+      tile_spec.source_spec.spread_spec.trimmed;
+  auto const& tile_trimmed_len   = trimmed.len;
+  auto const& tile_trimmed_start = trimmed.start;
+  size const tile_size           = sprite_size( tile_spec.tile );
+  int const rendered_count =
+      tile_spec.progress_spread.rendered_count;
+  CHECK_LE( rendered_count,
+            tile_spec.source_spec.spread_spec.count );
+  if( rendered_count == 0 ) return plan;
+  for( int i = 0; i < rendered_count; ++i ) {
+    point const p_drawn = p.moved_left( tile_trimmed_start );
+    plan.tiles.push_back(
+        TileRenderPlan{ .tile       = tile_spec.tile,
+                        .where      = p_drawn,
+                        .is_overlay = false } );
+    for( auto const& [mod, spacing] :
+         tile_spec.progress_spread.spacings ) {
+      CHECK_GT( mod, 0 );
+      if( ( i + 1 ) % mod == 0 ) p.x += spacing;
+    }
+  }
+  rect const tiles_all = [&] {
+    rect res{ .origin = p_start };
+    for( auto const& tile : plan.tiles )
+      if( !tile.is_overlay )
+        res = res.uni0n( rect{
+          .origin = tile.where + size{ .w = tile_trimmed_start },
+          .size   = { .w = tile_trimmed_len,
+                      .h = tile_size.h } } );
+    return res;
+  }();
+  plan.bounds = tiles_all;
+  auto add_label = [&]( SpreadLabelOptions const& options ) {
+    rect const first_tile_rect = tiles_all.with_size(
+        size{ .w = trimmed.len, .h = tile_size.h } );
+    rect const placement_rect = [&] {
+      if( !options.placement.has_value() )
+        return first_tile_rect;
+      SWITCH( *options.placement ) {
+        CASE( left_middle_adjusted ) { return first_tile_rect; }
+        CASE( in_first_tile ) { return first_tile_rect; }
+        CASE( in_total_rect ) { return tiles_all; }
+      }
+    }();
+    e_cdirection const placement = [&] {
+      if( !options.placement.has_value() )
+        return config_ui.tile_spreads.default_label_placement;
+      SWITCH( *options.placement ) {
+        CASE( left_middle_adjusted ) {
+          if( tile_spec.progress_spread.rendered_count == 1 )
+            return e_cdirection::c;
+          return e_cdirection::c;
+        }
+        CASE( in_first_tile ) { return in_first_tile.placement; }
+        CASE( in_total_rect ) { return in_total_rect.placement; }
+      }
+    }();
+    int const label_count = tile_spec.label_count.value_or(
+        tile_spec.source_spec.spread_spec.count );
+    string const label_text      = to_string( label_count );
+    size const padded_label_size = [&] {
+      size const label_size =
+          rr::rendered_text_line_size_pixels( label_text );
+      int const padding = options.text_padding.value_or(
+          config_ui.tile_spreads.label_text_padding );
+      return size{ .w = label_size.w + padding * 2,
+                   .h = label_size.h + padding * 2 };
+    }();
+    plan.label = SpreadLabelRenderPlan{
+      .options = options,
+      .text    = label_text,
+      .where   = gfx::centered_at( padded_label_size,
+                                   placement_rect, placement ),
+    };
+  };
+  label_options().visit( add_label );
+  return plan;
+}
+
 void replace_first_n_tiles( TileSpreadRenderPlans& plans,
                             int const n_replace,
                             e_tile const from,

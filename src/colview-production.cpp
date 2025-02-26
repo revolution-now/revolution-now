@@ -91,19 +91,22 @@ void ProductionView::create_hammer_spreads(
     int const hammers_in_row =
         std::min( hammers_remaining, max_hammers_per_row );
     hammers_remaining -= hammers_in_row;
-    TileSpreadConfig const config{
-      .tile    = { .tile           = e_tile::product_hammers_20,
-                   .count          = max_hammers_per_row,
-                   .progress_count = hammers_in_row,
-                   .label_override = label_override },
-      .options = {
-        .bounds       = layout_.hammer_spread_rect.size.w,
-        .label_policy = label_policy,
-        .label_opts   = { .placement =
-                              SpreadLabelPlacement::in_first_tile{
-                                .placement = e_cdirection::c } },
-      } };
-    out[i] = build_tile_spread( config );
+    ProgressTileSpreadConfig const config{
+      .tile           = e_tile::product_hammers_20,
+      .count          = max_hammers_per_row,
+      .progress_count = hammers_in_row,
+      .label_override = label_override,
+      .options =
+          {
+            .bounds       = layout_.hammer_spread_rect.size.w,
+            .label_policy = label_policy,
+            .label_opts =
+                { .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::c } },
+          },
+    };
+    out[i] = build_progress_tile_spread( config );
     // Label only on first row.
     label_policy   = SpreadLabels::never{};
     label_override = nothing;

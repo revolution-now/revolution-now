@@ -323,6 +323,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[spread] render_plan_for_tile_progress_spread" ) {
+}
+
 TEST_CASE( "[spread] replace_first_n_tiles" ) {
 }
 

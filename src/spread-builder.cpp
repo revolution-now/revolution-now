@@ -37,27 +37,7 @@ using ::std::ranges::views::zip;
 ** Public API.
 *****************************************************************/
 TileSpreadRenderPlans build_tile_spread_multi(
-    TileSpreadConfigMulti const& configs_unadjusted ) {
-  TileSpreadConfigMulti const configs = [&] {
-    TileSpreadConfigMulti res = configs_unadjusted;
-    for( auto& tile_spread : res.tiles ) {
-      if( tile_spread.progress_count.has_value() )
-        // This is done for two reasons: one because if the
-        // progress happens to be larger than the total (which
-        // can happen, e.g. if the player transiently has more
-        // liberty bells than are needed for the next founding
-        // father) then the below spread algo will crash. Second,
-        // in that same scenario, if we were to instead cap the
-        // player's progress count then there would be a visual
-        // discrepancy between how many tiles are rendered and
-        // what is shown on the label. So we just increase the
-        // total to be equal to the progress, which should lead
-        // to the right thing visually happening.
-        tile_spread.count = std::max(
-            tile_spread.count, *tile_spread.progress_count );
-    }
-    return res;
-  }();
+    TileSpreadConfigMulti const& configs ) {
   SpreadSpecs const specs = [&] {
     SpreadSpecs res;
     res.bounds        = configs.options.bounds;
@@ -78,15 +58,6 @@ TileSpreadRenderPlans build_tile_spread_multi(
     else
       spreads = compute_icon_spread_proportionate( specs );
     CHECK_EQ( spreads.spreads.size(), specs.specs.size() );
-    for( auto tiles_it = configs.tiles.begin();
-         auto const [spec, spread] :
-         zip( specs.specs, spreads.spreads ) ) {
-      CHECK( tiles_it != configs.tiles.end() );
-      if( tiles_it->progress_count.has_value() )
-        adjust_rendered_count_for_progress_count(
-            spec, spread, *tiles_it->progress_count );
-      ++tiles_it;
-    }
     return spreads;
   }();
   TileSpreadSpecs const tile_spreads = [&] {
@@ -101,9 +72,7 @@ TileSpreadRenderPlans build_tile_spread_multi(
         .icon_spread = icon_spread,
         .tile        = config_it->tile,
         .label_opts  = configs.options.label_opts,
-        .label_count = config_it->label_override.has_value()
-                           ? config_it->label_override
-                           : config_it->progress_count };
+        .label_count = config_it->label_override };
       if( config_it->has_x ) {
         tile_spread_spec.label_opts.color_fg = pixel::red();
         switch( ( *config_it->has_x ) ) {
@@ -137,6 +106,80 @@ TileSpreadRenderPlan build_tile_spread(
   CHECK_LE( plans.plans.size(), 1u );
   if( !plans.plans.empty() ) res = std::move( plans.plans[0] );
   return res;
+}
+
+TileSpreadRenderPlan build_progress_tile_spread(
+    ProgressTileSpreadConfig const& config_unadjusted ) {
+  TileSpreadRenderPlan res;
+  ProgressTileSpreadConfig const config = [&] {
+    ProgressTileSpreadConfig res = config_unadjusted;
+    // This is done for two reasons: one because if the progress
+    // happens to be larger than the total (which can happen,
+    // e.g. if the player transiently has more liberty bells than
+    // are needed for the next founding father) then the below
+    // spread algo will crash. Second, in that same scenario, if
+    // we were to instead cap the player's progress count then
+    // there would be a visual discrepancy between how many tiles
+    // are rendered and what is shown on the label. So we just
+    // increase the total to be equal to the progress, which
+    // should lead to the right thing visually happening.
+    res.count = std::max( res.count, res.progress_count );
+    return res;
+  }();
+  ProgressSpreadSpec const progress_spec = [&] {
+    ProgressSpreadSpec res;
+    res.bounds      = config.options.bounds;
+    res.spread_spec = SpreadSpec{
+      .count = config.count,
+      .trimmed =
+          trimmed_area_for( config.tile ).horizontal_slice() };
+    return res;
+  }();
+
+  if( auto progress_spread =
+          compute_icon_spread_progress_bar( progress_spec );
+      progress_spread.has_value() ) {
+    adjust_rendered_count_for_progress_count(
+        progress_spec, *progress_spread, config.progress_count );
+    ProgressTileSpreadSpec const tile_spec{
+      .source_spec     = progress_spec,
+      .progress_spread = *progress_spread,
+      .tile            = config.tile,
+      .label_opts      = config.options.label_opts,
+      .label_count     = config.label_override.has_value()
+                             ? config.label_override
+                             : config.progress_count,
+      .label_policy    = config.options.label_policy,
+    };
+    return render_plan_for_tile_progress_spread( tile_spec );
+  }
+  SpreadSpec const& spec = progress_spec.spread_spec;
+  SpreadSpecs const specs{ .bounds = config.options.bounds,
+                           .specs  = { spec },
+                           .group_spacing = 0 };
+  Spreads spreads = compute_icon_spread_proportionate( specs );
+  CHECK_EQ( spreads.spreads.size(), 1u );
+  auto& spread = spreads.spreads[0];
+  adjust_rendered_count_for_progress_count(
+      spec, spread, config.progress_count );
+  TileSpreadSpecs const tile_specs{
+    .spreads       = { TileSpreadSpecWithSourceSpec{
+            .algo_spec = spec,
+            .tile_spec =
+          TileSpreadSpec{
+                  .icon_spread  = spread,
+                  .tile         = config.tile,
+                  .overlay_tile = nothing,
+                  .label_opts   = config.options.label_opts,
+                  .label_count  = config.label_override.has_value()
+                                      ? config.label_override
+                                      : config.progress_count } } },
+    .group_spacing = 0,
+    .label_policy  = config.options.label_policy };
+  TileSpreadRenderPlans plans =
+      render_plan_for_tile_spread( tile_specs );
+  CHECK_EQ( plans.plans.size(), 1u );
+  return std::move( plans.plans[0] );
 }
 
 } // namespace rn
