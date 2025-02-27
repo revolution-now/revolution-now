@@ -209,7 +209,6 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   point p = {};
   bool const has_required_label =
       requires_label( tile_spec.progress_spread );
-  // TODO: dedupe
   auto const label_options =
       [&]() -> maybe<SpreadLabelOptions const&> {
     SWITCH( tile_spec.label_policy ) {
@@ -348,14 +347,6 @@ void draw_rendered_icon_spread(
             config_ui.tile_spreads.label_text_padding ),
         config_ui.tile_spreads.bg_box_has_corners );
   }
-#if 0
-  // render
-#  include "render/painter.hpp"  // FIXME: remove
-#  include "render/renderer.hpp" // FIXME: remove
-  renderer.painter().draw_empty_rect(
-      plan.bounds.origin_becomes_point( origin ),
-      rr::Painter::e_border_mode::inside, gfx::pixel::green() );
-#endif
 }
 
 void draw_rendered_icon_spread(
