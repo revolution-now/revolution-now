@@ -10,12 +10,17 @@
 *****************************************************************/
 #include "spread-algo.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
+// base
+#include "base/logger.hpp"
+#include "base/to-str-ext-std.hpp"
+
 // C++ standard library
 #include <ranges>
 
 using namespace std;
-
-namespace rv = std::ranges::views;
 
 namespace rn {
 
@@ -214,15 +219,55 @@ Spreads compute_icon_spread_proportionate(
   return spreads;
 }
 
-#define DEBUG_PRINT( ... )
-
+// The idea with this algorithm is that we start off with `count`
+// icons each one pixel spacing (total spacing; so they are
+// mostly overlapping). Then if there is still space remaining in
+// the bounds, we try to increase spacing so as to make the icons
+// use up all of the space. This is generally not possible with
+// uniform spacing, so we need to make the spacing non-uniform.
+// We do this by walking upward through all of the possible "fre-
+// quencies" at which we can add spacing, i.e. we start at every
+// one icon and add as much space between them as possible until
+// we would exceed the bounds, then (space permitting) we move to
+// the next frequency which is every second icon and increase
+// spacing on those until we can't go further, etc. Each time we
+// bump the frequency, the total incremental space that gets used
+// tends to decrease with each pixel of space added (because
+// there are fewer icons whose spacing is being increased). This
+// allows us to fine tune the amount of space used by the spread
+// to be precisely equal to the input bounds.
+//
+// Example:
+//
+//   tile:   Xxxxx (length 5)
+//   count:  8
+//   bounds: ------------------------------ (30)
+//
+//   result: frequency 1: spacing 3
+//           frequency 2: spacing 1
+//           frequency 3: n/a
+//           frequeycy 4: spacing 1
+//           rest:        n/a
+//
+//           XxxXxxXxxxXxxXxxxxXxxXxxxXxxxx
+//
+//           The largest space is between X's #4 and #5, since 4
+//           is a multiple of all three of the frequencies chosen
+//           (1, 2, 4).
+//
+// That said, there are two cases where it is not possible to
+// precisely cover the bounds, namely when there are two few
+// icons (since they can't have more than one pixel of gap be-
+// tween them) and when there are too many such that even low-
+// ering the spacing to one does not allow them to fit. These two
+// cases are handled first.
 maybe<ProgressSpread> compute_icon_spread_progress_bar(
     ProgressSpreadSpec const& spec ) {
   maybe<ProgressSpread> res;
   int const bounds      = spec.bounds;
   int const tile_width  = spec.spread_spec.trimmed.len;
   int const max_spacing = tile_width + 1;
-  int const count       = spec.spread_spec.count;
+  int64_t const count   = spec.spread_spec.count;
 
   if( count <= 0 ) {
     res.emplace();
@@ -230,97 +275,100 @@ maybe<ProgressSpread> compute_icon_spread_progress_bar(
   }
   CHECK_GE( count, 0 );
 
-  auto const space_used_with_uniform_spacing =
-      [&]( int const spacing ) {
-        return std::max( ( count - 1 ) * spacing + tile_width,
-                         0 );
-      };
+  // Find total space taken when there is uniform spacing.
+  auto const uniform = [&]( int64_t const spacing ) {
+    return std::max( ( count - 1 ) * spacing + tile_width,
+                     int64_t{ 0 } );
+  };
 
-  if( int const min_bounds_needed =
-          space_used_with_uniform_spacing( 1 );
+  if( int64_t const min_bounds_needed = uniform( 1 );
       min_bounds_needed > bounds )
     return res;
 
   // From here on we should always be able to return a value.
-  auto& progress_spread    = res.emplace();
-  progress_spread.spacings = { { 1, 1 } };
+  auto& progress_spread = res.emplace();
 
-  if( int const max_bounds_possible =
-          space_used_with_uniform_spacing( max_spacing );
+  if( int64_t const max_bounds_possible = uniform( max_spacing );
       max_bounds_possible <= bounds ) {
     progress_spread.spacings = { { 1, max_spacing } };
     return res;
   }
 
-  vector<ProgressSpreadSpacing> spacings;
+  using P = ProgressSpreadSpacing;
+  vector<P> spacings;
 
-  auto const space_used_by_elem =
-      [&]( ProgressSpreadSpacing const& elem ) {
-        CHECK_GT( elem.mod, 0 );
-        int const count_affected = ( count - 1 ) / elem.mod;
-        return elem.spacing * count_affected;
-      };
-
-  auto const space_used =
-      [&]( ProgressSpreadSpacing const& proposed ) {
-        int total = 0;
-        for( auto const& elem : spacings )
-          total += space_used_by_elem( elem );
-        total += space_used_by_elem( proposed );
-        total += tile_width;
-        return total;
-      };
-
-  auto const space_remaining_with_proposed =
-      [&]( ProgressSpreadSpacing const& proposed ) {
-        maybe<int> remaining;
-        remaining = bounds - space_used( proposed );
-        if( *remaining < 0 ) remaining.reset();
-        return remaining;
-      };
-
-  auto const space_remaining = [&] {
-    ProgressSpreadSpacing const empty{ .mod = 1, .spacing = 0 };
-    return space_remaining_with_proposed( empty );
+  auto const space_used_by_elem = [&]( P const& elem ) {
+    CHECK_GT( elem.mod, 0 );
+    int64_t const count_affected = ( count - 1 ) / elem.mod;
+    return elem.spacing * count_affected;
   };
 
-  int const max_mod = count - 1;
-  ProgressSpreadSpacing next{ .mod = 1, .spacing = 0 };
-  int circuit_breaker = 10000; // TODO
-  DEBUG_PRINT( "spec: {}", spec );
-  // Makes sure we don't try a mod more than once.
-  int last_mod = 1;
+  auto const space_used = [&]( P const& proposed ) {
+    int64_t total = 0;
+    for( auto const& elem : spacings )
+      total += space_used_by_elem( elem );
+    total += space_used_by_elem( proposed );
+    total += tile_width;
+    return total;
+  };
+
+  auto const space_remaining_with = [&]( P const& proposed ) {
+    return bounds - space_used( proposed );
+  };
+
+  auto const space_remaining = [&] {
+    P const empty{ .mod = 1, .spacing = 0 };
+    return space_remaining_with( empty );
+  };
+
+  P next{ .mod = 1, .spacing = 0 };
   while( true ) {
-    DEBUG_PRINT( "--------------------------------------" );
-    DEBUG_PRINT( "curcuit_breaker: {}", circuit_breaker );
-    DEBUG_PRINT( "next: {}", next );
+    // This expected number of iterations of this loop should be
+    // on the order of the width of a typical tile, e.g. 10^1.
     while( true ) {
-      auto const remaining =
-          space_remaining_with_proposed( ProgressSpreadSpacing{
-            .mod = next.mod, .spacing = next.spacing + 1 } );
-      if( !remaining.has_value() ) break;
-      ++next.spacing;
+      auto proposed = next;
+      ++proposed.spacing;
+      if( space_remaining_with( proposed ) < 0 ) break;
+      next = proposed;
     }
-    DEBUG_PRINT( "found: {}", next );
     if( next.spacing > 0 ) spacings.push_back( next );
-    auto const remaining = space_remaining();
-    DEBUG_PRINT( "remaining: {}", remaining );
-    if( !remaining.has_value() )
-      // TODO: needed?
+    int64_t const remaining = space_remaining();
+    CHECK_GE( remaining, 0 );
+    if( remaining == 0 ) break;
+    auto& mod = next.mod;
+    // Add 1 to remaining because we want to to make `remaining`
+    // splits in the count, and to do that we divide it into `re-
+    // maining+1` segments. Add 1 to mod so that we guarantee
+    // that we never repeat checking the same mod, since that'd
+    // mess things up.
+    mod = std::max( count / ( remaining + 1 ), mod + 1 );
+    CHECK_GT( mod, 1 );
+    next.spacing = 0;
+    // Circuit breaker. Should never happen, but will prevent an
+    // infinite loop in case something has gone wrong. Note that
+    // if we're breaking out of the loop at this point, it is
+    // likely that we haven't exhausted all of the available
+    // bounds, and thus we will check fail below.
+    if( mod > count ) {
+      lg.error(
+          "internal failure to exhaust bounds in tile spread "
+          "algo for spec: {}",
+          spec );
       break;
-    if( *remaining == 0 ) break;
-    int const next_mod =
-        std::max( 1 + count / ( *remaining + 1 ), last_mod + 1 );
-    last_mod = next_mod;
-    DEBUG_PRINT( "next_mod: {}", next_mod );
-    if( next_mod > max_mod ) break;
-    if( next_mod == 1 ) break;
-    CHECK_GT( next_mod, 0 );
-    next =
-        ProgressSpreadSpacing{ .mod = next_mod, .spacing = 0 };
-    CHECK_GT( circuit_breaker--, 0 );
+    }
   }
 
+  // A spread does not have to use the full bounds if there are
+  // too few elements such that at one pixel apart they cannot
+  // fill the entire bounds. However, such a situation should
+  // have been detected at the start of this function and handled
+  // with an early return. Likewise, the situation where the min-
+  // imum spacing still exceeds the bounds (which can also cause
+  // this to trigger) should have been caught above as well.
+  CHECK( space_remaining() == 0,
+         "spec: {} resulted in a spread that did not precisely "
+         "fit the full bounds.",
+         spec );
   res->spacings = std::move( spacings );
   return res;
 }

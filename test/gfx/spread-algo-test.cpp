@@ -1222,6 +1222,7 @@ TEST_CASE(
 TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
   ProgressSpreadSpec spec;
   ProgressSpread expected;
+  interval trimmed;
 
   auto f = [&] {
     return compute_icon_spread_progress_bar( spec );
@@ -1232,17 +1233,398 @@ TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
   expected = {};
   REQUIRE( f() == expected );
 
-  // Case 1.
-  spec = ProgressSpreadSpec{
-    .bounds      = 626,
-    .spread_spec = SpreadSpec{
-      .count   = 161,
-      .trimmed = interval{ .start = 2, .len = 16 } } };
-  expected = ProgressSpread{
-    .spacings = { { .mod = 1, .spacing = 3 },
-                  { .mod = 2, .spacing = 1 },
-                  { .mod = 4, .spacing = 1 },
-                  { .mod = 15, .spacing = 1 } } };
+  // ============================================================
+  trimmed = { .start = 0, .len = 0 };
+  // ============================================================
+
+  // Zero bounds with non-zero count.
+  spec     = { .bounds      = 0,
+               .spread_spec = { .count = 1, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 1,
+               .spread_spec = { .count = 2, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 4,
+               .spread_spec = { .count = 5, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  // ============================================================
+  trimmed = { .start = 2, .len = 5 };
+  // ============================================================
+
+  // Zero bounds with non-zero count.
+  spec = { .bounds      = 0,
+           .spread_spec = { .count = 1, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  // Not quite enough space.
+  spec = { .bounds      = 4,
+           .spread_spec = { .count = 1, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  // Just enough space.
+  spec     = { .bounds      = 5,
+               .spread_spec = { .count = 1, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  // Ramp down of count.
+
+  spec = { .bounds      = 30,
+           .spread_spec = { .count = 30, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  spec = { .bounds      = 30,
+           .spread_spec = { .count = 29, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  spec = { .bounds      = 30,
+           .spread_spec = { .count = 28, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  spec = { .bounds      = 30,
+           .spread_spec = { .count = 27, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 26, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 25, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 13, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 24, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 8, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 23, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 6, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 22, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 5, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 21, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 4, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 20, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 3, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 19, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 3, .spacing = 1 },
+                 { .mod = 10, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 18, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 2, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 17, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 9, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 16, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 4, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 15, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 3, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 14, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 2, .spacing = 2 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 13, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 2 },
+                 { .mod = 7, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 12, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 2 },
+                 { .mod = 3, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 11, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 2 },
+                 { .mod = 2, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 10, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 2 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 3, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 9, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 3 },
+                 { .mod = 5, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 8, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 3 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 4, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 7, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 4 },
+                 { .mod = 4, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 6, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 5 },
+               } };
+  REQUIRE( f() == expected );
+
+  // Hits max spacing.
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 5, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 4, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 3, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 2, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 1, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 6 },
+               } };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = 0, .trimmed = trimmed } };
+  expected = { .spacings = {} };
+  REQUIRE( f() == expected );
+
+  spec     = { .bounds      = 30,
+               .spread_spec = { .count = -1, .trimmed = trimmed } };
+  expected = { .spacings = {} };
+  REQUIRE( f() == expected );
+
+  // ============================================================
+  trimmed = { .start = 2, .len = 16 };
+  // ============================================================
+
+  // count=0
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 0, .trimmed = trimmed } };
+  expected = { .spacings = {} };
+  REQUIRE( f() == expected );
+
+  // count=1
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 1, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 17 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=1
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 2, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 17 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=35
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 35, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 17 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=36
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 36, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 17 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=37
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 37, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 16 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 3, .spacing = 1 },
+                 { .mod = 8, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=161.
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 161, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 3 },
+                 { .mod = 2, .spacing = 1 },
+                 { .mod = 4, .spacing = 1 },
+                 { .mod = 15, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=611.
+  spec     = { .bounds      = 626,
+               .spread_spec = { .count = 611, .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  // count=612.
+  spec = { .bounds      = 626,
+           .spread_spec = { .count = 612, .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  // count=int_max.
+  spec = { .bounds      = 626,
+           .spread_spec = { .count = numeric_limits<int>::max(),
+                            .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  // bounds=int_max, count=int_max.
+  spec = { .bounds      = numeric_limits<int>::max(),
+           .spread_spec = { .count = numeric_limits<int>::max(),
+                            .trimmed = trimmed } };
+  REQUIRE( f() == nothing );
+
+  // bounds=int_max, count=int_max-15.
+  spec = {
+    .bounds      = numeric_limits<int>::max(),
+    .spread_spec = { .count   = numeric_limits<int>::max() - 15,
+                     .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+               } };
+  REQUIRE( f() == expected );
+
+  // bounds=int_max, count=int_max-16.
+  spec = {
+    .bounds      = numeric_limits<int>::max(),
+    .spread_spec = { .count   = numeric_limits<int>::max() - 16,
+                     .trimmed = trimmed } };
+  expected = { .spacings = {
+                 { .mod = 1, .spacing = 1 },
+                 { .mod = 1073741816, .spacing = 1 },
+               } };
   REQUIRE( f() == expected );
 }
 

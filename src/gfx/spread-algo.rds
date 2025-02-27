@@ -61,7 +61,7 @@ struct.Spreads {
 }
 
 struct.ProgressSpreadSpacing {
-  mod 'int',
+  mod 'int64_t',
   spacing 'int',
 }
 
