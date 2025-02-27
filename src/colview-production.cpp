@@ -103,7 +103,7 @@ void ProductionView::create_hammer_spreads(
             .label_opts =
                 { .placement =
                       SpreadLabelPlacement::in_first_tile{
-                        .placement = e_cdirection::c } },
+                        .placement = e_cdirection::w } },
           },
     };
     out[i] = build_progress_tile_spread( config );

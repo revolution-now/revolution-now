@@ -234,6 +234,7 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   CHECK_LE( rendered_count,
             tile_spec.source_spec.spread_spec.count );
   if( rendered_count == 0 ) return plan;
+  maybe<int> first_spacing;
   for( int i = 0; i < rendered_count; ++i ) {
     point const p_drawn = p.moved_left( tile_trimmed_start );
     plan.tiles.push_back(
@@ -245,6 +246,8 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
       CHECK_GT( mod, 0 );
       if( ( i + 1 ) % mod == 0 ) p.x += spacing;
     }
+    if( !first_spacing.has_value() )
+      first_spacing = p.x - p_start.x;
   }
   rect const tiles_all = [&] {
     rect res{ .origin = p_start };
@@ -276,6 +279,9 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
         CASE( left_middle_adjusted ) {
           if( tile_spec.rendered_count == 1 )
             return e_cdirection::c;
+          if( first_spacing.has_value() &&
+              *first_spacing < trimmed.len )
+            return e_cdirection::w;
           return e_cdirection::c;
         }
         CASE( in_first_tile ) { return in_first_tile.placement; }
