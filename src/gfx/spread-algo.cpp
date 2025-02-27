@@ -36,6 +36,7 @@ using ::std::ranges::views::zip;
 ** Public API.
 *****************************************************************/
 bool requires_label( Spread const& spread ) {
+  if( spread.rendered_count <= 1 ) return false;
   if( spread.spacing <= 1 ) return true;
   if( spread.rendered_count >= 50 ) return true;
   return false;

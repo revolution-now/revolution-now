@@ -1001,15 +1001,22 @@ TEST_CASE( "[spread] requires_label/Spread" ) {
 
   auto const f = [&] { return requires_label( spread ); };
 
-  REQUIRE( f() == true );
+  REQUIRE( f() == false );
+
+  spread.spacing        = 1;
+  spread.rendered_count = 1;
+  REQUIRE( f() == false );
 
   spread.spacing = 1;
+  spread.rendered_count = 2;
   REQUIRE( f() == true );
 
   spread.spacing = 2;
+  spread.rendered_count = 2;
   REQUIRE( f() == false );
 
   spread.spacing = 3;
+  spread.rendered_count = 2;
   REQUIRE( f() == false );
 
   spread.rendered_count = 49;
