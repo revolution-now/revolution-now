@@ -115,9 +115,10 @@ void ProductionView::create_hammer_spreads(
 
 void ProductionView::draw_production_spreads(
     rr::Renderer& renderer ) const {
-  renderer.painter().draw_empty_rect(
-      layout_.hammer_spread_rect,
-      rr::Painter::e_border_mode::inside, pixel::red() );
+  renderer.painter().draw_vertical_line(
+      point{ .x = layout_.hammer_spread_rect.right() + 1,
+             .y = 0 },
+      layout_.size.h, pixel::black() );
   int y = layout_.hammer_spread_rect.origin.y;
   for( TileSpreadRenderPlan const& plan :
        layout_.hammer_spreads ) {
@@ -205,7 +206,7 @@ ProductionView::Layout ProductionView::create_layout(
                                 kMargin );
   l.hammer_spread_rect.size.w =
       std::min( l.hammer_spread_rect.size.w,
-                ( hammer_trimmed.size.w + 1 ) * 13 );
+                ( hammer_trimmed.size.w + 1 ) * 13 - 1 );
   l.hammer_row_interval = hammer_trimmed.size.h - 3;
   return l;
 }
