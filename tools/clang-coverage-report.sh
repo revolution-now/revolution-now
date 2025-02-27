@@ -71,6 +71,13 @@ merge() {
 
 html_cov() {
   # NOTE: no quotes around targets.
+  #
+  # Add:
+  #
+  #   -show-branches=percent
+  #
+  # to show branches.
+  #
   "$LLVM_COV" show                  \
     ./.builds/current/test/unittest \
     -instr-profile="$PROFDATA_PATH" \
@@ -79,9 +86,18 @@ html_cov() {
   > "$html_out"
 }
 
+rm_rds_profraw() {
+  find "$1" -type f -name '*.profraw' | xargs rm -f
+}
+
 cleanup() {
   rm -f "$PROFRAW_PATH"
   rm -f "$PROFDATA_PATH"
+  # Delete profraw files generated from running rds.
+  rm_rds_profraw src
+  rm_rds_profraw exe
+  rm_rds_profraw test
+  rm_rds_profraw assets
 }
 
 # ---------------------------------------------------------------

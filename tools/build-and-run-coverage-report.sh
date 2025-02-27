@@ -82,12 +82,6 @@ log "step: generate report"
 # ---------------------------------------------------------------
 log "step: open report"
 log "coverage HTML file: $HTML_OUT"
-
-echo
-echo "Opening coverage HTML in browser. Select a line and use"
-echo "the L, B, R keys keys (with and without shift) to navigate."
-echo "See generated source code to see what they do."
-
 # These extra args to xclip were apparently needed to get it to
 # work within a bash script:
 #
@@ -95,4 +89,14 @@ echo "See generated source code to see what they do."
 #     piping-to-xclip-doesnt-survive-bash-script-termination
 #
 echo "$HTML_URL" | xclip -sel p -sel s -sel c
-xdg-open "$HTML_URL"
+echo
+echo "Copied report URL to clipboard, now paste in browser."
+echo "Select a line and use the L, B, R keys keys (with and"
+echo "without shift) to navigate. See generated source code to"
+echo "see what they do."
+
+# ---------------------------------------------------------------
+# Step: Configure.
+# ---------------------------------------------------------------
+log "step: restore configuration"
+./tools/set-default-configuration.sh
