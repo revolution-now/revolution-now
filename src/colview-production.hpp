@@ -10,6 +10,9 @@
 *****************************************************************/
 #pragma once
 
+// rds
+#include "colview-production.rds.hpp"
+
 // Revolution Now
 #include "colview-entities.hpp"
 #include "spread-render.rds.hpp"
@@ -32,6 +35,8 @@ class ProductionView : public ui::View, public ColonySubView {
                                                  Colony& colony,
                                                  Delta size );
 
+  using e_mode = e_colview_production_mode;
+
   struct Layout {
     gfx::size size = {};
     // The below are relative to view origin.
@@ -44,6 +49,10 @@ class ProductionView : public ui::View, public ColonySubView {
     HammerArray hammer_spreads;
     e_tile hammer_tile      = {};
     int hammer_row_interval = {};
+
+    // Buttons.
+    gfx::rect buttons_area_rect = {};
+    refl::enum_map<e_mode, gfx::rect> button_rect;
   };
 
   ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
@@ -79,8 +88,12 @@ class ProductionView : public ui::View, public ColonySubView {
 
   void update_hammer_spread();
 
-  void draw_production_spreads( rr::Renderer& renderer ) const;
+  void draw_mode_production( rr::Renderer& renderer ) const;
+  void draw_mode_units( rr::Renderer& renderer ) const;
+  void draw_mode_construction( rr::Renderer& renderer ) const;
+
   Layout layout_;
+  e_mode mode_ = e_mode::production;
 };
 
 } // namespace rn

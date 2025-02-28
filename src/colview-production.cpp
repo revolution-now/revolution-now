@@ -113,8 +113,27 @@ void ProductionView::create_hammer_spreads(
   }
 }
 
-void ProductionView::draw_production_spreads(
+void ProductionView::draw_mode_production(
+    rr::Renderer& ) const {
+  // TODO
+}
+
+void ProductionView::draw_mode_units( rr::Renderer& ) const {
+  // TODO
+}
+
+void ProductionView::draw_mode_construction(
     rr::Renderer& renderer ) const {
+  rr::Typer typer =
+      renderer.typer( Coord{ .x = 2, .y = 2 }, BROWN_COLOR );
+  typer.write( "Construction: " );
+  if( colony_.construction.has_value() ) {
+    typer.write( "{}\n",
+                 construction_name( *colony_.construction ) );
+    typer.write( "right-click to buy.\n" );
+  } else {
+    typer.write( "nothing\n" );
+  }
   renderer.painter().draw_vertical_line(
       point{ .x = layout_.hammer_spread_rect.right() + 1,
              .y = 0 },
@@ -131,45 +150,70 @@ void ProductionView::draw_production_spreads(
 
 void ProductionView::draw( rr::Renderer& renderer,
                            Coord const coord ) const {
-  rr::Painter painter = renderer.painter();
-  painter.draw_empty_rect( bounds( coord ).with_inc_size(),
-                           rr::Painter::e_border_mode::inside,
-                           BROWN_COLOR );
+  {
+    rr::Painter painter = renderer.painter();
+    painter.draw_empty_rect( bounds( coord ).with_inc_size(),
+                             rr::Painter::e_border_mode::inside,
+                             BROWN_COLOR );
+  }
   SCOPED_RENDERER_MOD_ADD(
       painter_mods.repos.translation2,
       gfx::size( coord.distance_from_origin() ).to_double() );
-  rr::Typer typer =
-      renderer.typer( Coord{ .x = 2, .y = 2 }, BROWN_COLOR );
-  typer.write( "Construction: " );
-  if( colony_.construction.has_value() ) {
-    typer.write( "{}\n",
-                 construction_name( *colony_.construction ) );
-    typer.write( "right-click to buy.\n" );
-  } else {
-    typer.write( "nothing\n" );
+  rr::Painter painter = renderer.painter();
+
+  switch( mode_ ) {
+    case e_mode::production:
+      draw_mode_production( renderer );
+      break;
+    case e_mode::units:
+      draw_mode_units( renderer );
+      break;
+    case e_mode::construction:
+      draw_mode_construction( renderer );
+      break;
   }
 
-  // Production Spreads.
-  draw_production_spreads( renderer );
+  painter.draw_solid_rect( layout_.button_rect[mode_],
+                           pixel::blue() );
 }
 
 // Implement AwaitView.
 wait<> ProductionView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
-  if( event.buttons == input::e_mouse_button_event::right_up ) {
-    maybe<RushConstruction> const invoice =
-        rush_construction_cost( ss_, colony_ );
-    if( !invoice.has_value() )
-      // This can happen if either the colony is not building
-      // anything or if it is building something that it al-
-      // ready has.
-      co_return;
-    co_await rush_construction_prompt( player_, colony_, ts_.gui,
-                                       *invoice );
+  if( event.pos.is_inside( layout_.buttons_area_rect ) ) {
+    for( auto const& [mode, r] : layout_.button_rect )
+      if( event.pos.is_inside( r ) ) //
+        mode_ = mode;
     co_return;
   }
-  co_await select_colony_construction( ss_, ts_, colony_ );
+  switch( mode_ ) {
+    case e_mode::production: {
+      // TODO: toggles numbers.
+      break;
+    }
+    case e_mode::units: {
+      // TODO
+      break;
+    }
+    case e_mode::construction: {
+      if( event.buttons ==
+          input::e_mouse_button_event::right_up ) {
+        maybe<RushConstruction> const invoice =
+            rush_construction_cost( ss_, colony_ );
+        if( !invoice.has_value() )
+          // This can happen if either the colony is not building
+          // anything or if it is building something that it al-
+          // ready has.
+          co_return;
+        co_await rush_construction_prompt( player_, colony_,
+                                           ts_.gui, *invoice );
+        co_return;
+      }
+      co_await select_colony_construction( ss_, ts_, colony_ );
+      break;
+    }
+  }
 }
 
 void ProductionView::update_this_and_children() {
@@ -186,6 +230,7 @@ void ProductionView::update_hammer_spread() {
 ProductionView::Layout ProductionView::create_layout(
     size const sz ) {
   Layout l;
+  rect const all{ .size = sz };
   l.size            = sz;
   int const kMargin = 2;
   l.margin          = kMargin;
@@ -208,6 +253,21 @@ ProductionView::Layout ProductionView::create_layout(
       std::min( l.hammer_spread_rect.size.w,
                 ( hammer_trimmed.size.w + 1 ) * 13 - 1 );
   l.hammer_row_interval = hammer_trimmed.size.h - 3;
+
+  // Buttons.
+  l.buttons_area_rect =
+      all.with_new_left_edge( l.hammer_spread_rect.right() );
+  int const button_h                       = sz.h / 3;
+  l.button_rect[e_mode::production]        = l.buttons_area_rect;
+  l.button_rect[e_mode::production].size.h = button_h;
+
+  l.button_rect[e_mode::units]          = l.buttons_area_rect;
+  l.button_rect[e_mode::units].size.h   = button_h;
+  l.button_rect[e_mode::units].origin.y = 1 * button_h;
+
+  l.button_rect[e_mode::construction] = l.buttons_area_rect;
+  l.button_rect[e_mode::construction].size.h   = button_h;
+  l.button_rect[e_mode::construction].origin.y = 2 * button_h;
   return l;
 }
 
