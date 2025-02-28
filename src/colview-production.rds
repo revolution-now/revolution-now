@@ -8,6 +8,8 @@
 # Description: Rds definitions for the colview-production module.
 #
 # ===============================================================
+namespace "rn"
+
 enum.e_colview_production_mode {
   production,
   units,
