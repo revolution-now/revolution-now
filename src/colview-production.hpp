@@ -25,6 +25,13 @@
 
 namespace rn {
 
+enum class e_tile;
+
+struct ProductionViewButton {
+  gfx::rect bounds;
+  e_tile tile = {};
+};
+
 /****************************************************************
 ** ProductionView
 *****************************************************************/
@@ -52,7 +59,7 @@ class ProductionView : public ui::View, public ColonySubView {
 
     // Buttons.
     gfx::rect buttons_area_rect = {};
-    refl::enum_map<e_mode, gfx::rect> button_rect;
+    refl::enum_map<e_mode, ProductionViewButton> buttons;
   };
 
   ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
@@ -93,7 +100,10 @@ class ProductionView : public ui::View, public ColonySubView {
   void draw_mode_construction( rr::Renderer& renderer ) const;
 
   Layout layout_;
-  e_mode mode_ = e_mode::production;
+  // Make this static because we want to preserve it from one
+  // colony view to another (and when changing resolutions) but
+  // we don't need it to be serialized.
+  inline static e_mode mode_ = e_mode::production;
 };
 
 } // namespace rn

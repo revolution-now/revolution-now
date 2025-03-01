@@ -756,6 +756,10 @@ enum.e_tile {
   rebel_flag,
   crown,
 
+  production_button_house,
+  production_button_gun,
+  production_button_hammer,
+
   # =============================================================
   # Harbor View.
   # =============================================================

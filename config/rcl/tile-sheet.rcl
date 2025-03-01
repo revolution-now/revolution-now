@@ -307,11 +307,20 @@ sheets {
       }
     }
     {
-      img_path: assets/art/tiles/colony-view-16.png
+      img_path: assets/art/colony/colony-view-16.png
       sprite_size: { w: 16, h: 16 }
       sprites {
         rebel_flag: { y: 0, x: 0 }
         crown:      { y: 0, x: 1 }
+      }
+    }
+    {
+      img_path: assets/art/colony/production-buttons-20.png
+      sprite_size: { w: 20, h: 20 }
+      sprites {
+        production_button_house:  { y: 0, x: 0 }
+        production_button_gun:    { y: 1, x: 0 }
+        production_button_hammer: { y: 2, x: 0 }
       }
     }
     {

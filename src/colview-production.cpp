@@ -25,12 +25,15 @@
 #include "config/colony.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 
-// render
-#include "render/renderer.hpp"
-
 // ss
 #include "ss/ref.hpp"
 #include "ss/settings.rds.hpp"
+
+// render
+#include "render/renderer.hpp"
+
+// gfx
+#include "gfx/cartesian.hpp"
 
 using namespace std;
 
@@ -38,6 +41,7 @@ namespace rn {
 
 namespace {
 
+using ::gfx::centered_in;
 using ::gfx::pixel;
 using ::gfx::point;
 using ::gfx::rect;
@@ -134,10 +138,6 @@ void ProductionView::draw_mode_construction(
   } else {
     typer.write( "nothing\n" );
   }
-  renderer.painter().draw_vertical_line(
-      point{ .x = layout_.hammer_spread_rect.right() + 1,
-             .y = 0 },
-      layout_.size.h, pixel::black() );
   int y = layout_.hammer_spread_rect.origin.y;
   for( TileSpreadRenderPlan const& plan :
        layout_.hammer_spreads ) {
@@ -173,8 +173,20 @@ void ProductionView::draw( rr::Renderer& renderer,
       break;
   }
 
-  painter.draw_solid_rect( layout_.button_rect[mode_],
-                           pixel::blue() );
+  // Buttons.
+  for( auto const& [mode, button] : layout_.buttons ) {
+    painter.draw_solid_rect( button.bounds,
+                             ( mode_ == mode )
+                                 ? pixel::wood().highlighted( 3 )
+                                 : pixel::wood() );
+    render_sprite(
+        renderer,
+        centered_in( sprite_size( button.tile ), button.bounds ),
+        button.tile );
+  }
+  renderer.painter().draw_vertical_line(
+      point{ .x = layout_.buttons_area_rect.left() - 1, .y = 0 },
+      layout_.size.h, pixel::black() );
 }
 
 // Implement AwaitView.
@@ -182,8 +194,8 @@ wait<> ProductionView::perform_click(
     input::mouse_button_event_t const& event ) {
   CHECK( event.pos.is_inside( bounds( {} ) ) );
   if( event.pos.is_inside( layout_.buttons_area_rect ) ) {
-    for( auto const& [mode, r] : layout_.button_rect )
-      if( event.pos.is_inside( r ) ) //
+    for( auto const& [mode, button] : layout_.buttons )
+      if( event.pos.is_inside( button.bounds ) ) //
         mode_ = mode;
     co_return;
   }
@@ -256,18 +268,29 @@ ProductionView::Layout ProductionView::create_layout(
 
   // Buttons.
   l.buttons_area_rect =
-      all.with_new_left_edge( l.hammer_spread_rect.right() );
-  int const button_h                       = sz.h / 3;
-  l.button_rect[e_mode::production]        = l.buttons_area_rect;
-  l.button_rect[e_mode::production].size.h = button_h;
-
-  l.button_rect[e_mode::units]          = l.buttons_area_rect;
-  l.button_rect[e_mode::units].size.h   = button_h;
-  l.button_rect[e_mode::units].origin.y = 1 * button_h;
-
-  l.button_rect[e_mode::construction] = l.buttons_area_rect;
-  l.button_rect[e_mode::construction].size.h   = button_h;
-  l.button_rect[e_mode::construction].origin.y = 2 * button_h;
+      all.with_new_left_edge( l.hammer_spread_rect.right() + 2 );
+  int const button_h = sz.h / 3 + 1;
+  {
+    auto& b           = l.buttons[e_mode::production];
+    b.bounds          = l.buttons_area_rect;
+    b.bounds.origin.y = 1;
+    b.bounds.size.h   = button_h - 1;
+    b.tile            = e_tile::production_button_house;
+  }
+  {
+    auto& b           = l.buttons[e_mode::units];
+    b.bounds          = l.buttons_area_rect;
+    b.bounds.origin.y = 1 * button_h;
+    b.bounds.size.h   = button_h;
+    b.tile            = e_tile::production_button_gun;
+  }
+  {
+    auto& b           = l.buttons[e_mode::construction];
+    b.bounds          = l.buttons_area_rect;
+    b.bounds.origin.y = 2 * button_h;
+    b.bounds.size.h   = button_h - 1;
+    b.tile            = e_tile::production_button_hammer;
+  }
   return l;
 }
 
