@@ -2,8 +2,6 @@
 Ideas
 =================================================================
 
-handle: cartpusher
-
 Sound:
 
   - libADLMIDI (or in the future they may change its name to li-
@@ -13,13 +11,11 @@ Sound:
     it to LGPL, and when that happens it should be incorporated
     into rn.
 
-Game mechanics:
+Alternate gameplay modes:
 
   - When the player first makes land fall their ship sinks; they
     must gain wealth initially by traiding with the indians, then
     they can build ships to take them back to the old world.
-
-  - Free units require food and they carry it with them.
 
 Art:
 

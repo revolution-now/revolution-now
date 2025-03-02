@@ -164,8 +164,8 @@ in the corrections.txt doc or rebalancing.txt.
   Houses to sell boycotted goods if one wants to play in that
   way.
 
-                       Goto Harbor
-                       -----------
+                         Goto Harbor
+                         -----------
   Normally when a ship is adjacent to a sea lane square it takes
   to movements to go to the harbor: one to move onto the sea lane
   tile and another to go to the harbor. But if you instead click
@@ -177,9 +177,8 @@ in the corrections.txt doc or rebalancing.txt.
   go-to-harbor command will stil require those two hops as it
   would if you were moving the unit manually.
 
-                   Missionary Strength
-                   -------------------
-
+                     Missionary Strength
+                     -------------------
   The OG, despite claims from the OST, does not seem to distin-
   guish the non-expert levels in missionaries (criminal, servant,
   and colonist), since it does not store this info in its data

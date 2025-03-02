@@ -78,17 +78,8 @@ General changes to the game:
     land with units, thereby preventing any foreign nations from
     landing there, making the colonies therein invinsible once
     natives are gone. In order to avoid this, we probably need to
-    allow amphibious assalt. Consider allowing it in general, or
-    maybe only allowing it after the acquisition of a founding
-    father (this would be a good way to strengthen John Paul
-    Jone's value).
-
-    One potential downside to allowing it in general would be
-    that a unit could attack from a ship, but then opposing units
-    on land would not be able to attack it in return. So maybe
-    what would happen is that it attacks and, if it wins, then it
-    moves onto thd land tile and ends its turn, allowing it to be
-    attacked.
+    allow amphibious assalt. See corrections.txt for some concrete
+    ideas on how to do this.
 
   * The player has to pay to bless missionaries in Europe, with
     an increasing cost as with artillery. This does two things:

@@ -16,12 +16,56 @@ oversights that cause problems.
   gets occupied by two units of different nations (this latter
   scenario is unresolvable by either the player, AI, or REF).
 
-  Here are some ideas for fixes:
+  An important thing to note about this is that, in practice, the
+  game is played with one human against three AI players. And in
+  practice the AI players are never going to surround an island
+  with colonists. So solving this problem is really more about
+  introducing a mechanism to allow the AI to prevent the player
+  from taking advantage of it.
 
-    1. Create some mechanism (ideally as non-intrusive as possi-
-       ble) to allow a bombardment of a land unit from either a
-       ship or a unit on a ship.
-    2. ???
+  There seems to really be only one plausible idea that would
+  solve the issue without being too intrusive on the existing
+  game mechanics, and that is to allow a ship (or a unit on a
+  ship) to bombard/attack a land unit. Here are a couple of
+  variations on that:
+
+    1. A warship carrying at least one artillery unit can bombard
+       a land unit. However, each time it does so, regardless of
+       whether it wins or loses, one of the artillery on the ship
+       gets demoted (or destroyed if it was already a "damaged"
+       artillery). This way, the total number of such attacks
+       that could be made by a ship would be 2 times the number
+       of artillery units it contains. Given how expensive ar-
+       tillery units are, this might be a good way to prevent it
+       from being overused. As for the unit being attacked: if it
+       loses then it is always destroyed. The bombardment techni-
+       cally happens by the ship unit, so each ship can only do
+       one per turn, since normally an attack exhausts a unit's
+       movement points.
+    2. If #1 needs to be limited even more, then it could be lim-
+       ited to frigates.
+
+  In the above, limiting the number of artillery on the ship (or
+  creating a new special bombardment ship that only contains one
+  cargo slot) would probably not be effective because the player
+  coudl get around it by just bringing another ship along with
+  more artillery to load.
+
+  One potential downside to allowing it in general would be that
+  a unit could attack from a ship, but then opposing units on
+  land would not be able to attack it in return. So maybe what
+  would happen is that it attacks and, if it wins, then it moves
+  onto thd land tile and ends its turn, allowing it to be at-
+  tacked.
+
+  It may be tempting to enable this bombardment capability only
+  after having acquired a founding father. But remember that this
+  mechanic is mainly for the AI to use against the player, and
+  the game in general is kind of ambiguous about whether or not
+  other players get founding fathers. But even if they do, it may
+  not be a good idea to make the AI get a founding father to use
+  the mechanic because that might require an AI that is more ad-
+  vanced then the one that we will likely end up with.
 
                Limit on Number of Wagon Trains
                -------------------------------
