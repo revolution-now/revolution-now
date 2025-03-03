@@ -83,11 +83,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
          .tiles  = { { .tile  = e_tile::dragoon,
                        .where = { -2, 0 } } },
-         .label =
-            SpreadLabelRenderPlan{
-               .text  = "1",
-               .where = { .x = 0, .y = 0 },
-            } },
+         .labels = { SpreadLabelRenderPlan{
+           .text  = "1",
+           .where = { .x = 0, .y = 0 },
+        } } },
     } };
   REQUIRE( f() == expected );
 
@@ -117,16 +116,15 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
          .tiles  = { { .tile  = e_tile::dragoon,
                        .where = { -2, 0 } } },
-         .label =
-            SpreadLabelRenderPlan{
-               .options =
-                  SpreadLabelOptions{
-                     .placement =
-                        SpreadLabelPlacement::in_first_tile{
-                           .placement = e_cdirection::sw } },
-               .text  = "1",
-               .where = { .x = 0, .y = 32 - 8 - 2 },
-            } },
+         .labels = { SpreadLabelRenderPlan{
+           .options =
+              SpreadLabelOptions{
+                 .placement =
+                    SpreadLabelPlacement::in_first_tile{
+                       .placement = e_cdirection::sw } },
+           .text  = "1",
+           .where = { .x = 0, .y = 32 - 8 - 2 },
+        } } },
     } };
   REQUIRE( f() == expected );
 
@@ -148,11 +146,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
          .tiles  = { { .tile  = e_tile::dragoon,
                        .where = { -2, 0 } } },
-         .label =
-            SpreadLabelRenderPlan{
-               .text  = "2",
-               .where = { .x = 0, .y = 0 },
-            } },
+         .labels = { SpreadLabelRenderPlan{
+           .text  = "2",
+           .where = { .x = 0, .y = 0 },
+        } } },
     } };
   REQUIRE( f() == expected );
 
@@ -200,11 +197,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
              {
               { .tile = e_tile::dragoon, .where = { -2, 0 } },
             },
-         .label =
-            SpreadLabelRenderPlan{
-               .text  = "1",
-               .where = { .x = 0, .y = 0 },
-            } },
+         .labels = { SpreadLabelRenderPlan{
+           .text  = "1",
+           .where = { .x = 0, .y = 0 },
+        } } },
       TileSpreadRenderPlan{
          .bounds = { .origin = { .x = 28 + 1 },
                      .size   = { .w = 13 + 3, .h = 32 } },
@@ -213,11 +209,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile = e_tile::soldier, .where = { 18, 0 } },
               { .tile = e_tile::soldier, .where = { 21, 0 } },
             },
-         .label =
-            SpreadLabelRenderPlan{
-               .text  = "2",
-               .where = { .x = 29, .y = 0 },
-            },
+         .labels = { SpreadLabelRenderPlan{
+           .text  = "2",
+           .where = { .x = 29, .y = 0 },
+        } },
       } } };
   REQUIRE( f() == expected );
 
@@ -226,20 +221,21 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
       e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
   tile_spreads = {
-    .spreads       = { { .algo_spec =
-                             SpreadSpec{
-                               .count   = 1,
-                               .trimmed = { .start = 2, .len = 28 } },
-                         .tile_spec =
-                             {
-                               .icon_spread =
-                             {
+    .spreads =
+        { { .algo_spec = SpreadSpec{ .count   = 1,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec =
+                {
+                  .icon_spread =
+                      {
 
-                                     .rendered_count = 1,
-                                     .spacing        = 1 },
-                               .tile         = e_tile::dragoon,
-                               .overlay_tile = e_tile::red_x_20,
-                       } } },
+                        .rendered_count = 1, .spacing = 1 },
+                  .tile = e_tile::dragoon,
+                  .overlay_tile =
+                      TileOverlay{ .tile = e_tile::red_x_20,
+                                   .starting_position = 0 },
+                } } },
     .group_spacing = 1,
     .label_policy  = {} };
   expected = {
@@ -256,7 +252,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                  .where      = { -2, 6 },
                  .is_overlay = true },
             },
-         .label = nothing },
+         .labels = {} },
     } };
   REQUIRE( f() == expected );
 
@@ -309,16 +305,15 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile  = e_tile::commodity_food_20,
                  .where = { 43, 0 } },
             },
-         .label =
-            SpreadLabelRenderPlan{
-               .options =
-                  SpreadLabelOptions{
-                     .placement =
-                        SpreadLabelPlacement::in_first_tile{
-                           .placement = e_cdirection::sw } },
-               .text  = "10",
-               .where = { .x = 0, .y = 20 - 10 },
-            } },
+         .labels = { SpreadLabelRenderPlan{
+           .options =
+              SpreadLabelOptions{
+                 .placement =
+                    SpreadLabelPlacement::in_first_tile{
+                       .placement = e_cdirection::sw } },
+           .text  = "10",
+           .where = { .x = 0, .y = 20 - 10 },
+        } } },
     } };
   REQUIRE( f() == expected );
 }
