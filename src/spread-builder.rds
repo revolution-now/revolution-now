@@ -24,10 +24,15 @@ enum.e_red_x_size {
   large, # 14x14
 }
 
+struct.SpreadXs {
+  size 'e_red_x_size',
+  starting_position 'int',
+}
+
 struct.TileSpread {
   tile 'e_tile',
   count 'int',
-  has_x 'base::maybe<e_red_x_size>',
+  red_xs 'base::maybe<SpreadXs>',
   # After all is said and done, the number on the label (if ren-
   # dered) can be overridden with this.
   label_override 'base::maybe<int>',

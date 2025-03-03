@@ -35,7 +35,12 @@
 // gfx
 #include "gfx/cartesian.hpp"
 
+// base
+#include "base/range-lite.hpp"
+
 using namespace std;
+
+namespace rl = base::rl;
 
 namespace rn {
 
@@ -117,9 +122,112 @@ void ProductionView::create_hammer_spreads(
   }
 }
 
+void ProductionView::create_production_spreads(
+    Layout::ProductionArray& out ) const {
+  TileSpreadOptions const options{
+    .bounds = layout_.production_spread_x_bounds.len,
+    .label_policy =
+        ss_.settings.colony_options.numbers
+            ? SpreadLabels{ SpreadLabels::always{} }
+            : SpreadLabels{ SpreadLabels::auto_decide{} },
+    .label_opts =
+        { .placement =
+              SpreadLabelPlacement::left_middle_adjusted{} },
+  };
+
+  auto const for_raw = []( RawMaterialAndProduct const info,
+                           e_tile const tile ) {
+    int const produced_count = info.raw_produced;
+    int const deficit_count  = std::max(
+        info.raw_consumed_theoretical - info.raw_produced, 0 );
+    return TileSpread{
+      .tile   = tile,
+      .count  = produced_count + deficit_count,
+      .red_xs = SpreadXs{ .size = e_red_x_size::small,
+                          .starting_position = produced_count },
+    };
+  };
+
+  auto const for_produced = []( RawMaterialAndProduct const info,
+                                e_tile const tile ) {
+    int const produced_count = info.product_produced_actual;
+    int const deficit_count = info.product_produced_theoretical -
+                              info.product_produced_actual;
+    return TileSpread{
+      .tile   = tile,
+      .count  = produced_count + deficit_count,
+      .red_xs = SpreadXs{ .size = e_red_x_size::small,
+                          .starting_position = produced_count },
+    };
+  };
+
+  auto const for_horses = []( FoodProduction const info,
+                              e_tile const tile ) {
+    int const produced_count = info.horses_produced_actual;
+    int const deficit_count  = info.horses_produced_theoretical -
+                              info.horses_produced_actual;
+    return TileSpread{
+      .tile   = tile,
+      .count  = produced_count + deficit_count,
+      .red_xs = SpreadXs{ .size = e_red_x_size::small,
+                          .starting_position = produced_count },
+    };
+  };
+
+  auto const& P = colview_production();
+
+  using enum e_tile;
+  vector<TileSpread> spreads{
+    for_raw( P.sugar_rum, commodity_sugar_20 ),
+    for_raw( P.tobacco_cigars, commodity_tobacco_20 ),
+    for_raw( P.cotton_cloth, commodity_cotton_20 ),
+    for_raw( P.fur_coats, commodity_furs_20 ),
+    for_raw( P.ore_tools, commodity_ore_20 ),
+    for_produced( P.sugar_rum, commodity_rum_20 ),
+    for_produced( P.tobacco_cigars, commodity_cigars_20 ),
+    for_produced( P.cotton_cloth, commodity_cloth_20 ),
+    for_produced( P.fur_coats, commodity_coats_20 ),
+    for_produced( P.ore_tools, commodity_tools_20 ),
+    for_raw( P.lumber_hammers, commodity_lumber_20 ),
+    for_produced( P.lumber_hammers, product_hammers_20 ),
+    for_raw( P.silver, commodity_silver_20 ),
+    for_horses( P.food_horses, commodity_horses_20 ),
+    for_produced( P.tools_muskets, commodity_muskets_20 ),
+  };
+  erase_if( spreads,
+            []( TileSpread const& o ) { return o.count == 0; } );
+
+  int const num_spreads = ssize( spreads );
+  int const num_per_row =
+      num_spreads % layout_.kNumRows > 0
+          ? ( num_spreads / layout_.kNumRows + 1 )
+          : num_spreads / layout_.kNumRows;
+  CHECK_LE( num_spreads, num_per_row * layout_.kNumRows; );
+  auto const chunks = rl::all( spreads ).chunk( num_per_row );
+  for( int idx = 0; auto const chunk : chunks ) {
+    TileSpreadConfigMulti config{
+      .options       = options,
+      .group_spacing = 6,
+    };
+    for( TileSpread const& spread : chunk )
+      config.tiles.push_back( spread );
+    out[idx++].plans = build_tile_spread_multi( config );
+  }
+}
+
 void ProductionView::draw_mode_production(
-    rr::Renderer& ) const {
-  // TODO
+    rr::Renderer& renderer ) const {
+  for( auto const& spread : layout_.production_spreads ) {
+    rect const available_rect{
+      .origin = { .x = layout_.production_spread_x_bounds.start,
+                  .y = spread.origin_y },
+      .size   = { .w = layout_.production_spread_x_bounds.len,
+                  .h = layout_.production_spreads_row_h } };
+    draw_rendered_icon_spread(
+        renderer,
+        gfx::centered_in( spread.plans.bounds, available_rect ),
+        spread.plans );
+  }
 }
 
 void ProductionView::draw_mode_units( rr::Renderer& ) const {
@@ -232,11 +340,12 @@ void ProductionView::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
   layout_ = create_layout( layout_.size );
-  update_hammer_spread();
+  update_spreads();
 }
 
-void ProductionView::update_hammer_spread() {
+void ProductionView::update_spreads() {
   create_hammer_spreads( layout_.hammer_spreads );
+  create_production_spreads( layout_.production_spreads );
 }
 
 ProductionView::Layout ProductionView::create_layout(
@@ -291,6 +400,30 @@ ProductionView::Layout ProductionView::create_layout(
     b.bounds.size.h   = button_h - 1;
     b.tile            = e_tile::production_button_hammer;
   }
+
+  // TODO: compute this first and then put the hammer spread in-
+  // side of it.
+  l.content_rect =
+      all.with_new_right_edge( l.buttons_area_rect.left() );
+
+  // Production spreads.
+  l.production_spreads_row_h = 20; // 20x20 tiles.
+  int constexpr kNumRows     = l.production_spreads.size();
+  int const production_spreads_y_gap =
+      std::max( ( l.content_rect.size.h -
+                  kNumRows * l.production_spreads_row_h ),
+                0 ) /
+      ( kNumRows + 1 );
+  int const production_spreads_x_start = kMargin;
+  l.production_spread_x_bounds         = {
+            .start = production_spreads_x_start,
+            .len   = l.content_rect.size.w - 2 * kMargin };
+  // The x origin is computed dynamically later.
+  for( int i = 0; auto& row : l.production_spreads ) {
+    row.origin_y = ( i + 1 ) * production_spreads_y_gap +
+                   i * l.production_spreads_row_h;
+    ++i;
+  }
   return l;
 }
 
@@ -306,7 +439,7 @@ ProductionView::ProductionView( SS& ss, TS& ts, Player& player,
                                 Colony& colony, Layout layout )
   : ColonySubView( ss, ts, player, colony ),
     layout_( std::move( layout ) ) {
-  update_hammer_spread();
+  update_spreads();
 }
 
 } // namespace rn

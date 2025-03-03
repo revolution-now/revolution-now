@@ -61,20 +61,36 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
         return true;
     return false;
   }();
-  auto const label_options =
-      [&]( TileSpreadSpec const& tile_spread )
+  auto const label_options_impl =
+      [&]( Spread const& icon_spread,
+           SpreadLabelOptions const& label_opts
+               ATTR_LIFETIMEBOUND )
       -> maybe<SpreadLabelOptions const&> {
     SWITCH( tile_spreads.label_policy ) {
       CASE( never ) { return nothing; }
-      CASE( always ) { return tile_spread.label_opts; }
+      CASE( always ) { return label_opts; }
       CASE( auto_decide ) {
         bool const force =
             has_required_label && auto_decide.viral;
-        if( force || requires_label( tile_spread.icon_spread ) )
-          return tile_spread.label_opts;
+        if( force || requires_label( icon_spread ) )
+          return label_opts;
         return nothing;
       }
     }
+  };
+  auto const label_options =
+      [&]( TileSpreadSpec const& tile_spread )
+      -> maybe<SpreadLabelOptions const&> {
+    return label_options_impl( tile_spread.icon_spread,
+                               tile_spread.label_opts );
+  };
+  auto const label_options_overlay =
+      [&]( TileSpreadSpec const& tile_spread )
+      -> maybe<SpreadLabelOptions const&> {
+    if( !tile_spread.overlay_tile.has_value() ) return nothing;
+    return label_options_impl(
+        tile_spread.icon_spread,
+        tile_spread.overlay_tile->label_opts );
   };
   for( auto const& [spec, tile_spread] : tile_spreads.spreads ) {
     CHECK_LE( tile_spread.icon_spread.rendered_count,
@@ -85,6 +101,12 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     auto const& tile_trimmed_len   = spec.trimmed.len;
     auto const& tile_trimmed_start = spec.trimmed.start;
     size const tile_size = sprite_size( tile_spread.tile );
+    struct OverlayStart {
+      int idx         = {};
+      point p_start   = {};
+      int label_count = {};
+    };
+    maybe<OverlayStart> overlay;
     for( int i = 0; i < tile_spread.icon_spread.rendered_count;
          ++i ) {
       point const p_drawn = p.moved_left( tile_trimmed_start );
@@ -93,7 +115,14 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
                           .where      = p_drawn,
                           .is_overlay = false } );
       // Must appear just after the tile it is overlaying.
-      if( tile_spread.overlay_tile.has_value() ) {
+      if( tile_spread.overlay_tile.has_value() &&
+          i >= tile_spread.overlay_tile->starting_position ) {
+        if( !overlay.has_value() ) {
+          overlay.emplace();
+          overlay->idx         = i;
+          overlay->p_start     = p;
+          overlay->label_count = spec.count - i;
+        }
         // We need to place the overlay tile against the middle
         // left wall of the trimmed (opaque) part of the sprite.
         rect const base_tile_trimmed_rect{
@@ -107,17 +136,18 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           // is still visible even when the spread is only one
           // pixel apart.
           point res = gfx::centered_at(
-              sprite_size( *tile_spread.overlay_tile ),
+              sprite_size( tile_spread.overlay_tile->tile ),
               base_tile_trimmed_rect, e_cdirection::w );
-          res.x -= trimmed_area_for( *tile_spread.overlay_tile )
-                       .horizontal_slice()
-                       .start;
+          res.x -=
+              trimmed_area_for( tile_spread.overlay_tile->tile )
+                  .horizontal_slice()
+                  .start;
           return res;
         }();
-        plan.tiles.push_back(
-            TileRenderPlan{ .tile  = *tile_spread.overlay_tile,
-                            .where = p_overlay_drawn,
-                            .is_overlay = true } );
+        plan.tiles.push_back( TileRenderPlan{
+          .tile       = tile_spread.overlay_tile->tile,
+          .where      = p_overlay_drawn,
+          .is_overlay = true } );
       }
       p.x += tile_spread.icon_spread.spacing;
     }
@@ -140,9 +170,15 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
-    auto add_label = [&]( SpreadLabelOptions const& options ) {
-      rect const first_tile_rect = tiles_all.with_size(
-          size{ .w = spec.trimmed.len, .h = tile_size.h } );
+    auto add_label = [&]( int const label_count,
+                          int const x_offset,
+                          SpreadLabelOptions const& options ) {
+      rect const first_tile_rect = [&] {
+        rect res = tiles_all.with_size(
+            size{ .w = spec.trimmed.len, .h = tile_size.h } );
+        res.origin.x += x_offset;
+        return res;
+      }();
       rect const placement_rect = [&] {
         if( !options.placement.has_value() )
           return first_tile_rect;
@@ -174,8 +210,6 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           }
         }
       }();
-      int const label_count =
-          tile_spread.label_count.value_or( spec.count );
       string const label_text      = to_string( label_count );
       size const padded_label_size = [&] {
         size const label_size =
@@ -185,14 +219,27 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
         return size{ .w = label_size.w + padding * 2,
                      .h = label_size.h + padding * 2 };
       }();
-      plan.label = SpreadLabelRenderPlan{
+      plan.labels.push_back( SpreadLabelRenderPlan{
         .options = options,
         .text    = label_text,
         .where   = gfx::centered_at( padded_label_size,
                                      placement_rect, placement ),
-      };
+      } );
     };
-    label_options( tile_spread ).visit( add_label );
+    int const primary_label_count =
+        tile_spread.label_count.value_or(
+            as_const( overlay )
+                .member( &OverlayStart::idx )
+                .value_or( spec.count ) );
+    if( primary_label_count > 0 )
+      label_options( tile_spread )
+          .visit( bind_front( add_label, primary_label_count,
+                              /*x_offset=*/0 ) );
+    if( overlay.has_value() && overlay->label_count > 0 )
+      label_options_overlay( tile_spread )
+          .visit( bind_front(
+              add_label, overlay->label_count,
+              /*x_offset=*/overlay->p_start.x - p_start.x ) );
     p.x += tile_spreads.group_spacing;
   }
   // Populate total bounds.
@@ -299,12 +346,12 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
       return size{ .w = label_size.w + padding * 2,
                    .h = label_size.h + padding * 2 };
     }();
-    plan.label = SpreadLabelRenderPlan{
+    plan.labels.push_back( SpreadLabelRenderPlan{
       .options = options,
       .text    = label_text,
       .where   = gfx::centered_at( padded_label_size,
                                    placement_rect, placement ),
-    };
+    } );
   };
   label_options().visit( add_label );
   return plan;
@@ -336,20 +383,20 @@ void draw_rendered_icon_spread(
   for( auto const& [tile, p, is_overlay] : plan.tiles )
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
-  if( auto const& label = plan.label; label.has_value() ) {
+  for( auto const& label : plan.labels ) {
     render_text_line_with_background(
-        renderer, label->text,
+        renderer, label.text,
         oriented_point{
-          .anchor = label->where.origin_becomes_point( origin ),
+          .anchor = label.where.origin_becomes_point( origin ),
           // This is always nw here because the placement
           // calcu- lation has already been done, so the point
           // we are given is always the nw.
           .placement = gfx::e_cdirection::nw },
-        label->options.color_fg.value_or(
+        label.options.color_fg.value_or(
             config_ui.tile_spreads.default_label_fg_color ),
-        label->options.color_bg.value_or(
+        label.options.color_bg.value_or(
             config_ui.tile_spreads.default_label_bg_color ),
-        label->options.text_padding.value_or(
+        label.options.text_padding.value_or(
             config_ui.tile_spreads.label_text_padding ),
         config_ui.tile_spreads.bg_box_has_corners );
   }

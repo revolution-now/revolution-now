@@ -73,17 +73,30 @@ TileSpreadRenderPlans build_tile_spread_multi(
         .tile        = config_it->tile,
         .label_opts  = configs.options.label_opts,
         .label_count = config_it->label_override };
-      if( config_it->has_x ) {
-        tile_spread_spec.label_opts.color_fg = pixel::red();
-        switch( ( *config_it->has_x ) ) {
+      if( config_it->red_xs.has_value() ) {
+        auto& overlay_tile =
+            tile_spread_spec.overlay_tile.emplace();
+        switch( config_it->red_xs->size ) {
           case rn::e_red_x_size::small: {
-            tile_spread_spec.overlay_tile = e_tile::red_x_16;
+            overlay_tile.tile = e_tile::red_x_16;
             break;
           }
           case rn::e_red_x_size::large: {
-            tile_spread_spec.overlay_tile = e_tile::red_x_20;
+            overlay_tile.tile = e_tile::red_x_20;
             break;
           }
+        }
+        // FIXME: deal with the case when the two labels are
+        // overlapping.
+        overlay_tile.label_opts = configs.options.label_opts;
+        overlay_tile.label_opts.color_fg = pixel::red();
+        overlay_tile.starting_position =
+            config_it->red_xs->starting_position;
+        bool const count_adjusted =
+            ( icon_spread.rendered_count != spec.count );
+        if( count_adjusted ) {
+          // TODO
+          NOT_IMPLEMENTED;
         }
       }
       res.spreads.push_back(
@@ -171,11 +184,11 @@ TileSpreadRenderPlan build_progress_tile_spread(
           TileSpreadSpec{
                   .icon_spread  = spread,
                   .tile         = config.tile,
-                  .overlay_tile = nothing,
                   .label_opts   = config.options.label_opts,
                   .label_count  = config.label_override.has_value()
                                       ? config.label_override
-                                      : config.progress_count } } },
+                                      : config.progress_count,
+                  .overlay_tile = nothing } } },
     .group_spacing = 0,
     .label_policy  = config.options.label_policy };
   TileSpreadRenderPlans plans =

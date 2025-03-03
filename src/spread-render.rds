@@ -71,12 +71,22 @@ sumtype.SpreadLabels {
 # ---------------------------------------------------------------
 # Spreads of tiles.
 # ---------------------------------------------------------------
+# Overlays work by specifying a starting position in the spread,
+# then all tiles from that point on in the spread will have the
+# overlay. It seems a bit strange, but that's allows supporting
+# all use cases for overlays used in the game (which are basi-
+# cally in the colony view).
+struct.TileOverlay {
+  tile 'e_tile',
+  starting_position 'int',
+  # If labels are rendered for the spread containing this overlay
+  # then they will use these options.
+  label_opts 'SpreadLabelOptions',
+}
+
 struct.TileSpreadSpec {
   icon_spread 'Spread',
   tile 'e_tile',
-  # This can be used for e.g. a red X over each tile as would be
-  # done in the colony view to represent shortages.
-  overlay_tile 'base::maybe<e_tile>',
   # If labels are rendered for this spread then they will use
   # these options.
   label_opts 'SpreadLabelOptions',
@@ -87,6 +97,9 @@ struct.TileSpreadSpec {
   # case we want the label to represent the progress count and
   # not the total count.
   label_count 'base::maybe<int>',
+  # This can be used for e.g. a red X over each tile as would be
+  # done in the colony view to represent shortages.
+  overlay_tile 'base::maybe<TileOverlay>',
 }
 
 struct.TileSpreadSpecWithSourceSpec {
@@ -143,7 +156,10 @@ struct.TileSpreadRenderPlan {
   bounds 'gfx::rect',
   # These must be rendered in order.
   tiles 'std::vector<TileRenderPlan>',
-  label 'base::maybe<SpreadLabelRenderPlan>',
+  # There can be multiple labels e.g. in the case where a part of
+  # the tiles have overlays, in which case both segments get
+  # their own label.
+  labels 'std::vector<SpreadLabelRenderPlan>',
 }
 
 # Final result which is directly renderable.
