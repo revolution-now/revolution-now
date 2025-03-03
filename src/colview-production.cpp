@@ -309,7 +309,9 @@ wait<> ProductionView::perform_click(
   }
   switch( mode_ ) {
     case e_mode::production: {
-      // TODO: toggles numbers.
+      ss_.settings.colony_options.numbers =
+          !ss_.settings.colony_options.numbers;
+      update_colony_view( ss_, colony_ );
       break;
     }
     case e_mode::units: {
