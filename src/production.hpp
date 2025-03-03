@@ -33,7 +33,12 @@ ColonyProduction production_for_colony( SSConst const& ss,
                                         Colony const& colony );
 
 // Given a building slot, will extract the quantity of the thing
-// currently being produced there.
+// currently being produced there. Note that this yields the
+// quantity for display in the colony view, which does not ex-
+// actly equate to the actual amount produced for various reason
+// (there are complications such as availability of raw material,
+// consumption of tools by muskets, ceiling on horse food con-
+// sumption, etc.).
 maybe<int> production_for_slot( ColonyProduction const& pr,
                                 e_colony_building_slot slot );
 
