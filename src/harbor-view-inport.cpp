@@ -396,14 +396,15 @@ void HarborInPortShips::draw( rr::Renderer& renderer,
                 ss_.units.unit_for( *hb_state.selected_unit )
                     .desc()
                     .name );
-  size const label_size =
-      rr::rendered_text_line_size_pixels( label );
-  point const label_nw =
-      gfx::centered_at_top( label_size, layout_.label_area );
+  rr::Typer typer = renderer.typer();
   // This needs to be kept in sync with the other boxes.
   static auto const kTextColor =
       config_ui.dialog_text.normal.shaded( 2 );
-  rr::Typer typer = renderer.typer( label_nw, kTextColor );
+  typer.set_color( kTextColor );
+  size const label_size = typer.dimensions_for_line( label );
+  point const label_nw =
+      gfx::centered_at_top( label_size, layout_.label_area );
+  typer.set_position( label_nw );
   typer.write( label );
 
   point const mouse_pos = input::current_mouse_position()

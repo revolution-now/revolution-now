@@ -10,7 +10,7 @@
 *****************************************************************/
 #pragma once
 
-// gl
+// render
 #include "src/render/irenderer.hpp"
 
 // mock

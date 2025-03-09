@@ -73,8 +73,9 @@ struct ConsolePlane::Impl : public IPlane {
     // window size changes.
     auto const width = console_rect().size.w;
     le_view_.emplace(
-        config_rn.console.font, width, []( string const& ) {},
-        config_ui.dialog_text.normal, gfx::pixel::wood(), prompt,
+        engine_.textometer(), config_rn.console.font, width,
+        []( string const& ) {}, config_ui.dialog_text.normal,
+        gfx::pixel::wood(), prompt,
         /*initial_text=*/"" );
   }
 
@@ -168,7 +169,9 @@ struct ConsolePlane::Impl : public IPlane {
       if( maybe_line->starts_with( prompt ) )
         color = color.highlighted( 5 ).with_alpha( cmds_alpha );
       Delta text_size = delta_for( *maybe_line );
-      renderer.typer( "simple", log_px_start, color )
+      renderer
+          .typer( "simple", rr::TextLayout{}, log_px_start,
+                  color )
           .write( *maybe_line );
       log_px_start -= Delta{ .h = text_size.h };
     }
@@ -186,8 +189,8 @@ struct ConsolePlane::Impl : public IPlane {
           std::lround( mv_avg.average() / avg_frame_rate() ) );
       Delta formatted_size = delta_for( formatted );
       renderer
-          .typer( "simple", info_start - formatted_size,
-                  stats_color )
+          .typer( "simple", rr::TextLayout{},
+                  info_start - formatted_size, stats_color )
           .write( formatted );
       info_start -= Delta{ .h = formatted_size.h };
     }

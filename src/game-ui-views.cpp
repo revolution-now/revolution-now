@@ -81,7 +81,8 @@ void UnitActivationView::on_click_unit( UnitId id ) {
  *     +-...
  */
 unique_ptr<UnitActivationView> UnitActivationView::Create(
-    SSConst const& ss, vector<UnitId> const& ids_ ) {
+    rr::ITextometer const& textometer, SSConst const& ss,
+    vector<UnitId> const& ids_ ) {
   auto unit_activation_view =
       std::make_unique<UnitActivationView>();
   auto* p_unit_activation_view = unit_activation_view.get();
@@ -144,7 +145,8 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
         } );
 
     auto unit_label = make_unique<ui::OneLineStringView>(
-        unit.desc().name, config_ui.dialog_text.normal );
+        textometer, unit.desc().name,
+        config_ui.dialog_text.normal );
 
     vector<unique_ptr<View>> horizontal_vec;
     horizontal_vec.emplace_back( std::move( clickable ) );

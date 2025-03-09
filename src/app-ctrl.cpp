@@ -14,6 +14,7 @@
 #include "co-wait.hpp"
 #include "console.hpp"
 #include "gui.hpp"
+#include "iengine.hpp"
 #include "lua.hpp"
 #include "main-menu.hpp"
 #include "menu-plane.hpp"
@@ -58,7 +59,7 @@ wait<> revolution_now( IEngine& engine, Planes& planes ) {
   group.window  = window_plane;
   group.menu    = menu_plane;
 
-  RealGui gui( planes );
+  RealGui gui( planes, engine.textometer() );
 
   co_await run_main_menu( engine, planes, gui );
 }

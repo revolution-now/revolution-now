@@ -28,6 +28,10 @@
 // C++ standard library
 #include <map>
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 struct IMenuServer;
@@ -41,7 +45,8 @@ enum class e_menu_item;
 ** MenuThreads
 *****************************************************************/
 struct MenuThreads {
-  MenuThreads( IMenuServer const& menu_server );
+  MenuThreads( IMenuServer const& menu_server,
+               rr::ITextometer const& textometer );
   ~MenuThreads();
 
   int open_count() const;
@@ -89,6 +94,7 @@ struct MenuThreads {
   // MenuThreads object) which could then call a non-const method
   // on us.
   IMenuServer const& menu_server_;
+  rr::ITextometer const& textometer_;
   int next_menu_id_ = 1;
   // We need to support multiple menus running at a time in order
   // to support sub-menus, which will each have their own Open-

@@ -20,6 +20,7 @@
 
 // render
 #include "render/extra.hpp"
+#include "render/itextometer.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
 
@@ -264,51 +265,62 @@ void render_text_markup_reflow(
   render_lines_markup( typer, markedup_reflowed, markup_info );
 }
 
-Delta rendered_text_size( TextReflowInfo const& reflow_info,
+Delta rendered_text_size( rr::ITextometer const& textometer,
+                          rr::TextLayout const& text_layout,
+                          TextReflowInfo const& reflow_info,
                           string_view text ) {
   vector<vector<MarkedUpChunk>> lines =
       text_markup_reflow_impl( reflow_info, text );
-  size const kCharSize =
-      rr::rendered_text_line_size_pixels( "X" );
   Delta res;
-  res.h = H{ kCharSize.h * int( lines.size() ) };
+  res.h = H{ textometer.font_height() * int( lines.size() ) };
   for( vector<MarkedUpChunk> const& line : lines ) {
-    W line_width{};
+    int line_width = 0;
     for( MarkedUpChunk const& segment : line )
       line_width +=
-          W{ int( segment.text.size() ) * kCharSize.w };
-    res.w = std::max( res.w, line_width );
+          textometer
+              .dimensions_for_line( text_layout, segment.text )
+              .w +
+          textometer.spacing_between_chars( text_layout );
+    line_width -=
+        textometer.spacing_between_chars( text_layout );
+    line_width = std::max( line_width, 0 );
+    res.w      = std::max( res.w, line_width );
   }
   if( lines.size() > 0 )
     // Add spacing between lines.
-    res.h += rr::rendered_text_line_spacing_pixels() *
+    res.h += textometer.spacing_between_lines( text_layout ) *
              ( lines.size() - 1 );
   return res;
 }
 
-Delta rendered_text_size_no_reflow( string_view text ) {
+Delta rendered_text_size_no_reflow(
+    rr::ITextometer const& textometer,
+    rr::TextLayout const& text_layout, string_view text ) {
   string no_markup = remove_markup( text );
   vector<string_view> lines =
       util::split_on_any( no_markup, "\r\n" );
-  size const kCharSize =
-      rr::rendered_text_line_size_pixels( "X" );
   Delta res;
-  res.h = H{ kCharSize.h * int( lines.size() ) };
+  res.h = H{ textometer.font_height() * int( lines.size() ) };
   for( string_view line : lines ) {
-    W line_width = W{ int( line.size() ) * kCharSize.w };
-    res.w        = std::max( res.w, line_width );
+    int const line_width =
+        textometer
+            .dimensions_for_line( text_layout, string( line ) )
+            .w;
+    res.w = std::max( res.w, line_width );
   }
   return res;
 }
 
 void render_text_overlay_with_anchor(
-    rr::Renderer& renderer, vector<string> const& lines,
-    oriented_point const op, pixel const fg_color,
-    pixel const bg_color, int const scale ) {
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
+    vector<string> const& lines, oriented_point const op,
+    pixel const fg_color, pixel const bg_color,
+    int const scale ) {
   rect const info_region = [&] {
+    rr::Typer const dummy_typer = renderer.typer( text_layout );
     size const info_region_size = [&] {
-      auto delta_for = []( string_view const text ) {
-        return rr::rendered_text_line_size_pixels( text );
+      auto delta_for = [&]( string_view const text ) {
+        return dummy_typer.dimensions_for_line( text );
       };
       size res;
       for( auto const& line : lines ) {
@@ -342,7 +354,7 @@ void render_text_overlay_with_anchor(
     return res;
   }();
   rr::Typer typer = renderer.typer( text_origin, fg_color );
-  typer.multiply_scale( scale );
+  // typer.multiply_scale( scale );
   for( auto const& line : lines ) {
     typer.write( line );
     typer.newline();
@@ -350,12 +362,12 @@ void render_text_overlay_with_anchor(
 }
 
 void render_text_line_with_background(
-    rr::Renderer& renderer, std::string_view const line,
-    oriented_point const op, pixel const color_fg,
-    pixel const color_bg, int const padding,
-    bool draw_corners ) {
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
+    std::string_view const line, oriented_point const op,
+    pixel const color_fg, pixel const color_bg,
+    int const padding, bool draw_corners ) {
   size const text_dims =
-      rr::rendered_text_line_size_pixels( line );
+      renderer.typer( text_layout ).dimensions_for_line( line );
   size const padded_dims = [&] {
     size sz = text_dims;
     sz.w += padding * 2;

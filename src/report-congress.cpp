@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "fathers.hpp"
+#include "iengine.hpp"
 #include "input.hpp"
 #include "plane-stack.hpp"
 #include "screen.hpp"
@@ -80,6 +81,7 @@ struct Layout {
 ** Auto-Layout.
 *****************************************************************/
 Layout layout_auto( SSConst const& ss, Player const& player,
+                    rr::ITextometer const& textometer,
                     e_resolution const resolution ) {
   Layout l;
   l.canvas = { .size = resolution_size( resolution ) };
@@ -150,7 +152,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
           },
     };
     l.founding_father_spreads = build_progress_tile_spread(
-        founding_father_spread_opts );
+        textometer, founding_father_spread_opts );
   }();
 
   [&] {
@@ -206,7 +208,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
       .group_spacing = 4,
     };
     l.expeditionary_force_spreads = build_tile_spread_multi(
-        expeditionary_force_spread_opts );
+        textometer, expeditionary_force_spread_opts );
   }();
 
   return l;
@@ -233,7 +235,8 @@ struct ContinentalCongressReport : public IPlane {
   }
 
   Layout layout_gen( e_resolution const resolution ) {
-    return layout_auto( ss_, player_, resolution );
+    return layout_auto( ss_, player_, engine_.textometer(),
+                        resolution );
   }
 
   void on_logical_resolution_selected(
@@ -246,18 +249,19 @@ struct ContinentalCongressReport : public IPlane {
                        maybe<pixel> const color_bg,
                        point const center,
                        string_view const text ) const {
-    size const text_size =
-        rr::rendered_text_line_size_pixels( text );
+    rr::Typer typer      = renderer.typer();
+    size const text_size = typer.dimensions_for_line( text );
     rect const text_rect = gfx::centered_on( text_size, center );
     if( color_bg.has_value() ) {
-      renderer
-          .typer( text_rect.nw() + size{ .w = 1 }, *color_bg )
-          .write( text );
-      renderer
-          .typer( text_rect.nw() + size{ .h = 1 }, *color_bg )
-          .write( text );
+      typer.set_color( *color_bg );
+      typer.set_position( text_rect.nw() + size{ .w = 1 } );
+      typer.write( text );
+      typer.set_position( text_rect.nw() + size{ .h = 1 } );
+      typer.write( text );
     }
-    renderer.typer( text_rect.nw(), color_fg ).write( text );
+    typer.set_color( color_fg );
+    typer.set_position( text_rect.nw() );
+    typer.write( text );
   }
 
   void draw( rr::Renderer& renderer, const Layout& l ) const {

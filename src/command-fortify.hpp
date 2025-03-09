@@ -17,16 +17,17 @@
 
 namespace rn {
 
+struct IEngine;
 struct Player;
 struct SS;
 struct TS;
 
 std::unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine& engine, SS& ss, TS& ts, Player& player, UnitId id,
     command::fortify const& fortify );
 
 std::unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine& engine, SS& ss, TS& ts, Player& player, UnitId id,
     command::sentry const& sentry );
 
 } // namespace rn

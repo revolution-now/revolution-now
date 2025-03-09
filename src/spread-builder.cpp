@@ -37,6 +37,7 @@ using ::std::ranges::views::zip;
 ** Public API.
 *****************************************************************/
 TileSpreadRenderPlans build_tile_spread_multi(
+    rr::ITextometer const& textometer,
     TileSpreadConfigMulti const& configs ) {
   SpreadSpecs const specs = [&] {
     SpreadSpecs res;
@@ -105,13 +106,15 @@ TileSpreadRenderPlans build_tile_spread_multi(
     }
     return res;
   }();
-  return render_plan_for_tile_spread( tile_spreads );
+  return render_plan_for_tile_spread( textometer, tile_spreads );
 }
 
 TileSpreadRenderPlan build_tile_spread(
+    rr::ITextometer const& textometer,
     TileSpreadConfig const& config ) {
   TileSpreadRenderPlan res;
   auto plans = build_tile_spread_multi(
+      textometer,
       TileSpreadConfigMulti{ .tiles         = { config.tile },
                              .options       = config.options,
                              .group_spacing = 0 } );
@@ -122,6 +125,7 @@ TileSpreadRenderPlan build_tile_spread(
 }
 
 TileSpreadRenderPlan build_progress_tile_spread(
+    rr::ITextometer const& textometer,
     ProgressTileSpreadConfig const& config_unadjusted ) {
   TileSpreadRenderPlan res;
   ProgressTileSpreadConfig const config = [&] {
@@ -166,7 +170,8 @@ TileSpreadRenderPlan build_progress_tile_spread(
                              : config.progress_count,
       .label_policy    = config.options.label_policy,
     };
-    return render_plan_for_tile_progress_spread( tile_spec );
+    return render_plan_for_tile_progress_spread( textometer,
+                                                 tile_spec );
   }
   SpreadSpec const& spec = progress_spec.spread_spec;
   SpreadSpecs const specs{ .bounds = config.options.bounds,
@@ -192,7 +197,7 @@ TileSpreadRenderPlan build_progress_tile_spread(
     .group_spacing = 0,
     .label_policy  = config.options.label_policy };
   TileSpreadRenderPlans plans =
-      render_plan_for_tile_spread( tile_specs );
+      render_plan_for_tile_spread( textometer, tile_specs );
   CHECK_EQ( plans.plans.size(), 1u );
   return std::move( plans.plans[0] );
 }

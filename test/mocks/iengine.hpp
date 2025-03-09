@@ -28,6 +28,7 @@ struct MockIEngine : IEngine {
   MOCK_METHOD( rr::Renderer&, renderer_use_only_when_needed, (),
                () );
   MOCK_METHOD( gfx::Resolutions&, resolutions, (), () );
+  MOCK_METHOD( rr::ITextometer&, textometer, (), () );
 };
 
 static_assert( !std::is_abstract_v<MockIEngine> );

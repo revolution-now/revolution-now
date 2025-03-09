@@ -16,6 +16,7 @@
 
 // Testing
 #include "test/fake/world.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
 
 // Revolution Now
@@ -58,8 +59,9 @@ TEST_CASE( "[command-dump] galleon" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::galleon,
                                  Coord{ .x = 0, .y = 0 } )
                   .id();
-  unique_ptr<CommandHandler> handler = handle_command(
-      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.engine(), W.ss(), W.ts(),
+                      W.default_player(), id, command::dump{} );
   Unit& unit       = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity comm;
@@ -354,8 +356,9 @@ TEST_CASE( "[command-dump] wagon train" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::wagon_train,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<CommandHandler> handler = handle_command(
-      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.engine(), W.ss(), W.ts(),
+                      W.default_player(), id, command::dump{} );
   Unit& unit       = W.units().unit_for( id );
   CargoHold& cargo = unit.cargo();
   Commodity comm;
@@ -426,8 +429,9 @@ TEST_CASE( "[command-dump] non-cargo unit" ) {
   UnitId id = W.add_unit_on_map( e_unit_type::free_colonist,
                                  Coord{ .x = 1, .y = 1 } )
                   .id();
-  unique_ptr<CommandHandler> handler = handle_command(
-      W.ss(), W.ts(), W.default_player(), id, command::dump{} );
+  unique_ptr<CommandHandler> handler =
+      handle_command( W.engine(), W.ss(), W.ts(),
+                      W.default_player(), id, command::dump{} );
 
   W.gui()
       .EXPECT__message_box(

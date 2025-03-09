@@ -27,6 +27,7 @@ struct ColoniesState;
 struct Colony;
 struct IColonyEvolver;
 struct IGui;
+struct IEngine;
 struct IMapUpdater;
 struct Player;
 struct SS;
@@ -73,7 +74,8 @@ void cheat_toggle_reveal_full_map( SS& ss, TS& ts );
 
 // Open a dialog box containing one check box for each founding
 // father and allow the player to select/deselect.
-wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player );
+wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
+                           Player& player );
 
 // Opens a box and lets the user select from among the tribes
 // that still exist. Upon selecting one, that tribe is immedi-

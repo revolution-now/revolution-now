@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "custom-house.hpp"
+#include "iengine.hpp"
 #include "production.hpp"
 #include "render.hpp"
 #include "spread-builder.hpp"
@@ -91,7 +92,8 @@ maybe<e_tile> tile_for_slot_20(
 }
 
 TileSpreadRenderPlan create_production_spread(
-    SSConst const& ss, ColonyProduction const& production,
+    rr::ITextometer const& textometer, SSConst const& ss,
+    ColonyProduction const& production,
     e_colony_building_slot const slot, int const width ) {
   auto const tile = tile_for_slot_20( slot );
   if( !tile.has_value() ) return {};
@@ -108,7 +110,7 @@ TileSpreadRenderPlan create_production_spread(
           { .placement =
                 SpreadLabelPlacement::left_middle_adjusted{} },
     } };
-  return build_tile_spread( config );
+  return build_tile_spread( textometer, config );
 }
 
 } // namespace
@@ -205,10 +207,8 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     maybe<int> quantity =
         production_for_slot( colview_production(), slot );
     if( quantity.has_value() ) {
-      point const origin =
-          rect.upper_left().to_gfx() + size{ .w = 2 } +
-          size{
-            .h = rr::rendered_text_line_size_pixels( "x" ).h };
+      point const origin = rect.upper_left().to_gfx() +
+                           size{ .w = 2 } + size{ .h = 8 };
       draw_rendered_icon_spread( renderer, origin,
                                  layout_.slots[slot].plan );
     }
@@ -363,7 +363,7 @@ wait<> ColViewBuildings::perform_click(
   if( !building.has_value() ) co_return;
   switch( *building ) {
     case e_colony_building::custom_house:
-      co_await open_custom_house_menu( ts_, colony_ );
+      co_await open_custom_house_menu( engine_, ts_, colony_ );
       break;
     default:
       break;
@@ -372,7 +372,7 @@ wait<> ColViewBuildings::perform_click(
 }
 
 ColViewBuildings::Layout ColViewBuildings::create_layout(
-    SSConst const& ss, size const sz ) {
+    IEngine& engine, SSConst const& ss, size const sz ) {
   Layout l;
   l.size = sz;
 
@@ -389,7 +389,8 @@ ColViewBuildings::Layout ColViewBuildings::create_layout(
 
     l.slots[slot] = Layout::Slot{
       .bounds = bounds,
-      .plan = create_production_spread( ss, colview_production(),
+      .plan = create_production_spread( engine.textometer(), ss,
+                                        colview_production(),
                                         slot, bounds.size.w ) };
   }
   return l;
@@ -398,14 +399,15 @@ ColViewBuildings::Layout ColViewBuildings::create_layout(
 void ColViewBuildings::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
-  layout_ = create_layout( ss_, layout_.size );
+  layout_ = create_layout( engine_, ss_, layout_.size );
 }
 
 std::unique_ptr<ColViewBuildings> ColViewBuildings::create(
-    SS& ss, TS& ts, Player& player, Colony& colony, Delta sz ) {
-  Layout layout = create_layout( ss, sz );
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Colony& colony, Delta sz ) {
+  Layout layout = create_layout( engine, ss, sz );
   return std::make_unique<ColViewBuildings>(
-      ss, ts, player, colony, std::move( layout ) );
+      engine, ss, ts, player, colony, std::move( layout ) );
 }
 
 } // namespace rn

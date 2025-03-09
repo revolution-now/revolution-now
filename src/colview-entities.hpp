@@ -68,8 +68,10 @@ class ColonySubView
   : public IDraggableObjectsView<ColViewObject>,
     public AwaitView {
  public:
-  ColonySubView( SS& ss, TS& ts, Player& player, Colony& colony )
-    : ss_( ss ),
+  ColonySubView( IEngine& engine, SS& ss, TS& ts, Player& player,
+                 Colony& colony )
+    : engine_( engine ),
+      ss_( ss ),
       ts_( ts ),
       player_( player ),
       colony_( colony ) {}
@@ -102,6 +104,7 @@ class ColonySubView
   virtual void update_this_and_children();
 
  protected:
+  IEngine& engine_;
   SS& ss_;
   TS& ts_;
   Player& player_;

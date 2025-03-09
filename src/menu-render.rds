@@ -14,6 +14,9 @@ include "imenu-server.rds.hpp"
 # config
 include "config/menu-item-fwd.hpp"
 
+# render
+include "render/text-layout.rds.hpp"
+
 # gfx
 include "gfx/cartesian.hpp"
 
@@ -37,6 +40,7 @@ struct.MenuItemRenderLayout {
 }
 
 struct.MenuRenderLayout {
+  text_layout 'rr::TextLayout',
   position 'MenuPosition',
   bounds 'gfx::rect',
   items 'std::vector<MenuItemRenderLayout>',
@@ -54,6 +58,7 @@ struct.MenuHeaderRenderLayout {
 }
 
 struct.MenuBarRenderedLayout {
+  text_layout 'rr::TextLayout',
   bounds 'gfx::rect',
   headers 'std::vector<MenuHeaderRenderLayout>',
 }

@@ -14,6 +14,7 @@ using namespace std;
 
 // Revolution Now
 #include "commodity.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "market.hpp"
 #include "plane-stack.hpp"
@@ -35,13 +36,16 @@ namespace {} // namespace
 /****************************************************************
 ** Public API
 *****************************************************************/
-wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
+wait<> open_custom_house_menu( IEngine& engine, TS& ts,
+                               Colony& colony ) {
   using namespace ::rn::ui;
-  auto top_array = make_unique<VerticalArrayView>(
+  auto const& textometer = engine.textometer();
+  auto top_array         = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
 
   // Add text.
   auto text_view = make_unique<TextView>(
+      textometer,
       "What cargos shall our [Custom House] export?" );
   top_array->add_view( std::move( text_view ) );
 
@@ -60,6 +64,7 @@ wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
   refl::enum_map<e_commodity, LabeledCheckBoxView const*> boxes;
   for( e_commodity comm : refl::enum_values<e_commodity> ) {
     auto labeled_box = make_unique<TextLabeledCheckBoxView>(
+        textometer,
         string( uppercase_commodity_display_name( comm ) ),
         colony.custom_house[comm] );
     boxes[comm]      = labeled_box.get();
@@ -76,7 +81,8 @@ wait<> open_custom_house_menu( TS& ts, Colony& colony ) {
   top_array->add_view( std::move( vsplit_array ) );
 
   // Add buttons.
-  auto buttons_view          = make_unique<ui::OkCancelView2>();
+  auto buttons_view =
+      make_unique<ui::OkCancelView2>( textometer );
   ui::OkCancelView2* buttons = buttons_view.get();
   top_array->add_view( std::move( buttons_view ) );
 

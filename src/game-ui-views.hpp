@@ -26,6 +26,10 @@
 #include <unordered_map>
 #include <vector>
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 struct SSConst;
@@ -39,7 +43,8 @@ class UnitActivationView final : public ui::CompositeSingleView {
 
   // Preferred way to create.
   static std::unique_ptr<UnitActivationView> Create(
-      SSConst const& ss, std::vector<UnitId> const& ids_ );
+      rr::ITextometer const& textometer, SSConst const& ss,
+      std::vector<UnitId> const& ids_ );
 
   UnitActivationView();
 

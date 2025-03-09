@@ -25,6 +25,8 @@
 
 namespace rr {
 struct Renderer;
+struct ITextometer;
+struct TextLayout;
 }
 
 namespace rn {
@@ -76,16 +78,20 @@ void render_text_markup_reflow( rr::Renderer& renderer,
 
 // This is not cheap, so ideally it should be called once and the
 // result stored, as opposed to calling it every frame.
-Delta rendered_text_size( TextReflowInfo const& reflow_info,
+Delta rendered_text_size( rr::ITextometer const& textometer,
+                          rr::TextLayout const& text_layout,
+                          TextReflowInfo const& reflow_info,
                           std::string_view text );
 
 // Same as above but no reflow.  Will still account for markup.
-Delta rendered_text_size_no_reflow( std::string_view text );
+Delta rendered_text_size_no_reflow(
+    rr::ITextometer const& textometer,
+    rr::TextLayout const& text_layout, std::string_view text );
 
 // This is useful for debugging/development. It just puts a rec-
 // tangle on screen the given lines of text with no frills.
 void render_text_overlay_with_anchor(
-    rr::Renderer& renderer,
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
     std::vector<std::string> const& lines,
     gfx::oriented_point op, gfx::pixel color_fg,
     gfx::pixel color_bg, int scale );
@@ -94,8 +100,9 @@ void render_text_overlay_with_anchor(
 // color behind the text in a rect that bounds the text with the
 // given amount of padding.
 void render_text_line_with_background(
-    rr::Renderer& renderer, std::string_view line,
-    gfx::oriented_point op, gfx::pixel fg_color,
-    gfx::pixel bg_color, int padding, bool draw_corners );
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
+    std::string_view line, gfx::oriented_point op,
+    gfx::pixel fg_color, gfx::pixel bg_color, int padding,
+    bool draw_corners );
 
 } // namespace rn

@@ -214,13 +214,23 @@ struct Renderer : IRenderer {
 
   Painter painter();
 
-  Typer typer( gfx::point start, gfx::pixel color );
+  Typer typer();
 
-  Typer typer( std::string_view font_name, gfx::point start,
+  Typer typer( TextLayout const& layout );
+
+  Typer typer( std::string_view font_name,
+               TextLayout const& layout, gfx::point start,
                gfx::pixel color );
 
-  Typer typer( std::string_view font_name, gfx::point start,
+  Typer typer( std::string_view font_name,
+               TextLayout const& layout, gfx::point start,
                gfx::pixel color, Painter const& painter );
+
+  Typer typer( gfx::point start, gfx::pixel color );
+
+  AtlasMap const& atlas() const;
+  AsciiFont const& ascii_font(
+      std::string_view font_name ) const;
 
   gfx::size atlas_img_size() const;
 

@@ -33,6 +33,7 @@
 
 // render
 #include "render/renderer.hpp"
+#include "render/textometer.hpp"
 
 // Rcl
 #include "rcl/model.hpp"
@@ -263,6 +264,22 @@ struct Engine::Impl {
   void deinit_sprites() { rn::deinit_sprites(); }
 
   // ============================================================
+  // Textometer.
+  // ============================================================
+  void init_textometer() {
+    CHECK( renderer_ );
+    textometer_ = make_unique<rr::Textometer>(
+        renderer_->atlas(), renderer_->ascii_font( "simple" ) );
+  }
+
+  void deinit_textometer() { textometer_.reset(); }
+
+  rr::ITextometer& textometer() {
+    CHECK( textometer_ );
+    return *textometer_;
+  }
+
+  // ============================================================
   // Window
   // ============================================================
   void init_window() {
@@ -330,6 +347,7 @@ struct Engine::Impl {
   maybe<vid::RenderingBackendContext> rendering_backend_context_;
   maybe<gl::InitResult> gl_iface_;
   unique_ptr<sfx::SfxSDL> sfx_;
+  unique_ptr<rr::Textometer> textometer_;
 };
 
 /****************************************************************
@@ -356,6 +374,7 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_resolutions();
       impl().init_renderer();
       impl().init_sprites();
+      impl().init_textometer();
       impl().init_sfx();
       impl().init_midiseq();
       impl().init_oggplayer();
@@ -379,6 +398,7 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_resolutions();
       impl().init_renderer();
       impl().init_sprites();
+      impl().init_textometer();
       break;
     }
     case e_engine_mode::ui_test: {
@@ -389,6 +409,7 @@ void Engine::init( e_engine_mode const mode ) {
       impl().init_resolutions();
       impl().init_renderer();
       impl().init_sprites();
+      impl().init_textometer();
       break;
     }
   }
@@ -406,6 +427,7 @@ void Engine::deinit() {
   impl().deinit_oggplayer();
   impl().deinit_midiseq();
   impl().deinit_sfx();
+  impl().deinit_textometer();
   impl().deinit_sprites();
   impl().deinit_renderer();
   impl().deinit_resolutions();
@@ -429,6 +451,10 @@ rr::Renderer& Engine::renderer_use_only_when_needed() {
 
 gfx::Resolutions& Engine::resolutions() {
   return impl().resolutions();
+}
+
+rr::ITextometer& Engine::textometer() {
+  return impl().textometer();
 }
 
 } // namespace rn

@@ -13,6 +13,10 @@
 // Under test.
 #include "src/spread-render.hpp"
 
+// Testing
+#include "test/mocking.hpp"
+#include "test/mocks/render/itextometer.hpp"
+
 // Revolution Now
 #include "src/tiles.hpp"
 
@@ -36,6 +40,7 @@ using namespace std;
 
 using ::base::nothing;
 using ::gfx::rect;
+using ::gfx::size;
 using ::refl::enum_count;
 
 /****************************************************************
@@ -44,9 +49,11 @@ using ::refl::enum_count;
 TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   TileSpreadSpecs tile_spreads;
   TileSpreadRenderPlans expected;
+  rr::MockTextometer textometer;
 
   auto f = [&] {
-    return render_plan_for_tile_spread( tile_spreads );
+    return render_plan_for_tile_spread( textometer,
+                                        tile_spreads );
   };
 
   // Test that a zero-count spread with a label requested does
@@ -88,6 +95,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
            .where = { .x = 0, .y = 0 },
         } } },
     } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
+      .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == expected );
 
   // One spread, one tile, with label, non-default label posi-
@@ -126,6 +135,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
            .where = { .x = 0, .y = 32 - 8 - 2 },
         } } },
     } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
+      .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == expected );
 
   // Label uses real count when different from rendered_count.
@@ -151,6 +162,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
            .where = { .x = 0, .y = 0 },
         } } },
     } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == expected );
 
   // Three spreads, middle empty does not emit group spacing.
@@ -214,6 +227,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
            .where = { .x = 29, .y = 0 },
         } },
       } } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
+      .returns( size{ .w = 6, .h = 8 } );
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == expected );
 
   // One spread, one tile, with overlay.
@@ -315,6 +332,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
            .where = { .x = 0, .y = 20 - 10 },
         } } },
     } };
+  textometer
+      .EXPECT__dimensions_for_line( rr::TextLayout{}, "10" )
+      .returns( size{ .w = 6 * 2, .h = 8 } );
   REQUIRE( f() == expected );
 }
 

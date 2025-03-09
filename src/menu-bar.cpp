@@ -108,8 +108,9 @@ struct MenuBar::BarState {
 /****************************************************************
 ** MenuBar
 *****************************************************************/
-MenuBar::MenuBar( IMenuServer& menu_server )
-  : menu_server_( menu_server ) {}
+MenuBar::MenuBar( IMenuServer& menu_server,
+                  rr::ITextometer const& textometer )
+  : menu_server_( menu_server ), textometer_( textometer ) {}
 
 MenuBar::~MenuBar() = default;
 
@@ -332,7 +333,7 @@ void MenuBar::send_click( e_menu_item item ) const {
 wait<> MenuBar::run_thread( rect const logical_screen_rect,
                             vector<e_menu> const& contents ) {
   auto const render_layout = build_menu_bar_rendered_layout(
-      logical_screen_rect, contents );
+      textometer_, logical_screen_rect, contents );
   state_ = make_unique<BarState>( render_layout );
   SCOPE_EXIT { state_ = nullptr; };
 

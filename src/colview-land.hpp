@@ -46,10 +46,11 @@ struct ColonyLandView : public ui::View,
   };
 
   static std::unique_ptr<ColonyLandView> create(
-      SS& ss, TS& ts, Player& player, Colony& colony,
-      e_render_mode mode );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Colony& colony, e_render_mode mode );
 
-  ColonyLandView( SS& ss, TS& ts, Player& player, Colony& colony,
+  ColonyLandView( IEngine& engine, SS& ss, TS& ts,
+                  Player& player, Colony& colony,
                   e_render_mode mode );
 
   static Delta size_needed( e_render_mode mode );

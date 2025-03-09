@@ -131,7 +131,8 @@ struct DumpHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player&, UnitId id, command::dump const& ) {
+    IEngine&, SS& ss, TS& ts, Player&, UnitId id,
+    command::dump const& ) {
   return make_unique<DumpHandler>( ss, ts, id );
 }
 

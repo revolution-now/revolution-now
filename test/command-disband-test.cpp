@@ -16,7 +16,9 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
 
 // ss
@@ -60,14 +62,18 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-disband] confirm+perform" ) {
   World W;
+  rr::MockTextometer textometer;
+  W.engine().EXPECT__textometer().by_default().returns(
+      textometer );
 
   UnitId unit_id = {};
 
   unique_ptr<CommandHandler> cmd;
 
   auto confirm = [&] {
-    cmd = handle_command( W.ss(), W.ts(), W.default_player(),
-                          unit_id, command::disband{} );
+    cmd = handle_command( W.engine(), W.ss(), W.ts(),
+                          W.default_player(), unit_id,
+                          command::disband{} );
     return co_await_test( cmd->confirm() );
   };
 
@@ -263,15 +269,18 @@ TEST_CASE( "[command-disband] confirm+perform" ) {
 TEST_CASE(
     "[command-disband] confirmation box has 'no' first" ) {
   World W;
+  rr::MockTextometer textometer;
+  W.engine().EXPECT__textometer().by_default().returns(
+      textometer );
 
   UnitId const unit_id = W.add_unit_on_map( e_unit_type::galleon,
                                             { .x = 0, .y = 0 } )
                              .id();
 
   auto confirm = [&] {
-    auto handler =
-        handle_command( W.ss(), W.ts(), W.default_player(),
-                        unit_id, command::disband{} );
+    auto handler = handle_command( W.engine(), W.ss(), W.ts(),
+                                   W.default_player(), unit_id,
+                                   command::disband{} );
     return co_await_test( handler->confirm() );
   };
 

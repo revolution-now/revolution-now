@@ -181,8 +181,10 @@ void render_commodity_impl(
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
   Delta comm_size = sprite_size( tile );
-  Delta label_size =
-      rendered_text_size( /*reflow_info=*/{}, *label );
+  static rr::TextLayout const kTextLayout;
+  Delta label_size = rendered_text_size(
+      renderer.typer().textometer(), kTextLayout,
+      /*reflow_info=*/{}, *label );
   auto origin =
       where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
                      .h = comm_size.h + 2 };

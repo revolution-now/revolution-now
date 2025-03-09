@@ -19,21 +19,26 @@
 // gfx
 #include "gfx/cartesian.hpp"
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
+struct IVisibility;
 struct Player;
 struct SS;
 struct SSConst;
 struct TS;
-struct IVisibility;
 
 DisbandingPermissions disbandable_entities_on_tile(
     SSConst const& ss, IVisibility const& viz,
     gfx::point const tile );
 
 wait<EntitiesOnTile> disband_tile_ui_interaction(
-    SSConst const& ss, TS& ts, Player const& player,
-    IVisibility const& viz, DisbandingPermissions const& perms );
+    SSConst const& ss, TS& ts, rr::ITextometer const& textometer,
+    Player const& player, IVisibility const& viz,
+    DisbandingPermissions const& perms );
 
 wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
                         gfx::point const tile,

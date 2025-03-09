@@ -13,6 +13,7 @@
 // Revolution Now
 #include "colony-buildings.hpp"
 #include "colony-mgr.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "map-square.hpp"
 #include "native-owned.hpp"
@@ -484,7 +485,8 @@ void ColonyLandView::draw_spread(
     draw( e_tile::red_prohibition_20 );
     return;
   }
-  auto const plan = build_tile_spread( spread_config );
+  auto const plan =
+      build_tile_spread( engine_.textometer(), spread_config );
   auto const spread_origin =
       gfx::centered_in( plan.bounds.size, inner_box );
   draw_rendered_icon_spread( renderer, spread_origin, plan );
@@ -583,16 +585,16 @@ void ColonyLandView::draw( rr::Renderer& renderer,
 }
 
 unique_ptr<ColonyLandView> ColonyLandView::create(
-    SS& ss, TS& ts, Player& player, Colony& colony,
-    e_render_mode mode ) {
-  return make_unique<ColonyLandView>( ss, ts, player, colony,
-                                      mode );
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Colony& colony, e_render_mode mode ) {
+  return make_unique<ColonyLandView>( engine, ss, ts, player,
+                                      colony, mode );
 }
 
-ColonyLandView::ColonyLandView( SS& ss, TS& ts, Player& player,
-                                Colony& colony,
+ColonyLandView::ColonyLandView( IEngine& engine, SS& ss, TS& ts,
+                                Player& player, Colony& colony,
                                 e_render_mode mode )
-  : ColonySubView( ss, ts, player, colony ),
+  : ColonySubView( engine, ss, ts, player, colony ),
     mode_( mode ),
     occupied_red_box_(
         find_occupied_surrounding_colony_squares( ss, colony ) ),

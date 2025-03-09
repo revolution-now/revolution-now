@@ -17,6 +17,7 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/iengine.hpp"
 #include "test/mocks/iplane.hpp"
+#include "test/mocks/render/itextometer.hpp"
 #include "test/mocks/video/ivideo.hpp"
 
 // Revolution Now
@@ -84,6 +85,11 @@ TEST_CASE( "[menu-plane] registration/handlers" ) {
               .scale           = 2 } } },
     .selected = 0 };
   engine.EXPECT__resolutions().returns( resolutions );
+  rr::MockTextometer textometer;
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, _ )
+      .by_default()
+      .returns( size{ .w = 6, .h = 8 } );
+  engine.EXPECT__textometer().by_default().returns( textometer );
   MenuPlane mp( engine );
   MockIPlane mock_plane;
 
@@ -148,6 +154,12 @@ TEST_CASE( "[menu-plane] open_menu" ) {
     .selected = 0 };
   engine.EXPECT__resolutions().by_default().returns(
       resolutions );
+  rr::MockTextometer textometer;
+  textometer.EXPECT__font_height().by_default().returns( 8 );
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, _ )
+      .by_default()
+      .returns( size{ .w = 6, .h = 8 } );
+  engine.EXPECT__textometer().by_default().returns( textometer );
   MenuPlane mp( engine );
   MockIPlane mock_plane;
   IPlane& plane_impl = mp.impl();

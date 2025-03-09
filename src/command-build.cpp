@@ -168,7 +168,7 @@ struct BuildHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
     command::build const& ) {
   return make_unique<BuildHandler>( ss, ts, player, id );
 }

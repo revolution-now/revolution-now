@@ -88,7 +88,7 @@ void render_unit_flag_single(
     CASE( character ) {
       string const text( 1, character.value );
       Delta char_size =
-          rr::rendered_text_line_size_pixels( text );
+          renderer.typer().dimensions_for_line( text );
       render_text( renderer, centered( char_size, rect ),
                    font::nat_icon(), character.color, text );
       break;

@@ -55,6 +55,7 @@ AtlasMap const& atlas_map() {
       int col      = char_idx % 16;
       rects[i] = rect{ .origin = { .x = col * 2, .y = row * 4 },
                        .size   = { .w = 2, .h = 4 } };
+      trimmed[i] = rect{ .size = { .w = 2, .h = 4 } };
     }
     return AtlasMap( std::move( rects ), std::move( trimmed ) );
   }();
@@ -65,7 +66,9 @@ TEST_CASE( "[render/typer] write_char" ) {
   vector<GenericVertex> v, expected;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
-  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+  Typer typer( painter, ascii_font(), TextLayout{},
+               { .x = 20, .y = 30 }, B );
+  typer.layout().monospace = true;
 
   auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
     auto vert = SpriteVertex( p, atlas_p, atlas_rect );
@@ -78,7 +81,6 @@ TEST_CASE( "[render/typer] write_char" ) {
   REQUIRE( typer.position() ==
            point{ .x = 20 + 6, .y = 30 + 4 + 1 } );
   REQUIRE( typer.color() == B );
-  REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
 
   // clang-format off
   expected = {
@@ -153,74 +155,31 @@ TEST_CASE( "[render/typer] write_char" ) {
   REQUIRE( v == expected );
 }
 
-TEST_CASE( "[render/typer] write_char scaled" ) {
-  vector<GenericVertex> v, expected;
-  Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
-  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
-  typer.set_scale( size{ .w = 4, .h = 8 } );
-
-  auto Vert = [&]( point p, point atlas_p, rect atlas_rect ) {
-    auto vert = SpriteVertex( p, atlas_p, atlas_rect );
-    vert.set_fixed_color( B );
-    return vert.generic();
-  };
-
-  typer.write( 'h' );
-  REQUIRE( v.size() == 1 * 6 );
-  REQUIRE( typer.position() == point{ .x = 20 + 4, .y = 30 } );
-  REQUIRE( typer.color() == B );
-  REQUIRE( typer.scale() == size{ .w = 4, .h = 8 } );
-
-  // clang-format off
-  expected = {
-      // (20, 30): h
-      Vert( { .x = 20, .y = 30 }, { .x = 8*2,   .y = 6*4   }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-      Vert( { .x = 20, .y = 38 }, { .x = 8*2,   .y = 6*4+4 }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-      Vert( { .x = 24, .y = 38 }, { .x = 8*2+2, .y = 6*4+4 }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-      Vert( { .x = 20, .y = 30 }, { .x = 8*2,   .y = 6*4   }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-      Vert( { .x = 24, .y = 30 }, { .x = 8*2+2, .y = 6*4   }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-      Vert( { .x = 24, .y = 38 }, { .x = 8*2+2, .y = 6*4+4 }, { .origin={ .x = 8*2,  .y = 6*4 }, .size={ .w=2, .h=4 } } ),
-  };
-  // clang-format on
-  REQUIRE( v == expected );
-}
-
 TEST_CASE( "[render/typer] dimensions_for_line" ) {
   vector<GenericVertex> v;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
-  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+  Typer typer( painter, ascii_font(), TextLayout{},
+               { .x = 20, .y = 30 }, B );
+  typer.layout().monospace = true;
 
-  SECTION( "default scale" ) {
-    REQUIRE( typer.dimensions_for_line( "" ) ==
-             size{ .w = 2 * 0, .h = 4 } );
-    REQUIRE( typer.dimensions_for_line( "h" ) ==
-             size{ .w = 2 * 1, .h = 4 } );
-    REQUIRE( typer.dimensions_for_line( "hello" ) ==
-             size{ .w = 2 * 5, .h = 4 } );
-    REQUIRE( typer.dimensions_for_line( "hello\nhello" ) ==
-             size{ .w = 2 * 11, .h = 4 } );
-  }
-
-  SECTION( "larger scale" ) {
-    typer.set_scale( size{ .w = 4, .h = 8 } );
-    REQUIRE( typer.dimensions_for_line( "" ) ==
-             size{ .w = 4 * 0, .h = 8 } );
-    REQUIRE( typer.dimensions_for_line( "h" ) ==
-             size{ .w = 4 * 1, .h = 8 } );
-    REQUIRE( typer.dimensions_for_line( "hello" ) ==
-             size{ .w = 4 * 5, .h = 8 } );
-    REQUIRE( typer.dimensions_for_line( "hello\nhello" ) ==
-             size{ .w = 4 * 11, .h = 8 } );
-  }
+  REQUIRE( typer.dimensions_for_line( "" ) ==
+           size{ .w = 2 * 0, .h = 4 } );
+  REQUIRE( typer.dimensions_for_line( "h" ) ==
+           size{ .w = 2 * 1, .h = 4 } );
+  REQUIRE( typer.dimensions_for_line( "hello" ) ==
+           size{ .w = 2 * 5, .h = 4 } );
+  REQUIRE( typer.dimensions_for_line( "hello\nhello" ) ==
+           size{ .w = 2 * 11, .h = 4 } );
 }
 
 TEST_CASE( "[render/typer] frame position" ) {
   vector<GenericVertex> v;
   Emitter emitter( v );
   Painter painter( atlas_map(), emitter );
-  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
+  Typer typer( painter, ascii_font(), TextLayout{},
+               { .x = 20, .y = 30 }, B );
+  typer.layout().monospace = true;
 
   REQUIRE( typer.position() == point{ .x = 20, .y = 30 } );
   REQUIRE( typer.line_start() == point{ .x = 20, .y = 30 } );
@@ -240,31 +199,6 @@ TEST_CASE( "[render/typer] frame position" ) {
   REQUIRE( typer2.position() ==
            point{ .x = 35 + 2 * 5, .y = 63 } );
   REQUIRE( typer2.line_start() == point{ .x = 35, .y = 63 } );
-}
-
-TEST_CASE( "[render/typer] rendered_text_line_size_pixels" ) {
-  REQUIRE( rendered_text_line_size_pixels( "" ) ==
-           size{ .w = 6 * 0, .h = 8 } );
-  REQUIRE( rendered_text_line_size_pixels( "h" ) ==
-           size{ .w = 6 * 1, .h = 8 } );
-  REQUIRE( rendered_text_line_size_pixels( "hello" ) ==
-           size{ .w = 6 * 5, .h = 8 } );
-  REQUIRE( rendered_text_line_size_pixels( "hello\nhello" ) ==
-           size{ .w = 6 * 11, .h = 8 } );
-}
-
-TEST_CASE( "[render/typer] multiply_scale" ) {
-  vector<GenericVertex> v;
-  Emitter emitter( v );
-  Painter painter( atlas_map(), emitter );
-  Typer typer( painter, ascii_font(), { .x = 20, .y = 30 }, B );
-  REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
-  typer.multiply_scale( 1 );
-  REQUIRE( typer.scale() == size{ .w = 2, .h = 4 } );
-  typer.multiply_scale( 2 );
-  REQUIRE( typer.scale() == size{ .w = 4, .h = 8 } );
-  typer.multiply_scale( 2 );
-  REQUIRE( typer.scale() == size{ .w = 8, .h = 16 } );
 }
 
 } // namespace

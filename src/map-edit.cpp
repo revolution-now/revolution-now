@@ -668,7 +668,7 @@ wait<> run_map_editor_standalone( IEngine& engine,
   lua::table::create_or_get( st["log"] )["console"] =
       [&]( string const& msg ) { terminal.log( msg ); };
   WindowPlane window_plane( engine );
-  RealGui gui( planes );
+  RealGui gui( planes, engine.textometer() );
   Rand rand;
   TrappingCombat combat;
   ColonyViewer colony_viewer( engine, ss );

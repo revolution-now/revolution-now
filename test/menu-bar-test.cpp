@@ -14,7 +14,9 @@
 #include "src/menu-bar.hpp"
 
 // Testing.
+#include "test/mocking.hpp"
 #include "test/mocks/imenu-server.hpp"
+#include "test/mocks/render/itextometer.hpp"
 
 // Revolution Now
 #include "src/co-runner.hpp"
@@ -40,6 +42,7 @@ using namespace std;
 using namespace input;
 
 using ::gfx::rect;
+using ::gfx::size;
 using ::mock::matchers::_;
 using ::refl::enum_values;
 
@@ -47,7 +50,8 @@ using ::refl::enum_values;
 ** Harness
 *****************************************************************/
 struct Harness {
-  [[maybe_unused]] Harness() : bar_( menu_server_ ) {}
+  [[maybe_unused]] Harness()
+    : bar_( menu_server_, textometer_ ) {}
 
   [[nodiscard]] bool send_key( ::SDL_Keycode const key ) {
     key_event_t e;
@@ -67,10 +71,23 @@ struct Harness {
         MenuBarEventRaw::device{ .event = e } );
   }
 
+  void expect_menu_bar_dimensions() {
+    string const headers[] = { "Game",    "View",       "Orders",
+                               "Reports", "Trade",      "Music",
+                               "Cheat",   "Revolopedia" };
+    for( string const& header : headers )
+      textometer_
+          .EXPECT__dimensions_for_line( rr::TextLayout{},
+                                        header )
+          .returns(
+              size{ .w = 6 * int( ssize( header ) ), .h = 8 } );
+  }
+
   inline static rect const kScreen{
     .origin = {}, .size = { .w = 640, .h = 360 } };
 
   MockIMenuServer menu_server_;
+  rr::MockTextometer textometer_;
   MenuBar bar_;
 };
 
@@ -81,6 +98,8 @@ TEST_CASE_METHOD( Harness, "[menu-bar] run_thread" ) {
   vector<e_menu> const& contents = config_menu.menu_bar;
 
   auto f = [&] { return bar_.run_thread( kScreen, contents ); };
+
+  expect_menu_bar_dimensions();
 
   SECTION( "no input" ) {
     wait<> const w = f();

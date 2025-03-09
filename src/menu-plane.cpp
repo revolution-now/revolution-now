@@ -63,7 +63,9 @@ struct MenuPlane::Impl : IPlane, IMenuServer {
   enum_map<e_menu_item, stack<IPlane*>> handlers_;
 
   Impl( IEngine& engine )
-    : engine_( engine ), menu_threads_( *this ), bar_( *this ) {
+    : engine_( engine ),
+      menu_threads_( *this, engine_.textometer() ),
+      bar_( *this, engine_.textometer() ) {
     populate_menu_bar_contents();
     start_bar_thread_if_not_running();
   }

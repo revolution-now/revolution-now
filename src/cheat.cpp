@@ -21,6 +21,7 @@
 #include "fog-conv.hpp"
 #include "game-options.hpp"
 #include "icolony-evolve.rds.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "imenu-server.hpp"
@@ -318,15 +319,18 @@ void cheat_toggle_reveal_full_map( SS& ss, TS& ts ) {
       ts, player_for_role( ss, e_player_role::viewer ) );
 }
 
-wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
+wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
+                           Player& player ) {
   using namespace ui;
+
+  auto const& textometer = engine.textometer();
 
   auto top_array = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
 
   // Add text.
   auto text_view = make_unique<TextView>(
-      "Select or unselect founding fathers:" );
+      textometer, "Select or unselect founding fathers:" );
   top_array->add_view( std::move( text_view ) );
   // Add some space between title and check boxes.
   top_array->add_view(
@@ -348,7 +352,7 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
   for( e_founding_father father :
        refl::enum_values<e_founding_father> ) {
     auto labeled_box = make_unique<TextLabeledCheckBoxView>(
-        string( founding_father_name( father ) ),
+        textometer, string( founding_father_name( father ) ),
         player.fathers.has[father] );
     boxes[father] = labeled_box.get();
     if( static_cast<int>( father ) < 13 )
@@ -368,7 +372,8 @@ wait<> cheat_edit_fathers( SS& ss, TS& ts, Player& player ) {
       make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
   // Add buttons.
-  auto buttons_view          = make_unique<ui::OkCancelView2>();
+  auto buttons_view =
+      make_unique<ui::OkCancelView2>( textometer );
   ui::OkCancelView2* buttons = buttons_view.get();
   top_array->add_view( std::move( buttons_view ) );
 

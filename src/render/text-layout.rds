@@ -1,0 +1,27 @@
+# ===============================================================
+# text-layout.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-03-08.
+#
+# Description: Rds definitions for the render/text-layout module.
+#
+# ===============================================================
+# base
+include "base/maybe.hpp"
+
+namespace "rr"
+
+# These are text rendering options that affect how the characters
+# are layed out and positioned.
+struct.TextLayout {
+  monospace 'bool',
+
+  # Spacing between characters. This may be ignored when mono-
+  # space is on.
+  spacing 'base::maybe<int>',
+
+  # Spacing between lines.
+  line_spacing 'base::maybe<int>',
+}

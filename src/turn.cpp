@@ -28,6 +28,7 @@
 #include "harbor-units.hpp"
 #include "harbor-view.hpp"
 #include "icolony-evolve.rds.hpp"
+#include "iengine.hpp"
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
@@ -439,7 +440,8 @@ wait<> prioritize_units_during_turn(
     prioritize_unit( nat_units.q, id_to_add );
 }
 
-wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
+wait<> disband_at_location( IEngine& engine, SS& ss, TS& ts,
+                            Player const& player,
                             point const tile ) {
   auto const viz = create_visibility_for(
       ss, player_for_role( ss, e_player_role::viewer ) );
@@ -448,7 +450,8 @@ wait<> disband_at_location( SS& ss, TS& ts, Player const& player,
   auto const entities =
       disbandable_entities_on_tile( ss.as_const, *viz, tile );
   auto const selected = co_await disband_tile_ui_interaction(
-      ss.as_const, ts, player, *viz, entities );
+      ss.as_const, ts, engine.textometer(), player, *viz,
+      entities );
   co_await execute_disband( ss, ts, *viz, tile, selected );
 }
 
@@ -532,7 +535,7 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::cheat_edit_fathers: {
-      co_await cheat_edit_fathers( ss, ts, player );
+      co_await cheat_edit_fathers( engine, ss, ts, player );
       break;
     }
     case e_menu_item::game_options: {
@@ -595,7 +598,7 @@ wait<EndOfTurnResult> process_player_input_eot(
       SWITCH( give_command.cmd ) {
         CASE( disband ) {
           CHECK( disband.tile.has_value() );
-          co_await disband_at_location( ss, ts, player,
+          co_await disband_at_location( engine, ss, ts, player,
                                         *disband.tile );
           break;
         }
@@ -767,7 +770,7 @@ wait<> process_player_input_normal_mode(
           .get_bottom<ILandViewPlane>()
           .ensure_visible_unit( id );
       unique_ptr<CommandHandler> handler =
-          command_handler( ss, ts, player, id, cmd );
+          command_handler( engine, ss, ts, player, id, cmd );
       CHECK( handler );
 
       auto run_result = co_await handler->run();
@@ -885,7 +888,7 @@ wait<> process_player_input_view_mode(
       SWITCH( give_command.cmd ) {
         CASE( disband ) {
           CHECK( disband.tile.has_value() );
-          co_await disband_at_location( ss, ts, player,
+          co_await disband_at_location( engine, ss, ts, player,
                                         *disband.tile );
           break;
         }

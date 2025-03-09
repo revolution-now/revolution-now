@@ -25,6 +25,7 @@
 
 // render
 #include "render/extra.hpp"
+#include "render/itextometer.hpp"
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
 
@@ -44,6 +45,8 @@ using namespace std;
 namespace rn::ui {
 
 namespace {
+
+using ::gfx::size;
 
 template<typename Res, typename... T>
 std::vector<Res> params_to_vector( T&&... ts ) {
@@ -274,18 +277,22 @@ void SolidRectView::draw( rr::Renderer& renderer,
 *****************************************************************/
 // NOTE: If you add reflow info to this constructor, don't forget
 // to add it into the calculation of the text size as well.
-OneLineStringView::OneLineStringView( string msg,
-                                      gfx::pixel color,
-                                      Delta size_override )
+OneLineStringView::OneLineStringView(
+    rr::ITextometer const& textometer, string msg,
+    gfx::pixel color, Delta size_override )
   : msg_( std::move( msg ) ),
     view_size_( size_override ),
-    text_size_( rendered_text_size_no_reflow( msg ) ),
+    text_size_( rendered_text_size_no_reflow(
+        textometer, rr::TextLayout{}, msg ) ),
     color_( color ) {}
 
-OneLineStringView::OneLineStringView( string msg,
-                                      gfx::pixel color )
-  : OneLineStringView( msg, color,
-                       rendered_text_size_no_reflow( msg ) ) {}
+OneLineStringView::OneLineStringView(
+    rr::ITextometer const& textometer, string msg,
+    gfx::pixel color )
+  : OneLineStringView(
+        textometer, msg, color,
+        rendered_text_size_no_reflow(
+            textometer, rr::TextLayout{}, msg ) ) {}
 
 Delta OneLineStringView::delta() const { return view_size_; }
 
@@ -301,16 +308,20 @@ void OneLineStringView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** TextView
 *****************************************************************/
-TextView::TextView( std::string msg,
+TextView::TextView( rr::ITextometer const& textometer,
+                    std::string msg,
                     TextMarkupInfo const& m_info,
                     TextReflowInfo const& r_info )
   : msg_( std::move( msg ) ),
-    text_size_{ rendered_text_size( r_info, msg_ ) },
+    text_size_{ rendered_text_size( textometer, rr::TextLayout{},
+                                    r_info, msg_ ) },
     markup_info_( m_info ),
     reflow_info_( r_info ) {}
 
-TextView::TextView( std::string msg )
-  : TextView( std::move( msg ), default_text_markup_info(),
+TextView::TextView( rr::ITextometer const& textometer,
+                    std::string msg )
+  : TextView( textometer, std::move( msg ),
+              default_text_markup_info(),
               default_text_reflow_info() ) {}
 
 Delta TextView::delta() const { return text_size_; }
@@ -324,31 +335,38 @@ void TextView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** ButtonBaseView
 *****************************************************************/
-ButtonBaseView::ButtonBaseView( string label )
-  : ButtonBaseView( std::move( label ), e_type::standard ) {}
+ButtonBaseView::ButtonBaseView(
+    rr::ITextometer const& textometer, string label )
+  : ButtonBaseView( textometer, std::move( label ),
+                    e_type::standard ) {}
 
-ButtonBaseView::ButtonBaseView( string label, e_type type )
+ButtonBaseView::ButtonBaseView(
+    rr::ITextometer const& textometer, string label,
+    e_type type )
   : ButtonBaseView(
-        label,
-        rendered_text_size( /*reflow_info=*/{}, label )
+        textometer, label,
+        rendered_text_size( textometer, rr::TextLayout{},
+                            /*reflow_info=*/{}, label )
                     .round_up( Delta{ .w = 8, .h = 8 } ) /
                 Delta{ .w = 8, .h = 8 } +
             Delta{ .w = 2 } + Delta{ .h = 1 },
         type ) {}
 
-ButtonBaseView::ButtonBaseView( string label,
-                                Delta size_in_blocks )
-  : ButtonBaseView( std::move( label ), size_in_blocks,
-                    e_type::standard ) {}
+ButtonBaseView::ButtonBaseView(
+    rr::ITextometer const& textometer, string label,
+    Delta size_in_blocks )
+  : ButtonBaseView( textometer, std::move( label ),
+                    size_in_blocks, e_type::standard ) {}
 
-ButtonBaseView::ButtonBaseView( string label,
-                                Delta size_in_blocks,
-                                e_type type )
+ButtonBaseView::ButtonBaseView(
+    rr::ITextometer const& textometer, string label,
+    Delta size_in_blocks, e_type type )
   : label_( std::move( label ) ),
     type_( type ),
     size_in_pixels_( size_in_blocks * Delta{ .w = 8, .h = 8 } ),
     text_size_in_pixels_(
-        rendered_text_size( /*reflow_info=*/{}, label_ ) ) {}
+        rendered_text_size( textometer, rr::TextLayout{},
+                            /*reflow_info=*/{}, label_ ) ) {}
 
 Delta ButtonBaseView::delta() const { return size_in_pixels_; }
 
@@ -494,12 +512,12 @@ void SpriteView::draw( rr::Renderer& renderer,
 /****************************************************************
 ** LineEditorView
 *****************************************************************/
-LineEditorView::LineEditorView( e_font font, W pixels_wide,
-                                OnChangeFunc on_change,
-                                gfx::pixel fg, gfx::pixel bg,
-                                string_view prompt,
-                                string_view initial_text )
-  : prompt_{ prompt },
+LineEditorView::LineEditorView(
+    rr::ITextometer const& textometer, e_font font,
+    W pixels_wide, OnChangeFunc on_change, gfx::pixel fg,
+    gfx::pixel bg, string_view prompt, string_view initial_text )
+  : textometer_( textometer ),
+    prompt_{ prompt },
     fg_{ fg },
     bg_{ bg },
     font_{ font },
@@ -508,40 +526,32 @@ LineEditorView::LineEditorView( e_font font, W pixels_wide,
     input_view_( 1 ),
     current_rendering_{},
     cursor_width_{} {
-  string text( 100, 'X' );
-  Delta char_delta = Delta::from_gfx(
-      rr::rendered_text_line_size_pixels( text ) );
-
-  cursor_width_ = char_delta.w / SX{ int( text.size() ) };
-
-  Delta pixel_size = Delta{ pixels_wide, char_delta.h };
+  cursor_width_ = 1;
+  size const pixel_size{ .w = pixels_wide,
+                         .h = textometer_.font_height() };
   // This doesn't work precisely because 1) the font may not be
-  // fixed width, and 2) cursor_width_ is just an average.
-  input_view_ =
-      LineEditorInputView{ pixel_size.w / cursor_width_ };
+  // fixed width, and 2) the char width is just an average.
+  input_view_ = LineEditorInputView{ pixel_size.w / 6 };
   update_visible_string();
 }
 
-LineEditorView::LineEditorView( int chars_wide,
-                                string_view initial_text,
-                                OnChangeFunc on_change )
-  : LineEditorView(
-        font::standard(),
-        Delta::from_gfx( rr::rendered_text_line_size_pixels(
-                             string( chars_wide, 'X' ) ) )
-            .w,
-        std::move( on_change ), gfx::pixel::wood(),
-        gfx::pixel::banana(), /*prompt=*/"", initial_text ) {}
+LineEditorView::LineEditorView(
+    rr::ITextometer const& textometer, int chars_wide,
+    string_view initial_text, OnChangeFunc on_change )
+  : LineEditorView( textometer, font::standard(), 6 * chars_wide,
+                    std::move( on_change ), gfx::pixel::wood(),
+                    gfx::pixel::banana(), /*prompt=*/"",
+                    initial_text ) {}
 
-LineEditorView::LineEditorView( int chars_wide,
-                                string_view initial_text )
-  : LineEditorView( chars_wide, initial_text,
+LineEditorView::LineEditorView(
+    rr::ITextometer const& textometer, int chars_wide,
+    string_view initial_text )
+  : LineEditorView( textometer, chars_wide, initial_text,
                     []( auto const& ) {} ) {}
 
 Delta LineEditorView::delta() const {
-  return Delta::from_gfx( rr::rendered_text_line_size_pixels(
-             string( input_view_.width(), 'X' ) ) ) +
-         Delta{ .w = 4, .h = 4 };
+  return gfx::size{ .w = input_view_.width() * 6 + 4,
+                    .h = 8 + 4 };
 }
 
 void LineEditorView::render_background( rr::Renderer& renderer,
@@ -554,14 +564,15 @@ void LineEditorView::render_background( rr::Renderer& renderer,
 void LineEditorView::draw( rr::Renderer& renderer,
                            Coord coord ) const {
   render_background( renderer, bounds( coord ) );
-  auto all_chars = prompt_ + current_rendering_;
+  auto all_chars  = prompt_ + current_rendering_;
+  rr::Typer typer = renderer.typer();
+  typer.set_color( fg_ );
   gfx::size text_size =
-      rr::rendered_text_line_size_pixels( current_rendering_ );
+      typer.dimensions_for_line( current_rendering_ );
   Y text_pos_y =
       centered( Delta::from_gfx( text_size ), bounds( coord ) )
           .y;
-  rr::Typer typer = renderer.typer(
-      Coord{ .x = coord.x + 1, .y = text_pos_y }, fg_ );
+  typer.set_position( { .x = coord.x + 1, .y = text_pos_y } );
   typer.write( all_chars );
 
   auto rel_pos = input_view_.rel_pos( line_editor_.pos() ) +
@@ -573,7 +584,7 @@ void LineEditorView::draw( rr::Renderer& renderer,
       rel_pos == 0
           ? W{ 0 }
           // The rendered text might have width 1 in this case.
-          : Delta::from_gfx( rr::rendered_text_line_size_pixels(
+          : Delta::from_gfx( typer.dimensions_for_line(
                                  string_up_to_cursor ) )
                 .w;
   Rect cursor{ .x = coord.x + 1 + rel_cursor_pixels,
@@ -629,11 +640,12 @@ TextReflowInfo const& default_text_reflow_info() {
 }
 
 unique_ptr<PlainMessageBoxView> PlainMessageBoxView::create(
-    string_view msg, wait_promise<>& on_close ) {
+    rr::ITextometer const& textometer, string_view msg,
+    wait_promise<>& on_close ) {
   TextMarkupInfo const& m_info = default_text_markup_info();
   TextReflowInfo const& r_info = default_text_reflow_info();
-  unique_ptr<TextView> tview =
-      make_unique<TextView>( string( msg ), m_info, r_info );
+  unique_ptr<TextView> tview   = make_unique<TextView>(
+      textometer, string( msg ), m_info, r_info );
   return make_unique<PlainMessageBoxView>( std::move( tview ),
                                            on_close );
 }
@@ -700,15 +712,18 @@ bool PaddingView::can_pad_immediate_children() const {
 /****************************************************************
 ** ButtonView
 *****************************************************************/
-ButtonView::ButtonView( string label, OnClickFunc on_click )
-  : ButtonBaseView( std::move( label ) ),
+ButtonView::ButtonView( rr::ITextometer const& textometer,
+                        string label, OnClickFunc on_click )
+  : ButtonBaseView( textometer, std::move( label ) ),
     on_click_( std::move( on_click ) ) {
   set_state( button_state::up );
 }
 
-ButtonView::ButtonView( string label, Delta size_in_blocks,
+ButtonView::ButtonView( rr::ITextometer const& textometer,
+                        string label, Delta size_in_blocks,
                         OnClickFunc on_click )
-  : ButtonBaseView( std::move( label ), size_in_blocks ),
+  : ButtonBaseView( textometer, std::move( label ),
+                    size_in_blocks ),
     on_click_( std::move( on_click ) ) {
   set_state( button_state::up );
 }
@@ -787,12 +802,13 @@ void ButtonView::click() const { on_click_(); }
 *****************************************************************/
 constexpr Delta ok_cancel_button_size_blocks{ .w = 8, .h = 2 };
 
-OkCancelView2::OkCancelView2() {
+OkCancelView2::OkCancelView2(
+    rr::ITextometer const& textometer ) {
   auto ok_button = make_unique<ButtonView>(
-      "OK", ok_cancel_button_size_blocks,
+      textometer, "OK", ok_cancel_button_size_blocks,
       [this] { clicks_.send( e_ok_cancel::ok ); } );
   auto cancel_button = make_unique<ButtonView>(
-      "Cancel", ok_cancel_button_size_blocks,
+      textometer, "Cancel", ok_cancel_button_size_blocks,
       [this] { clicks_.send( e_ok_cancel::cancel ); } );
 
   ok_ref_     = ok_button.get();
@@ -833,12 +849,14 @@ bool OkCancelView2::on_key( input::key_event_t const& event ) {
 /****************************************************************
 ** OkCancelView (deprecated)
 *****************************************************************/
-OkCancelView::OkCancelView( ButtonView::OnClickFunc on_ok,
+OkCancelView::OkCancelView( rr::ITextometer const& textometer,
+                            ButtonView::OnClickFunc on_ok,
                             ButtonView::OnClickFunc on_cancel ) {
   auto ok_button = make_unique<ButtonView>(
-      "OK", ok_cancel_button_size_blocks, std::move( on_ok ) );
+      textometer, "OK", ok_cancel_button_size_blocks,
+      std::move( on_ok ) );
   auto cancel_button = make_unique<ButtonView>(
-      "Cancel", ok_cancel_button_size_blocks,
+      textometer, "Cancel", ok_cancel_button_size_blocks,
       std::move( on_cancel ) );
 
   ok_ref_     = ok_button.get();
@@ -875,11 +893,13 @@ bool OkCancelView::on_key( input::key_event_t const& event ) {
 /****************************************************************
 ** OkButtonView
 *****************************************************************/
-OkButtonView::OkButtonView( ButtonView::OnClickFunc on_ok )
-  : CompositeSingleView( make_unique<ButtonView>(
-                             "OK", ok_cancel_button_size_blocks,
-                             std::move( on_ok ) ),
-                         Coord{} ) {
+OkButtonView::OkButtonView( rr::ITextometer const& textometer,
+                            ButtonView::OnClickFunc on_ok )
+  : CompositeSingleView(
+        make_unique<ButtonView>( textometer, "OK",
+                                 ok_cancel_button_size_blocks,
+                                 std::move( on_ok ) ),
+        Coord{} ) {
   ok_ref_ = single()->cast<ButtonView>();
 }
 
@@ -1077,21 +1097,23 @@ bool LabeledCheckBoxView::on_mouse_button(
 /****************************************************************
 ** LabeledCheckBoxView
 *****************************************************************/
-TextLabeledCheckBoxView::TextLabeledCheckBoxView( string label,
-                                                  bool on )
+TextLabeledCheckBoxView::TextLabeledCheckBoxView(
+    rr::ITextometer const& textometer, string label, bool on )
   : LabeledCheckBoxView(
-        make_unique<TextView>( std::move( label ) ), on ) {}
+        make_unique<TextView>( textometer, std::move( label ) ),
+        on ) {}
 
 /****************************************************************
 ** OkCancelAdapterView
 *****************************************************************/
-OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
-                                          OnClickFunc on_click )
+OkCancelAdapterView::OkCancelAdapterView(
+    rr::ITextometer const& textometer, unique_ptr<View> view,
+    OnClickFunc on_click )
   : VerticalArrayView(
         params_to_vector<unique_ptr<View>>(
             std::move( view ),
             make_unique<OkCancelView>(
-                /*on_ok=*/
+                textometer, /*on_ok=*/
                 [on_click]() { on_click( e_ok_cancel::ok ); },
                 /*on_cancel=*/
                 [on_click]() {
@@ -1102,24 +1124,29 @@ OkCancelAdapterView::OkCancelAdapterView( unique_ptr<View> view,
 /****************************************************************
 ** OptionSelectItemView
 *****************************************************************/
-OptionSelectItemView::OptionSelectItemView( Option option )
+OptionSelectItemView::OptionSelectItemView(
+    rr::ITextometer const& textometer, Option option )
   : active_{ e_option_active::inactive },
     enabled_( option.enabled ) {
   Delta const text_size =
-      rendered_text_size_no_reflow( option.name ) +
+      rendered_text_size_no_reflow( textometer, rr::TextLayout{},
+                                    option.name ) +
       Delta{ .h = 4 };
   background_active_ = make_unique<SolidRectView>(
       config_ui.dialog_text.selected_background );
   background_inactive_ =
       make_unique<SolidRectView>( gfx::pixel{ .a = 0 } );
   foreground_active_ = make_unique<OneLineStringView>(
-      option.name, config_ui.dialog_text.normal, text_size );
+      textometer, option.name, config_ui.dialog_text.normal,
+      text_size );
   if( enabled_ ) {
     foreground_inactive_ = make_unique<OneLineStringView>(
-        option.name, config_ui.dialog_text.normal, text_size );
+        textometer, option.name, config_ui.dialog_text.normal,
+        text_size );
   } else {
     foreground_inactive_ = make_unique<OneLineStringView>(
-        option.name, config_ui.dialog_text.disabled, text_size );
+        textometer, option.name, config_ui.dialog_text.disabled,
+        text_size );
   }
 
   Delta delta_active   = foreground_active_->delta();
@@ -1174,6 +1201,7 @@ void OptionSelectItemView::grow_to( W w ) {
 ** OptionSelectView
 *****************************************************************/
 OptionSelectView::OptionSelectView(
+    rr::ITextometer const& textometer,
     vector<OptionSelectItemView::Option> const& options,
     maybe<int> initial_selection )
   : selected_{ initial_selection } {
@@ -1198,7 +1226,8 @@ OptionSelectView::OptionSelectView(
   Coord so_far{};
   W min_width{ 0 };
   for( auto const& option : options ) {
-    auto view   = make_unique<OptionSelectItemView>( option );
+    auto view =
+        make_unique<OptionSelectItemView>( textometer, option );
     auto width  = view->delta().w;
     auto height = view->delta().h;
     this->push_back( OwningPositionedView{

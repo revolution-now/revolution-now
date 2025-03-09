@@ -25,7 +25,8 @@ struct Player;
 *****************************************************************/
 class PopulationView : public ui::View, public ColonySubView {
  public:
-  static std::unique_ptr<PopulationView> create( SS& ss, TS& ts,
+  static std::unique_ptr<PopulationView> create( IEngine& engine,
+                                                 SS& ss, TS& ts,
                                                  Player& player,
                                                  Colony& colony,
                                                  Delta size );
@@ -38,9 +39,9 @@ class PopulationView : public ui::View, public ColonySubView {
     gfx::point spread_origin = {};
   };
 
-  PopulationView( SS& ss, TS& ts, Player& player, Colony& colony,
-                  Layout layout )
-    : ColonySubView( ss, ts, player, colony ),
+  PopulationView( IEngine& engine, SS& ss, TS& ts,
+                  Player& player, Colony& colony, Layout layout )
+    : ColonySubView( engine, ss, ts, player, colony ),
       layout_( layout ) {}
 
  public: // ui::Object.
@@ -62,7 +63,8 @@ class PopulationView : public ui::View, public ColonySubView {
   void update_this_and_children() override;
 
  private:
-  static Layout create_layout( SSConst const& ss, gfx::size sz );
+  static Layout create_layout( IEngine& engine,
+                               SSConst const& ss, gfx::size sz );
 
   void draw_sons_of_liberty( rr::Renderer& renderer,
                              Coord coord ) const;

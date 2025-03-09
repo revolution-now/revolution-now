@@ -25,6 +25,7 @@ struct ISfx;
 
 namespace rr {
 struct Renderer;
+struct ITextometer;
 }
 
 namespace gfx {
@@ -48,6 +49,8 @@ struct IEngine {
   virtual rr::Renderer& renderer_use_only_when_needed() = 0;
 
   virtual gfx::Resolutions& resolutions() = 0;
+
+  virtual rr::ITextometer& textometer() = 0;
 };
 
 } // namespace rn

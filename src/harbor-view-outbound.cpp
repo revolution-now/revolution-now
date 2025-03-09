@@ -293,7 +293,7 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
   }
 
   int const label_h =
-      rr::rendered_text_line_size_pixels( "X" ).h;
+      renderer.typer().dimensions_for_line( "X" ).h;
 
   // This needs to be kept in sync with the other boxes.
   static auto const kTextColor =

@@ -18,6 +18,7 @@
 #include "test/fake/world.hpp"
 #include "test/mocks/icolony-viewer.hpp"
 #include "test/mocks/icombat.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/land-view-plane.hpp"
@@ -107,7 +108,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
   {
     // First make sure that it can't move from land to land.
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, id,
+        handle_command( W.engine(), W.ss(), W.ts(), player, id,
                         command::move{ .d = e_direction::n } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -120,7 +121,7 @@ TEST_CASE( "[command-move] ship can move from land to ocean" ) {
   {
     // Now make sure that it can move from land to water.
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, id,
+        handle_command( W.engine(), W.ss(), W.ts(), player, id,
                         command::move{ .d = e_direction::nw } );
     wait<bool> w_confirm = handler->confirm();
     REQUIRE( !w_confirm.exception() );
@@ -156,7 +157,7 @@ TEST_CASE( "[command-move] ship can't move into inland lake" ) {
   REQUIRE( W.units().unit_for( id ).desc().ship );
 
   unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), player, id,
+      handle_command( W.engine(), W.ss(), W.ts(), player, id,
                       command::move{ .d = e_direction::s } );
   W.gui().EXPECT__message_box( StrContains( "inland lake" ) );
   wait<bool> w_confirm = handler->confirm();
@@ -187,8 +188,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ );
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, unit_id,
-                        command::move{ .d = d } );
+        handle_command( W.engine(), W.ss(), W.ts(), player,
+                        unit_id, command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -269,8 +270,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ );
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, unit_id,
-                        command::move{ .d = d } );
+        handle_command( W.engine(), W.ss(), W.ts(), player,
+                        unit_id, command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -323,8 +324,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ );
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, unit_id,
-                        command::move{ .d = d } );
+        handle_command( W.engine(), W.ss(), W.ts(), player,
+                        unit_id, command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -376,8 +377,8 @@ TEST_CASE(
   auto move_unit = [&]( UnitId unit_id, e_direction d ) {
     land_view_plane.EXPECT__animate( _ );
     unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), player, unit_id,
-                        command::move{ .d = d } );
+        handle_command( W.engine(), W.ss(), W.ts(), player,
+                        unit_id, command::move{ .d = d } );
     wait<CommandHandlerRunResult> const w = handler->run();
     REQUIRE( !w.exception() );
     REQUIRE( w.ready() );
@@ -415,9 +416,9 @@ TEST_CASE(
   W.add_native_unit_on_map( e_native_unit_type::brave,
                             { .x = 1, .y = 1 }, dwelling.id );
 
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.french(), colonist.id(),
-                      command::move{ .d = e_direction::se } );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
+      command::move{ .d = e_direction::se } );
   W.euro_mind( W.default_nation() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." );
@@ -440,9 +441,9 @@ TEST_CASE(
                          { .x = 1, .y = 1 }, e_nation::french );
 
   BASE_CHECK( caravel.nation() != colonist.nation() );
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.french(), colonist.id(),
-                      command::move{ .d = e_direction::nw } );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
+      command::move{ .d = e_direction::nw } );
   W.euro_mind( e_nation::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
@@ -468,9 +469,9 @@ TEST_CASE(
                          { .x = 1, .y = 1 }, e_nation::french );
 
   BASE_CHECK( caravel.nation() != soldier.nation() );
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
-                      command::move{ .d = e_direction::n } );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
+      command::move{ .d = e_direction::n } );
   W.euro_mind( e_nation::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
@@ -525,9 +526,9 @@ TEST_CASE(
   };
 
   SECTION( "no units on ship" ) {
-    unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
-                        command::move{ .d = e_direction::n } );
+    unique_ptr<CommandHandler> handler = handle_command(
+        W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
+        command::move{ .d = e_direction::n } );
     require_in_colony( master_distiller );
     require_not_sentried( master_distiller );
     require_on_map( caravel );
@@ -561,9 +562,9 @@ TEST_CASE(
     Unit const& soldier_onboard = W.add_unit_in_cargo(
         e_unit_type::soldier, caravel.id() );
     require_in_cargo( soldier_onboard );
-    unique_ptr<CommandHandler> handler =
-        handle_command( W.ss(), W.ts(), W.french(), soldier.id(),
-                        command::move{ .d = e_direction::n } );
+    unique_ptr<CommandHandler> handler = handle_command(
+        W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
+        command::move{ .d = e_direction::n } );
     require_in_colony( master_distiller );
     require_not_sentried( master_distiller );
     require_on_map( soldier_onboard );

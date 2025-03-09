@@ -17,6 +17,7 @@
 // Testing
 #include "test/fake/world.hpp"
 #include "test/mocks/icolony-viewer.hpp"
+#include "test/mocks/iengine.hpp"
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 
@@ -75,9 +76,9 @@ TEST_CASE( "[command-build] build colony" ) {
   Coord const tile{ .x = 2, .y = 2 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.default_player(),
-                      unit.id(), command::build{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -123,9 +124,9 @@ TEST_CASE( "[command-build] build colony no ocean access" ) {
   Coord const tile{ .x = 3, .y = 3 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::free_colonist, tile );
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.default_player(),
-                      unit.id(), command::build{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 
@@ -154,9 +155,9 @@ TEST_CASE( "[command-build] build colony by ship" ) {
   Coord const tile{ .x = 0, .y = 0 };
   Unit const& unit =
       W.add_unit_on_map( e_unit_type::caravel, tile );
-  unique_ptr<CommandHandler> handler =
-      handle_command( W.ss(), W.ts(), W.default_player(),
-                      unit.id(), command::build{} );
+  unique_ptr<CommandHandler> handler = handle_command(
+      W.engine(), W.ss(), W.ts(), W.default_player(), unit.id(),
+      command::build{} );
 
   REQUIRE_FALSE( unit.mv_pts_exhausted() );
 

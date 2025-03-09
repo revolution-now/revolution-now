@@ -74,13 +74,14 @@ struct SentryHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player&, UnitId id,
+    IEngine&, SS& ss, TS& ts, Player&, UnitId id,
     command::fortify const& ) {
   return make_unique<FortifyHandler>( ss, ts, id );
 }
 
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS&, Player&, UnitId id, command::sentry const& ) {
+    IEngine&, SS& ss, TS&, Player&, UnitId id,
+    command::sentry const& ) {
   return make_unique<SentryHandler>( ss, id );
 }
 

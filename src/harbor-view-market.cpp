@@ -485,10 +485,12 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     CommodityPrice const price = market_price( player_, comm );
     string const bid_str       = to_string( price.bid );
     string const ask_str       = to_string( price.ask );
+    rr::Typer typer            = renderer.typer();
+    typer.set_color( gfx::pixel::black() );
     size const bid_text_size =
-        rr::rendered_text_line_size_pixels( bid_str );
+        typer.dimensions_for_line( bid_str );
     size const ask_text_size =
-        rr::rendered_text_line_size_pixels( ask_str );
+        typer.dimensions_for_line( ask_str );
     size const total_size{
       .w = bid_text_size.w + layout_.bid_ask_padding +
            layout_.slash_size.w + +layout_.bid_ask_padding +
@@ -500,8 +502,8 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
         gfx::centered_in( total_size, layout_.bid_ask[comm] );
 
     point const bid_text_origin = label_origin;
-    renderer.typer( bid_text_origin, gfx::pixel::black() )
-        .write( bid_str );
+    typer.set_position( bid_text_origin );
+    typer.write( bid_str );
     point const slash_origin =
         bid_text_origin + size{ .w = layout_.bid_ask_padding } +
         size{ .w = bid_text_size.w };
@@ -509,8 +511,8 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
     point const ask_text_origin =
         slash_origin + size{ .w = layout_.bid_ask_padding } +
         size{ .w = layout_.slash_size.w };
-    renderer.typer( ask_text_origin, gfx::pixel::black() )
-        .write( ask_str );
+    typer.set_position( ask_text_origin );
+    typer.write( ask_str );
 
     if( player_.old_world.market.commodities[comm].boycott )
       render_sprite( renderer,
@@ -528,7 +530,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
                        uppercase_commodity_display_name( comm ),
                        price.bid, price.ask );
       size const tooltip_size =
-          rr::rendered_text_line_size_pixels( tooltip );
+          renderer.typer().dimensions_for_line( tooltip );
       point anchor = layout_.plates[comm].center().with_y(
           layout_.plates[comm].top() - 1 );
       e_cdirection placement = e_cdirection::s;
@@ -542,7 +544,7 @@ void HarborMarketCommodities::draw( rr::Renderer& renderer,
         placement = e_cdirection::se;
       }
       render_text_line_with_background(
-          renderer, tooltip,
+          renderer, rr::TextLayout{}, tooltip,
           gfx::oriented_point{ .anchor    = anchor,
                                .placement = placement },
           config_ui.tooltips.default_fg_color,

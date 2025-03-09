@@ -35,8 +35,8 @@ class ColViewBuildings : public ui::View,
                          public IDragSource<ColViewObject> {
  public:
   static std::unique_ptr<ColViewBuildings> create(
-      SS& ss, TS& ts, Player& player, Colony& colony,
-      Delta size );
+      IEngine& engine, SS& ss, TS& ts, Player& player,
+      Colony& colony, Delta size );
 
   struct Layout {
     gfx::size size = {};
@@ -48,9 +48,10 @@ class ColViewBuildings : public ui::View,
     refl::enum_map<e_colony_building_slot, Slot> slots;
   };
 
-  ColViewBuildings( SS& ss, TS& ts, Player& player,
-                    Colony& colony, Layout layout )
-    : ColonySubView( ss, ts, player, colony ),
+  ColViewBuildings( IEngine& engine, SS& ss, TS& ts,
+                    Player& player, Colony& colony,
+                    Layout layout )
+    : ColonySubView( engine, ss, ts, player, colony ),
       colony_( colony ),
       layout_( std::move( layout ) ) {}
 
@@ -118,7 +119,8 @@ class ColViewBuildings : public ui::View,
       Coord where ) const;
 
  private:
-  static Layout create_layout( SSConst const& ss, gfx::size sz );
+  static Layout create_layout( IEngine& engine,
+                               SSConst const& ss, gfx::size sz );
 
   struct Dragging {
     UnitId id                   = {};

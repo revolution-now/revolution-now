@@ -34,6 +34,7 @@
 
 namespace rr {
 struct Renderer;
+struct ITextometer;
 }
 
 namespace rn {
@@ -187,8 +188,8 @@ struct UnitSelection {
 NOTHROW_MOVE( UnitSelection );
 
 wait<std::vector<UnitSelection>> unit_selection_box(
-    SSConst const& ss, WindowPlane& window_plane,
-    std::vector<UnitId> const& ids_ );
+    rr::ITextometer const& textometer, SSConst const& ss,
+    WindowPlane& window_plane, std::vector<UnitId> const& ids_ );
 
 } // namespace rn
 

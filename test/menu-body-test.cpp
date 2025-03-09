@@ -15,7 +15,9 @@
 #include "src/menu-body.hpp"
 
 // Testing.
+#include "test/mocking.hpp"
 #include "test/mocks/imenu-server.hpp"
+#include "test/mocks/render/itextometer.hpp"
 
 // Revolution Now
 #include "src/co-runner.hpp"
@@ -41,12 +43,15 @@ using namespace input;
 
 using ::Catch::Matchers::WithinAbs;
 using ::gfx::rect;
+using ::gfx::size;
+using ::mock::matchers::_;
 
 /****************************************************************
 ** Harness
 *****************************************************************/
 struct Harness {
-  [[maybe_unused]] Harness() : threads_( menu_server_ ) {}
+  [[maybe_unused]] Harness()
+    : threads_( menu_server_, textometer_ ) {}
 
   void send_key( ::SDL_Keycode const key ) {
     key_event_t e;
@@ -111,10 +116,20 @@ struct Harness {
     run_all_coroutines();
   }
 
+  void expect_menu_bar_dimensions() {
+    textometer_.EXPECT__font_height().by_default().returns( 8 );
+    string const headers[] = { "" };
+    textometer_
+        .EXPECT__dimensions_for_line( rr::TextLayout{}, _ )
+        .by_default()
+        .returns( size{ .w = 6, .h = 8 } );
+  }
+
   inline static rect const kScreen{
     .origin = {}, .size = { .w = 640, .h = 360 } };
 
   MockIMenuServer menu_server_;
+  rr::MockTextometer textometer_;
   MenuThreads threads_;
 };
 
@@ -150,6 +165,7 @@ TEST_CASE_METHOD( Harness, "[menu-body] open_menu" ) {
 
   SECTION(
       "open Window submenu and escape twice to close both" ) {
+    expect_menu_bar_dimensions();
     wait<maybe<e_menu_item>> const w = f();
     run_all_coroutines();
     REQUIRE( !w.ready() );
@@ -213,6 +229,7 @@ TEST_CASE_METHOD( Harness, "[menu-body] open_menu" ) {
 
   SECTION(
       "open Window submenu and send close_all to close both" ) {
+    expect_menu_bar_dimensions();
     wait<maybe<e_menu_item>> const w = f();
     run_all_coroutines();
     REQUIRE( !w.ready() );
@@ -266,6 +283,7 @@ TEST_CASE_METHOD( Harness, "[menu-body] open_menu" ) {
   }
 
   SECTION( "open Window submenu and select toggle fullscreen" ) {
+    expect_menu_bar_dimensions();
     wait<maybe<e_menu_item>> const w = f();
     run_all_coroutines();
     REQUIRE( !w.ready() );

@@ -159,7 +159,7 @@ wait<unordered_map<int, bool>> RealGui::check_box_selector(
     if( iter == items.end() ) continue;
     CheckBoxInfo const& info = iter->second;
     auto labeled_box = make_unique<TextLabeledCheckBoxView>(
-        string( info.name ), info.on );
+        textometer_, string( info.name ), info.on );
     if( info.disabled ) labeled_box->set_disabled( true );
     boxes[item] = labeled_box.get();
     boxes_array->add_view( std::move( labeled_box ) );
@@ -188,7 +188,7 @@ wait<> RealGui::ok_cancel_box(
   auto top = make_unique<VerticalArrayView>(
       VerticalArrayView::align::center );
   // Add text.
-  auto text_view = make_unique<TextView>( title );
+  auto text_view = make_unique<TextView>( textometer_, title );
   top->add_view( std::move( text_view ) );
   // Add some space between title and main view.
   top->add_view(
@@ -199,7 +199,7 @@ wait<> RealGui::ok_cancel_box(
       make_unique<EmptyView>( Delta{ .w = 1, .h = 4 } ) );
 
   // Add buttons.
-  auto buttons_view      = make_unique<OkCancelView2>();
+  auto buttons_view = make_unique<OkCancelView2>( textometer_ );
   OkCancelView2* buttons = buttons_view.get();
   top->add_view( std::move( buttons_view ) );
 

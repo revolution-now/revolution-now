@@ -1339,7 +1339,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
     command::move const& mv ) {
   return dispatch( ss, ts, player, id, mv.d );
 }

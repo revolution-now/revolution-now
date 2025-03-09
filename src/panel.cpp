@@ -114,8 +114,8 @@ struct PanelPlane::Impl : public IPlane {
       .coord = mini_map_upper_left.with_new_origin(
           rect().upper_left() ) } );
 
-    auto button_view =
-        make_unique<ui::ButtonView>( "Next Turn", [this] {
+    auto button_view = make_unique<ui::ButtonView>(
+        engine_.textometer(), "Next Turn", [this] {
           w_promise.set_value( {} );
           // Disable the button as soon as it is clicked.
           this->next_turn_button().enable( /*enabled=*/false );

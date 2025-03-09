@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "colony-mgr.hpp"
+#include "iengine.hpp"
 #include "production.hpp"
 #include "render.hpp"
 #include "sons-of-liberty.hpp"
@@ -42,8 +43,8 @@ using ::gfx::rect;
 using ::gfx::size;
 
 TileSpreadRenderPlans create_production_spreads(
-    SSConst const& ss, ColonyProduction const& production,
-    int const width ) {
+    IEngine& engine, SSConst const& ss,
+    ColonyProduction const& production, int const width ) {
   ColonyViewFoodStats const food_stats =
       compute_colony_view_food_stats( production );
   TileSpreadConfigMulti const config{
@@ -74,7 +75,7 @@ TileSpreadRenderPlans create_production_spreads(
     .group_spacing = 6,
   };
   TileSpreadRenderPlans plans =
-      build_tile_spread_multi( config );
+      build_tile_spread_multi( engine.textometer(), config );
   // The tile spread framework does not support rendering a
   // single spread with multiple different tiles. But that is
   // what we must do in order to replicate the behavior of the
@@ -186,14 +187,15 @@ void PopulationView::draw_sons_of_liberty(
     return;
   string const tories_str = fmt::format(
       "{}% ({})", info.tory_integral_percent, info.tories );
+  rr::Typer typer = renderer.typer( rr::TextLayout{} );
+  typer.set_color( text_color );
   gfx::size const tories_text_width =
-      rr::rendered_text_line_size_pixels( tories_str );
+      typer.dimensions_for_line( tories_str );
   pos.x = bounds( coord ).right_edge() - kIconPadding -
           sprite_size( e_tile::crown ).w - kIconPadding -
           tories_text_width.w;
-  rr::Typer typer = renderer.typer(
-      pos.to_gfx() + gfx::size{ .h = kTextVerticalOffset },
-      text_color );
+  typer.set_position( pos.to_gfx() +
+                      gfx::size{ .h = kTextVerticalOffset } );
   typer.write( tories_str );
   pos.x = typer.position().x;
   pos.x += kIconPadding;
@@ -226,29 +228,29 @@ void PopulationView::draw( rr::Renderer& renderer,
 }
 
 PopulationView::Layout PopulationView::create_layout(
-    SSConst const& ss, size const sz ) {
+    IEngine& engine, SSConst const& ss, size const sz ) {
   Layout l;
   l.size          = sz;
   l.spread_margin = 6;
   l.spread_origin = { .x = l.spread_margin, .y = 16 + 32 + 6 };
   int const spread_width = sz.w - 2 * l.spread_margin;
   l.production_spreads   = create_production_spreads(
-      ss, colview_production(), spread_width );
+      engine, ss, colview_production(), spread_width );
   return l;
 }
 
 void PopulationView::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
-  layout_ = create_layout( ss_, layout_.size );
+  layout_ = create_layout( engine_, ss_, layout_.size );
 }
 
 std::unique_ptr<PopulationView> PopulationView::create(
-    SS& ss, TS& ts, Player& player, Colony& colony,
-    Delta size ) {
-  Layout layout = create_layout( ss.as_const, size );
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Colony& colony, Delta size ) {
+  Layout layout = create_layout( engine, ss.as_const, size );
   return std::make_unique<PopulationView>(
-      ss, ts, player, colony, std::move( layout ) );
+      engine, ss, ts, player, colony, std::move( layout ) );
 }
 
 } // namespace rn

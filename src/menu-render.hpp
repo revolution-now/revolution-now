@@ -22,6 +22,7 @@
 
 namespace rr {
 struct Renderer;
+struct ITextometer;
 }
 
 namespace rn {
@@ -64,13 +65,15 @@ struct MenuBarAnimState {
 *****************************************************************/
 // There must be at least one allowed position supplied.
 MenuRenderLayout build_menu_rendered_layout(
-    e_menu menu, gfx::rect logical_screen_rect,
+    rr::ITextometer const& textometer, e_menu menu,
+    gfx::rect logical_screen_rect,
     MenuAllowedPositions const& positions );
 
 /****************************************************************
 ** Menu Bar Rendered Layouts.
 *****************************************************************/
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
+    rr::ITextometer const& textometer,
     gfx::rect logical_screen_rect,
     std::vector<e_menu> const& contents );
 

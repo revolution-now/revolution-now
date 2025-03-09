@@ -15,6 +15,7 @@
 #include "colony-constants.hpp"
 #include "colview-entities.hpp"
 #include "construction.hpp"
+#include "iengine.hpp"
 #include "production.rds.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
@@ -115,7 +116,8 @@ void ProductionView::create_hammer_spreads(
                         .placement = e_cdirection::w } },
           },
     };
-    out[i] = build_progress_tile_spread( config );
+    out[i] = build_progress_tile_spread( engine_.textometer(),
+                                         config );
     // Label only on first row.
     label_policy   = SpreadLabels::never{};
     label_override = nothing;
@@ -211,7 +213,8 @@ void ProductionView::create_production_spreads(
     };
     for( TileSpread const& spread : chunk )
       config.tiles.push_back( spread );
-    out[idx++].plans = build_tile_spread_multi( config );
+    out[idx++].plans =
+        build_tile_spread_multi( engine_.textometer(), config );
   }
 }
 
@@ -430,16 +433,17 @@ ProductionView::Layout ProductionView::create_layout(
 }
 
 unique_ptr<ProductionView> ProductionView::create(
-    SS& ss, TS& ts, Player& player, Colony& colony,
-    Delta size ) {
+    IEngine& engine, SS& ss, TS& ts, Player& player,
+    Colony& colony, Delta size ) {
   Layout layout = create_layout( size );
-  return make_unique<ProductionView>( ss, ts, player, colony,
-                                      std::move( layout ) );
+  return make_unique<ProductionView>(
+      engine, ss, ts, player, colony, std::move( layout ) );
 }
 
-ProductionView::ProductionView( SS& ss, TS& ts, Player& player,
-                                Colony& colony, Layout layout )
-  : ColonySubView( ss, ts, player, colony ),
+ProductionView::ProductionView( IEngine& engine, SS& ss, TS& ts,
+                                Player& player, Colony& colony,
+                                Layout layout )
+  : ColonySubView( engine, ss, ts, player, colony ),
     layout_( std::move( layout ) ) {
   update_spreads();
 }

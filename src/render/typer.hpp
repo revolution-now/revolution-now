@@ -12,6 +12,8 @@
 
 // render
 #include "painter.hpp"
+#include "text-layout.rds.hpp"
+#include "textometer.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
@@ -27,16 +29,7 @@ namespace rr {
 
 struct Painter;
 struct AsciiFont;
-
-// FIXME: need to find a better way of doing this. We should be
-// using the dimensions_for_line method on the rr::Typer, but we
-// can't get access to that in all of the places where we need
-// it.
-inline gfx::size rendered_text_line_size_pixels(
-    std::string_view text ) {
-  return gfx::size{ .w = 6 * int( text.size() ), .h = 8 };
-}
-inline int rendered_text_line_spacing_pixels() { return 1; }
+struct ITextometer;
 
 /****************************************************************
 ** Typer
@@ -46,20 +39,33 @@ inline int rendered_text_line_spacing_pixels() { return 1; }
 // character or newline is written.
 struct Typer {
   Typer( Painter painter, AsciiFont const& ascii_font,
-         gfx::point start, gfx::pixel color );
+         TextLayout const& layout, gfx::point start,
+         gfx::pixel color );
+
+  // For this one you will need to manually set the coordinate
+  // and color for it to be useful.
+  Typer( Painter painter, AsciiFont const& ascii_font,
+         TextLayout const& layout );
 
   // These are in pixels.
   gfx::point position() const { return pos_; }
+  Typer& set_position( gfx::point const p ) {
+    pos_ = p;
+    return *this;
+  }
   gfx::point line_start() const { return line_start_; }
 
   gfx::pixel color() const { return color_; }
-  gfx::size scale() const;
+  Typer& set_color( gfx::pixel color ) {
+    color_ = color;
+    return *this;
+  }
 
-  void set_color( gfx::pixel color ) { color_ = color; }
-  void set_scale( gfx::size scale ) { scale_ = scale; }
-  void multiply_scale( int factor );
+  TextLayout& layout() { return layout_; }
+  TextLayout const& layout() const { return layout_; }
 
-  void reset_scale() { scale_.reset(); }
+  // Get an ITextometer object for the current typer.
+  ITextometer const& textometer() const;
 
   // This will offset the current frame by how_much. That means
   // that both the current text position (in pixels) as well as
@@ -105,15 +111,14 @@ struct Typer {
 
   Painter painter_;
   AsciiFont const& ascii_font_;
+  Textometer textometer_;
+  TextLayout layout_;
   // Pixel position of the upper-left of the start of the current
   // line.
   gfx::point line_start_;
   // Pixel position where next character will be written.
   gfx::point pos_;
   gfx::pixel color_;
-  // If this has a value then it will be used to override the
-  // size of the characters.
-  base::maybe<gfx::size> scale_;
 };
 
 } // namespace rr

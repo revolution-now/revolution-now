@@ -203,8 +203,9 @@ struct MenuThreads::OpenMenu {
 /****************************************************************
 ** MenuThreads
 *****************************************************************/
-MenuThreads::MenuThreads( IMenuServer const& menu_server )
-  : menu_server_( menu_server ) {}
+MenuThreads::MenuThreads( IMenuServer const& menu_server,
+                          rr::ITextometer const& textometer )
+  : menu_server_( menu_server ), textometer_( textometer ) {}
 
 MenuThreads::~MenuThreads() = default;
 
@@ -507,7 +508,7 @@ wait<maybe<e_menu_item>> MenuThreads::open_menu(
   SCOPE_EXIT { unregister_menu( menu_id ); };
 
   auto const render_layout = build_menu_rendered_layout(
-      menu, logical_screen_rect, positions );
+      textometer_, menu, logical_screen_rect, positions );
   OpenMenu& om =
       *open_
            .emplace( piecewise_construct,

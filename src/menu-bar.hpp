@@ -17,6 +17,10 @@
 #include "imenu-server.rds.hpp"
 #include "wait.hpp"
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 struct IMenuServer;
@@ -30,7 +34,8 @@ enum class e_menu;
 ** MenuBar
 *****************************************************************/
 struct MenuBar {
-  MenuBar( IMenuServer& menu_server );
+  MenuBar( IMenuServer& menu_server,
+           rr::ITextometer const& textometer );
   ~MenuBar();
 
   wait<> run_thread( gfx::rect logical_screen_rect,
@@ -67,6 +72,7 @@ struct MenuBar {
   BarState const& state() const;
 
   IMenuServer& menu_server_;
+  rr::ITextometer const& textometer_;
   // This is only alive when there is a running menu bar thread
   // that is active.
   std::unique_ptr<BarState> state_;

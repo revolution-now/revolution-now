@@ -338,7 +338,8 @@ struct LandViewPlane::Impl : public IPlane {
         selections = vector{ selection };
       } else {
         selections = co_await unit_selection_box(
-            ss_, ts_.planes.get().window, units );
+            engine_.textometer(), ss_, ts_.planes.get().window,
+            units );
       }
 
       vector<UnitId> prioritize;

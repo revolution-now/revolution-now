@@ -118,7 +118,8 @@ auto& unit_type_name( SSConst const& ss,
 
 wait<maybe<EntitiesOnTile>> disband_selection_dialog(
     SSConst const& ss, IGui& gui, Player const& player,
-    IVisibility const& viz, EntitiesOnTile const& entities ) {
+    IVisibility const& viz, rr::ITextometer const& textometer,
+    EntitiesOnTile const& entities ) {
   using namespace ui;
 
   string const title = "Select unit(s) to disband:";
@@ -133,7 +134,8 @@ wait<maybe<EntitiesOnTile>> disband_selection_dialog(
                           unique_ptr<View> view ) mutable {
     auto labeled_box =
         make_unique<LabeledCheckBoxView>( std::move( view ) );
-    labeled_box->add_view( make_unique<TextView>( label ) );
+    labeled_box->add_view(
+        make_unique<TextView>( textometer, label ) );
     labeled_box->recompute_child_positions();
     boxes[checkbox_idx++] = labeled_box.get();
     boxes_array->add_view( std::move( labeled_box ) );
@@ -313,8 +315,8 @@ DisbandingPermissions disbandable_entities_on_tile(
 }
 
 wait<EntitiesOnTile> disband_tile_ui_interaction(
-    SSConst const& ss, TS& ts, Player const& player,
-    IVisibility const& viz,
+    SSConst const& ss, TS& ts, rr::ITextometer const& textometer,
+    Player const& player, IVisibility const& viz,
     DisbandingPermissions const& perms ) {
   EntitiesOnTile entities;
 
@@ -406,7 +408,8 @@ wait<EntitiesOnTile> disband_tile_ui_interaction(
   // There are multiple entities, thus we must pop open a dialog
   // box and list them.
   entities = ( co_await disband_selection_dialog(
-                   ss, ts.gui, player, viz, perms.disbandable ) )
+                   ss, ts.gui, player, viz, textometer,
+                   perms.disbandable ) )
                  .value_or( EntitiesOnTile{} );
 
   // Make sure that if we're disbanding a colony that it either

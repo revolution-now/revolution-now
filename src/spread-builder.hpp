@@ -13,15 +13,22 @@
 // rds
 #include "spread-builder.rds.hpp"
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 TileSpreadRenderPlan build_tile_spread(
+    rr::ITextometer const& textometer,
     TileSpreadConfig const& config );
 
 TileSpreadRenderPlan build_progress_tile_spread(
+    rr::ITextometer const& textometer,
     ProgressTileSpreadConfig const& config );
 
 TileSpreadRenderPlans build_tile_spread_multi(
+    rr::ITextometer const& textometer,
     TileSpreadConfigMulti const& configs );
 
 } // namespace rn

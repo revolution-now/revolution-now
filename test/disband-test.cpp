@@ -16,6 +16,7 @@
 // Testing.
 #include "test/fake/world.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/render/itextometer.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
@@ -56,6 +57,7 @@ using namespace std;
 
 using ::gfx::point;
 using ::gfx::rect_iterator;
+using ::gfx::size;
 using ::mock::matchers::_;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
@@ -473,9 +475,23 @@ TEST_CASE( "[disband] disband_tile_ui_interaction" ) {
   // this test case. So we just use a full visibility.
   VisibilityEntire const full_viz( w.ss() );
 
+  rr::MockTextometer textometer;
+  textometer.EXPECT__font_height().by_default().returns(
+      8 ); // arbitrary number.
+  textometer.EXPECT__dimensions_for_line( _, _ )
+      .by_default()
+      .returns( size{ .w = 10, .h = 10 } ); // arbitrary numbers.
+  textometer.EXPECT__spacing_between_chars( _ )
+      .by_default()
+      .returns( 1 ); // arbitrary number.
+  textometer.EXPECT__spacing_between_lines( _ )
+      .by_default()
+      .returns( 1 ); // arbitrary number.
+
   auto f = [&] {
     return co_await_test( disband_tile_ui_interaction(
-        w.ss(), w.ts(), w.default_player(), full_viz, perms ) );
+        w.ss(), w.ts(), textometer, w.default_player(), full_viz,
+        perms ) );
   };
 
   auto expect_ask_one = [&]( string const& fragment,

@@ -15,6 +15,10 @@
 // Revolution Now
 #include "igui.hpp"
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 struct Planes;
@@ -26,7 +30,8 @@ struct WindowPlane;
 // Presents real GUI elements to the player. For unit testing in-
 // stead use a mock of IGui, not this one.
 struct RealGui : IGui {
-  RealGui( Planes& planes ) : planes_( planes ) {}
+  RealGui( Planes& planes, rr::ITextometer const& textometer )
+    : planes_( planes ), textometer_( textometer ) {}
 
   // Implement IGui.
   wait<> message_box( std::string const& msg ) override;
@@ -77,6 +82,7 @@ struct RealGui : IGui {
   WindowPlane& window_plane() const;
 
   Planes& planes_;
+  rr::ITextometer const& textometer_;
 };
 
 } // namespace rn

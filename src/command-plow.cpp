@@ -145,7 +145,7 @@ struct PlowHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
     command::plow const& ) {
   return make_unique<PlowHandler>( ss, ts, player, id );
 }

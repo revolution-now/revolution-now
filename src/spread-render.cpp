@@ -18,7 +18,7 @@
 #include "config/ui.rds.hpp"
 
 // render
-#include "render/typer.hpp" // FIXME: remove
+#include "render/itextometer.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
@@ -46,12 +46,15 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
+rr::TextLayout const kLabelTextLayout;
+
 } // namespace
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
 TileSpreadRenderPlans render_plan_for_tile_spread(
+    rr::ITextometer const& textometer,
     TileSpreadSpecs const& tile_spreads ) {
   TileSpreadRenderPlans plans;
   point p                       = {};
@@ -212,8 +215,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
       }();
       string const label_text      = to_string( label_count );
       size const padded_label_size = [&] {
-        size const label_size =
-            rr::rendered_text_line_size_pixels( label_text );
+        size const label_size = textometer.dimensions_for_line(
+            kLabelTextLayout, label_text );
         int const padding = options.text_padding.value_or(
             config_ui.tile_spreads.label_text_padding );
         return size{ .w = label_size.w + padding * 2,
@@ -251,6 +254,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
 }
 
 TileSpreadRenderPlan render_plan_for_tile_progress_spread(
+    rr::ITextometer const& textometer,
     ProgressTileSpreadSpec const& tile_spec ) {
   TileSpreadRenderPlan plan;
   point p = {};
@@ -339,8 +343,8 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
         tile_spec.source_spec.spread_spec.count );
     string const label_text      = to_string( label_count );
     size const padded_label_size = [&] {
-      size const label_size =
-          rr::rendered_text_line_size_pixels( label_text );
+      size const label_size = textometer.dimensions_for_line(
+          kLabelTextLayout, label_text );
       int const padding = options.text_padding.value_or(
           config_ui.tile_spreads.label_text_padding );
       return size{ .w = label_size.w + padding * 2,
@@ -383,9 +387,9 @@ void draw_rendered_icon_spread(
   for( auto const& [tile, p, is_overlay] : plan.tiles )
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
-  for( auto const& label : plan.labels ) {
+  for( auto const& label : plan.labels )
     render_text_line_with_background(
-        renderer, label.text,
+        renderer, kLabelTextLayout, label.text,
         oriented_point{
           .anchor = label.where.origin_becomes_point( origin ),
           // This is always nw here because the placement
@@ -399,7 +403,6 @@ void draw_rendered_icon_spread(
         label.options.text_padding.value_or(
             config_ui.tile_spreads.label_text_padding ),
         config_ui.tile_spreads.bg_box_has_corners );
-  }
 }
 
 void draw_rendered_icon_spread(

@@ -22,8 +22,8 @@
 #include "config/ui.rds.hpp"
 
 // render
-#include "error.hpp"
 #include "render/extra.hpp"
+#include "render/itextometer.hpp"
 #include "render/painter.hpp"
 #include "render/renderer.hpp"
 #include "render/typer.hpp"
@@ -124,20 +124,22 @@ void MenuBarAnimState::clear_focus() { *this = {}; }
 ** Menu Body Rendered Layouts.
 *****************************************************************/
 MenuRenderLayout build_menu_rendered_layout(
-    e_menu const menu, rect const logical_screen_rect,
+    rr::ITextometer const& textometer, e_menu const menu,
+    rect const logical_screen_rect,
     MenuAllowedPositions const& positions ) {
   auto const& contents = config_menu.layout[menu];
   CHECK( !positions.positions_allowed.empty() );
   MenuRenderLayout res;
-  int y     = 0;
-  int max_w = 0;
-  int const row_height =
-      rr::rendered_text_line_size_pixels( "X" ).h +
-      2 * config_ui.menus.highlight_padding.h;
+  res.text_layout      = rr::TextLayout{};
+  int y                = 0;
+  int max_w            = 0;
+  int const row_height = textometer.font_height() +
+                         2 * config_ui.menus.highlight_padding.h;
   auto add_item = [&]( string const& text ) -> auto& {
     auto& item = res.items.emplace_back();
     int const row_w =
-        rr::rendered_text_line_size_pixels( text ).w +
+        textometer.dimensions_for_line( res.text_layout, text )
+            .w +
         2 * config_ui.menus.highlight_padding.w;
     max_w = std::max( max_w, row_w );
     item  = {
@@ -247,9 +249,11 @@ MenuRenderLayout build_menu_rendered_layout(
 ** Menu Bar Rendered Layouts.
 *****************************************************************/
 MenuBarRenderedLayout build_menu_bar_rendered_layout(
+    rr::ITextometer const& textometer,
     rect const logical_screen_rect,
     vector<e_menu> const& contents ) {
   MenuBarRenderedLayout res;
+  res.text_layout = rr::TextLayout{};
   auto const menu_bar_rect =
       logical_screen_rect.with_new_bottom_edge(
           config_ui.menus.menu_bar_height );
@@ -273,10 +277,10 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
 
   auto add_header = [&]( e_menu const menu, bool const x_pre ) {
     MenuHeaderRenderLayout header;
-    header.menu = menu;
-    header.text = config_menu.menus[menu].name;
-    size const text_size =
-        rr::rendered_text_line_size_pixels( header.text );
+    header.menu          = menu;
+    header.text          = config_menu.menus[menu].name;
+    size const text_size = textometer.dimensions_for_line(
+        res.text_layout, header.text );
     size const header_size =
         text_size + config_ui.menus.highlight_padding * 2;
     p.y = res.bounds.origin.y;
@@ -369,6 +373,7 @@ void render_menu_body(
         item_layout.bounds_absolute.origin +
             item_layout.text_nw_relative.distance_from_origin(),
         text_color );
+    typer.layout() = layout.text_layout;
     typer.write( item_layout.text );
 
     // Arrow.
@@ -430,6 +435,7 @@ static void render_wood_bar(
 }
 
 static void render_header_text( rr::Renderer& renderer,
+                                rr::TextLayout const&,
                                 point const where,
                                 e_menu const menu,
                                 pixel const color ) {
@@ -473,8 +479,8 @@ void render_menu_bar( rr::Renderer& renderer,
         }
       }
     }
-    render_header_text( renderer, header.text_nw_absolute,
-                        header.menu,
+    render_header_text( renderer, layout.text_layout,
+                        header.text_nw_absolute, header.menu,
                         config_ui.dialog_text.normal );
   }
 }

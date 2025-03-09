@@ -18,6 +18,7 @@
 
 namespace rr {
 struct Renderer;
+struct ITextometer;
 }
 
 namespace rn {
@@ -26,10 +27,12 @@ namespace rn {
 ** Public API.
 *****************************************************************/
 [[nodiscard]] TileSpreadRenderPlans render_plan_for_tile_spread(
+    rr::ITextometer const& textometer,
     TileSpreadSpecs const& tile_spreads );
 
 [[nodiscard]] TileSpreadRenderPlan
 render_plan_for_tile_progress_spread(
+    rr::ITextometer const& textometer,
     ProgressTileSpreadSpec const& tile_spec );
 
 // Iterate through the non-overlay tiles and keep replacing

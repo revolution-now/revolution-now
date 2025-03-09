@@ -18,6 +18,7 @@
 #include "misc.hpp"
 #include "painter.hpp"
 #include "sprite-sheet.hpp"
+#include "text-layout.rds.hpp"
 #include "typer.hpp"
 #include "vertex.hpp"
 
@@ -64,6 +65,8 @@ using ::gfx::size;
 
 using TextureBinder =
     decltype( std::declval<gl::Texture>().bind() );
+
+string_view constexpr kDefaultFontName = "simple";
 
 /****************************************************************
 ** Shader Program Spec.
@@ -325,18 +328,28 @@ struct Renderer::Impl {
                     mod_stack.top().painter_mods );
   }
 
-  Typer typer( string_view font_name, point start, pixel color,
-               Painter const& painter ) {
+  Typer typer( string_view const font_name,
+               TextLayout const& layout, point const start,
+               pixel const color, Painter const& painter ) {
     UNWRAP_CHECK( p_ascii_font,
                   base::lookup( ascii_fonts_fast, font_name ) );
-    return Typer( painter, *p_ascii_font, start, color );
+    return Typer( painter, *p_ascii_font, layout, start, color );
   }
 
-  Typer typer( string_view font_name, point start,
-               pixel color ) {
+  Typer typer( string_view const font_name,
+               TextLayout const& layout, point const start,
+               pixel const color ) {
     UNWRAP_CHECK( p_ascii_font,
                   base::lookup( ascii_fonts_fast, font_name ) );
-    return Typer( painter(), *p_ascii_font, start, color );
+    return Typer( painter(), *p_ascii_font, layout, start,
+                  color );
+  }
+
+  Typer typer( string_view const font_name,
+               TextLayout const& layout ) {
+    UNWRAP_CHECK( p_ascii_font,
+                  base::lookup( ascii_fonts_fast, font_name ) );
+    return Typer( painter(), *p_ascii_font, layout );
   }
 
   void clear_screen( gfx::pixel color ) { gl::clear( color ); }
@@ -517,18 +530,42 @@ int Renderer::end_pass() { return impl_->end_pass(); }
 
 Painter Renderer::painter() { return impl_->painter(); }
 
-Typer Renderer::typer( point start, pixel color ) {
-  return impl_->typer( "simple", start, color );
+Typer Renderer::typer( TextLayout const& layout ) {
+  return impl_->typer( kDefaultFontName, layout );
 }
 
-Typer Renderer::typer( string_view font_name, point start,
+Typer Renderer::typer( string_view font_name,
+                       TextLayout const& layout, point start,
                        pixel color ) {
-  return impl_->typer( font_name, start, color );
+  return impl_->typer( font_name, layout, start, color );
 }
 
-Typer Renderer::typer( string_view font_name, point start,
+Typer Renderer::typer( string_view font_name,
+                       TextLayout const& layout, point start,
                        pixel color, Painter const& painter ) {
-  return impl_->typer( font_name, start, color, painter );
+  return impl_->typer( font_name, layout, start, color,
+                       painter );
+}
+
+Typer Renderer::typer( point start, pixel color ) {
+  return impl_->typer( kDefaultFontName, TextLayout{}, start,
+                       color );
+}
+
+Typer Renderer::typer() {
+  return impl_->typer( kDefaultFontName, TextLayout{} );
+}
+
+AtlasMap const& Renderer::atlas() const {
+  return impl_->atlas_map;
+}
+
+AsciiFont const& Renderer::ascii_font(
+    std::string_view font_name ) const {
+  UNWRAP_CHECK_T(
+      AsciiFont const* p_ascii_font,
+      base::lookup( impl_->ascii_fonts_fast, font_name ) );
+  return *p_ascii_font;
 }
 
 void Renderer::clear_screen( gfx::pixel color ) {

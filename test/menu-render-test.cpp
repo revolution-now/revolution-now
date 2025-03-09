@@ -13,6 +13,10 @@
 // Under test.
 #include "src/menu-render.hpp"
 
+// Testing
+#include "test/mocking.hpp"
+#include "test/mocks/render/itextometer.hpp"
+
 // config
 #include "src/config/menu-items.rds.hpp"
 
@@ -44,11 +48,28 @@ TEST_CASE( "[menu-render] build_menu_rendered_layout" ) {
   MenuAllowedPositions positions;
   MenuRenderLayout expected;
   rect screen;
+  rr::MockTextometer textometer;
+
+  textometer.EXPECT__font_height().by_default().returns( 8 );
+
+  string const item_names[] = {
+    "Zoom In",          "Zoom Out",
+    "Zoom Default",     "Find Blinking Unit",
+    "European Status",  "Show Hidden Terrain",
+    "Toggle View Mode", "Window  ",
+  };
+  for( string const& item_name : item_names )
+    textometer
+        .EXPECT__dimensions_for_line( rr::TextLayout{},
+                                      item_name )
+        .returns(
+            size{ .w = 6 * int( ssize( item_name ) ), .h = 8 } );
 
   static_assert( base::Show<MenuRenderLayout> );
 
   auto f = [&] {
-    return build_menu_rendered_layout( menu, screen, positions );
+    return build_menu_rendered_layout( textometer, menu, screen,
+                                       positions );
   };
 
   menu      = e_menu::view;
@@ -176,11 +197,23 @@ TEST_CASE( "[menu-render] build_menu_bar_rendered_layout" ) {
   vector<e_menu> contents;
   MenuBarRenderedLayout expected;
   rect screen;
+  rr::MockTextometer textometer;
+
+  string const header_names[] = {
+    "Game",  "View",  "Orders", "Reports",   "Trade",
+    "Cheat", "Music", "Window", "Land View", "Revolopedia" };
+  for( string const& header_name : header_names )
+    textometer
+        .EXPECT__dimensions_for_line( rr::TextLayout{},
+                                      header_name )
+        .returns( size{ .w = 6 * int( ssize( header_name ) ),
+                        .h = 8 } );
 
   static_assert( base::Show<MenuBarRenderedLayout> );
 
   auto f = [&] {
-    return build_menu_bar_rendered_layout( screen, contents );
+    return build_menu_bar_rendered_layout( textometer, screen,
+                                           contents );
   };
 
   screen = { .origin = {}, .size = { .w = 640, .h = 360 } };

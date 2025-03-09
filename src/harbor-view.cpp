@@ -169,8 +169,7 @@ struct HarborPlane::Impl : public IPlane {
         typer.write( "+" );
         if( state.source_requests_edit ) {
           auto mod_pos = state.where;
-          mod_pos.y -=
-              H{ rr::rendered_text_line_size_pixels( "?" ).h };
+          mod_pos.y -= H{ typer.dimensions_for_line( "?" ).h };
           mod_pos -= state.click_offset;
           auto typer_mod =
               renderer.typer( mod_pos, gfx::pixel::green() );

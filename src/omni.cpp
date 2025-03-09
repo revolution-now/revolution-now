@@ -325,7 +325,7 @@ struct OmniPlane::Impl : public IPlane {
     log( "f/s: {}", fmt::format( "{:.1f}", avg_frame_rate() ) );
 
     render_text_overlay_with_anchor(
-        renderer, lines,
+        renderer, rr::TextLayout{}, lines,
         oriented_point{
           .anchor    = renderer.logical_screen_rect().se(),
           .placement = e_cdirection::se },
@@ -346,7 +346,7 @@ struct OmniPlane::Impl : public IPlane {
                    physical_size.w, physical_size.h ),
       "Please expand the size of your window." };
     render_text_overlay_with_anchor(
-        renderer, help_msg,
+        renderer, rr::TextLayout{}, help_msg,
         oriented_point{ .anchor    = default_logical.center(),
                         .placement = e_cdirection::c },
         gfx::pixel::yellow(), SHADED_WOOD,
@@ -404,7 +404,7 @@ struct OmniPlane::Impl : public IPlane {
         gfx::point{ .x = 0, .y = 16 };
 
     render_text_overlay_with_anchor(
-        renderer, lines,
+        renderer, rr::TextLayout{}, lines,
         oriented_point{ .anchor    = info_region_anchor,
                         .placement = e_cdirection::nw },
         overlay_fg, overlay_bg, /*scale=*/1 );
@@ -429,7 +429,7 @@ struct OmniPlane::Impl : public IPlane {
             .moved_right( 2 );
 
     render_text_overlay_with_anchor(
-        renderer, lines,
+        renderer, rr::TextLayout{}, lines,
         oriented_point{ .anchor    = info_region_anchor,
                         .placement = e_cdirection::nw },
         overlay_fg, overlay_bg, /*scale=*/1 );

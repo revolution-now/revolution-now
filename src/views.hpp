@@ -35,6 +35,10 @@
 // C++ standard library
 #include <memory>
 
+namespace rr {
+struct ITextometer;
+}
+
 namespace rn {
 
 struct Colony;
@@ -283,9 +287,11 @@ class SolidRectView : public View {
 
 class OneLineStringView : public View {
  public:
-  OneLineStringView( std::string msg, gfx::pixel color );
+  OneLineStringView( rr::ITextometer const& textometer,
+                     std::string msg, gfx::pixel color );
 
-  OneLineStringView( std::string msg, gfx::pixel color,
+  OneLineStringView( rr::ITextometer const& textometer,
+                     std::string msg, gfx::pixel color,
                      Delta size_override );
 
   // Implement Object
@@ -307,9 +313,10 @@ class OneLineStringView : public View {
 
 class TextView : public View {
  public:
-  TextView( std::string msg );
+  TextView( rr::ITextometer const& textometer, std::string msg );
 
-  TextView( std::string msg, TextMarkupInfo const& m_info,
+  TextView( rr::ITextometer const& textometer, std::string msg,
+            TextMarkupInfo const& m_info,
             TextReflowInfo const& r_info );
 
   // Implement Object
@@ -335,10 +342,14 @@ class ButtonBaseView : public View {
     blink
   };
 
-  ButtonBaseView( std::string label );
-  ButtonBaseView( std::string label, e_type type );
-  ButtonBaseView( std::string label, Delta size_in_blocks );
-  ButtonBaseView( std::string label, Delta size_in_blocks,
+  ButtonBaseView( rr::ITextometer const& textometer,
+                  std::string label );
+  ButtonBaseView( rr::ITextometer const& textometer,
+                  std::string label, e_type type );
+  ButtonBaseView( rr::ITextometer const& textometer,
+                  std::string label, Delta size_in_blocks );
+  ButtonBaseView( rr::ITextometer const& textometer,
+                  std::string label, Delta size_in_blocks,
                   e_type type );
 
   // Implement Object
@@ -402,13 +413,16 @@ class LineEditorView : public View {
  public:
   using OnChangeFunc = std::function<void( std::string const& )>;
 
-  LineEditorView( int chars_wide,
+  LineEditorView( rr::ITextometer const& textometer,
+                  int chars_wide,
                   std::string_view initial_text );
-  LineEditorView( int chars_wide, std::string_view initial_text,
+  LineEditorView( rr::ITextometer const& textometer,
+                  int chars_wide, std::string_view initial_text,
                   OnChangeFunc on_change );
-  LineEditorView( e_font font, W pixels_wide,
-                  OnChangeFunc on_change, gfx::pixel fg,
-                  gfx::pixel bg, std::string_view prompt,
+  LineEditorView( rr::ITextometer const& textometer, e_font font,
+                  W pixels_wide, OnChangeFunc on_change,
+                  gfx::pixel fg, gfx::pixel bg,
+                  std::string_view prompt,
                   std::string_view initial_text );
 
   // Implement Object
@@ -446,6 +460,7 @@ class LineEditorView : public View {
                           Rect const& r ) const;
   void update_visible_string();
 
+  rr::ITextometer const& textometer_;
   std::string prompt_;
   gfx::pixel fg_;
   gfx::pixel bg_;
@@ -463,7 +478,8 @@ class LineEditorView : public View {
 class PlainMessageBoxView : public CompositeSingleView {
  public:
   static std::unique_ptr<PlainMessageBoxView> create(
-      std::string_view msg, wait_promise<>& on_close );
+      rr::ITextometer const& textometer, std::string_view msg,
+      wait_promise<>& on_close );
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -502,8 +518,10 @@ class PaddingView : public CompositeSingleView {
 class ButtonView : public ButtonBaseView {
  public:
   using OnClickFunc = std::function<void( void )>;
-  ButtonView( std::string label, OnClickFunc on_click );
-  ButtonView( std::string label, Delta size_in_blocks,
+  ButtonView( rr::ITextometer const& textometer,
+              std::string label, OnClickFunc on_click );
+  ButtonView( rr::ITextometer const& textometer,
+              std::string label, Delta size_in_blocks,
               OnClickFunc on_click );
 
   bool on_mouse_move(
@@ -526,7 +544,7 @@ class ButtonView : public ButtonBaseView {
 // TODO: Rename to OkCancelView when the original is removed.
 class OkCancelView2 : public CompositeView {
  public:
-  OkCancelView2();
+  OkCancelView2( rr::ITextometer const& textometer );
 
   // Must be immobile since it is self-referential.
   OkCancelView2( OkCancelView2&& ) = delete;
@@ -564,7 +582,8 @@ class OkCancelView2 : public CompositeView {
 // Deprecated.
 class OkCancelView : public CompositeView {
  public:
-  OkCancelView( ButtonView::OnClickFunc on_ok,
+  OkCancelView( rr::ITextometer const& textometer,
+                ButtonView::OnClickFunc on_ok,
                 ButtonView::OnClickFunc on_cancel );
 
   // Implement CompositeView
@@ -592,7 +611,8 @@ class OkCancelView : public CompositeView {
 
 class OkButtonView : public CompositeSingleView {
  public:
-  OkButtonView( ButtonView::OnClickFunc on_ok );
+  OkButtonView( rr::ITextometer const& textometer,
+                ButtonView::OnClickFunc on_ok );
 
   // Implement CompositeView
   void notify_children_updated() override {}
@@ -704,13 +724,15 @@ struct LabeledCheckBoxView : public HorizontalArrayView {
 };
 
 struct TextLabeledCheckBoxView : public LabeledCheckBoxView {
-  TextLabeledCheckBoxView( std::string label, bool on = false );
+  TextLabeledCheckBoxView( rr::ITextometer const& textometer,
+                           std::string label, bool on = false );
 };
 
 class OkCancelAdapterView : public VerticalArrayView {
  public:
   using OnClickFunc = std::function<void( e_ok_cancel )>;
-  OkCancelAdapterView( std::unique_ptr<View> view,
+  OkCancelAdapterView( rr::ITextometer const& textometer,
+                       std::unique_ptr<View> view,
                        OnClickFunc on_click );
 };
 
@@ -726,7 +748,8 @@ class OptionSelectItemView : public CompositeView {
     bool enabled     = {};
   };
 
-  OptionSelectItemView( Option option );
+  OptionSelectItemView( rr::ITextometer const& textometer,
+                        Option option );
 
   // Implement CompositeView
   Coord pos_of( int idx ) const override;
@@ -769,6 +792,7 @@ class OptionSelectView : public VectorView {
   // set to the first enabled item. If there are no enabled items
   // then nothing will be selected.
   OptionSelectView(
+      rr::ITextometer const& textometer,
       std::vector<OptionSelectItemView::Option> const& options,
       maybe<int> initial_selection );
 

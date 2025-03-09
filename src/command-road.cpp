@@ -118,7 +118,7 @@ struct RoadHandler : public CommandHandler {
 ** Public API
 *****************************************************************/
 unique_ptr<CommandHandler> handle_command(
-    SS& ss, TS& ts, Player& player, UnitId id,
+    IEngine&, SS& ss, TS& ts, Player& player, UnitId id,
     command::road const& ) {
   return make_unique<RoadHandler>( ss, ts, player, id );
 }

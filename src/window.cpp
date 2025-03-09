@@ -102,6 +102,8 @@ struct WindowManager {
     Coord pos   = {};
   };
 
+  IEngine& engine() const { return engine_; }
+
   void draw_layout( rr::Renderer& renderer ) const;
 
   void advance_state() {
@@ -549,7 +551,9 @@ wait<> WindowManager::process_transient_messages() {
       .msg           = msg,
       .alpha         = 1.0,
       .reflow_info   = reflow_info,
-      .rendered_size = rendered_text_size( reflow_info, msg ) };
+      .rendered_size = rendered_text_size( engine_.textometer(),
+                                           rr::TextLayout{},
+                                           reflow_info, msg ) };
     SCOPE_EXIT { active_transient_message_.reset(); };
     double delta = .003;
     while( active_transient_message_->alpha > 0 ) {
@@ -610,6 +614,7 @@ template<typename ResultT>
     function<void( maybe<ResultT> )> on_result,
     function_ref<GetOkCancelSubjectViewFunc> get_view_fn ) {
   auto ok_cancel_view = make_unique<ui::OkCancelView>(
+      window_manager.engine().textometer(),
       /*on_ok=*/
       [on_result, validator{ std::move( validator ) },
        get_result{ std::move( get_result ) }] {
@@ -702,10 +707,12 @@ namespace {
     /*highlight=*/config_ui.dialog_text.highlighted };
   TextReflowInfo r_info{
     /*max_cols=*/config_ui.dialog_text.columns };
-  auto text =
-      make_unique<ui::TextView>( string( msg ), m_info, r_info );
+  auto text = make_unique<ui::TextView>(
+      window_manager.engine().textometer(), string( msg ),
+      m_info, r_info );
   auto le_view = make_unique<ui::LineEditorView>(
-      /*chars_wide=*/20, initial_text );
+      window_manager.engine().textometer(), /*chars_wide=*/20,
+      initial_text );
   ui::LineEditorView* p_le_view = le_view.get();
 
   vector<unique_ptr<ui::View>> view_vec;
@@ -758,8 +765,8 @@ namespace {
 ** High-level Methods
 *****************************************************************/
 wait<vector<UnitSelection>> unit_selection_box(
-    SSConst const& ss, WindowPlane& window_plane,
-    vector<UnitId> const& ids ) {
+    rr::ITextometer const& textometer, SSConst const& ss,
+    WindowPlane& window_plane, vector<UnitId> const& ids ) {
   wait_promise<vector<UnitSelection>> s_promise;
 
   function<void( maybe<UnitActivationView::map_t> )> on_result =
@@ -785,7 +792,7 @@ wait<vector<UnitSelection>> unit_selection_box(
       };
 
   auto unit_activation_view =
-      UnitActivationView::Create( ss, ids );
+      UnitActivationView::Create( textometer, ss, ids );
   auto* p_unit_activation_view = unit_activation_view.get();
 
   // We can capture by reference here because the function will
@@ -826,7 +833,8 @@ wait<> WindowPlane::message_box( string_view msg ) {
   wait_promise<> p;
   unique_ptr<Window> win = async_window_builder(
       impl_->wm,
-      ui::PlainMessageBoxView::create( string( msg ), p ),
+      ui::PlainMessageBoxView::create(
+          manager().engine().textometer(), string( msg ), p ),
       WindowCancelActions{},
       /*auto_pad=*/true );
   // Need to keep p alive since it is held by refererence by the
@@ -849,7 +857,8 @@ wait<maybe<int>> WindowPlane::select_box(
     view_options.push_back(
         { .name = option.name, .enabled = option.enabled } );
   auto selector_view = make_unique<ui::OptionSelectView>(
-      view_options, initial_selection );
+      manager().engine().textometer(), view_options,
+      initial_selection );
   auto* p_selector_view = selector_view.get();
 
   wait_promise<maybe<int>> p;
@@ -912,7 +921,8 @@ wait<maybe<int>> WindowPlane::select_box(
   TextMarkupInfo const& m_info = ui::default_text_markup_info();
   TextReflowInfo const& r_info = ui::default_text_reflow_info();
   auto text_view =
-      make_unique<ui::TextView>( string( msg ), m_info, r_info );
+      make_unique<ui::TextView>( manager().engine().textometer(),
+                                 string( msg ), m_info, r_info );
   vector<unique_ptr<ui::View>> vert_views;
   vert_views.push_back( std::move( text_view ) );
   vert_views.push_back( std::move( on_input_view ) );

@@ -37,7 +37,8 @@ struct ProductionViewButton {
 *****************************************************************/
 class ProductionView : public ui::View, public ColonySubView {
  public:
-  static std::unique_ptr<ProductionView> create( SS& ss, TS& ts,
+  static std::unique_ptr<ProductionView> create( IEngine& engine,
+                                                 SS& ss, TS& ts,
                                                  Player& player,
                                                  Colony& colony,
                                                  Delta size );
@@ -77,7 +78,8 @@ class ProductionView : public ui::View, public ColonySubView {
     int production_spreads_row_h             = {};
   };
 
-  ProductionView( SS& ss, TS& ts, Player& player, Colony& colony,
+  ProductionView( IEngine& engine, SS& ss, TS& ts,
+                  Player& player, Colony& colony,
                   Layout layout );
 
  public: // ui::Object

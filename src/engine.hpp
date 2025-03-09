@@ -43,6 +43,8 @@ struct Engine : IEngine {
 
   gfx::Resolutions& resolutions() override;
 
+  rr::ITextometer& textometer() override;
+
  private:
   // This object is self-referential.
   Engine( Engine&& )      = delete;
