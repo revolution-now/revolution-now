@@ -1041,7 +1041,7 @@ void CheckBoxView::draw( rr::Renderer& renderer,
       config_ui.window.border_lighter.highlighted(),
       config_ui.window.border_darker.shaded() );
 
-  coord = coord + Delta{ .w = 2, .h = 1 };
+  coord = coord + Delta{ .w = 3, .h = 1 };
 
   if( on_ ) {
     // This creates a fat x.
