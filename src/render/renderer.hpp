@@ -218,6 +218,9 @@ struct Renderer : IRenderer {
 
   Typer typer( TextLayout const& layout );
 
+  Typer typer( TextLayout const& layout, gfx::point start,
+               gfx::pixel color );
+
   Typer typer( std::string_view font_name,
                TextLayout const& layout, gfx::point start,
                gfx::pixel color );

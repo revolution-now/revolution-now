@@ -1007,15 +1007,15 @@ TEST_CASE( "[spread] requires_label/Spread" ) {
   spread.rendered_count = 1;
   REQUIRE( f() == false );
 
-  spread.spacing = 1;
+  spread.spacing        = 1;
   spread.rendered_count = 2;
   REQUIRE( f() == true );
 
-  spread.spacing = 2;
+  spread.spacing        = 2;
   spread.rendered_count = 2;
   REQUIRE( f() == false );
 
-  spread.spacing = 3;
+  spread.spacing        = 3;
   spread.rendered_count = 2;
   REQUIRE( f() == false );
 

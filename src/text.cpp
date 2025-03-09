@@ -316,6 +316,7 @@ void render_text_overlay_with_anchor(
     vector<string> const& lines, oriented_point const op,
     pixel const fg_color, pixel const bg_color,
     int const scale ) {
+  if( scale == 0 ) return;
   rect const info_region = [&] {
     rr::Typer const dummy_typer = renderer.typer( text_layout );
     size const info_region_size = [&] {
@@ -349,12 +350,13 @@ void render_text_overlay_with_anchor(
     // Account for the (scaled) border.
     res.x += 1 * scale;
     res.y += 1 * scale;
-    // ++res.x;
+    ++res.x;
     ++res.y;
-    return res;
+    return res / scale;
   }();
-  rr::Typer typer = renderer.typer( text_origin, fg_color );
-  // typer.multiply_scale( scale );
+  SCOPED_RENDERER_MOD_MUL( painter_mods.repos.scale, scale );
+  rr::Typer typer =
+      renderer.typer( text_layout, text_origin, fg_color );
   for( auto const& line : lines ) {
     typer.write( line );
     typer.newline();

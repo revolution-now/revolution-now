@@ -349,7 +349,7 @@ struct OmniPlane::Impl : public IPlane {
         renderer, rr::TextLayout{}, help_msg,
         oriented_point{ .anchor    = default_logical.center(),
                         .placement = e_cdirection::c },
-        gfx::pixel::yellow(), SHADED_WOOD,
+        gfx::pixel::red(), SHADED_WOOD,
         /*scale=*/2 );
   }
 
@@ -404,7 +404,7 @@ struct OmniPlane::Impl : public IPlane {
         gfx::point{ .x = 0, .y = 16 };
 
     render_text_overlay_with_anchor(
-        renderer, rr::TextLayout{}, lines,
+        renderer, rr::TextLayout{ .monospace = true }, lines,
         oriented_point{ .anchor    = info_region_anchor,
                         .placement = e_cdirection::nw },
         overlay_fg, overlay_bg, /*scale=*/1 );

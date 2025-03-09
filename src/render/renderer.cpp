@@ -534,6 +534,11 @@ Typer Renderer::typer( TextLayout const& layout ) {
   return impl_->typer( kDefaultFontName, layout );
 }
 
+Typer Renderer::typer( TextLayout const& layout, point start,
+                       pixel color ) {
+  return impl_->typer( kDefaultFontName, layout, start, color );
+}
+
 Typer Renderer::typer( string_view font_name,
                        TextLayout const& layout, point start,
                        pixel color ) {
