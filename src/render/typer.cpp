@@ -56,6 +56,9 @@ ITextometer const& Typer::textometer() const {
   return textometer_;
 }
 
+// NOTE: the logic in this function must be kept in sync with the
+// logic in the Textometer class which does the layout calcula-
+// tions (e.g. spacing) of rendered text.
 void Typer::write_char_impl( Painter& painter, char const c ) {
   if( c == '\n' ) {
     size const csize = ascii_font_.char_size();

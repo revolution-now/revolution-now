@@ -21,6 +21,9 @@ struct AtlasMap;
 /****************************************************************
 ** Textometer
 *****************************************************************/
+// NOTE: the logic in this class must be kept in sync with the
+// logic in Typer which does the rendering whose layout (e.g.
+// spacing) should be the same as is assumed by this class.
 struct Textometer final : public ITextometer {
   Textometer( AtlasMap const& atlas,
               AsciiFont const& ascii_font );
