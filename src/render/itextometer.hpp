@@ -29,6 +29,10 @@ namespace rr {
 struct ITextometer {
   virtual ~ITextometer() = default;
 
+  ITextometer()                     = default;
+  ITextometer( ITextometer const& ) = default;
+  ITextometer( ITextometer&& )      = default;
+
   // Get the size in pixels of a line of text when rendered.
   virtual gfx::size dimensions_for_line(
       TextLayout const& layout,

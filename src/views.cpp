@@ -300,9 +300,9 @@ void OneLineStringView::draw( rr::Renderer& renderer,
                               Coord coord ) const {
   int const start_offset = ( view_size_.h - text_size_.h ) / 2;
   TextMarkupInfo const markup_info{ .normal = color_ };
-  render_text_markup( renderer,
-                      coord + Delta{ .h = start_offset },
-                      e_font{}, markup_info, msg_ );
+  render_text_markup(
+      renderer, coord + Delta{ .h = start_offset }, e_font{},
+      rr::TextLayout{}, markup_info, msg_ );
 }
 
 /****************************************************************
@@ -424,7 +424,7 @@ void ButtonBaseView::render_disabled( rr::Renderer& renderer,
                             size_in_pixels_ ) ) +
       Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
-                      markup_info, label_ );
+                      rr::TextLayout{}, markup_info, label_ );
 }
 
 void ButtonBaseView::render_pressed( rr::Renderer& renderer,
@@ -447,7 +447,7 @@ void ButtonBaseView::render_pressed( rr::Renderer& renderer,
                             size_in_pixels_ ) ) +
       -Delta{ .w = 1 } + Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
-                      markup_info, label_ );
+                      rr::TextLayout{}, markup_info, label_ );
 }
 
 void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
@@ -471,7 +471,7 @@ void ButtonBaseView::render_unpressed( rr::Renderer& renderer,
                             size_in_pixels_ ) ) +
       Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
-                      markup_info, label_ );
+                      rr::TextLayout{}, markup_info, label_ );
 }
 
 void ButtonBaseView::render_hover( rr::Renderer& renderer,
@@ -494,7 +494,7 @@ void ButtonBaseView::render_hover( rr::Renderer& renderer,
                             size_in_pixels_ ) ) +
       Delta{ .w = 1 } - Delta{ .h = 1 };
   render_text_markup( renderer, text_position, font::standard(),
-                      markup_info, label_ );
+                      rr::TextLayout{}, markup_info, label_ );
 }
 
 /****************************************************************

@@ -126,14 +126,16 @@ e_tile tile_for_commodity_20( e_commodity const c ) {
 
 void render_commodity_label_impl(
     rr::Renderer& renderer, Coord where, string_view label,
+    rr::TextLayout const& text_layout,
     TextMarkupInfo const& markup_info ) {
   if( label.empty() ) return;
   render_text_markup( renderer, where, font::small(),
-                      markup_info, label );
+                      text_layout, markup_info, label );
 }
 
 void render_commodity_label(
     rr::Renderer& renderer, Coord where, string_view label,
+    rr::TextLayout const& text_layout,
     e_commodity_label_render_colors colors ) {
   TextMarkupInfo info;
   switch( colors ) {
@@ -170,13 +172,14 @@ void render_commodity_label(
       break;
     }
   }
-  render_commodity_label_impl( renderer, where, label, info );
+  render_commodity_label_impl( renderer, where, label,
+                               text_layout, info );
 }
 
 void render_commodity_impl(
     rr::Renderer& renderer, Coord where, e_tile tile,
-    maybe<string> label, e_commodity_label_render_colors colors,
-    bool dulled ) {
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
   render_sprite_dulled( renderer, tile, where, dulled );
   if( !label ) return;
   // Place text below commodity, but centered horizontally.
@@ -188,25 +191,26 @@ void render_commodity_impl(
   auto origin =
       where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
                      .h = comm_size.h + 2 };
-  render_commodity_label( renderer, origin, *label, colors );
+  render_commodity_label( renderer, origin, *label, text_layout,
+                          colors );
 }
 
 void render_commodity_16_impl(
     rr::Renderer& renderer, Coord where, e_commodity type,
-    maybe<string> label, e_commodity_label_render_colors colors,
-    bool dulled ) {
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
   render_commodity_impl( renderer, where,
                          tile_for_commodity_16( type ), label,
-                         colors, dulled );
+                         text_layout, colors, dulled );
 }
 
 void render_commodity_20_impl(
     rr::Renderer& renderer, Coord where, e_commodity type,
-    maybe<string> label, e_commodity_label_render_colors colors,
-    bool dulled ) {
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
   render_commodity_impl( renderer, where,
                          tile_for_commodity_20( type ), label,
-                         colors, dulled );
+                         text_layout, colors, dulled );
 }
 
 string commodity_number_to_markup( int value ) {
@@ -379,14 +383,16 @@ maybe<string> commodity_label_to_markup(
 void render_commodity_16( rr::Renderer& renderer, Coord where,
                           e_commodity type ) {
   render_commodity_16_impl( renderer, where, type,
-                            /*label=*/nothing, /*colors=*/{},
+                            /*label=*/nothing, rr::TextLayout{},
+                            /*colors=*/{},
                             /*dulled=*/false );
 }
 
 void render_commodity_20( rr::Renderer& renderer, Coord where,
                           e_commodity type ) {
   render_commodity_20_impl( renderer, where, type,
-                            /*label=*/nothing, /*colors=*/{},
+                            /*label=*/nothing, rr::TextLayout{},
+                            /*colors=*/{},
                             /*dulled=*/false );
 }
 
@@ -408,8 +414,8 @@ void render_commodity_annotated_16(
           .value_or( e_commodity_label_render_colors::standard );
   render_commodity_16_impl(
       renderer, where, type,
-      commodity_label_to_markup( style.label ), colors,
-      style.dulled );
+      commodity_label_to_markup( style.label ), rr::TextLayout{},
+      colors, style.dulled );
 }
 
 void render_commodity_annotated_20(
@@ -421,8 +427,8 @@ void render_commodity_annotated_20(
           .value_or( e_commodity_label_render_colors::standard );
   render_commodity_20_impl(
       renderer, where, type,
-      commodity_label_to_markup( style.label ), colors,
-      style.dulled );
+      commodity_label_to_markup( style.label ), rr::TextLayout{},
+      colors, style.dulled );
 }
 
 // Will use quantity as label.

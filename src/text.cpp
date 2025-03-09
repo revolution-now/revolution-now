@@ -230,11 +230,14 @@ pixel TextMarkupInfo::default_highlight_color() {
 ** Public API
 *****************************************************************/
 void render_text_markup( rr::Renderer& renderer, point where,
-                         e_font font, TextMarkupInfo const& info,
+                         e_font font,
+                         rr::TextLayout const& text_layout,
+                         TextMarkupInfo const& info,
                          std::string_view text ) {
   (void)font; // TODO
   // The color will be set later.
-  rr::Typer typer = renderer.typer( where, pixel{} );
+  rr::Typer typer =
+      renderer.typer( text_layout, where, pixel{} );
   UNWRAP_CHECK( mk_texts, parse_markup( text ) );
   render_lines_markup( typer, mk_texts.chunks, info );
 }

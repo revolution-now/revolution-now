@@ -346,6 +346,7 @@ void render_colony( rr::Renderer& renderer, Coord where,
             ? gfx::pixel{ .r = 0, .g = 255, .b = 0, .a = 255 }
             : gfx::pixel::white();
     render_text_markup( renderer, population_coord, e_font{},
+                        rr::TextLayout{},
                         TextMarkupInfo{ .normal = color },
                         fmt::to_string( population ) );
   }
@@ -354,6 +355,7 @@ void render_colony( rr::Renderer& renderer, Coord where,
         where + config_land_view.colony_name_offset;
     render_text_markup(
         renderer, name_coord, config_land_view.colony_name_font,
+        rr::TextLayout{},
         TextMarkupInfo{ .highlight = gfx::pixel::white(),
                         .shadow    = gfx::pixel::black() },
         fmt::format( "[{}]", colony.name ) );

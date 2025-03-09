@@ -60,6 +60,7 @@ struct TextMarkupInfo {
 // just render it with spacing/newlines as-is.
 void render_text_markup( rr::Renderer& renderer,
                          gfx::point where, e_font font,
+                         rr::TextLayout const& text_layout,
                          TextMarkupInfo const& info,
                          std::string_view text );
 

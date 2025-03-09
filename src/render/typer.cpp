@@ -57,20 +57,19 @@ ITextometer const& Typer::textometer() const {
 }
 
 void Typer::write_char_impl( Painter& painter, char const c ) {
-  Textometer const textometer( painter_.atlas(), ascii_font_ );
   if( c == '\n' ) {
     size const csize = ascii_font_.char_size();
     line_start_.y +=
-        csize.h + textometer.spacing_between_lines( layout_ );
+        csize.h + textometer_.spacing_between_lines( layout_ );
     pos_ = line_start_;
     return;
   }
   interval const spacing =
-      textometer.trimmed_horizontally( layout_, c );
+      textometer_.trimmed_horizontally( layout_, c );
   painter.draw_sprite( ascii_font_.atlas_id_for_char( c ),
                        pos_.moved_left( spacing.start ) );
   pos_.x +=
-      spacing.len + textometer.spacing_between_chars( layout_ );
+      spacing.len + textometer_.spacing_between_chars( layout_ );
 }
 
 void Typer::newline() { write_char_impl( painter_, '\n' ); }

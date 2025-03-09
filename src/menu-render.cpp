@@ -434,11 +434,9 @@ static void render_wood_bar(
       config_ui.window.border_darker );
 }
 
-static void render_header_text( rr::Renderer& renderer,
-                                rr::TextLayout const&,
-                                point const where,
-                                e_menu const menu,
-                                pixel const color ) {
+static void render_header_text(
+    rr::Renderer& renderer, rr::TextLayout const& text_layout,
+    point const where, e_menu const menu, pixel const color ) {
   auto const& shortcut = config_menu.menus[menu].shortcut;
   string const name    = [&] {
     string res = config_menu.menus[menu].name;
@@ -450,7 +448,7 @@ static void render_header_text( rr::Renderer& renderer,
       res.replace( pos, 1, fmt::format( "[{}]", shortcut_str ) );
     return res;
   }();
-  render_text_markup( renderer, where, /*font=*/{},
+  render_text_markup( renderer, where, /*font=*/{}, text_layout,
                       TextMarkupInfo{ .normal = color }, name );
 }
 
