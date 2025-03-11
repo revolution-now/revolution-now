@@ -33,6 +33,30 @@ using ::base::maybe;
 using ::gfx::pixel;
 using ::std::ranges::views::zip;
 
+namespace {
+
+// This could theoretically cause the labels to go outside of the
+// bounds that was computed on the TileSpreadRenderPlans objec-
+// t(s), but that should be very rare and not a big deal if/when
+// it happens anyway.
+void ensure_labels_are_non_overlapping(
+    TileSpreadRenderPlans& plans ) {
+  // Ensure that if there are muliple labels per spread that they
+  // are spread out properly.
+  for( auto& plan : plans.plans ) {
+    if( plan.tiles.empty() ) continue;
+    int right = numeric_limits<int>::min();
+    for( auto& label_plan : plan.labels ) {
+      int const new_min = right + 1;
+      if( label_plan.bounds.left() < new_min )
+        label_plan.bounds.origin.x = new_min;
+      right = label_plan.bounds.right();
+    }
+  }
+}
+
+} // namespace
+
 /****************************************************************
 ** Public API.
 *****************************************************************/
@@ -87,17 +111,22 @@ TileSpreadRenderPlans build_tile_spread_multi(
             break;
           }
         }
-        // FIXME: deal with the case when the two labels are
-        // overlapping.
         overlay_tile.label_opts = configs.options.label_opts;
         overlay_tile.label_opts.color_fg = pixel::red();
         overlay_tile.starting_position =
             config_it->red_xs->starting_position;
-        bool const count_adjusted =
-            ( icon_spread.rendered_count != spec.count );
-        if( count_adjusted ) {
-          // TODO
-          NOT_IMPLEMENTED;
+        if( icon_spread.rendered_count != spec.count ) {
+          // The count has been adjusted, thus we must adjust the
+          // start of the X labels as well.
+          double const fraction =
+              double( config_it->red_xs->starting_position ) /
+              spec.count;
+          overlay_tile.starting_position = clamp(
+              int( lround( fraction *
+                           icon_spread.rendered_count ) ),
+              ( config_it->red_xs->starting_position > 0 ) ? 1
+                                                           : 0,
+              icon_spread.rendered_count );
         }
       }
       res.spreads.push_back(
@@ -106,7 +135,10 @@ TileSpreadRenderPlans build_tile_spread_multi(
     }
     return res;
   }();
-  return render_plan_for_tile_spread( textometer, tile_spreads );
+  TileSpreadRenderPlans plans =
+      render_plan_for_tile_spread( textometer, tile_spreads );
+  ensure_labels_are_non_overlapping( plans );
+  return plans;
 }
 
 TileSpreadRenderPlan build_tile_spread(

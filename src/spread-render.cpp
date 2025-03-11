@@ -225,9 +225,10 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
       plan.labels.push_back( SpreadLabelRenderPlan{
         .options = options,
         .text    = label_text,
-        .where   = gfx::centered_at( padded_label_size,
-                                     placement_rect, placement ),
-      } );
+        .bounds  = {
+           .origin = gfx::centered_at(
+              padded_label_size, placement_rect, placement ),
+           .size = padded_label_size } } );
     };
     int const primary_label_count =
         tile_spread.label_count.value_or(
@@ -353,8 +354,10 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
     plan.labels.push_back( SpreadLabelRenderPlan{
       .options = options,
       .text    = label_text,
-      .where   = gfx::centered_at( padded_label_size,
-                                   placement_rect, placement ),
+      .bounds  = { .origin = gfx::centered_at( padded_label_size,
+                                               placement_rect,
+                                               placement ),
+                   .size   = padded_label_size },
     } );
   };
   label_options().visit( add_label );
@@ -391,7 +394,8 @@ void draw_rendered_icon_spread(
     render_text_line_with_background(
         renderer, kLabelTextLayout, label.text,
         oriented_point{
-          .anchor = label.where.origin_becomes_point( origin ),
+          .anchor =
+              label.bounds.origin.origin_becomes_point( origin ),
           // This is always nw here because the placement
           // calcu- lation has already been done, so the point
           // we are given is always the nw.

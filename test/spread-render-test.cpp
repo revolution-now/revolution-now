@@ -91,8 +91,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .tiles  = { { .tile  = e_tile::dragoon,
                        .where = { -2, 0 } } },
          .labels = { SpreadLabelRenderPlan{
-           .text  = "1",
-           .where = { .x = 0, .y = 0 },
+           .text   = "1",
+           .bounds = { .origin = { .x = 0, .y = 0 },
+                       .size   = { .w = 8, .h = 10 } },
         } } },
     } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
@@ -131,8 +132,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                  .placement =
                     SpreadLabelPlacement::in_first_tile{
                        .placement = e_cdirection::sw } },
-           .text  = "1",
-           .where = { .x = 0, .y = 32 - 8 - 2 },
+           .text   = "1",
+           .bounds = { .origin = { .x = 0, .y = 32 - 8 - 2 },
+                       .size   = { .w = 8, .h = 10 } },
         } } },
     } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
@@ -158,8 +160,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
          .tiles  = { { .tile  = e_tile::dragoon,
                        .where = { -2, 0 } } },
          .labels = { SpreadLabelRenderPlan{
-           .text  = "2",
-           .where = { .x = 0, .y = 0 },
+           .text   = "2",
+           .bounds = { .origin = { .x = 0, .y = 0 },
+                       .size   = { .w = 8, .h = 10 } },
         } } },
     } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
@@ -211,8 +214,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile = e_tile::dragoon, .where = { -2, 0 } },
             },
          .labels = { SpreadLabelRenderPlan{
-           .text  = "1",
-           .where = { .x = 0, .y = 0 },
+           .text   = "1",
+           .bounds = { .origin = { .x = 0, .y = 0 },
+                       .size   = { .w = 8, .h = 10 } },
         } } },
       TileSpreadRenderPlan{
          .bounds = { .origin = { .x = 28 + 1 },
@@ -223,8 +227,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile = e_tile::soldier, .where = { 21, 0 } },
             },
          .labels = { SpreadLabelRenderPlan{
-           .text  = "2",
-           .where = { .x = 29, .y = 0 },
+           .text   = "2",
+           .bounds = { .origin = { .x = 29, .y = 0 },
+                       .size   = { .w = 8, .h = 10 } },
         } },
       } } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
@@ -328,8 +333,9 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                  .placement =
                     SpreadLabelPlacement::in_first_tile{
                        .placement = e_cdirection::sw } },
-           .text  = "10",
-           .where = { .x = 0, .y = 20 - 10 },
+           .text   = "10",
+           .bounds = { .origin = { .x = 0, .y = 20 - 10 },
+                       .size   = { .w = 14, .h = 10 } },
         } } },
     } };
   textometer

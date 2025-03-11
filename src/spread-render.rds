@@ -140,8 +140,8 @@ struct.SpreadLabelRenderPlan {
   # Copied from input as-is.
   options 'SpreadLabelOptions',
   text 'std::string',
-  # nw corner of where to render the box.
-  where 'gfx::point',
+  # Bounds of the box, including padding.
+  bounds 'gfx::rect',
 }
 
 struct.TileRenderPlan {
