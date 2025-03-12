@@ -198,6 +198,7 @@ e_input_handled IPlaneGroup::input(
 
 void IPlaneGroup::on_logical_resolution_changed(
     e_resolution const resolution ) {
+  drag_state_.reset(); // important; prevents crashes.
   for( IPlane* const plane : planes() )
     plane->on_logical_resolution_changed( resolution );
 }

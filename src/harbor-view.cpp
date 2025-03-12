@@ -12,6 +12,7 @@
 
 // Revolution Now
 #include "cheat.hpp"
+#include "co-combinator.hpp"
 #include "commodity.hpp"
 #include "drag-drop.hpp"
 #include "harbor-view-entities.hpp"
@@ -54,6 +55,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::e_resolution;
 using ::gfx::point;
 using ::gfx::size;
 
@@ -78,7 +80,14 @@ struct HarborPlane::Impl : public IPlane {
   TS& ts_;
   Player& player_;
 
-  co::stream<input::event_t> input_                   = {};
+  co::stream<input::event_t> input_ = {};
+  // These need to be tracked on a separate stream so that we can
+  // receive them and interrupt the coroutine that is servicing
+  // the input queue. This is because when we recomposite we need
+  // destroy all of the existing views, which would in generally
+  // leave some coroutines running on dangling pointers to ob-
+  // jects.
+  co::stream<e_resolution> recomposite_               = {};
   maybe<DragState<HarborDraggableObject>> drag_state_ = {};
 
   HarborViewComposited composition_;
@@ -87,17 +96,14 @@ struct HarborPlane::Impl : public IPlane {
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
-      player_( player ) {
-    if( auto const named = named_resolution( engine_ );
-        named.has_value() )
-      composition_ =
-          recomposite_harbor_view( ss_, ts_, player_, *named );
-  }
+      player_( player ) {}
 
   void on_logical_resolution_selected(
-      gfx::e_resolution const resolution ) override {
-    composition_ =
-        recomposite_harbor_view( ss_, ts_, player_, resolution );
+      e_resolution const resolution ) override {
+    // Can't do the recomposite immediately in this function
+    // since we need to ensure that any coroutines that are run-
+    // ning on top of it get cancelled first.
+    recomposite_.send( resolution );
   }
 
   HarborState& harbor_state() {
@@ -278,6 +284,8 @@ struct HarborPlane::Impl : public IPlane {
                                 drag_state_, ts_.gui, event );
   }
 
+  // The `auto` here is intended to represent the variants of
+  // input::event_t that are not captured above.
   wait<> handle_event( auto const& e ) {
     [[maybe_unused]] bool const handled =
         harbor_view_top_level().view().input( e );
@@ -308,7 +316,29 @@ struct HarborPlane::Impl : public IPlane {
 
   wait<> show_harbor_view() {
     lg.info( "entering harbor view." );
-    co_await run_harbor_view();
+
+    // This is the only place where this should run; it guaran-
+    // tees that there is no coroutine running that reaches into
+    // the child views, because if there were and we do a recom-
+    // posite then we'd have a running coroutine with dangling
+    // pointers to views.
+    auto const recomposite = [&]( e_resolution const r ) {
+      composition_ =
+          recomposite_harbor_view( ss_, ts_, player_, r );
+    };
+    CHECK( !composition_.top_level );
+    recomposite(
+        named_resolution( engine_ ).value_or( e_resolution{} ) );
+    CHECK( composition_.top_level != nullptr );
+
+    while( true ) {
+      auto const next = co_await co::first( recomposite_.next(),
+                                            run_harbor_view() );
+      auto const resolution = next.get_if<e_resolution>();
+      if( !resolution ) break;
+      recomposite( *resolution );
+    }
+
     lg.info( "leaving harbor view." );
   }
 
