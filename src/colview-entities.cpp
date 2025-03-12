@@ -1839,6 +1839,7 @@ void recomposite( IEngine& engine, SS& ss, TS& ts,
 ** Public API
 *****************************************************************/
 ColonySubView& colview_top_level() {
+  CHECK( g_composition.top_level );
   return *g_composition.top_level;
 }
 

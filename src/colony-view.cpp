@@ -143,8 +143,15 @@ struct ColonyPlane : public IPlane {
   Player& player_;
   Colony& colony_;
 
-  ColonyId colony_id_                         = {};
-  co::stream<input::event_t> input_           = {};
+  ColonyId colony_id_               = {};
+  co::stream<input::event_t> input_ = {};
+  // These need to be tracked on a separate stream so that we can
+  // receive them and interrupt the coroutine that is servicing
+  // the input queue. This is because when we recomposite we need
+  // destroy all of the existing views, which would in generally
+  // leave some coroutines running on dangling pointers to ob-
+  // jects.
+  co::stream<e_resolution> recomposite_       = {};
   maybe<DragState<ColViewObject>> drag_state_ = {};
 
   ColonyPlane( IEngine& engine, SS& ss, TS& ts, Colony& colony )
@@ -152,13 +159,14 @@ struct ColonyPlane : public IPlane {
       ss_( ss ),
       ts_( ts ),
       player_( ss.players.players[colony.nation].value() ),
-      colony_( colony ) {
-    set_colview_colony( engine_, ss_, ts_, player_, colony_ );
-  }
+      colony_( colony ) {}
 
   void on_logical_resolution_selected(
-      e_resolution const ) override {
-    set_colview_colony( engine_, ss_, ts_, player_, colony_ );
+      e_resolution const resolution ) override {
+    // Can't do the recomposite immediately in this function
+    // since we need to ensure that any coroutines that are run-
+    // ning on top of it get cancelled first.
+    recomposite_.send( resolution );
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -180,7 +188,7 @@ struct ColonyPlane : public IPlane {
     return e_accept_drag::yes_but_raw;
   }
 
-  wait<> run_colview() {
+  wait<> run_colony_view() {
     while( true ) {
       input::event_t event = co_await input_.next();
       auto [exit, suspended] =
@@ -305,6 +313,30 @@ struct ColonyPlane : public IPlane {
     for( input::event_t& e : saved )
       input_.send( std::move( e ) );
   }
+
+  wait<> show_colony_view( Colony const& colony ) {
+    lg.info( "viewing colony '{}'.", colony.name );
+
+    // This is the only place where this should run; it guaran-
+    // tees that there is no coroutine running that reaches into
+    // the child views, because if there were and we do a recom-
+    // posite then we'd have a running coroutine with dangling
+    // pointers to views.
+    auto const recomposite = [&] {
+      set_colview_colony( engine_, ss_, ts_, player_, colony_ );
+    };
+    recomposite();
+
+    // Recomposite loop.
+    while( true ) {
+      auto const next = co_await co::first( recomposite_.next(),
+                                            run_colony_view() );
+      if( !next.holds<e_resolution>() ) break;
+      recomposite();
+    }
+
+    lg.info( "leaving colony view." );
+  }
 };
 
 /****************************************************************
@@ -321,9 +353,7 @@ wait<> ColonyViewer::show_impl( TS& ts, Colony& colony ) {
   ColonyPlane colony_plane( engine_, ss_, ts, colony );
   new_group.bottom = &colony_plane;
 
-  lg.info( "viewing colony '{}'.", colony.name );
-  co_await colony_plane.run_colview();
-  lg.info( "leaving colony view." );
+  co_await colony_plane.show_colony_view( colony );
 }
 
 wait<e_colony_abandoned> ColonyViewer::show(
