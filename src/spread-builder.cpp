@@ -127,6 +127,12 @@ TileSpreadRenderPlans build_tile_spread_multi(
               ( config_it->red_xs->starting_position > 0 ) ? 1
                                                            : 0,
               icon_spread.rendered_count );
+          if( !tile_spread_spec.label_count.has_value() )
+            tile_spread_spec.label_count =
+                config_it->red_xs->starting_position;
+          overlay_tile.label_count = std::max(
+              spec.count - config_it->red_xs->starting_position,
+              0 );
         }
       }
       res.spreads.push_back(

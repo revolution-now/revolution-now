@@ -82,6 +82,10 @@ struct.TileOverlay {
   # If labels are rendered for the spread containing this overlay
   # then they will use these options.
   label_opts 'SpreadLabelOptions',
+  # Will override the lable if present; used for when the ren-
+  # dered counts need to be lowered in order to fit in the avail-
+  # able space.
+  label_count 'base::maybe<int>',
 }
 
 struct.TileSpreadSpec {
@@ -91,11 +95,11 @@ struct.TileSpreadSpec {
   # these options.
   label_opts 'SpreadLabelOptions',
   # If this is set then it will override the count shown in the
-  # label, if the label is shown. This is used to represent
-  # progress indicators where we want the spacing/algo done on
-  # the full count, but then we only display a subset. In that
-  # case we want the label to represent the progress count and
-  # not the total count.
+  # label, if the label is shown. This is used for a couple of
+  # purposes: 1) to represent progress indicators where we want
+  # the spacing/algo done on the full count, but then we only
+  # display a subset, and 2) in the case where rendered counts
+  # need to be lowered in order to fit in the available space.
   label_count 'base::maybe<int>',
   # This can be used for e.g. a red X over each tile as would be
   # done in the colony view to represent shortages.

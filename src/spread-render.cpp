@@ -122,9 +122,11 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           i >= tile_spread.overlay_tile->starting_position ) {
         if( !overlay.has_value() ) {
           overlay.emplace();
-          overlay->idx         = i;
-          overlay->p_start     = p;
-          overlay->label_count = spec.count - i;
+          overlay->idx     = i;
+          overlay->p_start = p;
+          overlay->label_count =
+              tile_spread.overlay_tile->label_count.value_or(
+                  spec.count - i );
         }
         // We need to place the overlay tile against the middle
         // left wall of the trimmed (opaque) part of the sprite.
