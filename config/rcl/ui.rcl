@@ -53,9 +53,10 @@ panel {
 # sometimes be overrided by the game in certain cases.
 tile_spreads {
   # This is the extra space around the label text given to the
-  # box behind the text. The OG has 0 for this, but 1 seems to
-  # look slightly better.
-  label_text_padding: 1
+  # box behind the text. The OG has 1 for this, but 2 seems to
+  # look slightly better, maybe because our pixel size is a bit
+  # smaller.
+  label_text_padding: 2
 
   # There on the tile spread is the label placed. The OG has "nw"
   # for this. Valid values are: nw,n,ne,w,c,e,sw,s,se.
