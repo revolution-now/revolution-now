@@ -237,6 +237,10 @@ W UnitShadow::default_offset() { return W{ -3 }; }
 /****************************************************************
 ** Unit Rendering.
 *****************************************************************/
+e_tile tile_for_unit_type( e_unit_type const unit_type ) {
+  return unit_attr( unit_type ).tile;
+}
+
 void render_unit( rr::Renderer& renderer, Coord where,
                   Unit const& unit,
                   UnitRenderOptions const& options ) {

@@ -55,6 +55,29 @@ struct world : testing::World {
 /****************************************************************
 ** Test Cases
 *****************************************************************/
+TEST_CASE( "[render] tile_for_unit_type" ) {
+  e_unit_type type = {};
+  e_tile expected  = {};
+
+  auto f = [&] { return tile_for_unit_type( type ); };
+
+  type     = e_unit_type::petty_criminal;
+  expected = e_tile::petty_criminal;
+  REQUIRE( f() == expected );
+
+  type     = e_unit_type::expert_farmer;
+  expected = e_tile::expert_farmer;
+  REQUIRE( f() == expected );
+
+  type     = e_unit_type::regular;
+  expected = e_tile::regular;
+  REQUIRE( f() == expected );
+
+  type     = e_unit_type::veteran_dragoon;
+  expected = e_tile::veteran_dragoon;
+  REQUIRE( f() == expected );
+}
+
 TEST_CASE( "[render] tile_for_colony" ) {
   Colony colony;
   e_tile expected = {};
