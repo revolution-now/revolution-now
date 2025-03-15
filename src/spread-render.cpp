@@ -19,6 +19,7 @@
 
 // render
 #include "render/itextometer.hpp"
+#include "render/renderer.hpp"
 
 // gfx
 #include "gfx/cartesian.hpp"
@@ -41,6 +42,7 @@ namespace {
 using ::base::maybe;
 using ::base::nothing;
 using ::gfx::e_cdirection;
+using ::gfx::interval;
 using ::gfx::oriented_point;
 using ::gfx::point;
 using ::gfx::rect;
@@ -366,6 +368,35 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   return plan;
 }
 
+[[nodiscard]] TileSpreadRenderPlan
+render_plan_for_tile_inhomogeneous(
+    InhomogeneousTileSpreadSpec const& tile_spec ) {
+  TileSpreadRenderPlan res;
+  res.tiles.reserve( tile_spec.tiles.size() );
+  point p;
+  for( e_tile const tile : tile_spec.tiles ) {
+    interval const iv =
+        trimmed_area_for( tile ).horizontal_slice();
+    point const render_p = p.moved_left( iv.start );
+    res.tiles.push_back( TileRenderPlan{
+      .tile = tile, .where = render_p, .is_overlay = false } );
+    int const delta =
+        std::min( tile_spec.spread.max_total_spacing,
+                  iv.len + tile_spec.source_spec.max_spacing );
+    p.x += delta;
+  }
+  rect const tiles_all = [&] {
+    rect bounds;
+    for( auto const& plan : res.tiles )
+      bounds = bounds.uni0n(
+          trimmed_area_for( plan.tile )
+              .origin_becomes_point( plan.where ) );
+    return bounds;
+  }();
+  res.bounds = tiles_all;
+  return res;
+}
+
 void replace_first_n_tiles( TileSpreadRenderPlans& plans,
                             int const n_replace,
                             e_tile const from,
@@ -387,11 +418,27 @@ void replace_first_n_tiles( TileSpreadRenderPlans& plans,
 }
 
 void draw_rendered_icon_spread(
-    rr::Renderer& renderer, gfx::point origin,
-    TileSpreadRenderPlan const& plan ) {
-  for( auto const& [tile, p, is_overlay] : plan.tiles )
+    rr::Renderer& renderer, point const origin,
+    TileSpreadRenderPlan const& plan,
+    TileSpreadRenderOptions const& options ) {
+  for( auto const [idx, tile_plan] :
+       rv::enumerate( plan.tiles ) ) {
+    if( options.suppress.has_value() &&
+        *options.suppress == idx )
+      continue;
+    auto const& [tile, p, _] = tile_plan;
+    if( options.shadow.has_value() ) {
+      SCOPED_RENDERER_MOD_SET( painter_mods.fixed_color,
+                               options.shadow->color );
+      render_sprite(
+          renderer,
+          p.origin_becomes_point( origin ).moved_right(
+              options.shadow->offset ),
+          tile );
+    }
     render_sprite( renderer, p.origin_becomes_point( origin ),
                    tile );
+  }
   for( auto const& label : plan.labels )
     render_text_line_with_background(
         renderer, kLabelTextLayout, label.text,

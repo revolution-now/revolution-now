@@ -27,6 +27,9 @@ TileSpreadRenderPlan build_progress_tile_spread(
     rr::ITextometer const& textometer,
     ProgressTileSpreadConfig const& config );
 
+TileSpreadRenderPlan build_inhomogenous_tile_spread(
+    InhomogeneousTileSpreadConfig const& config );
+
 TileSpreadRenderPlans build_tile_spread_multi(
     rr::ITextometer const& textometer,
     TileSpreadConfigMulti const& configs );

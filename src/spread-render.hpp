@@ -35,6 +35,10 @@ render_plan_for_tile_progress_spread(
     rr::ITextometer const& textometer,
     ProgressTileSpreadSpec const& tile_spec );
 
+[[nodiscard]] TileSpreadRenderPlan
+render_plan_for_tile_inhomogeneous(
+    InhomogeneousTileSpreadSpec const& tile_spec );
+
 // Iterate through the non-overlay tiles and keep replacing
 // `from` tiles with `to` tiles until either N is reached or we
 // encounter a non-`from` tile.
@@ -59,10 +63,11 @@ void replace_first_n_tiles( TileSpreadRenderPlans& plans,
 
 void draw_rendered_icon_spread(
     rr::Renderer& renderer, gfx::point origin,
-    TileSpreadRenderPlan const& plan );
+    TileSpreadRenderPlan const& plan,
+    TileSpreadRenderOptions const& options = {} );
 
 void draw_rendered_icon_spread(
     rr::Renderer& renderer, gfx::point origin,
-    TileSpreadRenderPlans const& plan );
+    TileSpreadRenderPlans const& plans );
 
 } // namespace rn

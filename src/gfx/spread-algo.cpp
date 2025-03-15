@@ -28,6 +28,7 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::std::ranges::views::enumerate;
 using ::std::ranges::views::zip;
 
 } // namespace
@@ -371,6 +372,43 @@ maybe<ProgressSpread> compute_icon_spread_progress_bar(
          "fit the full bounds.",
          spec );
   res->spacings = std::move( spacings );
+  return res;
+}
+
+maybe<InhomogeneousSpread> compute_icon_spread_inhomogeneous(
+    InhomogeneousSpreadSpec const& spec ) {
+  maybe<InhomogeneousSpread> res;
+  auto& spread = res.emplace();
+
+  auto const occupied = [&] {
+    int p           = 0;
+    int right_most  = 0;
+    int const count = ssize( spec.widths );
+    for( auto const [idx, width] : enumerate( spec.widths ) ) {
+      right_most = std::max( right_most, p + width );
+      if( idx < count - 1 )
+        p += std::min( width + spec.max_spacing,
+                       spread.max_total_spacing );
+      else
+        p += width;
+    }
+    return right_most;
+  };
+
+  auto const fits = [&] { return occupied() <= spec.bounds; };
+
+  spread.max_total_spacing = numeric_limits<int>::max();
+  if( fits() ) return res;
+  spread.max_total_spacing = 0;
+  if( !fits() ) {
+    res.reset();
+    return res;
+  }
+
+  while( fits() ) ++spread.max_total_spacing;
+  --spread.max_total_spacing;
+  CHECK_GE( spread.max_total_spacing, 0 );
+  CHECK( fits() );
   return res;
 }
 

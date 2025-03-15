@@ -137,6 +137,12 @@ struct.ProgressTileSpreadSpec {
   label_policy 'SpreadLabels',
 }
 
+struct.InhomogeneousTileSpreadSpec {
+  source_spec 'InhomogeneousSpreadSpec',
+  spread 'InhomogeneousSpread',
+  tiles 'std::vector<e_tile>',
+}
+
 # ---------------------------------------------------------------
 # Render Plans.
 # ---------------------------------------------------------------
@@ -170,4 +176,18 @@ struct.TileSpreadRenderPlan {
 struct.TileSpreadRenderPlans {
   bounds 'gfx::size',
   plans 'std::vector<TileSpreadRenderPlan>',
+}
+
+struct.TileSpreadRenderShadow {
+  offset 'int',
+  color 'gfx::pixel',
+}
+
+struct.TileSpreadRenderOptions {
+  # Index of tile to suppress. This is used to omit the drawing
+  # of one of the tiles, which is useful if e.g. it is being
+  # dragged and we want to omit drawing it but draw all other
+  # tiles in their same positions.
+  suppress 'base::maybe<int>',
+  shadow 'base::maybe<TileSpreadRenderShadow>',
 }

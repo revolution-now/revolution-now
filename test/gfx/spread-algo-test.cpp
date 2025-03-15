@@ -1635,5 +1635,19 @@ TEST_CASE( "[spread] compute_icon_spread_progress_bar" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE( "[spread] compute_icon_spread_inhomogeneous" ) {
+  InhomogeneousSpreadSpec spec;
+  InhomogeneousSpread expected;
+
+  auto f = [&] {
+    return compute_icon_spread_inhomogeneous( spec );
+  };
+
+  // Default case.
+  spec     = {};
+  expected = { .max_total_spacing = numeric_limits<int>::max() };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

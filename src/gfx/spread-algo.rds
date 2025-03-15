@@ -46,6 +46,15 @@ struct.ProgressSpreadSpec {
   spread_spec 'SpreadSpec',
 }
 
+struct.InhomogeneousSpreadSpec {
+  bounds 'int',
+  # Normally this would be 1, which means that there can be at
+  # most 1 pixel of space between icons, not including the width
+  # of the icons themselves.
+  max_spacing 'int',
+  # One width for each icon.
+  widths 'std::vector<int>',
+}
 
 # Computed output.
 struct.Spread {
@@ -67,4 +76,20 @@ struct.ProgressSpreadSpacing {
 
 struct.ProgressSpread {
   spacings 'std::vector<ProgressSpreadSpacing>',
+}
+
+struct.InhomogeneousSpread {
+  # This can be larger than what is allowed between two given
+  # icons, and in that case it is expected that the user of this
+  # value will cap it when necessary. This allows us to simplify
+  # how we express the result here in that we don't need to give
+  # spacings for each icon in the input.
+  #
+  # This could be zero, which will happen if the spread can only
+  # fit when all icons are on top of each other. The caller can
+  # decide whether they actually want to render this way. In this
+  # case, it will at least be guaranteed that the resulting stack
+  # will fit within the bounds; if that were not the case then
+  # the algo would not return a result at all.
+  max_total_spacing 'int',
 }

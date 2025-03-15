@@ -240,4 +240,26 @@ TileSpreadRenderPlan build_progress_tile_spread(
   return std::move( plans.plans[0] );
 }
 
+TileSpreadRenderPlan build_inhomogenous_tile_spread(
+    InhomogeneousTileSpreadConfig const& config ) {
+  TileSpreadRenderPlan res;
+  InhomogeneousSpreadSpec const spec{
+    .bounds      = config.options.bounds,
+    .max_spacing = config.max_spacing.value_or( 1 ),
+    .widths      = [&] {
+      vector<int> res;
+      res.reserve( config.tiles.size() );
+      for( e_tile const tile : config.tiles )
+        res.push_back( trimmed_area_for( tile ).size.w );
+      return res;
+    }() };
+  auto spread = compute_icon_spread_inhomogeneous( spec );
+  if( !spread.has_value() ) return res;
+  InhomogeneousTileSpreadSpec const tile_spec{
+    .source_spec = spec,
+    .spread      = std::move( *spread ),
+    .tiles       = config.tiles };
+  return render_plan_for_tile_inhomogeneous( tile_spec );
+}
+
 } // namespace rn
