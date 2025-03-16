@@ -28,6 +28,9 @@
 // rds
 #include "rds/switch-macro.hpp"
 
+// base
+#include "base/range-lite.hpp"
+
 // C++ standard library
 #include <ranges>
 
@@ -38,6 +41,8 @@ namespace rv = std::ranges::views;
 namespace rn {
 
 namespace {
+
+namespace rl = ::base::rl;
 
 using ::base::maybe;
 using ::base::nothing;
@@ -422,7 +427,7 @@ void draw_rendered_icon_spread(
     TileSpreadRenderPlan const& plan,
     TileSpreadRenderOptions const& options ) {
   for( auto const [idx, tile_plan] :
-       rv::enumerate( plan.tiles ) ) {
+       rl::all( plan.tiles ).enumerate() ) {
     if( options.suppress.has_value() &&
         *options.suppress == idx )
       continue;

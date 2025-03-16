@@ -15,6 +15,7 @@
 
 // base
 #include "base/logger.hpp"
+#include "base/range-lite.hpp"
 #include "base/to-str-ext-std.hpp"
 
 // C++ standard library
@@ -26,9 +27,10 @@ namespace rn {
 
 namespace {
 
+namespace rl = ::base::rl;
+
 using ::base::maybe;
 using ::base::nothing;
-using ::std::ranges::views::enumerate;
 using ::std::ranges::views::zip;
 
 } // namespace
@@ -384,7 +386,8 @@ maybe<InhomogeneousSpread> compute_icon_spread_inhomogeneous(
     int p           = 0;
     int right_most  = 0;
     int const count = ssize( spec.widths );
-    for( auto const [idx, width] : enumerate( spec.widths ) ) {
+    for( auto const [idx, width] :
+         rl::all( spec.widths ).enumerate() ) {
       right_most = std::max( right_most, p + width );
       if( idx < count - 1 )
         p += std::min( width + spec.max_spacing,
