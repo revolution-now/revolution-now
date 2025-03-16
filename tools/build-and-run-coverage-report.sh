@@ -32,7 +32,6 @@ source ~/dev/utilities/bashlib/util.sh
 # Constants.
 # ---------------------------------------------------------------
 HTML_OUT=.builds/current/test/unittest.coverage.html
-HTML_URL="file://$(realpath "$HTML_OUT")"
 
 # ---------------------------------------------------------------
 # Args.
@@ -57,6 +56,8 @@ usage() { die "usage: $0 <target> [<targets>...]"; }
 # ---------------------------------------------------------------
 log "step: configure"
 cmc --clang --libstdcxx --lld --coverage
+# Must be evaluated after we change to the --coverage config.
+HTML_URL="file://$(realpath "$HTML_OUT")"
 
 # ---------------------------------------------------------------
 # Step: Build.
@@ -94,6 +95,7 @@ echo "Copied report URL to clipboard, now paste in browser."
 echo "Select a line and use the L, B, R keys keys (with and"
 echo "without shift) to navigate. See generated source code to"
 echo "see what they do."
+echo
 
 # ---------------------------------------------------------------
 # Step: Configure.
