@@ -259,7 +259,8 @@ TileSpreadRenderPlan build_inhomogenous_tile_spread(
     .source_spec = spec,
     .spread      = std::move( *spread ),
     .tiles       = config.tiles };
-  return render_plan_for_tile_inhomogeneous( tile_spec );
+  res = render_plan_for_tile_inhomogeneous( tile_spec );
+  return res;
 }
 
 } // namespace rn
