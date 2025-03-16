@@ -33,10 +33,12 @@ class PopulationView : public ui::View, public ColonySubView {
 
   struct Layout {
     gfx::size size = {};
-    TileSpreadRenderPlans production_spreads;
     // Relative to view origin.
-    int spread_margin        = {};
-    gfx::point spread_origin = {};
+    int spread_margin = {};
+    TileSpreadRenderPlan people_spread;
+    gfx::point people_spread_origin = {};
+    TileSpreadRenderPlans production_spreads;
+    gfx::point production_spread_origin = {};
   };
 
   PopulationView( IEngine& engine, SS& ss, TS& ts,
@@ -64,10 +66,14 @@ class PopulationView : public ui::View, public ColonySubView {
 
  private:
   static Layout create_layout( IEngine& engine,
-                               SSConst const& ss, gfx::size sz );
+                               SSConst const& ss, gfx::size sz,
+                               Colony const& colony );
 
   void draw_sons_of_liberty( rr::Renderer& renderer,
                              Coord coord ) const;
+
+  void draw_people_spread( rr::Renderer& renderer,
+                           Coord coord ) const;
 
   void draw_production_spreads( rr::Renderer& renderer,
                                 Coord coord ) const;

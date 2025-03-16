@@ -42,6 +42,26 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
+TileSpreadRenderPlan create_people_spread( SSConst const& ss,
+                                           Colony const& colony,
+                                           int const width ) {
+  vector<e_tile> const tiles = [&] {
+    vector<e_tile> res;
+    vector<UnitId> const units = colony_units_all( colony );
+    res.reserve( units.size() );
+    for( UnitId const unit_id : units )
+      res.push_back( tile_for_unit_type(
+          ss.units.unit_for( unit_id ).type() ) );
+    return res;
+  }();
+  InhomogeneousTileSpreadConfig const config{
+    .tiles       = tiles,
+    .max_spacing = 2,
+    .options     = { .bounds       = width,
+                     .label_policy = SpreadLabels::never{} } };
+  return build_inhomogenous_tile_spread( config );
+}
+
 TileSpreadRenderPlans create_production_spreads(
     IEngine& engine, SSConst const& ss,
     ColonyProduction const& production, int const width ) {
@@ -124,10 +144,19 @@ TileSpreadRenderPlans create_production_spreads(
 /****************************************************************
 ** PopulationView
 *****************************************************************/
+void PopulationView::draw_people_spread( rr::Renderer& renderer,
+                                         Coord coord ) const {
+  point const origin =
+      layout_.people_spread_origin.origin_becomes_point( coord );
+  draw_rendered_icon_spread( renderer, origin,
+                             layout_.people_spread );
+}
+
 void PopulationView::draw_production_spreads(
     rr::Renderer& renderer, Coord coord ) const {
   point const origin =
-      layout_.spread_origin.origin_becomes_point( coord );
+      layout_.production_spread_origin.origin_becomes_point(
+          coord );
   draw_rendered_icon_spread( renderer, origin,
                              layout_.production_spreads );
 }
@@ -213,28 +242,25 @@ void PopulationView::draw( rr::Renderer& renderer,
   draw_sons_of_liberty( renderer, coord );
 
   // Colonists.
-  vector<UnitId> units = colony_units_all( colony_ );
-  auto unit_pos        = coord + Delta{ .h = 16 };
-  unit_pos.x -= 3;
-  for( UnitId unit_id : units ) {
-    render_unit( renderer, unit_pos,
-                 ss_.units.unit_for( unit_id ),
-                 UnitRenderOptions{} );
-    unit_pos.x += 15;
-  }
+  draw_people_spread( renderer, coord );
 
   // Production Spreads.
   draw_production_spreads( renderer, coord );
 }
 
 PopulationView::Layout PopulationView::create_layout(
-    IEngine& engine, SSConst const& ss, size const sz ) {
+    IEngine& engine, SSConst const& ss, size const sz,
+    Colony const& colony ) {
   Layout l;
-  l.size          = sz;
-  l.spread_margin = 6;
-  l.spread_origin = { .x = l.spread_margin, .y = 16 + 32 + 6 };
-  int const spread_width = sz.w - 2 * l.spread_margin;
-  l.production_spreads   = create_production_spreads(
+  l.size                     = sz;
+  l.spread_margin            = 6;
+  l.people_spread_origin     = { .x = l.spread_margin, .y = 16 };
+  l.production_spread_origin = { .x = l.spread_margin,
+                                 .y = 16 + 32 + 6 };
+  int const spread_width     = sz.w - 2 * l.spread_margin;
+  l.people_spread =
+      create_people_spread( ss, colony, spread_width );
+  l.production_spreads = create_production_spreads(
       engine, ss, colview_production(), spread_width );
   return l;
 }
@@ -242,13 +268,14 @@ PopulationView::Layout PopulationView::create_layout(
 void PopulationView::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
-  layout_ = create_layout( engine_, ss_, layout_.size );
+  layout_ = create_layout( engine_, ss_, layout_.size, colony_ );
 }
 
 std::unique_ptr<PopulationView> PopulationView::create(
     IEngine& engine, SS& ss, TS& ts, Player& player,
     Colony& colony, Delta size ) {
-  Layout layout = create_layout( engine, ss.as_const, size );
+  Layout layout =
+      create_layout( engine, ss.as_const, size, colony );
   return std::make_unique<PopulationView>(
       engine, ss, ts, player, colony, std::move( layout ) );
 }

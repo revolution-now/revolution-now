@@ -25,6 +25,15 @@ struct SS;
 struct TS;
 struct Player;
 
+struct BuildingLayoutSlot {
+  gfx::rect bounds;
+  TileSpreadRenderPlan product_plan;
+  TileSpreadRenderPlan workers_plan;
+  gfx::point product_plan_origin;
+  gfx::point workers_plan_origin;
+  std::map<UnitId, int /*idx*/> units;
+};
+
 /****************************************************************
 ** Buildings
 *****************************************************************/
@@ -41,11 +50,9 @@ class ColViewBuildings : public ui::View,
   struct Layout {
     gfx::size size = {};
 
-    struct Slot {
-      gfx::rect bounds;
-      TileSpreadRenderPlan plan;
-    };
-    refl::enum_map<e_colony_building_slot, Slot> slots;
+    refl::enum_map<e_colony_building_slot, BuildingLayoutSlot>
+        slots;
+    int unit_shadow_offset = {};
   };
 
   ColViewBuildings( IEngine& engine, SS& ss, TS& ts,
@@ -120,7 +127,11 @@ class ColViewBuildings : public ui::View,
 
  private:
   static Layout create_layout( IEngine& engine,
-                               SSConst const& ss, gfx::size sz );
+                               SSConst const& ss, gfx::size sz,
+                               Colony const& colony );
+
+  void draw_workers( rr::Renderer& renderer,
+                     e_colony_building_slot const slot ) const;
 
   struct Dragging {
     UnitId id                   = {};

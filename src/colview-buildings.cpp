@@ -113,30 +113,64 @@ TileSpreadRenderPlan create_production_spread(
   return build_tile_spread( textometer, config );
 }
 
+TileSpreadRenderPlan create_workers_spread(
+    SSConst const& ss, Colony const& colony,
+    e_colony_building_slot const slot, int const width,
+    int const unit_shadow_offset ) {
+  TileSpreadRenderPlan res;
+  maybe<e_indoor_job> const indoor_job =
+      indoor_job_for_slot( slot );
+  if( !indoor_job ) return res;
+  vector<UnitId> const& units = colony.indoor_jobs[*indoor_job];
+  vector<e_tile> const tiles  = [&] {
+    vector<e_tile> res;
+    res.reserve( units.size() );
+    for( UnitId const unit_id : units )
+      res.push_back( tile_for_unit_type(
+          ss.units.unit_for( unit_id ).type() ) );
+    return res;
+  }();
+  InhomogeneousTileSpreadConfig const config{
+    .tiles = tiles,
+    // Have the max spacing be enough so that, including the unit
+    // shadows, there will still be one pixel of separation be-
+    // tween them when they are at max spacing.
+    .max_spacing = -unit_shadow_offset + 1,
+    .options     = { .bounds       = width,
+                     .label_policy = SpreadLabels::never{} } };
+  res = build_inhomogenous_tile_spread( config );
+  return res;
+}
+
 } // namespace
 
 /****************************************************************
 ** Buildings
 *****************************************************************/
-int const kEffectiveUnitWidthPixels = g_tile_delta.w / 2;
-
 Rect ColViewBuildings::visible_rect_for_unit_in_slot(
-    e_colony_building_slot slot, int unit_idx ) const {
-  Rect rect = layout_.slots[slot].bounds;
-  Coord pos = rect.lower_left() - Delta{ .h = g_tile_delta.h };
-  pos.x += 3;
-  pos.x += W{ kEffectiveUnitWidthPixels } * unit_idx;
-  return Rect::from( pos, Delta{ .w = g_tile_delta.w / 2,
-                                 .h = g_tile_delta.h } );
+    e_colony_building_slot const slot,
+    int const unit_idx ) const {
+  BuildingLayoutSlot const& slot_plan = layout_.slots[slot];
+  TileSpreadRenderPlan const& workers_plan =
+      slot_plan.workers_plan;
+  CHECK_LT( unit_idx, ssize( workers_plan.tiles ) );
+  TileRenderPlan const& tile_plan = workers_plan.tiles[unit_idx];
+  rect const trimmed = trimmed_area_for( tile_plan.tile );
+  return trimmed.origin_becomes_point( tile_plan.where )
+      .origin_becomes_point( slot_plan.workers_plan_origin );
 }
 
 Rect ColViewBuildings::sprite_rect_for_unit_in_slot(
-    e_colony_building_slot slot, int unit_idx ) const {
-  return visible_rect_for_unit_in_slot( slot, unit_idx ) -
-         Delta{ .w = W{ ( g_tile_delta.w -
-                          kEffectiveUnitWidthPixels ) /
-                        2 },
-                .h = 0 };
+    e_colony_building_slot const slot,
+    int const unit_idx ) const {
+  BuildingLayoutSlot const& slot_plan = layout_.slots[slot];
+  TileSpreadRenderPlan const& workers_plan =
+      slot_plan.workers_plan;
+  CHECK_LT( unit_idx, ssize( workers_plan.tiles ) );
+  TileRenderPlan const& tile_plan = workers_plan.tiles[unit_idx];
+  return rect{ .origin = tile_plan.where,
+               .size   = sprite_size( tile_plan.tile ) }
+      .origin_becomes_point( slot_plan.workers_plan_origin );
 }
 
 maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
@@ -146,6 +180,27 @@ maybe<e_colony_building_slot> ColViewBuildings::slot_for_coord(
     if( where.is_inside( layout_.slots[slot].bounds ) ) //
       return slot;
   return nothing;
+}
+
+void ColViewBuildings::draw_workers(
+    rr::Renderer& renderer,
+    e_colony_building_slot const slot ) const {
+  TileSpreadRenderOptions const options = [&] {
+    TileSpreadRenderOptions res{
+      .shadow = TileSpreadRenderShadow{
+        .offset = layout_.unit_shadow_offset,
+        .color =
+            config_colony.colors.unit_shadow_color_light } };
+    if( !dragging_.has_value() ) return res;
+    auto const iter =
+        layout_.slots[slot].units.find( dragging_->id );
+    if( iter == layout_.slots[slot].units.end() ) return res;
+    res.suppress = iter->second;
+    return res;
+  }();
+  draw_rendered_icon_spread(
+      renderer, layout_.slots[slot].workers_plan_origin,
+      layout_.slots[slot].workers_plan, options );
 }
 
 void ColViewBuildings::draw( rr::Renderer& renderer,
@@ -160,7 +215,7 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     painter.draw_empty_rect(
         rect, rr::Painter::e_border_mode::in_out, BROWN_COLOR );
     rr::Typer typer = renderer.typer(
-        rect.upper_left() + Delta{ .w = 1 } + Delta{ .h = 1 },
+        rect.upper_left() + Delta{ .w = 2 } + Delta{ .h = 2 },
         BROWN_COLOR );
     maybe<e_colony_building> const building =
         building_for_slot( colony_, slot );
@@ -171,47 +226,14 @@ void ColViewBuildings::draw( rr::Renderer& renderer,
     CHECK( building.has_value() );
     typer.write( "{}", *building );
 
-    maybe<e_indoor_job> const indoor_job =
-        indoor_job_for_slot( slot );
-
-    if( indoor_job ) {
-      vector<UnitId> const& colonists =
-          colony_.indoor_jobs[*indoor_job];
-      for( int idx = 0; idx < int( colonists.size() ); ++idx ) {
-        UnitId unit_id = colonists[idx];
-        if( dragging_.has_value() && dragging_->id == unit_id )
-          continue;
-#if 0
-        // For debugging the bounding rects.
-        Coord pos = visible_rect_for_unit_in_slot( slot, idx )
-                        .upper_left();
-        painter.draw_empty_rect(
-            Rect::from( pos,
-                        Delta( W{ kEffectiveUnitWidthPixels },
-                               g_tile_delta.h ) ),
-            rr::Painter::e_border_mode::in_out,
-            gfx::pixel{ .r = 0, .g = 0, .b = 0, .a = 30 } );
-#endif
-        render_unit(
-            renderer,
-            sprite_rect_for_unit_in_slot( slot, idx )
-                .upper_left(),
-            ss_.units.unit_for( unit_id ),
-            UnitRenderOptions{
-              .shadow = UnitShadow{
-                .color = config_colony.colors
-                             .unit_shadow_color_light } } );
-      }
-    }
+    draw_workers( renderer, slot );
 
     maybe<int> quantity =
         production_for_slot( colview_production(), slot );
-    if( quantity.has_value() ) {
-      point const origin = rect.upper_left().to_gfx() +
-                           size{ .w = 2 } + size{ .h = 8 };
-      draw_rendered_icon_spread( renderer, origin,
-                                 layout_.slots[slot].plan );
-    }
+    if( quantity.has_value() )
+      draw_rendered_icon_spread(
+          renderer, layout_.slots[slot].product_plan_origin,
+          layout_.slots[slot].product_plan );
   }
 }
 
@@ -372,26 +394,53 @@ wait<> ColViewBuildings::perform_click(
 }
 
 ColViewBuildings::Layout ColViewBuildings::create_layout(
-    IEngine& engine, SSConst const& ss, size const sz ) {
+    IEngine& engine, SSConst const& ss, size const sz,
+    Colony const& colony ) {
   Layout l;
   l.size = sz;
+  // This is negative.
+  l.unit_shadow_offset = UnitShadow::default_offset();
 
   for( e_colony_building_slot const slot :
        enum_values<e_colony_building_slot> ) {
-    // TODO: temporary
-    Delta const box_size = sz / size{ .w = 4, .h = 4 };
-    int const idx        = static_cast<int>( slot );
-    Coord const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
-    Coord const upper_left = coord * box_size;
-    Coord lower_right      = upper_left + box_size;
+    size const box_size = sz / size{ .w = 4, .h = 4 };
+    int const idx       = static_cast<int>( slot );
+    point const coord{ .x = X{ idx % 4 }, .y = Y{ idx / 4 } };
+    point const upper_left = coord * box_size;
+    point lower_right      = upper_left + box_size;
     if( idx / 4 == 3 ) lower_right.y = 0 + sz.h;
     rect const bounds = rect::from( upper_left, lower_right );
-
-    l.slots[slot] = Layout::Slot{
-      .bounds = bounds,
-      .plan = create_production_spread( engine.textometer(), ss,
-                                        colview_production(),
-                                        slot, bounds.size.w ) };
+    maybe<e_indoor_job> const indoor_job =
+        indoor_job_for_slot( slot );
+    static vector<UnitId> const kEmpty;
+    vector<UnitId> const& units =
+        indoor_job.has_value() ? colony.indoor_jobs[*indoor_job]
+                               : kEmpty;
+    map<UnitId, int> units_map;
+    for( int idx = 0; UnitId const unit_id : units )
+      units_map[unit_id] = idx++;
+    int const margin = 2;
+    // This effectively subtracts the amount that is needed for
+    // the unit shadows and margin.
+    int const workers_spread_width = std::max(
+        bounds.size.w + l.unit_shadow_offset - 2 * margin, 0 );
+    int const product_spread_width =
+        std::max( bounds.size.w - 2 * margin, 0 );
+    l.slots[slot] = BuildingLayoutSlot{
+      .bounds       = bounds,
+      .product_plan = create_production_spread(
+          engine.textometer(), ss, colview_production(), slot,
+          product_spread_width ),
+      .workers_plan = create_workers_spread(
+          ss, colony, slot, workers_spread_width,
+          l.unit_shadow_offset ),
+      .product_plan_origin =
+          bounds.nw() + size{ .w = margin, .h = 10 },
+      .workers_plan_origin =
+          bounds.sw() +
+          size{ .w = -l.unit_shadow_offset + margin,
+                .h = -32 - 1 },
+      .units = std::move( units_map ) };
   }
   return l;
 }
@@ -399,13 +448,13 @@ ColViewBuildings::Layout ColViewBuildings::create_layout(
 void ColViewBuildings::update_this_and_children() {
   // This method is only called when the logical resolution
   // hasn't changed, so we assume the size hasn't changed.
-  layout_ = create_layout( engine_, ss_, layout_.size );
+  layout_ = create_layout( engine_, ss_, layout_.size, colony_ );
 }
 
 std::unique_ptr<ColViewBuildings> ColViewBuildings::create(
     IEngine& engine, SS& ss, TS& ts, Player& player,
     Colony& colony, Delta sz ) {
-  Layout layout = create_layout( engine, ss, sz );
+  Layout layout = create_layout( engine, ss, sz, colony );
   return std::make_unique<ColViewBuildings>(
       engine, ss, ts, player, colony, std::move( layout ) );
 }
