@@ -1643,10 +1643,159 @@ TEST_CASE( "[spread] compute_icon_spread_inhomogeneous" ) {
     return compute_icon_spread_inhomogeneous( spec );
   };
 
+  auto constexpr kMax = numeric_limits<int>::max();
+
   // Default case.
   spec     = {};
-  expected = { .max_total_spacing = numeric_limits<int>::max() };
+  expected = { .max_total_spacing = kMax };
   REQUIRE( f() == expected );
+
+  // Single element, doesn't fit.
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 11 } };
+  REQUIRE( f() == nothing );
+
+  // Single element, just fits.
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 10 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  // Single element, fits with space left.
+  spec     = { .bounds = 10, .max_spacing = 1, .widths = { 9 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  // Single element, fits with space left.
+  spec     = { .bounds = 10, .max_spacing = 1, .widths = { 4 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  // Single element, fits with space left.
+  spec     = { .bounds = 10, .max_spacing = 1, .widths = { 0 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  // Two elements, don't fit.
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 1, 11 } };
+  REQUIRE( f() == nothing );
+
+  // Two elements, just fits.
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 1, 10 } };
+  expected = { .max_total_spacing = 0 };
+  REQUIRE( f() == expected );
+
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 1, 9 } };
+  expected = { .max_total_spacing = 1 };
+  REQUIRE( f() == expected );
+
+  spec = { .bounds = 10, .max_spacing = 1, .widths = { 1, 8 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  // Adjust max spacing.
+  spec = { .bounds = 10, .max_spacing = 2, .widths = { 1, 8 } };
+  expected = { .max_total_spacing = 2 };
+  REQUIRE( f() == expected );
+
+  spec = { .bounds = 10, .max_spacing = 2, .widths = { 1, 7 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  spec = { .bounds = 10, .max_spacing = 2, .widths = { 1, 3 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 2, .widths = { 5, 1, 3 } };
+  expected = { .max_total_spacing = 4 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 3, .widths = { 5, 1, 3 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 4, .widths = { 5, 1, 3 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 5, .widths = { 5, 1, 3 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 2, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 2 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 3, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 2 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 1, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 11, .max_spacing = 1, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 12, .max_spacing = 1, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 4 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 12, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 11, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = kMax };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 10, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 4 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 9, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 3 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 8, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 2 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 7, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 2 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 6, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 1 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 5, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  expected = { .max_total_spacing = 1 };
+  REQUIRE( f() == expected );
+
+  spec = {
+    .bounds = 4, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  REQUIRE( f() == nothing );
+
+  spec = {
+    .bounds = 0, .max_spacing = 0, .widths = { 5, 1, 3, 2 } };
+  REQUIRE( f() == nothing );
 }
 
 } // namespace

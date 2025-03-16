@@ -79,6 +79,9 @@ struct.ProgressSpread {
 }
 
 struct.InhomogeneousSpread {
+  # Maximum total spacing between icons, where "total spacing" is
+  # from one render origin to the next, so independent of width.
+  #
   # This can be larger than what is allowed between two given
   # icons, and in that case it is expected that the user of this
   # value will cap it when necessary. This allows us to simplify
