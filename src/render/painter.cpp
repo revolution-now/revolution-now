@@ -294,4 +294,29 @@ Painter& Painter::draw_sprite_section(
                            /*dst_size=*/nothing, section );
 }
 
+Painter& Painter::draw_line( point const start, point const end,
+                             pixel const color ) {
+  // Draw the angled line.
+  auto const vertex = [&, this]( point const p ) {
+    emit( LineVertex( p, start, end, color ) );
+  };
+  size const delta = ( end - start ).abs();
+  if( delta.h >= delta.w ) {
+    vertex( start.moved_left( 2 ) );
+    vertex( start.moved_right( 2 ) );
+    vertex( end.moved_right( 2 ) );
+    vertex( end.moved_right( 2 ) );
+    vertex( end.moved_left( 2 ) );
+    vertex( start.moved_left( 2 ) );
+  } else {
+    vertex( start.moved_up( 2 ) );
+    vertex( start.moved_down( 2 ) );
+    vertex( end.moved_down( 2 ) );
+    vertex( end.moved_down( 2 ) );
+    vertex( end.moved_up( 2 ) );
+    vertex( start.moved_up( 2 ) );
+  }
+  return *this;
+}
+
 } // namespace rr

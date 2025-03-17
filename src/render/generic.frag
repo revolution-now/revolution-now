@@ -25,7 +25,8 @@ flat in vec4  frag_depixelate_stages_unscaled;
      in vec2  frag_position;
      in vec2  frag_atlas_position;
 flat in vec4  frag_atlas_rect;
-flat in vec2  frag_atlas_target_offset;
+flat in vec2  frag_reference_position_1;
+flat in vec2  frag_reference_position_2;
      in vec4  frag_stencil_key_color;
      in vec4  frag_fixed_color;
      in float frag_alpha_multiplier;
@@ -143,6 +144,47 @@ vec4 type_solid() {
 }
 
 /****************************************************************
+** Line.
+*****************************************************************/
+// This will compute whether the point `has` would be part of a
+// pixelated line drawn using the bresenham method. Tradition-
+// ally, that method iterates over the pixels in the line, but
+// that is too slow, so we use a formula to just directly compute
+// whether the pixel would have been selected by that algorithm.
+bool bresenham_fast( in vec2 start, in vec2 end, in vec2 has ) {
+  if( has.x < min( start.x, end.x ) ) return false;
+  if( has.y < min( start.y, end.y ) ) return false;
+  vec2 delta    = abs( end - start );
+  bool h_larger = (delta.y >= delta.x);
+  if( !h_larger ) {
+    start.xy = start.yx;
+    end.xy   = end.yx;
+    has.xy   = has.yx;
+    delta.xy = delta.yx;
+  }
+  bool flip = (end.x < start.x);
+  float mul = flip ? -1 : 1;
+  // This is needed to get non-angled lines working.
+  float off = flip ? -1 : 0;
+  return (start.x+off)
+             + mul*floor( abs( has.y-start.y )*delta.x/delta.y )
+         == has.x;
+}
+
+// Draw a pixelated line. This is not trivial to do on a GPU run-
+// ning a high resolution, but it is possible by just computing
+// what the result of Bresenham's algorithm would have been for
+// this pixel.
+vec4 type_line() {
+  vec2 line_start       = frag_reference_position_1;
+  vec2 line_end         = frag_reference_position_2;
+  vec2 logical_position = floor( frag_position );
+  if( bresenham_fast( line_start, line_end, logical_position ) )
+    return frag_fixed_color;
+  return vec4( 0 );
+}
+
+/****************************************************************
 ** Stencils.
 *****************************************************************/
 vec4 type_stencil() {
@@ -153,9 +195,10 @@ vec4 type_stencil() {
   // We have the key color, so replace it with a pixel from the
   // alternate sprite.
   vec4 target_atlas_rect = frag_atlas_rect;
-  target_atlas_rect.xy += frag_atlas_target_offset;
+  vec2 atlas_target_offset = frag_reference_position_1;
+  target_atlas_rect.xy += atlas_target_offset;
   vec4 target_color = atlas_lookup( frag_atlas_position +
-                                    frag_atlas_target_offset,
+                                    atlas_target_offset,
                                     target_atlas_rect );
   return vec4( target_color.rgb, target_color.a*candidate.a );
 }
@@ -431,9 +474,10 @@ void main() {
 
   // Basic type stage.
   switch( frag_type ) {
-    case 0: color = type_sprite();     break;
-    case 1: color = type_solid();      break;
-    case 2: color = type_stencil();    break;
+    case 0: color = type_sprite();   break;
+    case 1: color = type_solid();    break;
+    case 2: color = type_stencil();  break;
+    case 3: color = type_line();     break;
   }
 
   // Depixelation.

@@ -31,6 +31,9 @@ struct.GenericVertex {
   #     an alternate sprite (specified in the atlas via the
   #     atlas_target_offset) with alpha multiplication.
   #
+  #  3. Line. This triangle will have a pixelated line drawn
+  #     along its diagonal edge.
+  #
   #  The above options should be in order of decreasing probabil-
   #  ity, that way most shaders can return early most of the time
   #  and won't spend time testing for unlikely branches.
@@ -153,9 +156,22 @@ struct.GenericVertex {
   # pling points in the atlas that are not in the sprite.
   atlas_rect 'gl::vec4',
 
-  # For stencil types this points to the alternate texture in the
-  # atlas that will be used for pixels of the key color.
-  atlas_target_offset 'gl::vec2',
+  # Multi-use:
+  #
+  #   * For stencil types this is an offset that points to the
+  #     alternate texture in the atlas that will be used for
+  #     pixels of the key color.
+  #   * For line types this gives the coordinate of the start
+  #     of the line.
+  #
+  reference_position_1 'gl::vec2',
+
+  # Multi-use:
+  #
+  #   * For line types this gives the coordinate of the end
+  #     of the line.
+  #
+  reference_position_2 'gl::vec2',
 
   # For stencils this will be the key color.
   stencil_key_color 'gl::color',

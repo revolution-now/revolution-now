@@ -45,21 +45,22 @@ using namespace ::mock::matchers;
 
 // (type, name, is_integral).  The precise names don't matter.
 vector<tuple<int, string, bool>> const kExpectedAttributes{
-  { GL_INT, "in_type", true },                        //
-  { GL_UNSIGNED_INT, "in_flags", true },              //
-  { GL_UNSIGNED_INT, "in_aux_bits_1", true },         //
-  { GL_FLOAT_VEC4, "in_depixelate", false },          //
-  { GL_FLOAT_VEC4, "in_depixelate_stages", false },   //
-  { GL_FLOAT_VEC2, "in_position", false },            //
-  { GL_FLOAT_VEC2, "in_atlas_position", false },      //
-  { GL_FLOAT_VEC4, "in_atlas_rect", false },          //
-  { GL_FLOAT_VEC2, "in_atlas_target_offset", false }, //
-  { GL_FLOAT_VEC4, "in_stencil_key_color", false },   //
-  { GL_FLOAT_VEC4, "in_fixed_color", false },         //
-  { GL_FLOAT, "in_alpha_multiplier", false },         //
-  { GL_FLOAT, "in_scaling", false },                  //
-  { GL_FLOAT_VEC2, "in_translation1", false },        //
-  { GL_FLOAT_VEC2, "in_translation2", false },        //
+  { GL_INT, "in_type", true },                         //
+  { GL_UNSIGNED_INT, "in_flags", true },               //
+  { GL_UNSIGNED_INT, "in_aux_bits_1", true },          //
+  { GL_FLOAT_VEC4, "in_depixelate", false },           //
+  { GL_FLOAT_VEC4, "in_depixelate_stages", false },    //
+  { GL_FLOAT_VEC2, "in_position", false },             //
+  { GL_FLOAT_VEC2, "in_atlas_position", false },       //
+  { GL_FLOAT_VEC4, "in_atlas_rect", false },           //
+  { GL_FLOAT_VEC2, "in_reference_position_1", false }, //
+  { GL_FLOAT_VEC2, "in_reference_position_2", false }, //
+  { GL_FLOAT_VEC4, "in_stencil_key_color", false },    //
+  { GL_FLOAT_VEC4, "in_fixed_color", false },          //
+  { GL_FLOAT, "in_alpha_multiplier", false },          //
+  { GL_FLOAT, "in_scaling", false },                   //
+  { GL_FLOAT_VEC2, "in_translation1", false },         //
+  { GL_FLOAT_VEC2, "in_translation2", false },         //
 };
 
 void expect_bind_vertex_array( gl::MockOpenGL& mock ) {

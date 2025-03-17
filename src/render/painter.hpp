@@ -135,6 +135,19 @@ struct Painter {
   Painter& draw_vertical_line( gfx::point start, int length,
                                gfx::pixel color );
 
+  // This one is used to draw a straight line that is at a slope.
+  //
+  // This is not trivial because most naive methods will draw the
+  // line at full resolution, not respecting our pixelated log-
+  // ical resolution. But this one will do it properly in the
+  // pixelated way.
+  //
+  // This is a bit more expensive (at the shader level) than the
+  // dedicated horizontal / vertical methods, so one should
+  // prefer those where possible.
+  Painter& draw_line( gfx::point start, gfx::point end,
+                      gfx::pixel color );
+
   // ...................[[ Solid Triangle ]].................. //
 
   // NOTE: this will not respect logical pixels, so is probably

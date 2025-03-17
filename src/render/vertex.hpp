@@ -173,4 +173,18 @@ struct StencilVertex : public VertexBase {
 
 STATIC_VERTEX_CHECKS( StencilVertex );
 
+/****************************************************************
+** LineVertex
+*****************************************************************/
+// This is a vertex used for lines that are not decidedly hori-
+// zontal or vertical.
+struct LineVertex : public VertexBase {
+  LineVertex( gfx::point position, gfx::point line_start,
+              gfx::point line_end, gfx::pixel color );
+
+  bool operator==( LineVertex const& ) const = default;
+};
+
+STATIC_VERTEX_CHECKS( LineVertex );
+
 } // namespace rr

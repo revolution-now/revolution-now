@@ -18,30 +18,33 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::gfx::pixel;
+using ::gfx::point;
 
 enum class vertex_type {
   sprite  = 0,
   solid   = 1,
   stencil = 2,
+  line    = 3,
 };
 
 GenericVertex proto_vertex( vertex_type type,
                             gfx::point position ) {
   return GenericVertex{
-    .type                = static_cast<int32_t>( type ),
-    .flags               = 0,
-    .aux_bits_1          = 0,
-    .depixelate          = gl::vec4{},
-    .depixelate_stages   = gl::vec4{},
-    .position            = gl::vec2::from_point( position ),
-    .atlas_position      = {},
-    .atlas_rect          = {},
-    .atlas_target_offset = {},
-    .fixed_color         = {},
-    .alpha_multiplier    = 1.0f,
-    .scaling             = 1.0,
-    .translation1        = {},
-    .translation2        = {},
+    .type                 = static_cast<int32_t>( type ),
+    .flags                = 0,
+    .aux_bits_1           = 0,
+    .depixelate           = gl::vec4{},
+    .depixelate_stages    = gl::vec4{},
+    .position             = gl::vec2::from_point( position ),
+    .atlas_position       = {},
+    .atlas_rect           = {},
+    .reference_position_1 = {},
+    .fixed_color          = {},
+    .alpha_multiplier     = 1.0f,
+    .scaling              = 1.0,
+    .translation1         = {},
+    .translation2         = {},
   };
 }
 
@@ -251,9 +254,22 @@ StencilVertex::StencilVertex( gfx::point position,
         proto_vertex( vertex_type::stencil, position ) ) {
   this->atlas_position = gl::vec2::from_point( atlas_position );
   this->atlas_rect     = gl::vec4::from_rect( atlas_rect );
-  this->atlas_target_offset =
+  this->reference_position_1 =
       gl::vec2::from_size( atlas_target_offset );
   this->stencil_key_color = gl::color::from_pixel( key_color );
+}
+
+/****************************************************************
+** LineVertex
+*****************************************************************/
+LineVertex::LineVertex( point const position,
+                        point const line_start,
+                        point const line_end, pixel const color )
+  : VertexBase( proto_vertex( vertex_type::line, position ) ) {
+  this->fixed_color = gl::color::from_pixel( color );
+  this->reference_position_1 =
+      gl::vec2::from_point( line_start );
+  this->reference_position_2 = gl::vec2::from_point( line_end );
 }
 
 } // namespace rr

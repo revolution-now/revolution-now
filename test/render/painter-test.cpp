@@ -166,6 +166,67 @@ TEST_CASE( "[render/painter] draw_solid_rect" ) {
   }
 }
 
+TEST_CASE( "[render/painter] draw_line" ) {
+  vector<GenericVertex> v, expected;
+
+  Emitter emitter( v );
+  Painter painter( atlas_map(), emitter );
+
+  point start, end;
+
+  auto VertG = [&]( point p ) {
+    return LineVertex( p, start, end, G ).generic();
+  };
+  auto VertB = [&]( point p ) {
+    return LineVertex( p, start, end, B ).generic();
+  };
+
+  SECTION( "normal" ) {
+    start = { .x = 20, .y = 30 };
+    end   = start + size{ .w = 100, .h = 200 };
+    painter.draw_line( start, end, G );
+    expected = {
+      VertG( { .x = 20 - 2, .y = 30 } ),
+      VertG( { .x = 20 + 2, .y = 30 } ),
+      VertG( { .x = 120 + 2, .y = 230 } ),
+      VertG( { .x = 120 + 2, .y = 230 } ),
+      VertG( { .x = 120 - 2, .y = 230 } ),
+      VertG( { .x = 20 - 2, .y = 30 } ),
+    };
+    REQUIRE( v == expected );
+  }
+
+  SECTION( "normal dy>dx" ) {
+    start = { .x = 20, .y = 30 };
+    end   = start + size{ .w = 200, .h = 100 };
+    painter.draw_line( start, end, G );
+    expected = {
+      VertG( { .x = 20, .y = 30 - 2 } ),
+      VertG( { .x = 20, .y = 30 + 2 } ),
+      VertG( { .x = 220, .y = 130 + 2 } ),
+      VertG( { .x = 220, .y = 130 + 2 } ),
+      VertG( { .x = 220, .y = 130 - 2 } ),
+      VertG( { .x = 20, .y = 30 - 2 } ),
+    };
+    REQUIRE( v == expected );
+  }
+
+  SECTION( "non-normalized" ) {
+    start = { .x = 20, .y = 30 };
+    end   = start + size{ .w = -100, .h = 200 };
+    painter.draw_line( start, end, B );
+    expected = {
+      VertB( { .x = 20 - 2, .y = 30 } ),
+      VertB( { .x = 20 + 2, .y = 30 } ),
+      VertB( { .x = -80 + 2, .y = 230 } ),
+      VertB( { .x = -80 + 2, .y = 230 } ),
+      VertB( { .x = -80 - 2, .y = 230 } ),
+      VertB( { .x = 20 - 2, .y = 30 } ),
+    };
+    REQUIRE( v == expected );
+  }
+}
+
 TEST_CASE( "[render/painter] draw_horizontal_line" ) {
   vector<GenericVertex> v, expected;
 
