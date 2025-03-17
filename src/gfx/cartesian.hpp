@@ -95,6 +95,8 @@ struct size {
     return size{ .w = w, .h = new_h };
   }
 
+  [[nodiscard]] size abs() const;
+
   [[nodiscard]] bool negative() const { return w < 0 || h < 0; }
 
   [[nodiscard]] bool fits_inside( size rhs ) const;

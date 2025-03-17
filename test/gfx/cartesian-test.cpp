@@ -218,6 +218,19 @@ TEST_CASE( "[gfx/cartesian] size::pythagorean" ) {
   REQUIRE( s.pythagorean() == 13.0 );
 }
 
+TEST_CASE( "[gfx/cartesian] size::abs" ) {
+  size s = {};
+
+  s = { .w = 4, .h = 2 };
+  REQUIRE( s.abs() == size{ .w = 4, .h = 2 } );
+  s = { .w = 4, .h = -2 };
+  REQUIRE( s.abs() == size{ .w = 4, .h = 2 } );
+  s = { .w = -4, .h = 2 };
+  REQUIRE( s.abs() == size{ .w = 4, .h = 2 } );
+  s = { .w = -4, .h = -2 };
+  REQUIRE( s.abs() == size{ .w = 4, .h = 2 } );
+}
+
 TEST_CASE( "[gfx/cartesian] size::operator*( int )" ) {
   size s{ .w = 4, .h = 2 };
   REQUIRE( s * 10 == size{ .w = 40, .h = 20 } );

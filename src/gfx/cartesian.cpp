@@ -269,6 +269,13 @@ size size::max_with( size const rhs ) const {
   return size{ std::max( w, rhs.w ), std::max( h, rhs.h ) };
 }
 
+size size::abs() const {
+  size res = *this;
+  if( res.w < 0 ) res.w = -res.w;
+  if( res.h < 0 ) res.h = -res.h;
+  return res;
+}
+
 double size::pythagorean() const {
   return sqrt( w * w + h * h );
 }
@@ -308,7 +315,8 @@ bool size::fits_inside( size const rhs ) const {
   };
   if( opposite_signs( w, rhs.w ) || opposite_signs( h, rhs.h ) )
     return false;
-  return abs( w ) <= abs( rhs.w ) && abs( h ) <= abs( rhs.h );
+  return std::abs( w ) <= std::abs( rhs.w ) &&
+         std::abs( h ) <= std::abs( rhs.h );
 }
 
 /****************************************************************
