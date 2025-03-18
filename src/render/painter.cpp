@@ -294,28 +294,71 @@ Painter& Painter::draw_sprite_section(
                            /*dst_size=*/nothing, section );
 }
 
-Painter& Painter::draw_line( point const start, point const end,
+Painter& Painter::draw_line( point start, point end,
                              pixel const color ) {
+  point p1, p2, p3, p4;
+  size const delta = ( end - start ).abs();
+  // Now we need to create a thin pallelogram to bound the line
+  // and limit the number of pixels that we need to shade, while
+  // taking care to not exclude and pixels. The numbers chosen
+  // below are basically the smallest they could be without
+  // causing some part of the line in some configuration to get
+  // chopped off.
+  if( delta.h >= delta.w ) {
+    if( start.y > end.y ) swap( start, end );
+    // At this point the line will look something like this. Note
+    // that it could be flipped horizontally, but that's ok.
+    // . . . . . . . . . . .
+    // . . . . . . . . . . .
+    // . . . 1 . . . . . 2 .
+    // . . . . . . S . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . . x . . . . .
+    // . . . . E . . . . . .
+    // . 4 . . . . . 3 . . .
+    // . . . . . . . . . . .
+    // . . . . . . . . . . .
+    p1 = start.moved_left( 3 ).moved_up();
+    p2 = start.moved_right( 3 ).moved_up();
+    p3 = end.moved_right( 3 ).moved_down();
+    p4 = end.moved_left( 3 ).moved_down();
+  } else {
+    if( start.x > end.x ) swap( start, end );
+    // At this point the line will look something like this. Note
+    // that it could be flipped vertically, but that's ok.
+    // . . . . . . . . . . . . . . . . . . . .
+    // . . 1 . . . . . . . . . . . . . . . . .
+    // . . . . . . . . . . . . . . . . . . . .
+    // . . . . . . . . . . . . . . . . . 4 . .
+    // . . . S . . . . . . . . . . . . . . . .
+    // . . . . x x x x x x x x x x x x . . . .
+    // . . . . . . . . . . . . . . . . E . . .
+    // . . 2 . . . . . . . . . . . . . . . . .
+    // . . . . . . . . . . . . . . . . . . . .
+    // . . . . . . . . . . . . . . . . . 3 . .
+    // . . . . . . . . . . . . . . . . . . . .
+    p1 = start.moved_up( 3 ).moved_left();
+    p2 = start.moved_down( 3 ).moved_left();
+    p3 = end.moved_down( 3 ).moved_right();
+    p4 = end.moved_up( 3 ).moved_right();
+  }
   // Draw the angled line.
   auto const vertex = [&, this]( point const p ) {
     emit( LineVertex( p, start, end, color ) );
   };
-  size const delta = ( end - start ).abs();
-  if( delta.h >= delta.w ) {
-    vertex( start.moved_left( 2 ) );
-    vertex( start.moved_right( 2 ) );
-    vertex( end.moved_right( 2 ) );
-    vertex( end.moved_right( 2 ) );
-    vertex( end.moved_left( 2 ) );
-    vertex( start.moved_left( 2 ) );
-  } else {
-    vertex( start.moved_up( 2 ) );
-    vertex( start.moved_down( 2 ) );
-    vertex( end.moved_down( 2 ) );
-    vertex( end.moved_down( 2 ) );
-    vertex( end.moved_up( 2 ) );
-    vertex( start.moved_up( 2 ) );
-  }
+  vertex( p1 );
+  vertex( p2 );
+  vertex( p3 );
+  vertex( p3 );
+  vertex( p4 );
+  vertex( p1 );
   return *this;
 }
 

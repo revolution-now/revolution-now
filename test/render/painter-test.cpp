@@ -186,12 +186,12 @@ TEST_CASE( "[render/painter] draw_line" ) {
     end   = start + size{ .w = 100, .h = 200 };
     painter.draw_line( start, end, G );
     expected = {
-      VertG( { .x = 20 - 2, .y = 30 } ),
-      VertG( { .x = 20 + 2, .y = 30 } ),
-      VertG( { .x = 120 + 2, .y = 230 } ),
-      VertG( { .x = 120 + 2, .y = 230 } ),
-      VertG( { .x = 120 - 2, .y = 230 } ),
-      VertG( { .x = 20 - 2, .y = 30 } ),
+      VertG( { .x = 20 - 3, .y = 30 - 1 } ),
+      VertG( { .x = 20 + 3, .y = 30 - 1 } ),
+      VertG( { .x = 120 + 3, .y = 230 + 1 } ),
+      VertG( { .x = 120 + 3, .y = 230 + 1 } ),
+      VertG( { .x = 120 - 3, .y = 230 + 1 } ),
+      VertG( { .x = 20 - 3, .y = 30 - 1 } ),
     };
     REQUIRE( v == expected );
   }
@@ -201,12 +201,12 @@ TEST_CASE( "[render/painter] draw_line" ) {
     end   = start + size{ .w = 200, .h = 100 };
     painter.draw_line( start, end, G );
     expected = {
-      VertG( { .x = 20, .y = 30 - 2 } ),
-      VertG( { .x = 20, .y = 30 + 2 } ),
-      VertG( { .x = 220, .y = 130 + 2 } ),
-      VertG( { .x = 220, .y = 130 + 2 } ),
-      VertG( { .x = 220, .y = 130 - 2 } ),
-      VertG( { .x = 20, .y = 30 - 2 } ),
+      VertG( { .x = 20 - 1, .y = 30 - 3 } ),
+      VertG( { .x = 20 - 1, .y = 30 + 3 } ),
+      VertG( { .x = 220 + 1, .y = 130 + 3 } ),
+      VertG( { .x = 220 + 1, .y = 130 + 3 } ),
+      VertG( { .x = 220 + 1, .y = 130 - 3 } ),
+      VertG( { .x = 20 - 1, .y = 30 - 3 } ),
     };
     REQUIRE( v == expected );
   }
@@ -216,12 +216,12 @@ TEST_CASE( "[render/painter] draw_line" ) {
     end   = start + size{ .w = -100, .h = 200 };
     painter.draw_line( start, end, B );
     expected = {
-      VertB( { .x = 20 - 2, .y = 30 } ),
-      VertB( { .x = 20 + 2, .y = 30 } ),
-      VertB( { .x = -80 + 2, .y = 230 } ),
-      VertB( { .x = -80 + 2, .y = 230 } ),
-      VertB( { .x = -80 - 2, .y = 230 } ),
-      VertB( { .x = 20 - 2, .y = 30 } ),
+      VertB( { .x = 20 - 3, .y = 30 - 1 } ),
+      VertB( { .x = 20 + 3, .y = 30 - 1 } ),
+      VertB( { .x = -80 + 3, .y = 230 + 1 } ),
+      VertB( { .x = -80 + 3, .y = 230 + 1 } ),
+      VertB( { .x = -80 - 3, .y = 230 + 1 } ),
+      VertB( { .x = 20 - 3, .y = 30 - 1 } ),
     };
     REQUIRE( v == expected );
   }
