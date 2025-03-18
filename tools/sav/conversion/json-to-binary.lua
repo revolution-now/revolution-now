@@ -54,12 +54,17 @@ local function main( args )
   local colony_json = json_decode( input_file:read( 'a' ) )
   input_file:close()
 
-  -- Save it.
+  -- Save it. We save to a temp file so that if the json parsing
+  -- fails for some reason then it won't corrupt the original bi-
+  -- nary file, since that file gets written to gradually as the
+  -- json gets parsed.
+  local colony_sav_tmp = colony_sav .. '.new'
   sav_writer.save{
     structure_json=structure_json,
     colony_json=colony_json,
-    colony_sav=colony_sav,
+    colony_sav=colony_sav_tmp,
   }
+  assert( os.rename( colony_sav_tmp, colony_sav ) )
 
   return 0
 end
