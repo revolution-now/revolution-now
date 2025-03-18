@@ -136,11 +136,8 @@ struct Painter {
                                gfx::pixel color );
 
   // This one is used to draw a straight line that is at a slope.
-  //
-  // This is not trivial because most naive methods will draw the
-  // line at full resolution, not respecting our pixelated log-
-  // ical resolution. But this one will do it properly in the
-  // pixelated way.
+  // The line will be pixelated, as if drawn by the Bresenham
+  // method.
   //
   // This is a bit more expensive (at the shader level) than the
   // dedicated horizontal / vertical methods, so one should

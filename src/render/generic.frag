@@ -146,37 +146,40 @@ vec4 type_solid() {
 /****************************************************************
 ** Line.
 *****************************************************************/
-// This will compute whether the point `px` would be part of a
-// pixelated line as if that line were drawn using the bresenham
+// This will compute whether the point p would be part of a pixe-
+// lated line as if that line were drawn using the bresenham
 // method. Traditionally, that method iterates over the pixels in
 // the line, but that is too slow, so we use a formula to just
 // directly compute whether the pixel would have been selected by
 // that algorithm.
-bool is_on_line( in vec2 p1, in vec2 p2, in vec2 px ) {
+bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
   // These tests are needed because the triangles that we create
   // to bound the line running this mode of the shader cover an
   // area that is slightly longer and wider than the line in
   // order to ensure that the endpoint pixels are included no
   // matter the line orientation.
-  if( px.x < min( p1.x, p2.x ) ) return false;
-  if( px.y < min( p1.y, p2.y ) ) return false;
-  if( px.x > max( p1.x, p2.x ) ) return false;
-  if( px.y > max( p1.y, p2.y ) ) return false;
-  vec2 dt = abs( p2 - p1 );
-  if( dt.y < dt.x ) {
+  if( p.x < min( p1.x, p2.x ) ||
+      p.y < min( p1.y, p2.y ) ||
+      p.x > max( p1.x, p2.x ) ||
+      p.y > max( p1.y, p2.y ) )
+    return false;
+
+  vec2 D = p2 - p1;
+  // This is to avoid having the slope get too large, which
+  // causes inaccuracies and an incorrect result.
+  if( abs( D.y ) > abs( D.x ) ) {
     p1.xy = p1.yx;
     p2.xy = p2.yx;
-    px.xy = px.yx;
-    dt.xy = dt.yx;
+    D.xy  = D.yx;
+    p.xy  = p.yx;
   }
-  vec2 r = px - p1;
-  if( p2.x < p1.x ) r.x = -r.x;
-  // NOTE:
-  // * The parens around dt.x/dt.y are needed otherwise it loses
-  //   accuracy on lines at a 45 degree angle (ratio of 1).
-  // * Using round instead of floor yields overall nicer looking
-  //   results. Could speculate as to why, but won't.
-  return round( abs( r.y )*(dt.x/dt.y) ) == r.x;
+
+  vec2  delta = p-p1;
+  float slope = D.y/D.x;
+
+  // Just apply the standard line formula. `round` seems to yield
+  // more accurate results than floor.
+  return delta.y == round( slope*delta.x );
 }
 
 // Draw a pixelated line. This is different than telling the GPU
