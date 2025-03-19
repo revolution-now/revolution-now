@@ -1,0 +1,78 @@
+Notes:
+
+  * Computed once at the start of each turn, AFTER colonies are
+    evolved. This ordering matters. The OG does it this way, and
+    anyway is needed so that the number shown on the report is
+    consistent with what is in the colonies for SoL.
+
+  * When it reaches 50%, independence can be declared.
+
+  * Also when it reaches 50%, the OG consolidates two of the AI
+    players: according to the SG, the smallest one is ceded into
+    the second smallest. If we do this, we need to determine how
+    to handle rebel sentiment in the two that are merged. We
+    don't want the merge to automatically trigger then declaring
+    independence, since that'd be strange.
+
+  * Need to determine if/how rebel sentiment affects the build up
+    of ref forces.
+
+  * There are messages that inform the player of when rebel sen-
+    timent rises and falls, similar to the SoL messages. However,
+    they are only shown when the total population is >= 4, and
+    that includes all human units both in colonies, on the map,
+    or on the dock, i.e. the `total_colonists` variable below.
+
+    When rebel sentiment goes down, the message says "tory senti-
+    ment is on the rise".
+
+  * The sav file has one top-level field for rebel sentiment and
+    then one in each nation. The top-level one seems to always be
+    the same as the one for the human player.
+
+  * Rebel sentiment contributes to the final score.
+
+  * We need to warn the player when the number of rebels of for-
+    eign powers rises and they get closer to declaring.
+
+  * According to the SG, AI players will declare independence
+    when they reach a certain number of rebels (i.e., it is not
+    based on percent but on number of rebels):
+
+        Discoverer:   80
+        Explorer:     70
+        Conquistador: 60
+        Governor:     50
+        Viceroy:      40
+
+    Since this is based on absolute numbers of rebels and not
+    rebel percentages (like it is for the human player) it is
+    possible to prevent the AI from declaring independence just
+    by attacking them to keep their nations small.
+
+    This is an important case of how the rules differ for human
+    vs. AI players. The cheat mode feature that allows switching
+    the human player needs to handle this properly, i.e. if the
+    human player has more rebels than the threshold for an AI
+    player to declare independence, and then the human player is
+    changed, the original player (which is now AI) will immedi-
+    ately declare independence.
+
+  * Rebel sentiment percent is given by:
+
+                                  sum( SoL percent*population, colonies )
+      rebel_percent = floor(  100*--------------------------------------- )
+                                       total colonies population
+
+  * Rebel sentiment spreads shown on the continental congress re-
+    port are:
+
+      rebel_count = rebel_percent*total_colonists
+      tory_count  = total_colonies-rebel_count
+
+    where the `total_colonists` is the total number of human
+    colonists that the player has in the game, including:
+      * native converts
+      * human military units
+      * units on the dock
+    but not e.g. artillery or treasure units.
