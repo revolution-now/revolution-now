@@ -170,8 +170,6 @@ bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
   // Just apply the standard line formula. Notes:
   //
   //   * round seems to yield more accurate results than floor.
-  //   * Parens around the slope are needed to avoid losing accu-
-  //     racy.
   //   * If the slope is larger than one then there generally
   //     will be more than one y coordinate for a single x coor-
   //     dinate given how the line is pixelated. So in that case
@@ -180,9 +178,9 @@ bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
   //     a proper function mathematically).
   //
   if( abs( D.y ) > abs( D.x ) ) {
-    return delta.x == round( (D.x/D.y)*delta.y );
+    return delta.x == round( delta.y*(D.x/D.y) );
   } else {
-    return delta.y == round( (D.y/D.x)*delta.x );
+    return delta.y == round( delta.x*(D.y/D.x) );
   }
 }
 
