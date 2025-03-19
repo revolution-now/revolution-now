@@ -164,9 +164,8 @@ bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
       p.y > max( p1.y, p2.y ) )
     return false;
 
-  vec2 D     = p2-p1;
-  vec2 delta =  p-p1;
-
+  vec2 D = p2-p1;
+  vec2 d =  p-p1;
   // Just apply the standard line formula. Notes:
   //
   //   * round seems to yield more accurate results than floor.
@@ -177,11 +176,9 @@ bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
   //     yields only one output for each input (i.e., it will be
   //     a proper function mathematically).
   //
-  if( abs( D.y ) > abs( D.x ) ) {
-    return delta.x == round( delta.y*(D.x/D.y) );
-  } else {
-    return delta.y == round( delta.x*(D.y/D.x) );
-  }
+  return abs( D.y ) > abs( D.x )
+    ? (d.x == round( d.y*(D.x/D.y) ))
+    : (d.y == round( d.x*(D.y/D.x) ));
 }
 
 // Draw a pixelated line. This is different than telling the GPU
