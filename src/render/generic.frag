@@ -164,22 +164,26 @@ bool is_on_line( in vec2 p1, in vec2 p2, in vec2 p ) {
       p.y > max( p1.y, p2.y ) )
     return false;
 
-  vec2 D = p2 - p1;
-  // This is to avoid having the slope get too large, which
-  // causes inaccuracies and an incorrect result.
+  vec2 D     = p2-p1;
+  vec2 delta =  p-p1;
+
+  // Just apply the standard line formula. Notes:
+  //
+  //   * round seems to yield more accurate results than floor.
+  //   * Parens around the slope are needed to avoid losing accu-
+  //     racy.
+  //   * If the slope is larger than one then there generally
+  //     will be more than one y coordinate for a single x coor-
+  //     dinate given how the line is pixelated. So in that case
+  //     just flip the coordinates so that our line function
+  //     yields only one output for each input (i.e., it will be
+  //     a proper function mathematically).
+  //
   if( abs( D.y ) > abs( D.x ) ) {
-    p1.xy = p1.yx;
-    p2.xy = p2.yx;
-    D.xy  = D.yx;
-    p.xy  = p.yx;
+    return delta.x == round( (D.x/D.y)*delta.y );
+  } else {
+    return delta.y == round( (D.y/D.x)*delta.x );
   }
-
-  vec2  delta = p-p1;
-  float slope = D.y/D.x;
-
-  // Just apply the standard line formula. `round` seems to yield
-  // more accurate results than floor.
-  return delta.y == round( slope*delta.x );
 }
 
 // Draw a pixelated line. This is different than telling the GPU
