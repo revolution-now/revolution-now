@@ -97,7 +97,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
   auto const label_options_overlay =
       [&]( TileSpreadSpec const& tile_spread )
       -> maybe<SpreadLabelOptions const&> {
-    if( !tile_spread.overlay_tile.has_value() ) return nothing;
+    CHECK( tile_spread.overlay_tile.has_value() );
     return label_options_impl(
         tile_spread.icon_spread,
         tile_spread.overlay_tile->label_opts );

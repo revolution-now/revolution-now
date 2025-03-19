@@ -39,6 +39,7 @@ namespace {
 using namespace std;
 
 using ::base::nothing;
+using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 using ::refl::enum_count;
@@ -47,62 +48,210 @@ using ::refl::enum_count;
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
-  TileSpreadSpecs tile_spreads;
-  TileSpreadRenderPlans expected;
+  TileSpreadSpecs in;
+  TileSpreadRenderPlans ex;
   rr::MockTextometer textometer;
 
   auto f = [&] {
-    return render_plan_for_tile_spread( textometer,
-                                        tile_spreads );
+    return render_plan_for_tile_spread( textometer, in );
   };
 
-  // Test that a zero-count spread with a label requested does
-  // not render a label.
-  tile_spreads = {
-    .spreads =
-        { { .algo_spec = SpreadSpec{ .count   = 0,
-                                     .trimmed = { .start = 2,
-                                                  .len = 28 } },
+  // Default.
+  in = {};
+  ex = {};
+  REQUIRE( f() == ex );
 
-            .tile_spec = { .icon_spread = { .rendered_count = 0,
-                                            .spacing = 1 },
-                           .tile        = e_tile::dragoon } } },
-    .group_spacing = 1,
-    .label_policy  = SpreadLabels::always{} };
-  expected = {};
-  REQUIRE( f() == expected );
+  in               = {};
+  in.group_spacing = 1;
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 0;
+  in.spreads[0].algo_spec.trimmed.start              = 3;
+  in.spreads[0].algo_spec.trimmed.len                = 10;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 0;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex = {};
+  REQUIRE( f() == ex );
+
+  in               = {};
+  in.group_spacing = 1;
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 1;
+  in.spreads[0].algo_spec.trimmed.start              = 3;
+  in.spreads[0].algo_spec.trimmed.len                = 10;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 1;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex        = {};
+  ex.bounds = { .w = 10, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 10, .h = 32 };
+  ex.plans[0].tiles.resize( 1 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -3, .y = 0 };
+  REQUIRE( f() == ex );
+
+  in               = {};
+  in.group_spacing = 1;
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 3;
+  in.spreads[0].algo_spec.trimmed.start              = 3;
+  in.spreads[0].algo_spec.trimmed.len                = 10;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 3;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 2;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex        = {};
+  ex.bounds = { .w = 2 + 2 + 10, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 2 + 2 + 10, .h = 32 };
+  ex.plans[0].tiles.resize( 3 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -3, .y = 0 };
+  ex.plans[0].tiles[1].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[1].where = point{ .x = -1, .y = 0 };
+  ex.plans[0].tiles[2].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[2].where = point{ .x = 1, .y = 0 };
+  REQUIRE( f() == ex );
+
+  in               = {};
+  in.group_spacing = 3;
+  in.spreads.resize( 3 );
+  in.spreads[0].algo_spec.count                      = 3;
+  in.spreads[0].algo_spec.trimmed.start              = 3;
+  in.spreads[0].algo_spec.trimmed.len                = 10;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 3;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 2;
+  in.spreads[0].tile_spec.tile          = e_tile::dragoon;
+  in.spreads[1].algo_spec.count         = 2;
+  in.spreads[1].algo_spec.trimmed.start = 2;
+  in.spreads[1].algo_spec.trimmed.len   = 5;
+  in.spreads[1].tile_spec.icon_spread.rendered_count = 2;
+  in.spreads[1].tile_spec.icon_spread.spacing        = 3;
+  in.spreads[1].tile_spec.tile          = e_tile::soldier;
+  in.spreads[2].algo_spec.count         = 3;
+  in.spreads[2].algo_spec.trimmed.start = 0;
+  in.spreads[2].algo_spec.trimmed.len   = 5;
+  in.spreads[2].tile_spec.icon_spread.rendered_count = 2;
+  in.spreads[2].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[2].tile_spec.tile = e_tile::free_colonist;
+
+  ex        = {};
+  ex.bounds = { .w = 2 + 2 + 10 + 3 + 3 + 5 + 3 + 1 + 5,
+                .h = 32 };
+  ex.plans.resize( 3 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 2 + 2 + 10, .h = 32 };
+  ex.plans[0].tiles.resize( 3 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -3, .y = 0 };
+  ex.plans[0].tiles[1].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[1].where = point{ .x = -1, .y = 0 };
+  ex.plans[0].tiles[2].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[2].where = point{ .x = 1, .y = 0 };
+  ex.plans[1].bounds.origin  = { .x = 14 + 3, .y = 0 };
+  ex.plans[1].bounds.size    = { .w = 3 + 5, .h = 32 };
+  ex.plans[1].tiles.resize( 2 );
+  ex.plans[1].tiles[0].tile  = e_tile::soldier;
+  ex.plans[1].tiles[0].where = point{ .x = 17 - 2, .y = 0 };
+  ex.plans[1].tiles[1].tile  = e_tile::soldier;
+  ex.plans[1].tiles[1].where = point{ .x = 17 + 1, .y = 0 };
+  ex.plans[2].bounds.origin  = { .x = 25 + 3, .y = 0 };
+  ex.plans[2].bounds.size    = { .w = 1 + 5, .h = 32 };
+  ex.plans[2].tiles.resize( 2 );
+  ex.plans[2].tiles[0].tile  = e_tile::free_colonist;
+  ex.plans[2].tiles[0].where = point{ .x = 28 - 0, .y = 0 };
+  ex.plans[2].tiles[1].tile  = e_tile::free_colonist;
+  ex.plans[2].tiles[1].where = point{ .x = 28 + 1, .y = 0 };
+  REQUIRE( f() == ex );
 
   // One spread, one tile, with label.
-  tile_spreads = {
-    .spreads =
-        { { .algo_spec = SpreadSpec{ .count   = 1,
-                                     .trimmed = { .start = 2,
-                                                  .len = 28 } },
-            .tile_spec = { .icon_spread = { .rendered_count = 1,
-                                            .spacing = 1 },
-                           .tile        = e_tile::dragoon } } },
-    .group_spacing = 1,
-    .label_policy  = SpreadLabels::always{} };
-  expected = {
-    .bounds = { .w = 28, .h = 32 },
-    .plans  = {
-      TileSpreadRenderPlan{
-         .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
-         .tiles  = { { .tile  = e_tile::dragoon,
-                       .where = { -2, 0 } } },
-         .labels = { SpreadLabelRenderPlan{
-           .text   = "1",
-           .bounds = { .origin = { .x = 0, .y = 0 },
-                       .size   = { .w = 10, .h = 12 } },
-        } } },
-    } };
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::always{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 1;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 1;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex        = {};
+  ex.bounds = { .w = 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 28, .h = 32 };
+  ex.plans[0].tiles.resize( 1 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.plans[0].labels.resize( 1 );
+  ex.plans[0].labels[0].text          = "1";
+  ex.plans[0].labels[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
       .returns( size{ .w = 6, .h = 8 } );
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
+
+  // One spread, one tile, with label (auto_decide).
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::auto_decide{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 1;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 1;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex        = {};
+  ex.bounds = { .w = 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 28, .h = 32 };
+  ex.plans[0].tiles.resize( 1 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // One spread, one tile, with label (auto_decide).
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::auto_decide{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 2;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 2;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+
+  ex        = {};
+  ex.bounds = { .w = 1 + 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 1 + 28, .h = 32 };
+  ex.plans[0].tiles.resize( 2 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.plans[0].tiles[1].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[1].where = point{ .x = -1, .y = 0 };
+  ex.plans[0].labels.resize( 1 );
+  ex.plans[0].labels[0].text          = "2";
+  ex.plans[0].labels[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6, .h = 8 } );
+  REQUIRE( f() == ex );
 
   // One spread, one tile, with label, non-default label posi-
   // tion.
-  tile_spreads = {
+  in = {
     .spreads =
         { { .algo_spec = SpreadSpec{ .count   = 1,
                                      .trimmed = { .start = 2,
@@ -119,7 +268,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                                   e_cdirection::sw } } } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
-  expected = {
+  ex = {
     .bounds = { .w = 28, .h = 32 },
     .plans  = {
       TileSpreadRenderPlan{
@@ -139,10 +288,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
       .returns( size{ .w = 6, .h = 8 } );
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
 
   // Label uses real count when different from rendered_count.
-  tile_spreads = {
+  in = {
     .spreads =
         { { .algo_spec = SpreadSpec{ .count   = 2,
                                      .trimmed = { .start = 2,
@@ -152,7 +301,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                            .tile        = e_tile::dragoon } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
-  expected = {
+  ex = {
     .bounds = { .w = 28, .h = 32 },
     .plans  = {
       TileSpreadRenderPlan{
@@ -167,10 +316,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     } };
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
       .returns( size{ .w = 6, .h = 8 } );
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
 
   // Three spreads, middle empty does not emit group spacing.
-  tile_spreads = {
+  in = {
     .spreads =
         {
           { .algo_spec = SpreadSpec{ .count   = 1,
@@ -204,7 +353,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{},
   };
-  expected = {
+  ex = {
     .bounds = { .w = 28 + 1 + 16, .h = 32 },
     .plans  = {
       TileSpreadRenderPlan{
@@ -236,13 +385,13 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
       .returns( size{ .w = 6, .h = 8 } );
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
       .returns( size{ .w = 6, .h = 8 } );
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
 
   // One spread, one tile, with overlay.
   testing_set_trimmed_cache(
       e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
-  tile_spreads = {
+  in = {
     .spreads =
         { { .algo_spec = SpreadSpec{ .count   = 1,
                                      .trimmed = { .start = 2,
@@ -260,7 +409,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                 } } },
     .group_spacing = 1,
     .label_policy  = {} };
-  expected = {
+  ex = {
     .bounds = { .w = 28, .h = 32 },
     .plans  = {
       TileSpreadRenderPlan{
@@ -276,10 +425,10 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
             },
          .labels = {} },
     } };
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
 
   // One spread, one tile, with label, with line breaks.
-  tile_spreads = {
+  in = {
     .spreads =
         { { .algo_spec = SpreadSpec{ .count   = 10,
                                      .trimmed = { .start = 2,
@@ -299,7 +448,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                 } } },
     .group_spacing = 1,
     .label_policy  = SpreadLabels::always{} };
-  expected = {
+  ex = {
     .bounds = { .w = 55, .h = 20 },
     .plans  = {
       TileSpreadRenderPlan{
@@ -341,7 +490,23 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   textometer
       .EXPECT__dimensions_for_line( rr::TextLayout{}, "10" )
       .returns( size{ .w = 6 * 2, .h = 8 } );
-  REQUIRE( f() == expected );
+  REQUIRE( f() == ex );
+
+  // Test that a zero-count spread with a label requested does
+  // not render a label.
+  in = {
+    .spreads =
+        { { .algo_spec = SpreadSpec{ .count   = 0,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+
+            .tile_spec = { .icon_spread = { .rendered_count = 0,
+                                            .spacing = 1 },
+                           .tile        = e_tile::dragoon } } },
+    .group_spacing = 1,
+    .label_policy  = SpreadLabels::always{} };
+  ex = {};
+  REQUIRE( f() == ex );
 }
 
 TEST_CASE( "[spread] render_plan_for_tile_progress_spread" ) {
