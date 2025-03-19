@@ -1,0 +1,75 @@
+Harbor View TODO
+----------------
+
+  1.  The OG opens a confirmation box before purchasing things in
+      the Purchase box. We might consider doing the same for the
+      Train box, though the OG doesn't do that. Maybe just for
+      the more expensive ones?
+  2.  Fix up any text rendering issues introduced as a result of
+      the character packing change.
+  3.  Units on the dock might need a shadow behind them to help
+      distinguish them, especiall those toward the edge that have
+      the water behind them. Or if not a shadow then at least an
+      outline.
+  4.  There is a written-out summary of the last transaction that
+      lingers under the top bar... should decide if/how we want
+      to do this. Seems like it might be useful.
+  5.  Make some kind of animation or sound effect for when a
+      treasure is reimbursed.
+  6.  Consider adjusting the hue of the water/sky to make it more
+      blue and less red.
+  7.  The smaller market plates need to be made taller.
+  8.  Refactor the backdrop/dock modules so that we can render
+      the game intro sequence. Don't forget the different light
+      levels and stars.
+  9.  Experiment with giving units in cargo slots a light outline
+      like we do for commodities.
+  10. The way that items are positioned inside the cargo slots
+      might need to be tweaked: units and commodities are not
+      aligned, they are all too low, and they don't looks like
+      they are inside the box.
+  11. When a ship is purchased, that new ship should be auto se-
+      lected (just seems to feel like the right thing to do).
+  12. When a ship is made to sail to the new world and we're
+      checking if there are any remaining ships in port (to know
+      whether we should close the harbor view screen) we should
+      exclude ships in port that are damaged.
+  13. After independence is declared, suppress drawing of various
+      elements and put a regular at the base of the dock.
+  14. Add a menu item when clicking on a unit on the dock to load
+      them into the currently selected ship. This might make the
+      new unit loading mechanism more discoverable for existing
+      users.
+
+Pedia
+-----
+  1. When the rpt menus are open, one can hit F1 to go to the
+     pedia for the entry. Perhaps just add the mechanism and a
+     stub for the pedia pages.
+  2. One can right-click on basically anything on the screen to
+     open the pedia screen for it.
+
+Not sure yet
+------------
+
+  1. Need to add some kind of keyboard navigation to the harbor
+     view to allow the player to cycle through units with the
+     keyboard.
+  2. Find a way to visually indicate how much cargo a ship has so
+     that the player doesn't have to click on them to find one
+     that has cargo. In the OG this is more useful because one
+     cannot click on ships that are not in port, and also units
+     in general wouldn't show in the cargo anyway. But in the NG
+     we can click on the units.
+
+Leaning No
+----------
+
+  1. UI to rotate dock/ship units. This is less necessary now
+     that we have the "move to front" feature for in-port ships.
+     It would only be useful for exposing ships or units that are
+     not visible, but given how many ships the harbor can hold
+     and how many units the dock can hold, it probably isn't nec-
+     essary.
+  2. Units on dock/land cast shadows. This sounds like more
+     trouble than it is worth.
