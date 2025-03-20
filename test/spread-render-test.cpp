@@ -219,7 +219,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
   REQUIRE( f() == ex );
 
-  // One spread, one tile, with label (auto_decide).
+  // One spread, two tiles, with label (auto_decide).
   in               = {};
   in.group_spacing = 1;
   in.label_policy  = SpreadLabels::auto_decide{};
@@ -245,6 +245,107 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
   ex.plans[0].labels[0].text          = "2";
   ex.plans[0].labels[0].bounds.origin = { .x = 0, .y = 0 };
   ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6, .h = 8 } );
+  REQUIRE( f() == ex );
+
+  // One spread, one tile, with label (left_middle_adjusted).
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::always{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 1;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 1;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+  in.spreads[0].tile_spec.label_opts.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
+
+  ex        = {};
+  ex.bounds = { .w = 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 28, .h = 32 };
+  ex.plans[0].tiles.resize( 1 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.plans[0].labels.resize( 1 );
+  ex.plans[0].labels[0].text          = "1";
+  ex.plans[0].labels[0].bounds.origin = { .x = 9, .y = 10 };
+  ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
+  ex.plans[0].labels[0].options.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
+      .returns( size{ .w = 6, .h = 8 } );
+  REQUIRE( f() == ex );
+
+  // One spread, two tiles, with label (left_middle_adjusted).
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::always{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 2;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 2;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 1;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+  in.spreads[0].tile_spec.label_opts.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
+
+  ex        = {};
+  ex.bounds = { .w = 1 + 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 1 + 28, .h = 32 };
+  ex.plans[0].tiles.resize( 2 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.plans[0].tiles[1].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[1].where = point{ .x = -1, .y = 0 };
+  ex.plans[0].labels.resize( 1 );
+  ex.plans[0].labels[0].text          = "2";
+  ex.plans[0].labels[0].bounds.origin = { .x = 0, .y = 10 };
+  ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
+  ex.plans[0].labels[0].options.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6, .h = 8 } );
+  REQUIRE( f() == ex );
+
+  // One spread, two tiles, with label (left_middle_adjusted,
+  // large spacing).
+  in               = {};
+  in.group_spacing = 1;
+  in.label_policy  = SpreadLabels::always{};
+  in.spreads.resize( 1 );
+  in.spreads[0].algo_spec.count                      = 2;
+  in.spreads[0].algo_spec.trimmed.start              = 2;
+  in.spreads[0].algo_spec.trimmed.len                = 28;
+  in.spreads[0].tile_spec.icon_spread.rendered_count = 2;
+  in.spreads[0].tile_spec.icon_spread.spacing        = 28;
+  in.spreads[0].tile_spec.tile = e_tile::dragoon;
+  in.spreads[0].tile_spec.label_opts.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
+
+  ex        = {};
+  ex.bounds = { .w = 28 + 28, .h = 32 };
+  ex.plans.resize( 1 );
+  ex.plans[0].bounds.origin = { .x = 0, .y = 0 };
+  ex.plans[0].bounds.size   = { .w = 28 + 28, .h = 32 };
+  ex.plans[0].tiles.resize( 2 );
+  ex.plans[0].tiles[0].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.plans[0].tiles[1].tile  = e_tile::dragoon;
+  ex.plans[0].tiles[1].where = point{ .x = 26, .y = 0 };
+  ex.plans[0].labels.resize( 1 );
+  ex.plans[0].labels[0].text          = "2";
+  ex.plans[0].labels[0].bounds.origin = { .x = 9, .y = 10 };
+  ex.plans[0].labels[0].bounds.size   = { .w = 10, .h = 12 };
+  ex.plans[0].labels[0].options.placement =
+      SpreadLabelPlacement::left_middle_adjusted{};
   textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
       .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == ex );

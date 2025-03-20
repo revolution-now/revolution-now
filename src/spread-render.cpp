@@ -191,17 +191,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
         res.origin.x += x_offset;
         return res;
       }();
-      rect const placement_rect = [&] {
-        if( !options.placement.has_value() )
-          return first_tile_rect;
-        SWITCH( *options.placement ) {
-          CASE( left_middle_adjusted ) {
-            return first_tile_rect;
-          }
-          CASE( in_first_tile ) { return first_tile_rect; }
-          CASE( in_total_rect ) { return tiles_all; }
-        }
-      }();
+      rect const placement_rect    = first_tile_rect;
       e_cdirection const placement = [&] {
         if( !options.placement.has_value() )
           return config_ui.tile_spreads.default_label_placement;
@@ -216,9 +206,6 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           }
           CASE( in_first_tile ) {
             return in_first_tile.placement;
-          }
-          CASE( in_total_rect ) {
-            return in_total_rect.placement;
           }
         }
       }();
@@ -324,15 +311,7 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   auto add_label = [&]( SpreadLabelOptions const& options ) {
     rect const first_tile_rect = tiles_all.with_size(
         size{ .w = trimmed.len, .h = tile_size.h } );
-    rect const placement_rect = [&] {
-      if( !options.placement.has_value() )
-        return first_tile_rect;
-      SWITCH( *options.placement ) {
-        CASE( left_middle_adjusted ) { return first_tile_rect; }
-        CASE( in_first_tile ) { return first_tile_rect; }
-        CASE( in_total_rect ) { return tiles_all; }
-      }
-    }();
+    rect const placement_rect    = first_tile_rect;
     e_cdirection const placement = [&] {
       if( !options.placement.has_value() )
         return config_ui.tile_spreads.default_label_placement;
@@ -346,7 +325,6 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
           return e_cdirection::c;
         }
         CASE( in_first_tile ) { return in_first_tile.placement; }
-        CASE( in_total_rect ) { return in_total_rect.placement; }
       }
     }();
     int const label_count = tile_spec.label_count.value_or(

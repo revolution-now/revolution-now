@@ -34,10 +34,6 @@ sumtype.SpreadLabelPlacement {
   in_first_tile {
     placement 'gfx::e_cdirection',
   },
-
-  in_total_rect {
-    placement 'gfx::e_cdirection',
-  },
 }
 
 # When an option is not specified then a default value will be
