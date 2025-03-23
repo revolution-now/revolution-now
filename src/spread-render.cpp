@@ -369,13 +369,13 @@ void replace_first_n_tiles( TileSpreadRenderPlans& plans,
   for( auto& plan : plans.plans ) {
     for( auto& tile : plan.tiles ) {
       if( tile.is_overlay ) continue;
-      if( countdown-- == 0 ) return;
       if( tile.tile != from )
         // Sometimes there may not be as many `from` tiles as we
         // expect, which can happen if there was not enough space
         // and the spread algo had to reduce the number of tiles
         // emitted in order to fit.
         return;
+      if( countdown-- == 0 ) return;
       tile.tile = to;
     }
   }

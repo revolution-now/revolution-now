@@ -835,9 +835,213 @@ TEST_CASE( "[spread] render_plan_for_tile_progress_spread" ) {
 }
 
 TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
+  InhomogeneousTileSpreadSpec in;
+  TileSpreadRenderPlan ex;
+
+  auto f = [&] {
+    return render_plan_for_tile_inhomogeneous( in );
+  };
+
+  // Default.
+  in = {};
+  ex = {};
+  REQUIRE( f() == ex );
+
+  testing_set_trimmed_cache(
+      e_tile::dragoon, rect{ .origin = { .x = 1, .y = 1 },
+                             .size   = { .w = 30, .h = 30 } } );
+  testing_set_trimmed_cache(
+      e_tile::soldier, rect{ .origin = { .x = 3, .y = 3 },
+                             .size   = { .w = 27, .h = 27 } } );
+  testing_set_trimmed_cache(
+      e_tile::veteran_dragoon,
+      rect{ .origin = { .x = 1, .y = 1 },
+            .size   = { .w = 30, .h = 30 } } );
+
+  // Small spacing.
+  in                         = {};
+  in.source_spec.bounds      = 20;
+  in.source_spec.max_spacing = 1;
+  in.source_spec.widths.resize( 3 );
+  in.source_spec.widths[0]    = 4;
+  in.source_spec.widths[1]    = 7;
+  in.source_spec.widths[2]    = 10;
+  in.spread.max_total_spacing = 3;
+  in.tiles.resize( 3 );
+  in.tiles[0] = e_tile::dragoon;
+  in.tiles[1] = e_tile::soldier;
+  in.tiles[2] = e_tile::veteran_dragoon;
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 3 + 3 + 30, .h = 31 };
+  ex.tiles.resize( 3 );
+  ex.tiles[0].tile  = e_tile::dragoon;
+  ex.tiles[0].where = point{ .x = 0 - 1, .y = 0 };
+  ex.tiles[1].tile  = e_tile::soldier;
+  ex.tiles[1].where = point{ .x = 3 - 3, .y = 0 };
+  ex.tiles[2].tile  = e_tile::veteran_dragoon;
+  ex.tiles[2].where = point{ .x = 6 - 1, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // Max spacing.
+  in                         = {};
+  in.source_spec.bounds      = 20;
+  in.source_spec.max_spacing = 1;
+  in.source_spec.widths.resize( 3 );
+  in.source_spec.widths[0]    = 4;
+  in.source_spec.widths[1]    = 7;
+  in.source_spec.widths[2]    = 10;
+  in.spread.max_total_spacing = 10000;
+  in.tiles.resize( 3 );
+  in.tiles[0] = e_tile::dragoon;
+  in.tiles[1] = e_tile::soldier;
+  in.tiles[2] = e_tile::veteran_dragoon;
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 89, .h = 31 };
+  ex.tiles.resize( 3 );
+  ex.tiles[0].tile  = e_tile::dragoon;
+  ex.tiles[0].where = point{ .x = 0 - 1, .y = 0 };
+  ex.tiles[1].tile  = e_tile::soldier;
+  ex.tiles[1].where = point{ .x = 30 + 1 - 3, .y = 0 };
+  ex.tiles[2].tile  = e_tile::veteran_dragoon;
+  ex.tiles[2].where = point{ .x = 30 + 1 + 27 + 1 - 1, .y = 0 };
+  REQUIRE( f() == ex );
 }
 
 TEST_CASE( "[spread] replace_first_n_tiles" ) {
+  TileSpreadRenderPlans plans;
+  TileSpreadRenderPlans ex;
+
+  int n_replace = {};
+
+  e_tile const from = e_tile::commodity_food_20;
+  e_tile const to   = e_tile::product_fish_20;
+
+  auto const f = [&] {
+    replace_first_n_tiles( plans, n_replace, from, to );
+  };
+
+  // Default.
+  plans     = {};
+  n_replace = {};
+  ex        = {};
+  f();
+  REQUIRE( plans == ex );
+
+  // Single spread, can replace all.
+  plans = {};
+  plans.plans.resize( 1 );
+  plans.plans[0].tiles.resize( 4 );
+  plans.plans[0].tiles[0].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[1].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  n_replace                    = 2;
+
+  ex = {};
+  ex.plans.resize( 1 );
+  ex.plans[0].tiles.resize( 4 );
+  ex.plans[0].tiles[0].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[1].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  ex.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  f();
+  REQUIRE( plans == ex );
+
+  // Single spread, can't replace all.
+  plans = {};
+  plans.plans.resize( 1 );
+  plans.plans[0].tiles.resize( 4 );
+  plans.plans[0].tiles[0].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[1].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  n_replace                    = 5;
+
+  ex = {};
+  ex.plans.resize( 1 );
+  ex.plans[0].tiles.resize( 4 );
+  ex.plans[0].tiles[0].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[1].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[2].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[3].tile = e_tile::product_fish_20;
+  f();
+  REQUIRE( plans == ex );
+
+  // Single spread, skip overlay.
+  plans = {};
+  plans.plans.resize( 1 );
+  plans.plans[0].tiles.resize( 4 );
+  plans.plans[0].tiles[0].tile       = e_tile::commodity_food_20;
+  plans.plans[0].tiles[0].is_overlay = true;
+  plans.plans[0].tiles[1].tile       = e_tile::commodity_food_20;
+  plans.plans[0].tiles[2].tile       = e_tile::commodity_food_20;
+  plans.plans[0].tiles[3].tile       = e_tile::commodity_food_20;
+  n_replace                          = 2;
+
+  ex = {};
+  ex.plans.resize( 1 );
+  ex.plans[0].tiles.resize( 4 );
+  ex.plans[0].tiles[0].tile       = e_tile::commodity_food_20;
+  ex.plans[0].tiles[0].is_overlay = true;
+  ex.plans[0].tiles[1].tile       = e_tile::product_fish_20;
+  ex.plans[0].tiles[2].tile       = e_tile::product_fish_20;
+  ex.plans[0].tiles[3].tile       = e_tile::commodity_food_20;
+  f();
+  REQUIRE( plans == ex );
+
+  // Single spread, stop early.
+  plans = {};
+  plans.plans.resize( 1 );
+  plans.plans[0].tiles.resize( 4 );
+  plans.plans[0].tiles[0].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[1].tile = e_tile::commodity_furs_20;
+  plans.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  n_replace                    = 3;
+
+  ex = {};
+  ex.plans.resize( 1 );
+  ex.plans[0].tiles.resize( 4 );
+  ex.plans[0].tiles[0].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[1].tile = e_tile::commodity_furs_20;
+  ex.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  ex.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  f();
+  REQUIRE( plans == ex );
+
+  // Single spread, can replace all, multiple spreads.
+  plans = {};
+  plans.plans.resize( 2 );
+  plans.plans[0].tiles.resize( 4 );
+  plans.plans[0].tiles[0].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[1].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[2].tile = e_tile::commodity_food_20;
+  plans.plans[0].tiles[3].tile = e_tile::commodity_food_20;
+  plans.plans[1].tiles.resize( 4 );
+  plans.plans[1].tiles[0].tile = e_tile::commodity_food_20;
+  plans.plans[1].tiles[1].tile = e_tile::commodity_food_20;
+  plans.plans[1].tiles[2].tile = e_tile::commodity_food_20;
+  plans.plans[1].tiles[3].tile = e_tile::commodity_food_20;
+  n_replace                    = 6;
+
+  ex = {};
+  ex.plans.resize( 2 );
+  ex.plans[0].tiles.resize( 4 );
+  ex.plans[0].tiles[0].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[1].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[2].tile = e_tile::product_fish_20;
+  ex.plans[0].tiles[3].tile = e_tile::product_fish_20;
+  ex.plans[1].tiles.resize( 4 );
+  ex.plans[1].tiles[0].tile = e_tile::product_fish_20;
+  ex.plans[1].tiles[1].tile = e_tile::product_fish_20;
+  ex.plans[1].tiles[2].tile = e_tile::commodity_food_20;
+  ex.plans[1].tiles[3].tile = e_tile::commodity_food_20;
+  f();
+  REQUIRE( plans == ex );
 }
 
 } // namespace
