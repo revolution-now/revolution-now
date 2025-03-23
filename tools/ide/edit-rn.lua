@@ -175,12 +175,10 @@ end
 -- Quitting.
 -----------------------------------------------------------------
 local function quit_all_and_save_tabs()
-  -- Should be no need to save on quit, since we save whenever we
-  -- open and close a tab. And this also prevents issues where we
-  -- open nvim and some of the tabs fail to load, then when we
-  -- exit it would save it in the partially loaded state.
-  --
-  -- save_tabs()
+  -- This serves the purpose of saving the current tab. The set
+  -- of open tabs will already have been written to the file by
+  -- now since we write it whenever we open/close a tab.
+  save_tabs()
 
   -- Close all tabs and quit. This will refuse to exit if there
   -- are unsaved changes in some buffer.
@@ -285,15 +283,19 @@ end
 -- Main.
 -----------------------------------------------------------------
 local function main()
-  -- Create key mappings.
-  mappings()
-
   -- Add snippets.
   require'ide.snippets'
 
   -- Creates all of the tabs/splits.
   tabs.set_tab_namer( tab_namer )
   local curr_tab = create_tabs()
+
+  -- Create key mappings. NOTE: this must be done after the tabs
+  -- are created that way if there is an error in loading a file
+  -- and only a subset of tabs are loaded, this won't expose the
+  -- key bindings that auto-save the tab configuration in order
+  -- to prevent saving a corrupted configuration.
+  mappings()
 
   -- In case anyone changed it.
   vim.cmd[[tabdo wincmd =]]
