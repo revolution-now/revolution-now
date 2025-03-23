@@ -55,6 +55,50 @@ using ::gfx::size;
 
 rr::TextLayout const kLabelTextLayout;
 
+void add_label( rr::ITextometer const& textometer,
+                interval const& trimmed,
+                int const rendered_count, int const spacing,
+                rect const tiles_all, size const tile_size,
+                int const label_count, int const x_offset,
+                SpreadLabelOptions const& options,
+                vector<SpreadLabelRenderPlan>& out ) {
+  rect const first_tile_rect = [&] {
+    rect res = tiles_all.with_size(
+        size{ .w = trimmed.len, .h = tile_size.h } );
+    res.origin.x += x_offset;
+    return res;
+  }();
+  rect const placement_rect    = first_tile_rect;
+  e_cdirection const placement = [&] {
+    if( !options.placement.has_value() )
+      return config_ui.tile_spreads.default_label_placement;
+    SWITCH( *options.placement ) {
+      CASE( left_middle_adjusted ) {
+        if( rendered_count == 1 ) return e_cdirection::c;
+        if( spacing < trimmed.len ) return e_cdirection::w;
+        return e_cdirection::c;
+      }
+      CASE( in_first_tile ) { return in_first_tile.placement; }
+    }
+  }();
+  string const label_text      = to_string( label_count );
+  size const padded_label_size = [&] {
+    size const label_size = textometer.dimensions_for_line(
+        kLabelTextLayout, label_text );
+    int const padding = options.text_padding.value_or(
+        config_ui.tile_spreads.label_text_padding );
+    return size{ .w = label_size.w + padding * 2,
+                 .h = label_size.h + padding * 2 };
+  }();
+  out.push_back( SpreadLabelRenderPlan{
+    .options = options,
+    .text    = label_text,
+    .bounds  = {
+       .origin = gfx::centered_at( padded_label_size,
+                                   placement_rect, placement ),
+       .size   = padded_label_size } } );
+}
+
 } // namespace
 
 /****************************************************************
@@ -182,64 +226,30 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     // Need to do the label after the tiles but before we add the
     // group spacing so that we know the total rect occupied by
     // the tiles.
-    auto add_label = [&]( int const label_count,
-                          int const x_offset,
-                          SpreadLabelOptions const& options ) {
-      rect const first_tile_rect = [&] {
-        rect res = tiles_all.with_size(
-            size{ .w = spec.trimmed.len, .h = tile_size.h } );
-        res.origin.x += x_offset;
-        return res;
-      }();
-      rect const placement_rect    = first_tile_rect;
-      e_cdirection const placement = [&] {
-        if( !options.placement.has_value() )
-          return config_ui.tile_spreads.default_label_placement;
-        SWITCH( *options.placement ) {
-          CASE( left_middle_adjusted ) {
-            if( tile_spread.icon_spread.rendered_count == 1 )
-              return e_cdirection::c;
-            if( tile_spread.icon_spread.spacing <
-                spec.trimmed.len )
-              return e_cdirection::w;
-            return e_cdirection::c;
-          }
-          CASE( in_first_tile ) {
-            return in_first_tile.placement;
-          }
-        }
-      }();
-      string const label_text      = to_string( label_count );
-      size const padded_label_size = [&] {
-        size const label_size = textometer.dimensions_for_line(
-            kLabelTextLayout, label_text );
-        int const padding = options.text_padding.value_or(
-            config_ui.tile_spreads.label_text_padding );
-        return size{ .w = label_size.w + padding * 2,
-                     .h = label_size.h + padding * 2 };
-      }();
-      plan.labels.push_back( SpreadLabelRenderPlan{
-        .options = options,
-        .text    = label_text,
-        .bounds  = {
-           .origin = gfx::centered_at(
-              padded_label_size, placement_rect, placement ),
-           .size = padded_label_size } } );
-    };
     int const primary_label_count =
         tile_spread.label_count.value_or(
             as_const( overlay )
                 .member( &OverlayStart::idx )
                 .value_or( spec.count ) );
-    if( primary_label_count > 0 )
-      label_options( tile_spread )
-          .visit( bind_front( add_label, primary_label_count,
-                              /*x_offset=*/0 ) );
-    if( overlay.has_value() && overlay->label_count > 0 )
-      label_options_overlay( tile_spread )
-          .visit( bind_front(
-              add_label, overlay->label_count,
-              /*x_offset=*/overlay->p_start.x - p_start.x ) );
+    if( primary_label_count > 0 ) {
+      auto const options = label_options( tile_spread );
+      if( options.has_value() )
+        add_label( textometer, spec.trimmed,
+                   tile_spread.icon_spread.rendered_count,
+                   tile_spread.icon_spread.spacing, tiles_all,
+                   tile_size, primary_label_count,
+                   /*x_offset=*/0, *options, plan.labels );
+    }
+    if( overlay.has_value() && overlay->label_count > 0 ) {
+      auto const options = label_options_overlay( tile_spread );
+      if( options.has_value() )
+        add_label( textometer, spec.trimmed,
+                   tile_spread.icon_spread.rendered_count,
+                   tile_spread.icon_spread.spacing, tiles_all,
+                   tile_size, overlay->label_count,
+                   /*x_offset=*/overlay->p_start.x - p_start.x,
+                   *options, plan.labels );
+    }
     p.x += tile_spreads.group_spacing;
   }
   // Populate total bounds.
@@ -307,47 +317,18 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
                       .h = tile_size.h } } );
     return res;
   }();
-  plan.bounds    = tiles_all;
-  auto add_label = [&]( SpreadLabelOptions const& options ) {
-    rect const first_tile_rect = tiles_all.with_size(
-        size{ .w = trimmed.len, .h = tile_size.h } );
-    rect const placement_rect    = first_tile_rect;
-    e_cdirection const placement = [&] {
-      if( !options.placement.has_value() )
-        return config_ui.tile_spreads.default_label_placement;
-      SWITCH( *options.placement ) {
-        CASE( left_middle_adjusted ) {
-          if( tile_spec.rendered_count == 1 )
-            return e_cdirection::c;
-          if( first_spacing.has_value() &&
-              *first_spacing < trimmed.len )
-            return e_cdirection::w;
-          return e_cdirection::c;
-        }
-        CASE( in_first_tile ) { return in_first_tile.placement; }
-      }
-    }();
+  plan.bounds = tiles_all;
+  if( auto const options = label_options();
+      options.has_value() ) {
     int const label_count = tile_spec.label_count.value_or(
         tile_spec.source_spec.spread_spec.count );
-    string const label_text      = to_string( label_count );
-    size const padded_label_size = [&] {
-      size const label_size = textometer.dimensions_for_line(
-          kLabelTextLayout, label_text );
-      int const padding = options.text_padding.value_or(
-          config_ui.tile_spreads.label_text_padding );
-      return size{ .w = label_size.w + padding * 2,
-                   .h = label_size.h + padding * 2 };
-    }();
-    plan.labels.push_back( SpreadLabelRenderPlan{
-      .options = options,
-      .text    = label_text,
-      .bounds  = { .origin = gfx::centered_at( padded_label_size,
-                                               placement_rect,
-                                               placement ),
-                   .size   = padded_label_size },
-    } );
-  };
-  label_options().visit( add_label );
+    add_label(
+        textometer, tile_spec.source_spec.spread_spec.trimmed,
+        tile_spec.rendered_count,
+        first_spacing.value_or( numeric_limits<int>::max() ),
+        tiles_all, tile_size, label_count,
+        /*x_offset=*/0, *options, plan.labels );
+  }
   return plan;
 }
 

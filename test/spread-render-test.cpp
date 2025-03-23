@@ -488,7 +488,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
       .returns( size{ .w = 6, .h = 8 } );
   REQUIRE( f() == ex );
 
-  // One spread, one tile, with overlay.
+  // One spread, one tile, with overlay, no label.
   testing_set_trimmed_cache(
       e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
@@ -526,6 +526,51 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
             },
          .labels = {} },
     } };
+  REQUIRE( f() == ex );
+
+  // One spread, one tile, with overlay, with label.
+  testing_set_trimmed_cache(
+      e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
+                              .size   = { .w = 14, .h = 14 } } );
+  in = {
+    .spreads =
+        { { .algo_spec = SpreadSpec{ .count   = 1,
+                                     .trimmed = { .start = 2,
+                                                  .len = 28 } },
+            .tile_spec =
+                {
+                  .icon_spread =
+                      {
+
+                        .rendered_count = 1, .spacing = 1 },
+                  .tile = e_tile::dragoon,
+                  .overlay_tile =
+                      TileOverlay{ .tile = e_tile::red_x_20,
+                                   .starting_position = 0 },
+                } } },
+    .group_spacing = 1,
+    .label_policy  = SpreadLabels::always{} };
+  ex = {
+    .bounds = { .w = 28, .h = 32 },
+    .plans  = { TileSpreadRenderPlan{
+       .bounds = { .origin = {}, .size = { .w = 28, .h = 32 } },
+       .tiles =
+           {
+            { .tile       = e_tile::dragoon,
+               .where      = { -2, 0 },
+               .is_overlay = false },
+            { .tile       = e_tile::red_x_20,
+               .where      = { -2, 6 },
+               .is_overlay = true },
+          },
+       .labels = { SpreadLabelRenderPlan{
+         .options = SpreadLabelOptions{ .placement = nothing },
+         .text    = "1",
+         .bounds  = { .origin = { .x = 0, .y = 0 },
+                      .size   = { .w = 16, .h = 12 } } } },
+    } } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "1" )
+      .returns( size{ .w = 6 * 2, .h = 8 } );
   REQUIRE( f() == ex );
 
   // One spread, one tile, with label, with line breaks.
@@ -611,6 +656,182 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
 }
 
 TEST_CASE( "[spread] render_plan_for_tile_progress_spread" ) {
+  ProgressTileSpreadSpec in;
+  TileSpreadRenderPlan ex;
+  rr::MockTextometer textometer;
+
+  auto f = [&] {
+    return render_plan_for_tile_progress_spread( textometer,
+                                                 in );
+  };
+
+  // Default.
+  in = {};
+  ex = {};
+  REQUIRE( f() == ex );
+
+  // Two icons.
+  in                                       = {};
+  in.source_spec.bounds                    = 20;
+  in.source_spec.spread_spec.count         = 2;
+  in.source_spec.spread_spec.trimmed.start = 2;
+  in.source_spec.spread_spec.trimmed.len   = 10;
+  in.progress_spread.spacings.resize( 1 );
+  in.progress_spread.spacings[0].mod     = 1;
+  in.progress_spread.spacings[0].spacing = 1;
+  in.rendered_count                      = 2;
+  in.tile = e_tile::indentured_servant;
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 1 + 10, .h = 32 };
+  ex.tiles.resize( 2 );
+  ex.tiles[0].tile  = e_tile::indentured_servant;
+  ex.tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.tiles[1].tile  = e_tile::indentured_servant;
+  ex.tiles[1].where = point{ .x = -1, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // More complex spacing.
+  in                                       = {};
+  in.source_spec.bounds                    = 20;
+  in.source_spec.spread_spec.count         = 6;
+  in.source_spec.spread_spec.trimmed.start = 2;
+  in.source_spec.spread_spec.trimmed.len   = 10;
+  in.progress_spread.spacings.resize( 5 );
+  in.progress_spread.spacings[0].mod     = 1;
+  in.progress_spread.spacings[0].spacing = 1;
+  in.progress_spread.spacings[1].mod     = 3;
+  in.progress_spread.spacings[1].spacing = 2;
+  in.progress_spread.spacings[2].mod     = 2;
+  in.progress_spread.spacings[2].spacing = 3;
+  in.progress_spread.spacings[3].mod     = 4;
+  in.progress_spread.spacings[3].spacing = 4;
+  in.progress_spread.spacings[4].mod     = 6;
+  in.progress_spread.spacings[4].spacing = 5;
+  in.rendered_count                      = 6;
+  in.tile = e_tile::indentured_servant;
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 1 + 4 + 3 + 8 + 1 + 10, .h = 32 };
+  ex.tiles.resize( 6 );
+  ex.tiles[0].tile  = e_tile::indentured_servant;
+  ex.tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.tiles[1].tile  = e_tile::indentured_servant;
+  ex.tiles[1].where = point{ .x = -2 + 1, .y = 0 };
+  ex.tiles[2].tile  = e_tile::indentured_servant;
+  ex.tiles[2].where = point{ .x = -2 + 1 + 4, .y = 0 };
+  ex.tiles[3].tile  = e_tile::indentured_servant;
+  ex.tiles[3].where = point{ .x = -2 + 1 + 4 + 3, .y = 0 };
+  ex.tiles[4].tile  = e_tile::indentured_servant;
+  ex.tiles[4].where = point{ .x = -2 + 1 + 4 + 3 + 8, .y = 0 };
+  ex.tiles[5].tile  = e_tile::indentured_servant;
+  ex.tiles[5].where =
+      point{ .x = -2 + 1 + 4 + 3 + 8 + 1, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // More complex spacing, with label.
+  in                                       = {};
+  in.source_spec.bounds                    = 20;
+  in.source_spec.spread_spec.count         = 6;
+  in.source_spec.spread_spec.trimmed.start = 2;
+  in.source_spec.spread_spec.trimmed.len   = 10;
+  in.progress_spread.spacings.resize( 5 );
+  in.progress_spread.spacings[0].mod     = 1;
+  in.progress_spread.spacings[0].spacing = 1;
+  in.progress_spread.spacings[1].mod     = 3;
+  in.progress_spread.spacings[1].spacing = 2;
+  in.progress_spread.spacings[2].mod     = 2;
+  in.progress_spread.spacings[2].spacing = 3;
+  in.progress_spread.spacings[3].mod     = 4;
+  in.progress_spread.spacings[3].spacing = 4;
+  in.progress_spread.spacings[4].mod     = 6;
+  in.progress_spread.spacings[4].spacing = 5;
+  in.rendered_count                      = 6;
+  in.tile         = e_tile::indentured_servant;
+  in.label_policy = SpreadLabels::always{};
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 1 + 4 + 3 + 8 + 1 + 10, .h = 32 };
+  ex.tiles.resize( 6 );
+  ex.tiles[0].tile  = e_tile::indentured_servant;
+  ex.tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.tiles[1].tile  = e_tile::indentured_servant;
+  ex.tiles[1].where = point{ .x = -2 + 1, .y = 0 };
+  ex.tiles[2].tile  = e_tile::indentured_servant;
+  ex.tiles[2].where = point{ .x = -2 + 1 + 4, .y = 0 };
+  ex.tiles[3].tile  = e_tile::indentured_servant;
+  ex.tiles[3].where = point{ .x = -2 + 1 + 4 + 3, .y = 0 };
+  ex.tiles[4].tile  = e_tile::indentured_servant;
+  ex.tiles[4].where = point{ .x = -2 + 1 + 4 + 3 + 8, .y = 0 };
+  ex.tiles[5].tile  = e_tile::indentured_servant;
+  ex.tiles[5].where =
+      point{ .x = -2 + 1 + 4 + 3 + 8 + 1, .y = 0 };
+  ex.labels = { SpreadLabelRenderPlan{
+    .options = SpreadLabelOptions{ .placement = nothing },
+    .text    = "6",
+    .bounds  = { .origin = { .x = 0, .y = 0 },
+                 .size   = { .w = 16, .h = 12 } },
+  } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "6" )
+      .returns( size{ .w = 6 * 2, .h = 8 } );
+  REQUIRE( f() == ex );
+
+  // Two icons, with auto-decide label, decided no.
+  in                                       = {};
+  in.source_spec.bounds                    = 20;
+  in.source_spec.spread_spec.count         = 2;
+  in.source_spec.spread_spec.trimmed.start = 2;
+  in.source_spec.spread_spec.trimmed.len   = 10;
+  in.progress_spread.spacings.resize( 1 );
+  in.progress_spread.spacings[0].mod     = 1;
+  in.progress_spread.spacings[0].spacing = 20;
+  in.rendered_count                      = 2;
+  in.tile         = e_tile::indentured_servant;
+  in.label_policy = SpreadLabels::auto_decide{};
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 20 + 10, .h = 32 };
+  ex.tiles.resize( 2 );
+  ex.tiles[0].tile  = e_tile::indentured_servant;
+  ex.tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.tiles[1].tile  = e_tile::indentured_servant;
+  ex.tiles[1].where = point{ .x = 18, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // Two icons, with auto-decide label, decided yes.
+  in                                       = {};
+  in.source_spec.bounds                    = 20;
+  in.source_spec.spread_spec.count         = 2;
+  in.source_spec.spread_spec.trimmed.start = 2;
+  in.source_spec.spread_spec.trimmed.len   = 10;
+  in.progress_spread.spacings.resize( 1 );
+  in.progress_spread.spacings[0].mod     = 1;
+  in.progress_spread.spacings[0].spacing = 1;
+  in.rendered_count                      = 2;
+  in.tile         = e_tile::indentured_servant;
+  in.label_policy = SpreadLabels::auto_decide{};
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 1 + 10, .h = 32 };
+  ex.tiles.resize( 2 );
+  ex.tiles[0].tile  = e_tile::indentured_servant;
+  ex.tiles[0].where = point{ .x = -2, .y = 0 };
+  ex.tiles[1].tile  = e_tile::indentured_servant;
+  ex.tiles[1].where = point{ .x = -1, .y = 0 };
+  ex.labels         = { SpreadLabelRenderPlan{
+            .options = SpreadLabelOptions{ .placement = nothing },
+            .text    = "2",
+            .bounds  = { .origin = { .x = 0, .y = 0 },
+                         .size   = { .w = 16, .h = 12 } },
+  } };
+  textometer.EXPECT__dimensions_for_line( rr::TextLayout{}, "2" )
+      .returns( size{ .w = 6 * 2, .h = 8 } );
+  REQUIRE( f() == ex );
 }
 
 TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
