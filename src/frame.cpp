@@ -157,8 +157,7 @@ void frame_loop_scheduler( IEngine& engine, wait<> const& what,
                             ? slow_frame_length
                             : normal_frame_length;
 
-    auto start = system_clock::now();
-    frame_rate.tick();
+    auto start    = system_clock::now();
     auto on_input = [] { time_of_last_input = Clock_t::now(); };
     // ----------------------------------------------------------
     body( engine, planes, deferred_events, on_input );
@@ -166,6 +165,12 @@ void frame_loop_scheduler( IEngine& engine, wait<> const& what,
     auto delta = system_clock::now() - start;
     if( delta < frame_length )
       this_thread::sleep_for( frame_length - delta );
+    // Should be done last otherwise if a coroutine that runs be-
+    // fore the very first suspension of the overall coroutine
+    // wants to skip a frame then it won't. I.e., we need to make
+    // sure that the first frame body runs with a frame index
+    // (tick) value of 0, not 1.
+    frame_rate.tick();
   }
 
   if( what.has_exception() ) {

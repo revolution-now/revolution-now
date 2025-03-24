@@ -10,6 +10,7 @@
 # ===============================================================
 # gfx
 include "gfx/pixel.hpp"
+include "gfx/resolution-enum.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -83,6 +84,10 @@ struct.ProgramWindow {
   start_in_fullscreen 'bool',
 }
 
+struct.LogicalResolution {
+  force_if_available 'base::maybe<gfx::e_resolution>',
+}
+
 namespace "rn"
 
 struct.config_gfx_t {
@@ -106,6 +111,8 @@ struct.config_gfx_t {
   fog_of_war_alpha 'double',
 
   color_cycle_plans 'config::graphics::ColorCycling',
+
+  logical_resolution 'config::graphics::LogicalResolution',
 }
 
 config.gfx {}

@@ -13,6 +13,7 @@
 // Revolution Now
 #include "co-wait.hpp"
 #include "console.hpp"
+#include "frame-count.hpp"
 #include "gui.hpp"
 #include "iengine.hpp"
 #include "lua.hpp"
@@ -20,8 +21,12 @@
 #include "menu-plane.hpp"
 #include "omni.hpp"
 #include "plane-stack.hpp"
+#include "screen.hpp"
 #include "terminal.hpp"
 #include "window.hpp"
+
+// config
+#include "config/gfx.rds.hpp"
 
 // luapp
 #include "luapp/state.hpp"
@@ -34,10 +39,37 @@ using namespace std;
 
 namespace rn {
 
+namespace {
+
+using ::gfx::e_resolution;
+
+// This needs to be a coroutine so that we can skip one frame be-
+// fore setting the resolution, otherwise if we don't then we
+// will be setting it before one complete frame runs (because
+// this is called at the start of the very first coroutine method
+// which runs eagerly, as coroutines do). And if we set it before
+// one complete frame runs then we will be inserting our resolu-
+// tion event into our event queue before the actual window re-
+// size events (from the real window) get pumped in, which will
+// cause our resolution to get overridden.
+wait<> force_resolution( IEngine& engine,
+                         e_resolution const named ) {
+  co_await 1_frames;
+  change_resolution_to_named_if_available( engine.resolutions(),
+                                           named );
+}
+
+} // namespace
+
 /****************************************************************
 ** Coroutine entry point.
 *****************************************************************/
 wait<> revolution_now( IEngine& engine, Planes& planes ) {
+  auto const& resolution_override =
+      config_gfx.logical_resolution.force_if_available;
+  if( resolution_override.has_value() )
+    co_await force_resolution( engine, *resolution_override );
+
   lua::state st;
   lua_init( st );
   Terminal terminal( st );

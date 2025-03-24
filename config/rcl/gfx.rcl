@@ -6,6 +6,27 @@ program_window {
   start_in_fullscreen: true
 }
 
+logical_resolution {
+  # Normally this should be left `null`, which means that the
+  # game will select an appropriate logical resolution from those
+  # that are available given the OS window dimensions. However,
+  # if you want to force the use of a logical resolution ini-
+  # tially then you can set this. But note that if you resize the
+  # window then this will get overridden, in which case you'll
+  # have to manually cycle back to it; this just sets it once at
+  # the start as a convenience. Note that it does not allow se-
+  # lecting a resolution that would normally be unavailable given
+  # the window dimensions.
+  #
+  # Apart from `null`, valid values for this would be e.g.:
+  #
+  #   _640x360
+  #   _640x400
+  #   ...etc, similarly for each supported logical resolution.
+  #
+  force_if_available: null
+}
+
 pixelation_curve {
   # During a pixelation animation (such as e.g. when a unit gets
   # defeated in battle) this curve controls the rate at which
