@@ -45,13 +45,14 @@ using ::gfx::size;
 TileSpreadRenderPlan create_people_spread( SSConst const& ss,
                                            Colony const& colony,
                                            int const width ) {
-  vector<e_tile> const tiles = [&] {
-    vector<e_tile> res;
+  vector<TileWithOptions> const tiles = [&] {
+    vector<TileWithOptions> res;
     vector<UnitId> const units = colony_units_all( colony );
     res.reserve( units.size() );
     for( UnitId const unit_id : units )
-      res.push_back( tile_for_unit_type(
-          ss.units.unit_for( unit_id ).type() ) );
+      res.push_back( TileWithOptions{
+        .tile = tile_for_unit_type(
+            ss.units.unit_for( unit_id ).type() ) } );
     return res;
   }();
   InhomogeneousTileSpreadConfig const config{

@@ -212,18 +212,28 @@ void render_sprite_silhouette( rr::Renderer& renderer,
   painter.draw_sprite( atlas_lookup( tile ), where );
 }
 
-void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
-                           Coord where, bool dulled ) {
+void render_sprite_dulled( rr::Renderer& renderer,
+                           Coord const where, e_tile const tile,
+                           bool const dulled ) {
   if( !dulled ) {
     render_sprite( renderer, where, tile );
     return;
   }
-  // First draw the sprite desaturated, then draw it again but
-  // with a transparent black silhouette.
+  // First draw the sprite desaturated.
   {
     SCOPED_RENDERER_MOD_OR( painter_mods.desaturate, true );
     render_sprite( renderer, where, tile );
   }
+  // Now draw it again but with a transparent black silhouette.
+  // We need to darken it a bit because otherwise the commodities
+  // that are already desaturated (such as silver, cotton) don't
+  // look any different. Actually, the OG does this as well.
+  //
+  // One problem with this is that some tiles that are not light
+  // to start with end up a bit too dark (e.g. tobacco, trade
+  // goods, coats). TODO: if we really want to polish this we
+  // should customize this per sprite, so that only the ones that
+  // need to be darked get darkened.
   {
     SCOPED_RENDERER_MOD_MUL( painter_mods.alpha, .3 );
     render_sprite_silhouette( renderer, where, tile,

@@ -61,7 +61,7 @@ struct.ProgressTileSpreadConfig {
 }
 
 struct.InhomogeneousTileSpreadConfig {
-  tiles 'std::vector<e_tile>',
+  tiles 'std::vector<TileWithOptions>',
   # Defaults to 1, which means that there can be at most 1 pixel
   # of space between icons, not including the width of the icons
   # themselves.

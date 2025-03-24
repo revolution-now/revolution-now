@@ -249,8 +249,9 @@ TileSpreadRenderPlan build_inhomogenous_tile_spread(
     .widths      = [&] {
       vector<int> res;
       res.reserve( config.tiles.size() );
-      for( e_tile const tile : config.tiles )
-        res.push_back( trimmed_area_for( tile ).size.w );
+      for( TileWithOptions const& tile_info : config.tiles )
+        res.push_back(
+            trimmed_area_for( tile_info.tile ).size.w );
       return res;
     }() };
   auto spread = compute_icon_spread_inhomogeneous( spec );

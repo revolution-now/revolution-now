@@ -122,12 +122,13 @@ TileSpreadRenderPlan create_workers_spread(
       indoor_job_for_slot( slot );
   if( !indoor_job ) return res;
   vector<UnitId> const& units = colony.indoor_jobs[*indoor_job];
-  vector<e_tile> const tiles  = [&] {
-    vector<e_tile> res;
+  vector<TileWithOptions> const tiles = [&] {
+    vector<TileWithOptions> res;
     res.reserve( units.size() );
     for( UnitId const unit_id : units )
-      res.push_back( tile_for_unit_type(
-          ss.units.unit_for( unit_id ).type() ) );
+      res.push_back( TileWithOptions{
+        .tile = tile_for_unit_type(
+            ss.units.unit_for( unit_id ).type() ) } );
     return res;
   }();
   InhomogeneousTileSpreadConfig const config{

@@ -868,9 +868,9 @@ TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
   in.source_spec.widths[2]    = 10;
   in.spread.max_total_spacing = 3;
   in.tiles.resize( 3 );
-  in.tiles[0] = e_tile::dragoon;
-  in.tiles[1] = e_tile::soldier;
-  in.tiles[2] = e_tile::veteran_dragoon;
+  in.tiles[0].tile = e_tile::dragoon;
+  in.tiles[1].tile = e_tile::soldier;
+  in.tiles[2].tile = e_tile::veteran_dragoon;
 
   ex               = {};
   ex.bounds.origin = { .x = 0, .y = 0 };
@@ -894,9 +894,9 @@ TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
   in.source_spec.widths[2]    = 10;
   in.spread.max_total_spacing = 10000;
   in.tiles.resize( 3 );
-  in.tiles[0] = e_tile::dragoon;
-  in.tiles[1] = e_tile::soldier;
-  in.tiles[2] = e_tile::veteran_dragoon;
+  in.tiles[0].tile = e_tile::dragoon;
+  in.tiles[1].tile = e_tile::soldier;
+  in.tiles[2].tile = e_tile::veteran_dragoon;
 
   ex               = {};
   ex.bounds.origin = { .x = 0, .y = 0 };
@@ -908,6 +908,34 @@ TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
   ex.tiles[1].where = point{ .x = 30 + 1 - 3, .y = 0 };
   ex.tiles[2].tile  = e_tile::veteran_dragoon;
   ex.tiles[2].where = point{ .x = 30 + 1 + 27 + 1 - 1, .y = 0 };
+  REQUIRE( f() == ex );
+
+  // Greyed tile.
+  in                         = {};
+  in.source_spec.bounds      = 20;
+  in.source_spec.max_spacing = 1;
+  in.source_spec.widths.resize( 3 );
+  in.source_spec.widths[0]    = 4;
+  in.source_spec.widths[1]    = 7;
+  in.source_spec.widths[2]    = 10;
+  in.spread.max_total_spacing = 3;
+  in.tiles.resize( 3 );
+  in.tiles[0].tile   = e_tile::dragoon;
+  in.tiles[1].tile   = e_tile::soldier;
+  in.tiles[1].greyed = true;
+  in.tiles[2].tile   = e_tile::veteran_dragoon;
+
+  ex               = {};
+  ex.bounds.origin = { .x = 0, .y = 0 };
+  ex.bounds.size   = { .w = 3 + 3 + 30, .h = 31 };
+  ex.tiles.resize( 3 );
+  ex.tiles[0].tile      = e_tile::dragoon;
+  ex.tiles[0].where     = point{ .x = 0 - 1, .y = 0 };
+  ex.tiles[1].tile      = e_tile::soldier;
+  ex.tiles[1].where     = point{ .x = 3 - 3, .y = 0 };
+  ex.tiles[1].is_greyed = true;
+  ex.tiles[2].tile      = e_tile::veteran_dragoon;
+  ex.tiles[2].where     = point{ .x = 6 - 1, .y = 0 };
   REQUIRE( f() == ex );
 }
 

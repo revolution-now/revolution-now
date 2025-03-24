@@ -14,6 +14,9 @@
 #include "src/commodity.hpp"
 #include "src/unit-mgr.hpp"
 
+// config
+#include "src/config/tile-enum.rds.hpp"
+
 // ss
 #include "src/ss/units.hpp"
 
@@ -410,6 +413,58 @@ TEST_CASE( "[commodity] with_quantity" ) {
   REQUIRE( comm.type == e_commodity::cloth );
   REQUIRE( new_comm.quantity == 49 );
   REQUIRE( new_comm.type == e_commodity::cloth );
+}
+
+TEST_CASE( "[commodity] tile_for_commodity_16" ) {
+  auto const f = []( e_commodity const c ) {
+    return tile_for_commodity_16( c );
+  };
+
+  using enum e_tile;
+  using enum e_commodity;
+
+  REQUIRE( f( food ) == commodity_food_16 );
+  REQUIRE( f( sugar ) == commodity_sugar_16 );
+  REQUIRE( f( tobacco ) == commodity_tobacco_16 );
+  REQUIRE( f( cotton ) == commodity_cotton_16 );
+  REQUIRE( f( furs ) == commodity_furs_16 );
+  REQUIRE( f( lumber ) == commodity_lumber_16 );
+  REQUIRE( f( ore ) == commodity_ore_16 );
+  REQUIRE( f( silver ) == commodity_silver_16 );
+  REQUIRE( f( horses ) == commodity_horses_16 );
+  REQUIRE( f( rum ) == commodity_rum_16 );
+  REQUIRE( f( cigars ) == commodity_cigars_16 );
+  REQUIRE( f( cloth ) == commodity_cloth_16 );
+  REQUIRE( f( coats ) == commodity_coats_16 );
+  REQUIRE( f( trade_goods ) == commodity_trade_goods_16 );
+  REQUIRE( f( tools ) == commodity_tools_16 );
+  REQUIRE( f( muskets ) == commodity_muskets_16 );
+}
+
+TEST_CASE( "[commodity] tile_for_commodity_20" ) {
+  auto const f = []( e_commodity const c ) {
+    return tile_for_commodity_20( c );
+  };
+
+  using enum e_tile;
+  using enum e_commodity;
+
+  REQUIRE( f( food ) == commodity_food_20 );
+  REQUIRE( f( sugar ) == commodity_sugar_20 );
+  REQUIRE( f( tobacco ) == commodity_tobacco_20 );
+  REQUIRE( f( cotton ) == commodity_cotton_20 );
+  REQUIRE( f( furs ) == commodity_furs_20 );
+  REQUIRE( f( lumber ) == commodity_lumber_20 );
+  REQUIRE( f( ore ) == commodity_ore_20 );
+  REQUIRE( f( silver ) == commodity_silver_20 );
+  REQUIRE( f( horses ) == commodity_horses_20 );
+  REQUIRE( f( rum ) == commodity_rum_20 );
+  REQUIRE( f( cigars ) == commodity_cigars_20 );
+  REQUIRE( f( cloth ) == commodity_cloth_20 );
+  REQUIRE( f( coats ) == commodity_coats_20 );
+  REQUIRE( f( trade_goods ) == commodity_trade_goods_20 );
+  REQUIRE( f( tools ) == commodity_tools_20 );
+  REQUIRE( f( muskets ) == commodity_muskets_20 );
 }
 
 } // namespace

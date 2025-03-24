@@ -50,6 +50,108 @@ namespace {
 
 using ::gfx::pixel;
 
+void render_commodity_label_impl(
+    rr::Renderer& renderer, Coord where, string_view label,
+    rr::TextLayout const& text_layout,
+    TextMarkupInfo const& markup_info ) {
+  if( label.empty() ) return;
+  render_text_markup( renderer, where, font::small(),
+                      text_layout, markup_info, label );
+}
+
+void render_commodity_label(
+    rr::Renderer& renderer, Coord where, string_view label,
+    rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors ) {
+  TextMarkupInfo info;
+  switch( colors ) {
+    case e_commodity_label_render_colors::standard:
+      info = {
+        .normal =
+            pixel{ .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
+        .highlight = pixel::green() };
+      break;
+    case e_commodity_label_render_colors::over_limit:
+      info = {
+        .normal =
+            pixel{ .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
+        .highlight = pixel::red() };
+      break;
+    case e_commodity_label_render_colors::custom_house_selling:
+      info = {
+        .normal =
+            pixel{ .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
+        .highlight = pixel::yellow() };
+      break;
+    case e_commodity_label_render_colors::harbor_cargo: {
+      static pixel const color =
+          config_ui.harbor.cargo_label_color;
+      info = { .normal = color, .highlight = color };
+      break;
+    }
+    case e_commodity_label_render_colors::harbor_cargo_100: {
+      static pixel const color =
+          config_ui.harbor.cargo_label_color.highlighted(
+              config_ui.harbor
+                  .cargo_label_color_full_highlight_intensity );
+      info = { .normal = color, .highlight = color };
+      break;
+    }
+  }
+  render_commodity_label_impl( renderer, where, label,
+                               text_layout, info );
+}
+
+void render_commodity_impl(
+    rr::Renderer& renderer, Coord where, e_tile tile,
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
+  render_sprite_dulled( renderer, where, tile, dulled );
+  if( !label ) return;
+  // Place text below commodity, but centered horizontally.
+  Delta comm_size = sprite_size( tile );
+  static rr::TextLayout const kTextLayout;
+  Delta label_size = rendered_text_size(
+      renderer.typer().textometer(), kTextLayout,
+      /*reflow_info=*/{}, *label );
+  auto origin =
+      where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
+                     .h = comm_size.h + 2 };
+  render_commodity_label( renderer, origin, *label, text_layout,
+                          colors );
+}
+
+void render_commodity_16_impl(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
+  render_commodity_impl( renderer, where,
+                         tile_for_commodity_16( type ), label,
+                         text_layout, colors, dulled );
+}
+
+void render_commodity_20_impl(
+    rr::Renderer& renderer, Coord where, e_commodity type,
+    maybe<string> label, rr::TextLayout const& text_layout,
+    e_commodity_label_render_colors colors, bool dulled ) {
+  render_commodity_impl( renderer, where,
+                         tile_for_commodity_20( type ), label,
+                         text_layout, colors, dulled );
+}
+
+string commodity_number_to_markup( int value ) {
+  if( value < 100 ) //
+    return fmt::format( "{}", value );
+  if( value < 200 )
+    return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
+  return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
+}
+
+} // namespace
+
+/****************************************************************
+** Commodity Tiles.
+*****************************************************************/
 e_tile tile_for_commodity_16( e_commodity const c ) {
   switch( c ) {
     case e_commodity::food:
@@ -123,105 +225,6 @@ e_tile tile_for_commodity_20( e_commodity const c ) {
       return e_tile::commodity_muskets_20;
   }
 }
-
-void render_commodity_label_impl(
-    rr::Renderer& renderer, Coord where, string_view label,
-    rr::TextLayout const& text_layout,
-    TextMarkupInfo const& markup_info ) {
-  if( label.empty() ) return;
-  render_text_markup( renderer, where, font::small(),
-                      text_layout, markup_info, label );
-}
-
-void render_commodity_label(
-    rr::Renderer& renderer, Coord where, string_view label,
-    rr::TextLayout const& text_layout,
-    e_commodity_label_render_colors colors ) {
-  TextMarkupInfo info;
-  switch( colors ) {
-    case e_commodity_label_render_colors::standard:
-      info = {
-        .normal =
-            pixel{ .r = 0x00, .g = 0x00, .b = 0x00, .a = 255 },
-        .highlight = pixel::green() };
-      break;
-    case e_commodity_label_render_colors::over_limit:
-      info = {
-        .normal =
-            pixel{ .r = 0xaa, .g = 0x00, .b = 0x00, .a = 255 },
-        .highlight = pixel::red() };
-      break;
-    case e_commodity_label_render_colors::custom_house_selling:
-      info = {
-        .normal =
-            pixel{ .r = 0x00, .g = 0xff, .b = 0x00, .a = 255 },
-        .highlight = pixel::yellow() };
-      break;
-    case e_commodity_label_render_colors::harbor_cargo: {
-      static pixel const color =
-          config_ui.harbor.cargo_label_color;
-      info = { .normal = color, .highlight = color };
-      break;
-    }
-    case e_commodity_label_render_colors::harbor_cargo_100: {
-      static pixel const color =
-          config_ui.harbor.cargo_label_color.highlighted(
-              config_ui.harbor
-                  .cargo_label_color_full_highlight_intensity );
-      info = { .normal = color, .highlight = color };
-      break;
-    }
-  }
-  render_commodity_label_impl( renderer, where, label,
-                               text_layout, info );
-}
-
-void render_commodity_impl(
-    rr::Renderer& renderer, Coord where, e_tile tile,
-    maybe<string> label, rr::TextLayout const& text_layout,
-    e_commodity_label_render_colors colors, bool dulled ) {
-  render_sprite_dulled( renderer, tile, where, dulled );
-  if( !label ) return;
-  // Place text below commodity, but centered horizontally.
-  Delta comm_size = sprite_size( tile );
-  static rr::TextLayout const kTextLayout;
-  Delta label_size = rendered_text_size(
-      renderer.typer().textometer(), kTextLayout,
-      /*reflow_info=*/{}, *label );
-  auto origin =
-      where + Delta{ .w = -( label_size.w - comm_size.w ) / 2,
-                     .h = comm_size.h + 2 };
-  render_commodity_label( renderer, origin, *label, text_layout,
-                          colors );
-}
-
-void render_commodity_16_impl(
-    rr::Renderer& renderer, Coord where, e_commodity type,
-    maybe<string> label, rr::TextLayout const& text_layout,
-    e_commodity_label_render_colors colors, bool dulled ) {
-  render_commodity_impl( renderer, where,
-                         tile_for_commodity_16( type ), label,
-                         text_layout, colors, dulled );
-}
-
-void render_commodity_20_impl(
-    rr::Renderer& renderer, Coord where, e_commodity type,
-    maybe<string> label, rr::TextLayout const& text_layout,
-    e_commodity_label_render_colors colors, bool dulled ) {
-  render_commodity_impl( renderer, where,
-                         tile_for_commodity_20( type ), label,
-                         text_layout, colors, dulled );
-}
-
-string commodity_number_to_markup( int value ) {
-  if( value < 100 ) //
-    return fmt::format( "{}", value );
-  if( value < 200 )
-    return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
-  return fmt::format( "[{}]{:0>2}", value / 100, value % 100 );
-}
-
-} // namespace
 
 /****************************************************************
 ** Commodity

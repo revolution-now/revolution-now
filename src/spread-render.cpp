@@ -338,12 +338,15 @@ render_plan_for_tile_inhomogeneous(
   TileSpreadRenderPlan res;
   res.tiles.reserve( tile_spec.tiles.size() );
   point p;
-  for( e_tile const tile : tile_spec.tiles ) {
+  for( TileWithOptions const& tile_info : tile_spec.tiles ) {
     interval const iv =
-        trimmed_area_for( tile ).horizontal_slice();
+        trimmed_area_for( tile_info.tile ).horizontal_slice();
     point const render_p = p.moved_left( iv.start );
-    res.tiles.push_back( TileRenderPlan{
-      .tile = tile, .where = render_p, .is_overlay = false } );
+    res.tiles.push_back(
+        TileRenderPlan{ .tile       = tile_info.tile,
+                        .where      = render_p,
+                        .is_overlay = false,
+                        .is_greyed  = tile_info.greyed } );
     int const delta =
         std::min( tile_spec.spread.max_total_spacing,
                   iv.len + tile_spec.source_spec.max_spacing );
@@ -390,7 +393,7 @@ void draw_rendered_icon_spread(
     if( options.suppress.has_value() &&
         *options.suppress == idx )
       continue;
-    auto const& [tile, p, _] = tile_plan;
+    auto const& [tile, p, _, greyed] = tile_plan;
     if( options.shadow.has_value() ) {
       SCOPED_RENDERER_MOD_SET( painter_mods.fixed_color,
                                options.shadow->color );
@@ -400,8 +403,9 @@ void draw_rendered_icon_spread(
               options.shadow->offset ),
           tile );
     }
-    render_sprite( renderer, p.origin_becomes_point( origin ),
-                   tile );
+    render_sprite_dulled( renderer,
+                          p.origin_becomes_point( origin ), tile,
+                          greyed );
   }
   for( auto const& label : plan.labels )
     render_text_line_with_background(

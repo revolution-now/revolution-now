@@ -65,6 +65,14 @@ sumtype.SpreadLabels {
 }
 
 # ---------------------------------------------------------------
+# Tile render options.
+# ---------------------------------------------------------------
+struct.TileWithOptions {
+  tile 'e_tile',
+  greyed 'bool',
+}
+
+# ---------------------------------------------------------------
 # Spreads of tiles.
 # ---------------------------------------------------------------
 # Overlays work by specifying a starting position in the spread,
@@ -136,7 +144,7 @@ struct.ProgressTileSpreadSpec {
 struct.InhomogeneousTileSpreadSpec {
   source_spec 'InhomogeneousSpreadSpec',
   spread 'InhomogeneousSpread',
-  tiles 'std::vector<e_tile>',
+  tiles 'std::vector<TileWithOptions>',
 }
 
 # ---------------------------------------------------------------
@@ -154,6 +162,7 @@ struct.TileRenderPlan {
   tile 'e_tile',
   where 'gfx::point',
   is_overlay 'bool',
+  is_greyed 'bool',
 }
 
 struct.TileSpreadRenderPlan {

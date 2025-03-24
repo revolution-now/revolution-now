@@ -87,8 +87,8 @@ void render_sprite_silhouette( rr::Renderer& renderer,
 
 // This is used e.g. to dull a commodity in the cargo of a ship
 // when the quantity is less than 100, as does the OG.
-void render_sprite_dulled( rr::Renderer& renderer, e_tile tile,
-                           Coord where, bool dulled );
+void render_sprite_dulled( rr::Renderer& renderer, Coord where,
+                           e_tile tile, bool dulled );
 
 // This will render a rectangular subsection of the sprite. The
 // `source` rect has its origin relative to the upper left corner

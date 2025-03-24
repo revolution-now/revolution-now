@@ -42,6 +42,8 @@ namespace rn {
 struct UnitsState;
 struct CargoHold;
 
+enum class e_tile;
+
 constexpr Delta const kCommodityInCargoHoldRenderingOffset{
   .w = 8, .h = 3 };
 
@@ -109,6 +111,9 @@ int move_commodity_as_much_as_possible(
 /****************************************************************
 ** Commodity Renderers
 *****************************************************************/
+e_tile tile_for_commodity_16( e_commodity const c );
+e_tile tile_for_commodity_20( e_commodity const c );
+
 Delta commodity_tile_size_16( e_commodity type );
 Delta commodity_tile_size_20( e_commodity type );
 

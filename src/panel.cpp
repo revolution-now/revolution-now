@@ -13,20 +13,25 @@
 // Revolution Now
 #include "cheat.hpp"
 #include "co-wait.hpp"
+#include "commodity.hpp"
 #include "error.hpp"
 #include "fathers.hpp"
 #include "iengine.hpp"
 #include "igui.hpp"
 #include "imenu-server.hpp"
 #include "land-view.hpp"
+#include "map-square.hpp"
 #include "mini-map.hpp"
 #include "plane-stack.hpp"
 #include "plane.hpp"
 #include "roles.hpp"
 #include "screen.hpp"
 #include "screen.hpp" // FIXME
+#include "spread-builder.hpp"
+#include "spread-render.hpp"
 #include "tiles.hpp"
 #include "ts.hpp" // FIXME
+#include "unit-mgr.hpp"
 #include "views.hpp"
 
 // config
@@ -34,6 +39,7 @@
 #include "config/text.rds.hpp"
 #include "config/tile-enum.rds.hpp"
 #include "config/ui.rds.hpp"
+#include "config/unit-type.rds.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -43,7 +49,9 @@
 #include "ss/land-view.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
+#include "ss/terrain.hpp"
 #include "ss/turn.hpp"
+#include "ss/units.hpp"
 
 // refl
 #include "refl/to-str.hpp"
@@ -63,6 +71,8 @@ namespace rn {
 //
 // FIXME FIXME FIXME
 
+using ::gfx::point;
+
 /****************************************************************
 ** PanelPlane::Impl
 *****************************************************************/
@@ -70,6 +80,7 @@ struct PanelPlane::Impl : public IPlane {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;
+  ILandViewPlane const& land_view_plane_;
   unique_ptr<ui::InvisibleView> view;
   wait_promise<> w_promise;
   vector<IMenuServer::Deregistrar> dereg_;
@@ -95,7 +106,10 @@ struct PanelPlane::Impl : public IPlane {
 
   Impl( IEngine& engine, SS& ss, TS& ts,
         ILandViewPlane& land_view_plane )
-    : engine_( engine ), ss_( ss ), ts_( ts ) {
+    : engine_( engine ),
+      ss_( ss ),
+      ts_( ts ),
+      land_view_plane_( land_view_plane ) {
     // Register menu handlers.
     dereg_.push_back(
         ts.planes.get().menu.typed().register_handler(
@@ -166,8 +180,6 @@ struct PanelPlane::Impl : public IPlane {
                          turn_state.time_point.season ) ),
                  turn_state.time_point.year );
 
-    typer.newline();
-
     maybe<e_nation> const curr_nation =
         player_for_role( ss_, e_player_role::active );
     if( !curr_nation ) return;
@@ -179,25 +191,74 @@ struct PanelPlane::Impl : public IPlane {
 
     if( player.new_world_name )
       typer.write( "{}\n", *player.new_world_name );
-    typer.write( "Nation:   {}\n", nation );
-    typer.write( "Treasury: {}{}\n", player.money,
-                 config_text.special_chars.currency );
-    typer.write( "Tax:      {}%\n",
+    typer.write( "Gold: {}{}  Tax: {}%\n", player.money,
+                 config_text.special_chars.currency,
                  player.old_world.taxes.tax_rate );
 
-    typer.newline();
-    typer.write( "Bells:   {}/{}\n", player.fathers.bells,
-                 bells_needed_for_next_father( ss_, player ) );
-    typer.write( "Crosses: {}\n", player.crosses );
+    auto const write_tile = [&]( point const p ) {
+      typer.write( "Square: ({}, {})\n", p.x + 1, p.y + 1 );
+    };
 
-    typer.newline();
-    typer.write( "Zoom: {:.4}\n", ss_.land_view.viewport.zoom );
+    auto const write_terrain = [&]( point const p ) {
+      string contents;
+      MapSquare const& square = ss_.terrain.square_at( p );
+      if( square.surface == e_surface::water &&
+          square.sea_lane ) {
+        contents = "Sea Lane";
+      } else {
+        e_terrain const terrain = effective_terrain( square );
+        contents = IGui::identifier_to_display_name(
+            base::to_str( terrain ) );
+        if( has_forest( square ) ) contents += " Forest";
+      }
+      typer.write( "({})\n", contents );
+    };
 
-    typer.newline();
-    typer.write(
-        "Independence:\n   {}\n",
-        IGui::identifier_to_display_name( refl::enum_value_name(
-            player.revolution_status ) ) );
+    // Active unit info.
+    // FIXME: this needs to persist while the unit is sliding.
+    // Probably requires reworking how we decide to display this
+    // info.
+    if( auto const unit_id = land_view_plane_.unit_blinking();
+        unit_id.has_value() ) {
+      typer.newline();
+      point const p =
+          coord_for_unit_indirect_or_die( ss_.units, *unit_id );
+      Unit const& unit = ss_.units.unit_for( *unit_id );
+      typer.write( "Unit: {}\n", unit.desc().name );
+      typer.write( "Moves: {}\n", unit.movement_points() );
+      write_tile( p );
+      write_terrain( p );
+      typer.write( "With: " );
+      point const spread_origin = typer.position();
+      vector<pair<Commodity, int /*quantity*/>> const
+          commodities = unit.cargo().commodities();
+      vector<TileWithOptions> tiles;
+      tiles.reserve( commodities.size() );
+      for( auto const& [comm, _] : commodities )
+        tiles.push_back( TileWithOptions{
+          .tile   = tile_for_commodity_20( comm.type ),
+          .greyed = comm.quantity < 100 } );
+      InhomogeneousTileSpreadConfig const spread_config{
+        .tiles       = std::move( tiles ),
+        .max_spacing = 1,
+        .options     = {
+              .bounds = std::max(
+              rect().right_edge() - spread_origin.x - 4, 0 ),
+              .label_policy = SpreadLabels::never{} } };
+      TileSpreadRenderPlan const spread_plan =
+          build_inhomogenous_tile_spread( spread_config );
+      draw_rendered_icon_spread( renderer, spread_origin,
+                                 spread_plan );
+    }
+
+    // White box info.
+    if( auto const box = land_view_plane_.white_box();
+        box.has_value() ) {
+      typer.newline();
+      write_tile( *box );
+      write_terrain( *box );
+      // TODO
+    }
   }
 
   void draw( rr::Renderer& renderer ) const override {
@@ -291,17 +352,6 @@ struct PanelPlane::Impl : public IPlane {
   void on_logical_resolution_selected(
       gfx::e_resolution ) override {}
 };
-
-/****************************************************************
-** Menu Handlers
-*****************************************************************/
-// MENU_ITEM_HANDLER(
-//     next_turn,
-//     [] {
-//       g_panel_plane.w_promise.set_value_emplace_if_not_set();
-//     },
-//     [] { return g_panel_plane.next_turn_button().enabled(); }
-//     )
 
 /****************************************************************
 ** PanelPlane
