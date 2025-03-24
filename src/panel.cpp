@@ -236,7 +236,7 @@ struct PanelPlane::Impl : public IPlane {
       tiles.reserve( commodities.size() );
       for( auto const& [comm, _] : commodities )
         tiles.push_back( TileWithOptions{
-          .tile   = tile_for_commodity_20( comm.type ),
+          .tile   = tile_for_commodity_16( comm.type ),
           .greyed = comm.quantity < 100 } );
       InhomogeneousTileSpreadConfig const spread_config{
         .tiles       = std::move( tiles ),
