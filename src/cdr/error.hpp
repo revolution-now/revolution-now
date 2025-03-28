@@ -41,9 +41,9 @@ struct error {
   template<typename Arg1, typename... Args>
   explicit error( std::string_view fmt_str, Arg1&& arg1,
                   Args&&... args )
-    : what_( fmt::format( fmt::runtime( fmt_str ),
-                          std::forward<Arg1>( arg1 ),
-                          std::forward<Args>( args )... ) ) {}
+    // TODO: replace with std::runtime_format when available.
+    : what_( std::vformat(
+          fmt_str, std::make_format_args( arg1, args... ) ) ) {}
 
   std::string what_;
 };

@@ -22,6 +22,8 @@ namespace {
 
 using namespace std;
 
+using ::Catch::Matchers::StartsWith;
+
 TEST_CASE( "[to-str] primitive" ) {
   // bool
   REQUIRE( to_str( true ) == "true" );
@@ -140,8 +142,8 @@ TEST_CASE( "[to-str] primitive" ) {
   REQUIRE( to_str( LD{ 1234.0 } ) == "1234" );
   REQUIRE( to_str( LD{ -1.25 } ) == "-1.25" );
   REQUIRE( to_str( LD{ 0.5 } ) == "0.5" );
-  REQUIRE( to_str( LD{ 5.125125125125125 } ) ==
-           "5.1251251251251250807" );
+  REQUIRE_THAT( to_str( LD{ 5.125125125125125 } ),
+                StartsWith( "5.125125125125125" ) );
   REQUIRE( to_str( LD{ 1234.75 } ) == "1234.75" );
 
   // char const[N]

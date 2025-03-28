@@ -171,7 +171,7 @@ LUA_FN( list_flags, lua::table ) {
   lua::table lst = st.table.create();
   int i          = 1;
   for( auto const flag : refl::enum_values<e_game_flag_option> )
-    lst[i++] = fmt::to_string( flag );
+    lst[i++] = base::to_str( flag );
   return lst;
 };
 

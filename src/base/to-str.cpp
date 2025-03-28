@@ -57,27 +57,29 @@ void to_str( uint64_t const o, string& out, tag<uint64_t> ) {
 
 void to_str( float const o, string& out, tag<float> ) {
   // Using the fmt one suppresses extra decimal places.
-  out += fmt::to_string( o );
+  out += std::format( "{}", o );
 }
 
 void to_str( double const o, string& out, tag<double> ) {
   // Using the fmt one suppresses extra decimal places.
-  out += fmt::to_string( o );
+  out += std::format( "{}", o );
 }
 
 void to_str( long double const o, string& out,
              tag<long double> ) {
   // Using the fmt one suppresses extra decimal places.
-  out += fmt::to_string( o );
+  out += std::format( "{}", o );
 }
 
 void to_str( void const* const o, string& out, tag<void*> ) {
-  out += fmt::to_string( o );
+  out += std::format(
+      "0x{:x}", reinterpret_cast<unsigned long long>( o ) );
 }
 
 void to_str( void const* const o, string& out,
              tag<void const*> ) {
-  out += fmt::to_string( o );
+  out += std::format(
+      "0x{:x}", reinterpret_cast<unsigned long long>( o ) );
 }
 
 } // namespace base

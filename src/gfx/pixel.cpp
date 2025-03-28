@@ -17,6 +17,9 @@
 // base-util
 #include "base-util/algo.hpp"
 
+// C++ standard library
+#include <cmath>
+
 using namespace std;
 
 using ::base::maybe;

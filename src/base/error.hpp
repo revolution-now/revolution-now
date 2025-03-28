@@ -206,7 +206,7 @@
   {                                                 \
     auto const& STRING_JOIN( __e, __LINE__ ) = e;   \
     if( !bool( STRING_JOIN( __e, __LINE__ ) ) ) {   \
-      ::base::abort_with_msg( fmt::to_string(       \
+      ::base::abort_with_msg( ::base::to_str(       \
           STRING_JOIN( __e, __LINE__ ).error() ) ); \
     }                                               \
   }
@@ -240,7 +240,7 @@
 #define UNWRAP_CHECK( a, ... )                       \
   auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
-    ::base::abort_with_msg( fmt::to_string(          \
+    ::base::abort_with_msg( ::base::to_str(          \
         STRING_JOIN( __e, __LINE__ ).error() ) );    \
   }                                                  \
   auto&& BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )
@@ -249,7 +249,7 @@
 #define UNWRAP_CHECK_T( a, ... )                     \
   auto&& STRING_JOIN( __e, __LINE__ ) = __VA_ARGS__; \
   if( !STRING_JOIN( __e, __LINE__ ).has_value() ) {  \
-    ::base::abort_with_msg( fmt::to_string(          \
+    ::base::abort_with_msg( ::base::to_str(          \
         STRING_JOIN( __e, __LINE__ ).error() ) );    \
   }                                                  \
   BASE_IDENTITY( a ) = *STRING_JOIN( __e, __LINE__ )

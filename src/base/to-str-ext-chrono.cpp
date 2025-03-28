@@ -57,7 +57,7 @@ string format_duration( chrono::nanoseconds ns ) {
   string res;
 
   auto emit = [&]( auto dur, string_view suffix ) {
-    res += fmt::to_string( dur.count() );
+    res += std::to_string( dur.count() );
     res += suffix;
   };
 

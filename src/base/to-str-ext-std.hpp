@@ -33,12 +33,12 @@
 
 namespace std {
 
-void to_str( string_view o, string& out,
+void to_str( string_view const& o, string& out,
              base::tag<string_view> );
 
 void to_str( string const& o, string& out, base::tag<string> );
 
-void to_str( nullptr_t o, std::string& out,
+void to_str( nullptr_t const& o, std::string& out,
              base::tag<nullptr_t> );
 
 template<base::Show T>

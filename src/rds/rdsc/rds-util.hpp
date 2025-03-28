@@ -27,8 +27,10 @@ namespace rds {
 template<typename... Args>
 void error_no_exit_msg( std::string_view fmt, Args&&... args ) {
   std::cerr << "\033[31merror:\033[00m ";
-  std::cerr << fmt::format( fmt::runtime( fmt ),
-                            std::forward<Args>( args )... );
+  // TODO: replace with std::runtime_format when available.
+  std::cerr << std::vformat(
+      fmt,
+      std::make_format_args( std::forward<Args>( args )... ) );
   std::cerr << "\n";
 }
 

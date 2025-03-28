@@ -187,8 +187,9 @@ string fmt_bar( char c, string_view msg ) {
   // by exhausting all columns.
   string_view maybe_newline = maybe_cols.has_value() ? "" : "\n";
   string fmt = fmt::format( "{{:{}^{{}}}}{}", c, maybe_newline );
-  return fmt::format( fmt::runtime( fmt ), msg,
-                      maybe_cols.value_or( 65 ) );
+  int const cols = maybe_cols.value_or( 65 );
+  // TODO: replace with std::runtime_format when possible.
+  return std::vformat( fmt, std::make_format_args( msg, cols ) );
 }
 
 void print_bar( char c, string_view msg ) {

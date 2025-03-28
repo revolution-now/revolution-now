@@ -24,6 +24,7 @@
 #include "base/unique-func.hpp"
 
 // C++ standard library
+#include <cmath>
 #include <unordered_map>
 
 using namespace std;
@@ -74,8 +75,8 @@ bool has_path( point const src, point const dst, int upper_bound,
            ++it ) {
         auto [p, _] = *it;
         double const dist =
-            sqrt( ( dst.x - p.x ) * ( dst.x - p.x ) +
-                  ( dst.y - p.y ) * ( dst.y - p.y ) );
+            std::sqrt( ( dst.x - p.x ) * ( dst.x - p.x ) +
+                       ( dst.y - p.y ) * ( dst.y - p.y ) );
         if( dist < shortest_distance ) {
           shortest_distance = dist;
           shortest_it       = it;

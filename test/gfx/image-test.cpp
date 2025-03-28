@@ -16,6 +16,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// C++ standard library
+#include <cstring>
+
 namespace gfx {
 namespace {
 
@@ -23,7 +26,7 @@ using namespace std;
 
 TEST_CASE( "[image] creation" ) {
   unsigned char* data = (unsigned char*)::malloc( 7 * 5 * 4 );
-  ::memset( data, 0, 7 * 5 * 4 );
+  std::memset( data, 0, 7 * 5 * 4 );
   data[7 * 1 * 4 + 0] = 1; // red
   data[7 * 1 * 4 + 1] = 2; // green
   data[7 * 1 * 4 + 2] = 3; // blue

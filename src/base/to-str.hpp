@@ -17,12 +17,15 @@
 #include "fmt.hpp"
 
 // C++ standard library
+#include <chrono>
 #include <concepts>
 #include <string>
 #include <string_view>
 
 namespace std {
 void to_str( string const& o, string& out, base::tag<string> );
+void to_str( string_view const& o, string& out,
+             base::tag<string_view> );
 }
 
 namespace base {
@@ -97,21 +100,46 @@ std::string to_str( T const& o ) {
 
 namespace fmt {
 
+// This recreates the fmt::to_string method for convenience
+// during migration, since std::to_string is not the same thing.
+template<base::Show T>
+inline std::string to_string( T const& o ) {
+  return ::base::to_str( o );
+}
+
+}
+
+namespace std {
+
 namespace detail {
 
+template<typename...>
+struct IsStdPair {
+  static auto constexpr value = false;
+};
+
+template<typename T, typename U>
+struct IsStdPair<std::pair<T, U>> {
+  static auto constexpr value = true;
+};
+
 // Need to exclude these because they would conflict with the
-// ones in fmt.
+// ones in std::format.
 template<typename T>
 concept ExcludeFromFmtPromotion = requires {
   // clang-format off
   requires(
-      std::is_same_v<T, std::string>             ||
-     (std::is_scalar_v<T> && !std::is_enum_v<T>) ||
-      std::is_array_v<T>                         ||
-      std::is_same_v<T, int>                     ||
-      std::is_same_v<T, char*>                   ||
-      std::is_same_v<T, char const*>             ||
-      std::is_same_v<T, std::string_view>
+      std::is_same_v<T, std::string>                ||
+     (std::is_scalar_v<T> && !std::is_enum_v<T>)    ||
+      std::is_array_v<T>                            ||
+      std::is_same_v<T, int>                        ||
+      std::is_same_v<T, char*>                      ||
+      std::is_same_v<T, char const*>                ||
+      std::is_same_v<T, std::string_view>           ||
+      std::is_same_v<T, std::chrono::milliseconds>  ||
+      std::is_same_v<T, std::chrono::microseconds>  ||
+      IsStdPair<T>::value                           ||
+      false
   );
   // clang-format on
 };
@@ -136,4 +164,4 @@ struct formatter<S> : formatter<std::string> {
   }
 };
 
-} // namespace fmt
+} // namespace std

@@ -474,7 +474,7 @@ maybe<MidiPlayInfo> load_midi_file( fs::path const& file ) {
   info.last_pause_time = nothing;
   info.stoppage        = 0us;
   lg.info( "loaded midi file: {} ({})", file,
-           info.tune_duration );
+           base::to_str( info.tune_duration ) );
   return info;
 }
 
@@ -567,7 +567,9 @@ template<typename FmtStr, typename... Args>
 void midi_thread_record_failure( FmtStr const& fmt_str,
                                  Args... args ) {
   g_midi_comm.set_state( e_midiseq_state::failed );
-  string msg = fmt::format( fmt::runtime( fmt_str ), args... );
+  // TODO: replace with std::runtime_format when possible.
+  string const msg =
+      std::vformat( fmt_str, std::make_format_args( args... ) );
   lg.error( "{}", msg );
   g_midi_comm.set_last_error( msg );
 }

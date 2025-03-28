@@ -14,7 +14,7 @@ using namespace std;
 
 namespace std {
 
-void to_str( string_view o, string& out,
+void to_str( string_view const& o, string& out,
              base::tag<string_view> ) {
   out += string( o );
 }
@@ -39,7 +39,7 @@ void to_str( source_location const& o, string& out,
                       o.column() );
 };
 
-void to_str( nullptr_t, std::string& out,
+void to_str( nullptr_t const&, std::string& out,
              base::tag<nullptr_t> ) {
   out += "nullptr";
 }

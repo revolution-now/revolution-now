@@ -22,6 +22,7 @@
 #include "base/string.hpp"
 
 // c++ standard library
+#include <format>
 #include <iomanip>
 #include <sstream>
 #include <stack>
@@ -167,9 +168,9 @@ struct CodeGenerator {
     CHECK( !curr_line_.has_value() );
     CHECK( fmt_str.find_first_of( "\n" ) == string_view::npos );
     string indent( options().indent_level * 2, ' ' );
-    string to_print = trim_trailing_spaces( fmt::format(
-        fmt::runtime( fmt_str ), std::forward<Arg1>( arg1 ),
-        std::forward<Args>( args )... ) );
+    // TODO: replace with std::runtime_format when available.
+    string to_print = trim_trailing_spaces( std::vformat(
+        fmt_str, std::make_format_args( arg1, args... ) ) );
     if( options().drop_empty_lines && to_print.empty() ) return;
     // Only print empty strings if they are to be quoted.
     if( options().quotes )
@@ -187,10 +188,10 @@ struct CodeGenerator {
   void frag( string_view fmt_str, Arg1&& arg1, Args&&... args ) {
     CHECK( fmt_str.find_first_of( "\n" ) == string_view::npos );
     if( !curr_line_.has_value() ) curr_line_.emplace();
+    // TODO: replace with std::runtime_format when available.
     curr_line_ = *curr_line_ +
-                 fmt::format( fmt::runtime( fmt_str ),
-                              std::forward<Arg1>( arg1 ),
-                              std::forward<Args>( args )... );
+                 std::vformat( fmt_str, std::make_format_args(
+                                            arg1, args... ) );
   }
 
   // Braces {} do NOT have to be escaped for this one.
@@ -208,8 +209,9 @@ struct CodeGenerator {
   template<typename... Args>
   void comment( string_view fmt_str, Args&&... args ) {
     frag( "// " );
-    frag( "{}", fmt::format( fmt::runtime( fmt_str ),
-                             std::forward<Args>( args )... ) );
+    // TODO: replace with std::runtime_format when available.
+    frag( "{}", std::vformat( fmt_str, std::make_format_args(
+                                           args... ) ) );
     flush();
   }
 

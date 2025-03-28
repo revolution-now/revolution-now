@@ -241,9 +241,9 @@ std::string naval_battle_opponent_clause(
           opposing_colony.buildings[e_colony_building::fort] ||
           opposing_colony
               .buildings[e_colony_building::fortress] );
-      nation    = opposing_colony.nation;
-      unit_part = fmt::to_string(
-          config_colony.building_display_names[*fortification] );
+      nation = opposing_colony.nation;
+      unit_part =
+          config_colony.building_display_names[*fortification];
       break;
     }
     CASE( unit ) {

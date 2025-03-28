@@ -13,28 +13,43 @@
 #include "config.hpp"
 
 // C++ standard library
+#include <format>
 #include <source_location>
 
-// {fmt}
-// We should only include this file from this header so that we
-// can control which warnings are supressed.
-#ifdef __clang__
-#  pragma clang diagnostic push
-#  pragma clang diagnostic ignored "-Weverything"
-#endif
-#ifdef __GNUG__
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wnrvo"
-#endif
+namespace fmt {
 
-#include "fmt/format.h"
+// TODO: temporary to ease migration from fmt::format to std::-
+// format. We should only be using the std:: ones in new code,
+// and eventually we should migrate callers to use std:: on ex-
+// isting fmt:: calls.
+using ::std::format;
+using ::std::format_context;
+using ::std::format_error;
+using ::std::format_string;
+using ::std::formatter;
+using ::std::to_string;
 
-#ifdef __GNUG__
-#  pragma GCC diagnostic pop
-#endif
-#ifdef __clang__
-#  pragma clang diagnostic pop
-#endif
+// TODO: remove once we have std::print.
+template<typename... Args>
+inline void print( std::format_string<Args...> const fmt,
+                   Args&&... args ) {
+  std::printf(
+      "%s",
+      std::vformat( fmt.get(), std::make_format_args( args... ) )
+          .c_str() );
+}
+
+// TODO: remove once we have std::println.
+template<typename... Args>
+inline void println( std::format_string<Args...> const fmt,
+                     Args&&... args ) {
+  std::printf(
+      "%s\n",
+      std::vformat( fmt.get(), std::make_format_args( args... ) )
+          .c_str() );
+}
+
+} // namespace fmt
 
 namespace base {
 

@@ -57,14 +57,14 @@ namespace {
 using ::base::lg;
 
 template<typename T>
-auto handle_pointer( T&& arg ) {
+decltype( auto ) handle_pointer( T&& arg ) {
   if constexpr( is_pointer_v<remove_cvref_t<T>> ) {
     if( arg == nullptr )
-      return "nullptr";
+      return "<nullptr>";
     else
       return "<pointer>";
   } else {
-    return arg;
+    return std::forward<T>( arg );
   }
 }
 

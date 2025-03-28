@@ -13,6 +13,9 @@
 // base
 #include "base/logger.hpp"
 
+// C++ standard library
+#include <cmath>
+
 using namespace std;
 
 namespace gfx {

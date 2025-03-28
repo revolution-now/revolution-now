@@ -70,7 +70,8 @@ base::expect<Shader> Shader::create( e_shader_type type,
     GL_CHECK( CALL_GL( gl_GetShaderInfoLog, id, kErrorLength,
                        NULL, errors ) );
     return fmt::format( "{} shader compilation failed: {}",
-                        base::to_str( type ), errors );
+                        base::to_str( type ),
+                        static_cast<char const*>( errors ) );
   }
   return Shader( id );
 }

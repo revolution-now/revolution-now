@@ -16,6 +16,7 @@
 #include "string.hpp"
 
 // C++ standard library
+#include <iostream> // FIXME: remove when we get std::print.
 #include <string_view>
 
 using namespace std;
@@ -73,9 +74,9 @@ ProgramArguments parse_args_or_die_with_usage(
     std::span<std::string const> args ) {
   expect<ProgramArguments> parsed = parse_args( args );
   if( parsed ) return std::move( *parsed );
-  fmt::print( stderr,
-              "failed to parse command-line arguments: {}\n",
-              parsed.error() );
+  cerr << fmt::format(
+      "failed to parse command-line arguments: {}\n",
+      parsed.error() );
   std::exit( 1 );
 }
 

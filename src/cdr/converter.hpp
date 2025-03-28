@@ -216,9 +216,11 @@ struct converter {
   template<typename Arg1, typename... Args>
   scoped_frame frame( std::string_view fmt_str, Arg1&& arg1,
                       Args&&... args ) & {
-    return frame( fmt::format( fmt::runtime( fmt_str ),
-                               std::forward<Arg1>( arg1 ),
-                               std::forward<Args>( args )... ) );
+    // TODO: replace with std::runtime_format when available.
+    return frame( std::vformat(
+        fmt_str, std::make_format_args(
+                     std::forward<Arg1>( arg1 ),
+                     std::forward<Args>( args )... ) ) );
   }
 
   options options_ = {};

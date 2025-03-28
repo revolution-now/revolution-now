@@ -142,8 +142,16 @@ auto line_logger( vector<string>& lines ATTR_LIFETIMEBOUND ) {
     // losing compile-time format string checking because that
     // has already been done by the construction of fmt_str upon
     // calling this function.
-    lines.push_back( fmt::format( fmt::runtime( fmt_str ),
-                                  fmt_type( args )... ) );
+    //
+    // TODO: change to std::runtime_format when possible.
+    tuple const storage{ fmt_type( args )... };
+    lines.push_back( std::vformat(
+        fmt_str.get(), apply(
+                           []( auto&&... os ) {
+                             return std::make_format_args(
+                                 os... );
+                           },
+                           storage ) ) );
   };
 }
 

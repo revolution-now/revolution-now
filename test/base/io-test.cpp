@@ -16,6 +16,9 @@
 // Must be last.
 #include "test/catch-common.hpp"
 
+// C++ standard library
+#include <cstring>
+
 namespace base {
 namespace {
 

@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "vertex.hpp"
 
+// C++ standard library
+#include <cmath>
+
 using namespace std;
 
 namespace rr {

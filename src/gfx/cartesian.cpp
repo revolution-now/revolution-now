@@ -13,6 +13,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// C++ standard library
+#include <cmath>
+
 using namespace std;
 
 namespace gfx {

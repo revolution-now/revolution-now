@@ -688,7 +688,7 @@ wait<bool> AttackNativeUnitHandler::confirm() {
         .msg = fmt::format(
             "Shall we attack the [{}]?",
             ts_.gui.identifier_to_display_name(
-                fmt::to_string( defender_tribe_.type ) ) ),
+                base::to_str( defender_tribe_.type ) ) ),
         .yes_label      = "Attack",
         .no_label       = "Cancel",
         .no_comes_first = true };

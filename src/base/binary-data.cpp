@@ -10,6 +10,9 @@
 *****************************************************************/
 #include "binary-data.hpp"
 
+// C++ standard library
+#include <cstring>
+
 using namespace std;
 
 namespace base {

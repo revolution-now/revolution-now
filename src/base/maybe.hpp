@@ -17,7 +17,6 @@
 #include "attributes.hpp"
 #include "auto-field.hpp"
 #include "error.hpp"
-#include "fmt.hpp"
 #include "meta.hpp"
 #include "to-str.hpp"
 
@@ -1591,38 +1590,3 @@ struct hash<::base::maybe<T>> {
 };
 
 } // namespace std
-
-/****************************************************************
-** {fmt}
-*****************************************************************/
-// {fmt} formatter for formatting maybes whose contained
-// type is formattable.
-template<typename T> /* clang-format off */
-requires( bool( ::fmt::has_formatter<
-        std::remove_cvref_t<T>, ::fmt::format_context>() ) )
-struct fmt::
-    formatter<base::maybe<T>> : fmt::formatter<std::string> {
-  /* clang-format on */
-  using formatter_base = fmt::formatter<std::string>;
-  template<typename FormatContext>
-  auto format( base::maybe<T> const& o,
-               FormatContext& ctx ) const {
-    static const std::string nothing_str( "nothing" );
-    return formatter_base::format(
-        o.has_value() ? fmt::format( "{}", *o ) : nothing_str,
-        ctx );
-  }
-};
-
-// {fmt} formatter for formatting nothing_t.
-template<>
-struct fmt::formatter<base::nothing_t>
-  : fmt::formatter<std::string> {
-  using formatter_base = fmt::formatter<std::string>;
-  template<typename FormatContext>
-  auto format( base::nothing_t const&,
-               FormatContext& ctx ) const {
-    static const std::string nothing_str( "nothing" );
-    return formatter_base::format( nothing_str, ctx );
-  }
-};

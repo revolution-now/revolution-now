@@ -13,7 +13,6 @@
 #include "config.hpp"
 
 // base
-#include "fmt.hpp"
 #include "maybe.hpp"
 #include "meta.hpp"
 #include "to-str.hpp"
@@ -1737,28 +1736,3 @@ void swap( ::base::expect<T, E>& lhs, ::base::expect<T, E>& rhs )
 }
 
 } // namespace std
-
-/****************************************************************
-** {fmt}
-*****************************************************************/
-// {fmt} formatter for formatting expect's whose contained types
-// are formattable.
-template<typename T, typename E> /* clang-format off */
-requires( bool( ::fmt::has_formatter<
-             std::remove_cvref_t<T>, ::fmt::format_context>() )
-       && bool( ::fmt::has_formatter<
-             std::remove_cvref_t<E>, ::fmt::format_context>() ) )
-struct fmt::formatter<base::expect<T, E>>
-  : fmt::formatter<std::string> /* clang-format on */ {
-  using formatter_base = fmt::formatter<std::string>;
-  template<typename FormatContext>
-  auto format( base::expect<T, E> const& e,
-               FormatContext& ctx ) const {
-    if( e.has_value() )
-      return formatter_base::format( fmt::format( "{}", *e ),
-                                     ctx );
-    else
-      return formatter_base::format(
-          fmt::format( "unexpected{{{}}}", e.error() ), ctx );
-  }
-};

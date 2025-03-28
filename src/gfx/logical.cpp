@@ -14,6 +14,7 @@
 #include "resolution-enum.hpp"
 
 // C++ standard library
+#include <cmath>
 #include <unordered_set>
 
 using namespace std;

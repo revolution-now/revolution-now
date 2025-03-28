@@ -40,8 +40,8 @@ void vertical_json_list_impl( vector<string> const& items,
   }
   out += '\n';
   for( int i = 0; i < int( items.size() ); ++i ) {
-    string formatted = fmt::to_string( items[i] );
-    auto lines       = base::str_split( formatted, '\n' );
+    string const& formatted = items[i];
+    auto lines              = base::str_split( formatted, '\n' );
     for( string_view line : lines )
       out += fmt::format( "  {}\n", line );
     if( i != int( items.size() ) - 1 ) {
@@ -67,11 +67,11 @@ void vertical_map_impl(
   out += '\n';
   int i = 0;
   for( auto const& [k, v] : items ) {
-    std::string formatted_k = fmt::to_string( k );
+    string const& formatted_k = k;
     out += "  ";
     out += formatted_k;
     out += '=';
-    std::string formatted_v = fmt::to_string( v );
+    string const& formatted_v = v;
     auto lines = base::str_split( formatted_v, '\n' );
     for( int j = 0; j < int( lines.size() ); ++j ) {
       if( j != 0 ) out += "  ";
