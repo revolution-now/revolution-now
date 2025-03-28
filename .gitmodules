@@ -1,9 +1,6 @@
 [submodule "extern/base-util"]
 	path = extern/base-util
 	url = ../../no-more-secrets/base-util.git
-[submodule "extern/fmt"]
-	path = extern/fmt
-	url = https://github.com/fmtlib/fmt.git
 [submodule "extern/backward-cpp"]
 	path = extern/backward-cpp
 	url = ../backward-cpp.git
