@@ -66,7 +66,6 @@ set( RTMIDI_BUILD_SHARED_LIBS NO  )
 
 add_subdirectory( extern/base-util/src EXCLUDE_FROM_ALL )
 add_subdirectory( extern/backward-cpp  EXCLUDE_FROM_ALL )
-add_subdirectory( extern/fmt           EXCLUDE_FROM_ALL )
 add_subdirectory( extern/midifile      EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rtmidi        EXCLUDE_FROM_ALL )
 add_subdirectory( extern/rg-2-midi/src EXCLUDE_FROM_ALL )

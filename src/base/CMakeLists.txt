@@ -5,7 +5,6 @@ add_rn_library(
   rn-base
   # Dependencies
   base-util
-  fmt::fmt
 )
 
 target_compile_definitions(
