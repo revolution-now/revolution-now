@@ -1345,7 +1345,7 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
           ss.units.unit_for( id ) );
     } );
     if( units.empty() ) co_return;
-    for( UnitId id : units ) q.push_back( id );
+    q = deque( units.begin(), units.end() );
   }
 }
 

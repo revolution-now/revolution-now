@@ -180,9 +180,8 @@ result<std::queue<T>> from_canonical( converter& conv,
                                       value const& v,
                                       tag_t<std::queue<T>> ) {
   UNWRAP_RETURN( data, conv.from<std::vector<T>>( v ) );
-  std::queue<T> q;
-  for( auto& e : data ) q.emplace( std::move( e ) );
-  return result<std::queue<T>>( std::move( q ) );
+  return result<std::queue<T>>(
+      std::queue<T>( data.begin(), data.end() ) );
 }
 
 /****************************************************************
@@ -193,9 +192,8 @@ result<std::deque<T>> from_canonical( converter& conv,
                                       value const& v,
                                       tag_t<std::deque<T>> ) {
   UNWRAP_RETURN( data, conv.from<std::vector<T>>( v ) );
-  std::deque<T> q;
-  for( auto& e : data ) q.push_back( std::move( e ) );
-  return result<std::deque<T>>( std::move( q ) );
+  return result<std::deque<T>>(
+      std::deque<T>( data.begin(), data.end() ) );
 }
 
 /****************************************************************
