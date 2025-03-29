@@ -672,7 +672,7 @@ wait<EndOfTurnResult> process_input_eot( IEngine& engine, SS& ss,
           .eot_get_next_input(),   //
       std::move( wait_for_button ) //
   );
-  co_return co_await base::visit(
+  co_return co_await visit(
       command, LC( process_player_input_eot( engine, _, ss, ts,
                                              player ) ) );
 }

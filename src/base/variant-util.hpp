@@ -298,8 +298,8 @@ decltype( auto ) overload_visit( variant<VarArgs...> const& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return base::visit(
-      overload{ std::forward<Funcs>( funcs )... }, v );
+  return std::visit( overload{ std::forward<Funcs>( funcs )... },
+                     v );
 }
 
 template<typename... VarArgs, typename... Funcs>
@@ -307,8 +307,8 @@ decltype( auto ) overload_visit( variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return base::visit(
-      overload{ std::forward<Funcs>( funcs )... }, v );
+  return std::visit( overload{ std::forward<Funcs>( funcs )... },
+                     v );
 }
 
 // Allows forcing return type.
@@ -317,7 +317,7 @@ decltype( auto ) overload_visit( variant<VarArgs...> const& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return base::visit<Ret>(
+  return std::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }
 
@@ -327,7 +327,7 @@ decltype( auto ) overload_visit( variant<VarArgs...>& v,
                                  Funcs&&... funcs ) {
   detail::visit_checks<mp::list<VarArgs...>,
                        mp::list<Funcs...>>::go();
-  return base::visit<Ret>(
+  return std::visit<Ret>(
       overload{ std::forward<Funcs>( funcs )... }, v );
 }
 

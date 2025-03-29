@@ -62,10 +62,9 @@ void perform_on_item_type(
     base::function_ref<void( T const& )> func ) {
   for( expr::Item const& item : rds.items ) {
     for( expr::Construct const& construct : item.constructs ) {
-      base::visit(
-          mp::overload{ [&]( T const& o ) { func( o ); },
-                        []( auto const& ) {} },
-          construct );
+      std::visit( mp::overload{ [&]( T const& o ) { func( o ); },
+                                []( auto const& ) {} },
+                  construct );
     }
   }
 }
@@ -76,9 +75,9 @@ void perform_on_item_type(
     expr::Rds& rds, base::function_ref<void( T& )> func ) {
   for( expr::Item& item : rds.items ) {
     for( expr::Construct& construct : item.constructs ) {
-      base::visit( mp::overload{ [&]( T& o ) { func( o ); },
-                                 []( auto& ) {} },
-                   construct );
+      std::visit( mp::overload{ [&]( T& o ) { func( o ); },
+                                []( auto& ) {} },
+                  construct );
     }
   }
 }

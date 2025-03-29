@@ -82,9 +82,8 @@ struct standard_emitter {
         nested_val.get<table>().size() != 1 )
       out += ' ';
 
-    base::visit(
-        [&]( auto const& o ) { emit( o, out, indent ); },
-        nested_val.as_base() );
+    visit( [&]( auto const& o ) { emit( o, out, indent ); },
+           nested_val.as_base() );
   }
 
   void emit_table( table const& o, string& out, int indent ) {
@@ -111,7 +110,7 @@ struct standard_emitter {
       do_indent( indent, out );
       out += k_str;
       out += assign;
-      base::visit(
+      visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
           v.as_base() );
       out += '\n';
@@ -147,8 +146,8 @@ struct standard_emitter {
 
     for( value const& v : o ) {
       do_indent( indent, out );
-      base::visit( list_visitor{ *this, out, indent + 1 },
-                   v.as_base() );
+      visit( list_visitor{ *this, out, indent + 1 },
+             v.as_base() );
       out += ",\n";
     }
 
@@ -217,7 +216,7 @@ struct json_emitter {
       do_indent( indent, out );
       out += json_quote( *k );
       out += ": ";
-      base::visit(
+      visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
           v->as_base() );
       if( idx++ < int( key_order.size() - 1 ) ) out += ',';
@@ -240,7 +239,7 @@ struct json_emitter {
       do_indent( indent, out );
       out += json_quote( k );
       out += ": ";
-      base::visit(
+      visit(
           [&]( auto const& o ) { emit( o, out, indent + 1 ); },
           v.as_base() );
       if( idx++ < int( o.size() - 1 ) ) out += ',';
@@ -285,8 +284,8 @@ struct json_emitter {
     int idx = 0;
     for( value const& v : o ) {
       do_indent( indent, out );
-      base::visit( list_visitor{ *this, out, indent + 1 },
-                   v.as_base() );
+      visit( list_visitor{ *this, out, indent + 1 },
+             v.as_base() );
       if( idx++ < int( o.size() - 1 ) ) out += ',';
       out += '\n';
     }

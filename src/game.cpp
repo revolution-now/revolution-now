@@ -276,7 +276,7 @@ wait<> run_game_with_mode( IEngine& engine, Planes& planes,
   StartMode next_mode = mode;
   while( true ) {
     try {
-      co_await base::visit(
+      co_await visit(
           [&]( auto& m ) {
             return handle_mode( engine, planes, gui, m );
           },

@@ -241,36 +241,3 @@ struct variant_alternative<I, ::base::variant<Types...>>
   : public variant_alternative<I, variant<Types...>> {};
 
 } // namespace std
-
-/****************************************************************
-** std::visit specializations.
-*****************************************************************/
-namespace base {
-
-template<typename Visitor, typename... Variants>
-/* clang-format off */
-  requires( std::conjunction_v<::base::is_base_variant<
-              std::remove_cvref_t<Variants>>...> ) //
-decltype( auto ) visit( Visitor&& visitor, Variants&&... variants ) {
-  /* clang-format on */
-  return ::std::visit(
-      std::forward<Visitor>( visitor ),
-      std::forward<
-          decltype( std::declval<Variants>().as_std() )>(
-          variants.as_std() )... );
-}
-
-template<typename T, typename Visitor, typename... Variants>
-/* clang-format off */
-  requires( std::conjunction_v<::base::is_base_variant<
-              std::remove_cvref_t<Variants>>...> ) //
-T visit( Visitor&& visitor, Variants&&... variants ) {
-  /* clang-format on */
-  return ::std::visit<T>(
-      std::forward<Visitor>( visitor ),
-      std::forward<
-          decltype( std::declval<Variants>().as_std() )>(
-          variants.as_std() )... );
-}
-
-} // namespace base

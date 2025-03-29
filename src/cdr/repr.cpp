@@ -136,14 +136,13 @@ string_view type_name( value const& v ) {
     string_view operator()( table ) const { return "table"; }
     string_view operator()( list ) const { return "list"; }
   };
-  return base::visit( visitor{}, v.as_base() );
+  return visit( visitor{}, v.as_base() );
 }
 
 void to_str( value const& o, std::string& out,
              base::tag<value> ) {
-  base::visit(
-      [&]( auto const& alt ) { base::to_str( alt, out ); },
-      o.as_base() );
+  visit( [&]( auto const& alt ) { base::to_str( alt, out ); },
+         o.as_base() );
 }
 
 } // namespace cdr
