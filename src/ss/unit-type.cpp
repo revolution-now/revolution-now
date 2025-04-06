@@ -242,29 +242,15 @@ maybe<UnitType> find_unit_type_modifiers(
   return nothing;
 }
 
-bool is_unit_a_colonist( UnitType ut ) {
-  e_unit_colonist res =
-      config_unit_type.composition.unit_types[ut.type()]
-          .colonist;
-  switch( res ) {
+bool is_unit_a_colonist( UnitType const ut ) {
+  auto const& types = config_unit_type.composition.unit_types;
+  switch( types[ut.type()].colonist ) {
     case e_unit_colonist::no:
       return false;
     case e_unit_colonist::yes:
       return true;
-    case e_unit_colonist::from_base: {
-      res =
-          config_unit_type.composition.unit_types[ut.base_type()]
-              .colonist;
-      switch( res ) {
-        case e_unit_colonist::no:
-          return false;
-        case e_unit_colonist::yes:
-          return true;
-        case e_unit_colonist::from_base: {
-          SHOULD_NOT_BE_HERE;
-        }
-      }
-    }
+    case e_unit_colonist::from_base:
+      return is_unit_a_colonist( types[ut.base_type()].type );
   }
 }
 
