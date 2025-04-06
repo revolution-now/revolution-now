@@ -435,7 +435,9 @@ wait<> AttackColonyUndefendedHandler::perform() {
   // location.
   change_colony_nation( ss_, ts_, colony_, attacker_.nation() );
 
-  // 7. Announce capture.
+  // 7. Make adjustments to SoL of colony.
+
+  // 8. Announce capture.
   // TODO: add an interface method to IGui for playing music.
   // conductor::play_request(
   //     ts_.rand, conductor::e_request::fife_drum_happy,
