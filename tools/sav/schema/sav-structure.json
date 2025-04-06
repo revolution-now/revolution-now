@@ -413,9 +413,9 @@
                 "map_size_y",
                 "tutorial_help",
                 "unknown03",
-                "game_options",
+                "game_flags_1",
                 "colony_report_options_to_disable",
-                "flags",
+                "game_flags_2",
                 "unknown39",
                 "year",
                 "season",
@@ -458,32 +458,39 @@
                 "bit_struct":
                 {
                     "__key_order": [
-                        "unknown00",
-                        "unknown01",
+                        "hint_pioneer",
+                        "hint_soldier",
                         "unknown02",
-                        "unknown03",
-                        "unknown04",
-                        "unknown05",
+                        "hint_new_colonist_in_colony",
+                        "hint_food_deficit",
+                        "hint_harbor",
                         "unknown06",
-                        "unknown07"
+                        "hint_native_convert"
                     ],
-                    "unknown00": {"size": 1, "type": "bit_bool"},
-                    "unknown01": {"size": 1, "type": "bit_bool"},
+                    "hint_pioneer": {"size": 1, "type": "bit_bool", "__hint": "Triggered the first time a pioneer asks for orders, gives hints regarding pioneers and colony placement."},
+                    "hint_soldier": {"size": 1, "type": "bit_bool", "__hint": "Triggered the first time a soldier asks for orders."},
                     "unknown02": {"size": 1, "type": "bit_bool"},
-                    "unknown03": {"size": 1, "type": "bit_bool"},
-                    "unknown04": {"size": 1, "type": "bit_bool"},
-                    "unknown05": {"size": 1, "type": "bit_bool"},
+                    "hint_new_colonist_in_colony": {"size": 1, "type": "bit_bool", "__hint": "Message shown the first time a new colonist arrives in a colony (typically from Europe, via ship)."},
+                    "hint_food_deficit": {"size": 1, "type": "bit_bool", "__hint": "Shown in a colony the first time there is a food deficit."},
+                    "hint_harbor": {"size": 1, "type": "bit_bool", "__hint": "Hint message that appears the first time a ship arrives in harbor."},
                     "unknown06": {"size": 1, "type": "bit_bool"},
-                    "unknown07": {"size": 1, "type": "bit_bool"}
+                    "hint_native_convert": {"size": 1, "type": "bit_bool", "__hint": "Triggered on first native convert (due to a mission), explains what a convert is."}
                 }
             },
             "unknown03": {"size": 1},
-            "game_options":
+            "game_flags_1":
             {
+                "__hint": "Some of these are options settable in the UI while others are to hold game state.",
                 "bit_struct":
                 {
                     "__key_order": [
-                        "unused01",
+                        "independence_declared",
+                        "deploy_intervention_force",
+                        "independence_war_intro",
+                        "won_independence",
+                        "score_sequence_done",
+                        "ref_will_forfeight",
+                        "ref_captured_colony",
                         "tutorial_hints",
                         "disable_water_color_cycling",
                         "combat_analysis",
@@ -494,7 +501,13 @@
                         "show_foreign_moves",
                         "show_indian_moves"
                     ],
-                    "unused01": {"size": 7, "__hint": "some of these appear used for tracking revolution status."},
+                    "independence_declared": {"size": 1, "type": "bit_bool"},
+                    "deploy_intervention_force": {"size": 1, "type": "bit_bool", "__hint": "When true, a segment of the intervention force will be deployed each turn until it has all arrived."},
+                    "independence_war_intro": {"size": 1, "type": "bit_bool", "__hint": "Gave the player some hint messages regarding the war of independence."},
+                    "won_independence": {"size": 1, "type": "bit_bool"},
+                    "score_sequence_done": {"size": 1, "type": "bit_bool", "__hint": "Gets set to true after the final score is computed, recorded, and the player is shown their rankings."},
+                    "ref_will_forfeight": {"size": 1, "type": "bit_bool", "__hint": "When true, the REF forces are considered to have been defeated, even if there are some remaining."},
+                    "ref_captured_colony": {"size": 1, "type": "bit_bool", "__hint": "Seems to be set the first time the REF captures a colony, but not sure of its purpose."},
                     "tutorial_hints": {"size": 1, "type": "bit_bool"},
                     "disable_water_color_cycling": {"size": 1, "type": "bit_bool"},
                     "combat_analysis": {"size": 1, "type": "bit_bool"},
@@ -537,8 +550,9 @@
                     "unused03": {"size": 6}
                 }
             },
-            "flags":
+            "game_flags_2":
             {
+                "__hint": "Some of these are options settable in the UI while others are to hold game state.",
                 "bit_struct":
                 {
                     "__key_order": [
@@ -546,35 +560,35 @@
                         "background_music",
                         "event_music",
                         "sound_effects",
-                        "unknown00",
-                        "unknown01",
-                        "unknown02",
-                        "unknown03",
-                        "unknown04",
-                        "unknown05",
-                        "unknown06",
-                        "unknown07",
-                        "unknown08",
-                        "unknown09",
-                        "unknown10",
-                        "unknown11"
+                        "hint_how_to_move_ship",
+                        "unknown_hint01",
+                        "hint_lumber_abundance",
+                        "hint_colony_view",
+                        "hint_dock_units_waiting",
+                        "hint_full_cargo",
+                        "hint_build_stockade",
+                        "hint_free_colonist",
+                        "unknown_hint08",
+                        "unknown_hint09",
+                        "hint_ship_valuable",
+                        "hint_ship_in_colony"
                     ],
-                    "how_to_win": {"size": 1, "type": "bit_bool", "__hint": "this it not tutorial hints... what is it?"},
+                    "how_to_win": {"size": 1, "type": "bit_bool", "__hint": "Set to true after showing the message that gets displayed after the player re-captures a colony from the REF, which explains how to win."},
                     "background_music": {"size": 1, "type": "bit_bool"},
                     "event_music": {"size": 1, "type": "bit_bool"},
                     "sound_effects": {"size": 1, "type": "bit_bool"},
-                    "unknown00": {"size": 1, "type": "bit_bool", "__hint": "these unknowns appear to be tutorial hints; used on discoverer level."},
-                    "unknown01": {"size": 1, "type": "bit_bool"},
-                    "unknown02": {"size": 1, "type": "bit_bool"},
-                    "unknown03": {"size": 1, "type": "bit_bool"},
-                    "unknown04": {"size": 1, "type": "bit_bool"},
-                    "unknown05": {"size": 1, "type": "bit_bool"},
-                    "unknown06": {"size": 1, "type": "bit_bool"},
-                    "unknown07": {"size": 1, "type": "bit_bool"},
-                    "unknown08": {"size": 1, "type": "bit_bool"},
-                    "unknown09": {"size": 1, "type": "bit_bool"},
-                    "unknown10": {"size": 1, "type": "bit_bool"},
-                    "unknown11": {"size": 1, "type": "bit_bool"}
+                    "hint_how_to_move_ship": {"size": 1, "type": "bit_bool", "__hint": "Initial hint on how to move the first ship on first turn."},
+                    "unknown_hint01": {"size": 1, "type": "bit_bool", "__hint": ""},
+                    "hint_lumber_abundance": {"size": 1, "type": "bit_bool", "__hint": "Message saying that there is an abundance of lumber in the area and so it is a good spot for a colony."},
+                    "hint_colony_view": {"size": 1, "type": "bit_bool", "__hint": "Initial intro message upon opening first colony screen."},
+                    "hint_dock_units_waiting": {"size": 1, "type": "bit_bool", "__hint": "Hint saying that there are units waiting on the dock and how to fetch them."},
+                    "hint_full_cargo": {"size": 1, "type": "bit_bool", "__hint": "Message shown when a full cargo of something is reached in a colony, explaining how to take it to Europe to sell it."},
+                    "hint_build_stockade": {"size": 1, "type": "bit_bool", "__hint": "Message shown the first time a colony population hits three, instructing on how to build a Stockade."},
+                    "hint_free_colonist": {"size": 1, "type": "bit_bool", "__hint": "Shown the first time a Free Colonist asks for orders, explains that he can be moved into a native village to gain a specialty."},
+                    "unknown_hint08": {"size": 1, "type": "bit_bool", "__hint": ""},
+                    "unknown_hint09": {"size": 1, "type": "bit_bool", "__hint": ""},
+                    "hint_ship_valuable": {"size": 1, "type": "bit_bool", "__hint": "Message saying 'Our ship is one of our most valuable units...'"},
+                    "hint_ship_in_colony": {"size": 1, "type": "bit_bool", "__hint": "Message about cargo the first time a ship arrives in a colony."}
                 }
             },
             "unknown39": {"size": 2},
@@ -785,7 +799,7 @@
                     "unknown00": {"size": 1, "type": "bit_bool"},
                     "level2_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 100% SoL membership."},
                     "level1_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 50% SoL membership."},
-                    "unknown03": {"size": 1, "type": "bit_bool"},
+                    "unknown03": {"size": 1, "type": "bit_bool", "__hint": "appears to become true after independence is declared."},
                     "unknown04": {"size": 1, "type": "bit_bool"},
                     "unknown05": {"size": 1, "type": "bit_bool"},
                     "unknown06": {"size": 1, "type": "bit_bool"},
@@ -1119,7 +1133,7 @@
                 "unknown26c",
                 "trade"
             ],
-            "unknown19": {"size": 1},
+            "unknown19": {"size": 1, "__hint": "observed to go from 0x40 to 0x48 after independence declared."},
             "tax_rate": {"size": 1, "type": "uint"},
             "recruit": {"size": 1, "cols": 3, "type": "profession_type", "no_indent": true},
             "unused07": {"size": 1},
@@ -1429,8 +1443,10 @@
             {
                 "bit_struct":
                 {
-                    "__key_order": ["unknown01", "extinct"],
-                    "unknown01": {"size": 7},
+                    "__key_order": ["unknown01", "joined_ref", "unknown02", "extinct"],
+                    "unknown01": {"size": 5},
+                    "joined_ref": {"size": 1, "type": "bit_bool", "__hint": "The tribe has joined forces with the REF."},
+                    "unknown02": {"size": 1},
                     "extinct": {"size": 1, "type": "bit_bool"}
                 }
             },

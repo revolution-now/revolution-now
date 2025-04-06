@@ -941,14 +941,14 @@ cdr::result<yes_no_byte> from_canonical(
 ** TutorialHelp
 *****************************************************************/
 struct TutorialHelp {
-  bool unknown00 : 1 = {};
-  bool unknown01 : 1 = {};
+  bool hint_pioneer : 1 = {};
+  bool hint_soldier : 1 = {};
   bool unknown02 : 1 = {};
-  bool unknown03 : 1 = {};
-  bool unknown04 : 1 = {};
-  bool unknown05 : 1 = {};
+  bool hint_new_colonist_in_colony : 1 = {};
+  bool hint_food_deficit : 1 = {};
+  bool hint_harbor : 1 = {};
   bool unknown06 : 1 = {};
-  bool unknown07 : 1 = {};
+  bool hint_native_convert : 1 = {};
 
   bool operator==( TutorialHelp const& ) const = default;
 };
@@ -972,10 +972,16 @@ cdr::result<TutorialHelp> from_canonical(
                          cdr::tag_t<TutorialHelp> );
 
 /****************************************************************
-** GameOptions
+** GameFlags1
 *****************************************************************/
-struct GameOptions {
-  uint8_t unused01 : 7 = {};
+struct GameFlags1 {
+  bool independence_declared : 1 = {};
+  bool deploy_intervention_force : 1 = {};
+  bool independence_war_intro : 1 = {};
+  bool won_independence : 1 = {};
+  bool score_sequence_done : 1 = {};
+  bool ref_will_forfeight : 1 = {};
+  bool ref_captured_colony : 1 = {};
   bool tutorial_hints : 1 = {};
   bool disable_water_color_cycling : 1 = {};
   bool combat_analysis : 1 = {};
@@ -986,26 +992,26 @@ struct GameOptions {
   bool show_foreign_moves : 1 = {};
   bool show_indian_moves : 1 = {};
 
-  bool operator==( GameOptions const& ) const = default;
+  bool operator==( GameFlags1 const& ) const = default;
 };
 
 // String conversion.
-void to_str( GameOptions const& o, std::string& out, base::tag<GameOptions> );
+void to_str( GameFlags1 const& o, std::string& out, base::tag<GameFlags1> );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, GameOptions& o );
+bool read_binary( base::IBinaryIO& b, GameFlags1& o );
 
-bool write_binary( base::IBinaryIO& b, GameOptions const& o );
+bool write_binary( base::IBinaryIO& b, GameFlags1 const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         GameOptions const& o,
-                         cdr::tag_t<GameOptions> );
+                         GameFlags1 const& o,
+                         cdr::tag_t<GameFlags1> );
 
-cdr::result<GameOptions> from_canonical(
+cdr::result<GameFlags1> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<GameOptions> );
+                         cdr::tag_t<GameFlags1> );
 
 /****************************************************************
 ** ColonyReportOptionsToDisable
@@ -1045,46 +1051,46 @@ cdr::result<ColonyReportOptionsToDisable> from_canonical(
                          cdr::tag_t<ColonyReportOptionsToDisable> );
 
 /****************************************************************
-** Flags
+** GameFlags2
 *****************************************************************/
-struct Flags {
+struct GameFlags2 {
   bool how_to_win : 1 = {};
   bool background_music : 1 = {};
   bool event_music : 1 = {};
   bool sound_effects : 1 = {};
-  bool unknown00 : 1 = {};
-  bool unknown01 : 1 = {};
-  bool unknown02 : 1 = {};
-  bool unknown03 : 1 = {};
-  bool unknown04 : 1 = {};
-  bool unknown05 : 1 = {};
-  bool unknown06 : 1 = {};
-  bool unknown07 : 1 = {};
-  bool unknown08 : 1 = {};
-  bool unknown09 : 1 = {};
-  bool unknown10 : 1 = {};
-  bool unknown11 : 1 = {};
+  bool hint_how_to_move_ship : 1 = {};
+  bool unknown_hint01 : 1 = {};
+  bool hint_lumber_abundance : 1 = {};
+  bool hint_colony_view : 1 = {};
+  bool hint_dock_units_waiting : 1 = {};
+  bool hint_full_cargo : 1 = {};
+  bool hint_build_stockade : 1 = {};
+  bool hint_free_colonist : 1 = {};
+  bool unknown_hint08 : 1 = {};
+  bool unknown_hint09 : 1 = {};
+  bool hint_ship_valuable : 1 = {};
+  bool hint_ship_in_colony : 1 = {};
 
-  bool operator==( Flags const& ) const = default;
+  bool operator==( GameFlags2 const& ) const = default;
 };
 
 // String conversion.
-void to_str( Flags const& o, std::string& out, base::tag<Flags> );
+void to_str( GameFlags2 const& o, std::string& out, base::tag<GameFlags2> );
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Flags& o );
+bool read_binary( base::IBinaryIO& b, GameFlags2& o );
 
-bool write_binary( base::IBinaryIO& b, Flags const& o );
+bool write_binary( base::IBinaryIO& b, GameFlags2 const& o );
 
 // Cdr conversions.
 cdr::value to_canonical( cdr::converter& conv,
-                         Flags const& o,
-                         cdr::tag_t<Flags> );
+                         GameFlags2 const& o,
+                         cdr::tag_t<GameFlags2> );
 
-cdr::result<Flags> from_canonical(
+cdr::result<GameFlags2> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Flags> );
+                         cdr::tag_t<GameFlags2> );
 
 /****************************************************************
 ** Event
@@ -1608,7 +1614,9 @@ cdr::result<Mission> from_canonical(
 ** TribeFlags
 *****************************************************************/
 struct TribeFlags {
-  uint8_t unknown01 : 7 = {};
+  uint8_t unknown01 : 5 = {};
+  bool joined_ref : 1 = {};
+  uint8_t unknown02 : 1 = {};
   bool extinct : 1 = {};
 
   bool operator==( TribeFlags const& ) const = default;
@@ -2320,9 +2328,9 @@ struct HEADER {
   uint16_t map_size_y = {};
   TutorialHelp tutorial_help = {};
   bytes<1> unknown03 = {};
-  GameOptions game_options = {};
+  GameFlags1 game_flags_1 = {};
   ColonyReportOptionsToDisable colony_report_options_to_disable = {};
-  Flags flags = {};
+  GameFlags2 game_flags_2 = {};
   bytes<2> unknown39 = {};
   uint16_t year = {};
   season_type season = {};

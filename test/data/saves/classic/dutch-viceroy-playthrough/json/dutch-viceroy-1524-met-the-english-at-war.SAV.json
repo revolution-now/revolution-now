@@ -5,18 +5,24 @@
     "map_size_x": 58,
     "map_size_y": 72,
     "tutorial_help": {
-      "unknown00": false,
-      "unknown01": false,
+      "hint_pioneer": false,
+      "hint_soldier": false,
       "unknown02": false,
-      "unknown03": false,
-      "unknown04": false,
-      "unknown05": false,
+      "hint_new_colonist_in_colony": false,
+      "hint_food_deficit": false,
+      "hint_harbor": false,
       "unknown06": false,
-      "unknown07": false
+      "hint_native_convert": false
     },
     "unknown03": "00",
-    "game_options": {
-      "unused01": "0000000",
+    "game_flags_1": {
+      "independence_declared": false,
+      "deploy_intervention_force": false,
+      "independence_war_intro": false,
+      "won_independence": false,
+      "score_sequence_done": false,
+      "ref_will_forfeight": false,
+      "ref_captured_colony": false,
       "tutorial_hints": false,
       "disable_water_color_cycling": true,
       "combat_analysis": false,
@@ -40,23 +46,23 @@
       "report_rebel_majorities": false,
       "unused03": "000000"
     },
-    "flags": {
+    "game_flags_2": {
       "how_to_win": false,
       "background_music": true,
       "event_music": true,
       "sound_effects": true,
-      "unknown00": false,
-      "unknown01": false,
-      "unknown02": false,
-      "unknown03": false,
-      "unknown04": false,
-      "unknown05": false,
-      "unknown06": false,
-      "unknown07": false,
-      "unknown08": false,
-      "unknown09": false,
-      "unknown10": false,
-      "unknown11": false
+      "hint_how_to_move_ship": false,
+      "unknown_hint01": false,
+      "hint_lumber_abundance": false,
+      "hint_colony_view": false,
+      "hint_dock_units_waiting": false,
+      "hint_full_cargo": false,
+      "hint_build_stockade": false,
+      "hint_free_colonist": false,
+      "unknown_hint08": false,
+      "unknown_hint09": false,
+      "hint_ship_valuable": false,
+      "hint_ship_in_colony": false
     },
     "unknown39": "00 00",
     "year": 1524,
@@ -11517,7 +11523,9 @@
       ],
       "tech": "Civilized",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 00 00",
@@ -11582,7 +11590,9 @@
       ],
       "tech": "Advanced",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 01 00",
@@ -11647,7 +11657,9 @@
       ],
       "tech": "Agrarian",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 00 00",
@@ -11712,7 +11724,9 @@
       ],
       "tech": "Agrarian",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 02 00",
@@ -11777,7 +11791,9 @@
       ],
       "tech": "Agrarian",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 00 00",
@@ -11842,7 +11858,9 @@
       ],
       "tech": "Semi-Nomadic",
       "tribe_flags": {
-        "unknown01": "1000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "1",
         "extinct": false
       },
       "unknown31b": "00 00 00",
@@ -11907,7 +11925,9 @@
       ],
       "tech": "Semi-Nomadic",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 00 00",
@@ -11972,7 +11992,9 @@
       ],
       "tech": "Semi-Nomadic",
       "tribe_flags": {
-        "unknown01": "0000000",
+        "unknown01": "00000",
+        "joined_ref": false,
+        "unknown02": "0",
         "extinct": false
       },
       "unknown31b": "00 00 00",

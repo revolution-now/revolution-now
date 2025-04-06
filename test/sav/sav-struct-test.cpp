@@ -37,7 +37,7 @@ TEST_CASE( "[sav/sav-struct] construction" ) {
 
   // Test a couple random fields.
   REQUIRE( sav.header.turn == 0 );
-  REQUIRE( sav.header.game_options.autosave == false );
+  REQUIRE( sav.header.game_flags_1.autosave == false );
   REQUIRE( sav.header.dwelling_count == 0 );
   REQUIRE( sav.header.event.the_fountain_of_youth == false );
   REQUIRE( sav.tribe[1].tech == tech_type::semi_nomadic );
@@ -83,8 +83,14 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
 
   // Bit field with bits<> type.
   {
-    GameOptions const o{
-      .unused01                    = 33,
+    GameFlags1 const o{
+      .independence_declared       = true,
+      .deploy_intervention_force   = true,
+      .independence_war_intro      = false,
+      .won_independence            = false,
+      .score_sequence_done         = true,
+      .ref_will_forfeight          = true,
+      .ref_captured_colony         = false,
       .tutorial_hints              = true,
       .disable_water_color_cycling = false,
       .combat_analysis             = true,
@@ -96,11 +102,14 @@ TEST_CASE( "[sav/sav-struct] to_str" ) {
       .show_indian_moves           = false,
     };
     expected =
-        "GameOptions{unused01=0100001,tutorial_hints=true,"
-        "disable_water_color_cycling=false,combat_analysis=true,"
-        "autosave=false,end_of_turn=false,fast_piece_slide=true,"
-        "cheats_enabled=false,show_foreign_moves=true,show_"
-        "indian_moves=false}";
+        "GameFlags1{independence_declared=true,deploy_"
+        "intervention_force=true,independence_war_intro=false,"
+        "won_independence=false,score_sequence_done=true,ref_"
+        "will_forfeight=true,ref_captured_colony=false,tutorial_"
+        "hints=true,disable_water_color_cycling=false,combat_"
+        "analysis=true,autosave=false,end_of_turn=false,fast_"
+        "piece_slide=true,cheats_enabled=false,show_foreign_"
+        "moves=true,show_indian_moves=false}";
     REQUIRE( base::to_str( o ) == expected );
   }
 }

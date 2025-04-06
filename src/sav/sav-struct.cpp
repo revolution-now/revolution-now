@@ -1836,14 +1836,14 @@ cdr::result<yes_no_byte> from_canonical(
 *****************************************************************/
 void to_str( TutorialHelp const& o, std::string& out, base::tag<TutorialHelp> ) {
   out += "TutorialHelp{";
-  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
-  out += "unknown01="; base::to_str( o.unknown01, out ); out += ',';
+  out += "hint_pioneer="; base::to_str( o.hint_pioneer, out ); out += ',';
+  out += "hint_soldier="; base::to_str( o.hint_soldier, out ); out += ',';
   out += "unknown02="; base::to_str( o.unknown02, out ); out += ',';
-  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
-  out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
-  out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
+  out += "hint_new_colonist_in_colony="; base::to_str( o.hint_new_colonist_in_colony, out ); out += ',';
+  out += "hint_food_deficit="; base::to_str( o.hint_food_deficit, out ); out += ',';
+  out += "hint_harbor="; base::to_str( o.hint_harbor, out ); out += ',';
   out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
-  out += "unknown07="; base::to_str( o.unknown07, out );
+  out += "hint_native_convert="; base::to_str( o.hint_native_convert, out );
   out += '}';
 }
 
@@ -1851,27 +1851,27 @@ void to_str( TutorialHelp const& o, std::string& out, base::tag<TutorialHelp> ) 
 bool read_binary( base::IBinaryIO& b, TutorialHelp& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
-  o.unknown00 = (bits & 0b1); bits >>= 1;
-  o.unknown01 = (bits & 0b1); bits >>= 1;
+  o.hint_pioneer = (bits & 0b1); bits >>= 1;
+  o.hint_soldier = (bits & 0b1); bits >>= 1;
   o.unknown02 = (bits & 0b1); bits >>= 1;
-  o.unknown03 = (bits & 0b1); bits >>= 1;
-  o.unknown04 = (bits & 0b1); bits >>= 1;
-  o.unknown05 = (bits & 0b1); bits >>= 1;
+  o.hint_new_colonist_in_colony = (bits & 0b1); bits >>= 1;
+  o.hint_food_deficit = (bits & 0b1); bits >>= 1;
+  o.hint_harbor = (bits & 0b1); bits >>= 1;
   o.unknown06 = (bits & 0b1); bits >>= 1;
-  o.unknown07 = (bits & 0b1); bits >>= 1;
+  o.hint_native_convert = (bits & 0b1); bits >>= 1;
   return true;
 }
 
 bool write_binary( base::IBinaryIO& b, TutorialHelp const& o ) {
   uint8_t bits = 0;
-  bits |= (o.unknown07 & 0b1); bits <<= 1;
+  bits |= (o.hint_native_convert & 0b1); bits <<= 1;
   bits |= (o.unknown06 & 0b1); bits <<= 1;
-  bits |= (o.unknown05 & 0b1); bits <<= 1;
-  bits |= (o.unknown04 & 0b1); bits <<= 1;
-  bits |= (o.unknown03 & 0b1); bits <<= 1;
+  bits |= (o.hint_harbor & 0b1); bits <<= 1;
+  bits |= (o.hint_food_deficit & 0b1); bits <<= 1;
+  bits |= (o.hint_new_colonist_in_colony & 0b1); bits <<= 1;
   bits |= (o.unknown02 & 0b1); bits <<= 1;
-  bits |= (o.unknown01 & 0b1); bits <<= 1;
-  bits |= (o.unknown00 & 0b1); bits <<= 0;
+  bits |= (o.hint_soldier & 0b1); bits <<= 1;
+  bits |= (o.hint_pioneer & 0b1); bits <<= 0;
   return b.write_bytes<1>( bits );
 }
 
@@ -1879,23 +1879,23 @@ cdr::value to_canonical( cdr::converter& conv,
                          TutorialHelp const& o,
                          cdr::tag_t<TutorialHelp> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unknown00", o.unknown00 );
-  conv.to_field( tbl, "unknown01", o.unknown01 );
+  conv.to_field( tbl, "hint_pioneer", o.hint_pioneer );
+  conv.to_field( tbl, "hint_soldier", o.hint_soldier );
   conv.to_field( tbl, "unknown02", o.unknown02 );
-  conv.to_field( tbl, "unknown03", o.unknown03 );
-  conv.to_field( tbl, "unknown04", o.unknown04 );
-  conv.to_field( tbl, "unknown05", o.unknown05 );
+  conv.to_field( tbl, "hint_new_colonist_in_colony", o.hint_new_colonist_in_colony );
+  conv.to_field( tbl, "hint_food_deficit", o.hint_food_deficit );
+  conv.to_field( tbl, "hint_harbor", o.hint_harbor );
   conv.to_field( tbl, "unknown06", o.unknown06 );
-  conv.to_field( tbl, "unknown07", o.unknown07 );
+  conv.to_field( tbl, "hint_native_convert", o.hint_native_convert );
   tbl["__key_order"] = cdr::list{
-    "unknown00",
-    "unknown01",
+    "hint_pioneer",
+    "hint_soldier",
     "unknown02",
-    "unknown03",
-    "unknown04",
-    "unknown05",
+    "hint_new_colonist_in_colony",
+    "hint_food_deficit",
+    "hint_harbor",
     "unknown06",
-    "unknown07",
+    "hint_native_convert",
   };
   return tbl;
 }
@@ -1907,24 +1907,30 @@ cdr::result<TutorialHelp> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   TutorialHelp res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unknown00", unknown00 );
-  CONV_FROM_FIELD( "unknown01", unknown01 );
+  CONV_FROM_FIELD( "hint_pioneer", hint_pioneer );
+  CONV_FROM_FIELD( "hint_soldier", hint_soldier );
   CONV_FROM_FIELD( "unknown02", unknown02 );
-  CONV_FROM_FIELD( "unknown03", unknown03 );
-  CONV_FROM_FIELD( "unknown04", unknown04 );
-  CONV_FROM_FIELD( "unknown05", unknown05 );
+  CONV_FROM_FIELD( "hint_new_colonist_in_colony", hint_new_colonist_in_colony );
+  CONV_FROM_FIELD( "hint_food_deficit", hint_food_deficit );
+  CONV_FROM_FIELD( "hint_harbor", hint_harbor );
   CONV_FROM_FIELD( "unknown06", unknown06 );
-  CONV_FROM_FIELD( "unknown07", unknown07 );
+  CONV_FROM_FIELD( "hint_native_convert", hint_native_convert );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
 
 /****************************************************************
-** GameOptions
+** GameFlags1
 *****************************************************************/
-void to_str( GameOptions const& o, std::string& out, base::tag<GameOptions> ) {
-  out += "GameOptions{";
-  out += "unused01="; base::to_str( bits<7>{ o.unused01 }, out ); out += ',';
+void to_str( GameFlags1 const& o, std::string& out, base::tag<GameFlags1> ) {
+  out += "GameFlags1{";
+  out += "independence_declared="; base::to_str( o.independence_declared, out ); out += ',';
+  out += "deploy_intervention_force="; base::to_str( o.deploy_intervention_force, out ); out += ',';
+  out += "independence_war_intro="; base::to_str( o.independence_war_intro, out ); out += ',';
+  out += "won_independence="; base::to_str( o.won_independence, out ); out += ',';
+  out += "score_sequence_done="; base::to_str( o.score_sequence_done, out ); out += ',';
+  out += "ref_will_forfeight="; base::to_str( o.ref_will_forfeight, out ); out += ',';
+  out += "ref_captured_colony="; base::to_str( o.ref_captured_colony, out ); out += ',';
   out += "tutorial_hints="; base::to_str( o.tutorial_hints, out ); out += ',';
   out += "disable_water_color_cycling="; base::to_str( o.disable_water_color_cycling, out ); out += ',';
   out += "combat_analysis="; base::to_str( o.combat_analysis, out ); out += ',';
@@ -1938,10 +1944,16 @@ void to_str( GameOptions const& o, std::string& out, base::tag<GameOptions> ) {
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, GameOptions& o ) {
+bool read_binary( base::IBinaryIO& b, GameFlags1& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
-  o.unused01 = (bits & 0b1111111); bits >>= 7;
+  o.independence_declared = (bits & 0b1); bits >>= 1;
+  o.deploy_intervention_force = (bits & 0b1); bits >>= 1;
+  o.independence_war_intro = (bits & 0b1); bits >>= 1;
+  o.won_independence = (bits & 0b1); bits >>= 1;
+  o.score_sequence_done = (bits & 0b1); bits >>= 1;
+  o.ref_will_forfeight = (bits & 0b1); bits >>= 1;
+  o.ref_captured_colony = (bits & 0b1); bits >>= 1;
   o.tutorial_hints = (bits & 0b1); bits >>= 1;
   o.disable_water_color_cycling = (bits & 0b1); bits >>= 1;
   o.combat_analysis = (bits & 0b1); bits >>= 1;
@@ -1954,7 +1966,7 @@ bool read_binary( base::IBinaryIO& b, GameOptions& o ) {
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, GameOptions const& o ) {
+bool write_binary( base::IBinaryIO& b, GameFlags1 const& o ) {
   uint16_t bits = 0;
   bits |= (o.show_indian_moves & 0b1); bits <<= 1;
   bits |= (o.show_foreign_moves & 0b1); bits <<= 1;
@@ -1964,16 +1976,28 @@ bool write_binary( base::IBinaryIO& b, GameOptions const& o ) {
   bits |= (o.autosave & 0b1); bits <<= 1;
   bits |= (o.combat_analysis & 0b1); bits <<= 1;
   bits |= (o.disable_water_color_cycling & 0b1); bits <<= 1;
-  bits |= (o.tutorial_hints & 0b1); bits <<= 7;
-  bits |= (o.unused01 & 0b1111111); bits <<= 0;
+  bits |= (o.tutorial_hints & 0b1); bits <<= 1;
+  bits |= (o.ref_captured_colony & 0b1); bits <<= 1;
+  bits |= (o.ref_will_forfeight & 0b1); bits <<= 1;
+  bits |= (o.score_sequence_done & 0b1); bits <<= 1;
+  bits |= (o.won_independence & 0b1); bits <<= 1;
+  bits |= (o.independence_war_intro & 0b1); bits <<= 1;
+  bits |= (o.deploy_intervention_force & 0b1); bits <<= 1;
+  bits |= (o.independence_declared & 0b1); bits <<= 0;
   return b.write_bytes<2>( bits );
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         GameOptions const& o,
-                         cdr::tag_t<GameOptions> ) {
+                         GameFlags1 const& o,
+                         cdr::tag_t<GameFlags1> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unused01", bits<7>{ o.unused01 } );
+  conv.to_field( tbl, "independence_declared", o.independence_declared );
+  conv.to_field( tbl, "deploy_intervention_force", o.deploy_intervention_force );
+  conv.to_field( tbl, "independence_war_intro", o.independence_war_intro );
+  conv.to_field( tbl, "won_independence", o.won_independence );
+  conv.to_field( tbl, "score_sequence_done", o.score_sequence_done );
+  conv.to_field( tbl, "ref_will_forfeight", o.ref_will_forfeight );
+  conv.to_field( tbl, "ref_captured_colony", o.ref_captured_colony );
   conv.to_field( tbl, "tutorial_hints", o.tutorial_hints );
   conv.to_field( tbl, "disable_water_color_cycling", o.disable_water_color_cycling );
   conv.to_field( tbl, "combat_analysis", o.combat_analysis );
@@ -1984,7 +2008,13 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "show_foreign_moves", o.show_foreign_moves );
   conv.to_field( tbl, "show_indian_moves", o.show_indian_moves );
   tbl["__key_order"] = cdr::list{
-    "unused01",
+    "independence_declared",
+    "deploy_intervention_force",
+    "independence_war_intro",
+    "won_independence",
+    "score_sequence_done",
+    "ref_will_forfeight",
+    "ref_captured_colony",
     "tutorial_hints",
     "disable_water_color_cycling",
     "combat_analysis",
@@ -1998,14 +2028,20 @@ cdr::value to_canonical( cdr::converter& conv,
   return tbl;
 }
 
-cdr::result<GameOptions> from_canonical(
+cdr::result<GameFlags1> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<GameOptions> ) {
+                         cdr::tag_t<GameFlags1> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  GameOptions res = {};
+  GameFlags1 res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_BITSTRING_FIELD( "unused01", unused01, 7 );
+  CONV_FROM_FIELD( "independence_declared", independence_declared );
+  CONV_FROM_FIELD( "deploy_intervention_force", deploy_intervention_force );
+  CONV_FROM_FIELD( "independence_war_intro", independence_war_intro );
+  CONV_FROM_FIELD( "won_independence", won_independence );
+  CONV_FROM_FIELD( "score_sequence_done", score_sequence_done );
+  CONV_FROM_FIELD( "ref_will_forfeight", ref_will_forfeight );
+  CONV_FROM_FIELD( "ref_captured_colony", ref_captured_colony );
   CONV_FROM_FIELD( "tutorial_hints", tutorial_hints );
   CONV_FROM_FIELD( "disable_water_color_cycling", disable_water_color_cycling );
   CONV_FROM_FIELD( "combat_analysis", combat_analysis );
@@ -2126,66 +2162,66 @@ cdr::result<ColonyReportOptionsToDisable> from_canonical(
 }
 
 /****************************************************************
-** Flags
+** GameFlags2
 *****************************************************************/
-void to_str( Flags const& o, std::string& out, base::tag<Flags> ) {
-  out += "Flags{";
+void to_str( GameFlags2 const& o, std::string& out, base::tag<GameFlags2> ) {
+  out += "GameFlags2{";
   out += "how_to_win="; base::to_str( o.how_to_win, out ); out += ',';
   out += "background_music="; base::to_str( o.background_music, out ); out += ',';
   out += "event_music="; base::to_str( o.event_music, out ); out += ',';
   out += "sound_effects="; base::to_str( o.sound_effects, out ); out += ',';
-  out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
-  out += "unknown01="; base::to_str( o.unknown01, out ); out += ',';
-  out += "unknown02="; base::to_str( o.unknown02, out ); out += ',';
-  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
-  out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
-  out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
-  out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
-  out += "unknown07="; base::to_str( o.unknown07, out ); out += ',';
-  out += "unknown08="; base::to_str( o.unknown08, out ); out += ',';
-  out += "unknown09="; base::to_str( o.unknown09, out ); out += ',';
-  out += "unknown10="; base::to_str( o.unknown10, out ); out += ',';
-  out += "unknown11="; base::to_str( o.unknown11, out );
+  out += "hint_how_to_move_ship="; base::to_str( o.hint_how_to_move_ship, out ); out += ',';
+  out += "unknown_hint01="; base::to_str( o.unknown_hint01, out ); out += ',';
+  out += "hint_lumber_abundance="; base::to_str( o.hint_lumber_abundance, out ); out += ',';
+  out += "hint_colony_view="; base::to_str( o.hint_colony_view, out ); out += ',';
+  out += "hint_dock_units_waiting="; base::to_str( o.hint_dock_units_waiting, out ); out += ',';
+  out += "hint_full_cargo="; base::to_str( o.hint_full_cargo, out ); out += ',';
+  out += "hint_build_stockade="; base::to_str( o.hint_build_stockade, out ); out += ',';
+  out += "hint_free_colonist="; base::to_str( o.hint_free_colonist, out ); out += ',';
+  out += "unknown_hint08="; base::to_str( o.unknown_hint08, out ); out += ',';
+  out += "unknown_hint09="; base::to_str( o.unknown_hint09, out ); out += ',';
+  out += "hint_ship_valuable="; base::to_str( o.hint_ship_valuable, out ); out += ',';
+  out += "hint_ship_in_colony="; base::to_str( o.hint_ship_in_colony, out );
   out += '}';
 }
 
 // Binary conversion.
-bool read_binary( base::IBinaryIO& b, Flags& o ) {
+bool read_binary( base::IBinaryIO& b, GameFlags2& o ) {
   uint16_t bits = 0;
   if( !b.read_bytes<2>( bits ) ) return false;
   o.how_to_win = (bits & 0b1); bits >>= 1;
   o.background_music = (bits & 0b1); bits >>= 1;
   o.event_music = (bits & 0b1); bits >>= 1;
   o.sound_effects = (bits & 0b1); bits >>= 1;
-  o.unknown00 = (bits & 0b1); bits >>= 1;
-  o.unknown01 = (bits & 0b1); bits >>= 1;
-  o.unknown02 = (bits & 0b1); bits >>= 1;
-  o.unknown03 = (bits & 0b1); bits >>= 1;
-  o.unknown04 = (bits & 0b1); bits >>= 1;
-  o.unknown05 = (bits & 0b1); bits >>= 1;
-  o.unknown06 = (bits & 0b1); bits >>= 1;
-  o.unknown07 = (bits & 0b1); bits >>= 1;
-  o.unknown08 = (bits & 0b1); bits >>= 1;
-  o.unknown09 = (bits & 0b1); bits >>= 1;
-  o.unknown10 = (bits & 0b1); bits >>= 1;
-  o.unknown11 = (bits & 0b1); bits >>= 1;
+  o.hint_how_to_move_ship = (bits & 0b1); bits >>= 1;
+  o.unknown_hint01 = (bits & 0b1); bits >>= 1;
+  o.hint_lumber_abundance = (bits & 0b1); bits >>= 1;
+  o.hint_colony_view = (bits & 0b1); bits >>= 1;
+  o.hint_dock_units_waiting = (bits & 0b1); bits >>= 1;
+  o.hint_full_cargo = (bits & 0b1); bits >>= 1;
+  o.hint_build_stockade = (bits & 0b1); bits >>= 1;
+  o.hint_free_colonist = (bits & 0b1); bits >>= 1;
+  o.unknown_hint08 = (bits & 0b1); bits >>= 1;
+  o.unknown_hint09 = (bits & 0b1); bits >>= 1;
+  o.hint_ship_valuable = (bits & 0b1); bits >>= 1;
+  o.hint_ship_in_colony = (bits & 0b1); bits >>= 1;
   return true;
 }
 
-bool write_binary( base::IBinaryIO& b, Flags const& o ) {
+bool write_binary( base::IBinaryIO& b, GameFlags2 const& o ) {
   uint16_t bits = 0;
-  bits |= (o.unknown11 & 0b1); bits <<= 1;
-  bits |= (o.unknown10 & 0b1); bits <<= 1;
-  bits |= (o.unknown09 & 0b1); bits <<= 1;
-  bits |= (o.unknown08 & 0b1); bits <<= 1;
-  bits |= (o.unknown07 & 0b1); bits <<= 1;
-  bits |= (o.unknown06 & 0b1); bits <<= 1;
-  bits |= (o.unknown05 & 0b1); bits <<= 1;
-  bits |= (o.unknown04 & 0b1); bits <<= 1;
-  bits |= (o.unknown03 & 0b1); bits <<= 1;
-  bits |= (o.unknown02 & 0b1); bits <<= 1;
-  bits |= (o.unknown01 & 0b1); bits <<= 1;
-  bits |= (o.unknown00 & 0b1); bits <<= 1;
+  bits |= (o.hint_ship_in_colony & 0b1); bits <<= 1;
+  bits |= (o.hint_ship_valuable & 0b1); bits <<= 1;
+  bits |= (o.unknown_hint09 & 0b1); bits <<= 1;
+  bits |= (o.unknown_hint08 & 0b1); bits <<= 1;
+  bits |= (o.hint_free_colonist & 0b1); bits <<= 1;
+  bits |= (o.hint_build_stockade & 0b1); bits <<= 1;
+  bits |= (o.hint_full_cargo & 0b1); bits <<= 1;
+  bits |= (o.hint_dock_units_waiting & 0b1); bits <<= 1;
+  bits |= (o.hint_colony_view & 0b1); bits <<= 1;
+  bits |= (o.hint_lumber_abundance & 0b1); bits <<= 1;
+  bits |= (o.unknown_hint01 & 0b1); bits <<= 1;
+  bits |= (o.hint_how_to_move_ship & 0b1); bits <<= 1;
   bits |= (o.sound_effects & 0b1); bits <<= 1;
   bits |= (o.event_music & 0b1); bits <<= 1;
   bits |= (o.background_music & 0b1); bits <<= 1;
@@ -2194,69 +2230,69 @@ bool write_binary( base::IBinaryIO& b, Flags const& o ) {
 }
 
 cdr::value to_canonical( cdr::converter& conv,
-                         Flags const& o,
-                         cdr::tag_t<Flags> ) {
+                         GameFlags2 const& o,
+                         cdr::tag_t<GameFlags2> ) {
   cdr::table tbl;
   conv.to_field( tbl, "how_to_win", o.how_to_win );
   conv.to_field( tbl, "background_music", o.background_music );
   conv.to_field( tbl, "event_music", o.event_music );
   conv.to_field( tbl, "sound_effects", o.sound_effects );
-  conv.to_field( tbl, "unknown00", o.unknown00 );
-  conv.to_field( tbl, "unknown01", o.unknown01 );
-  conv.to_field( tbl, "unknown02", o.unknown02 );
-  conv.to_field( tbl, "unknown03", o.unknown03 );
-  conv.to_field( tbl, "unknown04", o.unknown04 );
-  conv.to_field( tbl, "unknown05", o.unknown05 );
-  conv.to_field( tbl, "unknown06", o.unknown06 );
-  conv.to_field( tbl, "unknown07", o.unknown07 );
-  conv.to_field( tbl, "unknown08", o.unknown08 );
-  conv.to_field( tbl, "unknown09", o.unknown09 );
-  conv.to_field( tbl, "unknown10", o.unknown10 );
-  conv.to_field( tbl, "unknown11", o.unknown11 );
+  conv.to_field( tbl, "hint_how_to_move_ship", o.hint_how_to_move_ship );
+  conv.to_field( tbl, "unknown_hint01", o.unknown_hint01 );
+  conv.to_field( tbl, "hint_lumber_abundance", o.hint_lumber_abundance );
+  conv.to_field( tbl, "hint_colony_view", o.hint_colony_view );
+  conv.to_field( tbl, "hint_dock_units_waiting", o.hint_dock_units_waiting );
+  conv.to_field( tbl, "hint_full_cargo", o.hint_full_cargo );
+  conv.to_field( tbl, "hint_build_stockade", o.hint_build_stockade );
+  conv.to_field( tbl, "hint_free_colonist", o.hint_free_colonist );
+  conv.to_field( tbl, "unknown_hint08", o.unknown_hint08 );
+  conv.to_field( tbl, "unknown_hint09", o.unknown_hint09 );
+  conv.to_field( tbl, "hint_ship_valuable", o.hint_ship_valuable );
+  conv.to_field( tbl, "hint_ship_in_colony", o.hint_ship_in_colony );
   tbl["__key_order"] = cdr::list{
     "how_to_win",
     "background_music",
     "event_music",
     "sound_effects",
-    "unknown00",
-    "unknown01",
-    "unknown02",
-    "unknown03",
-    "unknown04",
-    "unknown05",
-    "unknown06",
-    "unknown07",
-    "unknown08",
-    "unknown09",
-    "unknown10",
-    "unknown11",
+    "hint_how_to_move_ship",
+    "unknown_hint01",
+    "hint_lumber_abundance",
+    "hint_colony_view",
+    "hint_dock_units_waiting",
+    "hint_full_cargo",
+    "hint_build_stockade",
+    "hint_free_colonist",
+    "unknown_hint08",
+    "unknown_hint09",
+    "hint_ship_valuable",
+    "hint_ship_in_colony",
   };
   return tbl;
 }
 
-cdr::result<Flags> from_canonical(
+cdr::result<GameFlags2> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
-                         cdr::tag_t<Flags> ) {
+                         cdr::tag_t<GameFlags2> ) {
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
-  Flags res = {};
+  GameFlags2 res = {};
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "how_to_win", how_to_win );
   CONV_FROM_FIELD( "background_music", background_music );
   CONV_FROM_FIELD( "event_music", event_music );
   CONV_FROM_FIELD( "sound_effects", sound_effects );
-  CONV_FROM_FIELD( "unknown00", unknown00 );
-  CONV_FROM_FIELD( "unknown01", unknown01 );
-  CONV_FROM_FIELD( "unknown02", unknown02 );
-  CONV_FROM_FIELD( "unknown03", unknown03 );
-  CONV_FROM_FIELD( "unknown04", unknown04 );
-  CONV_FROM_FIELD( "unknown05", unknown05 );
-  CONV_FROM_FIELD( "unknown06", unknown06 );
-  CONV_FROM_FIELD( "unknown07", unknown07 );
-  CONV_FROM_FIELD( "unknown08", unknown08 );
-  CONV_FROM_FIELD( "unknown09", unknown09 );
-  CONV_FROM_FIELD( "unknown10", unknown10 );
-  CONV_FROM_FIELD( "unknown11", unknown11 );
+  CONV_FROM_FIELD( "hint_how_to_move_ship", hint_how_to_move_ship );
+  CONV_FROM_FIELD( "unknown_hint01", unknown_hint01 );
+  CONV_FROM_FIELD( "hint_lumber_abundance", hint_lumber_abundance );
+  CONV_FROM_FIELD( "hint_colony_view", hint_colony_view );
+  CONV_FROM_FIELD( "hint_dock_units_waiting", hint_dock_units_waiting );
+  CONV_FROM_FIELD( "hint_full_cargo", hint_full_cargo );
+  CONV_FROM_FIELD( "hint_build_stockade", hint_build_stockade );
+  CONV_FROM_FIELD( "hint_free_colonist", hint_free_colonist );
+  CONV_FROM_FIELD( "unknown_hint08", unknown_hint08 );
+  CONV_FROM_FIELD( "unknown_hint09", unknown_hint09 );
+  CONV_FROM_FIELD( "hint_ship_valuable", hint_ship_valuable );
+  CONV_FROM_FIELD( "hint_ship_in_colony", hint_ship_in_colony );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -3634,7 +3670,9 @@ cdr::result<Mission> from_canonical(
 *****************************************************************/
 void to_str( TribeFlags const& o, std::string& out, base::tag<TribeFlags> ) {
   out += "TribeFlags{";
-  out += "unknown01="; base::to_str( bits<7>{ o.unknown01 }, out ); out += ',';
+  out += "unknown01="; base::to_str( bits<5>{ o.unknown01 }, out ); out += ',';
+  out += "joined_ref="; base::to_str( o.joined_ref, out ); out += ',';
+  out += "unknown02="; base::to_str( bits<1>{ o.unknown02 }, out ); out += ',';
   out += "extinct="; base::to_str( o.extinct, out );
   out += '}';
 }
@@ -3643,15 +3681,19 @@ void to_str( TribeFlags const& o, std::string& out, base::tag<TribeFlags> ) {
 bool read_binary( base::IBinaryIO& b, TribeFlags& o ) {
   uint8_t bits = 0;
   if( !b.read_bytes<1>( bits ) ) return false;
-  o.unknown01 = (bits & 0b1111111); bits >>= 7;
+  o.unknown01 = (bits & 0b11111); bits >>= 5;
+  o.joined_ref = (bits & 0b1); bits >>= 1;
+  o.unknown02 = (bits & 0b1); bits >>= 1;
   o.extinct = (bits & 0b1); bits >>= 1;
   return true;
 }
 
 bool write_binary( base::IBinaryIO& b, TribeFlags const& o ) {
   uint8_t bits = 0;
-  bits |= (o.extinct & 0b1); bits <<= 7;
-  bits |= (o.unknown01 & 0b1111111); bits <<= 0;
+  bits |= (o.extinct & 0b1); bits <<= 1;
+  bits |= (o.unknown02 & 0b1); bits <<= 1;
+  bits |= (o.joined_ref & 0b1); bits <<= 5;
+  bits |= (o.unknown01 & 0b11111); bits <<= 0;
   return b.write_bytes<1>( bits );
 }
 
@@ -3659,10 +3701,14 @@ cdr::value to_canonical( cdr::converter& conv,
                          TribeFlags const& o,
                          cdr::tag_t<TribeFlags> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unknown01", bits<7>{ o.unknown01 } );
+  conv.to_field( tbl, "unknown01", bits<5>{ o.unknown01 } );
+  conv.to_field( tbl, "joined_ref", o.joined_ref );
+  conv.to_field( tbl, "unknown02", bits<1>{ o.unknown02 } );
   conv.to_field( tbl, "extinct", o.extinct );
   tbl["__key_order"] = cdr::list{
     "unknown01",
+    "joined_ref",
+    "unknown02",
     "extinct",
   };
   return tbl;
@@ -3675,7 +3721,9 @@ cdr::result<TribeFlags> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   TribeFlags res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_BITSTRING_FIELD( "unknown01", unknown01, 7 );
+  CONV_FROM_BITSTRING_FIELD( "unknown01", unknown01, 5 );
+  CONV_FROM_FIELD( "joined_ref", joined_ref );
+  CONV_FROM_BITSTRING_FIELD( "unknown02", unknown02, 1 );
   CONV_FROM_FIELD( "extinct", extinct );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
@@ -5205,9 +5253,9 @@ void to_str( HEADER const& o, std::string& out, base::tag<HEADER> ) {
   out += "map_size_y="; base::to_str( o.map_size_y, out ); out += ',';
   out += "tutorial_help="; base::to_str( o.tutorial_help, out ); out += ',';
   out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
-  out += "game_options="; base::to_str( o.game_options, out ); out += ',';
+  out += "game_flags_1="; base::to_str( o.game_flags_1, out ); out += ',';
   out += "colony_report_options_to_disable="; base::to_str( o.colony_report_options_to_disable, out ); out += ',';
-  out += "flags="; base::to_str( o.flags, out ); out += ',';
+  out += "game_flags_2="; base::to_str( o.game_flags_2, out ); out += ',';
   out += "unknown39="; base::to_str( o.unknown39, out ); out += ',';
   out += "year="; base::to_str( o.year, out ); out += ',';
   out += "season="; base::to_str( o.season, out ); out += ',';
@@ -5252,9 +5300,9 @@ bool read_binary( base::IBinaryIO& b, HEADER& o ) {
     && read_binary( b, o.map_size_y )
     && read_binary( b, o.tutorial_help )
     && read_binary( b, o.unknown03 )
-    && read_binary( b, o.game_options )
+    && read_binary( b, o.game_flags_1 )
     && read_binary( b, o.colony_report_options_to_disable )
-    && read_binary( b, o.flags )
+    && read_binary( b, o.game_flags_2 )
     && read_binary( b, o.unknown39 )
     && read_binary( b, o.year )
     && read_binary( b, o.season )
@@ -5298,9 +5346,9 @@ bool write_binary( base::IBinaryIO& b, HEADER const& o ) {
     && write_binary( b, o.map_size_y )
     && write_binary( b, o.tutorial_help )
     && write_binary( b, o.unknown03 )
-    && write_binary( b, o.game_options )
+    && write_binary( b, o.game_flags_1 )
     && write_binary( b, o.colony_report_options_to_disable )
-    && write_binary( b, o.flags )
+    && write_binary( b, o.game_flags_2 )
     && write_binary( b, o.unknown39 )
     && write_binary( b, o.year )
     && write_binary( b, o.season )
@@ -5346,9 +5394,9 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "map_size_y", o.map_size_y );
   conv.to_field( tbl, "tutorial_help", o.tutorial_help );
   conv.to_field( tbl, "unknown03", o.unknown03 );
-  conv.to_field( tbl, "game_options", o.game_options );
+  conv.to_field( tbl, "game_flags_1", o.game_flags_1 );
   conv.to_field( tbl, "colony_report_options_to_disable", o.colony_report_options_to_disable );
-  conv.to_field( tbl, "flags", o.flags );
+  conv.to_field( tbl, "game_flags_2", o.game_flags_2 );
   conv.to_field( tbl, "unknown39", o.unknown39 );
   conv.to_field( tbl, "year", o.year );
   conv.to_field( tbl, "season", o.season );
@@ -5388,9 +5436,9 @@ cdr::value to_canonical( cdr::converter& conv,
     "map_size_y",
     "tutorial_help",
     "unknown03",
-    "game_options",
+    "game_flags_1",
     "colony_report_options_to_disable",
-    "flags",
+    "game_flags_2",
     "unknown39",
     "year",
     "season",
@@ -5440,9 +5488,9 @@ cdr::result<HEADER> from_canonical(
   CONV_FROM_FIELD( "map_size_y", map_size_y );
   CONV_FROM_FIELD( "tutorial_help", tutorial_help );
   CONV_FROM_FIELD( "unknown03", unknown03 );
-  CONV_FROM_FIELD( "game_options", game_options );
+  CONV_FROM_FIELD( "game_flags_1", game_flags_1 );
   CONV_FROM_FIELD( "colony_report_options_to_disable", colony_report_options_to_disable );
-  CONV_FROM_FIELD( "flags", flags );
+  CONV_FROM_FIELD( "game_flags_2", game_flags_2 );
   CONV_FROM_FIELD( "unknown39", unknown39 );
   CONV_FROM_FIELD( "year", year );
   CONV_FROM_FIELD( "season", season );
