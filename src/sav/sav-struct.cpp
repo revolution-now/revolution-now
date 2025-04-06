@@ -2493,10 +2493,10 @@ void to_str( ColonyFlags const& o, std::string& out, base::tag<ColonyFlags> ) {
   out += "unknown00="; base::to_str( o.unknown00, out ); out += ',';
   out += "level2_sol_bonus="; base::to_str( o.level2_sol_bonus, out ); out += ',';
   out += "level1_sol_bonus="; base::to_str( o.level1_sol_bonus, out ); out += ',';
-  out += "unknown03="; base::to_str( o.unknown03, out ); out += ',';
+  out += "inefficient_govt_notified="; base::to_str( o.inefficient_govt_notified, out ); out += ',';
   out += "unknown04="; base::to_str( o.unknown04, out ); out += ',';
   out += "unknown05="; base::to_str( o.unknown05, out ); out += ',';
-  out += "unknown06="; base::to_str( o.unknown06, out ); out += ',';
+  out += "port_colony="; base::to_str( o.port_colony, out ); out += ',';
   out += "construction_complete_blinking="; base::to_str( o.construction_complete_blinking, out );
   out += '}';
 }
@@ -2508,10 +2508,10 @@ bool read_binary( base::IBinaryIO& b, ColonyFlags& o ) {
   o.unknown00 = (bits & 0b1); bits >>= 1;
   o.level2_sol_bonus = (bits & 0b1); bits >>= 1;
   o.level1_sol_bonus = (bits & 0b1); bits >>= 1;
-  o.unknown03 = (bits & 0b1); bits >>= 1;
+  o.inefficient_govt_notified = (bits & 0b1); bits >>= 1;
   o.unknown04 = (bits & 0b1); bits >>= 1;
   o.unknown05 = (bits & 0b1); bits >>= 1;
-  o.unknown06 = (bits & 0b1); bits >>= 1;
+  o.port_colony = (bits & 0b1); bits >>= 1;
   o.construction_complete_blinking = (bits & 0b1); bits >>= 1;
   return true;
 }
@@ -2519,10 +2519,10 @@ bool read_binary( base::IBinaryIO& b, ColonyFlags& o ) {
 bool write_binary( base::IBinaryIO& b, ColonyFlags const& o ) {
   uint8_t bits = 0;
   bits |= (o.construction_complete_blinking & 0b1); bits <<= 1;
-  bits |= (o.unknown06 & 0b1); bits <<= 1;
+  bits |= (o.port_colony & 0b1); bits <<= 1;
   bits |= (o.unknown05 & 0b1); bits <<= 1;
   bits |= (o.unknown04 & 0b1); bits <<= 1;
-  bits |= (o.unknown03 & 0b1); bits <<= 1;
+  bits |= (o.inefficient_govt_notified & 0b1); bits <<= 1;
   bits |= (o.level1_sol_bonus & 0b1); bits <<= 1;
   bits |= (o.level2_sol_bonus & 0b1); bits <<= 1;
   bits |= (o.unknown00 & 0b1); bits <<= 0;
@@ -2536,19 +2536,19 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown00", o.unknown00 );
   conv.to_field( tbl, "level2_sol_bonus", o.level2_sol_bonus );
   conv.to_field( tbl, "level1_sol_bonus", o.level1_sol_bonus );
-  conv.to_field( tbl, "unknown03", o.unknown03 );
+  conv.to_field( tbl, "inefficient_govt_notified", o.inefficient_govt_notified );
   conv.to_field( tbl, "unknown04", o.unknown04 );
   conv.to_field( tbl, "unknown05", o.unknown05 );
-  conv.to_field( tbl, "unknown06", o.unknown06 );
+  conv.to_field( tbl, "port_colony", o.port_colony );
   conv.to_field( tbl, "construction_complete_blinking", o.construction_complete_blinking );
   tbl["__key_order"] = cdr::list{
     "unknown00",
     "level2_sol_bonus",
     "level1_sol_bonus",
-    "unknown03",
+    "inefficient_govt_notified",
     "unknown04",
     "unknown05",
-    "unknown06",
+    "port_colony",
     "construction_complete_blinking",
   };
   return tbl;
@@ -2564,10 +2564,10 @@ cdr::result<ColonyFlags> from_canonical(
   CONV_FROM_FIELD( "unknown00", unknown00 );
   CONV_FROM_FIELD( "level2_sol_bonus", level2_sol_bonus );
   CONV_FROM_FIELD( "level1_sol_bonus", level1_sol_bonus );
-  CONV_FROM_FIELD( "unknown03", unknown03 );
+  CONV_FROM_FIELD( "inefficient_govt_notified", inefficient_govt_notified );
   CONV_FROM_FIELD( "unknown04", unknown04 );
   CONV_FROM_FIELD( "unknown05", unknown05 );
-  CONV_FROM_FIELD( "unknown06", unknown06 );
+  CONV_FROM_FIELD( "port_colony", port_colony );
   CONV_FROM_FIELD( "construction_complete_blinking", construction_complete_blinking );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;

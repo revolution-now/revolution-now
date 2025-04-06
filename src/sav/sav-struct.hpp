@@ -1169,10 +1169,10 @@ struct ColonyFlags {
   bool unknown00 : 1 = {};
   bool level2_sol_bonus : 1 = {};
   bool level1_sol_bonus : 1 = {};
-  bool unknown03 : 1 = {};
+  bool inefficient_govt_notified : 1 = {};
   bool unknown04 : 1 = {};
   bool unknown05 : 1 = {};
-  bool unknown06 : 1 = {};
+  bool port_colony : 1 = {};
   bool construction_complete_blinking : 1 = {};
 
   bool operator==( ColonyFlags const& ) const = default;

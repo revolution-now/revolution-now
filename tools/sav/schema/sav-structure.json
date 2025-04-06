@@ -790,19 +790,19 @@
                         "unknown00",
                         "level2_sol_bonus",
                         "level1_sol_bonus",
-                        "unknown03",
+                        "inefficient_govt_notified",
                         "unknown04",
                         "unknown05",
-                        "unknown06",
+                        "port_colony",
                         "construction_complete_blinking"
                     ],
                     "unknown00": {"size": 1, "type": "bit_bool"},
                     "level2_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 100% SoL membership."},
                     "level1_sol_bonus": {"size": 1, "type": "bit_bool", "__hint": "received at 50% SoL membership."},
-                    "unknown03": {"size": 1, "type": "bit_bool", "__hint": "appears to become true after independence is declared."},
+                    "inefficient_govt_notified": {"size": 1, "type": "bit_bool", "__hint": "The player has been notified that this colony has an inefficient government."},
                     "unknown04": {"size": 1, "type": "bit_bool"},
                     "unknown05": {"size": 1, "type": "bit_bool"},
-                    "unknown06": {"size": 1, "type": "bit_bool"},
+                    "port_colony": {"size": 1, "type": "bit_bool", "__hint": "True when the colony has sea lane access."},
                     "construction_complete_blinking": {"size": 1, "type": "bit_bool"}
                 }
             },
