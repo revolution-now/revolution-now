@@ -197,7 +197,7 @@ TEST_CASE(
   SECTION(
       "(soldier,soldier) -> (soldier,free_colonist), "
       "post-declaration" ) {
-    attacking_player.revolution_status =
+    attacking_player.revolution.status =
         e_revolution_status::declared;
     params = {
       .attacker         = e_unit_type::soldier,
@@ -318,7 +318,7 @@ TEST_CASE(
   SECTION(
       "(soldier,artillery) -> (soldier,damaged_artillery), "
       "post-declaration" ) {
-    defending_player.revolution_status =
+    defending_player.revolution.status =
         e_revolution_status::declared;
     params = {
       .attacker         = e_unit_type::soldier,
@@ -597,7 +597,7 @@ TEST_CASE(
   SECTION(
       "(regular,free_colonist) -> (regular,free_colonist), "
       "post-declaration" ) {
-    defending_player.revolution_status =
+    defending_player.revolution.status =
         e_revolution_status::declared;
     params = {
       .attacker         = e_unit_type::regular,
@@ -1255,7 +1255,7 @@ TEST_CASE(
   SECTION(
       "(mounted_warrior,soldier) -> (,veteran_soldier), "
       "post-declaration" ) {
-    defending_player.revolution_status =
+    defending_player.revolution.status =
         e_revolution_status::declared;
     params = {
       .attacker         = e_native_unit_type::mounted_brave,
@@ -1948,7 +1948,7 @@ TEST_CASE(
   SECTION(
       "military unit (scout) at gate, defender loses, "
       "post-declaration" ) {
-    defending_player.revolution_status =
+    defending_player.revolution.status =
         e_revolution_status::declared;
     params = {
       .attacker         = e_native_unit_type::brave,
@@ -2001,7 +2001,7 @@ TEST_CASE(
   }
 
   SECTION( "no units at gate, burned, after revolution" ) {
-    W.french().revolution_status = e_revolution_status::declared;
+    W.french().revolution.status = e_revolution_status::declared;
 
     params = {
       .attacker         = e_native_unit_type::brave,

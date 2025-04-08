@@ -79,7 +79,7 @@ maybe<UnitType> should_promote_euro_unit( SSConst const& ss,
   bool should_promote = true;
   if( promoted->type_obj().unit_type_modifiers().contains(
           e_unit_type_modifier::independence ) &&
-      player.revolution_status < e_revolution_status::declared )
+      player.revolution.status < e_revolution_status::declared )
     // Don't allow promoting to a continental unit before inde-
     // pendence is declared.
     should_promote = false;

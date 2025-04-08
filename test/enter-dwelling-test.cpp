@@ -814,7 +814,7 @@ TEST_CASE( "[enter-dwelling] do_speak_with_chief" ) {
   SECTION( "none, post-declaration" ) {
     p_unit                   = &scout_petty;
     outcome.action           = ChiefAction::none{};
-    player.revolution_status = e_revolution_status::declared;
+    player.revolution.status = e_revolution_status::declared;
 
     W.gui().EXPECT__message_box(
         StrContains( "Greetings traveler" ) );
@@ -991,7 +991,7 @@ TEST_CASE( "[enter-dwelling] do_establish_mission" ) {
         UnitOwnership::dwelling{ .id = dwelling.id } } );
 
   // Post-declaration.
-  W.default_player().revolution_status =
+  W.default_player().revolution.status =
       e_revolution_status::declared;
   outcome = { .reaction = e_missionary_reaction::curiosity };
   msg =

@@ -716,7 +716,7 @@ Player const& World::player( maybe<e_nation> nation ) const {
 // Revolution Status.
 // --------------------------------------------------------------
 void World::declare_independence( maybe<e_nation> nation ) {
-  player( nation ).revolution_status =
+  player( nation ).revolution.status =
       e_revolution_status::declared;
 }
 

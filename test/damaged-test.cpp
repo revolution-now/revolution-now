@@ -318,7 +318,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
                e_nation::spanish ) ) == expected );
 
   // Post-declaration.
-  W.default_player().revolution_status =
+  W.default_player().revolution.status =
       e_revolution_status::declared;
   reason = e_ship_damaged_reason::battle;
   expected =
@@ -363,7 +363,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
   }
 
   SECTION( "battle, post declaration" ) {
-    W.default_player().revolution_status =
+    W.default_player().revolution.status =
         e_revolution_status::declared;
     reason = e_ship_damaged_reason::battle;
     port   = ShipRepairPort::european_harbor{};

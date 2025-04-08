@@ -228,7 +228,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
-    dutch.revolution_status = e_revolution_status::not_declared;
+    dutch.revolution.status = e_revolution_status::not_declared;
     W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
@@ -293,7 +293,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
 
   SECTION( "declared independence" ) {
     // Charge (in place of tax rate) is 50%.
-    dutch.revolution_status = e_revolution_status::declared;
+    dutch.revolution.status = e_revolution_status::declared;
     // One should be enough here.
     colony.custom_house[e_commodity::furs] = true;
     W.set_human_player( e_nation::dutch );
@@ -332,7 +332,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::ore]     = true;
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
-    dutch.revolution_status = e_revolution_status::not_declared;
+    dutch.revolution.status = e_revolution_status::not_declared;
     W.set_human_player( e_nation::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
@@ -394,7 +394,7 @@ TEST_CASE(
   // Init player.
   Player& french = W.french();
   W.set_human_player( e_nation::french );
-  french.revolution_status = e_revolution_status::not_declared;
+  french.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );
@@ -478,7 +478,7 @@ TEST_CASE(
   // Init player.
   Player& dutch = W.dutch();
   W.set_human_player( e_nation::dutch );
-  dutch.revolution_status = e_revolution_status::not_declared;
+  dutch.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );

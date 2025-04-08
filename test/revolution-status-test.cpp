@@ -60,7 +60,7 @@ TEST_CASE( "[revolution-status] nation_possessive" ) {
 
   REQUIRE( f() == "Dutch" );
 
-  player.revolution_status = e_revolution_status::declared;
+  player.revolution.status = e_revolution_status::declared;
   REQUIRE( f() == "Rebel" );
 }
 
@@ -73,7 +73,7 @@ TEST_CASE( "[revolution-status] nation_display_name" ) {
 
   REQUIRE( f() == "Dutch" );
 
-  player.revolution_status = e_revolution_status::declared;
+  player.revolution.status = e_revolution_status::declared;
   REQUIRE( f() == "Rebels" );
 }
 

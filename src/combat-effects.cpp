@@ -515,7 +515,7 @@ CombatEffectsSummaries summarize_colony_burn_combat_outcome(
   Player const& player =
       player_for_nation_or_die( ss.players, colony.nation );
   string const king_part =
-      ( player.revolution_status <
+      ( player.revolution.status <
         e_revolution_status::declared )
           ? " The King demands accountability!"
           : " The King laughs at such incompetent governance!";

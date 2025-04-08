@@ -325,7 +325,7 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
                                    e_nation::french );
     W.expect_attacker_wins( .8 );
     W.expect_promotion( true );
-    english.revolution_status = e_revolution_status::declared;
+    english.revolution.status = e_revolution_status::declared;
 
     expected = {
       .winner = e_combat_winner::attacker,

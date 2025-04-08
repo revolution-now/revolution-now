@@ -503,8 +503,6 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       maybe<string> const answer =
           co_await ts.gui.optional_choice( config );
       co_await ts.gui.message_box( "You selected: {}", answer );
-      if( answer == "yes" )
-        player.revolution_status = e_revolution_status::declared;
       break;
     }
     case e_menu_item::harbor_view: {

@@ -516,7 +516,7 @@ TEST_CASE( "[meet-natives] perform_meet_tribe_ui_sequence" ) {
   }
 
   SECTION( "inca, post-declaration" ) {
-    w.default_player().revolution_status =
+    w.default_player().revolution.status =
         e_revolution_status::declared;
     meet_tribe.tribe = e_tribe::inca;
 

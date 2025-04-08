@@ -92,7 +92,7 @@ maybe<ShipRepairPort> find_repair_port_for_ship(
           ss, nation, ship_location );
   Player const& player =
       player_for_nation_or_die( ss.players, nation );
-  if( player.revolution_status >=
+  if( player.revolution.status >=
       e_revolution_status::declared ) {
     // After independence is declared we cannot go back to the
     // european harbor for any reason, including to repair ships.

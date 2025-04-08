@@ -56,7 +56,7 @@ struct.Player {
   # get triggered again.
   woodcuts 'refl::enum_map<e_woodcut, bool>',
 
-  revolution_status 'e_revolution_status',
+  revolution 'RevolutionState',
 
   # Anything related to founding fathers is in here.
   fathers 'FoundingFathersState',

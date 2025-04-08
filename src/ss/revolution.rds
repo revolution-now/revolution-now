@@ -16,4 +16,24 @@ namespace "rn"
 enum.e_revolution_status {
   not_declared,
   declared,
+  won,
+}
+
+struct.RevolutionState {
+  # This is a percent in [0, 100].
+  rebel_sentiment 'int',
+
+  status 'e_revolution_status',
+
+  # This will be set to true once the player has earned (through
+  # sufficient liberty bells) the help of the intervention force.
+  # Once it is true, each turn will bring a few intervention
+  # units to the new world.
+  deploy_intervention_force 'bool',
+
+  # TODO: need to represent other state such as "Tory Uprising".
+  # Some say this is caused by loyalty in a single colony. Maybe
+  # this is better stored in the colony state.
+
+  _features { equality, validation }
 }

@@ -79,7 +79,7 @@ bool has_hernando_de_soto( Player const& player ) {
 
 // The fountain of youth is only allowed pre-independence.
 bool allow_fountain_of_youth( Player const& player ) {
-  return player.revolution_status ==
+  return player.revolution.status ==
          e_revolution_status::not_declared;
 }
 

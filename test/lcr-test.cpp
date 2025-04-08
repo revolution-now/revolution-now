@@ -764,7 +764,7 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
   }
 
   SECTION( "no fountain_of_youth allowed" ) {
-    player.revolution_status = e_revolution_status::declared;
+    player.revolution.status = e_revolution_status::declared;
     expected                 = LostCityRumor::free_colonist{};
     W.rand().EXPECT__between_ints( 0, 94 ).returns( 48 );
     REQUIRE( f() == expected );

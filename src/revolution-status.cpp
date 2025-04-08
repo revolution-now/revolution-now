@@ -30,7 +30,7 @@ namespace {
 ** Public API.
 *****************************************************************/
 string_view nation_possessive( Player const& player ) {
-  if( player.revolution_status >=
+  if( player.revolution.status >=
       e_revolution_status::declared ) {
     static std::string const rebel = "Rebel";
     return rebel;
@@ -40,7 +40,7 @@ string_view nation_possessive( Player const& player ) {
 }
 
 string_view nation_display_name( Player const& player ) {
-  if( player.revolution_status >=
+  if( player.revolution.status >=
       e_revolution_status::declared ) {
     static std::string const rebel = "Rebels";
     return rebel;

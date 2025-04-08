@@ -468,7 +468,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
   }
 
   SECTION( "non interactive with ships, post-revolution" ) {
-    W.default_player().revolution_status =
+    W.default_player().revolution.status =
         e_revolution_status::declared;
     Unit const& ship1 =
         W.add_unit_on_map( e_unit_type::caravel, loc );
@@ -609,7 +609,7 @@ TEST_CASE( "[colony-mgr] colony destruction" ) {
   }
 
   SECTION( "interactive with ship, post-revolution" ) {
-    W.default_player().revolution_status =
+    W.default_player().revolution.status =
         e_revolution_status::declared;
     Unit const& ship1 =
         W.add_unit_on_map( e_unit_type::caravel, loc );

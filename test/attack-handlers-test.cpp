@@ -915,7 +915,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
       "attacker loses, missions burned, missionary "
       "eliminated, post-declaration" ) {
     Player& player           = W.default_player();
-    player.revolution_status = e_revolution_status::declared;
+    player.revolution.status = e_revolution_status::declared;
     UnitId const missionary_id =
         W.add_missionary_in_dwelling( e_unit_type::missionary,
                                       dwelling_id )
@@ -1160,7 +1160,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   }
 
   SECTION( "attacker wins, dwelling burned, post-declaration" ) {
-    player.revolution_status = e_revolution_status::declared;
+    player.revolution.status = e_revolution_status::declared;
     dwelling.population      = 1;
 
     combat = {
@@ -1258,7 +1258,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
       "capital burned, post-declaration" ) {
     dwelling.population      = 1;
     dwelling.is_capital      = true;
-    player.revolution_status = e_revolution_status::declared;
+    player.revolution.status = e_revolution_status::declared;
 
     combat = {
       .winner          = e_combat_winner::attacker,
@@ -1438,7 +1438,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
       "attacker wins, population decrease, with convert, "
       "post-declaration" ) {
     Player& attacking_player = W.player( W.kAttackingNation );
-    attacking_player.revolution_status =
+    attacking_player.revolution.status =
         e_revolution_status::declared;
     UnitId const missionary_id =
         W.add_missionary_in_dwelling( e_unit_type::missionary,
