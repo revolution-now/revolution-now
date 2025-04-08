@@ -1,0 +1,22 @@
+# ===============================================================
+# rebel-sentiment.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-03-22.
+#
+# Description: Rds definitions for the rebel-sentiment module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.RebelSentimentChangeReport {
+  prev 'int',
+  nova 'int',
+}
+
+struct.RebelSentimentReport {
+  rebel_sentiment 'int',
+  rebels 'int',
+  tories 'int',
+}
