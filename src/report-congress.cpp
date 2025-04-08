@@ -16,6 +16,7 @@
 #include "iengine.hpp"
 #include "input.hpp"
 #include "plane-stack.hpp"
+#include "rebel-sentiment.hpp"
 #include "screen.hpp"
 #include "spread-builder.hpp"
 #include "spread-render.hpp"
@@ -69,6 +70,12 @@ struct Layout {
   point founding_father_text_nw;
   rect founding_father_bounds;
   TileSpreadRenderPlan founding_father_spreads;
+
+  // Rebel sentiment.
+  string rebel_sentiment_title;
+  point rebel_sentiment_text_nw;
+  rect rebel_sentiment_bounds;
+  TileSpreadRenderPlans rebel_sentiment_spreads;
 
   // Expeditionary force.
   string expeditionary_force_title;
@@ -153,6 +160,47 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     };
     l.founding_father_spreads = build_progress_tile_spread(
         textometer, founding_father_spread_opts );
+  }();
+
+  [&] {
+    RebelSentimentReport const report =
+        rebel_sentiment_report_for_cc_report( ss, player );
+    e_tile const kRebelsTile     = e_tile::rebel_flag;
+    e_tile const kToriesTile     = e_tile::crown;
+    int const spread_tile_height = sprite_size( kRebelsTile ).h;
+    SCOPE_EXIT {
+      cur.y += spread_tile_height;
+      cur.y += kBufferAfterSection;
+    };
+    l.rebel_sentiment_title = fmt::format(
+        "Rebel Sentiment: {}%  Tory Sentiment: {}%",
+        report.rebel_sentiment, 100 - report.rebel_sentiment );
+    l.rebel_sentiment_text_nw = cur;
+    cur.y += kBufferAfterTitle;
+    l.rebel_sentiment_bounds = {
+      .origin = cur,
+      .size   = { .w = l.canvas.left() + margin, .h = 32 } };
+    TileSpreadConfigMulti const rebel_sentiment_spread_opts{
+      .tiles{
+        { .tile = kRebelsTile, .count = report.rebels },
+        { .tile = kToriesTile, .count = report.tories },
+      },
+      .options =
+          { .bounds = l.canvas.size.w - 2 * margin,
+            // We use `never` here because the actual number of
+            // tories and rebels are not relevant to the game per
+            // se; it is only the rebel percent that is relevant
+            // in that it determines when independence can be de-
+            // clared.
+            .label_policy = SpreadLabels::never{},
+            .label_opts =
+                { .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::sw } } },
+      .group_spacing = 4,
+    };
+    l.rebel_sentiment_spreads = build_tile_spread_multi(
+        textometer, rebel_sentiment_spread_opts );
   }();
 
   [&] {
@@ -279,6 +327,13 @@ struct ContinentalCongressReport : public IPlane {
     draw_rendered_icon_spread( renderer,
                                l.founding_father_bounds.nw(),
                                l.founding_father_spreads );
+
+    // Rebel sentiment.
+    renderer.typer( l.rebel_sentiment_text_nw, pixel::banana() )
+        .write( l.rebel_sentiment_title );
+    draw_rendered_icon_spread( renderer,
+                               l.rebel_sentiment_bounds.nw(),
+                               l.rebel_sentiment_spreads );
 
     // Expeditionary force.
     renderer
