@@ -189,7 +189,9 @@ composition {
       type_activity:         null
       cleared_expertise:     null
       ship:                  false
-      colonist:              yes # TODO: is this what we want?
+      # We need this to be yes so that they count towards the
+      # unit count used in rebel sentiment calculations.
+      colonist:              yes
       can_found:             no
       nat_icon_front:        false
       nat_icon_position:     se
