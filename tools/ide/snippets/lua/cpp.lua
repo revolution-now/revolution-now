@@ -29,7 +29,7 @@ end
 add_s{
   '=wtest', fmt( [[
       TEST_CASE( "[{}] {}" ) {{
-        World w;
+        world w;
         {}
       }}
 
