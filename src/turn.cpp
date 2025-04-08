@@ -46,6 +46,7 @@
 #include "plane.hpp"
 #include "plow.hpp"
 #include "rcl-game-storage.hpp"
+#include "rebel-sentiment.hpp"
 #include "report-congress.hpp"
 #include "road.hpp"
 #include "roles.hpp"
@@ -1374,6 +1375,18 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
     // frigate.
     on_father_received( ss, ts, player, *new_father );
   }
+
+  // Evolve rebel sentiment.
+  int const new_sentiment =
+      updated_rebel_sentiment( ss.as_const, as_const( player ) );
+  RebelSentimentChangeReport const sentiment_change_report =
+      update_rebel_sentiment( player, new_sentiment );
+  if( should_show_rebel_sentiment_report(
+          ss.as_const, as_const( player ),
+          sentiment_change_report ) )
+    co_await show_rebel_sentiment_change_report(
+        ts.euro_minds()[player.nation],
+        sentiment_change_report );
 }
 
 /****************************************************************
