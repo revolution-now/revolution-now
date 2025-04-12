@@ -36,6 +36,7 @@
 #include "config/old-world.rds.hpp"
 #include "config/production.rds.hpp"
 #include "config/range-helpers.rds.hpp"
+#include "config/revolution.rds.hpp"
 #include "config/rn.rds.hpp"
 #include "config/savegame.rds.hpp"
 #include "config/sound.rds.hpp"
@@ -80,6 +81,7 @@ INSTANTIATE_RN_CONFIG( natives );
 INSTANTIATE_RN_CONFIG( old_world );
 INSTANTIATE_RN_CONFIG( command );
 INSTANTIATE_RN_CONFIG( production );
+INSTANTIATE_RN_CONFIG( revolution );
 INSTANTIATE_RN_CONFIG( rn );
 INSTANTIATE_RN_CONFIG( savegame );
 INSTANTIATE_RN_CONFIG( sound );

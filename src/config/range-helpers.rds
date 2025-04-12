@@ -10,6 +10,12 @@
 # ===============================================================
 namespace "rn.config"
 
+struct.IntPercent {
+  percent 'int',
+
+  _features { equality, validation }
+}
+
 struct.IntRange {
   min 'int',
   max 'int',

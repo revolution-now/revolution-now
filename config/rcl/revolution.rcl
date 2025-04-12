@@ -1,0 +1,26 @@
+declaration {
+
+  # Integral percentage in the range [0, 100] that must be
+  # achieved in order for the human player to be able to declare
+  # independence. In the OG, it is always 50%.
+  human_required_rebel_sentiment_percent {
+    discoverer.percent:   50
+    explorer.percent:     50
+    conquistador.percent: 50
+    governor.percent:     50
+    viceroy.percent:      50
+  }
+
+  # Number of total rebels needed for an AI player to be granted
+  # independence. Note that, unlike for humans (above), these
+  # numbers are not percentages of rebel sentiment, but instead
+  # they are counts of total rebels in the empire.
+  ai_required_number_of_rebels {
+    discoverer:   80
+    explorer:     70
+    conquistador: 60
+    governor:     50
+    viceroy:      40
+  }
+
+}

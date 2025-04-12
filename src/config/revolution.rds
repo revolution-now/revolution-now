@@ -1,0 +1,40 @@
+# ===============================================================
+# revolution.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-04-12.
+#
+# Description: Config data for the revolution module.
+#
+# ===============================================================
+# config
+include "range-helpers.rds.hpp"
+
+# ss
+include "ss/difficulty.rds.hpp"
+
+# refl
+include "refl/enum-map.hpp"
+
+namespace "rn.config.revolution"
+
+struct.Declaration {
+  human_required_rebel_sentiment_percent [[
+    refl::enum_map<e_difficulty, IntPercent>
+  ]],
+
+  ai_required_number_of_rebels [[
+    refl::enum_map<e_difficulty, int>
+  ]],
+
+  _features { equality, validation }
+}
+
+namespace "rn"
+
+struct.config_revolution_t {
+  declaration 'config::revolution::Declaration',
+}
+
+config.revolution {}

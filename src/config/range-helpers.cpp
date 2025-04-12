@@ -17,6 +17,13 @@ using namespace std;
 
 namespace rn::config {
 
+base::valid_or<string> IntPercent::validate() const {
+  REFL_VALIDATE(
+      percent >= 0 && percent <= 100,
+      "integral percents must be in the range [0, 100]." );
+  return base::valid;
+}
+
 base::valid_or<string> IntRange::validate() const {
   REFL_VALIDATE( min <= max, "min must be <= max in range." );
   return base::valid;
