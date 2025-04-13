@@ -14,17 +14,18 @@
 #include "co-wait.hpp"
 #include "colony-mgr.hpp"
 #include "ieuro-mind.hpp"
-#include "revolution.rds.hpp"
 #include "sons-of-liberty.hpp"
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/revolution.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/units.hpp"
 
 using namespace std;
@@ -142,6 +143,15 @@ wait<> show_rebel_sentiment_change_report(
         "None of the population supports the idea of "
         "independence from {}.",
         country );
+}
+
+bool rebellion_large_enough_to_declare(
+    SettingsState const& settings, Player const& player ) {
+  return player.revolution.rebel_sentiment >=
+         config_revolution.declaration
+             .human_required_rebel_sentiment_percent
+                 [settings.difficulty]
+             .percent;
 }
 
 } // namespace rn

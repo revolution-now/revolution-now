@@ -23,6 +23,7 @@ namespace rn {
 *****************************************************************/
 struct IEuroMind;
 struct Player;
+struct SettingsState;
 struct SSConst;
 
 /****************************************************************
@@ -40,6 +41,9 @@ bool should_show_rebel_sentiment_report(
 
 wait<> show_rebel_sentiment_change_report(
     IEuroMind& mind, RebelSentimentChangeReport const& report );
+
+bool rebellion_large_enough_to_declare(
+    SettingsState const& settings, Player const& player );
 
 // This provides the rebel sentiment info for the Continental
 // Congress report.

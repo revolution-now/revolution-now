@@ -21,6 +21,7 @@
 // ss
 #include "src/ss/player.rds.hpp"
 #include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
 #include "src/ss/unit-composition.hpp"
 
 // Must be last.
@@ -379,6 +380,73 @@ TEST_CASE(
   expected = {
     .rebel_sentiment = 100, .rebels = 12, .tories = 0 };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE(
+    "[rebel-sentiment] rebellion_large_enough_to_declare" ) {
+  world w;
+
+  Player& player = w.default_player();
+
+  auto const f = [&] {
+    return rebellion_large_enough_to_declare(
+        as_const( w.settings() ), as_const( player ) );
+  };
+
+  w.settings().difficulty = e_difficulty::discoverer;
+
+  // Default.
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 0;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 10;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 30;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 49;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 50;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 60;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 99;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 100;
+  REQUIRE( f() );
+
+  w.settings().difficulty = e_difficulty::viceroy;
+
+  player.revolution.rebel_sentiment = 0;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 10;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 30;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 49;
+  REQUIRE_FALSE( f() );
+
+  player.revolution.rebel_sentiment = 50;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 60;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 99;
+  REQUIRE( f() );
+
+  player.revolution.rebel_sentiment = 100;
+  REQUIRE( f() );
 }
 
 } // namespace
