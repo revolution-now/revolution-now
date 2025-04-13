@@ -1,14 +1,10 @@
 Notes:
 
+  * We need to warn the player when the number of rebels of for-
+    eign powers rises and they get closer to declaring.
+
   * When independence is declared, the player's turn immediately
     ends. Not sure why this is necessary.
-
-  * Computed once at the start of each turn, AFTER colonies are
-    evolved. This ordering matters. The OG does it this way, and
-    anyway is needed so that the number shown on the report is
-    consistent with what is in the colonies for SoL.
-
-  * When it reaches 50%, independence can be declared.
 
   * Also when it reaches 50%, the OG consolidates two of the AI
     players: according to the SG, the smallest one is ceded into
@@ -20,13 +16,7 @@ Notes:
   * Need to determine if/how rebel sentiment affects the build up
     of ref forces.
 
-  * When rebel sentiment goes down, the message says "tory senti-
-    ment is on the rise".
-
   * Rebel sentiment contributes to the final score.
-
-  * We need to warn the player when the number of rebels of for-
-    eign powers rises and they get closer to declaring.
 
   * According to the SG, AI players will declare independence
     when they reach a certain number of rebels (i.e., it is not
@@ -81,3 +71,13 @@ Done:
     they are only shown when the total population is >= 4, and
     that includes all human units both in colonies, on the map,
     or on the dock, i.e. the `total_colonists` variable below.
+
+  * When rebel sentiment goes down, the message says "tory senti-
+    ment is on the rise".
+
+  * When it reaches 50%, independence can be declared.
+
+  * Computed once at the start of each turn, AFTER colonies are
+    evolved. This ordering matters. The OG does it this way, and
+    anyway is needed so that the number shown on the report is
+    consistent with what is in the colonies for SoL.
