@@ -5,7 +5,7 @@
 *
 * Created by David P. Sicilia on 2024-04-13.
 *
-* Description: Things related to changing revolution status.
+* Description: Things that change depending on revolution status.
 *
 *****************************************************************/
 #include "revolution-status.hpp"
@@ -20,11 +20,7 @@ using namespace std;
 
 namespace rn {
 
-namespace {
-
-// TODO
-
-} // namespace
+namespace {} // namespace
 
 /****************************************************************
 ** Public API.
