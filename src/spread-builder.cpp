@@ -21,6 +21,7 @@
 #include "gfx/spread-algo.hpp"
 
 // C++ standard library
+#include <algorithm>
 #include <ranges>
 
 using namespace std;
@@ -30,7 +31,9 @@ namespace rv = std::ranges::views;
 namespace rn {
 
 using ::base::maybe;
+using ::gfx::interval;
 using ::gfx::pixel;
+using ::gfx::rect;
 using ::std::ranges::views::zip;
 
 namespace {
@@ -240,27 +243,92 @@ TileSpreadRenderPlan build_progress_tile_spread(
   return std::move( plans.plans[0] );
 }
 
-TileSpreadRenderPlan build_inhomogenous_tile_spread(
-    InhomogeneousTileSpreadConfig const& config ) {
+TileSpreadRenderPlan build_inhomogeneous_tile_spread(
+    rr::ITextometer const& textometer,
+    InhomogeneousTileSpreadConfig const& config_unprocessed ) {
   TileSpreadRenderPlan res;
-  InhomogeneousSpreadSpec const spec{
-    .bounds      = config.options.bounds,
-    .max_spacing = config.max_spacing.value_or( 1 ),
-    .widths      = [&] {
-      vector<int> res;
-      res.reserve( config.tiles.size() );
-      for( TileWithOptions const& tile_info : config.tiles )
-        res.push_back(
-            trimmed_area_for( tile_info.tile ).size.w );
-      return res;
-    }() };
-  auto spread = compute_icon_spread_inhomogeneous( spec );
-  if( !spread.has_value() ) return res;
-  InhomogeneousTileSpreadSpec const tile_spec{
-    .source_spec = spec,
-    .spread      = std::move( *spread ),
-    .tiles       = config.tiles };
-  res = render_plan_for_tile_inhomogeneous( tile_spec );
+  InhomogeneousTileSpreadConfig const config = [&] {
+    InhomogeneousTileSpreadConfig res = config_unprocessed;
+    if( config.sort_tiles )
+      sort( res.tiles.begin(), res.tiles.end(),
+            []( TileWithOptions const& l,
+                TileWithOptions const& r ) {
+              return trimmed_area_for( l.tile )
+                         .horizontal_slice()
+                         .len > trimmed_area_for( r.tile )
+                                    .horizontal_slice()
+                                    .len;
+            } );
+    return res;
+  }();
+  if( config.tiles.empty() ) return res;
+  // Our strategy here is to do the tile spread with a constant
+  // tile in order to produce a result with all of the fields
+  // filled out, then we will replace the tiles and then adjust
+  // the spacing to account for the fact that the tiles will have
+  // differently sized trimmed areas.
+  e_tile const first_tile = config.tiles[0].tile;
+  TileSpreadConfig const tile_spread_config{
+    .tile    = TileSpread{ .tile  = first_tile,
+                           .count = int( config.tiles.size() ) },
+    .options = config.options };
+  res = build_tile_spread( textometer, tile_spread_config );
+  // Restore the true set of (varying) tiles. This `zip` should
+  // correctly handle the case where there are fewer tiles ren-
+  // dered than requested, though that case is not expected to
+  // arise in this method in practice.
+  for( auto const [tile_w_opts, tile] :
+       rv::zip( config.tiles, res.tiles ) ) {
+    tile.tile      = tile_w_opts.tile;
+    tile.is_greyed = tile_w_opts.greyed;
+  }
+  // Need to recompute bounds now that we've moved things.
+  auto const bounds = []( TileSpreadRenderPlan const& plan ) {
+    rect bounds;
+    for( auto const& tile_plan : plan.tiles )
+      bounds = bounds.uni0n(
+          trimmed_area_for( tile_plan.tile )
+              .origin_becomes_point( tile_plan.where ) );
+    return bounds;
+  };
+  // Expand to the right if the tiles that can be further
+  // apart.
+  auto const expand = [&] {
+    TileSpreadRenderPlan scaled = res;
+    while( true ) {
+      int delta = 0;
+      for( auto& tile_render_plan : scaled.tiles )
+        tile_render_plan.where.x += delta++;
+      rect const bounds_scaled = bounds( scaled );
+      if( bounds_scaled.size.w > config.options.bounds ) break;
+      if( bounds_scaled == bounds( res ) ) break;
+      res = scaled;
+    }
+  };
+  // Move left any tiles that are spaced too far apart.
+  auto const squeeze = [&] {
+    for( int accum = 0, pos = numeric_limits<int>::max();
+         auto& tile_plan : res.tiles ) {
+      tile_plan.where.x -= accum;
+      interval const iv =
+          trimmed_area_for( tile_plan.tile ).horizontal_slice();
+      int const start = tile_plan.where.x + iv.start;
+      int const delta = std::max( 0, start - pos );
+      tile_plan.where.x -= delta;
+      accum += delta;
+      pos = tile_plan.where.x + iv.start + iv.len +
+            config.max_spacing.value_or( 1 );
+    }
+  };
+  // Because the expand is not done per tile, we need to do it
+  // after the squeeze. But then we need the squeeze again so
+  // that the tiles are not too far apart.
+  squeeze();
+  expand();
+  squeeze();
+  // Need to recompute bounds now that we've moved things.
+  res.bounds = bounds( res );
+  CHECK_LE( res.bounds.size.w, config.options.bounds );
   return res;
 }
 

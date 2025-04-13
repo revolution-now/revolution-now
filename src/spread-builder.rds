@@ -67,6 +67,16 @@ struct.InhomogeneousTileSpreadConfig {
   # themselves.
   max_spacing 'base::maybe<int>',
   options 'TileSpreadOptions',
+  # In general there doesn't really seem to be a solid way to
+  # create a tile spread when there is a large variance in tile
+  # widths in a way that looks good and has predictable bounds.
+  # However, this issue can be mostly solved by just rendering
+  # the tiles in decreasing order of width, which is what this
+  # option will do. This is recommended for all cases where there
+  # is potentially a large variance in trimmed tile widths (e.g.
+  # with commodities), assuming that it makes sense in that par-
+  # ticular context.
+  sort_tiles 'bool',
 }
 
 struct.TileSpreadConfigMulti {

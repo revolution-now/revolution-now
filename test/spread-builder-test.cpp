@@ -37,6 +37,7 @@ TEST_CASE( "[spread-builder] build_progress_tile_spread" ) {
 }
 
 TEST_CASE( "[spread-builder] build_inhomogeneous_tile_spread" ) {
+  rr::MockTextometer textometer;
 }
 
 TEST_CASE( "[spread-builder] build_tile_spread_multi" ) {

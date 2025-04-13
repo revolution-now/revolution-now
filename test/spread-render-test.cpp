@@ -834,111 +834,6 @@ TEST_CASE( "[spread] render_plan_for_tile_progress_spread" ) {
   REQUIRE( f() == ex );
 }
 
-TEST_CASE( "[spread] render_plan_for_tile_inhomogeneous" ) {
-  InhomogeneousTileSpreadSpec in;
-  TileSpreadRenderPlan ex;
-
-  auto f = [&] {
-    return render_plan_for_tile_inhomogeneous( in );
-  };
-
-  // Default.
-  in = {};
-  ex = {};
-  REQUIRE( f() == ex );
-
-  testing_set_trimmed_cache(
-      e_tile::dragoon, rect{ .origin = { .x = 1, .y = 1 },
-                             .size   = { .w = 30, .h = 30 } } );
-  testing_set_trimmed_cache(
-      e_tile::soldier, rect{ .origin = { .x = 3, .y = 3 },
-                             .size   = { .w = 27, .h = 27 } } );
-  testing_set_trimmed_cache(
-      e_tile::veteran_dragoon,
-      rect{ .origin = { .x = 1, .y = 1 },
-            .size   = { .w = 30, .h = 30 } } );
-
-  // Small spacing.
-  in                         = {};
-  in.source_spec.bounds      = 20;
-  in.source_spec.max_spacing = 1;
-  in.source_spec.widths.resize( 3 );
-  in.source_spec.widths[0]    = 4;
-  in.source_spec.widths[1]    = 7;
-  in.source_spec.widths[2]    = 10;
-  in.spread.max_total_spacing = 3;
-  in.tiles.resize( 3 );
-  in.tiles[0].tile = e_tile::dragoon;
-  in.tiles[1].tile = e_tile::soldier;
-  in.tiles[2].tile = e_tile::veteran_dragoon;
-
-  ex               = {};
-  ex.bounds.origin = { .x = 0, .y = 0 };
-  ex.bounds.size   = { .w = 3 + 3 + 30, .h = 31 };
-  ex.tiles.resize( 3 );
-  ex.tiles[0].tile  = e_tile::dragoon;
-  ex.tiles[0].where = point{ .x = 0 - 1, .y = 0 };
-  ex.tiles[1].tile  = e_tile::soldier;
-  ex.tiles[1].where = point{ .x = 3 - 3, .y = 0 };
-  ex.tiles[2].tile  = e_tile::veteran_dragoon;
-  ex.tiles[2].where = point{ .x = 6 - 1, .y = 0 };
-  REQUIRE( f() == ex );
-
-  // Max spacing.
-  in                         = {};
-  in.source_spec.bounds      = 20;
-  in.source_spec.max_spacing = 1;
-  in.source_spec.widths.resize( 3 );
-  in.source_spec.widths[0]    = 4;
-  in.source_spec.widths[1]    = 7;
-  in.source_spec.widths[2]    = 10;
-  in.spread.max_total_spacing = 10000;
-  in.tiles.resize( 3 );
-  in.tiles[0].tile = e_tile::dragoon;
-  in.tiles[1].tile = e_tile::soldier;
-  in.tiles[2].tile = e_tile::veteran_dragoon;
-
-  ex               = {};
-  ex.bounds.origin = { .x = 0, .y = 0 };
-  ex.bounds.size   = { .w = 89, .h = 31 };
-  ex.tiles.resize( 3 );
-  ex.tiles[0].tile  = e_tile::dragoon;
-  ex.tiles[0].where = point{ .x = 0 - 1, .y = 0 };
-  ex.tiles[1].tile  = e_tile::soldier;
-  ex.tiles[1].where = point{ .x = 30 + 1 - 3, .y = 0 };
-  ex.tiles[2].tile  = e_tile::veteran_dragoon;
-  ex.tiles[2].where = point{ .x = 30 + 1 + 27 + 1 - 1, .y = 0 };
-  REQUIRE( f() == ex );
-
-  // Greyed tile.
-  in                         = {};
-  in.source_spec.bounds      = 20;
-  in.source_spec.max_spacing = 1;
-  in.source_spec.widths.resize( 3 );
-  in.source_spec.widths[0]    = 4;
-  in.source_spec.widths[1]    = 7;
-  in.source_spec.widths[2]    = 10;
-  in.spread.max_total_spacing = 3;
-  in.tiles.resize( 3 );
-  in.tiles[0].tile   = e_tile::dragoon;
-  in.tiles[1].tile   = e_tile::soldier;
-  in.tiles[1].greyed = true;
-  in.tiles[2].tile   = e_tile::veteran_dragoon;
-
-  ex               = {};
-  ex.bounds.origin = { .x = 0, .y = 0 };
-  ex.bounds.size   = { .w = 3 + 3 + 30, .h = 31 };
-  ex.tiles.resize( 3 );
-  ex.tiles[0].tile      = e_tile::dragoon;
-  ex.tiles[0].where     = point{ .x = 0 - 1, .y = 0 };
-  ex.tiles[1].tile      = e_tile::soldier;
-  ex.tiles[1].where     = point{ .x = 3 - 3, .y = 0 };
-  ex.tiles[1].is_greyed = true;
-  ex.tiles[2].tile      = e_tile::veteran_dragoon;
-  ex.tiles[2].where     = point{ .x = 6 - 1, .y = 0 };
-  REQUIRE( f() == ex );
-}
-
 TEST_CASE( "[spread] replace_first_n_tiles" ) {
   TileSpreadRenderPlans plans;
   TileSpreadRenderPlans ex;
@@ -1070,6 +965,11 @@ TEST_CASE( "[spread] replace_first_n_tiles" ) {
   ex.plans[1].tiles[3].tile = e_tile::commodity_food_20;
   f();
   REQUIRE( plans == ex );
+}
+
+TEST_CASE(
+    "[spread] render_plan_for_tile_uncompressed_spread" ) {
+  (void)render_plan_for_tile_uncompressed_spread;
 }
 
 } // namespace

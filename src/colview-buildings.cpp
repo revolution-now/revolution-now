@@ -114,9 +114,9 @@ TileSpreadRenderPlan create_production_spread(
 }
 
 TileSpreadRenderPlan create_workers_spread(
-    SSConst const& ss, Colony const& colony,
-    e_colony_building_slot const slot, int const width,
-    int const unit_shadow_offset ) {
+    rr::ITextometer const& textometer, SSConst const& ss,
+    Colony const& colony, e_colony_building_slot const slot,
+    int const width, int const unit_shadow_offset ) {
   TileSpreadRenderPlan res;
   maybe<e_indoor_job> const indoor_job =
       indoor_job_for_slot( slot );
@@ -139,7 +139,7 @@ TileSpreadRenderPlan create_workers_spread(
     .max_spacing = -unit_shadow_offset + 1,
     .options     = { .bounds       = width,
                      .label_policy = SpreadLabels::never{} } };
-  res = build_inhomogenous_tile_spread( config );
+  res = build_inhomogeneous_tile_spread( textometer, config );
   return res;
 }
 
@@ -433,8 +433,8 @@ ColViewBuildings::Layout ColViewBuildings::create_layout(
           engine.textometer(), ss, colview_production(), slot,
           product_spread_width ),
       .workers_plan = create_workers_spread(
-          ss, colony, slot, workers_spread_width,
-          l.unit_shadow_offset ),
+          engine.textometer(), ss, colony, slot,
+          workers_spread_width, l.unit_shadow_offset ),
       .product_plan_origin =
           bounds.nw() + size{ .w = margin, .h = 10 },
       .workers_plan_origin =
