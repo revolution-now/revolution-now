@@ -11,6 +11,7 @@
 #include "ss/players.hpp"
 
 // ss
+#include "revolution.rds.hpp"
 #include "ss/market.hpp"
 #include "ss/player.hpp"
 
@@ -39,6 +40,17 @@ base::valid_or<string> PlayersState::validate() const {
                      "mismatch in player nations for the {}.",
                      nation );
 
+  // Ensure that at most one player has moved past the
+  // non-declared independence state.
+  for( int count = 0; auto const& [nation, player] : players ) {
+    if( !player.has_value() ) continue;
+    if( player->revolution.status >
+        e_revolution_status::not_declared )
+      ++count;
+    REFL_VALIDATE(
+        count <= 1,
+        "At most one player can declare independence." );
+  }
   return base::valid;
 }
 
