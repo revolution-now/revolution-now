@@ -141,10 +141,9 @@ struct.ProgressTileSpreadSpec {
   label_policy 'SpreadLabels',
 }
 
-struct.InhomogeneousTileSpreadSpec {
-  source_spec 'InhomogeneousSpreadSpec',
-  spread 'InhomogeneousSpread',
+struct.UncompressedTileSpreadSpec {
   tiles 'std::vector<TileWithOptions>',
+  bounds 'int',
 }
 
 # ---------------------------------------------------------------

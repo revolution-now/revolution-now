@@ -332,35 +332,35 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   return plan;
 }
 
-[[nodiscard]] TileSpreadRenderPlan
-render_plan_for_tile_inhomogeneous(
-    InhomogeneousTileSpreadSpec const& tile_spec ) {
-  TileSpreadRenderPlan res;
-  res.tiles.reserve( tile_spec.tiles.size() );
+maybe<TileSpreadRenderPlan>
+render_plan_for_tile_uncompressed_spread(
+    UncompressedTileSpreadSpec const& tile_spec ) {
+  maybe<TileSpreadRenderPlan> res;
+  auto& plan = res.emplace();
+  plan.tiles.reserve( tile_spec.tiles.size() );
   point p;
   for( TileWithOptions const& tile_info : tile_spec.tiles ) {
     interval const iv =
         trimmed_area_for( tile_info.tile ).horizontal_slice();
     point const render_p = p.moved_left( iv.start );
-    res.tiles.push_back(
+    plan.tiles.push_back(
         TileRenderPlan{ .tile       = tile_info.tile,
                         .where      = render_p,
                         .is_overlay = false,
                         .is_greyed  = tile_info.greyed } );
-    int const delta =
-        std::min( tile_spec.spread.max_total_spacing,
-                  iv.len + tile_spec.source_spec.max_spacing );
+    int const delta = iv.len + 1;
     p.x += delta;
   }
   rect const tiles_all = [&] {
     rect bounds;
-    for( auto const& plan : res.tiles )
+    for( auto const& plan : plan.tiles )
       bounds = bounds.uni0n(
           trimmed_area_for( plan.tile )
               .origin_becomes_point( plan.where ) );
     return bounds;
   }();
-  res.bounds = tiles_all;
+  plan.bounds = tiles_all;
+  if( plan.bounds.size.w > tile_spec.bounds ) res.reset();
   return res;
 }
 

@@ -217,7 +217,9 @@ struct PanelPlane::Impl : public IPlane {
     // Active unit info.
     // FIXME: this needs to persist while the unit is sliding.
     // Probably requires reworking how we decide to display this
-    // info.
+    // info. What we might have to do is change is so that the
+    // land view pushes this info to the panel instead of the
+    // panel detecting it and pulling it.
     if( auto const unit_id = land_view_plane_.unit_blinking();
         unit_id.has_value() ) {
       typer.newline();
@@ -239,14 +241,14 @@ struct PanelPlane::Impl : public IPlane {
           .tile   = tile_for_commodity_16( comm.type ),
           .greyed = comm.quantity < 100 } );
       InhomogeneousTileSpreadConfig const spread_config{
-        .tiles       = std::move( tiles ),
-        .max_spacing = 1,
-        .options     = {
-              .bounds = std::max(
-              rect().right_edge() - spread_origin.x - 4, 0 ),
-              .label_policy = SpreadLabels::never{} } };
+        .tiles = std::move( tiles ),
+        // TODO: need to add appropriate margins here.
+        .options    = { .bounds = ( rect().right_edge() -
+                                 spread_origin.x ) },
+        .sort_tiles = true };
       TileSpreadRenderPlan const spread_plan =
-          build_inhomogenous_tile_spread( spread_config );
+          build_inhomogeneous_tile_spread( engine_.textometer(),
+                                           spread_config );
       draw_rendered_icon_spread( renderer, spread_origin,
                                  spread_plan );
     }

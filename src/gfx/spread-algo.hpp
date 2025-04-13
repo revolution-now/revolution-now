@@ -42,11 +42,6 @@ maybe<Spreads> compute_icon_spread( SpreadSpecs const& specs );
 maybe<ProgressSpread> compute_icon_spread_progress_bar(
     ProgressSpreadSpec const& spec );
 
-// This is for when there are an array of icons in the same
-// spread that have different widths.
-maybe<InhomogeneousSpread> compute_icon_spread_inhomogeneous(
-    InhomogeneousSpreadSpec const& spec );
-
 // This one is called when we can't fit all the icons within the
 // bounds even when all of their spacings are reduced to one
 // (i.e., where the principle method above returns nothing). We

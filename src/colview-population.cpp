@@ -42,25 +42,22 @@ using ::gfx::point;
 using ::gfx::rect;
 using ::gfx::size;
 
-TileSpreadRenderPlan create_people_spread( SSConst const& ss,
-                                           Colony const& colony,
-                                           int const width ) {
-  vector<TileWithOptions> const tiles = [&] {
-    vector<TileWithOptions> res;
-    vector<UnitId> const units = colony_units_all( colony );
-    res.reserve( units.size() );
-    for( UnitId const unit_id : units )
-      res.push_back( TileWithOptions{
-        .tile = tile_for_unit_type(
-            ss.units.unit_for( unit_id ).type() ) } );
-    return res;
-  }();
+TileSpreadRenderPlan create_people_spread(
+    rr::ITextometer const& textometer, SSConst const& ss,
+    Colony const& colony, int const width ) {
+  vector<UnitId> const units = colony_units_all( colony );
+  vector<TileWithOptions> tiles;
+  tiles.reserve( units.size() );
+  for( UnitId const unit_id : units )
+    tiles.push_back( TileWithOptions{
+      .tile = tile_for_unit_type(
+          ss.units.unit_for( unit_id ).type() ) } );
   InhomogeneousTileSpreadConfig const config{
-    .tiles       = tiles,
+    .tiles       = std::move( tiles ),
     .max_spacing = 2,
     .options     = { .bounds       = width,
                      .label_policy = SpreadLabels::never{} } };
-  return build_inhomogenous_tile_spread( config );
+  return build_inhomogeneous_tile_spread( textometer, config );
 }
 
 TileSpreadRenderPlans create_production_spreads(
@@ -259,8 +256,8 @@ PopulationView::Layout PopulationView::create_layout(
   l.production_spread_origin = { .x = l.spread_margin,
                                  .y = 16 + 32 + 6 };
   int const spread_width     = sz.w - 2 * l.spread_margin;
-  l.people_spread =
-      create_people_spread( ss, colony, spread_width );
+  l.people_spread            = create_people_spread(
+      engine.textometer(), ss, colony, spread_width );
   l.production_spreads = create_production_spreads(
       engine, ss, colview_production(), spread_width );
   return l;
