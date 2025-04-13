@@ -1376,17 +1376,16 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
     on_father_received( ss, ts, player, *new_father );
   }
 
-  // Evolve rebel sentiment.
-  int const new_sentiment =
-      updated_rebel_sentiment( ss.as_const, as_const( player ) );
-  RebelSentimentChangeReport const sentiment_change_report =
-      update_rebel_sentiment( player, new_sentiment );
-  if( should_show_rebel_sentiment_report(
-          ss.as_const, as_const( player ),
-          sentiment_change_report ) )
+  // Evolve rebel sentiment. This must be done after colonies are
+  // evolved so that the rebel sentiment level during the turn
+  // will be consistent with the SoL of the various colonies.
+  if( auto const report = update_rebel_sentiment(
+          player, updated_rebel_sentiment(
+                      ss.as_const, as_const( player ) ) );
+      should_show_rebel_sentiment_report(
+          ss.as_const, as_const( player ), report ) )
     co_await show_rebel_sentiment_change_report(
-        ts.euro_minds()[player.nation],
-        sentiment_change_report );
+        ts.euro_minds()[player.nation], report );
 }
 
 /****************************************************************

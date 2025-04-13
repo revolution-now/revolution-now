@@ -24,6 +24,9 @@
 // refl
 #include "refl/to-str.hpp"
 
+// base
+#include "base/to-str-ext-std.hpp"
+
 namespace rn {
 
 /****************************************************************
