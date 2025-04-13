@@ -63,6 +63,11 @@ TEST_CASE(
 
   SECTION( "without bolivar" ) {
     has_simon_bolivar = false;
+    SECTION( "population 0" ) {
+      colony_population          = 0;
+      num_rebels_from_bells_only = 0.0;
+      REQUIRE( f() == 0.0 );
+    }
     SECTION( "population 1" ) {
       colony_population          = 1;
       num_rebels_from_bells_only = 0.1;
@@ -116,6 +121,11 @@ TEST_CASE(
 
   SECTION( "with bolivar" ) {
     has_simon_bolivar = true;
+    SECTION( "population 0" ) {
+      colony_population          = 0;
+      num_rebels_from_bells_only = 0.0;
+      REQUIRE( f() == 0.0 );
+    }
     SECTION( "population 1" ) {
       colony_population          = 1;
       num_rebels_from_bells_only = 0.1;

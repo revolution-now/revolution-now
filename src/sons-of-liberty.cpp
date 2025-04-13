@@ -41,9 +41,8 @@ namespace {} // namespace
 double compute_sons_of_liberty_percent(
     double num_rebels_from_bells_only, int colony_population,
     bool has_simon_bolivar ) {
-  CHECK( colony_population > 0,
-         "A colony's population must be > 0 in order to compute "
-         "rebel %." );
+  CHECK_GE( colony_population, 0 );
+  if( colony_population == 0 ) return 0.0;
   CHECK_GE( num_rebels_from_bells_only, 0.0 );
   // The num_rebels_from_bells_only could be larger than the pop-
   // ulation if colonists were removed from the colony after it
