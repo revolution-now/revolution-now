@@ -42,6 +42,10 @@ enum.e_euro_unit_combat_modifiers {
   bombardment,
   artillery_out_in_the_open,
   cargo,
+  # TODO: according to the OG's manual, when a colony is occupied
+  # by the REF, the rebel/tory sentiment has the opposite effect,
+  # namely benefitting the ref in the measure that it would have
+  # benefitted the rebels prior. Should verify this.
   tory_sentiment,
   difficulty, # based on difficulty level of game.
   francis_drake_privateer,
