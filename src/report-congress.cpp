@@ -96,8 +96,8 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   int const margin = 7;
   point cur{ .x = margin, .y = margin };
 
-  int const kBufferAfterTitle   = 12;
-  int const kBufferAfterSection = 10;
+  int const kBufferAfterTitle   = 15;
+  int const kBufferAfterSection = 9;
   int const kHalfTextHeight     = 4; // TODO
 
   l.title = "AFFAIRS OF THE CONTINENTAL CONGRESS";
@@ -106,7 +106,6 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   l.title_center = { .x = l.canvas.center().x,
                      .y = cur.y + kHalfTextHeight };
   cur.y += kBufferAfterTitle + kHalfTextHeight;
-  cur.y += kBufferAfterTitle;
 
   [&] {
     // This will be nothing if the player has all fathers, in
