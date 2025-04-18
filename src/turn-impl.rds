@@ -10,6 +10,7 @@
 # ===============================================================
 # ss
 include "ss/unit-id.hpp"
+include "ss/nation.rds.hpp"
 
 # base
 include "base/maybe.hpp"
@@ -31,4 +32,12 @@ sumtype.EndOfTurnResult {
   return_to_units {
     first_to_ask 'base::maybe<UnitId>',
   },
+}
+
+sumtype.TurnLoopPhase {
+  pre_declaration {},
+  declaring {
+    nation 'e_nation',
+  },
+  post_declaration {},
 }

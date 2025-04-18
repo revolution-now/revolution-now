@@ -26,6 +26,8 @@ namespace rn {
 
 struct ViewModeOptions;
 
+enum class e_nation;
+
 /****************************************************************
 ** Interrupts.
 *****************************************************************/
@@ -61,6 +63,11 @@ struct top_of_turn_loop : std::exception {};
 struct view_mode_interrupt : std::exception {
   // Use heap_value so that we can forward declare.
   base::heap_value<ViewModeOptions> options;
+};
+
+// No turning back from here.
+struct declare_independence_interrupt : std::exception {
+  e_nation nation = {};
 };
 
 } // namespace rn

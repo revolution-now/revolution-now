@@ -1,0 +1,20 @@
+# ===============================================================
+# declare.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-04-13.
+#
+# Description: Rds definitions for the declare module.
+#
+# ===============================================================
+namespace "rn"
+
+# Reasons that the player's attempt to declare independence might
+# get rejected.
+enum.e_declare_rejection {
+  rebel_sentiment_too_low,
+  foreign_nation_already_declared,
+  already_declared,
+  already_won,
+}

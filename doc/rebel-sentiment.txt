@@ -4,7 +4,12 @@ Notes:
     eign powers rises and they get closer to declaring.
 
   * When independence is declared, the player's turn immediately
-    ends. Not sure why this is necessary.
+    ends. It appears that the ref moves last after all nations.
+    Moreover, during the same turn as independence is declared,
+    the king's army appears to use its turn to land, but does not
+    attack. Then, at the start of the next turn, some messages
+    are shown, then armies are promoted, then a normal turn pro-
+    ceeds where the player gets to move, then the ref.
 
   * Also when it reaches 50%, the OG consolidates two of the AI
     players: according to the SG, the smallest one is ceded into

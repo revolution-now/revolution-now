@@ -25,11 +25,15 @@ struct.RevolutionState {
 
   status 'e_revolution_status',
 
+  war_of_succession_done 'bool',
+
+  armies_promoted 'bool',
+
   # This will be set to true once the player has earned (through
   # sufficient liberty bells) the help of the intervention force.
   # Once it is true, each turn will bring a few intervention
   # units to the new world.
-  deploy_intervention_force 'bool',
+  intervention_force_deployed 'bool',
 
   # TODO: need to represent other state such as "Tory Uprising".
   # Some say this is caused by loyalty in a single colony. Maybe

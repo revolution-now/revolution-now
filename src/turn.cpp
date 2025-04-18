@@ -22,6 +22,7 @@
 #include "colony-mgr.hpp"
 #include "colony-view.hpp"
 #include "command.hpp"
+#include "declare.hpp"
 #include "disband.hpp"
 #include "fathers.hpp"
 #include "game-options.hpp"
@@ -493,17 +494,20 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::revolution: {
-      // TODO: requires 50% rebel sentiment.
-      ChoiceConfig config{
-        .msg     = "Declare Revolution?",
-        .options = {
-          { .key = "no", .display_name = "Not Yet..." },
-          { .key          = "yes",
-            .display_name = "Give me liberty or give me "
-                            "death!" } } };
-      maybe<string> const answer =
-          co_await ts.gui.optional_choice( config );
-      co_await ts.gui.message_box( "You selected: {}", answer );
+      valid_or<e_declare_rejection> const can_declare =
+          can_declare_independence( ss, player );
+      if( !can_declare ) {
+        co_await show_declare_rejection_msg(
+            ts.gui, can_declare.error() );
+        break;
+      }
+      ui::e_confirm const answer =
+          co_await ask_declare( ts.gui, player );
+      if( answer == ui::e_confirm::yes ) {
+        declare_independence_interrupt interrupt;
+        interrupt.nation = player.nation;
+        throw interrupt;
+      }
       break;
     }
     case e_menu_item::harbor_view: {
@@ -1581,6 +1585,19 @@ wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
   cycle = {};
 }
 
+/****************************************************************
+** Independence routine.
+*****************************************************************/
+wait<> declare_independence_routine( IEngine&, SS& ss, TS& ts,
+                                     e_nation const nation ) {
+  UNWRAP_CHECK( player, ss.players.players[nation] );
+  co_await declare_independence_ui_sequence_pre(
+      ss.as_const, ts, as_const( player ) );
+  declare_independence( ss, ts, player );
+  co_await declare_independence_ui_sequence_post(
+      ss.as_const, ts, as_const( player ) );
+}
+
 } // namespace
 
 /****************************************************************
@@ -1588,10 +1605,57 @@ wait<> next_turn( IEngine& engine, SS& ss, TS& ts ) {
 *****************************************************************/
 // Runs through multiple turns.
 wait<> turn_loop( IEngine& engine, SS& ss, TS& ts ) {
+  TurnLoopPhase phase = TurnLoopPhase::pre_declaration{};
+
+  // Recover the phase if we are loading a saved game.
+  if( auto const nation_declared = player_that_declared( ss );
+      nation_declared.has_value() ) {
+    e_revolution_status const revolution_status =
+        ss.players.players[*nation_declared]->revolution.status;
+    switch( revolution_status ) {
+      case e_revolution_status::not_declared: {
+        phase = TurnLoopPhase::pre_declaration{};
+        break;
+      }
+      case e_revolution_status::declared: {
+        // The `declaring` phase (i.e. UI sequence) can't be in-
+        // terrupted, so if someone has declared then are in the
+        // post declation phase, i.e. the phase where the war is
+        // being faught.
+        phase = TurnLoopPhase::post_declaration{};
+        break;
+      }
+      case e_revolution_status::won: {
+        phase = TurnLoopPhase::post_declaration{};
+        break;
+      }
+    }
+  }
+
+  // The turn loop.
   while( true ) {
-    try {
-      co_await next_turn( engine, ss, ts );
-    } catch( top_of_turn_loop const& ) {}
+    SWITCH( phase ) {
+      CASE( pre_declaration ) {
+        try {
+          co_await next_turn( engine, ss, ts );
+        } catch( declare_independence_interrupt const& e ) {
+          phase = TurnLoopPhase::declaring{ .nation = e.nation };
+        } catch( top_of_turn_loop const& ) {}
+        break;
+      }
+      CASE( declaring ) {
+        co_await declare_independence_routine(
+            engine, ss, ts, declaring.nation );
+        phase = TurnLoopPhase::post_declaration{};
+        break;
+      }
+      CASE( post_declaration ) {
+        try {
+          co_await next_turn( engine, ss, ts );
+        } catch( top_of_turn_loop const& ) {}
+        break;
+      }
+    }
   }
 }
 
