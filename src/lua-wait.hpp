@@ -48,7 +48,7 @@ struct type_traits<::rn::wait<T>>
 
     ut["error"] = []( W& w ) -> base::maybe<std::string> {
       if( !w.has_exception() ) return base::nothing;
-      return base::rethrow_and_get_msg( w.exception() );
+      return base::rethrow_and_get_info( w.exception() ).msg;
     };
 
     ut["set_resume"] = []( W& w, lua::rthread coro ) {

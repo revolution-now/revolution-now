@@ -174,8 +174,10 @@ void frame_loop_scheduler( IEngine& engine, wait<> const& what,
   }
 
   if( what.has_exception() ) {
-    string msg = base::rethrow_and_get_msg( what.exception() );
-    FATAL( "uncaught exception in coroutine: {}", msg );
+    base::ExceptionInfo const info =
+        base::rethrow_and_get_info( what.exception() );
+    FATAL( "uncaught exception of type `{}` in coroutine: {}",
+           info.demangled_type_name, info.msg );
   }
 }
 

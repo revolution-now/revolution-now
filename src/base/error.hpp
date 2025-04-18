@@ -398,10 +398,15 @@ using generic_err = std::unique_ptr<GenericError>;
 void to_str( generic_err const& ge, std::string& out,
              tag<generic_err> );
 
-// This is supposed to be an exception in the std::exception hi-
-// erarchy. If it is not then it will still work, but will return
-// "unknown exception type" or something like that.
-std::string rethrow_and_get_msg( std::exception_ptr p );
+struct ExceptionInfo {
+  std::string demangled_type_name;
+  // This is for when the exception is in the std::exception hi-
+  // erarchy. If it is not then it will return "unknown exception
+  // type".
+  std::string msg;
+};
+
+ExceptionInfo rethrow_and_get_info( std::exception_ptr p );
 
 } // namespace base
 

@@ -11,6 +11,7 @@
 #include "error.hpp"
 
 // base
+#include "cc-specific.hpp"
 #include "stack-trace.hpp"
 
 // C++ standard library
@@ -50,12 +51,17 @@ void to_str( generic_err const& ge, std::string& out,
   out += ge->what;
 }
 
-string rethrow_and_get_msg( exception_ptr p ) {
+ExceptionInfo rethrow_and_get_info( exception_ptr const p ) {
   try {
     rethrow_exception( p );
   } catch( exception const& e ) {
-    return e.what();
-  } catch( ... ) { return "unknown exception type"; }
+    return ExceptionInfo{
+      .demangled_type_name = demangle( typeid( e ).name() ),
+      .msg                 = e.what() };
+  } catch( ... ) {
+    return ExceptionInfo{ .demangled_type_name = "unknown",
+                          .msg = "unknown exception type" };
+  }
 }
 
 } // namespace base

@@ -57,10 +57,10 @@ string to_lower_str( string_view c ) {
   trace( #letter );     \
   SCOPE_EXIT { trace( to_lower_str( #letter ) ); };
 
-#define REQUIRE_NO_EXCEPTION( w )                       \
-  if( w.has_exception() ) {                             \
-    INFO( base::rethrow_and_get_msg( w.exception() ) ); \
-    REQUIRE( !w.has_exception() );                      \
+#define REQUIRE_NO_EXCEPTION( w )                            \
+  if( w.has_exception() ) {                                  \
+    INFO( base::rethrow_and_get_info( w.exception() ).msg ); \
+    REQUIRE( !w.has_exception() );                           \
   }
 
 /****************************************************************
@@ -358,7 +358,7 @@ TEST_CASE( "[co-lua] scenario 1 error from cpp" ) {
 
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
-  string msg = base::rethrow_and_get_msg( w.exception() );
+  string msg = base::rethrow_and_get_info( w.exception() ).msg;
   // clang-format off
   // whether we have 'global' or 'function' depends on whether
   // globals are frozen or not.
@@ -400,7 +400,7 @@ TEST_CASE( "[co-lua] scenario 1 error from lua" ) {
 
   REQUIRE( !w.ready() );
   REQUIRE( w.has_exception() );
-  string msg = base::rethrow_and_get_msg( w.exception() );
+  string msg = base::rethrow_and_get_info( w.exception() ).msg;
   // clang-format off
   // whether we have 'global' or 'function' depends on whether
   // globals are frozen or not.
@@ -629,7 +629,7 @@ TEST_CASE( "[co-lua] scenario 2 error" ) {
            "ahgfbadahgfbadadahgf" );
 
   REQUIRE( w.has_exception() );
-  string msg = base::rethrow_and_get_msg( w.exception() );
+  string msg = base::rethrow_and_get_info( w.exception() ).msg;
   // clang-format off
   // whether we have 'global' or 'function' depends on whether
   // globals are frozen or not.
