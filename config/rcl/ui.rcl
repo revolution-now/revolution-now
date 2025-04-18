@@ -14,7 +14,7 @@ dialog_text {
   highlighted:         "#D4AA14"
   disabled:            "#707070"
   selected_background: "#2C160E"
-  columns:             45
+  columns:             75
 }
 
 menus {
