@@ -20,3 +20,7 @@ struct.RebelSentimentReport {
   rebels 'int',
   tories 'int',
 }
+
+struct.WarOfSuccession {
+  # TODO
+}

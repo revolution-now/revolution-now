@@ -19,12 +19,14 @@
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/revolution.rds.hpp"
 
 // ss
 #include "revolution.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 
 using namespace std;
 
@@ -34,6 +36,15 @@ namespace {
 
 using ::base::valid;
 using ::base::valid_or;
+
+bool rebellion_large_enough_to_declare(
+    SettingsState const& settings, Player const& player ) {
+  return player.revolution.rebel_sentiment >=
+         config_revolution.declaration
+             .human_required_rebel_sentiment_percent
+                 [settings.difficulty]
+             .percent;
+}
 
 } // namespace
 

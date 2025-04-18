@@ -77,7 +77,10 @@ value cdr_game_state_default = table{
               "numbers"_key = false,
             },
       },
-  "events"_key = table{},
+  "events"_key =
+      table{
+        "war_of_succession_done"_key = false,
+      },
   "units"_key =
       table{
         "next_unit_id"_key             = 1,

@@ -10,7 +10,8 @@
 # ===============================================================
 namespace "rn"
 
+# This state is intended to be for overall global game state
+# changes that don't need per-player representations.
 struct.EventsState {
-  # This state is intended to be for overall global game state
-  # changes that don't need per-player representations.
+  war_of_succession_done 'bool',
 }

@@ -24,10 +24,14 @@ namespace rn {
 struct IEuroMind;
 struct Player;
 struct SettingsState;
+struct SS;
+struct TS;
 struct SSConst;
 
+enum class e_nation;
+
 /****************************************************************
-** Public API.
+** Evolution of Rebel Sentiment.
 *****************************************************************/
 [[nodiscard]] int updated_rebel_sentiment(
     SSConst const& ss, Player const& player );
@@ -42,12 +46,24 @@ bool should_show_rebel_sentiment_report(
 wait<> show_rebel_sentiment_change_report(
     IEuroMind& mind, RebelSentimentChangeReport const& report );
 
-bool rebellion_large_enough_to_declare(
-    SettingsState const& settings, Player const& player );
-
+/****************************************************************
+** Rebel Sentiment in Continental Congress Report.
+*****************************************************************/
 // This provides the rebel sentiment info for the Continental
 // Congress report.
 RebelSentimentReport rebel_sentiment_report_for_cc_report(
     SSConst const& ss, Player const& player );
+
+/****************************************************************
+** War of Succession.
+*****************************************************************/
+bool should_do_war_of_succession( SSConst const& ss,
+                                  Player const& player );
+
+WarOfSuccession do_war_of_succession( SS& ss,
+                                      e_nation with_rebels );
+
+wait<> do_war_of_succession_ui_seq(
+    TS& ts, WarOfSuccession const& succession );
 
 } // namespace rn

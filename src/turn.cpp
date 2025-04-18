@@ -1390,6 +1390,14 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
           ss.as_const, as_const( player ), report ) )
     co_await show_rebel_sentiment_change_report(
         ts.euro_minds()[player.nation], report );
+
+  // Check if we need to do the war of succession.
+  if( should_do_war_of_succession( as_const( ss ),
+                                   as_const( player ) ) ) {
+    WarOfSuccession const succession =
+        do_war_of_succession( ss, player.nation );
+    co_await do_war_of_succession_ui_seq( ts, succession );
+  }
 }
 
 /****************************************************************

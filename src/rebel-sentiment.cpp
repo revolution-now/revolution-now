@@ -18,14 +18,12 @@
 
 // config
 #include "config/nation.rds.hpp"
-#include "config/revolution.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
-#include "ss/settings.rds.hpp"
 #include "ss/units.hpp"
 
 using namespace std;
@@ -145,13 +143,19 @@ wait<> show_rebel_sentiment_change_report(
         country );
 }
 
-bool rebellion_large_enough_to_declare(
-    SettingsState const& settings, Player const& player ) {
-  return player.revolution.rebel_sentiment >=
-         config_revolution.declaration
-             .human_required_rebel_sentiment_percent
-                 [settings.difficulty]
-             .percent;
+bool should_do_war_of_succession( SSConst const&,
+                                  Player const& ) {
+  return false;
+}
+
+WarOfSuccession do_war_of_succession( SS&, e_nation const ) {
+  WarOfSuccession res;
+  return res;
+}
+
+wait<> do_war_of_succession_ui_seq( TS&,
+                                    WarOfSuccession const& ) {
+  co_return;
 }
 
 } // namespace rn

@@ -25,8 +25,6 @@ struct.RevolutionState {
 
   status 'e_revolution_status',
 
-  war_of_succession_done 'bool',
-
   armies_promoted 'bool',
 
   # This will be set to true once the player has earned (through

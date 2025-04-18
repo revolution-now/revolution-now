@@ -16,6 +16,11 @@
 // Testing.
 #include "test/fake/world.hpp"
 
+// ss
+#include "src/ss/player.rds.hpp"
+#include "src/ss/ref.hpp"
+#include "src/ss/settings.rds.hpp"
+
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
 
@@ -23,6 +28,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::base::valid;
 
 /****************************************************************
 ** Fake World Setup
@@ -50,6 +57,81 @@ struct world : testing::World {
 *****************************************************************/
 TEST_CASE( "[declare] can_declare_independence" ) {
   world w;
+
+  Player& player = w.default_player();
+
+  auto const f = [&] {
+    return can_declare_independence( w.ss().as_const,
+                                     as_const( player ) );
+  };
+
+  w.settings().difficulty = e_difficulty::discoverer;
+
+  using enum e_declare_rejection;
+
+  // Default.
+  REQUIRE( f() == rebel_sentiment_too_low );
+
+  SECTION( "rebel sentiment" ) {
+    player.revolution.rebel_sentiment = 0;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 10;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 30;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 49;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 50;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 60;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 99;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 100;
+    REQUIRE( f() == valid );
+
+    w.settings().difficulty = e_difficulty::viceroy;
+
+    player.revolution.rebel_sentiment = 0;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 10;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 30;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 49;
+    REQUIRE( f() == rebel_sentiment_too_low );
+
+    player.revolution.rebel_sentiment = 50;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 60;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 99;
+    REQUIRE( f() == valid );
+
+    player.revolution.rebel_sentiment = 100;
+    REQUIRE( f() == valid );
+  }
+
+  SECTION( "Foreign Nation" ) {
+  }
+
+  SECTION( "Already Declared" ) {
+  }
+
+  SECTION( "Already Won" ) {
+  }
 }
 
 TEST_CASE( "[declare] show_declare_rejection_msg" ) {
