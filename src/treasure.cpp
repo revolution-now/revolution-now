@@ -28,6 +28,7 @@
 #include "ss/natives.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/revolution.rds.hpp"
 #include "ss/settings.rds.hpp"
 #include "ss/unit.hpp"
 #include "ss/units.hpp"
@@ -111,6 +112,24 @@ TreasureReceipt treasure_in_harbor_receipt(
 wait<maybe<TreasureReceipt>> treasure_enter_colony(
     SSConst const& ss, TS& ts, Player const& player,
     Unit const& treasure ) {
+  if( player.revolution.status >=
+      e_revolution_status::declared ) {
+    // After independence is declared, a message just pops up
+    // saying "Treasure sold to traveling merchants for XXX",
+    // where XXX is the full value of the treasure since there
+    // are no more taxes. This is necessary because the player
+    // can no longer transport it to europe.
+    co_return TreasureReceipt{
+      .treasure_id = treasure.id(),
+      .transport_mode =
+          e_treasure_transport_mode::traveling_merchants,
+      .original_worth = treasure.composition()
+                            .inventory()[e_unit_inventory::gold],
+      .kings_cut_percent = 0,
+      .net_received      = treasure.composition()
+                          .inventory()[e_unit_inventory::gold],
+    };
+  }
   TreasureReceipt const receipt =
       treasure_king_transport_receipt( ss, player, treasure );
   string msg =
@@ -128,6 +147,8 @@ wait<maybe<TreasureReceipt>> treasure_enter_colony(
       config_nation.nations[player.nation].harbor_city_name );
   switch( receipt.transport_mode ) {
     case e_treasure_transport_mode::player:
+      SHOULD_NOT_BE_HERE;
+    case e_treasure_transport_mode::traveling_merchants:
       SHOULD_NOT_BE_HERE;
     case e_treasure_transport_mode::king_with_charge:
       msg +=
@@ -196,6 +217,12 @@ wait<> show_treasure_receipt( TS& ts, Player const& player,
           receipt.net_received,
           config_text.special_chars.currency,
           receipt.kings_cut_percent );
+      break;
+    case e_treasure_transport_mode::traveling_merchants:
+      msg = fmt::format(
+          "Treasure sold to traveling merchants for [{}{}].",
+          receipt.original_worth,
+          config_text.special_chars.currency );
       break;
   }
   co_await ts.gui.message_box( msg );

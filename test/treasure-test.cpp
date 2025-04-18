@@ -207,7 +207,6 @@ TEST_CASE( "[treasure] show_treasure_receipt" ) {
   f();
 }
 
-#ifndef COMPILER_GCC
 TEST_CASE( "[treasure] treasure_enter_colony" ) {
   World W;
   Player& player = W.default_player();
@@ -311,8 +310,19 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   W.gui().EXPECT__choice( config ).returns<maybe<string>>(
       "yes" );
   REQUIRE( f() == expected );
+
+  // After declaration.
+  player.revolution.status = e_revolution_status::declared;
+
+  expected = TreasureReceipt{
+    .treasure_id = UnitId{ 1 },
+    .transport_mode =
+        e_treasure_transport_mode::traveling_merchants,
+    .original_worth    = 100,
+    .kings_cut_percent = 0,
+    .net_received      = 100 };
+  REQUIRE( f() == expected );
 }
-#endif
 
 TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   World W;

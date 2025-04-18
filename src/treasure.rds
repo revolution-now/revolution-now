@@ -17,6 +17,7 @@ enum.e_treasure_transport_mode {
   player,
   king_with_charge,
   king_no_extra_charge,
+  traveling_merchants, # After independence is declared.
 }
 
 struct.TreasureReceipt {
