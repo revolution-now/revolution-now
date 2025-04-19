@@ -71,7 +71,7 @@ struct.config_rn_t {
   console     'config_rn_console',
   power       'config_rn_power',
 
-  game_flag_options_defaults 'refl::enum_map<e_game_flag_option, bool>',
+  game_menu_options_defaults 'refl::enum_map<e_game_menu_option, bool>',
 }
 
 config.rn {}

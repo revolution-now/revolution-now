@@ -1470,8 +1470,8 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
       co_await units_turn( engine, ss, ts, player, units );
       CHECK( units.q.empty() );
       if( !units.skip_eot ) co_return NationTurnState::eot{};
-      if( ss.settings.game_options
-              .flags[e_game_flag_option::end_of_turn] )
+      if( ss.settings.in_game_options.game_menu_options
+              [e_game_menu_option::end_of_turn] )
         // As in the OG, this setting means "always stop on end
         // of turn," even we otherwise wouldn't have.
         co_return NationTurnState::eot{};

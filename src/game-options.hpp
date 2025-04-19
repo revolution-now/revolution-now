@@ -20,7 +20,7 @@ namespace rn {
 struct SS;
 struct TS;
 
-enum class e_game_flag_option;
+enum class e_game_menu_option;
 
 wait<> open_game_options_box( SS& ss, TS& ts );
 
@@ -29,6 +29,6 @@ wait<> open_game_options_box( SS& ss, TS& ts );
 // fects get performed. The function returns the old value of the
 // option, which might have been already off (false).
 bool disable_game_option( SS& ss, TS& ts,
-                          e_game_flag_option option );
+                          e_game_menu_option option );
 
 } // namespace rn

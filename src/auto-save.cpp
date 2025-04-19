@@ -52,8 +52,8 @@ int autosave_to_absolute( int autosave_slot ) {
 set<int> should_autosave( SSConst const& ss ) {
   set<int> res;
   if( !config_savegame.autosave.enabled ) return res;
-  if( !ss.settings.game_options
-           .flags[e_game_flag_option::autosave] )
+  if( !ss.settings.in_game_options
+           .game_menu_options[e_game_menu_option::autosave] )
     return res;
   int const curr_turn   = ss.turn.time_point.turns;
   auto const& last_save = ss.turn.autosave.last_save;

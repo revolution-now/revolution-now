@@ -75,8 +75,8 @@ namespace {
 bool should_animate_native_travel( SSConst const& ss,
                                    IVisibility const& viz,
                                    Coord src, Coord dst ) {
-  if( !ss.settings.game_options
-           .flags[e_game_flag_option::show_indian_moves] )
+  if( !ss.settings.in_game_options.game_menu_options
+           [e_game_menu_option::show_indian_moves] )
     return false;
   // At the time of writing, the land view renderer will suppress
   // any slide/attack animations where the src and dst tiles are

@@ -80,11 +80,12 @@ TEST_CASE( "[auto-save] should_autosave" ) {
   // get multiple auto-saves to trigger, then slowly remove each
   // condition to test them.
 
-  w.settings().game_options.flags[e_game_flag_option::autosave] =
-      true;
-  w.turn().time_point.turns   = 10;
-  w.turn().autosave.last_save = 0;
-  expected                    = { 0, 1 };
+  w.settings()
+      .in_game_options
+      .game_menu_options[e_game_menu_option::autosave] = true;
+  w.turn().time_point.turns                            = 10;
+  w.turn().autosave.last_save                          = 0;
+  expected = { 0, 1 };
   REQUIRE( f() == expected );
 
   SECTION( "disabled in config" ) {
@@ -96,9 +97,9 @@ TEST_CASE( "[auto-save] should_autosave" ) {
 
   SECTION( "disabled in game options" ) {
     w.settings()
-        .game_options.flags[e_game_flag_option::autosave] =
-        false;
-    expected = {};
+        .in_game_options
+        .game_menu_options[e_game_menu_option::autosave] = false;
+    expected                                             = {};
     REQUIRE( f() == expected );
   }
 

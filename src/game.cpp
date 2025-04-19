@@ -144,8 +144,8 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
       ss, renderer,
       MapUpdaterOptions{
         .render_fog_of_war =
-            ss.settings.game_options
-                .flags[e_game_flag_option::show_fog_of_war] } );
+            ss.settings.in_game_options.game_menu_options
+                [e_game_menu_option::show_fog_of_war] } );
 
   auto _4 = ts.set_map_updater( map_updater );
 
@@ -155,8 +155,8 @@ wait<> run_game( IEngine& engine, Planes& planes, IGui& gui,
   // game options UI). Thus it 1) must be a reference, and 2)
   // must refer to a boolean that will be stationary in memory.
   bool const& cycling_enabled =
-      ss.settings.game_options
-          .flags[e_game_flag_option::water_color_cycling];
+      ss.settings.in_game_options.game_menu_options
+          [e_game_menu_option::water_color_cycling];
   wait<> const cycling_thread =
       cycle_map_colors_thread( renderer, gui, cycling_enabled );
 

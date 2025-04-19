@@ -1,7 +1,7 @@
-# Conquistador SomeName of the French, Spring 1492, 8x8
+# Conquistador SomeName of the English, Spring 1492, 8x8
 land_view.viewport {
   center_x: 240
-  center_y: 48
+  center_y: 80
   zoom: 1
 }
 
@@ -440,9 +440,8 @@ players {
     coats.intrinsic_volume: 512
     rum.intrinsic_volume: 512
   }
-  humans.french: true
-  players.french {
-    nation: french
+  humans.english: true
+  players.english {
     old_world {
       expeditionary_force {
         artillery: 2
@@ -471,14 +470,14 @@ players {
     }
     starting_position {
       x: 7
-      y: 1
+      y: 2
     }
   }
 }
 
 settings {
   difficulty: conquistador
-  game_options.flags {
+  in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true
     show_foreign_moves: true
@@ -619,7 +618,7 @@ units {
       val.euro {
         ownership.world.coord {
           x: 7
-          y: 1
+          y: 2
         }
         unit {
           cargo.slots: [
@@ -632,7 +631,6 @@ units {
           }
           id: 8
           mv_pts.atoms: 12
-          nation: french
         }
       }
     },
@@ -647,7 +645,6 @@ units {
           }
           id: 9
           mv_pts.atoms: 3
-          nation: french
           orders.sentry {}
         }
       }
@@ -660,13 +657,12 @@ units {
           composition {
             inventory.tools: 100
             type {
-              base_type: hardy_colonist
-              type: hardy_pioneer
+              base_type: free_colonist
+              type: pioneer
             }
           }
           id: 10
           mv_pts.atoms: 3
-          nation: french
           orders.sentry {}
         }
       }
@@ -686,17 +682,9 @@ zzz_terrain {
     4,
   ]
   placement_seed: 12
-  player_terrain.french.map {
+  player_terrain.english.map {
     data: [
       {
-        key.x: 6
-        val.explored.fog_status.clear {}
-      },
-      {
-        key.x: 7
-        val.explored.fog_status.clear {}
-      },
-      {
         key {
           x: 6
           y: 1
@@ -721,6 +709,20 @@ zzz_terrain {
         key {
           x: 7
           y: 2
+        }
+        val.explored.fog_status.clear {}
+      },
+      {
+        key {
+          x: 6
+          y: 3
+        }
+        val.explored.fog_status.clear {}
+      },
+      {
+        key {
+          x: 7
+          y: 3
         }
         val.explored.fog_status.clear {}
       },

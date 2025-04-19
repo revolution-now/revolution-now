@@ -16,9 +16,10 @@ include "refl/enum-map.hpp"
 
 namespace "rn"
 
-# These are the on/off ones that the player can change once the
-# game starts and which get saved with the save file.
-enum.e_game_flag_option {
+# These are the on/off ones that the player can change from the
+# Game->Game Options menu once the game starts and which get
+# saved with the save file.
+enum.e_game_menu_option {
   show_indian_moves,
   show_foreign_moves,
   fast_piece_slide,
@@ -30,9 +31,16 @@ enum.e_game_flag_option {
   show_fog_of_war,
 }
 
-struct.GameOptions {
-  flags 'refl::enum_map<e_game_flag_option, bool>',
-  # Put any non-flag options here...
+# These are options that are changeable during the game.
+struct.InGameOptions {
+  # Options in the Game->Game Options menu.
+  game_menu_options 'refl::enum_map<e_game_menu_option, bool>',
+}
+
+# These are options that are configured once at the start of a
+# new game and cannot be changed thereafter.
+struct.GameSetupOptions {
+  enable_war_of_succession 'bool',
 }
 
 struct.CheatOptions {
@@ -51,7 +59,13 @@ struct.SettingsState {
   # discoverer, explorer, etc.
   difficulty 'e_difficulty',
 
-  game_options 'GameOptions',
+  # These are options that are configured once at the start of a
+  # new game and cannot be changed thereafter.
+  game_setup_options 'GameSetupOptions',
+
+  # These are options that are changeable during the game from
+  # the Game->Game Options menu.
+  in_game_options 'InGameOptions',
 
   cheat_options 'CheatOptions',
 

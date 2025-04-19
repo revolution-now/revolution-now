@@ -102,9 +102,9 @@ void reveal_map_qol( SS& ss, TS& ts ) {
   // a QoL thing for the player (actually the OG does this as
   // well).
   disable_game_option( ss, ts,
-                       e_game_flag_option::show_indian_moves );
+                       e_game_menu_option::show_indian_moves );
   disable_game_option( ss, ts,
-                       e_game_flag_option::show_foreign_moves );
+                       e_game_menu_option::show_foreign_moves );
 }
 
 // This just decides if cheat functions should be enabled by de-

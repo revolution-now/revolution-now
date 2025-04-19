@@ -53,9 +53,13 @@ value cdr_game_state_default = table{
   "settings"_key =
       table{
         "difficulty"_key = "discoverer",
-        "game_options"_key =
+        "game_setup_options"_key =
             table{
-              "flags"_key =
+              "enable_war_of_succession"_key = false,
+            },
+        "in_game_options"_key =
+            table{
+              "game_menu_options"_key =
                   table{
                     "show_indian_moves"_key   = false,
                     "show_foreign_moves"_key  = false,

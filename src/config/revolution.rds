@@ -31,9 +31,15 @@ struct.Declaration {
   _features { equality, validation }
 }
 
+struct.WarOfSuccession {
+  enable_war_of_succession_default 'bool',
+}
+
 namespace "rn"
 
 struct.config_revolution_t {
+  war_of_succession 'config::revolution::WarOfSuccession',
+
   declaration 'config::revolution::Declaration',
 }
 

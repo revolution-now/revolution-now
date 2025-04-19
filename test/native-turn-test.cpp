@@ -262,9 +262,8 @@ TEST_CASE( "[native-turn] unit iteration, travel" ) {
         NativeUnitCommand::move{ .direction = e_direction::e } );
 
     bool& show_indian_moves =
-        W.settings()
-            .game_options
-            .flags[e_game_flag_option::show_indian_moves];
+        W.settings().in_game_options.game_menu_options
+            [e_game_menu_option::show_indian_moves];
 
     SECTION( "show_indian_moves=false" ) {
       show_indian_moves = false;

@@ -1,3 +1,40 @@
+war_of_succession {
+  # Background: In the OG, when the human player's rebel senti-
+  # ment hits 50% the player is then free to declare independence
+  # at anytime. If they do so then the game must immediately send
+  # REF units. However, the game only has four "slots" for
+  # players in the game (including the REF), thus when rebel sen-
+  # timent hits 50% it must immediately remove one of the AI na-
+  # tions in order to free a slot for the REF which may need to
+  # be deployed at any time.
+  #
+  # In order to affectuate this freeing of a slot in a graceful
+  # manner, the game makes a clever move and references the (true
+  # historical) event of the War of the Spanish Succession,
+  # which, in the game, grants ownership of all property of one
+  # AI nation (typically the smallest) to another AI nation (typ-
+  # ically the second smallest), thus freeing a slot.
+  #
+  # In the new game we don't have this limitation on "slots",
+  # thus there is no need for the War of Succession. But, since
+  # this mechanic did have an effect on gameplay and since we we
+  # do want to reproduce the original game's mechanics where pos-
+  # sible, we enable it by default, but also allow it to be dis-
+  # abled when creating a new game.
+  #
+  # Note that, even when it is enabled, there are other condi-
+  # tions which will cause it to get disabled, e.g. when there
+  # are fewer than three AI players, or if there are multiple
+  # human players, since there really is no analogue to those
+  # scenarios in the OG and it would be a bit awkward to know
+  # when or how to force the merger of two nations in those cir-
+  # cumstances.
+  #
+  # This is merely the default value of the corresponding setting
+  # that can be chosen when creating a new game.
+  enable_war_of_succession_default: true
+}
+
 declaration {
 
   # Integral percentage in the range [0, 100] that must be

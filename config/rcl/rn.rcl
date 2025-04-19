@@ -52,7 +52,7 @@ power {
   time_till_slow_fps: 60
 }
 
-game_flag_options_defaults {
+game_menu_options_defaults {
   show_indian_moves:   true
   show_foreign_moves:  true
   fast_piece_slide:    false

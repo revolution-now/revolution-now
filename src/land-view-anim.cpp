@@ -328,8 +328,8 @@ wait<> LandViewAnimator::animate_white_box() {
 wait<> LandViewAnimator::slide_throttler_impl(
     co::latch& hold, e_direction d, UnitSlide& slide ) {
   double const kMaxVelocity =
-      ss_.settings.game_options
-              .flags[e_game_flag_option::fast_piece_slide]
+      ss_.settings.in_game_options.game_menu_options
+              [e_game_menu_option::fast_piece_slide]
           ? .1
           : .07;
 

@@ -57,10 +57,11 @@ struct World : testing::World {
 TEST_CASE( "[game-options] disable_game_option" ) {
   World W;
 
-  auto& flags = W.ss().settings.game_options.flags;
+  auto& game_menu_options =
+      W.ss().settings.in_game_options.game_menu_options;
 
-  e_game_flag_option option = {};
-  using E                   = e_game_flag_option;
+  e_game_menu_option option = {};
+  using E                   = e_game_menu_option;
 
   auto f = [&] {
     return disable_game_option( W.ss(), W.ts(), option );
@@ -85,11 +86,11 @@ TEST_CASE( "[game-options] disable_game_option" ) {
   option = E::water_color_cycling;
   REQUIRE( f() == false );
 
-  flags[E::autosave]            = true;
-  flags[E::end_of_turn]         = true;
-  flags[E::show_fog_of_war]     = true;
-  flags[E::show_indian_moves]   = true;
-  flags[E::water_color_cycling] = true;
+  game_menu_options[E::autosave]            = true;
+  game_menu_options[E::end_of_turn]         = true;
+  game_menu_options[E::show_fog_of_war]     = true;
+  game_menu_options[E::show_indian_moves]   = true;
+  game_menu_options[E::water_color_cycling] = true;
 
   option = E::autosave;
   REQUIRE( f() == true );

@@ -716,13 +716,11 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
   };
 
   auto& show_indian_moves =
-      w.settings()
-          .game_options
-          .flags[e_game_flag_option::show_indian_moves];
+      w.settings().in_game_options.game_menu_options
+          [e_game_menu_option::show_indian_moves];
   auto& show_foreign_moves =
-      w.settings()
-          .game_options
-          .flags[e_game_flag_option::show_foreign_moves];
+      w.settings().in_game_options.game_menu_options
+          [e_game_menu_option::show_foreign_moves];
   auto const& map_revealed = w.land_view().map_revealed;
 
   w.turn().cycle =
