@@ -54,6 +54,7 @@
 #include "save-game.hpp"
 #include "tax.hpp"
 #include "ts.hpp"
+#include "turn-mgr.hpp"
 #include "turn-plane.hpp"
 #include "unit-mgr.hpp"
 #include "unit-ownership.hpp"
@@ -1499,7 +1500,8 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
 
 wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
                     e_nation nation, NationTurnState& st ) {
-  if( !ss.players.players[nation].has_value() ) co_return;
+  CHECK( ss.players.players[nation].has_value(),
+         "nation {} does not exist.", nation );
   if( !ss.players.players[nation]->human )
     // TODO: Until we have AI.
     st = NationTurnState::finished{};
@@ -1560,14 +1562,17 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
       recompute_fog_for_all_nations( ss, ts );
       co_await natives_turn( ss, ts, RealRaid( ss, ts ),
                              RealTribeEvolve( ss, ts ) );
-      co_return TurnCycle::nation{};
+      if( auto const nation = find_first_nation_to_move( ss );
+          nation.has_value() )
+        co_return TurnCycle::nation{ .nation = *nation };
+      co_return TurnCycle::end_cycle{};
     }
     CASE( nation ) {
       co_await nation_turn( engine, ss, ts, nation.nation,
                             nation.st );
-      auto& ns  = refl::enum_values<e_nation>;
-      auto next = base::find( ns, nation.nation ) + 1;
-      if( next != ns.end() )
+      if( auto const next =
+              find_next_nation_to_move( ss, nation.nation );
+          next.has_value() )
         co_return TurnCycle::nation{ .nation = *next };
       co_return TurnCycle::end_cycle{};
     }
