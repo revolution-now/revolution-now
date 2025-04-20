@@ -140,6 +140,8 @@ void declare_independence( SS&, TS&, Player& player ) {
   //   evolved, probably at the colony level either.
   // * End the turn of the player. Ensure that they get an
   //   end-of-turn if needed.
+  // * Seize all ships on the high seas and in europe and ensure
+  //   that the europe screen changes.
   // * Looks like liberty bell count gets reset to zero, though
   //   it continues to accumulate.
   // * Promote continental armies in colonies. This actually ap-

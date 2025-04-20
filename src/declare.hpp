@@ -16,6 +16,11 @@
 // Revolution Now
 #include "wait.hpp"
 
+// FIXME: need this because we can't forward declare the
+// e_confirm enum due to its [[nodiscard]] attribute:
+//   https://gcc.gnu.org/bugzilla/show_bug.cgi?id=88893
+#include "ui-enums.rds.hpp"
+
 namespace rn {
 
 /****************************************************************
@@ -28,10 +33,6 @@ struct TS;
 struct Player;
 
 enum class e_nation;
-
-namespace ui {
-enum class e_confirm;
-}
 
 /****************************************************************
 ** Public API.
