@@ -21,15 +21,6 @@ namespace "rn"
 struct.PlayersState {
   players 'refl::enum_map<e_nation, maybe<Player>>',
 
-  # These are the nations that will be played by the human
-  # player. Normally there is only one such nation, but in cheat
-  # mode an arbitrary set can be enabled. When a nation's turn
-  # arrives and its flag is true here then it will be set as the
-  # current human nation before starting its turn. During another
-  # nation's turn, a given nation is always an AI player, e.g.
-  # for the purpose of diplomacy.
-  humans 'refl::enum_map<e_nation, bool>',
-
   # Market state that is shared by all nations.
   global_market_state 'GlobalMarketState',
 

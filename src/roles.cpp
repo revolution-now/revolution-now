@@ -21,6 +21,9 @@
 // rds
 #include "rds/switch-macro.hpp"
 
+// refl
+#include "refl/to-str.hpp"
+
 using namespace std;
 
 namespace rn {
@@ -36,8 +39,12 @@ maybe<e_nation> player_for_role( SSConst const& ss,
         CASE( no_special_view ) {
           maybe<e_nation> const active =
               player_for_role( ss, e_player_role::active );
-          if( active.has_value() && ss.players.humans[*active] )
-            return *active;
+          if( active.has_value() ) {
+            UNWRAP_CHECK_MSG(
+                active_player, ss.players.players[*active],
+                "player {} does not exist.", *active );
+            if( active_player.human ) return *active;
+          }
           // Find the first human that we can find. In a normal
           // game, where there is only one human player, this
           // will yield that one. If there are multiple human
@@ -45,7 +52,9 @@ maybe<e_nation> player_for_role( SSConst const& ss,
           // is a bit arbitrary, but there doesn't seem to be
           // anything better to do here.
           for( e_nation nation : refl::enum_values<e_nation> )
-            if( ss.players.humans[nation] ) return nation;
+            if( ss.players.players[nation].has_value() )
+              if( ss.players.players[nation]->human )
+                return nation;
           return active;
         }
         CASE( entire ) { //

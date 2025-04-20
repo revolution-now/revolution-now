@@ -153,7 +153,7 @@ bool should_do_war_of_succession( SSConst const& ss,
   // value for the new-game setting that we actually check.
   if( !ss.settings.game_setup_options.enable_war_of_succession )
     return false;
-  if( !ss.players.humans[player.nation] ) return false;
+  if( !player.human ) return false;
   if( ss.events.war_of_succession_done ) return false;
   auto const [player_count, human_count] = [&] {
     int player_count = 0;
@@ -162,8 +162,7 @@ bool should_do_war_of_succession( SSConst const& ss,
          ss.players.players ) {
       if( !other_player.has_value() ) continue;
       ++player_count;
-      if( ss.players.humans[other_player->nation] )
-        ++human_count;
+      if( other_player->human ) ++human_count;
     }
     return pair{ player_count, human_count };
   }();

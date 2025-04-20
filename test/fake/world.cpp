@@ -461,6 +461,16 @@ void World::add_player( e_nation nation ) {
       nation, /*visible=*/false );
 }
 
+void World::add_all_players( maybe<e_nation> const human ) {
+  for( e_nation const nation : refl::enum_values<e_nation> )
+    add_player( nation );
+  set_human_player( human );
+  if( human.has_value() )
+    set_default_player( *human );
+  else
+    set_default_player( e_nation::english );
+}
+
 void World::add_default_player() {
   add_player( default_nation() );
 }

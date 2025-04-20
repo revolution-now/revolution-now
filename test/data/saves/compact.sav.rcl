@@ -440,8 +440,8 @@ players {
     coats.intrinsic_volume: 512
     rum.intrinsic_volume: 512
   }
-  humans.english: true
   players.english {
+    human: true
     old_world {
       expeditionary_force {
         artillery: 2

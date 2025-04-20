@@ -1500,8 +1500,8 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
 wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
                     e_nation nation, NationTurnState& st ) {
   if( !ss.players.players[nation].has_value() ) co_return;
-  // TODO: Until we have AI.
-  if( !ss.players.humans[nation] )
+  if( !ss.players.players[nation]->human )
+    // TODO: Until we have AI.
     st = NationTurnState::finished{};
   while( !st.holds<NationTurnState::finished>() )
     st = co_await nation_turn_iter( engine, ss, ts, nation, st );

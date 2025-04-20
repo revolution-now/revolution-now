@@ -35,6 +35,8 @@ struct.Player {
   # Somewhat just for convenience.
   nation 'e_nation',
 
+  human 'bool',
+
   money 'int',
 
   # How many crosses has this player accumulated. Note that this

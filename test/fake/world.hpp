@@ -298,6 +298,7 @@ struct World {
   // Players.
   // ------------------------------------------------------------
   void add_player( e_nation nation );
+  void add_all_players( maybe<e_nation> human = nothing );
   void add_default_player();
 
   e_nation default_nation() const { return default_nation_; }

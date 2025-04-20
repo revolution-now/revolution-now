@@ -78,7 +78,8 @@ IEuroMind& EuroMinds::operator[]( e_nation nation ) const {
 EuroMinds create_euro_minds( SS& ss, IGui& gui ) {
   unordered_map<e_nation, unique_ptr<IEuroMind>> holder;
   for( e_nation const nation : refl::enum_values<e_nation> ) {
-    if( ss.players.humans[nation] )
+    if( !ss.players.players[nation].has_value() ) continue;
+    if( ss.players.players[nation]->human )
       holder[nation] =
           make_unique<HumanEuroMind>( nation, ss, gui );
     else

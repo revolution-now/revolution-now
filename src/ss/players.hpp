@@ -22,8 +22,6 @@ namespace rn {
 
 using PlayersMap = refl::enum_map<e_nation, maybe<Player>>;
 
-using HumansMap = refl::enum_map<e_nation, bool>;
-
 // FIXME: remove
 void reset_players( PlayersState& players_state,
                     std::vector<e_nation> const& nations,
@@ -47,6 +45,5 @@ namespace lua {
 
 LUA_USERDATA_TRAITS( ::rn::PlayersState, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::PlayersMap, owned_by_cpp ){};
-LUA_USERDATA_TRAITS( ::rn::HumansMap, owned_by_cpp ){};
 
 } // namespace lua

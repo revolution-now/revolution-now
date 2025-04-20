@@ -71,7 +71,8 @@ void reset_players( PlayersState& players_state,
 void set_unique_human_player( PlayersState& players,
                               base::maybe<e_nation> nation ) {
   for( e_nation const n : refl::enum_values<e_nation> )
-    players.humans[n] = ( n == nation );
+    if( players.players[n].has_value() )
+      players.players[n]->human = ( n == nation );
   CHECK_HAS_VALUE( players.validate() );
 }
 
@@ -103,7 +104,6 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["players"]             = &U::players;
-    u["humans"]              = &U::humans;
     u["global_market_state"] = &U::global_market_state;
     u[lua::metatable_key]    = st.table.create();
   }();
@@ -125,23 +125,6 @@ LUA_STARTUP( lua::state& st ) {
       obj[nation] = Player{};
       return *obj[nation];
     };
-  }();
-
-  // HumansMap.
-  [&] {
-    using U = ::rn::HumansMap;
-    auto u  = st.usertype.create<U>();
-
-    // TODO: make this more automated and/or find a different way
-    // to do it, since we can't add anymore methods to this ob-
-    // ject since we're overriding the metatable.
-    u[lua::metatable_key]["__index"] =
-        [&]( U& obj, e_nation nation ) { return obj[nation]; };
-
-    u[lua::metatable_key]["__newindex"] =
-        [&]( U& obj, e_nation nation, bool b ) {
-          obj[nation] = b;
-        };
   }();
 };
 

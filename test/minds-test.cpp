@@ -44,7 +44,11 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_default_player();
+    add_player( e_nation::english );
+    add_player( e_nation::french );
+    add_player( e_nation::spanish );
+    add_player( e_nation::dutch );
+    set_default_player( e_nation::english );
     create_default_map();
   }
 
@@ -77,10 +81,11 @@ static_assert( is_nothrow_move_assignable_v<NativeMinds> );
 TEST_CASE( "[minds] create_euro_minds" ) {
   World W;
 
-  W.players().humans[e_nation::english] = true;
-  W.players().humans[e_nation::french]  = true;
-  W.players().humans[e_nation::spanish] = false;
-  W.players().humans[e_nation::dutch]   = false;
+  W.add_all_players();
+  W.english().human = true;
+  W.french().human  = true;
+  W.spanish().human = false;
+  W.dutch().human   = false;
 
   auto f = [&] { return create_euro_minds( W.ss(), W.gui() ); };
 

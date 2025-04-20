@@ -61,9 +61,11 @@ string construct_rcl_title( SSConst const& ss ) {
   maybe<e_nation> human;
   // Use the first human nation.
   for( e_nation nation : refl::enum_values<e_nation> ) {
-    if( ss.players.humans[nation] ) {
-      human = nation;
-      break;
+    if( ss.players.players[nation].has_value() ) {
+      if( ss.players.players[nation]->human ) {
+        human = nation;
+        break;
+      }
     }
   }
   string const nation_name =

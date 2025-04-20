@@ -101,13 +101,6 @@ value cdr_game_state_default = table{
               "french"_key  = null,
               "spanish"_key = null,
             },
-        "humans"_key =
-            table{
-              "dutch"_key   = false,
-              "english"_key = false,
-              "french"_key  = false,
-              "spanish"_key = false,
-            },
         "global_market_state"_key =
             table{
               "commodities"_key =

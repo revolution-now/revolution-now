@@ -332,7 +332,7 @@ local function create_nations( options, root )
   for _, o in ipairs( options.ordered_nations ) do
     local player = players:reset_player( o.nation )
     create_player_state( settings, o.nation, player )
-    root.players.humans[o.nation] = o.human
+    player.human = o.human
   end
   init_prices( options, root )
 end

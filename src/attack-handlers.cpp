@@ -185,7 +185,7 @@ AttackHandlerBase::AttackHandlerBase( SS& ss, TS& ts,
     attacking_player_( player_for_nation_or_die(
         ss.players, attacker_.nation() ) ),
     attacker_mind_( ts.euro_minds()[attacker_.nation()] ),
-    attacker_human_( ss.players.humans[attacker_.nation()] ),
+    attacker_human_( attacking_player_.human ),
     direction_( direction ) {
   CHECK( viz_ != nullptr );
   attack_src_ =

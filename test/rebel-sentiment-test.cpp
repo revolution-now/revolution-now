@@ -397,7 +397,7 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
         w.ss().as_const, as_const( human_player ) );
   };
 
-  BASE_CHECK( w.players().humans[human_player.nation] );
+  BASE_CHECK( human_player.human );
 
   // Default.
   REQUIRE_FALSE( f() );
@@ -416,20 +416,20 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 
   SECTION( "multiple humans" ) {
     REQUIRE( f() );
-    w.players().humans[e_nation::spanish] = true;
+    w.spanish().human = true;
     REQUIRE_FALSE( f() );
   }
 
   SECTION( "no humans" ) {
     REQUIRE( f() );
-    w.players().humans[e_nation::french] = false;
+    human_player.human = false;
     REQUIRE_FALSE( f() );
   }
 
   SECTION( "one human but not the caller's player" ) {
     REQUIRE( f() );
-    w.players().humans[e_nation::french]  = false;
-    w.players().humans[e_nation::spanish] = true;
+    human_player.human = false;
+    w.spanish().human  = true;
     REQUIRE_FALSE( f() );
   }
 

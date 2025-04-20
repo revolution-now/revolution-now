@@ -226,7 +226,7 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
       continue;
     }
     info_map[nation].disabled = false;
-    info_map[nation].on       = ss.players.humans[nation];
+    info_map[nation].on = ss.players.players[nation]->human;
   }
 
   while( true ) {
@@ -242,7 +242,8 @@ wait<> cheat_set_human_players( SS& ss, TS& ts ) {
 
   // Set new human statuses.
   for( e_nation nation : refl::enum_values<e_nation> )
-    ss.players.humans[nation] = info_map[nation].on;
+    if( ss.players.players[nation].has_value() )
+      ss.players.players[nation]->human = info_map[nation].on;
 
   ts.euro_minds() = create_euro_minds( ss, ts.gui );
 
