@@ -30,7 +30,8 @@ namespace rn {
 maybe<e_nation> find_first_nation_to_move( SSConst const& ss ) {
   auto const& ns = refl::enum_values<e_nation>;
   for( e_nation const nation : ns )
-    if( ss.players.players[nation].has_value() ) return nation;
+    if( ss.players.players[nation].has_value() ) //
+      return nation;
   return nothing;
 }
 
