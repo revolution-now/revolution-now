@@ -19,7 +19,9 @@
 #include "test/util/coro.hpp"
 
 // ss
+#include "src/ss/events.rds.hpp"
 #include "src/ss/player.rds.hpp"
+#include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/unit-composition.hpp"
@@ -39,7 +41,10 @@ struct world : testing::World {
   world() {
     add_player( e_nation::english );
     add_player( e_nation::french );
+    add_player( e_nation::spanish );
+    add_player( e_nation::dutch );
     set_default_player( e_nation::french );
+    set_default_player_as_human();
     create_default_map();
   }
 
@@ -382,14 +387,70 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
-TEST_CASE(
-    "[rebel-sentiment] rebellion_large_enough_to_declare" ) {
-  world w;
-
-}
-
 TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
   world w;
+
+  Player& human_player = w.default_player();
+
+  auto const f = [&] {
+    return should_do_war_of_succession(
+        w.ss().as_const, as_const( human_player ) );
+  };
+
+  BASE_CHECK( w.players().humans[human_player.nation] );
+
+  // Default.
+  REQUIRE_FALSE( f() );
+
+  // Set up the conditions for a war of succession by default,
+  // then test for each negative case.
+  w.settings().game_setup_options.enable_war_of_succession =
+      true;
+  human_player.revolution.rebel_sentiment = 50;
+
+  SECTION( "lacking rebel sentiment" ) {
+    REQUIRE( f() );
+    human_player.revolution.rebel_sentiment = 49;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "multiple humans" ) {
+    REQUIRE( f() );
+    w.players().humans[e_nation::spanish] = true;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "no humans" ) {
+    REQUIRE( f() );
+    w.players().humans[e_nation::french] = false;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "one human but not the caller's player" ) {
+    REQUIRE( f() );
+    w.players().humans[e_nation::french]  = false;
+    w.players().humans[e_nation::spanish] = true;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "fewer than four players" ) {
+    REQUIRE( f() );
+    w.players().players[e_nation::spanish].reset();
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "war of succession already done" ) {
+    REQUIRE( f() );
+    w.events().war_of_succession_done = true;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "war of succession not enabled" ) {
+    REQUIRE( f() );
+    w.settings().game_setup_options.enable_war_of_succession =
+        false;
+    REQUIRE_FALSE( f() );
+  }
 }
 
 TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {

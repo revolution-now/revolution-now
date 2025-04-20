@@ -18,12 +18,15 @@
 
 // config
 #include "config/nation.rds.hpp"
+#include "config/revolution.rds.hpp"
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/events.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
+#include "ss/settings.rds.hpp"
 #include "ss/units.hpp"
 
 using namespace std;
@@ -143,9 +146,42 @@ wait<> show_rebel_sentiment_change_report(
         country );
 }
 
-bool should_do_war_of_succession( SSConst const&,
-                                  Player const& ) {
-  return false;
+bool should_do_war_of_succession( SSConst const& ss,
+                                  Player const& player ) {
+  // NOTE: there a corresponding config option, but we don't
+  // check that directly because that is intended to be a default
+  // value for the new-game setting that we actually check.
+  if( !ss.settings.game_setup_options.enable_war_of_succession )
+    return false;
+  if( !ss.players.humans[player.nation] ) return false;
+  if( ss.events.war_of_succession_done ) return false;
+  auto const [player_count, human_count] = [&] {
+    int player_count = 0;
+    int human_count  = 0;
+    for( auto const& [nation, other_player] :
+         ss.players.players ) {
+      if( !other_player.has_value() ) continue;
+      ++player_count;
+      if( ss.players.humans[other_player->nation] )
+        ++human_count;
+    }
+    return pair{ player_count, human_count };
+  }();
+  if( player_count < 4 ) return false;
+  if( human_count != 1 )
+    // If we only have AI players then we're not going to be
+    // fighting a war of independence, so no need for the war of
+    // succession. Likewise, if there are multiple human players,
+    // it'd probably be strange to have a war of succession,
+    // since it is already a non traditional mode of gameplay.
+    return false;
+  if( player.revolution.rebel_sentiment <
+      config_revolution.declaration
+          .human_required_rebel_sentiment_percent
+              [ss.settings.difficulty]
+          .percent )
+    return false;
+  return true;
 }
 
 WarOfSuccession do_war_of_succession( SS&, e_nation const ) {
