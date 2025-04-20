@@ -238,7 +238,8 @@ TEST_CASE( "[colony-evolve] warns when colony starving" ) {
   int expected_food = 0;
   // The center square (grassland) should produce three food per
   // turn on conquistador.
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   // Consume six food per turn.
   W.add_unit_outdoors( colony.id, e_direction::n,
@@ -507,7 +508,8 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
     // On discoverer the center tile should produce two food on
     // arctic tiles, but the colonist added (on land) will not
     // produce any because it is arctic.
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     ColonyEvolution ev =
         evolve_colony_one_turn( W.ss(), W.ts(), colony );
     REQUIRE( !ev.colony_disappeared );
@@ -517,14 +519,16 @@ TEST_CASE( "[colony-evolve] colony starves" ) {
     // On explorer and higher the center tile should produce no
     // food on arctic, and neither will the colonist added (on
     // land).
-    W.settings().difficulty = e_difficulty::explorer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::explorer;
     ColonyEvolution ev =
         evolve_colony_one_turn( W.ss(), W.ts(), colony );
     REQUIRE( ev.colony_disappeared );
   }
 
   SECTION( "viceroy" ) {
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     ColonyEvolution ev =
         evolve_colony_one_turn( W.ss(), W.ts(), colony );
     REQUIRE( ev.colony_disappeared );

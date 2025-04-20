@@ -202,7 +202,8 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
   int so_far = 0, expected = 0;
 
   SECTION( "governor" ) {
-    W.settings().difficulty = e_difficulty::governor;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::governor;
 
     tile = { .x = 2, .y = 2 };
     W.natives().mark_land_owned( dwelling.id, tile );
@@ -269,7 +270,8 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
   }
 
   SECTION( "discoverer" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
 
     tile = { .x = 2, .y = 2 };
     W.natives().mark_land_owned( dwelling.id, tile );
@@ -339,7 +341,8 @@ TEST_CASE( "[alarm] increase_tribal_alarm_from_land_grab" ) {
   }
 
   SECTION( "discoverer w/ pocahontas" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     W.default_player()
         .fathers.has[e_founding_father::pocahontas] = true;
 

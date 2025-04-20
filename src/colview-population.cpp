@@ -171,7 +171,7 @@ void PopulationView::draw_sons_of_liberty(
       compute_colony_sons_of_liberty( player_, colony_ );
   gfx::pixel text_color        = gfx::pixel::white();
   int const tory_penalty_level = compute_tory_penalty_level(
-      ss_.settings.difficulty, info.tories );
+      ss_.settings.game_setup_options.difficulty, info.tories );
   switch( tory_penalty_level ) {
     case 0: {
       text_color = gfx::pixel::white();

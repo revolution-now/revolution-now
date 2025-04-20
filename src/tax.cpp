@@ -174,7 +174,8 @@ TaxUpdateComputation compute_tax_change( SSConst const& ss,
     // Most common case, we have nothing to do.
     return update;
   auto& tax_config =
-      config_old_world.taxes[ss.settings.difficulty];
+      config_old_world
+          .taxes[ss.settings.game_setup_options.difficulty];
   int const next =
       turn +
       rand_int_range(
@@ -323,9 +324,11 @@ void apply_tax_result( SS& ss, Player& player,
       auto& o = change.get<TaxChangeResult::tax_change>();
       player.old_world.taxes.tax_rate += o.amount;
       CHECK_GE( player.old_world.taxes.tax_rate, 0 );
-      CHECK_LE( player.old_world.taxes.tax_rate,
-                config_old_world.taxes[ss.settings.difficulty]
-                    .maximum_tax_rate );
+      CHECK_LE(
+          player.old_world.taxes.tax_rate,
+          config_old_world
+              .taxes[ss.settings.game_setup_options.difficulty]
+              .maximum_tax_rate );
       return;
     }
     case TaxChangeResult::e::party: {

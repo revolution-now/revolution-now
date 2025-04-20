@@ -224,7 +224,8 @@ TEST_CASE( "[rpt] click_recruit" ) {
   World W;
   Player& player = W.default_player();
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Calculated theoretically by computing all of the weights for
   // all unit types on the conquistador difficulty level and sum-
   // ming them, then truncating, since this needs to be slightly

@@ -738,7 +738,8 @@ TEST_CASE( "[lcr] compute_lcr, type=none" ) {
   e_unit_type unit_type = e_unit_type::scout;
   LostCityRumor expected;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   W.add_tribe( e_tribe::aztec );
   W.add_tribe( e_tribe::tupi );

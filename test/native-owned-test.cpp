@@ -222,7 +222,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
           W.ss(), W.default_player(), tile );
     };
 
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
         tribe.relationship[player.nation];
@@ -250,24 +251,28 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Difficulty levels.
-    W.settings().difficulty = e_difficulty::conquistador;
-    expected                = LandPrice{ .owner = e_tribe::tupi,
-                                         .price = int( 65 + 65 * 2 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
+    expected = LandPrice{ .owner = e_tribe::tupi,
+                          .price = int( 65 + 65 * 2 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::governor;
-    expected                = LandPrice{ .owner = e_tribe::tupi,
-                                         .price = int( 65 + 65 * 3 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::governor;
+    expected = LandPrice{ .owner = e_tribe::tupi,
+                          .price = int( 65 + 65 * 3 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::viceroy;
-    expected                = LandPrice{ .owner = e_tribe::tupi,
-                                         .price = int( 65 + 65 * 4 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
+    expected = LandPrice{ .owner = e_tribe::tupi,
+                          .price = int( 65 + 65 * 4 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::explorer;
-    expected                = LandPrice{ .owner = e_tribe::tupi,
-                                         .price = int( 65 + 65 * 1 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::explorer;
+    expected = LandPrice{ .owner = e_tribe::tupi,
+                          .price = int( 65 + 65 * 1 ) };
     REQUIRE( f() == expected );
 
     double so_far = 65 + 65 * 1;
@@ -397,7 +402,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
           W.ss(), W.default_player(), tile );
     };
 
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
         tribe.relationship[player.nation];
@@ -425,22 +431,26 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     REQUIRE( f() == expected );
 
     // Difficulty levels.
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( 65 + 32.5 + 65 * 2 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::governor;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::governor;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( 65 + 32.5 + 65 * 3 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( 65 + 32.5 + 65 * 4 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::explorer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::explorer;
     expected = LandPrice{ .owner = e_tribe::iroquois,
                           .price = int( 65 + 32.5 + 65 * 1 ) };
     REQUIRE( f() == expected );
@@ -572,7 +582,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
           W.ss(), W.default_player(), tile );
     };
 
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
         tribe.relationship[player.nation];
@@ -603,24 +614,28 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     double so_far = 65 + 32.5 * 2;
 
     // Difficulty levels.
-    W.settings().difficulty = e_difficulty::conquistador;
-    expected                = LandPrice{ .owner = e_tribe::aztec,
-                                         .price = int( so_far + 65 * 2 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
+    expected = LandPrice{ .owner = e_tribe::aztec,
+                          .price = int( so_far + 65 * 2 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::governor;
-    expected                = LandPrice{ .owner = e_tribe::aztec,
-                                         .price = int( so_far + 65 * 3 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::governor;
+    expected = LandPrice{ .owner = e_tribe::aztec,
+                          .price = int( so_far + 65 * 3 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::viceroy;
-    expected                = LandPrice{ .owner = e_tribe::aztec,
-                                         .price = int( so_far + 65 * 4 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
+    expected = LandPrice{ .owner = e_tribe::aztec,
+                          .price = int( so_far + 65 * 4 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::explorer;
-    expected                = LandPrice{ .owner = e_tribe::aztec,
-                                         .price = int( so_far + 65 * 1 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::explorer;
+    expected = LandPrice{ .owner = e_tribe::aztec,
+                          .price = int( so_far + 65 * 1 ) };
     REQUIRE( f() == expected );
 
     so_far += 65 * 1;
@@ -750,7 +765,8 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
           W.ss(), W.default_player(), tile );
     };
 
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     Tribe& tribe = W.natives().tribe_for( dwelling.id );
     TribeRelationship& relationship =
         tribe.relationship[player.nation];
@@ -780,24 +796,28 @@ TEST_CASE( "[native-owned] price_for_native_owned_land" ) {
     double so_far = 65 + 32.5 * 3;
 
     // Difficulty levels.
-    W.settings().difficulty = e_difficulty::conquistador;
-    expected                = LandPrice{ .owner = e_tribe::inca,
-                                         .price = int( so_far + 65 * 2 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
+    expected = LandPrice{ .owner = e_tribe::inca,
+                          .price = int( so_far + 65 * 2 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::governor;
-    expected                = LandPrice{ .owner = e_tribe::inca,
-                                         .price = int( so_far + 65 * 3 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::governor;
+    expected = LandPrice{ .owner = e_tribe::inca,
+                          .price = int( so_far + 65 * 3 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::viceroy;
-    expected                = LandPrice{ .owner = e_tribe::inca,
-                                         .price = int( so_far + 65 * 4 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
+    expected = LandPrice{ .owner = e_tribe::inca,
+                          .price = int( so_far + 65 * 4 ) };
     REQUIRE( f() == expected );
 
-    W.settings().difficulty = e_difficulty::explorer;
-    expected                = LandPrice{ .owner = e_tribe::inca,
-                                         .price = int( so_far + 65 * 1 ) };
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::explorer;
+    expected = LandPrice{ .owner = e_tribe::inca,
+                          .price = int( so_far + 65 * 1 ) };
     REQUIRE( f() == expected );
 
     so_far += 65 * 1;
@@ -922,8 +942,9 @@ TEST_CASE(
   Coord const kDwellingLoc{ .x = 3, .y = 3 };
   Dwelling& dwelling =
       W.add_dwelling( kDwellingLoc, e_tribe::cherokee );
-  W.settings().difficulty = e_difficulty::conquistador;
-  Tribe& tribe            = W.natives().tribe_for( dwelling.id );
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+  Tribe& tribe = W.natives().tribe_for( dwelling.id );
   TribeRelationship& relationship =
       tribe.relationship[player.nation];
   relationship.encountered = true;

@@ -414,7 +414,8 @@ TEST_CASE( "[tax] compute_tax_change" ) {
     return compute_tax_change( W.ss(), W.ts(), player );
   };
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   SECTION( "not yet" ) {
     W.turn().time_point.turns                  = 10;
@@ -586,7 +587,8 @@ TEST_CASE(
     return compute_tax_change( W.ss(), W.ts(), player );
   };
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
@@ -659,7 +661,8 @@ TEST_CASE( "[tax] start_of_turn_tax_check" ) {
     return start_of_turn_tax_check( W.ss(), W.ts(), player );
   };
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
@@ -761,7 +764,8 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
     return compute_tax_change( W.ss(), W.ts(), player );
   };
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   W.rand().EXPECT__between_ints( 14, 18 ).returns( 13 );
 
@@ -781,9 +785,11 @@ TEST_CASE( "[tax] compute_tax_change when over max" ) {
   W.rand().EXPECT__bernoulli( .98 ).returns( true );
 
   player.old_world.taxes.tax_rate = 76;
-  BASE_CHECK( player.old_world.taxes.tax_rate >
-              config_old_world.taxes[W.settings().difficulty]
-                  .maximum_tax_rate );
+  BASE_CHECK(
+      player.old_world.taxes.tax_rate >
+      config_old_world
+          .taxes[W.settings().game_setup_options.difficulty]
+          .maximum_tax_rate );
 
   expected = {
     .next_tax_event_turn = 51,

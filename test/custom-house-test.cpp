@@ -203,8 +203,9 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
 
 TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
   World W;
-  W.settings().difficulty = e_difficulty::conquistador;
-  Player& dutch           = W.dutch();
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+  Player& dutch = W.dutch();
   auto [colony, founder] =
       W.found_colony_with_new_unit( Coord{} );
   CustomHouseSales expected;
@@ -390,7 +391,8 @@ TEST_CASE(
   CustomHouseSales expected;
   PriceChange expected_silver_change;
   // Init settings.
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Init player.
   Player& french = W.french();
   W.set_human_player( e_nation::french );
@@ -474,7 +476,8 @@ TEST_CASE(
   CustomHouseSales expected;
   PriceChange expected_silver_change;
   // Init settings.
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Init player.
   Player& dutch = W.dutch();
   W.set_human_player( e_nation::dutch );

@@ -41,8 +41,8 @@ LUA_STARTUP( lua::state& st ) {
     using U = ::rn::SettingsState;
     auto u  = st.usertype.create<U>();
 
-    u["difficulty"]    = &U::difficulty;
-    u["cheat_options"] = &U::cheat_options;
+    u["cheat_options"]      = &U::cheat_options;
+    u["game_setup_options"] = &U::game_setup_options;
 
     // NOTE: Game options are not exposed here; they are exposed
     // via a higher level API in the game-options module because
@@ -56,6 +56,15 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["enabled"] = &U::enabled;
+  }
+
+  // GameSetupOptions.
+  if( true ) {
+    using U = ::rn::GameSetupOptions;
+    auto u  = st.usertype.create<U>();
+
+    u["difficulty"]               = &U::difficulty;
+    u["enable_war_of_succession"] = &U::enable_war_of_succession;
   }
 };
 

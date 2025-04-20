@@ -382,7 +382,8 @@ TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
                                    as_const( tribe ) );
   };
 
-  W.settings().difficulty = e_difficulty::governor;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::governor;
 
   SECTION( "muskets=0,horse_breeding=0" ) {
     tribe.muskets        = 0;
@@ -470,9 +471,10 @@ TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
   }
 
   SECTION( "muskets=5,horse_breeding=0,discoverer,depleted" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
-    tribe.muskets           = 5;
-    tribe.horse_breeding    = 0;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 0;
 
     W.rand().EXPECT__bernoulli( 1.0 ).returns( true );
     expected = { .type = e_native_unit_type::armed_brave,
@@ -483,9 +485,10 @@ TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
 
   SECTION(
       "muskets=5,horse_breeding=0,conquistador,not depleted" ) {
-    W.settings().difficulty = e_difficulty::conquistador;
-    tribe.muskets           = 5;
-    tribe.horse_breeding    = 0;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 0;
 
     W.rand()
         .EXPECT__bernoulli( Approx( .333333, .000001 ) )
@@ -497,9 +500,10 @@ TEST_CASE( "[tribe-arms] select_new_brave_equip" ) {
   }
 
   SECTION( "muskets=5,horse_breeding=25,viceroy,depleted" ) {
-    W.settings().difficulty = e_difficulty::viceroy;
-    tribe.muskets           = 5;
-    tribe.horse_breeding    = 25;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 25;
 
     W.rand().EXPECT__bernoulli( .2 ).returns( true );
     expected = { .type = e_native_unit_type::mounted_warrior,
@@ -520,7 +524,8 @@ TEST_CASE( "[tribe-arms] select_existing_brave_equip" ) {
         W.ss().as_const, W.rand(), as_const( tribe ), type );
   };
 
-  W.settings().difficulty = e_difficulty::governor;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::governor;
 
   SECTION( "brave,muskets=0,horse_breeding=0" ) {
     tribe.muskets        = 0;
@@ -731,10 +736,11 @@ TEST_CASE( "[tribe-arms] select_existing_brave_equip" ) {
   SECTION(
       "brave,muskets=5,horse_breeding=0,conquistador,not "
       "depleted" ) {
-    W.settings().difficulty = e_difficulty::conquistador;
-    tribe.muskets           = 5;
-    tribe.horse_breeding    = 0;
-    type                    = e_native_unit_type::brave;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 0;
+    type                 = e_native_unit_type::brave;
 
     W.rand()
         .EXPECT__bernoulli( Approx( .333333, .000001 ) )
@@ -747,10 +753,11 @@ TEST_CASE( "[tribe-arms] select_existing_brave_equip" ) {
 
   SECTION(
       "brave,muskets=5,horse_breeding=25,viceroy,depleted" ) {
-    W.settings().difficulty = e_difficulty::viceroy;
-    tribe.muskets           = 5;
-    tribe.horse_breeding    = 25;
-    type                    = e_native_unit_type::brave;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
+    tribe.muskets        = 5;
+    tribe.horse_breeding = 25;
+    type                 = e_native_unit_type::brave;
 
     W.rand().EXPECT__bernoulli( .2 ).returns( true );
     expected = { .type = e_native_unit_type::mounted_warrior,

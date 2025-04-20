@@ -476,7 +476,7 @@ players {
 }
 
 settings {
-  difficulty: conquistador
+  game_setup_options.difficulty: conquistador
   in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true

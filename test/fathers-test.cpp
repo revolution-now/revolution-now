@@ -128,7 +128,8 @@ TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
   };
 
   SECTION( "discoverer" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     REQUIRE( f() == 48 / 2 );
 
     player.fathers.has[e_founding_father::adam_smith] = true;
@@ -152,7 +153,8 @@ TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
   }
 
   SECTION( "conquistador" ) {
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     REQUIRE( f() == 80 / 2 );
 
     player.fathers.has[e_founding_father::adam_smith] = true;
@@ -176,7 +178,8 @@ TEST_CASE( "[fathers] bells_needed_for_next_father" ) {
   }
 
   SECTION( "viceroy" ) {
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     REQUIRE( f() == 112 / 2 );
 
     player.fathers.has[e_founding_father::adam_smith] = true;
@@ -454,7 +457,8 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
 
   auto fathers_copy = player.fathers;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   player.fathers.pool[e_founding_father_type::trade] =
       e_founding_father::jan_de_witt;
@@ -738,7 +742,8 @@ TEST_CASE( "[fathers] on_father_received: pocahontas" ) {
 
 TEST_CASE( "[fathers] on_father_received: william_brewster" ) {
   World W;
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   Player& player          = W.default_player();
   ImmigrationState& state = player.old_world.immigration;
   player.fathers.has[e_founding_father::william_brewster] = true;

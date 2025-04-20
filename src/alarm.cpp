@@ -143,7 +143,9 @@ void increase_tribal_alarm_from_land_grab(
   auto& conf = config_natives.alarm.land_grab;
 
   // Base.
-  double delta = conf.tribal_increase[ss.settings.difficulty];
+  double delta =
+      conf.tribal_increase[ss.settings.game_setup_options
+                               .difficulty];
 
   // Prime resource penalty.
   MapSquare const& square = ss.terrain.square_at( tile );

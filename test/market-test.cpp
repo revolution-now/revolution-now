@@ -1084,7 +1084,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1138,7 +1139,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_default_player( e_nation::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1192,7 +1194,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1246,7 +1249,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_default_player( e_nation::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1298,8 +1302,9 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "AI, conquistador, non-dutch" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::ore]
@@ -1351,8 +1356,9 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "AI, conquistador, dutch" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::muskets]
@@ -1404,8 +1410,9 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "AI, discoverer, non-dutch" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::muskets]
@@ -1457,8 +1464,9 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
   }
   SECTION( "AI, discoverer, dutch" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::muskets]
@@ -1513,7 +1521,8 @@ TEST_CASE( "[market] transaction_invoice buy" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1611,7 +1620,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1665,7 +1675,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.set_default_player( e_nation::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1719,7 +1730,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1773,7 +1785,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.set_default_player( e_nation::dutch );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1825,8 +1838,9 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "AI, conquistador, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::ore]
@@ -1878,8 +1892,9 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "AI, conquistador, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1931,8 +1946,9 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "AI, discoverer, non-dutch, tax=50" ) {
     W.set_default_player( e_nation::french );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -1984,8 +2000,9 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
   }
   SECTION( "AI, discoverer, dutch, tax=50" ) {
     W.set_default_player( e_nation::dutch );
-    Player& player          = W.default_player();
-    W.settings().difficulty = e_difficulty::conquistador;
+    Player& player = W.default_player();
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]
@@ -2040,7 +2057,8 @@ TEST_CASE( "[market] transaction_invoice sell" ) {
     W.set_default_player( e_nation::french );
     Player& player = W.default_player();
     W.set_default_player_as_human();
-    W.settings().difficulty = e_difficulty::conquistador;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::conquistador;
     W.set_tax_rate( 50 );
 
     player.old_world.market.commodities[e_commodity::silver]

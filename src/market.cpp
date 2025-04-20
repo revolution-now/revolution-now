@@ -176,7 +176,8 @@ Invoice transaction_invoice_default_model(
       config_market.price_behavior[comm_type];
   int const volatility = item_config.model_parameters.volatility;
   auto const& difficulty_modifiers =
-      config_market.difficulty_modifiers[ss.settings.difficulty];
+      config_market.difficulty_modifiers
+          [ss.settings.game_setup_options.difficulty];
   int const price = ( transaction_type == e_transaction::buy )
                         ? prices.ask
                         : prices.bid;

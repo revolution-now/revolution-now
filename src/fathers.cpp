@@ -313,7 +313,8 @@ bool has_all_fathers( Player const& player ) {
 maybe<int> bells_needed_for_next_father( SSConst const& ss,
                                          Player const& player ) {
   int const incremental_cost =
-      config_fathers.cost_in_bells[ss.settings.difficulty];
+      config_fathers.cost_in_bells[ss.settings.game_setup_options
+                                       .difficulty];
   int const count = father_count( player );
   if( count == refl::enum_count<e_founding_father> )
     // All fathers obtained.

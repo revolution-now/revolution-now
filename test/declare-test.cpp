@@ -65,7 +65,8 @@ TEST_CASE( "[declare] can_declare_independence" ) {
                                      as_const( player ) );
   };
 
-  w.settings().difficulty = e_difficulty::discoverer;
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   using enum e_declare_rejection;
 
@@ -97,7 +98,8 @@ TEST_CASE( "[declare] can_declare_independence" ) {
     player.revolution.rebel_sentiment = 100;
     REQUIRE( f() == valid );
 
-    w.settings().difficulty = e_difficulty::viceroy;
+    w.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
 
     player.revolution.rebel_sentiment = 0;
     REQUIRE( f() == rebel_sentiment_too_low );

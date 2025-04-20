@@ -75,9 +75,11 @@ TreasureReceipt treasure_king_transport_receipt(
       treasure.composition().inventory()[e_unit_inventory::gold];
   int const tax_rate = player.old_world.taxes.tax_rate;
   int const cut_percent =
-      no_extra_charge ? tax_rate
-                      : king_transport_cost_percent(
-                            tax_rate, ss.settings.difficulty );
+      no_extra_charge
+          ? tax_rate
+          : king_transport_cost_percent(
+                tax_rate,
+                ss.settings.game_setup_options.difficulty );
   int const cut =
       static_cast<int>( worth * ( cut_percent / 100.0 ) );
   int const net = std::max( worth - cut, 0 );

@@ -55,7 +55,8 @@ wait<> click_recruit( SS& ss, TS& ts, Player& player ) {
   CrossesCalculation const crosses =
       compute_crosses( ss.units, player.nation );
   int const price = cost_of_recruit(
-      player, crosses.crosses_needed, ss.settings.difficulty );
+      player, crosses.crosses_needed,
+      ss.settings.game_setup_options.difficulty );
   ChoiceConfig config{
     .msg = fmt::format(
         "The following individuals will accompany us to the "

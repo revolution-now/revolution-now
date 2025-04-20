@@ -284,7 +284,8 @@ TEST_CASE( "[treasure] treasure_enter_colony" ) {
   W.gui().EXPECT__choice( _ ).returns<maybe<string>>( "no" );
   REQUIRE( f() == nothing );
 
-  W.settings().difficulty = e_difficulty::viceroy;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
   W.add_unit_on_map( e_unit_type::galleon, { .x = 0, .y = 0 } );
   player.fathers.has[e_founding_father::hernan_cortes] = false;
   expected = TreasureReceipt{
@@ -405,19 +406,21 @@ TEST_CASE( "[treasure] treasure_from_dwelling" ) {
   REQUIRE( f() == expected );
 
   // Civilized, no capital, with cortes. (viceroy).
-  tribe                   = e_tribe::inca;
-  has_cortes              = true;
-  capital                 = false;
-  W.settings().difficulty = e_difficulty::viceroy;
+  tribe      = e_tribe::inca;
+  has_cortes = true;
+  capital    = false;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
   W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
   expected = 12100;
   REQUIRE( f() == expected );
 
   // Civilized, capital, with cortes. (governor).
-  tribe                   = e_tribe::inca;
-  has_cortes              = true;
-  capital                 = true;
-  W.settings().difficulty = e_difficulty::governor;
+  tribe      = e_tribe::inca;
+  has_cortes = true;
+  capital    = true;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::governor;
   W.rand().EXPECT__between_ints( 3000, 10000 ).returns( 8123 );
   expected = 24300;
   REQUIRE( f() == expected );

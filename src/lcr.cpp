@@ -492,9 +492,9 @@ LostCityRumor compute_lcr( SSConst const& ss,
       lcr_explorer_category( unit_type );
   e_rumor_type const rumor_type =
       pick_rumor_type_result( rand, explorer, player );
-  return compute_rumor_type( ss.settings.difficulty, explorer,
-                             rumor_type, player, tile, rand,
-                             map_search );
+  return compute_rumor_type(
+      ss.settings.game_setup_options.difficulty, explorer,
+      rumor_type, player, tile, rand, map_search );
 }
 
 wait<LostCityRumorUnitChange> run_lcr(

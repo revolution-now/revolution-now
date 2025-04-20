@@ -40,6 +40,8 @@ struct.InGameOptions {
 # These are options that are configured once at the start of a
 # new game and cannot be changed thereafter.
 struct.GameSetupOptions {
+  difficulty 'e_difficulty', # discoverer, explorer, etc.
+
   enable_war_of_succession 'bool',
 }
 
@@ -56,9 +58,6 @@ struct.ColonyOptions {
 }
 
 struct.SettingsState {
-  # discoverer, explorer, etc.
-  difficulty 'e_difficulty',
-
   # These are options that are configured once at the start of a
   # new game and cannot be changed thereafter.
   game_setup_options 'GameSetupOptions',

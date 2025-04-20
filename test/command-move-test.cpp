@@ -309,7 +309,8 @@ TEST_CASE(
   return;
 #endif
   World W;
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
   Player& player       = W.default_player();

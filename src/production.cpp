@@ -834,14 +834,15 @@ void fill_in_center_square(
 
   // Food.
   pr.center_food_production = food_production_on_center_square(
-      square, ss.settings.difficulty );
+      square, ss.settings.game_setup_options.difficulty );
   bells_modifiers.apply( e_unit_activity::farming, unit_type,
                          pr.center_food_production );
 
   // Secondary good.
   maybe<e_outdoor_commons_secondary_job> center_secondary =
-      choose_secondary_job( player, square,
-                            ss.settings.difficulty );
+      choose_secondary_job(
+          player, square,
+          ss.settings.game_setup_options.difficulty );
   if( !center_secondary.has_value() ) return;
   e_outdoor_job const outdoor_job =
       to_outdoor_job( *center_secondary );
@@ -852,7 +853,7 @@ void fill_in_center_square(
     // to the total calculations.
     .quantity = commodity_production_on_center_square(
         *center_secondary, square, player,
-        ss.settings.difficulty ) };
+        ss.settings.game_setup_options.difficulty ) };
   bells_modifiers.apply( activity_for_outdoor_job( outdoor_job ),
                          unit_type,
                          pr.center_extra_production->quantity );
@@ -1034,7 +1035,8 @@ ColonyProduction production_for_colony( SSConst const& ss,
 
   // These are computed based on the state of things last turn.
   BellsModifiers const bells_modifiers = compute_bells_modifiers(
-      player, colony, ss.settings.difficulty );
+      player, colony,
+      ss.settings.game_setup_options.difficulty );
 
   res.crosses = crosses_production_for_colony(
       ss.units, player, colony, bells_modifiers );

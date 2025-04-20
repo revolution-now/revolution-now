@@ -42,7 +42,7 @@ bool rebellion_large_enough_to_declare(
   return player.revolution.rebel_sentiment >=
          config_revolution.declaration
              .human_required_rebel_sentiment_percent
-                 [settings.difficulty]
+                 [settings.game_setup_options.difficulty]
              .percent;
 }
 

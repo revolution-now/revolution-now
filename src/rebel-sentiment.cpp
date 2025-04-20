@@ -177,7 +177,7 @@ bool should_do_war_of_succession( SSConst const& ss,
   if( player.revolution.rebel_sentiment <
       config_revolution.declaration
           .human_required_rebel_sentiment_percent
-              [ss.settings.difficulty]
+              [ss.settings.game_setup_options.difficulty]
           .percent )
     return false;
   return true;

@@ -502,7 +502,8 @@ TEST_CASE( "[production] lumber+hammers [discoverer]" ) {
   using LP  = refl::enum_map<e_direction, SP>;
   using RMP = RawMaterialAndProduct;
 
-  W.settings().difficulty = e_difficulty::discoverer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   SECTION( "no lumberjack" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
@@ -791,7 +792,8 @@ TEST_CASE( "[production] silver [discoverer]" ) {
   using LP  = refl::enum_map<e_direction, SP>;
   using RMP = RawMaterialAndProduct;
 
-  W.settings().difficulty = e_difficulty::discoverer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   SECTION( "silver miner, warehouse empty" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
@@ -970,7 +972,8 @@ TEST_CASE( "[production] tobacco/cigar [discoverer]" ) {
   using LP  = refl::enum_map<e_direction, SP>;
   using RMP = RawMaterialAndProduct;
 
-  W.settings().difficulty = e_difficulty::discoverer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   SECTION( "center square tobacco only" ) {
     Colony& colony = W.add_colony( W.kGrasslandTile );
@@ -1764,7 +1767,8 @@ TEST_CASE( "[production] cotton/cloth [explorer]" ) {
   using LP  = refl::enum_map<e_direction, SP>;
   using RMP = RawMaterialAndProduct;
 
-  W.settings().difficulty = e_difficulty::explorer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::explorer;
 
   SECTION( "center square cotton only" ) {
     Colony& colony = W.add_colony( W.kPrairieTile );
@@ -2554,8 +2558,9 @@ TEST_CASE( "[production] food/horses [discoverer]" ) {
   using SP = SquareProduction;
   using LP = refl::enum_map<e_direction, SP>;
 
-  W.settings().difficulty = e_difficulty::discoverer;
-  int const bonus         = 2;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
+  int const bonus = 2;
 
   SECTION( "no units no horses/arctic" ) {
     Colony& colony = W.add_colony( W.kArcticTile );
@@ -3449,8 +3454,9 @@ TEST_CASE( "[production] food/horses [explorer]" ) {
   using SP = SquareProduction;
   using LP = refl::enum_map<e_direction, SP>;
 
-  W.settings().difficulty = e_difficulty::explorer;
-  int const bonus         = 1;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::explorer;
+  int const bonus = 1;
 
   SECTION( "no units no horses/arctic" ) {
     Colony& colony = W.add_colony( W.kArcticTile );
@@ -3533,8 +3539,9 @@ TEST_CASE( "[production] food/horses [viceroy]" ) {
   using SP = SquareProduction;
   using LP = refl::enum_map<e_direction, SP>;
 
-  W.settings().difficulty = e_difficulty::viceroy;
-  int const bonus         = 0;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
+  int const bonus = 0;
 
   SECTION( "no units no horses/arctic" ) {
     Colony& colony = W.add_colony( W.kArcticTile );
@@ -3614,7 +3621,8 @@ TEST_CASE( "[production] ore/tools/muskets [conquistador]" ) {
   using LP  = refl::enum_map<e_direction, SP>;
   using RMP = RawMaterialAndProduct;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   SECTION( "center square ore only" ) {
     Colony& colony = W.add_colony( W.kDesertTile );
@@ -5391,7 +5399,8 @@ TEST_CASE( "[production] bell production [discoverer]" ) {
   World W;
   W.create_default_map();
 
-  W.settings().difficulty = e_difficulty::discoverer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   Colony& colony = W.add_colony( W.kGrasslandTile );
   Player& player = W.default_player();
@@ -5579,7 +5588,8 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // Use discoverer here since otherwise it is difficult to
     // avoid the tory penalty (due to the number of colonists)
     // while not getting an SoL bonus.
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 7.3;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -5686,7 +5696,8 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // Use discoverer here since otherwise it is difficult to
     // avoid the tory penalty (due to the number of colonists)
     // while not getting an SoL bonus.
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 8.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -5793,7 +5804,8 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
     // Use discoverer here since otherwise it is difficult to
     // avoid the tory penalty (due to the number of colonists)
     // while not getting an SoL bonus.
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 15.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -5897,7 +5909,8 @@ TEST_CASE( "[production] with SoL bonuses/penalties" ) {
   }
 
   SECTION( "No SoL bonus and with tory penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6022,7 +6035,8 @@ TEST_CASE(
                               e_outdoor_job::tobacco );
 
   SECTION( "no SoL bonus or penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .49;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6055,7 +6069,8 @@ TEST_CASE(
   }
 
   SECTION( "50+% SoL bonus and no tory penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .50;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6088,7 +6103,8 @@ TEST_CASE(
   }
 
   SECTION( "100% SoL bonus and no tory penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6121,7 +6137,8 @@ TEST_CASE(
   }
 
   SECTION( "No SoL bonus and with tory penalty" ) {
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
     // These are just to accumulate some tories.
     colony.buildings[e_colony_building::church] = true;
@@ -6181,7 +6198,8 @@ TEST_CASE(
   SECTION( "expert, no SoL bonus or penalty" ) {
     W.add_expert_unit_outdoors( colony.id, e_direction::e,
                                 e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .49;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6210,7 +6228,8 @@ TEST_CASE(
   SECTION( "expert, 50+% SoL bonus and no tory penalty" ) {
     W.add_expert_unit_outdoors( colony.id, e_direction::e,
                                 e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .50;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6249,7 +6268,8 @@ TEST_CASE(
   SECTION( "expert, 100% SoL bonus and no tory penalty" ) {
     W.add_expert_unit_outdoors( colony.id, e_direction::e,
                                 e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6288,7 +6308,8 @@ TEST_CASE(
   SECTION( "expert, No SoL bonus and with tory penalty" ) {
     W.add_expert_unit_outdoors( colony.id, e_direction::e,
                                 e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
     // These are just to accumulate some tories.
     colony.buildings[e_colony_building::church] = true;
@@ -6334,7 +6355,8 @@ TEST_CASE(
   SECTION( "non-expert, no SoL bonus or penalty" ) {
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .49;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6363,7 +6385,8 @@ TEST_CASE(
   SECTION( "non-expert, 50+% SoL bonus and no tory penalty" ) {
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .50;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6392,7 +6415,8 @@ TEST_CASE(
   SECTION( "non-expert, 100% SoL bonus and no tory penalty" ) {
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6421,7 +6445,8 @@ TEST_CASE(
   SECTION( "non-expert, No SoL bonus and with tory penalty" ) {
     W.add_unit_outdoors( colony.id, e_direction::e,
                          e_outdoor_job::silver );
-    W.settings().difficulty = e_difficulty::viceroy;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::viceroy;
     colony.sons_of_liberty.num_rebels_from_bells_only = 0.0;
     // These are just to accumulate some tories.
     colony.buildings[e_colony_building::church] = true;
@@ -6487,7 +6512,8 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
   CHECK( population == 1 );
 
   SECTION( "no SoL bonus or penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .49;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6520,7 +6546,8 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
   }
 
   SECTION( "50+% SoL bonus and no tory penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = .50;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6555,7 +6582,8 @@ TEST_CASE( "[production] SoL does not affect horses" ) {
   }
 
   SECTION( "100% SoL bonus and no tory penalty" ) {
-    W.settings().difficulty = e_difficulty::discoverer;
+    W.settings().game_setup_options.difficulty =
+        e_difficulty::discoverer;
     colony.sons_of_liberty.num_rebels_from_bells_only = 1.0;
     // Sanity check to make sure that we're testing the case that
     // we think we're testing.
@@ -6603,7 +6631,8 @@ TEST_CASE(
   CHECK( W.square( { .x = 10, .y = 1 } ).ground ==
          e_ground_terrain::desert );
 
-  W.settings().difficulty = e_difficulty::viceroy;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
 
   // One free colonist on desert should produce 2 food, and the
   // center desert square should produce 1 food (since we're on

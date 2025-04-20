@@ -54,7 +54,7 @@ end
 -- Settings
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
-  settings.difficulty = options.difficulty
+  settings.game_setup_options.difficulty = options.difficulty
   settings.cheat_options.enabled =
       cheat.enable_cheat_mode_by_default()
   -- TODO: these are in config/rn... get them from there.
@@ -322,7 +322,9 @@ local STARTING_GOLD = {
 
 local function create_player_state( settings, nation, player )
   player.nation = nation
-  player.money = assert( STARTING_GOLD[settings.difficulty] )
+  player.money = assert(
+                     STARTING_GOLD[settings.game_setup_options
+                         .difficulty] )
   create_old_world_state( settings, player )
 end
 

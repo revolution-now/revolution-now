@@ -67,7 +67,8 @@ struct World : testing::World {
 *****************************************************************/
 TEST_CASE( "[command-plow] native-owned land" ) {
   World W;
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 1, .y = 1 }, e_tribe::tupi );
   Tribe& tribe = W.natives().tribe_for( e_tribe::tupi );

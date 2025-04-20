@@ -395,7 +395,8 @@ TEST_CASE(
     "growth with muskets/horses" ) {
   World W;
 
-  W.settings().difficulty = e_difficulty::explorer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::explorer;
 
   e_tribe const tribe_type = e_tribe::arawak;
   Tribe& tribe             = W.add_tribe( tribe_type );

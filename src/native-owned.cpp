@@ -128,7 +128,8 @@ maybe<LandPrice> price_for_native_owned_land(
           conf.increment_per_paid_land_square +
       static_cast<int>( level ) *
           conf.increment_per_tribe_level +
-      static_cast<int>( ss.settings.difficulty ) *
+      static_cast<int>(
+          ss.settings.game_setup_options.difficulty ) *
           conf.increment_per_difficulty_level;
 
   double price = base_price;

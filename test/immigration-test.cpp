@@ -346,7 +346,8 @@ TEST_CASE( "[immigration] pick_next_unit_for_pool" ) {
   bool found_free_colonist      = false;
   bool found_expert_colonist    = false;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Calculated theoretically by computing all of the weights for
   // all unit types on the conquistador difficulty level and sum-
   // ming them, then truncating, since this needs to be slightly
@@ -384,7 +385,8 @@ TEST_CASE(
   bool found_free_colonist   = false;
   bool found_expert_colonist = false;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Calculated theoretically by computing all of the weights for
   // all unit types on the conquistador difficulty level and sum-
   // ming them, except assuming that the weights for petty crim-
@@ -609,7 +611,8 @@ TEST_CASE( "[immigration] rush_recruit_next_immigrant" ) {
   World W;
   Player& player = W.default_player();
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
   // Calculated theoretically by computing all of the weights for
   // all unit types on the conquistador difficulty level and sum-
   // ming them, then truncating, since this needs to be slightly

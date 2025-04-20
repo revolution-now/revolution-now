@@ -75,7 +75,9 @@ EquippedBrave select_brave_equip_impl( SSConst const& ss,
     return take_muskets &&
            rand.bernoulli(
                config_natives.arms
-                   .musket_depletion[ss.settings.difficulty]
+                   .musket_depletion[ss.settings
+                                         .game_setup_options
+                                         .difficulty]
                    .probability );
   }();
   // In the OG this always happens. This is likely because a

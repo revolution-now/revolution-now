@@ -55,8 +55,9 @@ using ::base::valid;
 using ::base::valid_or;
 
 string construct_rcl_title( SSConst const& ss ) {
-  string const difficulty = base::capitalize_initials(
-      refl::enum_value_name( ss.root.settings.difficulty ) );
+  string const difficulty =
+      base::capitalize_initials( refl::enum_value_name(
+          ss.root.settings.game_setup_options.difficulty ) );
   string const name = "SomeName"; // FIXME: temporary
   maybe<e_nation> human;
   // Use the first human nation.

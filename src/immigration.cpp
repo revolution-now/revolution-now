@@ -135,8 +135,9 @@ e_unit_type take_immigrant_from_pool(
 e_unit_type pick_next_unit_for_pool(
     IRand& rand, Player const& player,
     SettingsState const& settings ) {
-  WeightsMap weights = immigrant_weights_for_level(
-      static_cast<int>( settings.difficulty ) );
+  WeightsMap weights =
+      immigrant_weights_for_level( static_cast<int>(
+          settings.game_setup_options.difficulty ) );
 
   // Having William Brewster prevents criminals and servants from
   // showing up on the docks.
@@ -323,7 +324,8 @@ void rush_recruit_next_immigrant( SS& ss, TS& ts, Player& player,
   CrossesCalculation const crosses =
       compute_crosses( ss.units, player.nation );
   player.money -= cost_of_recruit(
-      player, crosses.crosses_needed, ss.settings.difficulty );
+      player, crosses.crosses_needed,
+      ss.settings.game_setup_options.difficulty );
   CHECK_GE( player.money, 0 );
   ++player.old_world.immigration.num_recruits_rushed;
   player.crosses = 0;

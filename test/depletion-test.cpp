@@ -115,7 +115,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   forest( { .x = 3, .y = 1 } ) = R::minerals;
   ground( { .x = 4, .y = 1 } ) = R::silver;
 
-  W.settings().difficulty = e_difficulty::conquistador;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
 
   auto f1 = [&] {
     return advance_depletion_state( W.ss(), W.rand(), colony1 );
@@ -206,7 +207,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
   REQUIRE( f2() == expected );
   REQUIRE( depletion == expected_depletion );
 
-  W.settings().difficulty = e_difficulty::discoverer;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
 
   // Reminder:
   // C = colony              L, L, L, L,C2,
@@ -314,7 +316,8 @@ TEST_CASE( "[depletion] advance_depletion_state" ) {
                colony1.location.moved( e_direction::ne ) ) ) ==
            e_natural_resource::silver );
 
-  W.settings().difficulty = e_difficulty::viceroy;
+  W.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
 
   depletion.counters[{ .x = 3, .y = 2 }] = 48;
   depletion.counters[{ .x = 1, .y = 3 }] = 48;

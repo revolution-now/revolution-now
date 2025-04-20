@@ -79,7 +79,8 @@ maybe<DepletionEvent> advance_tile_depletion_state(
   auto& by_resource = co_await lookup( counter_bump, job );
   auto& bump        = co_await lookup( by_resource, resource );
   if( bump == 0 ) co_await nothing;
-  e_difficulty const difficulty = ss.settings.difficulty;
+  e_difficulty const difficulty =
+      ss.settings.game_setup_options.difficulty;
   co_await rand.bernoulli( p_bump( difficulty ) );
   auto& counter = depletion.counters[tile];
   counter += bump;
