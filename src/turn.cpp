@@ -1606,9 +1606,10 @@ wait<> declare_independence_routine( IEngine&, SS& ss, TS& ts,
   UNWRAP_CHECK( player, ss.players.players[nation] );
   co_await declare_independence_ui_sequence_pre(
       ss.as_const, ts, as_const( player ) );
-  declare_independence( ss, ts, player );
+  DeclarationResult const decl_res =
+      declare_independence( ss, ts, player );
   co_await declare_independence_ui_sequence_post(
-      ss.as_const, ts, as_const( player ) );
+      ss.as_const, ts, as_const( player ), decl_res );
 }
 
 } // namespace

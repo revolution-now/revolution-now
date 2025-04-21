@@ -51,9 +51,11 @@ maybe<e_nation> player_that_declared( SSConst const& ss );
 wait<> declare_independence_ui_sequence_pre(
     SSConst const& ss, TS& ts, Player const& player );
 
-void declare_independence( SS& ss, TS& ts, Player& player );
+[[nodiscard]] DeclarationResult declare_independence(
+    SS& ss, TS& ts, Player& player );
 
 wait<> declare_independence_ui_sequence_post(
-    SSConst const& ss, TS& ts, Player const& player );
+    SSConst const& ss, TS& ts, Player const& player,
+    DeclarationResult const& decl_res );
 
 } // namespace rn

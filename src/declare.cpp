@@ -129,7 +129,9 @@ wait<> declare_independence_ui_sequence_pre( SSConst const&,
       "(signing of signature on declaration)" );
 }
 
-void declare_independence( SS&, TS&, Player& player ) {
+DeclarationResult declare_independence( SS&, TS&,
+                                        Player& player ) {
+  DeclarationResult res;
   player.revolution.status = e_revolution_status::declared;
 
   // * Add backup force. Make sure that there is at least one
@@ -146,11 +148,12 @@ void declare_independence( SS&, TS&, Player& player ) {
   //   it continues to accumulate.
   // * Promote continental armies in colonies. This actually ap-
   //   pears to happen at the start of the new turn.
+  return res;
 }
 
-wait<> declare_independence_ui_sequence_post( SSConst const&,
-                                              TS& ts,
-                                              Player const& ) {
+wait<> declare_independence_ui_sequence_post(
+    SSConst const&, TS& ts, Player const&,
+    DeclarationResult const& ) {
   co_await ts.gui.message_box(
       "Continental Congress signs [Declaration of "
       "Independence]! (more description of things that "
