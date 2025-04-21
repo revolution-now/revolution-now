@@ -443,6 +443,7 @@
                 "nation_relation",
                 "rebel_sentiment_report",
                 "unknown45a",
+                "last_reported_rebel_sentiment",
                 "expeditionary_force",
                 "backup_force",
                 "price_group_state",
@@ -617,7 +618,8 @@
             "end_of_turn_sign": {"size": 2, "type": "end_of_turn_sign_type"},
             "nation_relation": {"size": 8},
             "rebel_sentiment_report": {"size": 2, "type": "int", "__hint": "0-100, displayed in continental congress report for all players."},
-            "unknown45a": {"size": 8},
+            "unknown45a": {"size": 6},
+            "last_reported_rebel_sentiment": {"size": 2, "type": "int", "__hint": "Most recent reported rebel sentiment divided by 10.  Likely used to schedule notifications about changes in rebel sentiment."},
             "expeditionary_force":
             {
                 "no_indent": true,
@@ -1522,6 +1524,7 @@
                 "nation_unit_count",
                 "nation_colony_count",
                 "unknown34a",
+                "total_colonies_population",
                 "foreign_affairs_report",
                 "unknown36ac",
                 "unknown36ad",
@@ -1565,14 +1568,45 @@
                     "dutch": {"size": 1, "type": "uint", "no_indent": true}
                 }
             },
-            "unknown34a": {"size": 8},
+            "unknown34a":
+            {
+                "struct":
+                {
+                    "__key_order": ["english", "french", "spanish", "dutch"],
+                    "english": {"size": 1},
+                    "french": {"size": 1},
+                    "spanish": {"size": 1},
+                    "dutch": {"size": 1}
+                }
+            },
+            "total_colonies_population":
+            {
+                "struct":
+                {
+                    "__key_order": ["english", "french", "spanish", "dutch"],
+                    "english": {"size": 1, "type": "uint"},
+                    "french": {"size": 1, "type": "uint"},
+                    "spanish": {"size": 1, "type": "uint"},
+                    "dutch": {"size": 1, "type": "uint"}
+                }
+            },
             "foreign_affairs_report":
             {
                 "struct":
                 {
-                    "__key_order": ["populations", "unknown36ab", "merchant_marine", "ship_counts"],
-                    "populations": {"size": 1, "type": "uint", "cols": 4, "no_indent": true},
-                    "unknown36ab": {"size": 4},
+                    "__key_order": ["population", "unknown36ab", "merchant_marine", "ship_counts"],
+                    "population": {"size": 1, "type": "uint", "cols": 4, "no_indent": true},
+                    "unknown36ab":
+                    {
+                        "struct":
+                        {
+                            "__key_order": ["english", "french", "spanish", "dutch"],
+                            "english": {"size": 1},
+                            "french": {"size": 1},
+                            "spanish": {"size": 1},
+                            "dutch": {"size": 1}
+                        }
+                    },
                     "merchant_marine": {"size": 1, "type": "uint", "cols": 4, "no_indent": true},
                     "ship_counts": {"size": 1, "type": "uint", "cols": 4, "no_indent": true, "__hint": "See supplemental-info.md for details"}
                 }

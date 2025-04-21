@@ -2357,7 +2357,8 @@ struct HEADER {
   end_of_turn_sign_type end_of_turn_sign = {};
   bytes<8> nation_relation = {};
   int16_t rebel_sentiment_report = {};
-  bytes<8> unknown45a = {};
+  bytes<6> unknown45a = {};
+  int16_t last_reported_rebel_sentiment = {};
   ExpeditionaryForce expeditionary_force = {};
   BackupForce backup_force = {};
   PriceGroupState price_group_state = {};
@@ -2999,11 +3000,101 @@ cdr::result<NationColonyCount> from_canonical(
                          cdr::tag_t<NationColonyCount> );
 
 /****************************************************************
+** Unknown34a
+*****************************************************************/
+struct Unknown34a {
+  bytes<1> english = {};
+  bytes<1> french = {};
+  bytes<1> spanish = {};
+  bytes<1> dutch = {};
+
+  bool operator==( Unknown34a const& ) const = default;
+};
+
+// String conversion.
+void to_str( Unknown34a const& o, std::string& out, base::tag<Unknown34a> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Unknown34a& o );
+
+bool write_binary( base::IBinaryIO& b, Unknown34a const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Unknown34a const& o,
+                         cdr::tag_t<Unknown34a> );
+
+cdr::result<Unknown34a> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Unknown34a> );
+
+/****************************************************************
+** TotalColoniesPopulation
+*****************************************************************/
+struct TotalColoniesPopulation {
+  uint8_t english = {};
+  uint8_t french = {};
+  uint8_t spanish = {};
+  uint8_t dutch = {};
+
+  bool operator==( TotalColoniesPopulation const& ) const = default;
+};
+
+// String conversion.
+void to_str( TotalColoniesPopulation const& o, std::string& out, base::tag<TotalColoniesPopulation> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, TotalColoniesPopulation& o );
+
+bool write_binary( base::IBinaryIO& b, TotalColoniesPopulation const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         TotalColoniesPopulation const& o,
+                         cdr::tag_t<TotalColoniesPopulation> );
+
+cdr::result<TotalColoniesPopulation> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<TotalColoniesPopulation> );
+
+/****************************************************************
+** Unknown36ab
+*****************************************************************/
+struct Unknown36ab {
+  bytes<1> english = {};
+  bytes<1> french = {};
+  bytes<1> spanish = {};
+  bytes<1> dutch = {};
+
+  bool operator==( Unknown36ab const& ) const = default;
+};
+
+// String conversion.
+void to_str( Unknown36ab const& o, std::string& out, base::tag<Unknown36ab> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, Unknown36ab& o );
+
+bool write_binary( base::IBinaryIO& b, Unknown36ab const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         Unknown36ab const& o,
+                         cdr::tag_t<Unknown36ab> );
+
+cdr::result<Unknown36ab> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<Unknown36ab> );
+
+/****************************************************************
 ** ForeignAffairsReport
 *****************************************************************/
 struct ForeignAffairsReport {
-  std::array<uint8_t, 4> populations = {};
-  bytes<4> unknown36ab = {};
+  std::array<uint8_t, 4> population = {};
+  Unknown36ab unknown36ab = {};
   std::array<uint8_t, 4> merchant_marine = {};
   std::array<uint8_t, 4> ship_counts = {};
 
@@ -3239,7 +3330,8 @@ struct STUFF {
   bytes<12> unknown34 = {};
   NationUnitCount nation_unit_count = {};
   NationColonyCount nation_colony_count = {};
-  bytes<8> unknown34a = {};
+  Unknown34a unknown34a = {};
+  TotalColoniesPopulation total_colonies_population = {};
   ForeignAffairsReport foreign_affairs_report = {};
   std::array<bytes<64>, 8> unknown36ac = {};
   bytes<8> unknown36ad = {};

@@ -90,7 +90,8 @@
     "end_of_turn_sign": "Not shown",
     "nation_relation": "82 01 7a 01 a4 00 00 00",
     "rebel_sentiment_report": 100,
-    "unknown45a": "02 00 00 00 01 00 0a 00",
+    "unknown45a": "02 00 00 00 01 00",
+    "last_reported_rebel_sentiment": 10,
     "expeditionary_force": {
       "regulars": 0,
       "dragoons": 0,
@@ -22161,15 +22162,31 @@
       "spanish": 0,
       "dutch": 8
     },
-    "unknown34a": "00 00 00 01 50 51 00 69",
+    "unknown34a": {
+      "english": "00",
+      "french": "00",
+      "spanish": "00",
+      "dutch": "01"
+    },
+    "total_colonies_population": {
+      "english": 80,
+      "french": 81,
+      "spanish": 0,
+      "dutch": 105
+    },
     "foreign_affairs_report": {
-      "populations": [
+      "population": [
         117,
         132,
         0,
         187
       ],
-      "unknown36ab": "ff ff 00 ff",
+      "unknown36ab": {
+        "english": "ff",
+        "french": "ff",
+        "spanish": "00",
+        "dutch": "ff"
+      },
       "merchant_marine": [
         64,
         56,
