@@ -1091,7 +1091,6 @@ sheets {
 
         commodity_glow_20:  { y: 1, x: 0 }
         product_fish_20:    { y: 1, x: 1 }
-        red_x_20:           { y: 1, x: 2 }
         red_prohibition_20: { y: 1, x: 3 }
         product_crosses_20: { y: 1, x: 4 }
         product_bells_20:   { y: 1, x: 5 }

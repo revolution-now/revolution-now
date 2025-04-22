@@ -21,7 +21,6 @@ namespace "rn"
 
 enum.e_red_x_size {
   small, # 12x12
-  large, # 14x14
 }
 
 struct.SpreadXs {

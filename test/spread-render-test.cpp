@@ -490,7 +490,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
 
   // One spread, one tile, with overlay, no label.
   testing_set_trimmed_cache(
-      e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
+      e_tile::red_x_16, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
   in = {
     .spreads =
@@ -505,7 +505,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                         .rendered_count = 1, .spacing = 1 },
                   .tile = e_tile::dragoon,
                   .overlay_tile =
-                      TileOverlay{ .tile = e_tile::red_x_20,
+                      TileOverlay{ .tile = e_tile::red_x_16,
                                    .starting_position = 0 },
                 } } },
     .group_spacing = 1,
@@ -520,8 +520,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
               { .tile       = e_tile::dragoon,
                  .where      = { -2, 0 },
                  .is_overlay = false },
-              { .tile       = e_tile::red_x_20,
-                 .where      = { -2, 6 },
+              { .tile       = e_tile::red_x_16,
+                 .where      = { -2, 8 },
                  .is_overlay = true },
             },
          .labels = {} },
@@ -530,8 +530,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
 
   // One spread, one tile, with overlay, with label.
   testing_set_trimmed_cache(
-      e_tile::red_x_20, rect{ .origin = { .x = 2, .y = 2 },
-                              .size   = { .w = 14, .h = 14 } } );
+      e_tile::red_x_16, rect{ .origin = { .x = 2, .y = 2 },
+                              .size   = { .w = 12, .h = 12 } } );
   in = {
     .spreads =
         { { .algo_spec = SpreadSpec{ .count   = 1,
@@ -545,7 +545,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                         .rendered_count = 1, .spacing = 1 },
                   .tile = e_tile::dragoon,
                   .overlay_tile =
-                      TileOverlay{ .tile = e_tile::red_x_20,
+                      TileOverlay{ .tile = e_tile::red_x_16,
                                    .starting_position = 0 },
                 } } },
     .group_spacing = 1,
@@ -559,8 +559,8 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
             { .tile       = e_tile::dragoon,
                .where      = { -2, 0 },
                .is_overlay = false },
-            { .tile       = e_tile::red_x_20,
-               .where      = { -2, 6 },
+            { .tile       = e_tile::red_x_16,
+               .where      = { -2, 8 },
                .is_overlay = true },
           },
        .labels = { SpreadLabelRenderPlan{

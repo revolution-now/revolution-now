@@ -109,10 +109,6 @@ TileSpreadRenderPlans build_tile_spread_multi(
             overlay_tile.tile = e_tile::red_x_16;
             break;
           }
-          case rn::e_red_x_size::large: {
-            overlay_tile.tile = e_tile::red_x_20;
-            break;
-          }
         }
         overlay_tile.label_opts = configs.options.label_opts;
         overlay_tile.label_opts.color_fg = pixel::red();
