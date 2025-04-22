@@ -49,6 +49,7 @@ saves/slot*
 /.builds
 /build
 /Makefile
+*.profraw
 
 # environment specific.
 /source-me.fish
