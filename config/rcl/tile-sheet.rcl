@@ -1064,7 +1064,6 @@ sheets {
         product_hammers_16:    { y: 1, x: 1  }
         product_crosses_16:    { y: 1, x: 2  }
         product_bells_16:      { y: 1, x: 3  }
-        red_x_16:              { y: 1, x: 4  }
         red_prohibition_16:    { y: 1, x: 5  }
       }
     }
@@ -1095,6 +1094,15 @@ sheets {
         product_crosses_20: { y: 1, x: 4 }
         product_bells_20:   { y: 1, x: 5 }
         product_hammers_20: { y: 1, x: 6 }
+      }
+    }
+    {
+      img_path: assets/art/tiles/red-xs.png
+      sprite_size: { w: 16, h: 16 }
+      sprites {
+        red_x_12: { y: 0, x: 0  }
+        red_x_8:  { y: 0, x: 1  }
+        red_x_6:  { y: 0, x: 2  }
       }
     }
     {

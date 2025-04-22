@@ -155,6 +155,8 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     auto const& tile_trimmed_len   = spec.trimmed.len;
     auto const& tile_trimmed_start = spec.trimmed.start;
     size const tile_size = sprite_size( tile_spread.tile );
+    bool const is_overlapping =
+        tile_spread.icon_spread.spacing < spec.trimmed.len;
     struct OverlayStart {
       int idx         = {};
       point p_start   = {};
@@ -186,18 +188,25 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
           .size   = sprite_size( tile_spread.tile )
                       .with_w( tile_trimmed_len ) };
         point const p_overlay_drawn = [&] {
-          // Make sure that the trimmed X start of the overlay
-          // tile aligns with the trimmed X start of the base
-          // sprite. This is important so that the overlay sprite
-          // is still visible even when the spread is only one
-          // pixel apart.
+          // If the underlying tiles are overlapping then make
+          // sure that the trimmed X start of the overlay tile
+          // aligns with the trimmed X start of the base sprite.
+          // This is important so that the overlay sprite is
+          // still visible even when the spread is only one pixel
+          // apart.
+          auto const alignment =
+              is_overlapping ? e_cdirection::w : e_cdirection::c;
+          int const left_shift =
+              is_overlapping
+                  ? trimmed_area_for(
+                        tile_spread.overlay_tile->tile )
+                        .horizontal_slice()
+                        .start
+                  : 0;
           point res = gfx::centered_at(
               sprite_size( tile_spread.overlay_tile->tile ),
-              base_tile_trimmed_rect, e_cdirection::w );
-          res.x -=
-              trimmed_area_for( tile_spread.overlay_tile->tile )
-                  .horizontal_slice()
-                  .start;
+              base_tile_trimmed_rect, alignment );
+          res.x -= left_shift;
           return res;
         }();
         plan.tiles.push_back( TileRenderPlan{

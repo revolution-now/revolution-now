@@ -705,10 +705,15 @@ enum.e_tile {
   commodity_tools_20,
   commodity_muskets_20,
 
-  red_x_16,
   red_prohibition_16,
   red_prohibition_20,
   commodity_glow_20,
+
+  # These are the red x's that are overlayed on commodities. The
+  # number in the name refers to the trimmed horizontal width.
+  red_x_12,
+  red_x_8,
+  red_x_6,
 
   # =============================================================
   # Products

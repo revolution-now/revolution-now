@@ -162,7 +162,7 @@ void render_unit_with_tile( rr::Renderer& renderer, Coord where,
     // Reuse the red X from boycotted commodities for the damaged
     // icon (the OG seems to do this).
     render_sprite( renderer, where + Delta{ .w = 8, .h = 8 },
-                   e_tile::red_x_16 );
+                   e_tile::red_x_12 );
 }
 
 void depixelate_from_to( rr::Renderer& renderer, double stage,

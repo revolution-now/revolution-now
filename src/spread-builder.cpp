@@ -58,6 +58,40 @@ void ensure_labels_are_non_overlapping(
   }
 }
 
+e_tile choose_x_tile_for( e_tile const tile ) {
+  int const trimmed_w = trimmed_area_for( tile ).size.w;
+  switch( trimmed_w ) {
+    case 0:
+      return e_tile::red_x_6;
+    case 1:
+      return e_tile::red_x_6;
+    case 2:
+      return e_tile::red_x_6;
+    case 3:
+      return e_tile::red_x_6;
+    case 4:
+      return e_tile::red_x_6;
+    case 5:
+      return e_tile::red_x_6;
+    case 6:
+      return e_tile::red_x_6;
+    case 7:
+      return e_tile::red_x_6;
+    case 8:
+      return e_tile::red_x_8;
+    case 9:
+      return e_tile::red_x_8;
+    case 10:
+      return e_tile::red_x_8;
+    case 11:
+      return e_tile::red_x_8;
+    case 12:
+      return e_tile::red_x_12;
+    default:
+      return e_tile::red_x_12;
+  }
+}
+
 } // namespace
 
 /****************************************************************
@@ -104,12 +138,7 @@ TileSpreadRenderPlans build_tile_spread_multi(
       if( config_it->red_xs.has_value() ) {
         auto& overlay_tile =
             tile_spread_spec.overlay_tile.emplace();
-        switch( config_it->red_xs->size ) {
-          case rn::e_red_x_size::small: {
-            overlay_tile.tile = e_tile::red_x_16;
-            break;
-          }
-        }
+        overlay_tile.tile = choose_x_tile_for( config_it->tile );
         overlay_tile.label_opts = configs.options.label_opts;
         overlay_tile.label_opts.color_fg = pixel::red();
         overlay_tile.starting_position =

@@ -19,12 +19,7 @@ include "<vector>"
 
 namespace "rn"
 
-enum.e_red_x_size {
-  small, # 12x12
-}
-
 struct.SpreadXs {
-  size 'e_red_x_size',
   starting_position 'int',
 }
 

@@ -145,8 +145,7 @@ void ProductionView::create_production_spreads(
     return TileSpread{
       .tile   = tile,
       .count  = produced_count + deficit_count,
-      .red_xs = SpreadXs{ .size = e_red_x_size::small,
-                          .starting_position = produced_count },
+      .red_xs = SpreadXs{ .starting_position = produced_count },
     };
   };
 
@@ -158,8 +157,7 @@ void ProductionView::create_production_spreads(
     return TileSpread{
       .tile   = tile,
       .count  = produced_count + deficit_count,
-      .red_xs = SpreadXs{ .size = e_red_x_size::small,
-                          .starting_position = produced_count },
+      .red_xs = SpreadXs{ .starting_position = produced_count },
     };
   };
 
@@ -171,8 +169,7 @@ void ProductionView::create_production_spreads(
     return TileSpread{
       .tile   = tile,
       .count  = produced_count + deficit_count,
-      .red_xs = SpreadXs{ .size = e_red_x_size::small,
-                          .starting_position = produced_count },
+      .red_xs = SpreadXs{ .starting_position = produced_count },
     };
   };
 
