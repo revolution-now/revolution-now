@@ -156,6 +156,7 @@ TileSpreadRenderPlans render_plan_for_tile_spread(
     auto const& tile_trimmed_start = spec.trimmed.start;
     size const tile_size = sprite_size( tile_spread.tile );
     bool const is_overlapping =
+        ( tile_spread.icon_spread.rendered_count > 1 ) &&
         tile_spread.icon_spread.spacing < spec.trimmed.len;
     struct OverlayStart {
       int idx         = {};

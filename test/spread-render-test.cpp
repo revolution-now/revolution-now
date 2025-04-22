@@ -493,21 +493,20 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
       e_tile::red_x_12, rect{ .origin = { .x = 2, .y = 2 },
                               .size   = { .w = 14, .h = 14 } } );
   in = {
-    .spreads =
-        { { .algo_spec = SpreadSpec{ .count   = 1,
-                                     .trimmed = { .start = 2,
-                                                  .len = 28 } },
-            .tile_spec =
-                {
-                  .icon_spread =
-                      {
-
-                        .rendered_count = 1, .spacing = 1 },
-                  .tile = e_tile::dragoon,
-                  .overlay_tile =
-                      TileOverlay{ .tile = e_tile::red_x_12,
-                                   .starting_position = 0 },
-                } } },
+    .spreads       = { { .algo_spec =
+                             SpreadSpec{
+                               .count   = 1,
+                               .trimmed = { .start = 2, .len = 28 } },
+                         .tile_spec =
+                             {
+                               .icon_spread = { .rendered_count = 1,
+                                                .spacing        = 1 },
+                               .tile        = e_tile::dragoon,
+                               .overlay_tile =
+                             TileOverlay{
+                                     .tile = e_tile::red_x_12,
+                                     .starting_position = 0 },
+                       } } },
     .group_spacing = 1,
     .label_policy  = {} };
   ex = {
@@ -521,7 +520,85 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                  .where      = { -2, 0 },
                  .is_overlay = false },
               { .tile       = e_tile::red_x_12,
-                 .where      = { -2, 8 },
+                 .where      = { 6, 8 },
+                 .is_overlay = true },
+            },
+         .labels = {} },
+    } };
+  REQUIRE( f() == ex );
+
+  // One spread, two tiles, with overlay, no label, no overlap.
+  in = {
+    .spreads       = { { .algo_spec =
+                             SpreadSpec{
+                               .count   = 2,
+                               .trimmed = { .start = 2, .len = 28 } },
+                         .tile_spec =
+                             {
+                               .icon_spread = { .rendered_count = 2,
+                                                .spacing        = 28 },
+                               .tile        = e_tile::dragoon,
+                               .overlay_tile =
+                             TileOverlay{
+                                     .tile = e_tile::red_x_12,
+                                     .starting_position = 1 },
+                       } } },
+    .group_spacing = 1,
+    .label_policy  = {} };
+  ex = {
+    .bounds = { .w = 56, .h = 32 },
+    .plans  = {
+      TileSpreadRenderPlan{
+         .bounds = { .origin = {}, .size = { .w = 56, .h = 32 } },
+         .tiles =
+             {
+              { .tile       = e_tile::dragoon,
+                 .where      = { -2, 0 },
+                 .is_overlay = false },
+              { .tile       = e_tile::dragoon,
+                 .where      = { 26, 0 },
+                 .is_overlay = false },
+              { .tile       = e_tile::red_x_12,
+                 .where      = { 28 + 6, 8 },
+                 .is_overlay = true },
+            },
+         .labels = {} },
+    } };
+  REQUIRE( f() == ex );
+
+  // One spread, two tiles, with overlay, no label, with overlap.
+  in = {
+    .spreads       = { { .algo_spec =
+                             SpreadSpec{
+                               .count   = 2,
+                               .trimmed = { .start = 2, .len = 28 } },
+                         .tile_spec =
+                             {
+                               .icon_spread = { .rendered_count = 2,
+                                                .spacing        = 27 },
+                               .tile        = e_tile::dragoon,
+                               .overlay_tile =
+                             TileOverlay{
+                                     .tile = e_tile::red_x_12,
+                                     .starting_position = 1 },
+                       } } },
+    .group_spacing = 1,
+    .label_policy  = {} };
+  ex = {
+    .bounds = { .w = 55, .h = 32 },
+    .plans  = {
+      TileSpreadRenderPlan{
+         .bounds = { .origin = {}, .size = { .w = 55, .h = 32 } },
+         .tiles =
+             {
+              { .tile       = e_tile::dragoon,
+                 .where      = { -2, 0 },
+                 .is_overlay = false },
+              { .tile       = e_tile::dragoon,
+                 .where      = { 25, 0 },
+                 .is_overlay = false },
+              { .tile       = e_tile::red_x_12,
+                 .where      = { 25 + 2 - 2, 8 },
                  .is_overlay = true },
             },
          .labels = {} },
@@ -560,7 +637,7 @@ TEST_CASE( "[spread] render_plan_for_tile_spread" ) {
                .where      = { -2, 0 },
                .is_overlay = false },
             { .tile       = e_tile::red_x_12,
-               .where      = { -2, 8 },
+               .where      = { 6, 8 },
                .is_overlay = true },
           },
        .labels = { SpreadLabelRenderPlan{
