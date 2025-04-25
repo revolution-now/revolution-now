@@ -523,6 +523,21 @@ TEST_CASE(
                        .receives  = e_nation::dutch };
   REQUIRE( f() == expected );
 
+  w.english().human = true;
+  expected          = { .withdraws = e_nation::french,
+                        .receives  = e_nation::dutch };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 0, .y = 0 }, e_nation::french );
+  expected = { .withdraws = e_nation::dutch,
+               .receives  = e_nation::french };
+  REQUIRE( f() == expected );
+
+  w.add_colony( { .x = 2, .y = 0 }, e_nation::french );
+  expected = { .withdraws = e_nation::dutch,
+               .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
   w.players().players[e_nation::french].reset();
   expected = { .withdraws = e_nation::dutch,
                .receives  = e_nation::spanish };

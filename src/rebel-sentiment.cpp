@@ -191,18 +191,25 @@ WarOfSuccessionPlan select_nations_for_war_of_succession(
     SSConst const& ss ) {
   vector<e_nation> ai_nations;
   ai_nations.reserve( enum_count<e_nation> );
-  enum_map<e_nation, int> populations;
+  enum_map<e_nation, int> size_metric;
   for( e_nation const nation : enum_values<e_nation> ) {
     auto const& player = ss.players.players[nation];
     if( !player.has_value() ) continue;
     if( player->human ) continue;
     ai_nations.push_back( nation );
-    populations[nation] =
+    int const population =
         unit_count_for_rebel_sentiment( ss, nation );
+    int const colony_count =
+        ss.colonies.for_nation( nation ).size();
+    // This appears to be roughly what the OG does. There could
+    // be further checks or other slight differences, but it
+    // doesn't seem important to get it exactly the same, and
+    // it's a bit tricky to determine empirically.
+    size_metric[nation] = population + colony_count;
   }
   stable_sort( ai_nations.begin(), ai_nations.end(),
                [&]( e_nation const l, e_nation const r ) {
-                 return populations[l] < populations[r];
+                 return size_metric[l] < size_metric[r];
                } );
   // The call to should_do_war_of_succession that we should have
   // done before calling this method should have ensured that
