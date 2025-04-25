@@ -38,6 +38,7 @@ struct.dialog_text {
 
 struct.menus {
   menu_bar_x_padding 'int',
+  menu_bar_x_spacing 'int',
   highlight_padding 'gfx::size',
   body_border_padding 'gfx::size',
   menu_bar_height 'int',

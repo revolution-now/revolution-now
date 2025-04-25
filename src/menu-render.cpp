@@ -293,6 +293,7 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     header.text_nw_absolute =
         gfx::centered_in( text_size, header.bounds_absolute );
     res.headers.push_back( header );
+    p.x += (x_pre ? -1 : 1)*config_ui.menus.menu_bar_x_spacing;
   };
 
   p = res.bounds.nw();
@@ -301,7 +302,9 @@ MenuBarRenderedLayout build_menu_bar_rendered_layout(
     add_header( menu, /*x_pre=*/false );
 
   p = res.bounds.ne();
-  p.x -= config_ui.menus.menu_bar_x_padding;
+  // Do less of a margin here to make the right side of the first
+  // menu line up with the right side of the mini map.
+  p.x -= config_ui.menus.menu_bar_x_padding / 2;
   for( e_menu const menu : views::reverse( r_menus ) )
     add_header( menu, /*x_pre=*/true );
   return res;

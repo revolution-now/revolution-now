@@ -19,6 +19,7 @@ dialog_text {
 
 menus {
   menu_bar_x_padding:  8
+  menu_bar_x_spacing:  8
   highlight_padding:   { w=6, h=2 }
   body_border_padding: { w=4, h=4 }
   menu_bar_height:     16
