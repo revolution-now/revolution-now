@@ -60,8 +60,11 @@ RebelSentimentReport rebel_sentiment_report_for_cc_report(
 bool should_do_war_of_succession( SSConst const& ss,
                                   Player const& player );
 
-WarOfSuccession do_war_of_succession( SS& ss,
-                                      e_nation with_rebels );
+WarOfSuccessionPlan select_nations_for_war_of_succession(
+    SSConst const& ss );
+
+WarOfSuccession do_war_of_succession(
+    SS& ss, WarOfSuccessionPlan const& plan );
 
 wait<> do_war_of_succession_ui_seq(
     TS& ts, WarOfSuccession const& succession );

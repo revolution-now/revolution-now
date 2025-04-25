@@ -35,6 +35,10 @@ namespace rn {
 
 namespace {
 
+using ::refl::enum_count;
+using ::refl::enum_map;
+using ::refl::enum_values;
+
 // There are messages that inform the player of when rebel senti-
 // ment rises and falls, similar to the SoL messages. However,
 // they are only shown when the total population is >= 4, and
@@ -183,7 +187,35 @@ bool should_do_war_of_succession( SSConst const& ss,
   return true;
 }
 
-WarOfSuccession do_war_of_succession( SS&, e_nation const ) {
+WarOfSuccessionPlan select_nations_for_war_of_succession(
+    SSConst const& ss ) {
+  vector<e_nation> ai_nations;
+  ai_nations.reserve( enum_count<e_nation> );
+  enum_map<e_nation, int> populations;
+  for( e_nation const nation : enum_values<e_nation> ) {
+    auto const& player = ss.players.players[nation];
+    if( !player.has_value() ) continue;
+    if( player->human ) continue;
+    ai_nations.push_back( nation );
+    populations[nation] =
+        unit_count_for_rebel_sentiment( ss, nation );
+  }
+  stable_sort( ai_nations.begin(), ai_nations.end(),
+               [&]( e_nation const l, e_nation const r ) {
+                 return populations[l] < populations[r];
+               } );
+  // The call to should_do_war_of_succession that we should have
+  // done before calling this method should have ensured that
+  // this won't happen.
+  CHECK_GE( ssize( ai_nations ), 2 );
+  e_nation const smallest        = ai_nations[0];
+  e_nation const second_smallest = ai_nations[1];
+  return WarOfSuccessionPlan{ .withdraws = smallest,
+                              .receives  = second_smallest };
+}
+
+WarOfSuccession do_war_of_succession(
+    SS&, WarOfSuccessionPlan const& ) {
   WarOfSuccession res;
   return res;
 }

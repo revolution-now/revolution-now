@@ -8,6 +8,9 @@
 # Description: Rds definitions for the rebel-sentiment module.
 #
 # ===============================================================
+# ss
+include "ss/nation.rds.hpp"
+
 namespace "rn"
 
 struct.RebelSentimentChangeReport {
@@ -19,6 +22,11 @@ struct.RebelSentimentReport {
   rebel_sentiment 'int',
   rebels 'int',
   tories 'int',
+}
+
+struct.WarOfSuccessionPlan {
+  withdraws 'e_nation',
+  receives 'e_nation',
 }
 
 struct.WarOfSuccession {

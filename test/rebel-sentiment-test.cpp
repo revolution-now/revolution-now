@@ -34,6 +34,8 @@ namespace {
 
 using namespace std;
 
+using ::refl::enum_values;
+
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
@@ -451,6 +453,80 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
         false;
     REQUIRE_FALSE( f() );
   }
+}
+
+TEST_CASE(
+    "[rebel-sentiment] select_nations_for_war_of_succession" ) {
+  world w;
+  WarOfSuccessionPlan expected;
+
+  auto const f = [&] {
+    return select_nations_for_war_of_succession( w.ss() );
+  };
+
+  // Start off with no human players.
+  for( e_nation const nation : enum_values<e_nation> )
+    w.player( nation ).human = false;
+
+  // No humans.
+  expected = { .withdraws = e_nation::english,
+               .receives  = e_nation::french };
+  REQUIRE( f() == expected );
+
+  w.english().human = true;
+  expected          = { .withdraws = e_nation::french,
+                        .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
+  w.english().human = false;
+  w.french().human  = true;
+  expected          = { .withdraws = e_nation::english,
+                        .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
+  w.spanish().human = true;
+  expected          = { .withdraws = e_nation::english,
+                        .receives  = e_nation::dutch };
+  REQUIRE( f() == expected );
+
+  w.spanish().human = false;
+  expected          = { .withdraws = e_nation::english,
+                        .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
+                     e_nation::english );
+  expected = { .withdraws = e_nation::english,
+               .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::dragoon, { .x = 0, .y = 0 },
+                     e_nation::english );
+  expected = { .withdraws = e_nation::spanish,
+               .receives  = e_nation::dutch };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::soldier, { .x = 1, .y = 0 },
+                     e_nation::spanish );
+  expected = { .withdraws = e_nation::dutch,
+               .receives  = e_nation::english };
+  REQUIRE( f() == expected );
+
+  w.add_unit_on_map( e_unit_type::native_convert,
+                     { .x = 1, .y = 0 }, e_nation::english );
+  expected = { .withdraws = e_nation::dutch,
+               .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
+
+  w.french().human = false;
+  expected         = { .withdraws = e_nation::french,
+                       .receives  = e_nation::dutch };
+  REQUIRE( f() == expected );
+
+  w.players().players[e_nation::french].reset();
+  expected = { .withdraws = e_nation::dutch,
+               .receives  = e_nation::spanish };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
