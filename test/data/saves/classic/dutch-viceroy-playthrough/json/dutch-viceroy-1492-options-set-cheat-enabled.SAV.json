@@ -4943,7 +4943,14 @@
   ],
   "NATION": [
     {
-      "unknown19": "00",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": false,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Petty criminal",
@@ -5179,7 +5186,14 @@
       }
     },
     {
-      "unknown19": "00",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": false,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Petty criminal",
@@ -5415,7 +5429,14 @@
       }
     },
     {
-      "unknown19": "00",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": false,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Jesuit missionary",
@@ -5651,7 +5672,14 @@
       }
     },
     {
-      "unknown19": "00",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": false,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Petty criminal",

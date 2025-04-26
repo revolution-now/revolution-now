@@ -9406,7 +9406,14 @@
   ],
   "NATION": [
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Indentured servant",
@@ -9642,7 +9649,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Petty criminal",
@@ -9878,7 +9892,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Hardy pioneer",
@@ -10114,7 +10135,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 0,
       "recruit": [
         "Petty criminal",

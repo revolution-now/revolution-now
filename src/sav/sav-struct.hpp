@@ -619,9 +619,10 @@ cdr::result<region_id_4bit_type> from_canonical(
 ** relation_3bit_type
 *****************************************************************/
 enum class relation_3bit_type : uint8_t {
-  self_vanished_not_met = 0b000,  // original: "self/vanished/not met"
-  war                   = 0b010,
-  peace                 = 0b110,
+  self_vanished_not_met     = 0b000,  // original: "self/vanished/not met"
+  war                       = 0b010,
+  post_granted_independence = 0b100,
+  peace                     = 0b110,
 };
 
 // String conversion.
@@ -1397,6 +1398,38 @@ cdr::result<CargoItems> from_canonical(
                          cdr::converter& conv,
                          cdr::value const& v,
                          cdr::tag_t<CargoItems> );
+
+/****************************************************************
+** NationFlags
+*****************************************************************/
+struct NationFlags {
+  uint8_t unknown19a : 2 = {};
+  bool granted_independence : 1 = {};
+  bool declared_independence : 1 = {};
+  uint8_t unknown19b : 2 = {};
+  bool immigration_started : 1 = {};
+  uint8_t unknown19c : 1 = {};
+
+  bool operator==( NationFlags const& ) const = default;
+};
+
+// String conversion.
+void to_str( NationFlags const& o, std::string& out, base::tag<NationFlags> );
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationFlags& o );
+
+bool write_binary( base::IBinaryIO& b, NationFlags const& o );
+
+// Cdr conversions.
+cdr::value to_canonical( cdr::converter& conv,
+                         NationFlags const& o,
+                         cdr::tag_t<NationFlags> );
+
+cdr::result<NationFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationFlags> );
 
 /****************************************************************
 ** FoundingFathers
@@ -2783,7 +2816,7 @@ cdr::result<Trade> from_canonical(
 ** NATION
 *****************************************************************/
 struct NATION {
-  bytes<1> unknown19 = {};
+  NationFlags nation_flags = {};
   uint8_t tax_rate = {};
   std::array<profession_type, 3> recruit = {};
   bytes<1> unused07 = {};

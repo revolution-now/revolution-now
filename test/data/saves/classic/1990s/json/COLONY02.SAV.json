@@ -19686,7 +19686,14 @@
   ],
   "NATION": [
     {
-      "unknown19": "44",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": true,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 66,
       "recruit": [
         "Master carpenter",
@@ -19922,7 +19929,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 72,
       "recruit": [
         "Master carpenter",
@@ -20158,7 +20172,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 16,
       "recruit": [
         "Expert fisherman",
@@ -20394,7 +20415,14 @@
       }
     },
     {
-      "unknown19": "48",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": true,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 5,
       "recruit": [
         "Free colonist",

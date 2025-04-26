@@ -1223,6 +1223,7 @@ void to_str( relation_3bit_type const& o, std::string& out, base::tag<relation_3
   switch( o ) {
     case relation_3bit_type::self_vanished_not_met: out += "self/vanished/not met"; return;
     case relation_3bit_type::war: out += "war"; return;
+    case relation_3bit_type::post_granted_independence: out += "post_granted_independence"; return;
     case relation_3bit_type::peace: out += "peace"; return;
   }
   out += "<unrecognized>";
@@ -1234,6 +1235,7 @@ cdr::value to_canonical( cdr::converter&,
   switch( o ) {
     case relation_3bit_type::self_vanished_not_met: return "self/vanished/not met";
     case relation_3bit_type::war: return "war";
+    case relation_3bit_type::post_granted_independence: return "post_granted_independence";
     case relation_3bit_type::peace: return "peace";
   }
   return cdr::null;
@@ -1247,6 +1249,7 @@ cdr::result<relation_3bit_type> from_canonical(
   static std::map<std::string, relation_3bit_type> const m{
     { "self/vanished/not met", relation_3bit_type::self_vanished_not_met },
     { "war", relation_3bit_type::war },
+    { "post_granted_independence", relation_3bit_type::post_granted_independence },
     { "peace", relation_3bit_type::peace },
   };
   if( auto it = m.find( str ); it != m.end() )
@@ -3085,6 +3088,82 @@ cdr::result<CargoItems> from_canonical(
   std::set<std::string> used_keys;
   CONV_FROM_FIELD( "cargo_1", cargo_1 );
   CONV_FROM_FIELD( "cargo_2", cargo_2 );
+  HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
+  return res;
+}
+
+/****************************************************************
+** NationFlags
+*****************************************************************/
+void to_str( NationFlags const& o, std::string& out, base::tag<NationFlags> ) {
+  out += "NationFlags{";
+  out += "unknown19a="; base::to_str( bits<2>{ o.unknown19a }, out ); out += ',';
+  out += "granted_independence="; base::to_str( o.granted_independence, out ); out += ',';
+  out += "declared_independence="; base::to_str( o.declared_independence, out ); out += ',';
+  out += "unknown19b="; base::to_str( bits<2>{ o.unknown19b }, out ); out += ',';
+  out += "immigration_started="; base::to_str( o.immigration_started, out ); out += ',';
+  out += "unknown19c="; base::to_str( bits<1>{ o.unknown19c }, out );
+  out += '}';
+}
+
+// Binary conversion.
+bool read_binary( base::IBinaryIO& b, NationFlags& o ) {
+  uint8_t bits = 0;
+  if( !b.read_bytes<1>( bits ) ) return false;
+  o.unknown19a = (bits & 0b11); bits >>= 2;
+  o.granted_independence = (bits & 0b1); bits >>= 1;
+  o.declared_independence = (bits & 0b1); bits >>= 1;
+  o.unknown19b = (bits & 0b11); bits >>= 2;
+  o.immigration_started = (bits & 0b1); bits >>= 1;
+  o.unknown19c = (bits & 0b1); bits >>= 1;
+  return true;
+}
+
+bool write_binary( base::IBinaryIO& b, NationFlags const& o ) {
+  uint8_t bits = 0;
+  bits |= (o.unknown19c & 0b1); bits <<= 1;
+  bits |= (o.immigration_started & 0b1); bits <<= 2;
+  bits |= (o.unknown19b & 0b11); bits <<= 1;
+  bits |= (o.declared_independence & 0b1); bits <<= 1;
+  bits |= (o.granted_independence & 0b1); bits <<= 2;
+  bits |= (o.unknown19a & 0b11); bits <<= 0;
+  return b.write_bytes<1>( bits );
+}
+
+cdr::value to_canonical( cdr::converter& conv,
+                         NationFlags const& o,
+                         cdr::tag_t<NationFlags> ) {
+  cdr::table tbl;
+  conv.to_field( tbl, "unknown19a", bits<2>{ o.unknown19a } );
+  conv.to_field( tbl, "granted_independence", o.granted_independence );
+  conv.to_field( tbl, "declared_independence", o.declared_independence );
+  conv.to_field( tbl, "unknown19b", bits<2>{ o.unknown19b } );
+  conv.to_field( tbl, "immigration_started", o.immigration_started );
+  conv.to_field( tbl, "unknown19c", bits<1>{ o.unknown19c } );
+  tbl["__key_order"] = cdr::list{
+    "unknown19a",
+    "granted_independence",
+    "declared_independence",
+    "unknown19b",
+    "immigration_started",
+    "unknown19c",
+  };
+  return tbl;
+}
+
+cdr::result<NationFlags> from_canonical(
+                         cdr::converter& conv,
+                         cdr::value const& v,
+                         cdr::tag_t<NationFlags> ) {
+  UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
+  NationFlags res = {};
+  std::set<std::string> used_keys;
+  CONV_FROM_BITSTRING_FIELD( "unknown19a", unknown19a, 2 );
+  CONV_FROM_FIELD( "granted_independence", granted_independence );
+  CONV_FROM_FIELD( "declared_independence", declared_independence );
+  CONV_FROM_BITSTRING_FIELD( "unknown19b", unknown19b, 2 );
+  CONV_FROM_FIELD( "immigration_started", immigration_started );
+  CONV_FROM_BITSTRING_FIELD( "unknown19c", unknown19c, 1 );
   HAS_VALUE_OR_RET( conv.end_field_tracking( tbl, used_keys ) );
   return res;
 }
@@ -6609,7 +6688,7 @@ cdr::result<Trade> from_canonical(
 *****************************************************************/
 void to_str( NATION const& o, std::string& out, base::tag<NATION> ) {
   out += "NATION{";
-  out += "unknown19="; base::to_str( o.unknown19, out ); out += ',';
+  out += "nation_flags="; base::to_str( o.nation_flags, out ); out += ',';
   out += "tax_rate="; base::to_str( o.tax_rate, out ); out += ',';
   out += "recruit="; base::to_str( o.recruit, out ); out += ',';
   out += "unused07="; base::to_str( o.unused07, out ); out += ',';
@@ -6645,7 +6724,7 @@ void to_str( NATION const& o, std::string& out, base::tag<NATION> ) {
 // Binary conversion.
 bool read_binary( base::IBinaryIO& b, NATION& o ) {
   return true
-    && read_binary( b, o.unknown19 )
+    && read_binary( b, o.nation_flags )
     && read_binary( b, o.tax_rate )
     && read_binary( b, o.recruit )
     && read_binary( b, o.unused07 )
@@ -6680,7 +6759,7 @@ bool read_binary( base::IBinaryIO& b, NATION& o ) {
 
 bool write_binary( base::IBinaryIO& b, NATION const& o ) {
   return true
-    && write_binary( b, o.unknown19 )
+    && write_binary( b, o.nation_flags )
     && write_binary( b, o.tax_rate )
     && write_binary( b, o.recruit )
     && write_binary( b, o.unused07 )
@@ -6717,7 +6796,7 @@ cdr::value to_canonical( cdr::converter& conv,
                          NATION const& o,
                          cdr::tag_t<NATION> ) {
   cdr::table tbl;
-  conv.to_field( tbl, "unknown19", o.unknown19 );
+  conv.to_field( tbl, "nation_flags", o.nation_flags );
   conv.to_field( tbl, "tax_rate", o.tax_rate );
   conv.to_field( tbl, "recruit", o.recruit );
   conv.to_field( tbl, "unused07", o.unused07 );
@@ -6748,7 +6827,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "unknown26c", o.unknown26c );
   conv.to_field( tbl, "trade", o.trade );
   tbl["__key_order"] = cdr::list{
-    "unknown19",
+    "nation_flags",
     "tax_rate",
     "recruit",
     "unused07",
@@ -6789,7 +6868,7 @@ cdr::result<NATION> from_canonical(
   UNWRAP_RETURN( tbl, conv.ensure_type<cdr::table>( v ) );
   NATION res = {};
   std::set<std::string> used_keys;
-  CONV_FROM_FIELD( "unknown19", unknown19 );
+  CONV_FROM_FIELD( "nation_flags", nation_flags );
   CONV_FROM_FIELD( "tax_rate", tax_rate );
   CONV_FROM_FIELD( "recruit", recruit );
   CONV_FROM_FIELD( "unused07", unused07 );

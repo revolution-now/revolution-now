@@ -330,7 +330,8 @@
         {
             "self/vanished/not met": "000",
             "war": "010",
-            "peace": "110"
+            "peace": "110",
+            "post_granted_independence": "100"
         },
         "orders_type":
         {
@@ -1104,7 +1105,7 @@
         "struct":
         {
             "__key_order": [
-                "unknown19",
+                "nation_flags",
                 "tax_rate",
                 "recruit",
                 "unused07",
@@ -1135,7 +1136,26 @@
                 "unknown26c",
                 "trade"
             ],
-            "unknown19": {"size": 1, "__hint": "observed to go from 0x40 to 0x48 after independence declared."},
+            "nation_flags":
+            {
+                "bit_struct":
+                {
+                    "__key_order": [
+                        "unknown19a",
+                        "granted_independence",
+                        "declared_independence",
+                        "unknown19b",
+                        "immigration_started",
+                        "unknown19c"
+                    ],
+                    "unknown19a": {"size": 2},
+                    "granted_independence": {"size": 1, "type": "bit_bool", "__hint": "for AI players when they are granted independence."},
+                    "declared_independence": {"size": 1, "type": "bit_bool", "__hint": "this gets set for the human player on the turn following the one where independence is declared; unclear what the use is."},
+                    "unknown19b": {"size": 2},
+                    "immigration_started": {"size": 1, "type": "bit_bool", "__hint": "set to true when the first immigrant appears on the dock from cross production. Not clear what the use is."},
+                    "unknown19c": {"size": 1}
+                }
+            },
             "tax_rate": {"size": 1, "type": "uint"},
             "recruit": {"size": 1, "cols": 3, "type": "profession_type", "no_indent": true},
             "unused07": {"size": 1},

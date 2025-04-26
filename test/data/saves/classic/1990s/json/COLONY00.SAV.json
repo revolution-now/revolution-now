@@ -17664,7 +17664,14 @@
   ],
   "NATION": [
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 75,
       "recruit": [
         "Master distiller",
@@ -17900,7 +17907,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 75,
       "recruit": [
         "Master carpenter",
@@ -18136,7 +18150,14 @@
       }
     },
     {
-      "unknown19": "40",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": false,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 20,
       "recruit": [
         "Free colonist",
@@ -18372,7 +18393,14 @@
       }
     },
     {
-      "unknown19": "48",
+      "nation_flags": {
+        "unknown19a": "00",
+        "granted_independence": false,
+        "declared_independence": true,
+        "unknown19b": "00",
+        "immigration_started": true,
+        "unknown19c": "0"
+      },
       "tax_rate": 71,
       "recruit": [
         "Master tobacconist",
