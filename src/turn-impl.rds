@@ -33,11 +33,3 @@ sumtype.EndOfTurnResult {
     first_to_ask 'base::maybe<UnitId>',
   },
 }
-
-sumtype.TurnLoopPhase {
-  pre_declaration {},
-  declaring {
-    nation 'e_nation',
-  },
-  post_declaration {},
-}
