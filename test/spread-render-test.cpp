@@ -1044,9 +1044,61 @@ TEST_CASE( "[spread] replace_first_n_tiles" ) {
   REQUIRE( plans == ex );
 }
 
-TEST_CASE(
-    "[spread] render_plan_for_tile_uncompressed_spread" ) {
-  (void)render_plan_for_tile_uncompressed_spread;
+TEST_CASE( "[spread] render_plan_for_tile_fixed_spread" ) {
+  FixedTileSpreadSpec spec;
+  TileSpreadRenderPlan ex;
+
+  auto f = [&] {
+    return render_plan_for_tile_fixed_spread( spec );
+  };
+
+  testing_set_trimmed_cache(
+      e_tile::commodity_tobacco_20,
+      rect{ .origin = { .x = 4, .y = 1 },
+            .size   = { .w = 13, .h = 19 } } );
+
+  spec = { .tile = e_tile::commodity_tobacco_20 };
+  REQUIRE( f() == ex );
+
+  spec = { .tile           = e_tile::commodity_tobacco_20,
+           .rendered_count = 0,
+           .spacing        = 0 };
+  ex   = {};
+  REQUIRE( f() == ex );
+
+  spec = { .tile           = e_tile::commodity_tobacco_20,
+           .rendered_count = 0,
+           .spacing        = 4 };
+  ex   = {};
+  REQUIRE( f() == ex );
+
+  spec = { .tile           = e_tile::commodity_tobacco_20,
+           .rendered_count = 1,
+           .spacing        = 4 };
+  ex   = {};
+  ex.tiles.resize( 1 );
+  ex.tiles[0].tile  = e_tile::commodity_tobacco_20;
+  ex.tiles[0].where = { .x = -4, .y = 0 };
+  ex.bounds.origin  = { .x = 0, .y = 0 };
+  ex.bounds.size    = { .w = 13, .h = 20 };
+  REQUIRE( f() == ex );
+
+  spec = { .tile           = e_tile::commodity_tobacco_20,
+           .rendered_count = 4,
+           .spacing        = 4 };
+  ex   = {};
+  ex.tiles.resize( 4 );
+  ex.tiles[0].tile  = e_tile::commodity_tobacco_20;
+  ex.tiles[0].where = { .x = -4, .y = 0 };
+  ex.tiles[1].tile  = e_tile::commodity_tobacco_20;
+  ex.tiles[1].where = { .x = 0, .y = 0 };
+  ex.tiles[2].tile  = e_tile::commodity_tobacco_20;
+  ex.tiles[2].where = { .x = 4, .y = 0 };
+  ex.tiles[3].tile  = e_tile::commodity_tobacco_20;
+  ex.tiles[3].where = { .x = 8, .y = 0 };
+  ex.bounds.origin  = { .x = 0, .y = 0 };
+  ex.bounds.size    = { .w = 4 * 3 + 13, .h = 20 };
+  REQUIRE( f() == ex );
 }
 
 } // namespace

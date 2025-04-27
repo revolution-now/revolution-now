@@ -35,11 +35,10 @@ render_plan_for_tile_progress_spread(
     rr::ITextometer const& textometer,
     ProgressTileSpreadSpec const& tile_spec );
 
-// This one just spaces the tiles one pixel apart uncondition-
-// ally; if they don't fit then it returns nothing.
-[[deprecated]] [[nodiscard]] base::maybe<TileSpreadRenderPlan>
-render_plan_for_tile_uncompressed_spread(
-    UncompressedTileSpreadSpec const& tile_spec );
+// This one just spaces the tiles apart by a fixed amount.
+[[nodiscard]] TileSpreadRenderPlan
+render_plan_for_tile_fixed_spread(
+    FixedTileSpreadSpec const& tile_spec );
 
 // Iterate through the non-overlay tiles and keep replacing
 // `from` tiles with `to` tiles until either N is reached or we

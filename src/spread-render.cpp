@@ -342,26 +342,21 @@ TileSpreadRenderPlan render_plan_for_tile_progress_spread(
   return plan;
 }
 
-maybe<TileSpreadRenderPlan>
-render_plan_for_tile_uncompressed_spread(
-    UncompressedTileSpreadSpec const& tile_spec ) {
-  maybe<TileSpreadRenderPlan> res;
-  auto& plan = res.emplace();
-  plan.tiles.reserve( tile_spec.tiles.size() );
+TileSpreadRenderPlan render_plan_for_tile_fixed_spread(
+    FixedTileSpreadSpec const& tile_spec ) {
+  TileSpreadRenderPlan plan;
+  interval const iv =
+      trimmed_area_for( tile_spec.tile ).horizontal_slice();
   point p;
-  for( TileWithOptions const& tile_info : tile_spec.tiles ) {
-    interval const iv =
-        trimmed_area_for( tile_info.tile ).horizontal_slice();
+  for( int i = 0; i < tile_spec.rendered_count; ++i ) {
     point const render_p = p.moved_left( iv.start );
-    plan.tiles.push_back(
-        TileRenderPlan{ .tile       = tile_info.tile,
-                        .where      = render_p,
-                        .is_overlay = false,
-                        .is_greyed  = tile_info.greyed } );
-    int const delta = iv.len + 1;
-    p.x += delta;
+    plan.tiles.push_back( TileRenderPlan{ .tile = tile_spec.tile,
+                                          .where      = render_p,
+                                          .is_overlay = false,
+                                          .is_greyed = false } );
+    p.x += tile_spec.spacing;
   }
-  rect const tiles_all = [&] {
+  plan.bounds = [&] {
     rect bounds;
     for( auto const& plan : plan.tiles )
       bounds = bounds.uni0n(
@@ -369,9 +364,7 @@ render_plan_for_tile_uncompressed_spread(
               .origin_becomes_point( plan.where ) );
     return bounds;
   }();
-  plan.bounds = tiles_all;
-  if( plan.bounds.size.w > tile_spec.bounds ) res.reset();
-  return res;
+  return plan;
 }
 
 void replace_first_n_tiles( TileSpreadRenderPlans& plans,

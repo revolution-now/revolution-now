@@ -141,9 +141,10 @@ struct.ProgressTileSpreadSpec {
   label_policy 'SpreadLabels',
 }
 
-struct.UncompressedTileSpreadSpec {
-  tiles 'std::vector<TileWithOptions>',
-  bounds 'int',
+struct.FixedTileSpreadSpec {
+  tile 'e_tile',
+  rendered_count 'int',
+  spacing 'int',
 }
 
 # ---------------------------------------------------------------
