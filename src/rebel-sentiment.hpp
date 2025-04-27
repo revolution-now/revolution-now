@@ -57,16 +57,22 @@ RebelSentimentReport rebel_sentiment_report_for_cc_report(
 /****************************************************************
 ** War of Succession.
 *****************************************************************/
+int required_rebel_sentiment_for_declaration(
+    SSConst const& ss );
+
 bool should_do_war_of_succession( SSConst const& ss,
                                   Player const& player );
 
-WarOfSuccessionPlan select_nations_for_war_of_succession(
+WarOfSuccessionNations select_nations_for_war_of_succession(
     SSConst const& ss );
 
-WarOfSuccession do_war_of_succession(
-    SS& ss, WarOfSuccessionPlan const& plan );
+WarOfSuccessionPlan war_of_succession_plan(
+    SSConst const& ss, WarOfSuccessionNations const& nations );
+
+void do_war_of_succession( SS& ss, TS& ts, Player const& player,
+                           WarOfSuccessionPlan const& plan );
 
 wait<> do_war_of_succession_ui_seq(
-    TS& ts, WarOfSuccession const& succession );
+    TS& ts, WarOfSuccessionPlan const& plan );
 
 } // namespace rn

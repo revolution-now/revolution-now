@@ -389,6 +389,12 @@ TEST_CASE(
   REQUIRE( f() == expected );
 }
 
+TEST_CASE(
+    "[rebel-sentiment] "
+    "required_rebel_sentiment_for_declaration" ) {
+  world w;
+}
+
 TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
   world w;
 
@@ -458,7 +464,7 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
 TEST_CASE(
     "[rebel-sentiment] select_nations_for_war_of_succession" ) {
   world w;
-  WarOfSuccessionPlan expected;
+  WarOfSuccessionNations expected;
 
   auto const f = [&] {
     return select_nations_for_war_of_succession( w.ss() );
@@ -542,6 +548,10 @@ TEST_CASE(
   expected = { .withdraws = e_nation::dutch,
                .receives  = e_nation::spanish };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[rebel-sentiment] war_of_succession_plan" ) {
+  world w;
 }
 
 TEST_CASE( "[rebel-sentiment] do_war_of_succession" ) {
