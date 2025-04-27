@@ -55,6 +55,9 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.game_setup_options.difficulty = options.difficulty
+  -- FIXME: the default value for this is to be taken from the
+  -- config/revolution.
+  settings.game_setup_options.enable_war_of_succession = true
   settings.cheat_options.enabled =
       cheat.enable_cheat_mode_by_default()
   -- TODO: these are in config/rn... get them from there.
