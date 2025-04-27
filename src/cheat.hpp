@@ -82,6 +82,9 @@ wait<> cheat_edit_fathers( IEngine& engine, SS& ss, TS& ts,
 // ately wipe out.
 wait<> kill_natives( SS& ss, TS& ts );
 
+wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
+                                        Player& player );
+
 /****************************************************************
 ** In Colony View
 *****************************************************************/

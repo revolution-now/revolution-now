@@ -544,6 +544,10 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       co_await cheat_edit_fathers( engine, ss, ts, player );
       break;
     }
+    case e_menu_item::cheat_advance_revolution_status: {
+      co_await cheat_advance_revolution_status( ss, ts, player );
+      break;
+    }
     case e_menu_item::game_options: {
       co_await open_game_options_box( ss, ts );
       break;

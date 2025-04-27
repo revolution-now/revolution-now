@@ -42,6 +42,7 @@ enum.e_menu_item {
   cheat_map_editor,
   cheat_reveal_map,
   cheat_set_human_players,
+  cheat_advance_revolution_status,
   colony_report_options,
   disband,
   dump,

@@ -17,6 +17,7 @@
 #include "anim-builders.hpp"
 #include "co-wait.hpp"
 #include "colony-buildings.hpp"
+#include "declare.hpp"
 #include "fathers.hpp"
 #include "fog-conv.hpp"
 #include "game-options.hpp"
@@ -31,6 +32,7 @@
 #include "minds.hpp"
 #include "plane-stack.hpp"
 #include "promotion.hpp"
+#include "rebel-sentiment.hpp"
 #include "roles.hpp"
 #include "settings.rds.hpp"
 #include "tribe-mgr.hpp"
@@ -506,6 +508,69 @@ wait<> kill_natives( SS& ss, TS& ts ) {
 
   for( e_tribe const tribe : destroyed )
     co_await tribe_wiped_out_message( ts, tribe );
+}
+
+// In the OG there are four stages to the revolution status:
+//
+//   1. Rebel sentiment < 50%.
+//   2. Rebel sentiment hits 50%; War of Spanish Succession per-
+//      formed if not yet performed.
+//   3. Independence declared / war begins.
+//   4. Foreign intervention force deployed.
+//   5. Independence won.
+//
+wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
+                                        Player& player ) {
+  CHECK( player.human );
+
+  // Bump rebel sentiment to 50% and do the war of succession if
+  // needed.
+  int const required_sentiment =
+      required_rebel_sentiment_for_declaration( ss );
+  if( player.revolution.rebel_sentiment < required_sentiment ) {
+    RebelSentimentChangeReport const change_report{
+      .prev = player.revolution.rebel_sentiment,
+      .nova = required_sentiment };
+    co_await show_rebel_sentiment_change_report(
+        ts.euro_minds()[player.nation], change_report );
+    player.revolution.rebel_sentiment = required_sentiment;
+    if( should_do_war_of_succession( as_const( ss ),
+                                     as_const( player ) ) ) {
+      WarOfSuccessionNations const nations =
+          select_nations_for_war_of_succession( ss.as_const );
+      WarOfSuccessionPlan const plan =
+          war_of_succession_plan( ss.as_const, nations );
+      do_war_of_succession( ss, ts, player, plan );
+      co_await do_war_of_succession_ui_seq( ts, plan );
+    }
+    co_return;
+  }
+
+  // Rebel sentiment already sufficiently high and/or War of suc-
+  // cession already done. Check if independence has been de-
+  // clared.
+  if( player.revolution.status <
+      e_revolution_status::declared ) {
+    co_await declare_independence_ui_sequence_pre(
+        ss.as_const, ts, as_const( player ) );
+    DeclarationResult const decl_res =
+        declare_independence( ss, ts, player );
+    co_await declare_independence_ui_sequence_post(
+        ss.as_const, ts, as_const( player ), decl_res );
+    CHECK_GE( player.revolution.status,
+              e_revolution_status::declared );
+    co_return;
+  }
+
+  if( !player.revolution.intervention_force_deployed ) {
+    co_return;
+  }
+
+  if( player.revolution.status < e_revolution_status::won ) {
+    co_return;
+  }
+
+  co_return;
 }
 
 /****************************************************************

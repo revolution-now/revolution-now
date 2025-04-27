@@ -880,5 +880,9 @@ TEST_CASE( "[cheat] monitor_magic_key_sequence" ) {
   REQUIRE( w.ready() );
 }
 
+TEST_CASE( "[cheat] cheat_advance_revolution_status" ) {
+  world w;
+}
+
 } // namespace
 } // namespace rn

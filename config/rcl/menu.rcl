@@ -69,6 +69,7 @@ items {
   cheat_reveal_map.name: Reveal Map
   cheat_set_human_players.name: Set Human Players
   cheat_kill_natives.name: Kill Natives
+  cheat_advance_revolution_status.name: Advance Revolution Status
   colony_report_options.name: Colony Report Options
   dump.name: Dump Cargo Overboard
   exit.name: Exit to DOS
@@ -213,14 +214,16 @@ layout {
 
   cheat.contents: [
     .leaf.item: cheat_create_unit_on_map,
+    null,
     .leaf.item: cheat_reveal_map,
     .leaf.item: cheat_explore_entire_map,
     .leaf.item: cheat_set_human_players,
-    .leaf.item: cheat_map_editor,
-    null,
-    .leaf.item: cheat_edit_fathers,
     null,
     .leaf.item: cheat_kill_natives,
+    .leaf.item: cheat_advance_revolution_status,
+    null,
+    .leaf.item: cheat_edit_fathers,
+    .leaf.item: cheat_map_editor,
   ]
 
   pedia.contents: [
