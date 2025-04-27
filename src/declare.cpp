@@ -57,9 +57,6 @@ valid_or<e_declare_rejection> can_declare_independence(
     using enum e_revolution_status;
     using enum e_declare_rejection;
     case not_declared: {
-      if( auto const nation = player_that_declared( ss );
-          nation.has_value() && nation != player.nation )
-        return foreign_nation_already_declared;
       if( rebellion_large_enough_to_declare( ss.settings,
                                              player ) )
         return valid;
@@ -78,10 +75,6 @@ wait<> show_declare_rejection_msg(
     using enum e_declare_rejection;
     case rebel_sentiment_too_low:
       co_await gui.message_box( "Rebel sentiment too low." );
-      break;
-    case foreign_nation_already_declared:
-      co_await gui.message_box(
-          "Foreign nation already declared." );
       break;
     case already_declared:
       co_await gui.message_box(
@@ -111,15 +104,6 @@ wait<ui::e_confirm> ask_declare( IGui& gui,
   maybe<ui::e_confirm> const answer =
       co_await gui.optional_yes_no( config );
   co_return answer.value_or( ui::e_confirm::no );
-}
-
-maybe<e_nation> player_that_declared( SSConst const& ss ) {
-  for( auto const& [nation, player] : ss.players.players )
-    if( player.has_value() )
-      if( player->revolution.status >=
-          e_revolution_status::declared )
-        return player->nation;
-  return nothing;
 }
 
 wait<> declare_independence_ui_sequence_pre( SSConst const&,

@@ -46,8 +46,6 @@ wait<> show_declare_rejection_msg( IGui& gui,
 wait<ui::e_confirm> ask_declare( IGui& gui,
                                  Player const& player );
 
-maybe<e_nation> player_that_declared( SSConst const& ss );
-
 wait<> declare_independence_ui_sequence_pre(
     SSConst const& ss, TS& ts, Player const& player );
 

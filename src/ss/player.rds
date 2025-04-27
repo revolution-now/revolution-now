@@ -58,6 +58,11 @@ struct.Player {
   # get triggered again.
   woodcuts 'refl::enum_map<e_woodcut, bool>',
 
+  # This is held per player because it is possible for multiple
+  # players to have independence, i.e. even after an AI player is
+  # granted independence, the human player can still declare and
+  # fight the war of independence, though their score will be a
+  # bit lower for not being the first to declare.
   revolution 'RevolutionState',
 
   # Anything related to founding fathers is in here.

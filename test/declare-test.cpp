@@ -144,10 +144,6 @@ TEST_CASE( "[declare] ask_declare" ) {
   world w;
 }
 
-TEST_CASE( "[declare] player_that_declared" ) {
-  world w;
-}
-
 TEST_CASE( "[declare] declare_independence_ui_sequence_pre" ) {
   world w;
 }

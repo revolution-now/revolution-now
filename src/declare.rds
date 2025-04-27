@@ -14,7 +14,6 @@ namespace "rn"
 # get rejected.
 enum.e_declare_rejection {
   rebel_sentiment_too_low,
-  foreign_nation_already_declared,
   already_declared,
   already_won,
 }
