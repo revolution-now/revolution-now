@@ -27,7 +27,6 @@ using ImmigrantsPoolArray = std::array<e_unit_type, 3>;
 *****************************************************************/
 namespace lua {
 
-LUA_USERDATA_TRAITS( ::rn::ExpeditionaryForce, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::HarborState, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::ImmigrationState, owned_by_cpp ){};
 LUA_USERDATA_TRAITS( ::rn::TaxationState, owned_by_cpp ){};

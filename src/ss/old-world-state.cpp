@@ -31,22 +31,6 @@ using namespace std;
 
 namespace rn {
 
-base::valid_or<string> ExpeditionaryForce::validate() const {
-  REFL_VALIDATE( regulars >= 0,
-                 "the number of regulars in the expeditionary "
-                 "force must be >= 0." );
-  REFL_VALIDATE( cavalry >= 0,
-                 "the number of cavalry in the expeditionary "
-                 "force must be >= 0." );
-  REFL_VALIDATE( artillery >= 0,
-                 "the number of artillery in the expeditionary "
-                 "force must be >= 0." );
-  REFL_VALIDATE( men_of_war >= 0,
-                 "the number of men_of_war in the expeditionary "
-                 "force must be >= 0." );
-  return base::valid;
-}
-
 base::valid_or<string> ImmigrationState::validate() const {
   // Validate that all immigrants in the pool are colonists.
   for( e_unit_type type : immigrants_pool ) {
@@ -71,17 +55,6 @@ base::valid_or<string> TaxationState::validate() const {
 ** Lua Bindings
 *****************************************************************/
 namespace {
-
-// ExpeditionaryForce
-LUA_STARTUP( lua::state& st ) {
-  using U = ::rn::ExpeditionaryForce;
-  auto u  = st.usertype.create<U>();
-
-  u["regulars"]   = &U::regulars;
-  u["cavalry"]    = &U::cavalry;
-  u["artillery"]  = &U::artillery;
-  u["men_of_war"] = &U::men_of_war;
-};
 
 // HarborState
 LUA_STARTUP( lua::state& st ) {
@@ -139,11 +112,10 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::OldWorldState;
   auto u  = st.usertype.create<U>();
 
-  u["harbor_state"]        = &U::harbor_state;
-  u["immigration"]         = &U::immigration;
-  u["taxes"]               = &U::taxes;
-  u["market"]              = &U::market;
-  u["expeditionary_force"] = &U::expeditionary_force;
+  u["harbor_state"] = &U::harbor_state;
+  u["immigration"]  = &U::immigration;
+  u["taxes"]        = &U::taxes;
+  u["market"]       = &U::market;
 };
 
 } // namespace

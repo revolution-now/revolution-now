@@ -21,17 +21,6 @@ include "<array>"
 
 namespace "rn"
 
-# How many of each unit the king has added into his expeditionary
-# force. These will grow as the game progresses.
-struct.ExpeditionaryForce {
-  regulars   'int',
-  cavalry    'int',
-  artillery  'int',
-  men_of_war 'int',
-
-  _features { equality, validation }
-}
-
 # The state of the harbor view UI.
 struct.HarborState {
   # TODO: should add validation that this unit exists.
@@ -116,7 +105,4 @@ struct.OldWorldState {
 
   # Player-specific market state.
   market 'PlayerMarketState',
-
-  # Royal expeditionary force.
-  expeditionary_force 'ExpeditionaryForce',
 }

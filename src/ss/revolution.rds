@@ -16,7 +16,18 @@ namespace "rn"
 enum.e_revolution_status {
   not_declared,
   declared,
-  won,
+  won, # For the AI player this means "granted".
+}
+
+# How many of each unit the king has added into his expeditionary
+# force. These will grow as the game progresses.
+struct.ExpeditionaryForce {
+  regulars   'int',
+  cavalry    'int',
+  artillery  'int',
+  men_of_war 'int',
+}
+
 }
 
 struct.RevolutionState {
@@ -36,6 +47,9 @@ struct.RevolutionState {
   # TODO: need to represent other state such as "Tory Uprising".
   # Some say this is caused by loyalty in a single colony. Maybe
   # this is better stored in the colony state.
+
+  # Royal expeditionary force.
+  expeditionary_force 'ExpeditionaryForce',
 
   _features { equality, validation }
 }

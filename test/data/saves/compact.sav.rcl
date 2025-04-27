@@ -442,31 +442,29 @@ players {
   }
   players.english {
     human: true
-    old_world {
-      expeditionary_force {
-        artillery: 2
-        cavalry: 2
-        men_of_war: 3
-        regulars: 3
-      }
-      market.commodities {
-        cigars.bid_price: 11
-        cloth.bid_price: 11
-        coats.bid_price: 11
-        cotton.bid_price: 4
-        food.bid_price: 1
-        furs.bid_price: 3
-        horses.bid_price: 2
-        lumber.bid_price: 1
-        muskets.bid_price: 2
-        ore.bid_price: 2
-        rum.bid_price: 11
-        silver.bid_price: 19
-        sugar.bid_price: 3
-        tobacco.bid_price: 3
-        tools.bid_price: 1
-        trade_goods.bid_price: 1
-      }
+    old_world.market.commodities {
+      cigars.bid_price: 11
+      cloth.bid_price: 11
+      coats.bid_price: 11
+      cotton.bid_price: 4
+      food.bid_price: 1
+      furs.bid_price: 3
+      horses.bid_price: 2
+      lumber.bid_price: 1
+      muskets.bid_price: 2
+      ore.bid_price: 2
+      rum.bid_price: 11
+      silver.bid_price: 19
+      sugar.bid_price: 3
+      tobacco.bid_price: 3
+      tools.bid_price: 1
+      trade_goods.bid_price: 1
+    }
+    revolution.expeditionary_force {
+      artillery: 2
+      cavalry: 2
+      men_of_war: 3
+      regulars: 3
     }
     starting_position {
       x: 7
@@ -476,7 +474,10 @@ players {
 }
 
 settings {
-  game_setup_options.difficulty: conquistador
+  game_setup_options {
+    difficulty: conquistador
+    enable_war_of_succession: true
+  }
   in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true

@@ -13,6 +13,7 @@
 // gs
 #include "ss/fathers.hpp"
 #include "ss/old-world-state.hpp"
+#include "ss/revolution.hpp"
 
 // luapp
 #include "luapp/enum.hpp"
@@ -68,6 +69,7 @@ LUA_STARTUP( lua::state& st ) {
     u["old_world"]           = &U::old_world;
     u["new_world_name"]      = &U::new_world_name;
     u["woodcuts"]            = &U::woodcuts;
+    u["revolution"]          = &U::revolution;
     u["fathers"]             = &U::fathers;
     u["starting_position"]   = &U::starting_position;
     u["last_high_seas"]      = &U::last_high_seas;

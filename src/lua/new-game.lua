@@ -247,12 +247,14 @@ local function create_old_world_state( settings, player )
 
   -- Tax rate.
   old_world.taxes.tax_rate = 0
+end
 
+local function create_revolution_state( player )
   -- Expeditionary force.
-  old_world.expeditionary_force.regulars = 3
-  old_world.expeditionary_force.cavalry = 2
-  old_world.expeditionary_force.artillery = 2
-  old_world.expeditionary_force.men_of_war = 3
+  player.revolution.expeditionary_force.regulars = 3
+  player.revolution.expeditionary_force.cavalry = 2
+  player.revolution.expeditionary_force.artillery = 2
+  player.revolution.expeditionary_force.men_of_war = 3
 end
 
 local function init_non_processed_goods_prices( options, players )
@@ -329,6 +331,7 @@ local function create_player_state( settings, nation, player )
                      STARTING_GOLD[settings.game_setup_options
                          .difficulty] )
   create_old_world_state( settings, player )
+  create_revolution_state( player )
 end
 
 local function create_nations( options, root )

@@ -235,7 +235,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     l.expeditionary_force_bounds = {
       .origin = cur,
       .size   = { .w = l.canvas.left() + margin, .h = 32 } };
-    auto const& force = player.old_world.expeditionary_force;
+    auto const& force = player.revolution.expeditionary_force;
     TileSpreadConfigMulti const expeditionary_force_spread_opts{
       .tiles{
         { .tile = regular_tile, .count = force.regulars },
