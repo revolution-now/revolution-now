@@ -28,6 +28,11 @@ struct.ExpeditionaryForce {
   men_of_war 'int',
 }
 
+struct.InterventionForce {
+  regulars   'int',
+  cavalry    'int',
+  artillery  'int',
+  men_of_war 'int',
 }
 
 struct.RevolutionState {
@@ -50,6 +55,8 @@ struct.RevolutionState {
 
   # Royal expeditionary force.
   expeditionary_force 'ExpeditionaryForce',
+
+  intervention_force 'InterventionForce',
 
   _features { equality, validation }
 }
