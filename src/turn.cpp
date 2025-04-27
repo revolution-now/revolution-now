@@ -1395,11 +1395,12 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
   // Check if we need to do the war of succession.
   if( should_do_war_of_succession( as_const( ss ),
                                    as_const( player ) ) ) {
+    WarOfSuccessionNations const nations =
+        select_nations_for_war_of_succession( ss.as_const );
     WarOfSuccessionPlan const plan =
-        select_nations_for_war_of_succession( ss );
-    WarOfSuccession const succession =
-        do_war_of_succession( ss, plan );
-    co_await do_war_of_succession_ui_seq( ts, succession );
+        war_of_succession_plan( ss.as_const, nations );
+    do_war_of_succession( ss, ts, player, plan );
+    co_await do_war_of_succession_ui_seq( ts, plan );
   }
 }
 
