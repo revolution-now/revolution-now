@@ -129,7 +129,7 @@ DeclarationResult declare_independence( SS&, TS&,
   // * Seize all ships on the high seas and in europe and ensure
   //   that the europe screen changes.
   // * Looks like liberty bell count gets reset to zero, though
-  //   it continues to accumulate.
+  //   it continues to accumulate for the intervention force.
   // * Promote continental armies in colonies. This actually ap-
   //   pears to happen at the start of the new turn.
   return res;
