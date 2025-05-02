@@ -11,6 +11,7 @@
 #include "land-view-render.hpp"
 
 // Revolution Now
+#include "imap-updater.hpp"
 #include "land-view-anim.hpp"
 #include "render-terrain.hpp"
 #include "render.hpp"
@@ -855,7 +856,8 @@ LandViewRenderer::LandViewRenderer(
     unique_ptr<IVisibility const> const& viz,
     maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
     maybe<InputOverrunIndicator> input_overrun_indicator,
-    ViewportController const& viewport )
+    ViewportController const& viewport,
+    IMapUpdater const& map_updater )
   : ss_( ss ),
     renderer_( renderer_arg ),
     renderer( renderer_arg ),
@@ -865,7 +867,8 @@ LandViewRenderer::LandViewRenderer(
     last_unit_input_( last_unit_input ),
     viewport_rect_pixels_( viewport_rect_pixels ),
     input_overrun_indicator_( input_overrun_indicator ),
-    viewport_( viewport ) {
+    viewport_( viewport ),
+    map_updater_( map_updater ) {
   CHECK( viz_ != nullptr );
   // Some of the actions in this class would crash if the last
   // unit input corresponds to a unit ID that no longer exists.
@@ -918,7 +921,7 @@ void LandViewRenderer::render_landscape_anim_buffer_impl(
   for( Coord const tile : redrawn )
     render_landscape_square_if_not_fully_hidden(
         renderer_, tile * g_tile_delta, tile, viz,
-        TerrainRenderOptions{} );
+        make_terrain_options( map_updater_.options() ) );
 }
 
 void LandViewRenderer::render_landscape_anim_buffer(

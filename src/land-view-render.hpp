@@ -34,6 +34,7 @@ enum class e_render_buffer;
 namespace rn {
 
 struct DwellingAnimationState;
+struct IMapUpdater;
 struct LandViewAnimator;
 struct SSConst;
 struct IVisibility;
@@ -60,7 +61,8 @@ struct LandViewRenderer {
       std::unique_ptr<IVisibility const> const& viz,
       maybe<UnitId> last_unit_input, Rect viewport_rect_pixels,
       maybe<InputOverrunIndicator> input_overrun_indicator,
-      ViewportController const& viewport );
+      ViewportController const& viewport,
+      IMapUpdater const& map_updater );
 
   // Units, colonies, dwellings.
   void render_entities() const;
@@ -148,6 +150,11 @@ struct LandViewRenderer {
   Rect viewport_rect_pixels_;
   maybe<InputOverrunIndicator> input_overrun_indicator_;
   ViewportController const& viewport_;
+  // This should not really be used here since we don't want to
+  // change the map in any way in this renderer, but it is used
+  // just to get the current map renderer options for consistent
+  // rendering.
+  IMapUpdater const& map_updater_;
 };
 
 /****************************************************************

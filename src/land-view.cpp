@@ -715,7 +715,7 @@ struct LandViewPlane::Impl : public IPlane {
     LandViewRenderer const lv_renderer(
         ss_, renderer, animator_, viz_, last_unit_input_id(),
         viewport_rect_pixels(), input_overrun_indicator_,
-        viewport() );
+        viewport(), ts_.map_updater() );
 
     lv_renderer.render_non_entities();
     lv_renderer.render_entities();

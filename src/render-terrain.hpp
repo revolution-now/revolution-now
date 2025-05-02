@@ -12,6 +12,9 @@
 
 #include "core-config.hpp"
 
+// Revolution Now
+#include "terrain-render-options.hpp"
+
 // render
 #include "render/renderer.rds.hpp"
 
@@ -30,14 +33,6 @@ struct Matrix;
 namespace rn {
 
 struct IVisibility;
-
-/****************************************************************
-** TerrainRenderOptions
-*****************************************************************/
-struct TerrainRenderOptions {
-  bool grid              = false;
-  bool render_fog_of_war = true;
-};
 
 /****************************************************************
 ** Rendering

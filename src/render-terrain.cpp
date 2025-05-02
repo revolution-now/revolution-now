@@ -13,7 +13,6 @@
 // Revolution Now
 #include "color-cycle.hpp"
 #include "error.hpp"
-#include "imap-updater.hpp"
 #include "map-square.hpp"
 #include "plow.hpp"
 #include "road.hpp"
@@ -2410,10 +2409,19 @@ void render_landscape_square_if_not_fully_hidden(
 
   // Always last.
   if( options.grid ) {
-    rr::Painter painter = renderer.painter();
-    painter.draw_empty_rect( Rect::from( where, g_tile_delta ),
-                             rr::Painter::e_border_mode::in_out,
-                             gfx::pixel{ 0, 0, 0, 30 } );
+    rr::Painter painter     = renderer.painter();
+    static auto const color = gfx::pixel{ 0, 0, 0, 30 };
+    // Only draw half the square so that when we redraw only one
+    // square it doesn't cause some adjacent squares' grid lines
+    // to get drawn twice, which would make the color uneven
+    // (that happens e.g. when in hidden terrain mode).
+    //
+    // TODO: this should probably be in a different buffer so
+    // that we don't have to bother with this. It seems strange
+    // to have the grid as an option on the terrain renderer any-
+    // way.
+    painter.draw_horizontal_line( where, 32, color );
+    painter.draw_vertical_line( where, 32, color );
   }
 }
 

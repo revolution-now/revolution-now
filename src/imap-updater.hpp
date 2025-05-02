@@ -17,6 +17,7 @@
 
 // Revolution Now
 #include "maybe.hpp"
+#include "terrain-render-options.hpp"
 
 // ss
 #include "ss/nation.rds.hpp"
@@ -53,6 +54,9 @@ struct MapUpdaterOptions {
 
   bool operator==( MapUpdaterOptions const& ) const = default;
 };
+
+TerrainRenderOptions make_terrain_options(
+    MapUpdaterOptions const& our_options );
 
 namespace detail {
 

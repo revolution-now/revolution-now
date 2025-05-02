@@ -32,6 +32,13 @@ MapUpdaterOptionsPopper::~MapUpdaterOptionsPopper() noexcept {
 
 } // namespace detail
 
+TerrainRenderOptions make_terrain_options(
+    MapUpdaterOptions const& our_options ) {
+  return TerrainRenderOptions{
+    .grid              = our_options.grid,
+    .render_fog_of_war = our_options.render_fog_of_war };
+}
+
 /****************************************************************
 ** IMapUpdater
 *****************************************************************/
