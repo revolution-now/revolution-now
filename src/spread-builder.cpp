@@ -268,6 +268,15 @@ TileSpreadRenderPlan build_progress_tile_spread(
   return std::move( plans.plans[0] );
 }
 
+TileSpreadRenderPlan build_fixed_tile_spread(
+    FixedTileSpreadConfig const& config ) {
+  FixedTileSpreadSpec const tile_spec{
+    .tile           = config.tile,
+    .rendered_count = config.rendered_count,
+    .spacing        = config.spacing };
+  return render_plan_for_tile_fixed_spread( tile_spec );
+}
+
 TileSpreadRenderPlan build_inhomogeneous_tile_spread(
     rr::ITextometer const& textometer,
     InhomogeneousTileSpreadConfig const& config_unprocessed ) {

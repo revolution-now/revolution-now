@@ -54,6 +54,12 @@ struct.ProgressTileSpreadConfig {
   options 'TileSpreadOptions',
 }
 
+struct.FixedTileSpreadConfig {
+  tile 'e_tile',
+  rendered_count 'int',
+  spacing 'int',
+}
+
 struct.InhomogeneousTileSpreadConfig {
   tiles 'std::vector<TileWithOptions>',
   # Defaults to 1, which means that there can be at most 1 pixel
