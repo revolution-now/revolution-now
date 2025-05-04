@@ -60,7 +60,10 @@ gfx::pixel parse_color( string_view hex ) {
   return res;
 }
 
-gfx::pixel const kHiddenColor  = parse_color( "181f41" );
+// This is a dark ocean color:         0x181f41
+// This is a very dark (mostly black): 0x140d12
+gfx::pixel const kHiddenColor = parse_color( "140d12" );
+
 gfx::pixel const kOceanColor   = parse_color( "2f3a67" );
 gfx::pixel const kSeaLaneColor = parse_color( "3c4472" );
 
