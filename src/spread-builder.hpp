@@ -48,4 +48,9 @@ TileSpreadRenderPlan build_inhomogeneous_tile_spread(
     rr::ITextometer const& textometer,
     InhomogeneousTileSpreadConfig const& config );
 
+// Exposed for unit testing.
+namespace detail {
+e_tile choose_x_tile_for( e_tile const tile );
+}
+
 } // namespace rn

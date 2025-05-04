@@ -47,7 +47,7 @@ void ensure_labels_are_non_overlapping(
   // Ensure that if there are muliple labels per spread that they
   // are spread out properly.
   for( auto& plan : plans.plans ) {
-    if( plan.tiles.empty() ) continue;
+    CHECK( !plan.tiles.empty() );
     int right = numeric_limits<int>::min();
     for( auto& label_plan : plan.labels ) {
       int const new_min = right + 1;
@@ -57,6 +57,13 @@ void ensure_labels_are_non_overlapping(
     }
   }
 }
+
+} // namespace
+
+/****************************************************************
+** Public API.
+*****************************************************************/
+namespace detail {
 
 e_tile choose_x_tile_for( e_tile const tile ) {
   int const trimmed_w = trimmed_area_for( tile ).size.w;
@@ -92,11 +99,8 @@ e_tile choose_x_tile_for( e_tile const tile ) {
   }
 }
 
-} // namespace
+} // namespace detail
 
-/****************************************************************
-** Public API.
-*****************************************************************/
 TileSpreadRenderPlans build_tile_spread_multi(
     rr::ITextometer const& textometer,
     TileSpreadConfigMulti const& configs ) {
@@ -138,7 +142,8 @@ TileSpreadRenderPlans build_tile_spread_multi(
       if( config_it->red_xs.has_value() ) {
         auto& overlay_tile =
             tile_spread_spec.overlay_tile.emplace();
-        overlay_tile.tile = choose_x_tile_for( config_it->tile );
+        overlay_tile.tile =
+            detail::choose_x_tile_for( config_it->tile );
         overlay_tile.label_opts = configs.options.label_opts;
         overlay_tile.label_opts.color_fg = pixel::red();
         overlay_tile.starting_position =
