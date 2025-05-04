@@ -1439,6 +1439,8 @@ TEST_CASE( "[gfx/cartesian] rect::uni0n" ) {
                  .size = { .w = 2, .h = 2 } };
   rect const r5{ .origin{ .x = 1, .y = -1 },
                  .size = { .w = 1, .h = 10 } };
+  rect const r6{ .origin{ .x = 5, .y = 5 },
+                 .size = { .w = 0, .h = 0 } };
 
   // Self tests.
   REQUIRE( r1.uni0n( r1 ) == r1 );
@@ -1446,6 +1448,7 @@ TEST_CASE( "[gfx/cartesian] rect::uni0n" ) {
   REQUIRE( r3.uni0n( r3 ) == r3 );
   REQUIRE( r4.uni0n( r4 ) == r4 );
   REQUIRE( r5.uni0n( r5 ) == r5 );
+  REQUIRE( r6.uni0n( r6 ) == r6 );
 
   rect expected;
 
@@ -1463,6 +1466,9 @@ TEST_CASE( "[gfx/cartesian] rect::uni0n" ) {
                .size   = { .w = 1, .h = 10 } };
   REQUIRE( r1.uni0n( r5 ) == expected );
   expected = { .origin = { .x = 1, .y = 1 },
+               .size   = { .w = 4, .h = 4 } };
+  REQUIRE( r1.uni0n( r6 ) == expected );
+  expected = { .origin = { .x = 1, .y = 1 },
                .size   = { .w = 2, .h = 2 } };
   REQUIRE( r2.uni0n( r3 ) == expected );
   expected = { .origin = { .x = 1, .y = 2 },
@@ -1471,15 +1477,27 @@ TEST_CASE( "[gfx/cartesian] rect::uni0n" ) {
   expected = { .origin = { .x = 1, .y = -1 },
                .size   = { .w = 1, .h = 10 } };
   REQUIRE( r2.uni0n( r5 ) == expected );
+  expected = { .origin = { .x = 1, .y = 2 },
+               .size   = { .w = 4, .h = 3 } };
+  REQUIRE( r2.uni0n( r6 ) == expected );
   expected = { .origin = { .x = 1, .y = 1 },
                .size   = { .w = 4, .h = 4 } };
   REQUIRE( r3.uni0n( r4 ) == expected );
   expected = { .origin = { .x = 1, .y = -1 },
                .size   = { .w = 2, .h = 10 } };
   REQUIRE( r3.uni0n( r5 ) == expected );
+  expected = { .origin = { .x = 1, .y = 1 },
+               .size   = { .w = 4, .h = 4 } };
+  REQUIRE( r3.uni0n( r6 ) == expected );
   expected = { .origin = { .x = 1, .y = -1 },
                .size   = { .w = 4, .h = 10 } };
   REQUIRE( r4.uni0n( r5 ) == expected );
+  expected = { .origin = { .x = 3, .y = 3 },
+               .size   = { .w = 2, .h = 2 } };
+  REQUIRE( r4.uni0n( r6 ) == expected );
+  expected = { .origin = { .x = 1, .y = -1 },
+               .size   = { .w = 4, .h = 10 } };
+  REQUIRE( r5.uni0n( r6 ) == expected );
 }
 
 /****************************************************************
