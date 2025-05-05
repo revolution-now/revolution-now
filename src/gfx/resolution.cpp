@@ -43,8 +43,8 @@ ResolutionScoringOptions const RESOLUTION_RATINGS{
                          .fitting_score_cutoff = nothing },
   // TODO: see if there is a better way to come up with this
   // number instead of hardcoding it for all monitor sizes.
-  // .ideal_pixel_size_mm = .79375, // selects 640x360
-  .ideal_pixel_size_mm = .66145, // selects 768x432
+  // .ideal_pixel_size_mm = .66145, // selects 768x432
+  .ideal_pixel_size_mm = .79375, // selects 640x360
   // Just take the best of each logical resolution instead of in-
   // cluding all possible scales of it that fit.
   .remove_redundant = true,
