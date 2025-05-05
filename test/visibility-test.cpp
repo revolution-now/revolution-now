@@ -22,10 +22,12 @@
 #include "src/plane-stack.hpp"
 
 // ss
+#include "ss/land-view.rds.hpp"
 #include "ss/player.rds.hpp"
 #include "ss/players.hpp"
 #include "ss/ref.hpp"
 #include "ss/terrain.hpp"
+#include "ss/turn.rds.hpp"
 #include "ss/unit-composition.hpp"
 
 // refl
@@ -50,9 +52,9 @@ using clear      = FogStatus::clear;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     set_default_player( e_nation::french );
     add_player( e_nation::french );
     add_player( e_nation::english );
@@ -134,7 +136,7 @@ struct World : testing::World {
 ** Test Cases
 *****************************************************************/
 TEST_CASE( "[visibility] unit_visible_squares" ) {
-  World W;
+  world W;
   W.create_default_map();
   e_unit_type type = {};
   Coord tile       = {};
@@ -235,7 +237,7 @@ TEST_CASE( "[visibility] unit_visible_squares" ) {
 }
 
 TEST_CASE( "[visibility] Visibility" ) {
-  World W;
+  world W;
   W.create_small_map();
 
   SECTION( "no player" ) {
@@ -437,7 +439,7 @@ TEST_CASE( "[visibility] Visibility" ) {
 }
 
 TEST_CASE( "[visibility] set_map_visibility" ) {
-  World W;
+  world W;
 
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
@@ -472,7 +474,7 @@ TEST_CASE( "[visibility] set_map_visibility" ) {
 }
 
 TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
-  World W;
+  world W;
   W.create_default_map();
 
   auto f = [&] {
@@ -795,7 +797,7 @@ TEST_CASE( "[visibility] recompute_fog_for_nation" ) {
 }
 
 TEST_CASE( "[visibility] should_animate_move" ) {
-  World W;
+  world W;
   W.create_small_map();
   Coord const src = { .x = 0, .y = 0 };
   Coord const dst = { .x = 0, .y = 1 };
@@ -864,7 +866,7 @@ TEST_CASE( "[visibility] should_animate_move" ) {
 
 TEST_CASE(
     "[visibility] does_nation_have_fog_removed_on_square" ) {
-  World W;
+  world W;
   W.create_small_map();
   Coord const coord = { .x = 0, .y = 0 };
   e_nation nation   = {};
@@ -898,7 +900,7 @@ TEST_CASE(
 }
 
 TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
-  World W;
+  world W;
   W.create_small_map();
   Coord coord;
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
@@ -1103,7 +1105,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
 }
 
 TEST_CASE( "[visibility] resource_at" ) {
-  World W;
+  world W;
   W.create_small_map();
   Coord const tile{ .x = 0, .y = 1 };
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
@@ -1296,6 +1298,153 @@ TEST_CASE( "[visibility] resource_at" ) {
     REQUIRE( viz_nation.resource_at( tile ) == nothing );
     REQUIRE( viz_overrides_entire.resource_at( tile ) == deer );
     REQUIRE( viz_overrides_nation.resource_at( tile ) == deer );
+  }
+}
+
+TEST_CASE( "[visibility] ScopedMapViewer" ) {
+  world w;
+
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  using enum e_nation;
+
+  w.french().human = true;
+
+  auto& map_revealed = w.land_view().map_revealed;
+
+  // This will cause the french to be the default viewer.
+  w.turn().cycle.emplace<TurnCycle::nation>().nation =
+      e_nation::french;
+
+  SECTION( "english human" ) {
+    w.english().human = true;
+    SECTION( "no_special_view/french -> french" ) {
+      map_revealed = MapRevealed::no_special_view{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), french );
+        REQUIRE( map_revealed ==
+                 MapRevealed::no_special_view{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::no_special_view{} );
+    }
+
+    SECTION( "no_special_view/french -> english" ) {
+      map_revealed = MapRevealed::no_special_view{};
+      mock_land_view.EXPECT__set_visibility( english );
+      mock_land_view.EXPECT__set_visibility( french );
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed ==
+                 MapRevealed::nation{ .nation = english } );
+      }
+      REQUIRE( map_revealed == MapRevealed::no_special_view{} );
+    }
+
+    SECTION( "entire -> french" ) {
+      map_revealed = MapRevealed::entire{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed == MapRevealed::entire{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::entire{} );
+    }
+
+    SECTION( "entire -> english" ) {
+      map_revealed = MapRevealed::entire{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed == MapRevealed::entire{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::entire{} );
+    }
+
+    SECTION( "nation/french -> french" ) {
+      map_revealed = MapRevealed::nation{ .nation = french };
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), french );
+        REQUIRE( map_revealed ==
+                 MapRevealed::nation{ .nation = french } );
+      }
+      REQUIRE( map_revealed ==
+               MapRevealed::nation{ .nation = french } );
+    }
+
+    SECTION( "nation/french -> english" ) {
+      map_revealed = MapRevealed::nation{ .nation = french };
+      mock_land_view.EXPECT__set_visibility( english );
+      mock_land_view.EXPECT__set_visibility( french );
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed ==
+                 MapRevealed::nation{ .nation = english } );
+      }
+      REQUIRE( map_revealed ==
+               MapRevealed::nation{ .nation = french } );
+    }
+  }
+
+  SECTION( "english not human" ) {
+    w.english().human = false;
+    SECTION( "no_special_view/french -> french" ) {
+      map_revealed = MapRevealed::no_special_view{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), french );
+        REQUIRE( map_revealed ==
+                 MapRevealed::no_special_view{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::no_special_view{} );
+    }
+
+    SECTION( "no_special_view/french -> english" ) {
+      map_revealed = MapRevealed::no_special_view{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed ==
+                 MapRevealed::no_special_view{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::no_special_view{} );
+    }
+
+    SECTION( "entire -> french" ) {
+      map_revealed = MapRevealed::entire{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed == MapRevealed::entire{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::entire{} );
+    }
+
+    SECTION( "entire -> english" ) {
+      map_revealed = MapRevealed::entire{};
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed == MapRevealed::entire{} );
+      }
+      REQUIRE( map_revealed == MapRevealed::entire{} );
+    }
+
+    SECTION( "nation/french -> french" ) {
+      map_revealed = MapRevealed::nation{ .nation = french };
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), french );
+        REQUIRE( map_revealed ==
+                 MapRevealed::nation{ .nation = french } );
+      }
+      REQUIRE( map_revealed ==
+               MapRevealed::nation{ .nation = french } );
+    }
+
+    SECTION( "nation/french -> english" ) {
+      map_revealed = MapRevealed::nation{ .nation = french };
+      {
+        ScopedMapViewer const _( w.ss(), w.ts(), english );
+        REQUIRE( map_revealed ==
+                 MapRevealed::nation{ .nation = french } );
+      }
+      REQUIRE( map_revealed ==
+               MapRevealed::nation{ .nation = french } );
+    }
   }
 }
 

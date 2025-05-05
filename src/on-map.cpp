@@ -18,9 +18,11 @@
 #include "igui.hpp"
 #include "imap-search.rds.hpp"
 #include "imap-updater.hpp"
+#include "land-view.hpp"
 #include "lcr.hpp"
 #include "meet-natives.hpp"
 #include "minds.hpp"
+#include "plane-stack.hpp"
 #include "society.hpp"
 #include "treasure.hpp"
 #include "tribe-arms.hpp"
@@ -175,6 +177,10 @@ wait<> try_meet_europeans( SS& ss, TS& ts, e_tribe tribe_type,
   for( MeetTribe const& meet_tribe : meet_tribes ) {
     Player& player = player_for_nation_or_die(
         ss.players, meet_tribe.nation );
+    ScopedMapViewer const _( ss, ts, player.nation );
+    co_await ts.planes.get()
+        .get_bottom<ILandViewPlane>()
+        .ensure_visible( native_tile );
     e_declare_war_on_natives const declare_war =
         co_await ts.euro_minds()[meet_tribe.nation]
             .meet_tribe_ui_sequence( meet_tribe );

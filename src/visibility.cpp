@@ -15,6 +15,7 @@
 #include "land-view.hpp"
 #include "map-square.hpp"
 #include "plane-stack.hpp"
+#include "roles.hpp"
 #include "ts.hpp"
 
 // config
@@ -23,6 +24,7 @@
 
 // ss
 #include "ss/colonies.hpp"
+#include "ss/land-view.rds.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -463,6 +465,40 @@ bool should_animate_move( IVisibility const& viz,
                           point const src, point const dst ) {
   return ( viz.visible( src ) == e_tile_visibility::clear ) ||
          ( viz.visible( dst ) == e_tile_visibility::clear );
+}
+
+/****************************************************************
+** ScopedMapViewer
+*****************************************************************/
+ScopedMapViewer::ScopedMapViewer( SS& ss, TS& ts,
+                                  e_nation const nation )
+  : ss_( ss ),
+    ts_( ts ),
+    old_nation_( player_for_role( ss, e_player_role::viewer ) ),
+    old_map_revealed_(
+        make_unique<MapRevealed>( ss.land_view.map_revealed ) ),
+    new_nation_( nation ) {
+  if( needs_change() ) {
+    update_map_visibility( ts, new_nation_ );
+    ss_.land_view.map_revealed =
+        MapRevealed::nation{ .nation = new_nation_ };
+  }
+}
+
+ScopedMapViewer::~ScopedMapViewer() {
+  if( needs_change() ) {
+    update_map_visibility( ts_, old_nation_ );
+    CHECK( old_map_revealed_ );
+    ss_.land_view.map_revealed = *old_map_revealed_;
+  }
+}
+
+bool ScopedMapViewer::needs_change() const {
+  auto const& players = ss_.as_const.players.players;
+  CHECK( players[new_nation_].has_value() );
+  Player const& new_player = *players[new_nation_];
+  return new_player.human && old_nation_.has_value() &&
+         *old_nation_ != new_nation_;
 }
 
 } // namespace rn

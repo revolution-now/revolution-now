@@ -93,6 +93,9 @@ wait<> handle_native_unit_attack( SS& ss, TS& ts,
                                   NativeUnit& native_unit,
                                   e_direction direction,
                                   e_nation nation ) {
+  // In case there are multiple human players.
+  ScopedMapViewer const _( ss, ts, nation );
+
   Coord const src      = ss.units.coord_for( native_unit.id );
   Coord const dst      = src.moved( direction );
   NativeUnit& attacker = native_unit;
@@ -123,6 +126,9 @@ wait<> handle_native_unit_talk( SS& ss, TS& ts,
                                 NativeUnit& native_unit,
                                 e_direction direction,
                                 e_nation nation ) {
+  // In case there are multiple human players.
+  ScopedMapViewer const _( ss, ts, nation );
+
   Player& player =
       player_for_nation_or_die( ss.players, nation );
   IEuroMind& euro_mind = ts.euro_minds()[nation];

@@ -107,6 +107,9 @@ wait<> raid_unit( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
+    // NOTE: the viewing nation will be changed further up the
+    // call stack if needed (i.e. when there are multiple human
+    // players).
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .ensure_visible( src );
@@ -267,6 +270,9 @@ wait<> raid_colony( SS& ss, TS& ts, NativeUnit& attacker,
   bool const viewable = should_animate_move( *viz, src, dst );
 
   if( viewable ) {
+    // NOTE: the viewing nation will be changed further up the
+    // call stack if needed (i.e. when there are multiple human
+    // players).
     co_await ts.planes.get()
         .get_bottom<ILandViewPlane>()
         .ensure_visible( src );

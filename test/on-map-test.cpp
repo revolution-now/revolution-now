@@ -18,7 +18,11 @@
 #include "test/mocks/ieuro-mind.hpp"
 #include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
+
+// Revolution Now
+#include "src/plane-stack.hpp"
 
 // mock
 #include "src/mock/matchers.hpp"
@@ -48,6 +52,7 @@ namespace {
 
 using namespace std;
 
+using ::gfx::point;
 using ::mock::matchers::_;
 using ::mock::matchers::StrContains;
 
@@ -386,22 +391,55 @@ TEST_CASE(
     "[on-map] interactive: native_unit_to_map_interactive meets "
     "europeans" ) {
   World W;
+  MockLandViewPlane mock_land_view;
+  W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   W.create_default_map();
-  W.add_unit_on_map( e_unit_type::free_colonist,
-                     { .x = 1, .y = 1 }, e_nation::dutch );
   Dwelling const& dwelling =
       W.add_dwelling( { .x = 3, .y = 1 }, e_tribe::cherokee );
   NativeUnit const& native_unit = W.add_native_unit_on_map(
       e_native_unit_type::brave, { .x = 3, .y = 1 },
       dwelling.id );
 
-  W.euro_mind( e_nation::dutch )
-      .EXPECT__meet_tribe_ui_sequence(
-          MeetTribe{ .nation        = e_nation::dutch,
-                     .tribe         = e_tribe::cherokee,
-                     .num_dwellings = 1 } )
-      .returns<wait<e_declare_war_on_natives>>(
-          e_declare_war_on_natives::no );
+  SECTION( "spanish" ) {
+    // In this case the visibility will not need to change be-
+    // cause we haven't set any active nations, so therefore the
+    // first human nation in the order list of nations (spanish)
+    // will be considered as the viewer, and since the spanish
+    // are being visited, there is no nation change.
+    W.spanish().human = true;
+    W.dutch().human   = true;
+    W.add_unit_on_map( e_unit_type::free_colonist,
+                       { .x = 1, .y = 1 }, e_nation::spanish );
+    W.euro_mind( e_nation::spanish )
+        .EXPECT__meet_tribe_ui_sequence(
+            MeetTribe{ .nation        = e_nation::spanish,
+                       .tribe         = e_tribe::cherokee,
+                       .num_dwellings = 1 } )
+        .returns<wait<e_declare_war_on_natives>>(
+            e_declare_war_on_natives::no );
+  }
+
+  SECTION( "dutch" ) {
+    // This one, unlike the one above, will need a visibility
+    // change because the default viewer is again the spanish but
+    // the dutch are being visited and they are humans.
+    W.spanish().human = true;
+    W.dutch().human   = true;
+    W.add_unit_on_map( e_unit_type::free_colonist,
+                       { .x = 1, .y = 1 }, e_nation::dutch );
+    W.euro_mind( e_nation::dutch )
+        .EXPECT__meet_tribe_ui_sequence(
+            MeetTribe{ .nation        = e_nation::dutch,
+                       .tribe         = e_tribe::cherokee,
+                       .num_dwellings = 1 } )
+        .returns<wait<e_declare_war_on_natives>>(
+            e_declare_war_on_natives::no );
+    mock_land_view.EXPECT__set_visibility( e_nation::dutch );
+    mock_land_view.EXPECT__set_visibility( e_nation::spanish );
+  }
+
+  mock_land_view.EXPECT__ensure_visible(
+      point{ .x = 2, .y = 1 } );
   wait<> const w =
       UnitOnMapMover::native_unit_to_map_interactive(
           W.ss(), W.ts(), native_unit.id, { .x = 2, .y = 1 } );

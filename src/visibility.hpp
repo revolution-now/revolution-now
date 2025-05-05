@@ -36,6 +36,7 @@ namespace rn {
 struct Colony;
 struct Dwelling;
 struct FrozenSquare;
+struct MapRevealed;
 struct MapSquare;
 struct PlayerSquare;
 struct PlayerTerrain;
@@ -265,5 +266,40 @@ void update_map_visibility( TS& ts, maybe<e_nation> nation );
 // (or attack) is visible and clear.
 bool should_animate_move( IVisibility const& viz, gfx::point src,
                           gfx::point dst );
+
+/****************************************************************
+** ScopedMapViewer
+*****************************************************************/
+// This is used when moving some AI-controlled unit on the map in
+// a way that interacts with a european unit. If that european
+// unit is human then this will temporarily change the active
+// viewer (including redraw the map) if needed so that the map is
+// being viewed from that player's perspective during the inter-
+// action. An example of this would be that we have two human
+// players, english and french, and the native units are moving.
+// Since the english comes before the french and since the eng-
+// lish are human, they will be the default viewers while the na-
+// tives are moving. However, if a native unit moves to attack a
+// french player, then since the french player is human, we need
+// to temporarily change the map viewer to be from the french
+// perspective while the interaction is happening, then change it
+// back to whatever it was. Note that if the entire map is vis-
+// ible from the start, then no change will be done.
+struct [[nodiscard]] ScopedMapViewer {
+  ScopedMapViewer( SS& ss, TS& ts, e_nation const nation );
+  ~ScopedMapViewer();
+
+  ScopedMapViewer( ScopedMapViewer&& ) = delete;
+
+ private:
+  bool needs_change() const;
+
+  SS& ss_;
+  TS& ts_;
+  maybe<e_nation> const old_nation_;
+  // unique_ptr so that we can fwd declare.
+  std::unique_ptr<MapRevealed const> const old_map_revealed_;
+  e_nation const new_nation_;
+};
 
 } // namespace rn
