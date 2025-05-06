@@ -2,6 +2,29 @@ scored: [
   {
     resolution {
       logical {
+        h: 360
+        w: 640
+      }
+      physical_window {
+        h: 2160
+        w: 3840
+      }
+      pixel_size: 0.7937499999999998
+      scale: 6
+      viewport.size {
+        h: 2160
+        w: 3840
+      }
+    }
+    scores {
+      fitting: 1
+      overall: 1
+      pixel_size: 1
+    }
+  },
+  {
+    resolution {
+      logical {
         h: 432
         w: 768
       }
@@ -19,31 +42,35 @@ scored: [
     }
     scores {
       fitting: 1
-      overall: 1
-      pixel_size: 1
+      overall: 0.91
+      pixel_size: 0.91
     }
   },
   {
     resolution {
       logical {
         h: 360
-        w: 640
+        w: 576
       }
+      named: _576x360
       physical_window {
         h: 2160
         w: 3840
       }
       pixel_size: 0.7937499999999998
       scale: 6
-      viewport.size {
-        h: 2160
-        w: 3840
+      viewport {
+        origin.x: 192
+        size {
+          h: 2160
+          w: 3456
+        }
       }
     }
     scores {
-      fitting: 1
-      overall: 0.91
-      pixel_size: 0.91
+      fitting: 0.97
+      overall: 0.97
+      pixel_size: 1
     }
   },
   {
@@ -72,34 +99,7 @@ scored: [
     }
     scores {
       fitting: 0.94
-      overall: 0.94
-      pixel_size: 1
-    }
-  },
-  {
-    resolution {
-      logical {
-        h: 360
-        w: 576
-      }
-      named: _576x360
-      physical_window {
-        h: 2160
-        w: 3840
-      }
-      pixel_size: 0.7937499999999998
-      scale: 6
-      viewport {
-        origin.x: 192
-        size {
-          h: 2160
-          w: 3456
-        }
-      }
-    }
-    scores {
-      fitting: 0.97
-      overall: 0.88
+      overall: 0.86
       pixel_size: 0.91
     }
   },
@@ -126,8 +126,8 @@ scored: [
     }
     scores {
       fitting: 0.93
-      overall: 0.83
-      pixel_size: 0.89
+      overall: 0.74
+      pixel_size: 0.8
     }
   },
   {
@@ -156,8 +156,8 @@ scored: [
     }
     scores {
       fitting: 0.88
-      overall: 0.78
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -186,8 +186,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -216,8 +216,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -246,8 +246,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
 ]

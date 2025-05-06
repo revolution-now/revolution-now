@@ -18,8 +18,8 @@ scored: [
     }
     scores {
       fitting: 1
-      overall: 0.91
-      pixel_size: 0.91
+      overall: 1
+      pixel_size: 1
     }
   },
   {
@@ -45,8 +45,8 @@ scored: [
     }
     scores {
       fitting: 0.97
-      overall: 0.88
-      pixel_size: 0.91
+      overall: 0.97
+      pixel_size: 1
     }
   },
   {
@@ -72,8 +72,8 @@ scored: [
     }
     scores {
       fitting: 0.93
-      overall: 0.83
-      pixel_size: 0.89
+      overall: 0.74
+      pixel_size: 0.8
     }
   },
   {
@@ -102,8 +102,8 @@ scored: [
     }
     scores {
       fitting: 0.89
-      overall: 0.79
-      pixel_size: 0.89
+      overall: 0.71
+      pixel_size: 0.8
     }
   },
   {
@@ -132,8 +132,8 @@ scored: [
     }
     scores {
       fitting: 0.88
-      overall: 0.78
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -162,8 +162,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -192,8 +192,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -222,8 +222,8 @@ scored: [
     }
     scores {
       fitting: 0.87
-      overall: 0.77
-      pixel_size: 0.89
+      overall: 0.7
+      pixel_size: 0.8
     }
   },
   {
@@ -252,8 +252,8 @@ scored: [
     }
     scores {
       fitting: 0.83
-      overall: 0.74
-      pixel_size: 0.89
+      overall: 0.66
+      pixel_size: 0.8
     }
   },
 ]
