@@ -132,6 +132,7 @@ DeclarationResult declare_independence( SS&, TS&,
   //   it continues to accumulate for the intervention force.
   // * Promote continental armies in colonies. This actually ap-
   //   pears to happen at the start of the new turn.
+  // * Reset founding fathers state.
   return res;
 }
 
