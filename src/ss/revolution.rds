@@ -22,17 +22,17 @@ enum.e_revolution_status {
 # How many of each unit the king has added into his expeditionary
 # force. These will grow as the game progresses.
 struct.ExpeditionaryForce {
-  regulars   'int',
-  cavalry    'int',
-  artillery  'int',
-  men_of_war 'int',
+  regulars  'int',
+  cavalry   'int',
+  artillery 'int',
+  men_o_war 'int',
 }
 
 struct.InterventionForce {
-  regulars   'int',
-  cavalry    'int',
-  artillery  'int',
-  men_of_war 'int',
+  regulars  'int',
+  cavalry   'int',
+  artillery 'int',
+  men_o_war 'int',
 }
 
 struct.RevolutionState {

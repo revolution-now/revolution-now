@@ -254,7 +254,7 @@ local function create_revolution_state( player )
   player.revolution.expeditionary_force.regulars = 3
   player.revolution.expeditionary_force.cavalry = 2
   player.revolution.expeditionary_force.artillery = 2
-  player.revolution.expeditionary_force.men_of_war = 3
+  player.revolution.expeditionary_force.men_o_war = 3
 end
 
 local function init_non_processed_goods_prices( options, players )

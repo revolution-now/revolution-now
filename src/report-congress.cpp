@@ -241,7 +241,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
         { .tile = regular_tile, .count = force.regulars },
         { .tile = cavalry_tile, .count = force.cavalry },
         { .tile = artillery_tile, .count = force.artillery },
-        { .tile = man_o_war_tile, .count = force.men_of_war },
+        { .tile = man_o_war_tile, .count = force.men_o_war },
       },
       .options =
           {

@@ -463,7 +463,7 @@ players {
     revolution.expeditionary_force {
       artillery: 2
       cavalry: 2
-      men_of_war: 3
+      men_o_war: 3
       regulars: 3
     }
     starting_position {
