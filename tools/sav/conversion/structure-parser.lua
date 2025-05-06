@@ -14,14 +14,19 @@ local M = {}
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
-local util = require( 'util' )
+local logger = require( 'moon.logger' )
+
+-----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
-local not_implemented = util.not_implemented
-local dbg = util.dbg
+local not_implemented = logger.not_implemented
+local dbg = logger.dbg
 
 local insert = table.insert
 local remove = table.remove

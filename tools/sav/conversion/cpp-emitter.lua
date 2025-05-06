@@ -16,6 +16,12 @@ local M = {}
 -----------------------------------------------------------------
 local util = require( 'util' )
 local structure_parser = require( 'structure-parser' )
+local logger = require( 'moon.logger' )
+
+-----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -26,7 +32,7 @@ local sort = table.sort
 
 local format = string.format
 
-local dbg = util.dbg
+local dbg = logger.dbg
 local deep_compare = util.deep_compare
 
 local StructureParser = structure_parser.StructureParser

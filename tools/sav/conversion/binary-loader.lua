@@ -14,14 +14,12 @@ local M = {}
 -----------------------------------------------------------------
 -- Imports.
 -----------------------------------------------------------------
-local util = require( 'util' )
 local structure_parser = require( 'structure-parser' )
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local format = string.format
-local dbg = util.dbg
 local char = string.char
 local StructureParser = structure_parser.StructureParser
 

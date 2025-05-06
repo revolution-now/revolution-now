@@ -19,6 +19,11 @@ local json_transcode = require( 'json-transcode' )
 local logger = require( 'moon.logger' )
 
 -----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
+
+-----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local check = logger.check

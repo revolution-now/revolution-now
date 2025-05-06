@@ -10,8 +10,13 @@
 |
 --]] ------------------------------------------------------------
 local cpp_emitter = require( 'cpp-emitter' )
-local util = require( 'util' )
 local json_transcode = require( 'json-transcode' )
+local logger = require( 'moon.logger' )
+
+-----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
 
 -----------------------------------------------------------------
 -- Aliases.
@@ -20,8 +25,8 @@ local exit = os.exit
 
 local format = string.format
 
-local err = util.err
-local info = util.info
+local err = logger.err
+local info = logger.info
 
 local CppEmitter = cpp_emitter.CppEmitter
 local json_decode = json_transcode.decode

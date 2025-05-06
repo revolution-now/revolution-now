@@ -11,15 +11,20 @@
 --]] ------------------------------------------------------------
 local json_transcode = require( 'json-transcode' )
 local sav_reader = require( 'sav-reader' )
-local util = require( 'util' )
+local logger = require( 'moon.logger' )
+
+-----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
 local exit = os.exit
 
-local err = util.err
-local info = util.info
+local err = logger.err
+local info = logger.info
 
 local pprint_ordered = json_transcode.pprint_ordered
 

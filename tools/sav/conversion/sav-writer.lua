@@ -16,13 +16,18 @@ local M = {}
 -----------------------------------------------------------------
 local binary_saver = require( 'binary-saver' )
 local json_transcode = require( 'json-transcode' )
-local util = require( 'util' )
+local logger = require( 'moon.logger' )
+
+-----------------------------------------------------------------
+-- Global Settings.
+-----------------------------------------------------------------
+logger.level = logger.levels.WARNING
 
 -----------------------------------------------------------------
 -- Aliases.
 -----------------------------------------------------------------
-local check = util.check
-local info = util.info
+local check = logger.check
+local info = logger.info
 
 local BinarySaver = binary_saver.BinarySaver
 local json_decode = json_transcode.decode
