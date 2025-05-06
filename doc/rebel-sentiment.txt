@@ -1,5 +1,48 @@
 Notes:
 
+  * The King's expeditionary force expands whenever the nation's
+    royal_money field hits a threshold.  It is increased by the
+    following mechanism:
+
+      Constant term per turn:
+        Discoverer:   10
+        Explorer:     18
+        Conquistador: 26
+        Governor:     34
+        Viceroy:      42
+
+      Any tax revenue received also adds to this:
+
+        - Any sale of commodities in the harbor or through
+          the custom house.
+        - Treasure delivered by king.
+        - Treasure brought to europe.
+
+      Threshold: 1800.  When it gets to this value it wraps around
+      and one unit is added.
+
+    The algo used to select which unit gets added appears to have
+    the following properties:
+
+      * Not random.
+      * Tends toward fixed distribution:
+
+        Unit       PC/total  PC/land
+        -------------------------------------------------
+        regulars:  (57.4%)   (63.1%)
+        cavalry:   (19.1%)   (21.0%)
+        artillery: (14.3%)   (15.7%)
+        ships:     ( 9.0%)   (-----)
+
+      * In order to have just the right number of ships to trans-
+        port all of the ground units without reusing any ships we
+        would need to have the ships percentage at 1/7 (~14%).
+        However, in practice it is always less than this. Maybe a
+        reason for this is that it allows a strategy where at-
+        tacking ships can end the war early by causing the REF to
+        run out of transport ships. But either way, we will keep
+        this.
+
   * We need to warn the player when the number of rebels of for-
     eign powers rises and they get closer to declaring.
 
