@@ -6707,7 +6707,7 @@ void to_str( NATION const& o, std::string& out, base::tag<NATION> ) {
   out += "artillery_bought_count="; base::to_str( o.artillery_bought_count, out ); out += ',';
   out += "boycott_bitmap="; base::to_str( o.boycott_bitmap, out ); out += ',';
   out += "royal_money="; base::to_str( o.royal_money, out ); out += ',';
-  out += "unknown24b="; base::to_str( o.unknown24b, out ); out += ',';
+  out += "player_total_income="; base::to_str( o.player_total_income, out ); out += ',';
   out += "gold="; base::to_str( o.gold, out ); out += ',';
   out += "current_crosses="; base::to_str( o.current_crosses, out ); out += ',';
   out += "needed_crosses="; base::to_str( o.needed_crosses, out ); out += ',';
@@ -6743,7 +6743,7 @@ bool read_binary( base::IBinaryIO& b, NATION& o ) {
     && read_binary( b, o.artillery_bought_count )
     && read_binary( b, o.boycott_bitmap )
     && read_binary( b, o.royal_money )
-    && read_binary( b, o.unknown24b )
+    && read_binary( b, o.player_total_income )
     && read_binary( b, o.gold )
     && read_binary( b, o.current_crosses )
     && read_binary( b, o.needed_crosses )
@@ -6778,7 +6778,7 @@ bool write_binary( base::IBinaryIO& b, NATION const& o ) {
     && write_binary( b, o.artillery_bought_count )
     && write_binary( b, o.boycott_bitmap )
     && write_binary( b, o.royal_money )
-    && write_binary( b, o.unknown24b )
+    && write_binary( b, o.player_total_income )
     && write_binary( b, o.gold )
     && write_binary( b, o.current_crosses )
     && write_binary( b, o.needed_crosses )
@@ -6815,7 +6815,7 @@ cdr::value to_canonical( cdr::converter& conv,
   conv.to_field( tbl, "artillery_bought_count", o.artillery_bought_count );
   conv.to_field( tbl, "boycott_bitmap", o.boycott_bitmap );
   conv.to_field( tbl, "royal_money", o.royal_money );
-  conv.to_field( tbl, "unknown24b", o.unknown24b );
+  conv.to_field( tbl, "player_total_income", o.player_total_income );
   conv.to_field( tbl, "gold", o.gold );
   conv.to_field( tbl, "current_crosses", o.current_crosses );
   conv.to_field( tbl, "needed_crosses", o.needed_crosses );
@@ -6846,7 +6846,7 @@ cdr::value to_canonical( cdr::converter& conv,
     "artillery_bought_count",
     "boycott_bitmap",
     "royal_money",
-    "unknown24b",
+    "player_total_income",
     "gold",
     "current_crosses",
     "needed_crosses",
@@ -6887,7 +6887,7 @@ cdr::result<NATION> from_canonical(
   CONV_FROM_FIELD( "artillery_bought_count", artillery_bought_count );
   CONV_FROM_FIELD( "boycott_bitmap", boycott_bitmap );
   CONV_FROM_FIELD( "royal_money", royal_money );
-  CONV_FROM_FIELD( "unknown24b", unknown24b );
+  CONV_FROM_FIELD( "player_total_income", player_total_income );
   CONV_FROM_FIELD( "gold", gold );
   CONV_FROM_FIELD( "current_crosses", current_crosses );
   CONV_FROM_FIELD( "needed_crosses", needed_crosses );

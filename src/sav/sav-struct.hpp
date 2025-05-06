@@ -2835,7 +2835,7 @@ struct NATION {
   uint16_t artillery_bought_count = {};
   BoycottBitmap boycott_bitmap = {};
   int32_t royal_money = {};
-  bytes<4> unknown24b = {};
+  int32_t player_total_income = {};
   int32_t gold = {};
   uint16_t current_crosses = {};
   uint16_t needed_crosses = {};

@@ -1124,7 +1124,7 @@
                 "artillery_bought_count",
                 "boycott_bitmap",
                 "royal_money",
-                "unknown24b",
+                "player_total_income",
                 "gold",
                 "current_crosses",
                 "needed_crosses",
@@ -1271,8 +1271,8 @@
                     "muskets": {"size": 1, "type": "bit_bool"}
                 }
             },
-            "royal_money": {"size": 4, "type": "int", "__hint": "King's budget for expeditionary force expansion. Increased, then when it reaches a threshold, a new unit is added."},
-            "unknown24b": {"size": 4},
+            "royal_money": {"size": 4, "type": "int", "__hint": "King's budget for expeditionary force expansion. Increased each turn as well as through tax revenue; a new unit is added when it reaches 1800."},
+            "player_total_income": {"size": 4, "type": "int", "__hint": "Cumulative after-tax income for player. Never decreases. Might be unused."},
             "gold": {"size": 4, "type": "int"},
             "current_crosses": {"size": 2, "type": "uint"},
             "needed_crosses": {"size": 2, "type": "uint"},

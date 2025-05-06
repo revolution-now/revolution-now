@@ -8670,7 +8670,7 @@
         "muskets": false
       },
       "royal_money": 0,
-      "unknown24b": "00 00 00 00",
+      "player_total_income": 0,
       "gold": 1526,
       "current_crosses": 8,
       "needed_crosses": 10,
@@ -8913,7 +8913,7 @@
         "muskets": false
       },
       "royal_money": 0,
-      "unknown24b": "00 00 00 00",
+      "player_total_income": 0,
       "gold": 1000,
       "current_crosses": 1,
       "needed_crosses": 8,
@@ -9156,7 +9156,7 @@
         "muskets": false
       },
       "royal_money": 0,
-      "unknown24b": "00 00 00 00",
+      "player_total_income": 0,
       "gold": 122,
       "current_crosses": 1,
       "needed_crosses": 12,
@@ -9399,7 +9399,7 @@
         "muskets": false
       },
       "royal_money": 1428,
-      "unknown24b": "fb 05 00 00",
+      "player_total_income": 1531,
       "gold": 1873,
       "current_crosses": 68,
       "needed_crosses": 144,
