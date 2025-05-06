@@ -251,6 +251,7 @@ end
 
 local function create_revolution_state( player )
   -- Expeditionary force.
+  -- TODO: these need to be taken from config/revolution.
   player.revolution.expeditionary_force.regulars = 3
   player.revolution.expeditionary_force.cavalry = 2
   player.revolution.expeditionary_force.artillery = 2

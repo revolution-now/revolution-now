@@ -13,6 +13,7 @@ include "range-helpers.rds.hpp"
 
 # ss
 include "ss/difficulty.rds.hpp"
+include "ss/revolution.rds.hpp"
 
 # refl
 include "refl/enum-map.hpp"
@@ -35,12 +36,19 @@ struct.WarOfSuccession {
   enable_war_of_succession_default 'bool',
 }
 
+
+struct.RefForces {
+  initial_forces 'refl::enum_map<e_difficulty, ExpeditionaryForce>',
+}
+
 namespace "rn"
 
 struct.config_revolution_t {
   war_of_succession 'config::revolution::WarOfSuccession',
 
   declaration 'config::revolution::Declaration',
+
+  ref_forces 'config::revolution::RefForces',
 }
 
 config.revolution {}

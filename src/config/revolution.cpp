@@ -22,6 +22,13 @@ namespace {
 using ::base::valid;
 using ::base::valid_or;
 
+static_assert(
+    tuple_size_v<
+        decltype( refl::traits<ExpeditionaryForce>::fields )> ==
+        4,
+    "Probably don't want to add more to this struct since it is "
+    "also used in this config module." );
+
 }
 
 /****************************************************************
