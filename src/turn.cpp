@@ -1392,16 +1392,21 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
 
   // Evolve rebel sentiment. This must be done after colonies are
   // evolved so that the rebel sentiment level during the turn
-  // will be consistent with the SoL of the various colonies.
-  if( auto const report = update_rebel_sentiment(
-          player, updated_rebel_sentiment(
-                      ss.as_const, as_const( player ) ) );
-      should_show_rebel_sentiment_report(
-          ss.as_const, as_const( player ), report ) )
-    co_await show_rebel_sentiment_change_report(
-        ts.euro_minds()[player.nation], report );
+  // will be consistent with the SoL of the various colonies. It
+  // must not be done, though, after independence has been de-
+  // clared since in the OG the rebel sentiment gets frozen at
+  // that point and later contributes to the player's score.
+  if( player.revolution.status <
+      e_revolution_status::declared ) {
+    auto const report = update_rebel_sentiment(
+        player, updated_rebel_sentiment( ss.as_const,
+                                         as_const( player ) ) );
+    if( should_show_rebel_sentiment_report(
+            ss.as_const, as_const( player ), report ) )
+      co_await show_rebel_sentiment_change_report(
+          ts.euro_minds()[player.nation], report );
+  }
 
-  // Check if we need to do the war of succession.
   if( should_do_war_of_succession( as_const( ss ),
                                    as_const( player ) ) ) {
     WarOfSuccessionNations const nations =
