@@ -69,6 +69,7 @@ LUA_STARTUP( lua::state& st ) {
     u["old_world"]           = &U::old_world;
     u["new_world_name"]      = &U::new_world_name;
     u["woodcuts"]            = &U::woodcuts;
+    u["bells"]               = &U::bells;
     u["revolution"]          = &U::revolution;
     u["fathers"]             = &U::fathers;
     u["starting_position"]   = &U::starting_position;

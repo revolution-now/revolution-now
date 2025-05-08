@@ -58,6 +58,13 @@ struct.Player {
   # get triggered again.
   woodcuts 'refl::enum_map<e_woodcut, bool>',
 
+  # This is the total number of bells thus accumulated toward the
+  # next founding father. This will be reset to zero when a new
+  # father joins the congress. This stops accumulating after in-
+  # dependence is declare; from then on, bells are accumulated in
+  # the revolution state toward the intervention force.
+  bells 'int',
+
   # This is held per player because it is possible for multiple
   # players to have independence, i.e. even after an AI player is
   # granted independence, the human player can still declare and

@@ -144,12 +144,12 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     // In the OG this is only revealed in cheat mode, but there
     // doesn't seem to be a good reason to hide this from the
     // player normally, so we'll just show it.
-    l.founding_father_title += fmt::format(
-        " [{}/{}]", player.fathers.bells, *bells_needed );
+    l.founding_father_title +=
+        fmt::format( " [{}/{}]", player.bells, *bells_needed );
     ProgressTileSpreadConfig const founding_father_spread_opts{
       .tile           = kBellsTile,
       .count          = *bells_needed,
-      .progress_count = player.fathers.bells,
+      .progress_count = player.bells,
       .label_override = nothing,
       .options =
           {

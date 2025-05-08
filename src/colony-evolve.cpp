@@ -326,16 +326,40 @@ void apply_commodity_increase(
       ColonyNotification::full_cargo{ .what = what } );
 }
 
-void apply_bells_for_founding_fathers( Player& player,
-                                       int bells_produced ) {
-  if( has_all_fathers( player ) ) {
-    // When all fathers have been obtained we want to stop accu-
-    // mulating bells for them, otherwise this number would keep
-    // increasing indefinitely for no purpose.
-    player.fathers.bells = 0;
-    return;
+void apply_bells( Player& player, int bells_produced ) {
+  switch( player.revolution.status ) {
+    case e_revolution_status::not_declared: {
+      // Bells go toward founding fathers.
+      if( has_all_fathers( player ) ) {
+        // Before the declaration, when all fathers have been ob-
+        // tained we want to stop accumulating bells for them,
+        // otherwise this number would keep increasing indefi-
+        // nitely for no purpose.
+        player.bells = 0;
+      } else {
+        player.bells += bells_produced;
+      }
+      break;
+    }
+    case e_revolution_status::declared: {
+      // Bells go toward intervention force.
+      if( player.revolution.intervention_force_deployed ) {
+        // When the intervention force has already been deployed
+        // we want to stop accumulating bells for them, otherwise
+        // this number would keep increasing indefinitely for no
+        // purpose.
+        player.bells = 0;
+      } else {
+        player.bells += bells_produced;
+      }
+      break;
+    }
+    case e_revolution_status::won: {
+      // Bells do nothing here.
+      player.bells = 0;
+      break;
+    }
   }
-  player.fathers.bells += bells_produced;
 }
 
 void evolve_sons_of_liberty(
@@ -821,8 +845,7 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
 
   apply_production_to_colony( colony, ev.production,
                               ev.notifications );
-  apply_bells_for_founding_fathers( player,
-                                    ev.production.bells );
+  apply_bells( player, ev.production.bells );
 
   check_ran_out_of_raw_materials( ev );
 

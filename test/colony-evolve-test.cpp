@@ -41,6 +41,7 @@ namespace {
 using namespace std;
 
 using ::mock::matchers::Approx;
+using ::refl::enum_values;
 
 /****************************************************************
 ** Fake World Setup
@@ -772,6 +773,110 @@ TEST_CASE( "[colony-evolve] checks prime resource depletion" ) {
            e_natural_resource::silver_depleted );
 }
 
+TEST_CASE( "[colony-evolve] evolves bells" ) {
+  World W;
+
+  Player& player = W.default_player();
+
+  Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
+
+  auto f = [&] {
+    return evolve_colony_one_turn( W.ss(), W.ts(), colony );
+  };
+
+  player.revolution.status = e_revolution_status::not_declared;
+  player.revolution.intervention_force_deployed = false;
+
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::not_declared;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 1 );
+  f();
+  REQUIRE( player.bells == 2 );
+
+  player.revolution.status = e_revolution_status::declared;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 3 );
+  f();
+  REQUIRE( player.bells == 4 );
+
+  player.revolution.status = e_revolution_status::declared;
+  player.revolution.intervention_force_deployed = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::won;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::won;
+  player.revolution.intervention_force_deployed = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::not_declared;
+  player.revolution.intervention_force_deployed = false;
+  f();
+  REQUIRE( player.bells == 1 );
+  f();
+  REQUIRE( player.bells == 2 );
+
+  player.revolution.status = e_revolution_status::not_declared;
+  player.revolution.intervention_force_deployed = false;
+  for( auto const father : enum_values<e_founding_father> )
+    player.fathers.has[father] = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::declared;
+  player.revolution.intervention_force_deployed = false;
+  for( auto const father : enum_values<e_founding_father> )
+    player.fathers.has[father] = true;
+  f();
+  REQUIRE( player.bells == 1 );
+  f();
+  REQUIRE( player.bells == 2 );
+
+  player.revolution.status = e_revolution_status::declared;
+  player.revolution.intervention_force_deployed = true;
+  for( auto const father : enum_values<e_founding_father> )
+    player.fathers.has[father] = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::won;
+  player.revolution.intervention_force_deployed = false;
+  for( auto const father : enum_values<e_founding_father> )
+    player.fathers.has[father] = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+
+  player.revolution.status = e_revolution_status::won;
+  player.revolution.intervention_force_deployed = true;
+  for( auto const father : enum_values<e_founding_father> )
+    player.fathers.has[father] = true;
+  f();
+  REQUIRE( player.bells == 0 );
+  f();
+  REQUIRE( player.bells == 0 );
+}
+
 TEST_CASE( "[colony-evolve] applies production" ) {
   World W;
   // TODO
@@ -799,11 +904,6 @@ TEST_CASE( "[colony-evolve] colonist starved" ) {
 }
 
 TEST_CASE( "[colony-evolve] evolves sons of liberty" ) {
-  World W;
-  // TODO
-}
-
-TEST_CASE( "[colony-evolve] evolves founding father bells" ) {
   World W;
   // TODO
 }

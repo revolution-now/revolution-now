@@ -242,7 +242,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
   }
 
   player.fathers.in_progress = nothing;
-  player.fathers.bells       = 1;
+  player.bells               = 1;
 
   auto expect_rand = [&]( int low, int high, int res ) {
     W.rand()
@@ -300,7 +300,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     fathers_copy.pool[e_founding_father_type::religious] =
         e_founding_father::william_brewster;
     fathers_copy.in_progress = e_founding_father::francis_drake;
-    fathers_copy.bells       = 0;
+    REQUIRE( player.bells == 0 );
     REQUIRE( player.fathers == fathers_copy );
   }
 
@@ -354,7 +354,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     fathers_copy.pool[e_founding_father_type::religious] =
         e_founding_father::william_brewster;
     fathers_copy.in_progress = e_founding_father::henry_hudson;
-    fathers_copy.bells       = 0;
+    REQUIRE( player.bells == 0 );
     REQUIRE( player.fathers == fathers_copy );
   }
 
@@ -408,7 +408,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     fathers_copy.pool[e_founding_father_type::religious] =
         e_founding_father::juan_de_sepulveda;
     fathers_copy.in_progress = e_founding_father::thomas_paine;
-    fathers_copy.bells       = 0;
+    REQUIRE( player.bells == 0 );
     REQUIRE( player.fathers == fathers_copy );
   }
 
@@ -434,7 +434,7 @@ TEST_CASE( "[fathers] pick_founding_father_if_needed" ) {
     fathers_copy.pool[e_founding_father_type::trade] =
         e_founding_father::adam_smith;
     fathers_copy.in_progress = e_founding_father::adam_smith;
-    fathers_copy.bells       = 0;
+    REQUIRE( player.bells == 0 );
     REQUIRE( player.fathers == fathers_copy );
   }
 
@@ -480,21 +480,21 @@ TEST_CASE( "[fathers] check_founding_fathers" ) {
   player.fathers.in_progress = e_founding_father::hernan_cortes;
   // Takes 161 bells.
 
-  player.fathers.bells = 1;
-  fathers_copy         = player.fathers;
+  player.bells = 1;
+  fathers_copy = player.fathers;
   REQUIRE( f() == nothing );
 
-  player.fathers.bells = 160;
-  fathers_copy         = player.fathers;
+  player.bells = 160;
+  fathers_copy = player.fathers;
   REQUIRE( f() == nothing );
 
-  player.fathers.bells = 162; // should leave one remaining.
-  fathers_copy         = player.fathers;
+  player.bells = 162; // should leave one remaining.
+  fathers_copy = player.fathers;
   REQUIRE( f() == e_founding_father::hernan_cortes );
   fathers_copy.has[e_founding_father::hernan_cortes]  = true;
-  fathers_copy.bells                                  = 1;
   fathers_copy.in_progress                            = nothing;
   fathers_copy.pool[e_founding_father_type::military] = nothing;
+  REQUIRE( player.bells == 1 );
   REQUIRE( player.fathers == fathers_copy );
 }
 

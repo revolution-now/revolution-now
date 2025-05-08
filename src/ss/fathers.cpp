@@ -84,7 +84,6 @@ LUA_STARTUP( lua::state& st ) {
 
   auto u = st.usertype.create<U>();
 
-  u["bells"]       = &U::bells;
   u["has"]         = &U::has;
   u["pool"]        = &U::pool;
   u["in_progress"] = &U::in_progress;

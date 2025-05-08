@@ -341,7 +341,7 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
   // This is technically optional, but it avoids asking the
   // player to select a founding father on the first turn before
   // they have any colonies producing bells.
-  if( player.fathers.bells == 0 ) co_return;
+  if( player.bells == 0 ) co_return;
   // At this point we have some bells but we're not working on
   // anyone, so we need to ask the player to pick someone. First
   // make sure the pool is filled (if possible).
@@ -378,7 +378,7 @@ wait<> pick_founding_father_if_needed( SSConst const& ss, TS& ts,
   // founding fathers available in the era) and then suddently
   // they become available and the first one is given immediately
   // because of the accumulation of bells, which feels wrong.
-  player.fathers.bells = 0;
+  player.bells = 0;
 }
 
 maybe<e_founding_father> check_founding_fathers(
@@ -391,7 +391,7 @@ maybe<e_founding_father> check_founding_fathers(
   if( !needed.has_value() )
     // We have all fathers.
     return nothing;
-  if( player.fathers.bells < *needed ) return nothing;
+  if( player.bells < *needed ) return nothing;
   // We've got the next father.
   CHECK( player.fathers.in_progress.has_value() );
   e_founding_father const new_father =
@@ -400,8 +400,8 @@ maybe<e_founding_father> check_founding_fathers(
   player.fathers.has[new_father] = true;
   // The OG does not seem to keep any extra bells modulo the
   // amount needed for the father, but we will do so.
-  player.fathers.bells = player.fathers.bells - *needed;
-  CHECK_GE( player.fathers.bells, 0 );
+  player.bells = player.bells - *needed;
+  CHECK_GE( player.bells, 0 );
   // We will select a new father and repopulate the pool on the
   // next turn.
   player.fathers.in_progress = nothing;
