@@ -1407,6 +1407,13 @@ wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
           ts.euro_minds()[player.nation], report );
   }
 
+  // Check if we need to do the war of succession. This must be
+  // done immediately after evolving rebel sentiment, since the
+  // game should not be allowed to be in a state where rebel sen-
+  // timent is >= 50% and the war of succession has not happened.
+  // Actually in the NG it wouldn't really matter if this were
+  // violated, but it is just to keep consistent with the OG, for
+  // which it was important.
   if( should_do_war_of_succession( as_const( ss ),
                                    as_const( player ) ) ) {
     WarOfSuccessionNations const nations =
