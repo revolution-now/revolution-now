@@ -315,6 +315,31 @@ TEST_CASE( "[unit-mgr] change_unit_nation" ) {
   REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
            e_tile_visibility::clear );
 
+  // No changes with expanded sighting radius because we are
+  // changing to the units current nation, in which the function
+  // should be a no-op.
+  w.spanish().fathers.has[e_founding_father::hernando_de_soto] =
+      true;
+  change_unit_nation( w.ss(), w.ts(), unit, e_nation::spanish );
+
+  REQUIRE( unit.type() == e_unit_type::free_colonist );
+  REQUIRE( dutch_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( dutch_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::clear );
+  REQUIRE( dutch_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::clear );
+  REQUIRE( spanish_viz.visible( { .x = 0, .y = 0 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 1, .y = 1 } ) ==
+           e_tile_visibility::hidden );
+  REQUIRE( spanish_viz.visible( { .x = 2, .y = 2 } ) ==
+           e_tile_visibility::clear );
+  REQUIRE( spanish_viz.visible( { .x = 3, .y = 3 } ) ==
+           e_tile_visibility::clear );
+
   change_unit_type( w.ss(), w.ts(), unit, e_unit_type::scout );
 
   REQUIRE( unit.type() == e_unit_type::scout );

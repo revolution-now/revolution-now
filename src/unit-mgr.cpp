@@ -214,6 +214,7 @@ void change_unit_type( SS& ss, TS& ts, Unit& unit,
 
 void change_unit_nation( SS& ss, TS& ts, Unit& unit,
                          e_nation new_nation ) {
+  if( unit.nation() == new_nation ) return;
   unit.change_nation( ss.units, new_nation );
   // In order to make sure that fog of war is updated to reflect
   // the new type (i.e. maybe its sighting radius is different),
