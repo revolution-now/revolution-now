@@ -108,6 +108,10 @@ Layout layout_auto( SSConst const& ss, Player const& player,
   cur.y += kBufferAfterTitle + kHalfTextHeight;
 
   [&] {
+    if( player.revolution.status >=
+        e_revolution_status::declared )
+      // No more founding father stuff after the declaration.
+      return;
     // This will be nothing if the player has all fathers, in
     // which case we won't bother showing this section.
     auto const bells_needed =

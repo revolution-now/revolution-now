@@ -1375,16 +1375,19 @@ wait<> colonies_turn( SS& ss, TS& ts, Player& player ) {
 // want the colonies to be evolved first.
 wait<> post_colonies( SS& ss, TS& ts, Player& player ) {
   // Founding fathers.
-  co_await pick_founding_father_if_needed( ss, ts, player );
-  maybe<e_founding_father> const new_father =
-      check_founding_fathers( ss, player );
-  if( new_father.has_value() ) {
-    co_await play_new_father_cut_scene( ts, player,
-                                        *new_father );
-    // This will affect any one-time changes that the new father
-    // causes. E.g. for John Paul Jones it will create the
-    // frigate.
-    on_father_received( ss, ts, player, *new_father );
+  if( player.revolution.status <
+      e_revolution_status::declared ) {
+    co_await pick_founding_father_if_needed( ss, ts, player );
+    maybe<e_founding_father> const new_father =
+        check_founding_fathers( ss, player );
+    if( new_father.has_value() ) {
+      co_await play_new_father_cut_scene( ts, player,
+                                          *new_father );
+      // This will affect any one-time changes that the new
+      // father causes. E.g. for John Paul Jones it will create
+      // the frigate.
+      on_father_received( ss, ts, player, *new_father );
+    }
   }
 
   // Evolve rebel sentiment. This must be done after colonies are
