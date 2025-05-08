@@ -398,7 +398,8 @@ TEST_CASE(
 TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
   world w;
 
-  Player& human_player = w.default_player();
+  Player& human_player = w.french();
+  Player& other_player = w.english();
 
   auto const f = [&] {
     return should_do_war_of_succession(
@@ -431,6 +432,14 @@ TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
   SECTION( "no humans" ) {
     REQUIRE( f() );
     human_player.human = false;
+    REQUIRE_FALSE( f() );
+  }
+
+  SECTION( "AI granted independence" ) {
+    human_player.human = true;
+    other_player.human = false;
+    REQUIRE( f() );
+    other_player.revolution.status = e_revolution_status::won;
     REQUIRE_FALSE( f() );
   }
 

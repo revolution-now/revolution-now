@@ -191,6 +191,11 @@ bool should_do_war_of_succession( SSConst const& ss,
     for( auto const& [nation, other_player] :
          ss.players.players ) {
       if( !other_player.has_value() ) continue;
+      if( !other_player->human &&
+          other_player->revolution.status ==
+              e_revolution_status::won )
+        // AI player has been granted independence.
+        continue;
       ++player_count;
       if( other_player->human ) ++human_count;
     }
