@@ -908,9 +908,13 @@ UnitsState::from_coords() const {
 
 unordered_set<UnitId> const& UnitsState::from_colony(
     Colony const& colony ) const {
-  UNWRAP_CHECK( units, base::lookup( worker_units_from_colony_,
-                                     colony.id ) );
-  return units;
+  // The empty case can happen during testing when there haven't
+  // been any workers added to a colony, but should not happen
+  // during a normal game.
+  static unordered_set<UnitId> const empty;
+  auto const units =
+      base::lookup( worker_units_from_colony_, colony.id );
+  return units.value_or( empty );
 }
 
 maybe<UnitId> UnitsState::missionary_from_dwelling(

@@ -43,6 +43,8 @@
 
 using namespace std;
 
+namespace rg = std::ranges;
+
 namespace rn {
 
 namespace {
@@ -262,9 +264,21 @@ WarOfSuccessionPlan war_of_succession_plan(
     if( unit.nation() != nations.withdraws ) continue;
     SWITCH( p_state->ownership ) {
       CASE( free ) { SHOULD_NOT_BE_HERE; }
-      CASE( cargo ) { break; }
-      CASE( colony ) { break; }
+      CASE( cargo ) {
+        // Cargo units will get reassigned if/when what is
+        // holding them gets reassigned (or they could be de-
+        // stroyed if they are contained in a ship that is in
+        // port, which do not get reassigned).
+        break;
+      }
+      CASE( colony ) {
+        // We don't reassign units working in colonies here be-
+        // cause they will be reassigned along with the colony
+        // further below.
+        break;
+      }
       CASE( dwelling ) {
+        plan.reassign_units.push_back( unit_id );
         // This is so that the missionary cross color gets up-
         // dated on the dwelling.
         point const tile = ss.natives.coord_for( dwelling.id );
@@ -272,22 +286,27 @@ WarOfSuccessionPlan war_of_succession_plan(
         break;
       }
       CASE( world ) {
-        plan.update_fog_squares.push_back( world.coord );
+        plan.reassign_units.push_back( unit_id );
         break;
       }
       CASE( harbor ) {
         SWITCH( harbor.port_status ) {
           CASE( in_port ) {
             plan.remove_units.push_back( unit_id );
-            continue;
+            break;
           }
-          CASE( inbound ) { break; }
-          CASE( outbound ) { break; }
+          CASE( inbound ) {
+            plan.reassign_units.push_back( unit_id );
+            break;
+          }
+          CASE( outbound ) {
+            plan.reassign_units.push_back( unit_id );
+            break;
+          }
         }
         break;
       }
     }
-    plan.reassign_units.push_back( unit_id );
   }
 
   for( auto const& [colony_id, colony] : ss.colonies.all() ) {
@@ -296,12 +315,17 @@ WarOfSuccessionPlan war_of_succession_plan(
     plan.update_fog_squares.push_back( colony.location );
   }
 
-  ranges::sort( plan.update_fog_squares,
-                []( auto const l, auto const r ) {
-                  if( l.y != r.y ) return l.y < r.y;
-                  return l.x < r.x;
-                } );
-  ranges::unique( plan.update_fog_squares );
+  rg::sort( plan.update_fog_squares,
+            []( auto const l, auto const r ) {
+              if( l.y != r.y ) return l.y < r.y;
+              return l.x < r.x;
+            } );
+  rg::unique( plan.update_fog_squares );
+
+  // Need determinism for unit tests.
+  rg::sort( plan.remove_units );
+  rg::sort( plan.reassign_units );
+  rg::sort( plan.reassign_colonies );
 
   return plan;
 }
@@ -338,6 +362,11 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
     colony.sons_of_liberty.num_rebels_from_bells_only = 0;
     colony.sons_of_liberty
         .last_sons_of_liberty_integral_percent = 0;
+    // TODO: not sure yet how we'll be handling evolution of the
+    // AI colonies, but this lowering of SoL to zero (under stan-
+    // dard rules) could cause a drop in productivity and thus
+    // starvation in the colony, so we may need to deal with that
+    // here.
   }
 
   vector<Coord> const refresh_fogged = [&] {
@@ -367,13 +396,17 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
 
 wait<> do_war_of_succession_ui_seq(
     TS& ts, WarOfSuccessionPlan const& plan ) {
+  // TODO: add more historical context to this message.
   string const msg = format(
-      "The Spanish War of Succession takes place in Europe.  "
-      "All [{}] owned property and territory is ceded to the "
-      "[{}].",
+      "The War of the Spanish Succession has come to an end in "
+      "Europe! All property and territory owned by the [{}] has "
+      "been ceded to the [{}].  As a result, the [{}] have "
+      "withdrawn from the New World.",
       config_nation.nations[plan.nations.withdraws]
           .possessive_pre_declaration,
       config_nation.nations[plan.nations.receives]
+          .possessive_pre_declaration,
+      config_nation.nations[plan.nations.withdraws]
           .possessive_pre_declaration );
   co_await ts.gui.message_box( msg );
 }
