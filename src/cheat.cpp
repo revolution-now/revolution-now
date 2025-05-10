@@ -534,7 +534,7 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
       .prev = player.revolution.rebel_sentiment,
       .nova = required_sentiment };
     co_await show_rebel_sentiment_change_report(
-        ts.euro_minds()[player.nation], change_report );
+        player, ts.euro_minds()[player.nation], change_report );
     if( should_do_war_of_succession( as_const( ss ),
                                      as_const( player ) ) ) {
       WarOfSuccessionNations const nations =

@@ -127,22 +127,35 @@ RebelSentimentReport rebel_sentiment_report_for_cc_report(
 
 bool should_show_rebel_sentiment_report(
     SSConst const& ss, Player const& player,
-    RebelSentimentChangeReport const& report ) {
-  auto const bucket = []( int const n ) { return n / 10; };
+    int const new_sentiment ) {
   // These should be done in order of least expensive to most ex-
   // pensive so that we do the expensive stuff less often.
   if( player.revolution.status >= e_revolution_status::declared )
     return false;
-  if( bucket( report.nova ) == bucket( report.prev ) )
-    return false;
   if( unit_count_for_rebel_sentiment( ss, player.nation ) <
       kMinColonistsForSentimentMsgs )
+    return false;
+  int const report_from =
+      player.revolution.last_reported_rebel_sentiment;
+  int const report_to       = new_sentiment;
+  int constexpr kBucketSize = 10;
+  auto const bucket         = []( int const n ) {
+    return n / kBucketSize;
+  };
+  if( bucket( report_to ) == bucket( report_from ) )
+    return false;
+  // This is so that it doesn't report when fluctuating around a
+  // bucket boundary.
+  bool const decreasing    = report_to < report_from;
+  int const jump_magnitude = abs( report_to - report_from );
+  if( decreasing && jump_magnitude < kBucketSize / 2 )
     return false;
   return true;
 }
 
 wait<> show_rebel_sentiment_change_report(
-    IEuroMind& mind, RebelSentimentChangeReport const& report ) {
+    Player& player, IEuroMind& mind,
+    RebelSentimentChangeReport const& report ) {
   auto const& country =
       config_nation.nations[mind.nation()].country_name;
   if( report.nova > report.prev )
@@ -163,6 +176,7 @@ wait<> show_rebel_sentiment_change_report(
         "None of the population supports the idea of "
         "independence from {}.",
         country );
+  player.revolution.last_reported_rebel_sentiment = report.nova;
 }
 
 int required_rebel_sentiment_for_declaration(

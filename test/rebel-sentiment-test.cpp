@@ -217,53 +217,89 @@ TEST_CASE( "[rebel-sentiment] update_rebel_sentiment" ) {
 TEST_CASE(
     "[rebel-sentiment] should_show_rebel_sentiment_report" ) {
   world w;
-  RebelSentimentChangeReport report;
+  int next = 0;
 
   auto const f = [&] {
     return should_show_rebel_sentiment_report(
-        w.ss(), w.default_player(), report );
+        w.ss(), w.default_player(), next );
   };
 
   Player& player = w.default_player();
+  int& last = player.revolution.last_reported_rebel_sentiment;
 
   // Default
-  report = {};
+  next = 0;
+  last = 0;
   REQUIRE_FALSE( f() );
 
   // Add a delta.
-  report = { .nova = 10 };
+  next = 10;
+  last = 0;
   REQUIRE_FALSE( f() );
 
   // Add colony.
   Colony const& colony = w.add_colony( { .x = 0, .y = 0 } );
-  report               = { .nova = 10 };
+  next                 = 10;
+  last                 = 0;
   REQUIRE_FALSE( f() );
 
   // Add some units, just below required number.
   w.add_unit_indoors( colony.id, e_indoor_job::bells );
-  report = { .nova = 10 };
+  tie( last, next ) = pair{ 0, 10 };
   REQUIRE_FALSE( f() );
   w.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 0, .y = 0 } );
-  report = { .nova = 10 };
+  tie( last, next ) = pair{ 0, 10 };
   REQUIRE_FALSE( f() );
   w.add_unit_in_port( e_unit_type::free_colonist );
-  report = { .nova = 10 };
+  tie( last, next ) = pair{ 0, 10 };
   REQUIRE_FALSE( f() );
   // Now we have 4, the required number.
   w.add_unit_on_map( e_unit_type::free_colonist,
                      { .x = 0, .y = 0 } );
-  report = { .nova = 10 };
+  tie( last, next ) = pair{ 0, 10 };
   REQUIRE( f() );
 
-  report = { .nova = 9 };
+  tie( last, next ) = pair{ 0, 9 };
   REQUIRE_FALSE( f() );
-  report = { .nova = 0 };
+  tie( last, next ) = pair{ 0, 0 };
   REQUIRE_FALSE( f() );
-  report = { .nova = 10 };
+  tie( last, next ) = pair{ 0, 10 };
   REQUIRE( f() );
-  report = { .nova = 20 };
+  tie( last, next ) = pair{ 0, 20 };
   REQUIRE( f() );
+  tie( last, next ) = pair{ 10, 19 };
+  REQUIRE_FALSE( f() );
+  tie( last, next ) = pair{ 10, 20 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 11, 20 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 10, 21 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 90, 99 };
+  REQUIRE_FALSE( f() );
+  tie( last, next ) = pair{ 90, 100 };
+  REQUIRE( f() );
+
+  // Decreasing.
+  tie( last, next ) = pair{ 100, 96 };
+  REQUIRE_FALSE( f() );
+  tie( last, next ) = pair{ 100, 95 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 60, 59 };
+  REQUIRE_FALSE( f() );
+  tie( last, next ) = pair{ 60, 56 };
+  REQUIRE_FALSE( f() );
+  tie( last, next ) = pair{ 60, 55 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 61, 55 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 61, 56 };
+  REQUIRE( f() );
+  tie( last, next ) = pair{ 61, 57 };
+  REQUIRE_FALSE( f() );
+
+  tie( last, next ) = pair{ 0, 10 };
 
   player.revolution.status = e_revolution_status::not_declared;
   REQUIRE( f() );
@@ -278,15 +314,21 @@ TEST_CASE(
   world w;
   RebelSentimentChangeReport report;
 
-  auto& mind = w.euro_mind( e_nation::french );
+  auto& mind           = w.euro_mind( e_nation::french );
+  Player const& player = w.french();
 
   auto const f = [&] {
     co_await_test( show_rebel_sentiment_change_report(
-        w.euro_mind( e_nation::french ), report ) );
+        w.french(), w.euro_mind( e_nation::french ), report ) );
   };
+
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           0 );
 
   // Default.
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           0 );
 
   // Default.
   report.nova = 1;
@@ -295,6 +337,8 @@ TEST_CASE(
       "of the population now supports the idea of independence "
       "from France." );
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           1 );
 
   report.prev = 1;
   report.nova = 2;
@@ -303,6 +347,8 @@ TEST_CASE(
       "of the population now supports the idea of independence "
       "from France." );
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           2 );
 
   report.prev = 0;
   report.nova = 100;
@@ -311,6 +357,8 @@ TEST_CASE(
       "[100%] of the population now supports the idea of "
       "independence from France." );
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           100 );
 
   report.prev = 100;
   report.nova = 99;
@@ -319,6 +367,8 @@ TEST_CASE(
       "[99%] of the population now supports the idea of "
       "independence from France." );
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           99 );
 
   report.prev = 20;
   report.nova = 0;
@@ -327,6 +377,8 @@ TEST_CASE(
       "of the population supports the idea of independence from "
       "France." );
   f();
+  REQUIRE( player.revolution.last_reported_rebel_sentiment ==
+           0 );
 }
 
 TEST_CASE(

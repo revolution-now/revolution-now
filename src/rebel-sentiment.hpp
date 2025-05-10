@@ -41,10 +41,11 @@ enum class e_nation;
 
 bool should_show_rebel_sentiment_report(
     SSConst const& ss, Player const& player,
-    RebelSentimentChangeReport const& report );
+    int new_sentiment );
 
 wait<> show_rebel_sentiment_change_report(
-    IEuroMind& mind, RebelSentimentChangeReport const& report );
+    Player& player, IEuroMind& mind,
+    RebelSentimentChangeReport const& report );
 
 /****************************************************************
 ** Rebel Sentiment in Continental Congress Report.

@@ -39,6 +39,9 @@ struct.RevolutionState {
   # This is a percent in [0, 100].
   rebel_sentiment 'int',
 
+  # This is just used to improve messaging to the player.
+  last_reported_rebel_sentiment 'int',
+
   status 'e_revolution_status',
 
   armies_promoted 'bool',
