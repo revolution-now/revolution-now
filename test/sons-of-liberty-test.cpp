@@ -25,9 +25,9 @@ using namespace std;
 /****************************************************************
 ** Fake World Setup
 *****************************************************************/
-struct World : testing::World {
+struct world : testing::World {
   using Base = testing::World;
-  World() : Base() {
+  world() : Base() {
     add_player( e_nation::dutch );
     create_default_map();
   }
@@ -805,13 +805,13 @@ TEST_CASE( "[sons-of-liberty] compute_tory_penalty_level" ) {
 }
 
 TEST_CASE( "[sons-of-liberty] compute_colony_sons_of_liberty" ) {
-  World W;
+  world w;
   auto [colony, founder] =
-      W.found_colony_with_new_unit( { .x = 1, .y = 1 } );
-  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
-  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
-  W.add_unit_indoors( colony.id, e_indoor_job::hammers );
-  Player& player = W.default_player();
+      w.found_colony_with_new_unit( { .x = 1, .y = 1 } );
+  w.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  w.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  w.add_unit_indoors( colony.id, e_indoor_job::hammers );
+  Player& player = w.default_player();
   ColonySonsOfLiberty expected;
 
   auto f = [&] {
@@ -851,6 +851,35 @@ TEST_CASE( "[sons-of-liberty] compute_colony_sons_of_liberty" ) {
                .tory_integral_percent = 0,
                .tories                = 0 };
   REQUIRE( f() == expected );
+}
+
+TEST_CASE( "[sons-of-liberty] reset_colony_sons_of_liberty" ) {
+  world w;
+  Colony& colony = w.add_colony( { .x = 1, .y = 1 } );
+
+  auto cloned = colony;
+
+  auto f = [&] { reset_colony_sons_of_liberty( colony ); };
+
+  REQUIRE( colony.sons_of_liberty.num_rebels_from_bells_only ==
+           0 );
+  REQUIRE( colony.sons_of_liberty
+               .last_sons_of_liberty_integral_percent == 0 );
+
+  colony.sons_of_liberty.num_rebels_from_bells_only = 2;
+  colony.sons_of_liberty.last_sons_of_liberty_integral_percent =
+      3;
+  f();
+
+  REQUIRE( colony.sons_of_liberty.num_rebels_from_bells_only ==
+           0 );
+  REQUIRE( colony.sons_of_liberty
+               .last_sons_of_liberty_integral_percent == 0 );
+
+  cloned.sons_of_liberty.num_rebels_from_bells_only = 0;
+  cloned.sons_of_liberty.last_sons_of_liberty_integral_percent =
+      0;
+  REQUIRE( colony == cloned );
 }
 
 } // namespace

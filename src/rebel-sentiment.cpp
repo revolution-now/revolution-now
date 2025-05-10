@@ -359,9 +359,7 @@ void do_war_of_succession( SS& ss, TS& ts, Player const& player,
     // them to be granted independence, which would lead to a
     // strange player experience. This way, the AI nations are no
     // further along in that process than they were before.
-    colony.sons_of_liberty.num_rebels_from_bells_only = 0;
-    colony.sons_of_liberty
-        .last_sons_of_liberty_integral_percent = 0;
+    reset_colony_sons_of_liberty( colony );
     // TODO: not sure yet how we'll be handling evolution of the
     // AI colonies, but this lowering of SoL to zero (under stan-
     // dard rules) could cause a drop in productivity and thus

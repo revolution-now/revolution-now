@@ -252,4 +252,10 @@ ColonySonsOfLiberty compute_colony_sons_of_liberty(
     .tories = tory_number };
 }
 
+void reset_colony_sons_of_liberty( Colony& colony ) {
+  colony.sons_of_liberty.num_rebels_from_bells_only = 0;
+  colony.sons_of_liberty.last_sons_of_liberty_integral_percent =
+      0;
+}
+
 } // namespace rn
