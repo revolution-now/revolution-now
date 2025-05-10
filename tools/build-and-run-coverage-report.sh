@@ -55,20 +55,14 @@ usage() { die "usage: $0 <target> [<targets>...]"; }
 # Step: Configure.
 # ---------------------------------------------------------------
 log "step: configure"
-cmc --clang --libstdcxx --lld --coverage
+cmc --clang --libstdcxx --lld --coverage --cached
 # Must be evaluated after we change to the --coverage config.
 HTML_URL="file://$(realpath "$HTML_OUT")"
 
 # ---------------------------------------------------------------
-# Step: Build.
+# Step: Build/Run test/generate coverage data.
 # ---------------------------------------------------------------
-log "step: build"
-make all
-
-# ---------------------------------------------------------------
-# Step: Run test/generate coverage data.
-# ---------------------------------------------------------------
-log "step: run tests"
+log "step: build and run tests"
 make test
 
 # ---------------------------------------------------------------
