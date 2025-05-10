@@ -406,6 +406,22 @@ TEST_CASE(
     "[rebel-sentiment] "
     "required_rebel_sentiment_for_declaration" ) {
   world w;
+
+  auto const f = [&] {
+    return required_rebel_sentiment_for_declaration( w.ss() );
+  };
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::discoverer;
+  REQUIRE( f() == 50 );
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::conquistador;
+  REQUIRE( f() == 50 );
+
+  w.settings().game_setup_options.difficulty =
+      e_difficulty::viceroy;
+  REQUIRE( f() == 50 );
 }
 
 TEST_CASE( "[rebel-sentiment] should_do_war_of_succession" ) {
@@ -887,8 +903,8 @@ TEST_CASE( "[rebel-sentiment] do_war_of_succession_ui_seq" ) {
     co_await_test( do_war_of_succession_ui_seq( w.ts(), plan ) );
   };
 
-  plan = { .nations.withdraws = e_nation::spanish,
-           .nations.receives  = e_nation::french };
+  plan = { .nations = { .withdraws = e_nation::spanish,
+                        .receives  = e_nation::french } };
 
   w.gui().EXPECT__message_box( StrContains(
       "All property and territory owned by the [Spanish] has "
