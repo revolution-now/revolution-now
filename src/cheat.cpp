@@ -35,6 +35,7 @@
 #include "rebel-sentiment.hpp"
 #include "roles.hpp"
 #include "settings.rds.hpp"
+#include "succession.hpp"
 #include "tribe-mgr.hpp"
 #include "ts.hpp"
 #include "unit-mgr.hpp"

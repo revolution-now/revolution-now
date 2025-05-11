@@ -23,9 +23,6 @@ namespace rn {
 *****************************************************************/
 struct IEuroMind;
 struct Player;
-struct SettingsState;
-struct SS;
-struct TS;
 struct SSConst;
 
 enum class e_nation;
@@ -39,13 +36,19 @@ enum class e_nation;
 [[nodiscard]] RebelSentimentChangeReport update_rebel_sentiment(
     Player& player, int updated );
 
-bool should_show_rebel_sentiment_report(
-    SSConst const& ss, Player const& player,
-    int new_sentiment );
+bool should_show_rebel_sentiment_report( SSConst const& ss,
+                                         Player const& player,
+                                         int new_sentiment );
 
 wait<> show_rebel_sentiment_change_report(
     Player& player, IEuroMind& mind,
     RebelSentimentChangeReport const& report );
+
+int required_rebel_sentiment_for_declaration(
+    SSConst const& ss );
+
+int unit_count_for_rebel_sentiment( SSConst const& ss,
+                                    e_nation const nation );
 
 /****************************************************************
 ** Rebel Sentiment in Continental Congress Report.
@@ -54,26 +57,5 @@ wait<> show_rebel_sentiment_change_report(
 // Congress report.
 RebelSentimentReport rebel_sentiment_report_for_cc_report(
     SSConst const& ss, Player const& player );
-
-/****************************************************************
-** War of Succession.
-*****************************************************************/
-int required_rebel_sentiment_for_declaration(
-    SSConst const& ss );
-
-bool should_do_war_of_succession( SSConst const& ss,
-                                  Player const& player );
-
-WarOfSuccessionNations select_nations_for_war_of_succession(
-    SSConst const& ss );
-
-WarOfSuccessionPlan war_of_succession_plan(
-    SSConst const& ss, WarOfSuccessionNations const& nations );
-
-void do_war_of_succession( SS& ss, TS& ts, Player const& player,
-                           WarOfSuccessionPlan const& plan );
-
-wait<> do_war_of_succession_ui_seq(
-    TS& ts, WarOfSuccessionPlan const& plan );
 
 } // namespace rn

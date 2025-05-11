@@ -52,6 +52,7 @@
 #include "road.hpp"
 #include "roles.hpp"
 #include "save-game.hpp"
+#include "succession.hpp"
 #include "tax.hpp"
 #include "ts.hpp"
 #include "turn-mgr.hpp"

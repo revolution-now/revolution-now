@@ -8,17 +8,6 @@
 # Description: Rds definitions for the rebel-sentiment module.
 #
 # ===============================================================
-# ss
-include "ss/nation.rds.hpp"
-include "ss/unit-id.hpp"
-include "ss/colony-id.hpp"
-
-# gfx
-include "gfx/cartesian.hpp"
-
-# C++ standard library
-include "<vector>"
-
 namespace "rn"
 
 struct.RebelSentimentChangeReport {
@@ -30,32 +19,4 @@ struct.RebelSentimentReport {
   rebel_sentiment 'int',
   rebels 'int',
   tories 'int',
-}
-
-struct.WarOfSuccessionNations {
-  withdraws 'e_nation',
-  receives 'e_nation',
-}
-
-struct.WarOfSuccessionPlan {
-  nations 'WarOfSuccessionNations',
-  remove_units 'std::vector<UnitId>',
-  reassign_units 'std::vector<UnitId>',
-  reassign_colonies 'std::vector<ColonyId>',
-  # We need to manually update fog squares for a couple of rea-
-  # sons:
-  #
-  #   1. The automatic updating of player squares that happens
-  #      when a unit has its ownership changed (via the proper
-  #      API) will only update the owning player's fog square,
-  #      whereas here we want to update the human player's, be-
-  #      cause they are being told of the update.
-  #   2. There are cases where the fog square would not be up-
-  #      dated even for the owning player, e.g. in the case of a
-  #      missionary in a dwelling. We need to update the player
-  #      square there so that the color of the missionary cross
-  #      changes.
-  #
-  # These squares will only be updated if they are fogged.
-  update_fog_squares 'std::vector<gfx::point>',
 }
