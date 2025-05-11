@@ -64,9 +64,15 @@ maybe<e_nation> player_for_role( SSConst const& ss,
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    case e_player_role::active:
-      return ss.turn.cycle.get_if<TurnCycle::nation>().member(
-          &TurnCycle::nation::nation );
+    case e_player_role::active: {
+      SWITCH( ss.turn.cycle ) {
+        CASE( not_started ) { return nothing; }
+        CASE( natives ) { return nothing; }
+        CASE( nation ) { return nation.nation; }
+        CASE( end_cycle ) { return nothing; }
+        CASE( finished ) { return nothing; }
+      }
+    }
   }
 }
 
