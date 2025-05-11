@@ -529,10 +529,10 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
       required_rebel_sentiment_for_declaration( ss );
   if( player.revolution.status < e_revolution_status::declared &&
       player.revolution.rebel_sentiment < required_sentiment ) {
-    player.revolution.rebel_sentiment = required_sentiment;
     RebelSentimentChangeReport const change_report{
       .prev = player.revolution.rebel_sentiment,
       .nova = required_sentiment };
+    player.revolution.rebel_sentiment = required_sentiment;
     co_await show_rebel_sentiment_change_report(
         player, ts.euro_minds()[player.nation], change_report );
     if( should_do_war_of_succession( as_const( ss ),
