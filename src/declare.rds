@@ -15,6 +15,7 @@ namespace "rn"
 enum.e_declare_rejection {
   rebel_sentiment_too_low,
   already_declared,
+  other_human_already_declared,
   already_won,
 }
 

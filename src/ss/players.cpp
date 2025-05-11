@@ -40,16 +40,17 @@ base::valid_or<string> PlayersState::validate() const {
                      "mismatch in player nations for the {}.",
                      nation );
 
-  // Ensure that at most one player has moved past the
-  // non-declared independence state.
+  // Ensure that at most one human player has declared.
   for( int count = 0; auto const& [nation, player] : players ) {
     if( !player.has_value() ) continue;
-    if( player->revolution.status >
-        e_revolution_status::not_declared )
+    if( !player->human ) continue;
+    if( player->revolution.status >=
+        e_revolution_status::declared )
       ++count;
     REFL_VALIDATE(
         count <= 1,
-        "At most one player can declare independence." );
+        "There are multiple human players that have declared "
+        "independence, but at most one is allowed to do so." );
   }
   return base::valid;
 }

@@ -37,6 +37,8 @@ enum class e_nation;
 /****************************************************************
 ** Public API.
 *****************************************************************/
+maybe<e_nation> human_player_that_declared( SSConst const& ss );
+
 base::valid_or<e_declare_rejection> can_declare_independence(
     SSConst const& ss, Player const& player );
 

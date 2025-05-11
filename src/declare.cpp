@@ -51,12 +51,27 @@ bool rebellion_large_enough_to_declare(
 /****************************************************************
 ** Public API.
 *****************************************************************/
+maybe<e_nation> human_player_that_declared( SSConst const& ss ) {
+  using enum e_revolution_status;
+  // The players state validation should have ensured that there
+  // is at most one human player that has declared.
+  for( auto const& [nation, player] : ss.players.players )
+    if( player.has_value() && player->human &&
+        player->revolution.status >= declared )
+      return nation;
+  return nothing;
+}
+
 valid_or<e_declare_rejection> can_declare_independence(
     SSConst const& ss, Player const& player ) {
   switch( player.revolution.status ) {
     using enum e_revolution_status;
     using enum e_declare_rejection;
     case not_declared: {
+      for( auto const& [nation, other] : ss.players.players )
+        if( other.has_value() && nation != player.nation )
+          if( other->revolution.status >= declared )
+            return other_human_already_declared;
       if( rebellion_large_enough_to_declare( ss.settings,
                                              player ) )
         return valid;
@@ -79,6 +94,11 @@ wait<> show_declare_rejection_msg(
     case already_declared:
       co_await gui.message_box(
           "We are already fighting the war of independence." );
+      break;
+    case other_human_already_declared:
+      co_await gui.message_box(
+          "We cannot declare independence as another non-AI "
+          "player has already declared." );
       break;
     case already_won:
       co_await gui.message_box(

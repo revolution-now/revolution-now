@@ -132,8 +132,15 @@ TEST_CASE( "[declare] can_declare_independence" ) {
   SECTION( "Already Declared" ) {
   }
 
+  SECTION( "Other Human Already Declared" ) {
+  }
+
   SECTION( "Already Won" ) {
   }
+}
+
+TEST_CASE( "[declare] human_player_that_declared" ) {
+  world w;
 }
 
 TEST_CASE( "[declare] show_declare_rejection_msg" ) {
