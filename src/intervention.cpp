@@ -195,7 +195,8 @@ maybe<InterventionLandUnits> pick_forces_to_deploy(
     --( *p_available );
     ++( *p_taken );
   }
-  if( total_taken() == 0 ) return nothing;
+  // Even if total_taken() is zero at this point we will
+  // return a value because we want the ship to be delivered.
   return taken;
 }
 

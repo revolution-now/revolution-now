@@ -68,6 +68,9 @@ maybe<InterventionDeployTile> find_intervention_deploy_tile(
     TerrainConnectivity const& connectivity,
     Player const& player );
 
+// This will return nothing if there is no ship available, other-
+// wise will return a value, which could have all zeroes, in
+// which case a ship just comes empty.
 maybe<InterventionLandUnits> pick_forces_to_deploy(
     Player const& player );
 
