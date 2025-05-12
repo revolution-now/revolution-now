@@ -133,26 +133,40 @@ wait<> declare_independence_ui_sequence_pre( SSConst const&,
       "(signing of signature on declaration)" );
 }
 
-DeclarationResult declare_independence( SS&, TS&,
+DeclarationResult declare_independence( SS& ss, TS&,
                                         Player& player ) {
   DeclarationResult res;
+  e_difficulty const difficulty =
+      ss.as_const.settings.game_setup_options.difficulty;
+
+  // Step: Set declaration status.
   player.revolution.status = e_revolution_status::declared;
 
-  // * Add backup force. Make sure that there is at least one
-  //   Man-o-War if there are any ref units to bring. The OG ap-
-  //   pears to increase this from zero to one if it is zero.
+  // Step: Add backup force.
+  player.revolution.intervention_force =
+      config_revolution.intervention_forces
+          .unit_counts[difficulty];
+
+  // TODO:
+  // * Make sure that there is at least one Man-o-War if there
+  //   are any ref units to bring. The OG appears to increase
+  //   this from zero to one if it is zero.
   // * Eliminate all foreign units.
   // * Mark foreign players as "withdrawn"; they no longer get
-  //   evolved, probably at the colony level either.
-  // * End the turn of the player. Ensure that they get an
-  //   end-of-turn if needed.
+  //   evolved, probably at the colony level either. The players
+  //   can't be deleted because their colonies persist.
   // * Seize all ships on the high seas and in europe and ensure
   //   that the europe screen changes.
-  // * Looks like liberty bell count gets reset to zero, though
-  //   it continues to accumulate for the intervention force.
+  // * Reset bell count to zero.
   // * Promote continental armies in colonies. This actually ap-
   //   pears to happen at the start of the new turn.
   // * Reset founding fathers state.
+  // * End the turn of the player. Ensure that they get an
+  //   end-of-turn if needed.
+  // * On the next turn, show the intervention forces intro along
+  //   with the other intro messages about the REF combat strate-
+  //   gies.
+
   return res;
 }
 
