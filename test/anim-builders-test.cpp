@@ -1534,6 +1534,18 @@ TEST_CASE(
   direction = e_direction::s;
   ship_id =
       W.add_unit_on_map( e_unit_type::man_o_war, coord ).id();
+  expected = { .sequence = {
+                 /*phase 0*/ {
+                   { .primitive =
+                         P::ensure_tile_visible{
+                           .tile = { .x = 1, .y = 1 } } },
+                   { .primitive =
+                         P::ensure_tile_visible{
+                           .tile = { .x = 1, .y = 2 } } },
+                 },
+               } };
+  REQUIRE( f() == expected );
+
   UnitId const regular_id =
       W.add_unit_in_cargo( e_unit_type::regular, ship_id ).id();
   UnitId const cavalry_id =
