@@ -597,6 +597,31 @@ TEST_CASE( "[gfx/cartesian] moved*" ) {
   }
 }
 
+TEST_CASE( "[gfx/cartesian] point::direction_to" ) {
+  point const p = { .x = 1, .y = 2 };
+
+  REQUIRE( p.direction_to( { .x = 0, .y = 1 } ) ==
+           e_direction::nw );
+  REQUIRE( p.direction_to( { .x = 1, .y = 1 } ) ==
+           e_direction::n );
+  REQUIRE( p.direction_to( { .x = 2, .y = 1 } ) ==
+           e_direction::ne );
+  REQUIRE( p.direction_to( { .x = 0, .y = 2 } ) ==
+           e_direction::w );
+  REQUIRE( p.direction_to( { .x = 2, .y = 2 } ) ==
+           e_direction::e );
+  REQUIRE( p.direction_to( { .x = 0, .y = 3 } ) ==
+           e_direction::sw );
+  REQUIRE( p.direction_to( { .x = 1, .y = 3 } ) ==
+           e_direction::s );
+  REQUIRE( p.direction_to( { .x = 2, .y = 3 } ) ==
+           e_direction::se );
+
+  REQUIRE( p.direction_to( { .x = 1, .y = 2 } ) == nothing );
+  REQUIRE( p.direction_to( { .x = 3, .y = 2 } ) == nothing );
+  REQUIRE( p.direction_to( { .x = 1, .y = 4 } ) == nothing );
+}
+
 /****************************************************************
 ** dpoint
 *****************************************************************/

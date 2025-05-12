@@ -11,6 +11,7 @@
 #include "cartesian.hpp"
 
 // refl
+#include "refl/query-enum.hpp"
 #include "refl/to-str.hpp"
 
 // C++ standard library
@@ -24,6 +25,7 @@ namespace {
 
 using ::base::maybe;
 using ::base::nothing;
+using ::refl::enum_values;
 
 template<typename R>
 R rect_clamped( R const src, R const bounds ) {
@@ -500,6 +502,14 @@ point point::with_x( int const new_x ) const {
 
 point point::with_y( int const new_y ) const {
   return { .x = x, .y = new_y };
+}
+
+maybe<e_direction> point::direction_to(
+    point const dest ) const {
+  for( auto const d : enum_values<e_direction> )
+    if( moved( d ) == dest ) //
+      return d;
+  return nothing;
 }
 
 /****************************************************************
