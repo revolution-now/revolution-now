@@ -1516,5 +1516,56 @@ TEST_CASE( "[anim-builders] anim_seq_for_sfx" ) {
   REQUIRE( f() == expected );
 }
 
+TEST_CASE(
+    "[anim-builders] "
+    "anim_seq_for_offboard_intervention_force" ) {
+  World W;
+  AnimationSequence expected;
+  e_direction direction = {};
+  Coord coord           = {};
+  UnitId ship_id        = {};
+
+  auto f = [&] {
+    return anim_seq_for_offboard_intervention_force(
+        W.ss(), ship_id, direction );
+  };
+
+  coord     = { .x = 1, .y = 1 };
+  direction = e_direction::s;
+  ship_id =
+      W.add_unit_on_map( e_unit_type::man_o_war, coord ).id();
+  UnitId const regular_id =
+      W.add_unit_in_cargo( e_unit_type::regular, ship_id ).id();
+  UnitId const cavalry_id =
+      W.add_unit_in_cargo( e_unit_type::cavalry, ship_id ).id();
+  UnitId const artillery_id =
+      W.add_unit_in_cargo( e_unit_type::artillery, ship_id )
+          .id();
+  expected = {
+    .sequence = {
+      /*phase 0*/ {
+        { .primitive =
+              P::ensure_tile_visible{
+                .tile = { .x = 1, .y = 1 } } },
+        { .primitive =
+              P::ensure_tile_visible{
+                .tile = { .x = 1, .y = 2 } } },
+      },
+      /*phase 1*/
+      { { .primitive = P::slide_unit{ .unit_id   = regular_id,
+                                      .direction = direction } },
+        { .primitive = P::play_sound{ .what = e_sfx::move } } },
+      /*phase 2*/
+      { { .primitive = P::slide_unit{ .unit_id   = cavalry_id,
+                                      .direction = direction } },
+        { .primitive = P::play_sound{ .what = e_sfx::move } } },
+      /*phase 3*/
+      { { .primitive = P::slide_unit{ .unit_id   = artillery_id,
+                                      .direction = direction } },
+        { .primitive = P::play_sound{ .what = e_sfx::move } } },
+    } };
+  REQUIRE( f() == expected );
+}
+
 } // namespace
 } // namespace rn

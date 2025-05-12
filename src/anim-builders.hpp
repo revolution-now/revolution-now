@@ -156,4 +156,8 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
 // Just plays a sound.
 AnimationSequence anim_seq_for_sfx( e_sfx sound );
 
+// Animates the moving of units off of a ship.
+AnimationSequence anim_seq_for_offboard_intervention_force(
+    SSConst const& ss, UnitId ship_id, e_direction d );
+
 } // namespace rn

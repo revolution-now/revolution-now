@@ -44,6 +44,8 @@ namespace rn {
 
 namespace {
 
+using ::gfx::point;
+
 void add_attack_outcome_for_euro_unit(
     SSConst const& ss, AnimationBuilder& builder, UnitId unit_id,
     EuroUnitCombatOutcome const& outcome ) {
@@ -913,6 +915,32 @@ AnimationSequence anim_seq_for_cheat_kill_natives(
 AnimationSequence anim_seq_for_sfx( e_sfx sound ) {
   AnimationBuilder builder;
   builder.play_sound( sound );
+  return builder.result();
+}
+
+// Animates the moving of units off of a ship.
+AnimationSequence anim_seq_for_offboard_intervention_force(
+    SSConst const& ss, UnitId const ship_id,
+    e_direction const d ) {
+  Unit const& ship       = ss.units.unit_for( ship_id );
+  auto const cargo_units = ship.cargo().units();
+
+  point const ship_tile = ss.units.coord_for( ship.id() );
+  point const target    = ship_tile.moved( d );
+
+  AnimationBuilder builder;
+
+  // Phase 0: pan to site.
+  ensure_tiles_visible( builder, { ship_tile, target } );
+
+  // Phase N: slide unit onto tile. NOTE: the ship remains where
+  // it is.
+  for( UnitId const unit_id : cargo_units ) {
+    builder.new_phase();
+    builder.slide_unit( unit_id, d );
+    builder.play_sound( e_sfx::move );
+  }
+
   return builder.result();
 }
 
