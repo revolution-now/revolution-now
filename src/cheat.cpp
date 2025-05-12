@@ -27,6 +27,7 @@
 #include "imap-updater.hpp"
 #include "imenu-server.hpp"
 #include "interrupts.hpp"
+#include "intervention.hpp"
 #include "land-view.hpp"
 #include "market.hpp"
 #include "minds.hpp"
@@ -565,14 +566,31 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
   }
 
   if( !player.revolution.intervention_force_deployed ) {
+    int const bells_needed =
+        bells_required_for_intervention( ss.settings );
+    if( player.bells < bells_needed )
+      player.bells = bells_needed;
+    if( should_trigger_intervention( ss.as_const,
+                                     as_const( player ) ) ) {
+      trigger_intervention( player );
+      auto const intervention_nation =
+          select_nation_for_intervention( player.nation );
+      co_await intervention_forces_triggered_ui_seq(
+          ss, ts.gui, player.nation, intervention_nation );
+    }
     co_return;
   }
 
   if( player.revolution.status < e_revolution_status::won ) {
+    co_await ts.gui.message_box(
+        "The War of Independence will be won on the next "
+        "turn." );
+    player.revolution.ref_will_forfeit = true;
     co_return;
   }
 
-  co_return;
+  co_await ts.gui.message_box(
+      "The War of Independence has already been won." );
 }
 
 /****************************************************************

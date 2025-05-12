@@ -67,6 +67,8 @@ sumtype.TurnCycle {
     nation 'e_nation',
     st 'NationTurnState',
   },
+  ref {},
+  intervention {},
   end_cycle {},
   finished {},
 }

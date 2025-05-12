@@ -41,6 +41,14 @@ struct.RefForces {
   initial_forces 'refl::enum_map<e_difficulty, ExpeditionaryForce>',
 }
 
+struct.InterventionForces {
+  unit_counts 'refl::enum_map<e_difficulty, InterventionForce>',
+
+  bells_needed 'refl::enum_map<e_difficulty, int>',
+
+  _features { equality, validation }
+}
+
 namespace "rn"
 
 struct.config_revolution_t {
@@ -49,6 +57,8 @@ struct.config_revolution_t {
   declaration 'config::revolution::Declaration',
 
   ref_forces 'config::revolution::RefForces',
+
+  intervention_forces 'config::revolution::InterventionForces',
 }
 
 config.revolution {}

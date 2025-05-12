@@ -29,8 +29,8 @@ struct.ExpeditionaryForce {
 }
 
 struct.InterventionForce {
-  regulars  'int',
-  cavalry   'int',
+  continental_army 'int',
+  continental_cavalry 'int',
   artillery 'int',
   men_o_war 'int',
 }

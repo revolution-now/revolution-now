@@ -33,6 +33,7 @@
 #include "igui.hpp"
 #include "imap-updater.hpp"
 #include "interrupts.hpp"
+#include "intervention.hpp"
 #include "iraid.rds.hpp"
 #include "isave-game.rds.hpp"
 #include "itribe-evolve.rds.hpp"
@@ -1535,6 +1536,49 @@ wait<> nation_turn( IEngine& engine, SS& ss, TS& ts,
 }
 
 /****************************************************************
+** Intervention Force.
+*****************************************************************/
+wait<> do_intervention_force_turn(
+    IEngine&, SS& ss, TS& ts, e_nation const nation,
+    TurnCycle::intervention const& ) {
+  UNWRAP_CHECK( player, ss.players.players[nation] );
+  if( !player.revolution.intervention_force_deployed ) {
+    if( should_trigger_intervention( ss.as_const,
+                                     as_const( player ) ) ) {
+      trigger_intervention( player );
+      auto const intervention_nation =
+          select_nation_for_intervention( player.nation );
+      co_await intervention_forces_triggered_ui_seq(
+          ss, ts.gui, player.nation, intervention_nation );
+    }
+    co_return;
+  }
+
+  if( player.revolution.intervention_force_deployed ) {
+    auto const forces = pick_forces_to_deploy( player );
+    lg.info( "chose intervention forces: {}", forces );
+    if( forces.has_value() ) {
+      auto const target = find_intervention_deploy_tile(
+          ss, ts.rand, ts.connectivity, player );
+      if( target.has_value() ) {
+        UnitId const ship_id = deploy_intervention_forces(
+            ss, ts, *target, *forces );
+        Colony const& colony =
+            ss.colonies.colony_for( target->colony_id );
+        auto const intervention_nation =
+            select_nation_for_intervention( player.nation );
+        co_await intervention_forces_deployed_ui_seq(
+            ts.gui, colony, intervention_nation );
+        co_await animate_move_intervention_units_into_colony(
+            ss, ts, ship_id, colony );
+        move_intervention_units_into_colony( ss, ts, ship_id,
+                                             colony );
+      }
+    }
+  }
+}
+
+/****************************************************************
 ** Turn Processor
 *****************************************************************/
 // Here we do things that must be done once at the start of each
@@ -1599,6 +1643,19 @@ wait<TurnCycle> next_turn_iter( IEngine& engine, SS& ss,
               find_next_nation_to_move( ss, nation.nation );
           next.has_value() )
         co_return TurnCycle::nation{ .nation = *next };
+      co_return TurnCycle::ref{};
+    }
+    CASE( ref ) {
+      auto const nation = human_player_that_declared( ss );
+      if( !nation.has_value() ) co_return TurnCycle::end_cycle{};
+      // TODO
+      co_return TurnCycle::intervention{};
+    }
+    CASE( intervention ) {
+      UNWRAP_CHECK_T( e_nation const nation,
+                      human_player_that_declared( ss ) );
+      co_await do_intervention_force_turn(
+          engine, ss, ts, nation, intervention );
       co_return TurnCycle::end_cycle{};
     }
     CASE( end_cycle ) {

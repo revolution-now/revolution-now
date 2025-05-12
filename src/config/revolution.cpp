@@ -12,6 +12,7 @@
 
 // refl
 #include "refl/ext.hpp"
+#include "refl/to-str.hpp"
 
 using namespace std;
 
@@ -42,6 +43,28 @@ config::revolution::Declaration::validate() const {
         rebels > 0,
         "Required number of rebels for AI to be granted "
         "independence must be larger than zero." );
+
+  return base::valid;
+}
+
+/****************************************************************
+** config::revolution::InterventionForces
+*****************************************************************/
+base::valid_or<string>
+config::revolution::InterventionForces::validate() const {
+  int constexpr kUnitsPerShip = 6;
+  static_assert( kUnitsPerShip > 0 );
+  for( auto const& [difficulty, force] : unit_counts ) {
+    int const ships_needed =
+        ( force.continental_army + force.continental_cavalry +
+          force.artillery + kUnitsPerShip - 1 ) /
+        kUnitsPerShip;
+    REFL_VALIDATE( force.men_o_war >= ships_needed,
+                   "Intervention force on difficulty level {} "
+                   "requires at least {} ships to transport "
+                   "units, but only {} provided.",
+                   difficulty, ships_needed, force.men_o_war );
+  }
 
   return base::valid;
 }

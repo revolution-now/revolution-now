@@ -15,6 +15,7 @@
 #include "fathers.hpp"
 #include "iengine.hpp"
 #include "input.hpp"
+#include "intervention.hpp"
 #include "plane-stack.hpp"
 #include "rebel-sentiment.hpp"
 #include "screen.hpp"
@@ -30,6 +31,7 @@
 
 // ss
 #include "ss/player.rds.hpp"
+#include "ss/ref.hpp"
 
 // render
 #include "render/renderer.hpp"
@@ -71,6 +73,12 @@ struct Layout {
   rect founding_father_bounds;
   TileSpreadRenderPlan founding_father_spreads;
 
+  // Bells for intervention force.
+  string intervention_force_bells_title;
+  point intervention_force_bells_text_nw;
+  rect intervention_force_bells_bounds;
+  TileSpreadRenderPlan intervention_force_bells_spreads;
+
   // Rebel sentiment.
   string rebel_sentiment_title;
   point rebel_sentiment_text_nw;
@@ -82,6 +90,12 @@ struct Layout {
   point expeditionary_force_text_nw;
   rect expeditionary_force_bounds;
   TileSpreadRenderPlans expeditionary_force_spreads;
+
+  // Intervention force.
+  string intervention_force_title;
+  point intervention_force_text_nw;
+  rect intervention_force_bounds;
+  TileSpreadRenderPlans intervention_force_spreads;
 };
 
 /****************************************************************
@@ -163,6 +177,55 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     };
     l.founding_father_spreads = build_progress_tile_spread(
         textometer, founding_father_spread_opts );
+  }();
+
+  [&] {
+    if( player.revolution.status <
+            e_revolution_status::declared ||
+        player.revolution.status >= e_revolution_status::won )
+      // No more intervention force after this.
+      return;
+    if( player.revolution.intervention_force_deployed ) return;
+    auto const bells_needed =
+        bells_required_for_intervention( ss.settings );
+    e_tile const kBellsTile      = e_tile::product_bells_20;
+    int const spread_tile_height = sprite_size( kBellsTile ).h;
+    SCOPE_EXIT {
+      cur.y += spread_tile_height;
+      cur.y += kBufferAfterSection;
+    };
+    e_nation const intervening_nation =
+        select_nation_for_intervention( player.nation );
+    l.intervention_force_bells_title =
+        fmt::format( "{} Intervention:",
+                     config_nation.nations[intervening_nation]
+                         .possessive_pre_declaration );
+    l.intervention_force_bells_text_nw = cur;
+    cur.y += kBufferAfterTitle;
+    l.intervention_force_bells_bounds = {
+      .origin = cur,
+      .size   = { .w = l.canvas.left() + margin, .h = 32 } };
+    l.intervention_force_bells_title +=
+        fmt::format( " [{}/{}]", player.bells, bells_needed );
+    ProgressTileSpreadConfig const
+        intervention_force_bells_spread_opts{
+          .tile           = kBellsTile,
+          .count          = bells_needed,
+          .progress_count = player.bells,
+          .label_override = nothing,
+          .options =
+              {
+                .bounds       = l.canvas.size.w - 2 * margin,
+                .label_policy = SpreadLabels::always{},
+                .label_opts =
+                    { .placement =
+                          SpreadLabelPlacement::in_first_tile{
+                            .placement = e_cdirection::sw } },
+              },
+        };
+    l.intervention_force_bells_spreads =
+        build_progress_tile_spread(
+            textometer, intervention_force_bells_spread_opts );
   }();
 
   [&] {
@@ -262,6 +325,71 @@ Layout layout_auto( SSConst const& ss, Player const& player,
         textometer, expeditionary_force_spread_opts );
   }();
 
+  [&] {
+    auto const& force     = player.revolution.intervention_force;
+    int const total_units = force.continental_army +
+                            force.continental_cavalry +
+                            force.artillery + force.men_o_war;
+    if( total_units == 0 ) return;
+    e_tile const continental_army_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::continental_army]
+            .tile;
+    e_tile const continental_cavalry_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::continental_cavalry]
+            .tile;
+    e_tile const artillery_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::artillery]
+            .tile;
+    e_tile const man_o_war_tile =
+        config_unit_type.composition
+            .unit_types[e_unit_type::man_o_war]
+            .tile;
+    int const spread_tile_height =
+        sprite_size( continental_army_tile ).h;
+    SCOPE_EXIT {
+      cur.y += spread_tile_height;
+      cur.y += kBufferAfterSection;
+    };
+    e_nation const intervening_nation =
+        select_nation_for_intervention( player.nation );
+    // Always use the "pre declaration" form here because this
+    // refers to that country's King's army.
+    l.intervention_force_title =
+        fmt::format( "{} Intervention Force",
+                     config_nation.nations[intervening_nation]
+                         .possessive_pre_declaration );
+    l.intervention_force_text_nw = cur;
+    cur.y += kBufferAfterTitle;
+    l.intervention_force_bounds = {
+      .origin = cur,
+      .size   = { .w = l.canvas.left() + margin, .h = 32 } };
+    TileSpreadConfigMulti const intervention_force_spread_opts{
+      .tiles{
+        { .tile  = continental_army_tile,
+          .count = force.continental_army },
+        { .tile  = continental_cavalry_tile,
+          .count = force.continental_cavalry },
+        { .tile = artillery_tile, .count = force.artillery },
+        { .tile = man_o_war_tile, .count = force.men_o_war },
+      },
+      .options =
+          {
+            .bounds       = l.canvas.size.w - 2 * margin,
+            .label_policy = SpreadLabels::always{},
+            .label_opts =
+                { .placement =
+                      SpreadLabelPlacement::in_first_tile{
+                        .placement = e_cdirection::sw } },
+          },
+      .group_spacing = 4,
+    };
+    l.intervention_force_spreads = build_tile_spread_multi(
+        textometer, intervention_force_spread_opts );
+  }();
+
   return l;
 }
 
@@ -331,6 +459,15 @@ struct ContinentalCongressReport : public IPlane {
                                l.founding_father_bounds.nw(),
                                l.founding_father_spreads );
 
+    // Bells for intervention force.
+    renderer
+        .typer( l.intervention_force_bells_text_nw,
+                pixel::banana() )
+        .write( l.intervention_force_bells_title );
+    draw_rendered_icon_spread(
+        renderer, l.intervention_force_bells_bounds.nw(),
+        l.intervention_force_bells_spreads );
+
     // Rebel sentiment.
     renderer.typer( l.rebel_sentiment_text_nw, pixel::banana() )
         .write( l.rebel_sentiment_title );
@@ -345,6 +482,14 @@ struct ContinentalCongressReport : public IPlane {
     draw_rendered_icon_spread( renderer,
                                l.expeditionary_force_bounds.nw(),
                                l.expeditionary_force_spreads );
+
+    // Intervention force.
+    renderer
+        .typer( l.intervention_force_text_nw, pixel::banana() )
+        .write( l.intervention_force_title );
+    draw_rendered_icon_spread( renderer,
+                               l.intervention_force_bounds.nw(),
+                               l.intervention_force_spreads );
   }
 
   void draw( rr::Renderer& renderer ) const override {

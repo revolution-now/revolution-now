@@ -64,15 +64,53 @@ declaration {
 
 ref_forces {
   initial_forces {
-    discoverer:
-      { regulars: 15, cavalry:  5, artillery:  2, men_o_war:  2 }
-    explorer:
-      { regulars: 23, cavalry: 10, artillery:  8, men_o_war:  5 }
-    conquistador:
-      { regulars: 31, cavalry: 15, artillery: 14, men_o_war:  8 }
-    governor:
-      { regulars: 39, cavalry: 20, artillery: 20, men_o_war: 11 }
-    viceroy:
-      { regulars: 47, cavalry: 25, artillery: 26, men_o_war: 14 }
+    discoverer:   { regulars: 15, cavalry:  5, artillery:  2, men_o_war:  2 }
+    explorer:     { regulars: 23, cavalry: 10, artillery:  8, men_o_war:  5 }
+    conquistador: { regulars: 31, cavalry: 15, artillery: 14, men_o_war:  8 }
+    governor:     { regulars: 39, cavalry: 20, artillery: 20, men_o_war: 11 }
+    viceroy:      { regulars: 47, cavalry: 25, artillery: 26, men_o_war: 14 }
+  }
+}
+
+intervention_forces {
+  unit_counts {
+    discoverer: {
+      continental_army:    4,
+      continental_cavalry: 2,
+      artillery:           3,
+      men_o_war:           3,
+    }
+    explorer: {
+      continental_army:    4,
+      continental_cavalry: 2,
+      artillery:           2,
+      men_o_war:           2,
+    }
+    conquistador: {
+      continental_army:    3,
+      continental_cavalry: 2,
+      artillery:           2,
+      men_o_war:           2,
+    }
+    governor: {
+      continental_army:    3,
+      continental_cavalry: 1,
+      artillery:           2,
+      men_o_war:           2,
+    }
+    viceroy: {
+      continental_army:    2,
+      continental_cavalry: 1,
+      artillery:           2,
+      men_o_war:           2,
+    }
+  }
+
+  bells_needed {
+    discoverer:   2000
+    explorer:     3500
+    conquistador: 5000
+    governor:     6500
+    viceroy:      8000
   }
 }

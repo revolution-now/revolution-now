@@ -1,0 +1,28 @@
+# ===============================================================
+# intervention.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-05-11.
+#
+# Description: Implements the intervention force
+#
+# ===============================================================
+# ss
+include "ss/colony-id.hpp"
+
+# gfx
+include "gfx/cartesian.hpp"
+
+namespace "rn"
+
+struct.InterventionLandUnits {
+  continental_army 'int',
+  continental_cavalry 'int',
+  artillery 'int',
+}
+
+struct.InterventionDeployTile {
+  tile 'gfx::point',
+  colony_id 'ColonyId',
+}
