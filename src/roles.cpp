@@ -69,6 +69,8 @@ maybe<e_nation> player_for_role( SSConst const& ss,
         CASE( not_started ) { return nothing; }
         CASE( natives ) { return nothing; }
         CASE( nation ) { return nation.nation; }
+        CASE( ref ) { return nothing; }
+        CASE( intervention ) { return nothing; }
         CASE( end_cycle ) { return nothing; }
         CASE( finished ) { return nothing; }
       }
