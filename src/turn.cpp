@@ -1568,7 +1568,7 @@ wait<> do_intervention_force_turn(
         auto const intervention_nation =
             select_nation_for_intervention( player.nation );
         co_await intervention_forces_deployed_ui_seq(
-            ts.gui, colony, intervention_nation );
+            ts, colony, intervention_nation );
         co_await animate_move_intervention_units_into_colony(
             ss, ts, ship_id, colony );
         move_intervention_units_into_colony( ss, ts, ship_id,

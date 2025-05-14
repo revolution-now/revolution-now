@@ -85,7 +85,7 @@ UnitId deploy_intervention_forces(
 // Called on each turn where some intervention units arrive in
 // the new world.
 wait<> intervention_forces_deployed_ui_seq(
-    IGui& gui, Colony const& colony, e_nation intervening );
+    TS& ts, Colony const& colony, e_nation intervening );
 
 // This doesn't move them, just animates them moving.
 wait<> animate_move_intervention_units_into_colony(

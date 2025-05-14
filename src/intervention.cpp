@@ -305,12 +305,14 @@ wait<> intervention_forces_triggered_ui_seq(
 }
 
 wait<> intervention_forces_deployed_ui_seq(
-    IGui& gui, Colony const& colony,
-    e_nation const intervening ) {
+    TS& ts, Colony const& colony, e_nation const intervening ) {
+  co_await ts.planes.get()
+      .get_bottom<ILandViewPlane>()
+      .ensure_visible( colony.location );
   string const& intervener_name =
       config_nation.nations[intervening]
           .possessive_pre_declaration;
-  co_await gui.message_box(
+  co_await ts.gui.message_box(
       "{} intervention forces arrive in [{}].  {} General joins "
       "forces with the Rebels.",
       intervener_name, colony.name, intervener_name );
@@ -333,9 +335,11 @@ void move_intervention_units_into_colony(
     Colony const& colony ) {
   Unit const& ship       = ss.units.unit_for( ship_id );
   auto const cargo_units = ship.cargo().units();
-  for( UnitId const unit_id : cargo_units )
+  for( UnitId const unit_id : cargo_units ) {
     UnitOwnershipChanger( ss, unit_id )
         .change_to_map_non_interactive( ts, colony.location );
+    ss.units.unit_for( unit_id ).clear_orders();
+  }
 }
 
 } // namespace rn
