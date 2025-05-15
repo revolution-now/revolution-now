@@ -457,6 +457,31 @@ TEST_CASE(
 
 TEST_CASE( "[rebel-sentiment] unit_count_for_rebel_sentiment" ) {
   world w;
+
+  auto const f = [&]( e_nation const nation ) {
+    return unit_count_for_rebel_sentiment( w.ss(), nation );
+  };
+
+  using enum e_nation;
+
+  // Default.
+  REQUIRE( f( english ) == 0 );
+  REQUIRE( f( french ) == 0 );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 0, .y = 0 }, e_nation::french );
+  REQUIRE( f( english ) == 0 );
+  REQUIRE( f( french ) == 1 );
+
+  w.add_unit_on_map( e_unit_type::free_colonist,
+                     { .x = 1, .y = 0 }, e_nation::english );
+  REQUIRE( f( english ) == 1 );
+  REQUIRE( f( french ) == 1 );
+
+  w.add_unit_on_map( e_unit_type::artillery, { .x = 0, .y = 0 },
+                     e_nation::french );
+  REQUIRE( f( english ) == 1 );
+  REQUIRE( f( french ) == 1 );
 }
 
 } // namespace
