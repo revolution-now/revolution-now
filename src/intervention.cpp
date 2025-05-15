@@ -47,7 +47,6 @@
 using namespace std;
 
 namespace rg = std::ranges;
-namespace rv = std::ranges::views;
 
 namespace rn {
 
@@ -71,28 +70,32 @@ int bells_required_for_intervention(
       .bells_needed[settings.game_setup_options.difficulty];
 }
 
+// NOTE: the return value of this function cannot depend on game
+// state or randomness... it must be deterministic because it is
+// called multiple times (without storing the result) expecting
+// that it will always yield the same output for the same input.
 e_nation select_nation_for_intervention(
     e_nation const for_nation ) {
   using enum e_nation;
+  // Always give preference to the French if they are available
+  // since it reflects history.
+  //
   // NOTE: it is not required that the player actually exist here
   // in order to provide the intervention force, since it is re-
   // ally the old world that sends the intervention forces. Also,
   // we do want there to be an intervention force when there is
   // only one player in the game. It also doesn't matter whether
   // the intervening player is human or AI, for similar reasons.
-  auto const is_allowed = [&]( e_nation const nation ) {
-    return nation != for_nation;
-  };
-  // Always give preference to the French if they are available
-  // since it reflects history.
-  if( is_allowed( french ) ) return french;
-  // Go in reverse to put the english last, since it feels a bit
-  // strange for the English to be the interveners given history.
-  for( e_nation const nation :
-       rv::reverse( enum_values<e_nation> ) )
-    if( is_allowed( nation ) ) //
-      return nation;
-  SHOULD_NOT_BE_HERE;
+  switch( for_nation ) {
+    case english:
+      return french;
+    case french:
+      return spanish;
+    case spanish:
+      return french;
+    case dutch:
+      return french;
+  }
 }
 
 bool should_trigger_intervention( SSConst const& ss,
@@ -111,46 +114,6 @@ bool should_trigger_intervention( SSConst const& ss,
 void trigger_intervention( Player& player ) {
   player.revolution.intervention_force_deployed = true;
   player.bells                                  = 0;
-}
-
-maybe<InterventionDeployTile> find_intervention_deploy_tile(
-    SSConst const& ss, IRand& rand,
-    TerrainConnectivity const& connectivity,
-    Player const& player ) {
-  maybe<InterventionDeployTile> res;
-  vector<ColonyId> colonies =
-      ss.colonies.for_nation( player.nation );
-  vector<e_direction> directions(
-      enum_values<e_direction>.begin(),
-      enum_values<e_direction>.end() );
-  rand.shuffle( colonies );
-  rand.shuffle( directions );
-  for( ColonyId const colony_id : colonies ) {
-    Colony const& colony = ss.colonies.colony_for( colony_id );
-    for( e_direction const d : directions ) {
-      point const moved = colony.location.moved( d );
-      if( !ss.terrain.square_exists( moved ) ) continue;
-      if( ss.terrain.square_at( moved ).surface !=
-          e_surface::water )
-        continue;
-      if( auto const society = society_on_square( ss, moved );
-          society.has_value() ) {
-        SWITCH( *society ) {
-          CASE( european ) {
-            if( european.nation != player.nation ) continue;
-            break;
-          }
-          CASE( native ) { SHOULD_NOT_BE_HERE; }
-        }
-      }
-      if( !water_square_has_ocean_access( connectivity, moved ) )
-        continue;
-      res = InterventionDeployTile{ .tile      = moved,
-                                    .colony_id = colony_id };
-      return res;
-    }
-  }
-  return res;
 }
 
 maybe<InterventionLandUnits> pick_forces_to_deploy(
@@ -198,6 +161,46 @@ maybe<InterventionLandUnits> pick_forces_to_deploy(
   // Even if total_taken() is zero at this point we will
   // return a value because we want the ship to be delivered.
   return taken;
+}
+
+maybe<InterventionDeployTile> find_intervention_deploy_tile(
+    SSConst const& ss, IRand& rand,
+    TerrainConnectivity const& connectivity,
+    Player const& player ) {
+  maybe<InterventionDeployTile> res;
+  vector<ColonyId> colonies =
+      ss.colonies.for_nation( player.nation );
+  vector<e_direction> directions(
+      enum_values<e_direction>.begin(),
+      enum_values<e_direction>.end() );
+  rand.shuffle( colonies );
+  rand.shuffle( directions );
+  for( ColonyId const colony_id : colonies ) {
+    Colony const& colony = ss.colonies.colony_for( colony_id );
+    for( e_direction const d : directions ) {
+      point const moved = colony.location.moved( d );
+      if( !ss.terrain.square_exists( moved ) ) continue;
+      if( ss.terrain.square_at( moved ).surface !=
+          e_surface::water )
+        continue;
+      if( auto const society = society_on_square( ss, moved );
+          society.has_value() ) {
+        SWITCH( *society ) {
+          CASE( european ) {
+            if( european.nation != player.nation ) continue;
+            break;
+          }
+          CASE( native ) { SHOULD_NOT_BE_HERE; }
+        }
+      }
+      if( !water_square_has_ocean_access( connectivity, moved ) )
+        continue;
+      res = InterventionDeployTile{ .tile      = moved,
+                                    .colony_id = colony_id };
+      return res;
+    }
+  }
+  return res;
 }
 
 UnitId deploy_intervention_forces(

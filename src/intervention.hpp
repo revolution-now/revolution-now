@@ -60,18 +60,18 @@ wait<> intervention_forces_triggered_ui_seq(
     SSConst const& ss, IGui& gui, e_nation receiving,
     e_nation intervening );
 
+// This will return nothing if there is no ship available, other-
+// wise will return a value, which could have all zeroes, in
+// which case a ship just comes empty.
+maybe<InterventionLandUnits> pick_forces_to_deploy(
+    Player const& player );
+
 // May fail if there are no port colonies, or the port colonies
 // have no adjacent ocean tiles with sealane access that are not
 // blocked by REF units.
 maybe<InterventionDeployTile> find_intervention_deploy_tile(
     SSConst const& ss, IRand& rand,
     TerrainConnectivity const& connectivity,
-    Player const& player );
-
-// This will return nothing if there is no ship available, other-
-// wise will return a value, which could have all zeroes, in
-// which case a ship just comes empty.
-maybe<InterventionLandUnits> pick_forces_to_deploy(
     Player const& player );
 
 // This just creates the units, but does not move them. Returns
