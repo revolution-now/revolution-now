@@ -39,6 +39,10 @@ enum.e_euro_unit_combat_modifiers {
   terrain,
   ambush,
   artillery_in_colony, # defending against braves.
+  # From the SG (TODO: still to be verified): The intervention
+  # force [means] that all future attacks by your side against a
+  # colony receive a +50 percent bombardment bonus, heretofore
+  # enjoyed by the REF only.
   bombardment,
   artillery_out_in_the_open,
   cargo,
