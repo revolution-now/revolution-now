@@ -53,10 +53,11 @@ struct.RevolutionState {
   intervention_force_deployed 'bool',
 
   # When this is set, the REF will forfeight at the end of its
-  # next turn. The OG has a corresponding flag, and in general it
-  # can be set when there are still some remaining REF units.
-  # Some say that it happens when all Regulars have been elimi-
-  # nated, though that doesn't seem to happen in all cases.
+  # next turn (in this same turn cycle). The OG has a corre-
+  # sponding flag, and in general it can be set when there are
+  # still some remaining REF units. Some say that it happens when
+  # all Regulars have been eliminated, though that doesn't seem
+  # to happen in all cases.
   ref_will_forfeit 'bool',
 
   # TODO: need to represent other state such as "Tory Uprising".
