@@ -269,6 +269,9 @@ TileSpreadRenderPlan build_progress_tile_spread(
     .label_policy  = config.options.label_policy };
   TileSpreadRenderPlans plans =
       render_plan_for_tile_spread( textometer, tile_specs );
+  if( plans.plans.empty() )
+    // This can happen when the rendered count is zero.
+    return TileSpreadRenderPlan{};
   CHECK_EQ( plans.plans.size(), 1u );
   return std::move( plans.plans[0] );
 }

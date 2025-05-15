@@ -890,6 +890,20 @@ TEST_CASE( "[spread-builder] build_progress_tile_spread" ) {
       .returns( size{ .w = 6 * 2, .h = 8 } );
   REQUIRE( f() == ex );
 
+  // Tests the path when we go to the proportionate spread but
+  // with zero rendered count.
+  in                      = {};
+  in.tile                 = commodity_tobacco_20;
+  in.count                = 100;
+  in.progress_count       = 0;
+  in.label_override       = nothing;
+  in.options.bounds       = 30;
+  in.options.label_policy = SpreadLabels::never{};
+  in.options.label_opts   = {};
+
+  ex = {};
+  REQUIRE( f() == ex );
+
   // Label override.
   in                      = {};
   in.tile                 = commodity_tobacco_20;
