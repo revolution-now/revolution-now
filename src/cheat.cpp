@@ -582,9 +582,11 @@ wait<> cheat_advance_revolution_status( SS& ss, TS& ts,
   }
 
   if( player.revolution.status < e_revolution_status::won ) {
+    // In this case, "end of the REF's next turn" means at the
+    // end of the REF's turn in this same turn cycle.
     co_await ts.gui.message_box(
-        "The War of Independence will be won on the next "
-        "turn." );
+        "The War of Independence will be won at the end of the "
+        "REF's next turn." );
     player.revolution.ref_will_forfeit = true;
     co_return;
   }
