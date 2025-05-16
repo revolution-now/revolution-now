@@ -15,11 +15,13 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/irand.hpp"
 
 // ss
 #include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
+#include "src/ss/unit-composition.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -51,12 +53,23 @@ struct world : testing::World {
   void create_default_map() {
     MapSquare const _ = make_ocean();
     MapSquare const L = make_grassland();
-    vector<MapSquare> tiles{
-      L, L, L, //
-      L, _, L, //
-      L, L, L, //
+    // clang-format off
+    vector<MapSquare> tiles{ /*
+      0  1  2  3  4  5  6  7  8  9 */
+      L, L, L, L, L, L, L, L, L, _, // 0
+      L, _, L, L, L, L, L, L, L, _, // 1
+      L, L, L, L, L, L, L, L, L, _, // 2
+      L, L, L, L, L, L, L, L, L, _, // 3
+      _, L, L, L, L, L, L, L, L, _, // 4
+      _, L, L, L, L, L, L, L, L, _, // 5
+      _, L, L, _, L, L, L, L, L, _, // 6
+      _, L, L, _, L, L, _, _, _, _, // 7
+      _, L, L, _, L, L, L, L, L, _, // 8
+      _, L, L, L, L, L, L, L, L, _, // 9
+      _, L, L, L, L, L, L, L, L, _, // A
     };
-    build_map( std::move( tiles ), 3 );
+    // clang-format on
+    build_map( std::move( tiles ), 10 );
   }
 };
 
@@ -191,10 +204,377 @@ TEST_CASE( "[intervention] trigger_intervention" ) {
 
 TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   world w;
+  InterventionLandUnits expected;
+
+  Player& player = w.spanish();
+  auto& force    = player.revolution.intervention_force;
+
+  auto const f = [&] { return pick_forces_to_deploy( player ); };
+
+  // Default.
+  REQUIRE( f() == nothing );
+
+  force.continental_army    = 1;
+  force.continental_cavalry = 2;
+  force.artillery           = 3;
+  REQUIRE( f() == nothing );
+
+  force = {};
+  REQUIRE( f() == nothing );
+
+  force.men_o_war = 1;
+  expected        = {};
+  REQUIRE( f() == expected );
+
+  force.men_o_war = 10;
+  expected        = {};
+  REQUIRE( f() == expected );
+
+  force                  = {};
+  force.continental_army = 1;
+  force.men_o_war        = 1;
+  expected               = { .continental_army = 1 };
+  REQUIRE( f() == expected );
+
+  force                     = {};
+  force.continental_army    = 1;
+  force.continental_cavalry = 1;
+  force.men_o_war           = 1;
+  expected = { .continental_army = 1, .continental_cavalry = 1 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 1,
+               .continental_cavalry = 1,
+               .artillery           = 1,
+               .men_o_war           = 1 };
+  expected = { .continental_army    = 1,
+               .continental_cavalry = 1,
+               .artillery           = 1 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 3,
+               .continental_cavalry = 2,
+               .artillery           = 2,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 2,
+               .artillery           = 2,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 6,
+               .artillery           = 6,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 6,
+               .artillery           = 60,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 2,
+               .artillery           = 60,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 1,
+               .artillery           = 60,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 1,
+               .artillery           = 3 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 1,
+               .artillery           = 6,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 3,
+               .continental_cavalry = 1,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 6,
+               .continental_cavalry = 1,
+               .artillery           = 5,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 3,
+               .continental_cavalry = 1,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 5,
+               .continental_cavalry = 1,
+               .artillery           = 5,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 3,
+               .continental_cavalry = 1,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 5,
+               .continental_cavalry = 0,
+               .artillery           = 5,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 3,
+               .continental_cavalry = 0,
+               .artillery           = 3 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 5,
+               .continental_cavalry = 0,
+               .artillery           = 3,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 4,
+               .continental_cavalry = 0,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 5,
+               .artillery           = 3,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 4,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 3,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 3 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 2,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 1,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 3,
+               .artillery           = 1 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 2,
+               .artillery           = 0,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 2,
+               .artillery           = 0 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 1,
+               .artillery           = 0,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 1,
+               .artillery           = 0 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 0,
+               .continental_cavalry = 0,
+               .artillery           = 0,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 0,
+               .continental_cavalry = 0,
+               .artillery           = 0 };
+  REQUIRE( f() == expected );
+
+  force    = { .continental_army    = 300,
+               .continental_cavalry = 200,
+               .artillery           = 100,
+               .men_o_war           = 2 };
+  expected = { .continental_army    = 2,
+               .continental_cavalry = 2,
+               .artillery           = 2 };
+  REQUIRE( f() == expected );
 }
 
 TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
   world w;
+  InterventionDeployTile expected;
+
+  w.update_terrain_connectivity();
+
+  Player const& player = w.english();
+
+  auto const f = [&] {
+    return find_intervention_deploy_tile(
+        w.ss().as_const, w.rand(), w.connectivity(), player );
+  };
+
+  static vector<int> const direction_idxs{ 0, 1, 2, 3,
+                                           4, 5, 6, 7 };
+  expect_shuffle( w.rand(), direction_idxs );
+
+  SECTION( "default" ) { REQUIRE( f() == nothing ); }
+
+  SECTION( "selects col_id=3, (6,7) [sw]" ) {
+    // There are four friendly colonies.
+    static vector<int> const colonies_idxs{ 0, 1, 2, 3 };
+    expect_shuffle( w.rand(), colonies_idxs );
+    // has sea lane, foreign.
+    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    // Land Locked.
+    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    // no sea lane.
+    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    // has sea lane.
+    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    // has sea lane, map edge.
+    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+
+    expected = {
+      .tile      = { .x = 6, .y = 7 },
+      .colony_id = 4 // one based.
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "colonies sorted differently" ) {
+    // There are four friendly colonies.
+    static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
+    expect_shuffle( w.rand(), colonies_idxs );
+    // has sea lane, foreign.
+    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    // Land Locked.
+    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    // no sea lane.
+    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    // has sea lane.
+    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    // has sea lane, map edge.
+    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+
+    expected = {
+      .tile      = { .x = 9, .y = 9 },
+      .colony_id = 5 // one based.
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "friendly unit does not block" ) {
+    // There are four friendly colonies.
+    static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
+    expect_shuffle( w.rand(), colonies_idxs );
+    // has sea lane, foreign.
+    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    // Land Locked.
+    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    // no sea lane.
+    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    // has sea lane.
+    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    // has sea lane, map edge.
+    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+
+    // Friendly unit should not interfere.
+    w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
+                       e_nation::english );
+
+    expected = {
+      .tile      = { .x = 9, .y = 9 },
+      .colony_id = 5 // one based.
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "first choice tile blocked by foreign unit" ) {
+    // There are four friendly colonies.
+    static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
+    expect_shuffle( w.rand(), colonies_idxs );
+    // has sea lane, foreign.
+    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    // Land Locked.
+    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    // no sea lane.
+    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    // has sea lane.
+    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    // has sea lane, map edge.
+    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+
+    // Normally it would have chosen this square.
+    w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
+                       e_nation::spanish );
+
+    expected = {
+      .tile      = { .x = 9, .y = 10 },
+      .colony_id = 5 // one based.
+    };
+    REQUIRE( f() == expected );
+  }
+
+  SECTION( "probes off-map tiles." ) {
+    // There are four friendly colonies.
+    static vector<int> const colonies_idxs{ 0, 1, 3, 2 };
+    expect_shuffle( w.rand(), colonies_idxs );
+    // has sea lane, foreign.
+    w.add_colony( { .x = 5, .y = 7 }, e_nation::spanish );
+    // Land Locked.
+    w.add_colony( { .x = 6, .y = 4 }, player.nation );
+    // no sea lane.
+    w.add_colony( { .x = 2, .y = 7 }, player.nation );
+    // has sea lane.
+    w.add_colony( { .x = 7, .y = 6 }, player.nation );
+    // has sea lane, map edge.
+    w.add_colony( { .x = 8, .y = 10 }, player.nation );
+
+    // Normally it would have chosen one of these squares.
+    w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 9 },
+                       e_nation::spanish );
+    w.add_unit_on_map( e_unit_type::caravel, { .x = 9, .y = 10 },
+                       e_nation::spanish );
+
+    expected = {
+      .tile      = { .x = 6, .y = 7 },
+      .colony_id = 4 // one based.
+    };
+    REQUIRE( f() == expected );
+  }
 }
 
 TEST_CASE( "[intervention] deploy_intervention_forces" ) {

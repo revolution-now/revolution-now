@@ -170,11 +170,12 @@ maybe<InterventionDeployTile> find_intervention_deploy_tile(
   maybe<InterventionDeployTile> res;
   vector<ColonyId> colonies =
       ss.colonies.for_nation( player.nation );
+  rg::sort( colonies );
   vector<e_direction> directions(
       enum_values<e_direction>.begin(),
       enum_values<e_direction>.end() );
-  rand.shuffle( colonies );
   rand.shuffle( directions );
+  rand.shuffle( colonies );
   for( ColonyId const colony_id : colonies ) {
     Colony const& colony = ss.colonies.colony_for( colony_id );
     for( e_direction const d : directions ) {
@@ -187,10 +188,22 @@ maybe<InterventionDeployTile> find_intervention_deploy_tile(
           society.has_value() ) {
         SWITCH( *society ) {
           CASE( european ) {
+            // Keep in mind that when the intervention force is
+            // deployed, all other european nations' units will
+            // have been removed, so in practice this is just
+            // testing if there is an REF ship in the way, in
+            // which case the square will be avoided (confirmed
+            // this is the behavior in OG). If this means that
+            // there are no available tiles, then the interven-
+            // tion force does not land this turn.
             if( european.nation != player.nation ) continue;
             break;
           }
-          CASE( native ) { SHOULD_NOT_BE_HERE; }
+          CASE( native ) {
+            // Should never happen since this is a water square,
+            // but let's be defensive against strange mods.
+            continue;
+          }
         }
       }
       if( !water_square_has_ocean_access( connectivity, moved ) )
