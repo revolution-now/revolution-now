@@ -169,6 +169,29 @@ TEST_CASE( "[lua] after initialization" ) {
   W.initialize_ts();
   lua::state& st = W.lua();
 
+  // Configs injected.
+  {
+    auto script = R"lua(
+      assert( config.nation
+                .nations
+                .spanish
+                .flag_color
+                 == "#FFFE54FF" )
+      assert( config.rn
+                .power
+                .time_till_slow_fps
+                 == 60 )
+      assert( config.revolution
+                .ref_forces
+                .initial_forces
+                .governor
+                .cavalry
+                 == 20 )
+    )lua";
+
+    REQUIRE( W.lua().script.run_safe( script ) == valid );
+  }
+
   // Function binding.
   {
     auto script = R"lua(

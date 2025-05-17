@@ -35,7 +35,6 @@
 #include "config/natives.rds.hpp"
 #include "config/old-world.rds.hpp"
 #include "config/production.rds.hpp"
-#include "config/range-helpers.rds.hpp"
 #include "config/revolution.rds.hpp"
 #include "config/rn.rds.hpp"
 #include "config/savegame.rds.hpp"
@@ -61,6 +60,7 @@
 
 namespace rds {
 
+// NOTE: Don't forget to add to the config-lua module.
 INSTANTIATE_RN_CONFIG( cheat );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
@@ -91,5 +91,6 @@ INSTANTIATE_RN_CONFIG( tile_sheet );
 INSTANTIATE_RN_CONFIG( turn );
 INSTANTIATE_RN_CONFIG( ui );
 INSTANTIATE_RN_CONFIG( unit_type );
+// NOTE: Don't forget to add to the config-lua module.
 
 } // namespace rds

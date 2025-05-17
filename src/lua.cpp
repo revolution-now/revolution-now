@@ -11,6 +11,7 @@
 #include "lua.hpp"
 
 // Revolution Now
+#include "config-lua.hpp"
 #include "error.hpp"
 #include "expect.hpp"
 
@@ -137,6 +138,7 @@ void freeze_globals( lua::state& st ) {
 }
 
 void lua_init( lua::state& st ) {
+  inject_configs( st );
   add_some_members( st );
   run_lua_startup_routines( st );
   load_lua_modules( st );
