@@ -70,11 +70,13 @@ dwelling_types {
   }
 }
 
-# NOTE: The OG seems to start the dwellings off with slightly
-# less population (in some cases) than the max. However, we don't
-# both with that because, by the time the player is able to reach
-# most of the dwellings, enough turns have passed so that they
-# will be at the max anyway.
+# NOTE: The OG starts non-capital dwellings off with their max
+# population, but starts off the capitals with that same popula-
+# tion, which is less than their max, since capitals have a
+# slightly higher max population. The capitals then start to grow
+# to their slightly higher max with each passing turn. Therefore,
+# all dwellings of a tribe (including the capital) should be ini-
+# tialized with `max_population`.
 tribes {
   apache {
     name_singular:   Apache

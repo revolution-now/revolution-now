@@ -30,7 +30,7 @@ natives {
         dwelling {
           id: 2
           is_capital: true
-          population: 11
+          population: 9
         }
         ownership.location {
           x: 2
@@ -44,7 +44,7 @@ natives {
         dwelling {
           id: 3
           is_capital: true
-          population: 6
+          population: 5
         }
         ownership {
           location {
@@ -61,7 +61,7 @@ natives {
         dwelling {
           id: 4
           is_capital: true
-          population: 8
+          population: 7
         }
         ownership {
           location {
@@ -78,7 +78,7 @@ natives {
         dwelling {
           id: 5
           is_capital: true
-          population: 6
+          population: 5
         }
         ownership {
           location {
@@ -112,7 +112,7 @@ natives {
         dwelling {
           id: 7
           is_capital: true
-          population: 6
+          population: 5
         }
         ownership {
           location {

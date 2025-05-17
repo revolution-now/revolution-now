@@ -25,6 +25,7 @@ local timer = require( 'util.timer' )
 local function global( name ) return assert( _G[name] ) end
 
 local classic_sav = global( 'classic_sav' )
+local config = global( 'config' )
 local unit_mgr = global( 'unit_mgr' )
 local native_expertise = global( 'native_expertise' )
 
@@ -386,9 +387,9 @@ local LARGE_TRIBE_OWNED_LAND_MAP =
 
 local function surrounding_squares_tribe_owned( tribe, coord )
   assert( tribe )
-  -- FIXME: dwelling radius is specified in the config files,
-  -- should not be duplicated here.
-  if tribe == 'aztec' or tribe == 'inca' then
+  local level = config.natives.tribes[tribe].level
+  local radius = config.natives.dwelling_types[level].radius
+  if radius == 'large' then
     local possible = {}
     for h = -3, 3 do
       for w = -3, 3 do
@@ -762,30 +763,13 @@ local function create_brave_for_dwelling( dwelling )
   unit_mgr.create_native_unit_on_map( dwelling.id, 'brave', coord )
 end
 
--- FIXME: need to get this from config files after they are ex-
--- posed to lua.
 local function set_dwelling_population( tribe, dwelling )
-  if tribe == 'apache' or tribe == 'sioux' or tribe == 'tupi' then
-    dwelling.population = 3
-    return
-  end
-  if tribe == 'arawak' or tribe == 'cherokee' or tribe ==
-      'iroquois' then
-    dwelling.population = 5
-    if dwelling.is_capital then dwelling.population = 6 end
-    return
-  end
-  if tribe == 'aztec' then
-    dwelling.population = 7
-    if dwelling.is_capital then dwelling.population = 8 end
-    return
-  end
-  if tribe == 'inca' then
-    dwelling.population = 9
-    if dwelling.is_capital then dwelling.population = 11 end
-    return
-  end
-  error( 'tribe ' .. tribe .. ' not handled.' )
+  -- NOTE: capitals and non-capitals have different max popula-
+  -- tions, but the OG starts all dwellings (including capitals)
+  -- off at the same standard population. Then the capitals will
+  -- slowly grow to the slightly higher max population.
+  dwelling.population = config.natives.tribes[tribe]
+                            .max_population
 end
 
 local function add_dwelling( coord, tribe )
