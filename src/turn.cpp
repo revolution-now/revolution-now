@@ -1551,12 +1551,13 @@ wait<> do_intervention_force_turn(
       co_await intervention_forces_triggered_ui_seq(
           ss, ts.gui, player.nation, intervention_nation );
     }
-    co_return;
+    // !! No return here since we want to deploy on the same turn
+    // as the OG does.
   }
 
   if( player.revolution.intervention_force_deployed ) {
     auto const forces = pick_forces_to_deploy( player );
-    lg.info( "chose intervention forces: {}", forces );
+    lg.debug( "chose intervention forces: {}", forces );
     if( forces.has_value() ) {
       auto const target = find_intervention_deploy_tile(
           ss, ts.rand, ts.connectivity, player );
