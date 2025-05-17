@@ -23,6 +23,7 @@ local map_gen = require( 'map-gen' )
 local function global( name ) return assert( _G[name] ) end
 
 local cheat = global( 'cheat' )
+local config = global( 'config' )
 local game_options = global( 'game_options' )
 local immigration = global( 'immigration' )
 local market = global( 'market' )
@@ -55,22 +56,17 @@ end
 -----------------------------------------------------------------
 local function set_default_settings( options, settings )
   settings.game_setup_options.difficulty = options.difficulty
-  -- FIXME: the default value for this is to be taken from the
-  -- config/revolution.
-  settings.game_setup_options.enable_war_of_succession = true
+  local war_of_succession = config.revolution.war_of_succession
+                                .enable_war_of_succession_default
+  assert( type( war_of_succession ) == 'boolean' )
+  settings.game_setup_options.enable_war_of_succession =
+      war_of_succession
   settings.cheat_options.enabled =
       cheat.enable_cheat_mode_by_default()
-  -- TODO: these are in config/rn... get them from there.
-  game_options.set_flag( 'show_indian_moves', true )
-  game_options.set_flag( 'show_foreign_moves', true )
-  game_options.set_flag( 'fast_piece_slide', false )
-  game_options.set_flag( 'end_of_turn', false )
-  game_options.set_flag( 'autosave', true )
-  game_options.set_flag( 'combat_analysis', true )
-  game_options.set_flag( 'water_color_cycling', true )
-  game_options.set_flag( 'tutorial_hints', false )
-  game_options.set_flag( 'show_fog_of_war', false )
-
+  local menu_opts = config.rn.game_menu_options_defaults
+  for k, v in pairs( menu_opts ) do
+    game_options.set_flag( k, v )
+  end
   if options.difficulty == 'discoverer' then
     game_options.set_flag( 'tutorial_hints', true )
   end
@@ -249,13 +245,13 @@ local function create_old_world_state( settings, player )
   old_world.taxes.tax_rate = 0
 end
 
-local function create_revolution_state( player )
+local function create_revolution_state( settings, player )
   -- Expeditionary force.
-  -- TODO: these need to be taken from config/revolution.
-  player.revolution.expeditionary_force.regulars = 3
-  player.revolution.expeditionary_force.cavalry = 2
-  player.revolution.expeditionary_force.artillery = 2
-  player.revolution.expeditionary_force.men_o_war = 3
+  local difficulty = settings.game_setup_options.difficulty
+  local forces_conf =
+      config.revolution.ref_forces.initial_forces[difficulty]
+  local player_conf = player.revolution.expeditionary_force
+  for k, v in pairs( forces_conf ) do player_conf[k] = v end
 end
 
 local function init_non_processed_goods_prices( options, players )
@@ -332,7 +328,7 @@ local function create_player_state( settings, nation, player )
                      STARTING_GOLD[settings.game_setup_options
                          .difficulty] )
   create_old_world_state( settings, player )
-  create_revolution_state( player )
+  create_revolution_state( settings, player )
 end
 
 local function create_nations( options, root )

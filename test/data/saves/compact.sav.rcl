@@ -461,10 +461,10 @@ players {
       trade_goods.bid_price: 1
     }
     revolution.expeditionary_force {
-      artillery: 2
-      cavalry: 2
-      men_o_war: 3
-      regulars: 3
+      artillery: 14
+      cavalry: 15
+      men_o_war: 8
+      regulars: 31
     }
     starting_position {
       x: 7
@@ -481,6 +481,7 @@ settings {
   in_game_options.game_menu_options {
     autosave: true
     combat_analysis: true
+    show_fog_of_war: true
     show_foreign_moves: true
     show_indian_moves: true
     water_color_cycling: true
