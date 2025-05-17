@@ -15,13 +15,20 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/igui.hpp"
 #include "test/mocks/irand.hpp"
+#include "test/mocks/land-view-plane.hpp"
+#include "test/util/coro.hpp"
+
+// Revolution Now
+#include "src/plane-stack.hpp"
 
 // ss
 #include "src/ss/players.rds.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
 #include "src/ss/unit-composition.hpp"
+#include "src/ss/units.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -30,6 +37,8 @@ namespace rn {
 namespace {
 
 using namespace std;
+
+using ::mock::matchers::_;
 
 /****************************************************************
 ** Fake World Setup
@@ -579,31 +588,366 @@ TEST_CASE( "[intervention] find_intervention_deploy_tile" ) {
 
 TEST_CASE( "[intervention] deploy_intervention_forces" ) {
   world w;
+  InterventionLandUnits forces;
+
+  Player& player = w.english();
+
+  w.add_colony( { .x = 1, .y = 5 }, player.nation );
+  InterventionDeployTile const location{
+    .tile = { .x = 0, .y = 5 }, .colony_id = 1 };
+
+  auto const f = [&] {
+    return deploy_intervention_forces( w.ss(), w.ts(), location,
+                                       forces );
+  };
+
+  using enum e_unit_type;
+
+  REQUIRE( w.units().all().size() == 0 );
+
+  SECTION( "ship only" ) {
+    player.revolution.intervention_force.men_o_war = 1;
+    REQUIRE( f() == UnitId{ 1 } );
+    REQUIRE( w.units().all().size() == 1 );
+    REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+             man_o_war );
+    REQUIRE(
+        as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+        UnitOwnership::world{ .coord = { .x = 0, .y = 5 } } );
+  }
+
+  SECTION( "partial" ) {
+    player.revolution.intervention_force.men_o_war = 1;
+    player.revolution.intervention_force.continental_cavalry =
+        10;
+    player.revolution.intervention_force.continental_army = 10;
+    forces.artillery                                      = 0;
+    forces.continental_cavalry                            = 1;
+    forces.continental_army                               = 2;
+    REQUIRE( f() == UnitId{ 1 } );
+    REQUIRE( w.units().all().size() == 4 );
+    REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+             man_o_war );
+    REQUIRE( w.units().unit_for( UnitId{ 2 } ).type() ==
+             continental_army );
+    REQUIRE( w.units().unit_for( UnitId{ 3 } ).type() ==
+             continental_army );
+    REQUIRE( w.units().unit_for( UnitId{ 4 } ).type() ==
+             continental_cavalry );
+    REQUIRE(
+        as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+        UnitOwnership::world{ .coord = { .x = 0, .y = 5 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 2 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  }
+
+  SECTION( "full" ) {
+    player.revolution.intervention_force.men_o_war           = 1;
+    player.revolution.intervention_force.continental_cavalry = 4;
+    player.revolution.intervention_force.continental_army    = 3;
+    player.revolution.intervention_force.artillery           = 2;
+    forces.artillery                                         = 2;
+    forces.continental_cavalry                               = 2;
+    forces.continental_army                                  = 2;
+    REQUIRE( f() == UnitId{ 1 } );
+    REQUIRE( w.units().all().size() == 7 );
+    REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+             man_o_war );
+    REQUIRE( w.units().unit_for( UnitId{ 2 } ).type() ==
+             continental_army );
+    REQUIRE( w.units().unit_for( UnitId{ 3 } ).type() ==
+             continental_army );
+    REQUIRE( w.units().unit_for( UnitId{ 4 } ).type() ==
+             continental_cavalry );
+    REQUIRE( w.units().unit_for( UnitId{ 5 } ).type() ==
+             continental_cavalry );
+    REQUIRE( w.units().unit_for( UnitId{ 6 } ).type() ==
+             artillery );
+    REQUIRE( w.units().unit_for( UnitId{ 7 } ).type() ==
+             artillery );
+    REQUIRE(
+        as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+        UnitOwnership::world{ .coord = { .x = 0, .y = 5 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 2 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 5 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 6 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+    REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 7 } ) ==
+             UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  }
 }
 
 TEST_CASE( "[intervention] intervention_forces_intro_ui_seq" ) {
   world w;
+
+  e_nation receiving   = {};
+  e_nation intervening = {};
+
+  auto const f = [&] {
+    co_await_test( intervention_forces_intro_ui_seq(
+        w.ss(), w.gui(), receiving, intervening ) );
+  };
+
+  using enum e_nation;
+  using enum e_difficulty;
+
+  receiving                                  = spanish;
+  intervening                                = french;
+  w.settings().game_setup_options.difficulty = conquistador;
+  w.gui().EXPECT__message_box(
+      "The [French] are considering intervening in the war "
+      "against the Spanish Crown, your Excellency.  They will "
+      "do so if we can generate [5000] liberty bells during the "
+      "war." );
+  f();
+
+  receiving                                  = english;
+  intervening                                = spanish;
+  w.settings().game_setup_options.difficulty = viceroy;
+  w.gui().EXPECT__message_box(
+      "The [Spanish] are considering intervening in the war "
+      "against the English Crown, your Excellency.  They will "
+      "do so if we can generate [8000] liberty bells during the "
+      "war." );
+  f();
 }
 
 TEST_CASE(
     "[intervention] intervention_forces_triggered_ui_seq" ) {
   world w;
+
+  e_nation receiving   = {};
+  e_nation intervening = {};
+
+  auto const f = [&] {
+    co_await_test( intervention_forces_triggered_ui_seq(
+        w.ss(), w.gui(), receiving, intervening ) );
+  };
+
+  using enum e_nation;
+  using enum e_difficulty;
+
+  // No colonies.
+  f();
+
+  // One empty colony.
+  Colony& colony_1 = w.add_colony( { .x = 0, .y = 0 }, spanish );
+  colony_1.name    = "abc";
+  receiving        = spanish;
+  intervening      = french;
+  w.settings().game_setup_options.difficulty = conquistador;
+  w.gui().EXPECT__message_box(
+      "[France] declares war on Spain and joins the War of "
+      "Independence on the side of the Rebels! French Generals "
+      "meet in abc for strategic discussions. French Navy plans "
+      "to bombard Tory strongholds in the New World." );
+  f();
+
+  // Two colonies.
+  Colony& colony_2 = w.add_colony( { .x = 2, .y = 0 }, spanish );
+  colony_2.name    = "def";
+  w.add_unit_indoors( colony_2.id, e_indoor_job::bells );
+  w.add_unit_indoors( colony_2.id, e_indoor_job::bells );
+  receiving                                  = spanish;
+  intervening                                = french;
+  w.settings().game_setup_options.difficulty = conquistador;
+  w.gui().EXPECT__message_box(
+      "[France] declares war on Spain and joins the War of "
+      "Independence on the side of the Rebels! French Generals "
+      "meet in def for strategic discussions. French Navy plans "
+      "to bombard Tory strongholds in the New World." );
+  f();
+
+  // Three colonies.
+  Colony& colony_3 = w.add_colony( { .x = 0, .y = 2 }, spanish );
+  colony_3.name    = "ghi";
+  w.add_unit_indoors( colony_3.id, e_indoor_job::bells );
+  receiving                                  = spanish;
+  intervening                                = french;
+  w.settings().game_setup_options.difficulty = conquistador;
+  w.gui().EXPECT__message_box(
+      "[France] declares war on Spain and joins the War of "
+      "Independence on the side of the Rebels! French Generals "
+      "meet in def for strategic discussions. French Navy plans "
+      "to bombard Tory strongholds in the New World." );
+  f();
 }
 
 TEST_CASE(
     "[intervention] intervention_forces_deployed_ui_seq" ) {
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  using enum e_nation;
+
+  e_nation intervening = {};
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
+  colony.name    = "abc";
+
+  auto const f = [&] {
+    co_await_test( intervention_forces_deployed_ui_seq(
+        w.ts(), colony, intervening ) );
+  };
+
+  intervening = french;
+  mock_land_view.EXPECT__ensure_visible(
+      Coord{ .x = 1, .y = 5 } );
+  w.gui().EXPECT__message_box(
+      "French intervention forces arrive in [abc].  French "
+      "General joins forces with the Rebels." );
+  f();
 }
 
 TEST_CASE(
     "[intervention] "
     "animate_move_intervention_units_into_colony" ) {
   world w;
+  MockLandViewPlane mock_land_view;
+  w.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
+
+  using enum e_nation;
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
+  UnitId const ship_id =
+      w.add_unit_on_map( e_unit_type::man_o_war,
+                         { .x = 0, .y = 5 } )
+          .id();
+
+  auto const f = [&] {
+    co_await_test( animate_move_intervention_units_into_colony(
+        w.ss(), w.ts(), ship_id, colony ) );
+  };
+
+  mock_land_view.EXPECT__animate( _ );
+  f();
 }
 
 TEST_CASE(
     "[intervention] move_intervention_units_into_colony" ) {
   world w;
+
+  using enum e_nation;
+  using enum e_unit_type;
+
+  Colony& colony = w.add_colony( { .x = 1, .y = 5 }, english );
+  UnitId const ship_id =
+      w.add_unit_on_map( e_unit_type::man_o_war,
+                         { .x = 0, .y = 5 } )
+          .id();
+
+  auto const f = [&] {
+    move_intervention_units_into_colony( w.ss(), w.ts(), ship_id,
+                                         colony );
+  };
+
+  w.add_unit_in_cargo( continental_army, ship_id );
+  w.add_unit_in_cargo( continental_army, ship_id );
+  w.add_unit_in_cargo( continental_cavalry, ship_id );
+  w.add_unit_in_cargo( continental_cavalry, ship_id );
+  w.add_unit_in_cargo( artillery, ship_id );
+  w.add_unit_in_cargo( artillery, ship_id );
+
+  REQUIRE( w.units().all().size() == 7 );
+  REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+           man_o_war );
+  REQUIRE( w.units().unit_for( UnitId{ 2 } ).type() ==
+           continental_army );
+  REQUIRE( w.units().unit_for( UnitId{ 3 } ).type() ==
+           continental_army );
+  REQUIRE( w.units().unit_for( UnitId{ 4 } ).type() ==
+           continental_cavalry );
+  REQUIRE( w.units().unit_for( UnitId{ 5 } ).type() ==
+           continental_cavalry );
+  REQUIRE( w.units().unit_for( UnitId{ 6 } ).type() ==
+           artillery );
+  REQUIRE( w.units().unit_for( UnitId{ 7 } ).type() ==
+           artillery );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+           UnitOwnership::world{ .coord = { .x = 0, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 2 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 5 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 6 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 7 } ) ==
+           UnitOwnership::cargo{ .holder = UnitId{ 1 } } );
+  REQUIRE( w.units().unit_for( UnitId{ 1 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 2 } ).orders() ==
+           unit_orders::sentry{} );
+  REQUIRE( w.units().unit_for( UnitId{ 3 } ).orders() ==
+           unit_orders::sentry{} );
+  REQUIRE( w.units().unit_for( UnitId{ 4 } ).orders() ==
+           unit_orders::sentry{} );
+  REQUIRE( w.units().unit_for( UnitId{ 5 } ).orders() ==
+           unit_orders::sentry{} );
+  REQUIRE( w.units().unit_for( UnitId{ 6 } ).orders() ==
+           unit_orders::sentry{} );
+  REQUIRE( w.units().unit_for( UnitId{ 7 } ).orders() ==
+           unit_orders::sentry{} );
+
+  f();
+
+  REQUIRE( w.units().all().size() == 7 );
+  REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
+           man_o_war );
+  REQUIRE( w.units().unit_for( UnitId{ 2 } ).type() ==
+           continental_army );
+  REQUIRE( w.units().unit_for( UnitId{ 3 } ).type() ==
+           continental_army );
+  REQUIRE( w.units().unit_for( UnitId{ 4 } ).type() ==
+           continental_cavalry );
+  REQUIRE( w.units().unit_for( UnitId{ 5 } ).type() ==
+           continental_cavalry );
+  REQUIRE( w.units().unit_for( UnitId{ 6 } ).type() ==
+           artillery );
+  REQUIRE( w.units().unit_for( UnitId{ 7 } ).type() ==
+           artillery );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 1 } ) ==
+           UnitOwnership::world{ .coord = { .x = 0, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 2 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 3 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 4 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 5 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 6 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( as_const( w.units() ).ownership_of( UnitId{ 7 } ) ==
+           UnitOwnership::world{ .coord = { .x = 1, .y = 5 } } );
+  REQUIRE( w.units().unit_for( UnitId{ 1 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 2 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 3 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 4 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 5 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 6 } ).orders() ==
+           unit_orders::none{} );
+  REQUIRE( w.units().unit_for( UnitId{ 7 } ).orders() ==
+           unit_orders::none{} );
 }
 
 } // namespace

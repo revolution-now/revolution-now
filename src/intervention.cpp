@@ -223,6 +223,7 @@ UnitId deploy_intervention_forces(
       ss.colonies.colony_for( location.colony_id );
   UNWRAP_CHECK_T( Player & player,
                   ss.players.players[colony.nation] );
+  CHECK_GT( player.revolution.intervention_force.men_o_war, 0 );
   // Use the non-interactive version because it is unlikely that
   // any interactive stuff would need to be done in this situa-
   // tion. Technically the ship could discover the pacific ocean,
