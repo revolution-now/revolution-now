@@ -17,12 +17,17 @@
 #include "test/fake/world.hpp"
 #include "test/mocking.hpp"
 #include "test/mocks/igui.hpp"
+#include "test/mocks/iharbor-viewer.hpp"
+#include "test/mocks/irand.hpp"
 #include "test/mocks/land-view-plane.hpp"
 #include "test/util/coro.hpp"
 
 // Revolution Now
 #include "src/icolony-evolve.rds.hpp"
 #include "src/plane-stack.hpp"
+
+// ss
+#include "src/ss/player.rds.hpp"
 
 // Must be last.
 #include "test/catch-common.hpp" // IWYU pragma: keep
@@ -35,6 +40,7 @@ namespace {
 
 using namespace std;
 
+using ::mock::matchers::_;
 using ::mock::matchers::Eq;
 using ::mock::matchers::Field;
 using ::mock::matchers::StrContains;
@@ -79,10 +85,12 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
   MockLandViewPlane land_view_plane;
   W.planes().get().set_bottom<ILandViewPlane>( land_view_plane );
 
+  MockIHarborViewer harbor_viewer;
+
   auto evolve_colonies = [&] {
     co_await_test( evolve_colonies_for_player(
         W.ss(), W.ts(), W.default_player(), mock_colony_evolver,
-        mock_colony_notification_generator ) );
+        harbor_viewer, mock_colony_notification_generator ) );
   };
 
   SECTION( "without updates" ) {
@@ -147,6 +155,43 @@ TEST_CASE( "[colonies-turn] presents transient updates." ) {
     // work.
     W.gui().EXPECT__transient_message_box( "xxx1" );
     W.gui().EXPECT__transient_message_box( "xxx2" );
+    evolve_colonies();
+  }
+
+  SECTION(
+      "does not show harbor on new immigrant with no ships in "
+      "port" ) {
+    Player& player = W.default_player();
+    player.fathers.has[e_founding_father::william_brewster] =
+        false;
+    // Trigger a new immigrant.  It will be chosen automatically
+    // for the player due to lack of Brewster.
+    player.crosses = 1000;
+    // Select the immigratn.
+    W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+    // Notify player.
+    W.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    // Select pool replacement.
+    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    evolve_colonies();
+  }
+
+  SECTION( "shows harbor on new immigrant with ship in port" ) {
+    Player& player = W.default_player();
+    W.add_unit_in_port( e_unit_type::caravel );
+    player.fathers.has[e_founding_father::william_brewster] =
+        false;
+    // Trigger a new immigrant.  It will be chosen automatically
+    // for the player due to lack of Brewster.
+    player.crosses = 1000;
+    // Select the immigratn.
+    W.rand().EXPECT__between_ints( 0, 2 ).returns( 1 );
+    // Notify player.
+    W.gui().EXPECT__message_box( StrContains( "immigrant" ) );
+    // Select pool replacement.
+    W.rand().EXPECT__between_doubles( 0, _ ).returns( 0.0 );
+    // Show the harbor view since the player has a ship in port.
+    harbor_viewer.EXPECT__show();
     evolve_colonies();
   }
 }

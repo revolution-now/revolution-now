@@ -1367,12 +1367,14 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
 /****************************************************************
 ** Per-Colony Turn Processor
 *****************************************************************/
-wait<> colonies_turn( SS& ss, TS& ts, Player& player ) {
+wait<> colonies_turn( IEngine& engine, SS& ss, TS& ts,
+                      Player& player ) {
   RealColonyEvolver const colony_evolver( ss, ts );
   RealColonyNotificationGenerator const
       colony_notification_generator;
+  HarborViewer harbor_viewer( engine, ss, ts, player );
   co_await evolve_colonies_for_player(
-      ss, ts, player, colony_evolver,
+      ss, ts, player, colony_evolver, harbor_viewer,
       colony_notification_generator );
 }
 
@@ -1509,7 +1511,7 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
       co_return NationTurnState::colonies{};
     }
     CASE( colonies ) {
-      co_await colonies_turn( ss, ts, player );
+      co_await colonies_turn( engine, ss, ts, player );
       co_await post_colonies( ss, ts, player );
       co_return NationTurnState::units{};
     }

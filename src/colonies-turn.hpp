@@ -17,6 +17,7 @@ namespace rn {
 
 struct IColonyEvolver;
 struct IColonyNotificationGenerator;
+struct IHarborViewer;
 struct Player;
 struct SS;
 struct TS;
@@ -25,6 +26,7 @@ struct TS;
 wait<> evolve_colonies_for_player(
     SS& ss, TS& ts, Player& player,
     IColonyEvolver const& colony_evolver,
+    IHarborViewer& harbor_viewer,
     IColonyNotificationGenerator const&
         colony_notification_generator );
 

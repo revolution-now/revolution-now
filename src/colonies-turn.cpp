@@ -16,6 +16,8 @@
 #include "colony-view.hpp"
 #include "colony-view.rds.hpp"
 #include "damaged.rds.hpp"
+#include "harbor-units.hpp"
+#include "harbor-view.hpp"
 #include "icolony-evolve.rds.hpp"
 #include "igui.hpp"
 #include "immigration.hpp"
@@ -132,6 +134,7 @@ wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
 wait<> evolve_colonies_for_player(
     SS& ss, TS& ts, Player& player,
     IColonyEvolver const& colony_evolver,
+    IHarborViewer& harbor_viewer,
     IColonyNotificationGenerator const&
         colony_notification_generator ) {
   e_nation nation = player.nation;
@@ -203,9 +206,16 @@ wait<> evolve_colonies_for_player(
   give_new_crosses_to_player( player, crosses_calc, evolutions );
   maybe<UnitId> immigrant = co_await check_for_new_immigrant(
       ss, ts, player, crosses_calc.crosses_needed );
-  if( immigrant.has_value() )
+  if( immigrant.has_value() ) {
     lg.info( "a new immigrant ({}) has arrived.",
              ss.units.unit_for( *immigrant ).desc().name );
+    // When a new colonist arrives on the dock, the OG shows the
+    // harbor view just after displaying the message but only
+    // when there is a ship in the harbor.
+    int const num_ships_in_port =
+        harbor_units_in_port( ss.units, player.nation ).size();
+    if( num_ships_in_port > 0 ) co_await harbor_viewer.show();
+  }
 }
 
 } // namespace rn
