@@ -20,4 +20,5 @@ enum.e_declare_rejection {
 }
 
 struct.DeclarationResult {
+  # TODO: number of each type of ship seized on the high seas.
 }
