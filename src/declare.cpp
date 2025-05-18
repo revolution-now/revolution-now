@@ -148,6 +148,7 @@ DeclarationResult declare_independence( SS& ss, TS&,
           .unit_counts[difficulty];
 
   // TODO:
+  //
   // * Make sure that there is at least one Man-o-War if there
   //   are any ref units to bring. The OG appears to increase
   //   this from zero to one if it is zero.
@@ -157,6 +158,8 @@ DeclarationResult declare_independence( SS& ss, TS&,
   //   can't be deleted because their colonies persist.
   // * Seize all ships on the high seas and in europe and ensure
   //   that the europe screen changes.
+  // * Ensure that cross accumulation stops as well as immigra-
+  //   tion.
   // * Reset bell count to zero.
   // * Promote continental armies in colonies. This actually ap-
   //   pears to happen at the start of the new turn.
