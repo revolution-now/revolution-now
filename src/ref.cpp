@@ -38,9 +38,6 @@ using ::refl::enum_map;
 
 } // namespace
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-
 /****************************************************************
 ** Public API.
 *****************************************************************/
