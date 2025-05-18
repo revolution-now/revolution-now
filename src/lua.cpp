@@ -84,8 +84,6 @@ lua::table require( lua::state& st, string const& required ) {
 }
 
 void add_some_members( lua::state& st ) {
-  // FIXME
-  st.lib.open_all();
   CHECK( st["log"] == lua::nil );
   lua::table log = lua::table::create_or_get( st["log"] );
   log["info"]    = []( string const& msg ) {
@@ -134,11 +132,27 @@ void run_lua_startup_routines( lua::state& st ) {
 
 void freeze_globals( lua::state& st ) {
   // Freeze all existing global variables and global tables.
+  // TODO: see also util.freeze.harden.
   st["meta"]["freeze_all"]();
 }
 
 void lua_init( lua::state& st ) {
+  st.lib.open_all();
   inject_configs( st );
+  // Freeze the config tables. Need to do this before doing any-
+  // thing else so that we guarantee that no other lua modules
+  // grab hold of the un-frozen config table when loading.
+  //
+  // FIXME: we need to fix the TS lua mechanism so that we can
+  // apply a general freeze to all globals. There is a method in
+  // the lua meta module that does that, though it does not ap-
+  // pear to be recursive; we need to decide if/when we want the
+  // freezing to be fully recursive. For some things, such as the
+  // configs, we can and do.
+  auto harden = require( st, "util.freeze" )["harden"];
+
+  st["config"] = harden( st["config"] );
+
   add_some_members( st );
   run_lua_startup_routines( st );
   load_lua_modules( st );

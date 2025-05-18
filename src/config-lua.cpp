@@ -16,6 +16,7 @@
 #include "config/combat.rds.hpp"
 #include "config/command.rds.hpp"
 #include "config/commodity.rds.hpp"
+#include "config/debug.rds.hpp"
 #include "config/fathers.rds.hpp"
 #include "config/gfx.rds.hpp"
 #include "config/harbor.rds.hpp"
@@ -105,6 +106,7 @@ void inject_configs( lua::state& st ) {
   INJECT( combat );
   INJECT( command );
   INJECT( commodity );
+  INJECT( debug );
   INJECT( fathers );
   INJECT( gfx );
   INJECT( harbor );
@@ -131,12 +133,13 @@ void inject_configs( lua::state& st ) {
   INJECT( ui );
   INJECT( unit_type );
 
-  // Dump full lua configs, may come in handy for debugging. Do
-  // it as the initializer of a static variable so that it only
-  // gets done once per process.
-  if constexpr( false ) {
+  // Dump full lua configs, may come in handy for debugging.
+  if( config_debug.dump.dump_lua_config_to.has_value() ) {
+    // Do it as the initializer of a static variable so that it
+    // only gets done once per process.
     [[maybe_unused]] static auto const _ = [&] {
-      static string const fname = "/tmp/config-all.lua";
+      static string const fname =
+          *config_debug.dump.dump_lua_config_to;
       lg.warn( "dumping lua config to {}.", fname );
       string const configs_all = pretty_print( st["config"] );
       ofstream out( fname );

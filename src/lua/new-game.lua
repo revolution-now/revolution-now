@@ -58,7 +58,6 @@ local function set_default_settings( options, settings )
   settings.game_setup_options.difficulty = options.difficulty
   local war_of_succession = config.revolution.war_of_succession
                                 .enable_war_of_succession_default
-  assert( type( war_of_succession ) == 'boolean' )
   settings.game_setup_options.enable_war_of_succession =
       war_of_succession
   settings.cheat_options.enabled =

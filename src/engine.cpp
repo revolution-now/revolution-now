@@ -21,6 +21,7 @@
 #include "tiles.hpp"
 
 // config
+#include "config/debug.rds.hpp"
 #include "config/gfx.rds.hpp"
 #include "config/tile-sheet.rds.hpp"
 
@@ -209,7 +210,7 @@ struct Engine::Impl {
       // These are taken by reference.
       .sprite_sheets  = config_tile_sheet.sheets.sprite_sheets,
       .font_sheets    = config_tile_sheet.sheets.font_sheets,
-      .dump_atlas_png = config_tile_sheet.dump_texture_atlas_to,
+      .dump_atlas_png = config_debug.dump.dump_texture_atlas_to,
     };
 
     // This renderer needs to be released before the SDL context

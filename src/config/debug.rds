@@ -1,0 +1,30 @@
+# ===============================================================
+# debug.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-05-17.
+#
+# Description: Config data for the debug module.
+#
+# ===============================================================
+# base
+include "base/maybe.hpp"
+
+# C++ standard library
+include "<string>"
+
+namespace "rn.config.debug"
+
+struct.Dump {
+  dump_texture_atlas_to 'base::maybe<std::string>',
+  dump_lua_config_to 'base::maybe<std::string>',
+}
+
+namespace "rn"
+
+struct.config_debug_t {
+  dump 'config::debug::Dump',
+}
+
+config.debug {}

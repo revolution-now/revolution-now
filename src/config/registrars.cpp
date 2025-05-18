@@ -20,6 +20,7 @@
 #include "config/combat.rds.hpp"
 #include "config/command.rds.hpp"
 #include "config/commodity.rds.hpp"
+#include "config/debug.rds.hpp"
 #include "config/fathers.rds.hpp"
 #include "config/gfx.rds.hpp"
 #include "config/harbor.rds.hpp"
@@ -65,6 +66,7 @@ INSTANTIATE_RN_CONFIG( cheat );
 INSTANTIATE_RN_CONFIG( colony );
 INSTANTIATE_RN_CONFIG( combat );
 INSTANTIATE_RN_CONFIG( commodity );
+INSTANTIATE_RN_CONFIG( debug );
 INSTANTIATE_RN_CONFIG( fathers );
 INSTANTIATE_RN_CONFIG( gfx );
 INSTANTIATE_RN_CONFIG( harbor );

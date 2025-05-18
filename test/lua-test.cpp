@@ -192,6 +192,24 @@ TEST_CASE( "[lua] after initialization" ) {
     REQUIRE( W.lua().script.run_safe( script ) == valid );
   }
 
+  // Configs hardened.
+  {
+    auto script = R"lua(
+      local bad_get = function()
+        return config.nation.nations.spanishx
+      end
+      assert( not pcall( bad_get ),
+             'no error thrown on invalid field get.' )
+      bad_get = function()
+        config.nation.nations.spanish = 5
+      end
+      assert( not pcall( bad_get ),
+             'no error thrown on field set.' )
+    )lua";
+
+    REQUIRE( W.lua().script.run_safe( script ) == valid );
+  }
+
   // Function binding.
   {
     auto script = R"lua(
