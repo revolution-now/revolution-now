@@ -484,6 +484,7 @@ Invoice transaction_invoice(
 void apply_invoice( SS& ss, Player& player,
                     Invoice const& invoice ) {
   player.money += invoice.money_delta_final;
+  player.total_after_tax_revenue += invoice.money_delta_final;
   player.royal_money += invoice.tax_amount;
   player.old_world.market.commodities[invoice.what.type]
       .player_traded_volume += invoice.player_volume_delta;

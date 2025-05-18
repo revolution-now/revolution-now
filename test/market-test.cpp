@@ -172,8 +172,9 @@ TEST_CASE( "[market] apply_invoice" ) {
         W.player(), e_commodity::silver, 3 ),
   };
 
-  Player const& p = W.default_player();
+  Player& p = W.default_player();
   REQUIRE( p.money == 0 );
+  REQUIRE( p.total_after_tax_revenue == 0 );
   REQUIRE( p.royal_money == 0 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 0 );
@@ -197,6 +198,7 @@ TEST_CASE( "[market] apply_invoice" ) {
   apply_invoice( W.ss(), W.default_player(), invoice );
 
   REQUIRE( p.money == 123 );
+  REQUIRE( p.total_after_tax_revenue == 123 );
   REQUIRE( p.royal_money == 42 * 1 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 );
@@ -217,9 +219,11 @@ TEST_CASE( "[market] apply_invoice" ) {
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .bid_price == 13 );
 
+  p.money = 10;
   apply_invoice( W.ss(), W.default_player(), invoice );
 
-  REQUIRE( p.money == 123 * 2 );
+  REQUIRE( p.money == 10 + 123 );
+  REQUIRE( p.total_after_tax_revenue == 123 + 123 );
   REQUIRE( p.royal_money == 42 * 2 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 * 2 );

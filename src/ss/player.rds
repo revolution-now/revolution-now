@@ -53,6 +53,21 @@ struct.Player {
   # edly.
   royal_money 'int',
 
+  # Accumulated post-tax revenue from sales, including:
+  #
+  #   * Harbor sales.
+  #   * Treasure reimbursement (either manually transported or
+  #     with the King transporting it).
+  #   * Custom house sales.
+  #   * Un-equipping units on the dock.
+  #   * Not affected by trade with natives.
+  #
+  # Never decreases.
+  #
+  # This is maintained because the OG keeps track of it in its
+  # sav files, but not sure if it is used.
+  total_after_tax_revenue 'int',
+
   # How many crosses has this player accumulated. Note that this
   # gets subtracted from each time a new immigrant arrives on the
   # docks, so it is not cumulative beyond that. The number of

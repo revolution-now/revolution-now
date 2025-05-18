@@ -264,7 +264,7 @@ struct PanelPlane::Impl : public IPlane {
 
     // Extra debugging.
     typer.newline();
-    typer.write( "Royal Money: {}{}", player.royal_money,
+    typer.write( "Royal Money: {}{}\n", player.royal_money,
                  config_text.special_chars.currency );
   }
 

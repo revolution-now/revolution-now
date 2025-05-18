@@ -139,24 +139,47 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
                          { { e_unit_inventory::gold, 100 } } )
                          .value(),
                      { .x = 1, .y = 1 } );
+  W.add_unit_on_map( UnitComposition::create(
+                         e_unit_type::treasure,
+                         { { e_unit_inventory::gold, 200 } } )
+                         .value(),
+                     { .x = 1, .y = 1 } );
 
   player.royal_money = 100;
 
-  REQUIRE( W.units().all().size() == 1 );
+  REQUIRE( W.units().all().size() == 2 );
   REQUIRE( player.money == 0 );
   REQUIRE( player.royal_money == 100 );
 
-  TreasureReceipt const receipt{
-    .treasure_id       = UnitId{ 1 },
-    .transport_mode    = e_treasure_transport_mode::player,
-    .original_worth    = 100,
-    .kings_cut_percent = 10,
-    .net_received      = 90 };
-  apply_treasure_reimbursement( W.ss(), player, receipt );
+  {
+    TreasureReceipt const receipt{
+      .treasure_id       = UnitId{ 1 },
+      .transport_mode    = e_treasure_transport_mode::player,
+      .original_worth    = 100,
+      .kings_cut_percent = 10,
+      .net_received      = 90 };
+    apply_treasure_reimbursement( W.ss(), player, receipt );
+    REQUIRE( W.units().all().size() == 1 );
+    REQUIRE( player.money == 90 );
+    REQUIRE( player.total_after_tax_revenue == 90 );
+    REQUIRE( player.royal_money == 110 );
+  }
 
-  REQUIRE( W.units().all().size() == 0 );
-  REQUIRE( player.money == 90 );
-  REQUIRE( player.royal_money == 110 );
+  player.money = 30;
+
+  {
+    TreasureReceipt const receipt{
+      .treasure_id       = UnitId{ 2 },
+      .transport_mode    = e_treasure_transport_mode::player,
+      .original_worth    = 200,
+      .kings_cut_percent = 10,
+      .net_received      = 180 };
+    apply_treasure_reimbursement( W.ss(), player, receipt );
+    REQUIRE( W.units().all().size() == 0 );
+    REQUIRE( player.money == 30 + 180 );
+    REQUIRE( player.total_after_tax_revenue == 90 + 180 );
+    REQUIRE( player.royal_money == 130 );
+  }
 }
 
 TEST_CASE( "[treasure] show_treasure_receipt" ) {
