@@ -517,8 +517,8 @@ wait<> menu_handler( IEngine& engine, SS& ss, TS& ts,
       break;
     }
     case e_menu_item::harbor_view: {
-      co_await show_harbor_view( engine, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      HarborViewer harbor_viewer( engine, ss, ts, player );
+      co_await harbor_viewer.show();
       break;
     }
     case e_menu_item::continental_congress: {
@@ -589,8 +589,8 @@ wait<EndOfTurnResult> process_player_input_eot(
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( engine, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      HarborViewer harbor_viewer( engine, ss, ts, player );
+      co_await harbor_viewer.show();
       break;
     }
     CASE( hidden_terrain ) {
@@ -733,8 +733,8 @@ wait<> process_player_input_normal_mode(
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( engine, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      HarborViewer harbor_viewer( engine, ss, ts, player );
+      co_await harbor_viewer.show();
       break;
     }
     CASE( hidden_terrain ) {
@@ -880,8 +880,8 @@ wait<> process_player_input_view_mode(
       break;
     }
     CASE( european_status ) {
-      co_await show_harbor_view( engine, ss, ts, player,
-                                 /*selected_unit=*/nothing );
+      HarborViewer harbor_viewer( engine, ss, ts, player );
+      co_await harbor_viewer.show();
       break;
     }
     CASE( exit ) {
@@ -1011,8 +1011,9 @@ wait<bool> advance_unit( IEngine& engine, SS& ss, TS& ts,
             "Our [{}] has finished its repairs in [{}].",
             unit.desc().name,
             nation_obj( player.nation ).harbor_city_name );
-        co_await show_harbor_view( engine, ss, ts, player,
-                                   unit.id() );
+        HarborViewer harbor_viewer( engine, ss, ts, player );
+        harbor_viewer.set_selected_unit( unit.id() );
+        co_await harbor_viewer.show();
         co_return false;
       }
     }
@@ -1262,9 +1263,10 @@ wait<> move_high_seas_units( IEngine& engine, SS& ss, TS& ts,
       co_await show_woodcut_if_needed(
           player, ts.euro_minds()[player.nation],
           e_woodcut::cargo_from_the_new_world );
-    co_await show_harbor_view(
-        engine, ss, ts, player,
+    HarborViewer harbor_viewer( engine, ss, ts, player );
+    harbor_viewer.set_selected_unit(
         status_union.last_unit_arrived_in_harbor );
+    co_await harbor_viewer.show();
   }
 }
 

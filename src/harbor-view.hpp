@@ -10,8 +10,6 @@
 *****************************************************************/
 #pragma once
 
-#include "core-config.hpp"
-
 // Revolution Now
 #include "unit-id.hpp"
 #include "wait.hpp"
@@ -25,30 +23,32 @@ struct SS;
 struct TS;
 
 /****************************************************************
-** ColonyPlane
+** IHarborViewer
 *****************************************************************/
-struct HarborPlane {
-  HarborPlane( IEngine& engine, SS& ss, TS& ts, Player& player );
+struct IHarborViewer {
+  virtual ~IHarborViewer() = default;
 
-  ~HarborPlane();
+  virtual void set_selected_unit( UnitId id ) = 0;
 
-  void set_selected_unit( UnitId id );
-
-  wait<> show_harbor_view();
-
- private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
-
- public:
-  IPlane& impl();
+  virtual wait<> show() = 0;
 };
 
 /****************************************************************
-** API
+** HarborViewer
 *****************************************************************/
-wait<> show_harbor_view( IEngine& engine, SS& ss, TS& ts,
-                         Player& player,
-                         maybe<UnitId> selected_unit );
+struct HarborViewer : public IHarborViewer {
+  HarborViewer( IEngine& engine, SS& ss, TS& ts,
+                Player& player );
+
+  void set_selected_unit( UnitId id ) override;
+
+  wait<> show() override;
+
+ private:
+  IEngine& engine_;
+  SS& ss_;
+  TS& ts_;
+  Player& player_;
+};
 
 } // namespace rn

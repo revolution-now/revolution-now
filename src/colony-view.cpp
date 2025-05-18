@@ -131,8 +131,6 @@ void try_decrease_commodity( SS& ss, Colony& colony,
   update_colony_view( ss, colony );
 }
 
-} // namespace
-
 /****************************************************************
 ** Colony IPlane
 *****************************************************************/
@@ -338,6 +336,8 @@ struct ColonyPlane : public IPlane {
     lg.info( "leaving colony view." );
   }
 };
+
+} // namespace
 
 /****************************************************************
 ** ColonyViewer

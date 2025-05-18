@@ -69,12 +69,10 @@ void check_selected_unit_in_harbor( SSConst const& ss,
   CHECK( ss.units.maybe_harbor_view_state_of( id ) );
 }
 
-} // namespace
-
 /****************************************************************
 ** Harbor IPlane
 *****************************************************************/
-struct HarborPlane::Impl : public IPlane {
+struct HarborPlane : public IPlane {
   IEngine& engine_;
   SS& ss_;
   TS& ts_;
@@ -92,7 +90,7 @@ struct HarborPlane::Impl : public IPlane {
 
   HarborViewComposited composition_;
 
-  Impl( IEngine& engine, SS& ss, TS& ts, Player& player )
+  HarborPlane( IEngine& engine, SS& ss, TS& ts, Player& player )
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
@@ -104,10 +102,6 @@ struct HarborPlane::Impl : public IPlane {
     // since we need to ensure that any coroutines that are run-
     // ning on top of it get cancelled first.
     recomposite_.send( resolution );
-  }
-
-  HarborState& harbor_state() {
-    return player_.old_world.harbor_state;
   }
 
   HarborSubView& harbor_view_top_level() const {
@@ -341,52 +335,35 @@ struct HarborPlane::Impl : public IPlane {
 
     lg.info( "leaving harbor view." );
   }
-
-  void set_selected_unit( UnitId id ) {
-    UnitsState const& units_state = ss_.units;
-    // Ensure that the unit is either in port or on the high
-    // seas, otherwise it doesn't make sense for the unit to be
-    // selected on this screen.
-    CHECK( units_state.maybe_harbor_view_state_of( id ) );
-    HarborState& hb_state  = harbor_state();
-    hb_state.selected_unit = id;
-  }
 };
+
+} // namespace
 
 /****************************************************************
 ** HarborPlane
 *****************************************************************/
-IPlane& HarborPlane::impl() { return *impl_; }
+HarborViewer::HarborViewer( IEngine& engine, SS& ss, TS& ts,
+                            Player& player )
+  : engine_( engine ), ss_( ss ), ts_( ts ), player_( player ) {}
 
-HarborPlane::~HarborPlane() = default;
-
-HarborPlane::HarborPlane( IEngine& engine, SS& ss, TS& ts,
-                          Player& player )
-  : impl_( new Impl( engine, ss, ts, player ) ) {}
-
-void HarborPlane::set_selected_unit( UnitId id ) {
-  impl_->set_selected_unit( id );
+void HarborViewer::set_selected_unit( UnitId const id ) {
+  UnitsState const& units_state = ss_.units;
+  // Ensure that the unit is either in port or on the high
+  // seas, otherwise it doesn't make sense for the unit to be
+  // selected on this screen.
+  CHECK( units_state.maybe_harbor_view_state_of( id ) );
+  HarborState& hb_state  = player_.old_world.harbor_state;
+  hb_state.selected_unit = id;
 }
 
-wait<> HarborPlane::show_harbor_view() {
-  return impl_->show_harbor_view();
-}
-
-/****************************************************************
-** API
-*****************************************************************/
-wait<> show_harbor_view( IEngine& engine, SS& ss, TS& ts,
-                         Player& player,
-                         maybe<UnitId> selected_unit ) {
-  Planes& planes    = ts.planes;
+wait<> HarborViewer::show() {
+  Planes& planes    = ts_.planes;
   auto owner        = planes.push();
   PlaneGroup& group = owner.group;
 
-  HarborPlane harbor_plane( engine, ss, ts, player );
-  check_selected_unit_in_harbor( ss, player );
-  if( selected_unit.has_value() )
-    harbor_plane.set_selected_unit( *selected_unit );
-  group.bottom = &harbor_plane.impl();
+  HarborPlane harbor_plane( engine_, ss_, ts_, player_ );
+  check_selected_unit_in_harbor( ss_, player_ );
+  group.bottom = &harbor_plane;
   try {
     // This coroutine should never return but by throwing the
     // exit exception.
