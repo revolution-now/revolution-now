@@ -180,6 +180,10 @@ void apply_treasure_reimbursement(
     SS& ss, Player& player, TreasureReceipt const& receipt ) {
   UnitOwnershipChanger( ss, receipt.treasure_id ).destroy();
   player.money += receipt.net_received;
+  int const king_tax_revenue_received =
+      receipt.original_worth - receipt.net_received;
+  CHECK_GE( king_tax_revenue_received, 0 );
+  player.royal_money += king_tax_revenue_received;
 }
 
 wait<> show_treasure_receipt( TS& ts, Player const& player,

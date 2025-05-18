@@ -39,6 +39,20 @@ struct.Player {
 
   money 'int',
 
+  # Used for build-up of REF. This gets incremented by any tax
+  # revenue received by the crown. In addition, it also gets in-
+  # cremented by a fixed amount per turn, by an amount determined
+  # by difficulty level. When it is larger than a threshold T
+  # then a new unit will be added to the expeditionary force and
+  # T will be subtracted from this value (at most once per turn).
+  #
+  # Note that although this value increases when selling a good
+  # in the harbor at a non-zero tax rate, it does not then de-
+  # crease when purchasing a good. So one can make this number
+  # ratchet up by buying and then selling the same good repeat-
+  # edly.
+  royal_money 'int',
+
   # How many crosses has this player accumulated. Note that this
   # gets subtracted from each time a new immigrant arrives on the
   # docks, so it is not cumulative beyond that. The number of

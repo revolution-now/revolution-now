@@ -261,6 +261,11 @@ struct PanelPlane::Impl : public IPlane {
       write_terrain( *box );
       // TODO
     }
+
+    // Extra debugging.
+    typer.newline();
+    typer.write( "Royal Money: {}{}", player.royal_money,
+                 config_text.special_chars.currency );
   }
 
   void draw( rr::Renderer& renderer ) const override {

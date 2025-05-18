@@ -9,7 +9,7 @@ local function lambda( sav )
       assert( HEADER.expeditionary_force.artillery )
   local ships =
       assert( HEADER.expeditionary_force['man-o-wars'] )
-  local nation_idx = NATIONS.SPANISH
+  local nation_idx = NATIONS.ENGLISH
   local nation = assert( sav.NATION[nation_idx] )
   local royal_money = assert( nation.royal_money )
   local player_total_income =

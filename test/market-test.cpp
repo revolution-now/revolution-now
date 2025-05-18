@@ -155,7 +155,7 @@ TEST_CASE( "[market] apply_invoice" ) {
                        .quantity = 100 },
     .money_delta_before_taxes = 9999, // shouldn't be used.
     .tax_rate                 = 9999, // shouldn't be used.
-    .tax_amount               = 9999, // shouldn't be used.
+    .tax_amount               = 42,
     .money_delta_final        = 123,
     .player_volume_delta      = 345,
     .intrinsic_volume_delta =
@@ -174,6 +174,7 @@ TEST_CASE( "[market] apply_invoice" ) {
 
   Player const& p = W.default_player();
   REQUIRE( p.money == 0 );
+  REQUIRE( p.royal_money == 0 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 0 );
   REQUIRE( W.player( e_nation::english )
@@ -196,6 +197,7 @@ TEST_CASE( "[market] apply_invoice" ) {
   apply_invoice( W.ss(), W.default_player(), invoice );
 
   REQUIRE( p.money == 123 );
+  REQUIRE( p.royal_money == 42 * 1 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 );
   REQUIRE( W.player( e_nation::english )
@@ -218,6 +220,7 @@ TEST_CASE( "[market] apply_invoice" ) {
   apply_invoice( W.ss(), W.default_player(), invoice );
 
   REQUIRE( p.money == 123 * 2 );
+  REQUIRE( p.royal_money == 42 * 2 );
   REQUIRE( p.old_world.market.commodities[e_commodity::silver]
                .player_traded_volume == 345 * 2 );
   REQUIRE( W.player( e_nation::english )

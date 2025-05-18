@@ -140,8 +140,11 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
                          .value(),
                      { .x = 1, .y = 1 } );
 
+  player.royal_money = 100;
+
   REQUIRE( W.units().all().size() == 1 );
   REQUIRE( player.money == 0 );
+  REQUIRE( player.royal_money == 100 );
 
   TreasureReceipt const receipt{
     .treasure_id       = UnitId{ 1 },
@@ -153,6 +156,7 @@ TEST_CASE( "[treasure] apply_treasure_reimbursement" ) {
 
   REQUIRE( W.units().all().size() == 0 );
   REQUIRE( player.money == 90 );
+  REQUIRE( player.royal_money == 110 );
 }
 
 TEST_CASE( "[treasure] show_treasure_receipt" ) {

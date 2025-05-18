@@ -17,8 +17,11 @@ Notes:
 
       Any tax revenue received also adds to this:
 
-        - Any sale of commodities in the harbor or through
-          the custom house.
+        - Any sale of commodities in the harbor or through the
+          custom house.
+        - Un-equipping a dock unit with muskets/tools/horses and
+          selling them, which in the OG (probably a bug) does not
+          get taxed, but in the NG it does to prevent cheating.
         - Treasure delivered by king.
         - Treasure brought to europe.
 
