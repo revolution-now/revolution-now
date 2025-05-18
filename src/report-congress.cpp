@@ -305,10 +305,10 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     auto const& force = player.revolution.expeditionary_force;
     TileSpreadConfigMulti const expeditionary_force_spread_opts{
       .tiles{
-        { .tile = regular_tile, .count = force.regulars },
+        { .tile = regular_tile, .count = force.regular },
         { .tile = cavalry_tile, .count = force.cavalry },
         { .tile = artillery_tile, .count = force.artillery },
-        { .tile = man_o_war_tile, .count = force.men_o_war },
+        { .tile = man_o_war_tile, .count = force.man_o_war },
       },
       .options =
           {
@@ -329,7 +329,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
     auto const& force     = player.revolution.intervention_force;
     int const total_units = force.continental_army +
                             force.continental_cavalry +
-                            force.artillery + force.men_o_war;
+                            force.artillery + force.man_o_war;
     if( total_units == 0 ) return;
     e_tile const continental_army_tile =
         config_unit_type.composition
@@ -373,7 +373,7 @@ Layout layout_auto( SSConst const& ss, Player const& player,
         { .tile  = continental_cavalry_tile,
           .count = force.continental_cavalry },
         { .tile = artillery_tile, .count = force.artillery },
-        { .tile = man_o_war_tile, .count = force.men_o_war },
+        { .tile = man_o_war_tile, .count = force.man_o_war },
       },
       .options =
           {

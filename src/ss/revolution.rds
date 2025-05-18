@@ -19,20 +19,27 @@ enum.e_revolution_status {
   won, # For the AI player this means "granted".
 }
 
+enum.e_expeditionary_force_type {
+  regular,
+  cavalry,
+  artillery,
+  man_o_war,
+}
+
 # How many of each unit the king has added into his expeditionary
 # force. These will grow as the game progresses.
 struct.ExpeditionaryForce {
-  regulars  'int',
+  regular   'int',
   cavalry   'int',
   artillery 'int',
-  men_o_war 'int',
+  man_o_war 'int',
 }
 
 struct.InterventionForce {
   continental_army 'int',
   continental_cavalry 'int',
   artillery 'int',
-  men_o_war 'int',
+  man_o_war 'int',
 }
 
 struct.RevolutionState {

@@ -1,0 +1,19 @@
+# ===============================================================
+# ref.rds
+#
+# Project: Revolution Now
+#
+# Created by David P. Sicilia on 2025-05-18.
+#
+# Description: Rds definitions for the ref module.
+#
+# ===============================================================
+namespace "rn"
+
+struct.RoyalMoneyChange {
+  old_value 'int',
+  per_turn_increase 'int',
+  new_value 'int',
+  new_unit_produced 'bool',
+  amount_subtracted 'int',
+}

@@ -231,31 +231,31 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force = {};
   REQUIRE( f() == nothing );
 
-  force.men_o_war = 1;
+  force.man_o_war = 1;
   expected        = {};
   REQUIRE( f() == expected );
 
-  force.men_o_war = 10;
+  force.man_o_war = 10;
   expected        = {};
   REQUIRE( f() == expected );
 
   force                  = {};
   force.continental_army = 1;
-  force.men_o_war        = 1;
+  force.man_o_war        = 1;
   expected               = { .continental_army = 1 };
   REQUIRE( f() == expected );
 
   force                     = {};
   force.continental_army    = 1;
   force.continental_cavalry = 1;
-  force.men_o_war           = 1;
+  force.man_o_war           = 1;
   expected = { .continental_army = 1, .continental_cavalry = 1 };
   REQUIRE( f() == expected );
 
   force    = { .continental_army    = 1,
                .continental_cavalry = 1,
                .artillery           = 1,
-               .men_o_war           = 1 };
+               .man_o_war           = 1 };
   expected = { .continental_army    = 1,
                .continental_cavalry = 1,
                .artillery           = 1 };
@@ -264,7 +264,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -273,7 +273,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 3,
                .continental_cavalry = 2,
                .artillery           = 2,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -282,7 +282,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 2,
                .artillery           = 2,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -291,7 +291,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 6,
                .artillery           = 6,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -300,7 +300,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 6,
                .artillery           = 60,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -309,7 +309,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 2,
                .artillery           = 60,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -318,7 +318,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 1,
                .artillery           = 60,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 1,
                .artillery           = 3 };
@@ -327,7 +327,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 1,
                .artillery           = 6,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 3,
                .continental_cavalry = 1,
                .artillery           = 2 };
@@ -336,7 +336,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 6,
                .continental_cavalry = 1,
                .artillery           = 5,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 3,
                .continental_cavalry = 1,
                .artillery           = 2 };
@@ -345,7 +345,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 5,
                .continental_cavalry = 1,
                .artillery           = 5,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 3,
                .continental_cavalry = 1,
                .artillery           = 2 };
@@ -354,7 +354,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 5,
                .continental_cavalry = 0,
                .artillery           = 5,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 3,
                .continental_cavalry = 0,
                .artillery           = 3 };
@@ -363,7 +363,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 5,
                .continental_cavalry = 0,
                .artillery           = 3,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 4,
                .continental_cavalry = 0,
                .artillery           = 2 };
@@ -372,7 +372,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 5,
                .artillery           = 3,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 4,
                .artillery           = 2 };
@@ -381,7 +381,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 3,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 3 };
@@ -390,7 +390,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 2,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 2 };
@@ -399,7 +399,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 1,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 3,
                .artillery           = 1 };
@@ -408,7 +408,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 2,
                .artillery           = 0,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 2,
                .artillery           = 0 };
@@ -417,7 +417,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 1,
                .artillery           = 0,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 1,
                .artillery           = 0 };
@@ -426,7 +426,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 0,
                .continental_cavalry = 0,
                .artillery           = 0,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 0,
                .continental_cavalry = 0,
                .artillery           = 0 };
@@ -435,7 +435,7 @@ TEST_CASE( "[intervention] pick_forces_to_deploy" ) {
   force    = { .continental_army    = 300,
                .continental_cavalry = 200,
                .artillery           = 100,
-               .men_o_war           = 2 };
+               .man_o_war           = 2 };
   expected = { .continental_army    = 2,
                .continental_cavalry = 2,
                .artillery           = 2 };
@@ -606,7 +606,7 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
   REQUIRE( w.units().all().size() == 0 );
 
   SECTION( "ship only" ) {
-    player.revolution.intervention_force.men_o_war = 1;
+    player.revolution.intervention_force.man_o_war = 1;
     REQUIRE( f() == UnitId{ 1 } );
     REQUIRE( w.units().all().size() == 1 );
     REQUIRE( w.units().unit_for( UnitId{ 1 } ).type() ==
@@ -617,7 +617,7 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
   }
 
   SECTION( "partial" ) {
-    player.revolution.intervention_force.men_o_war = 1;
+    player.revolution.intervention_force.man_o_war = 1;
     player.revolution.intervention_force.continental_cavalry =
         10;
     player.revolution.intervention_force.continental_army = 10;
@@ -646,7 +646,7 @@ TEST_CASE( "[intervention] deploy_intervention_forces" ) {
   }
 
   SECTION( "full" ) {
-    player.revolution.intervention_force.men_o_war           = 1;
+    player.revolution.intervention_force.man_o_war           = 1;
     player.revolution.intervention_force.continental_cavalry = 4;
     player.revolution.intervention_force.continental_army    = 3;
     player.revolution.intervention_force.artillery           = 2;

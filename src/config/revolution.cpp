@@ -22,6 +22,7 @@ namespace {
 
 using ::base::valid;
 using ::base::valid_or;
+using ::refl::enum_values;
 
 static_assert(
     tuple_size_v<
@@ -59,12 +60,38 @@ config::revolution::InterventionForces::validate() const {
         ( force.continental_army + force.continental_cavalry +
           force.artillery + kUnitsPerShip - 1 ) /
         kUnitsPerShip;
-    REFL_VALIDATE( force.men_o_war >= ships_needed,
+    REFL_VALIDATE( force.man_o_war >= ships_needed,
                    "Intervention force on difficulty level {} "
                    "requires at least {} ships to transport "
                    "units, but only {} provided.",
-                   difficulty, ships_needed, force.men_o_war );
+                   difficulty, ships_needed, force.man_o_war );
   }
+
+  return base::valid;
+}
+
+/****************************************************************
+** config::revolution::RefTargetRatios
+*****************************************************************/
+base::valid_or<string>
+config::revolution::RefTargetRatios::validate() const {
+  for( auto const type :
+       enum_values<e_expeditionary_force_type> )
+    REFL_VALIDATE( ratio[type].percent > 0,
+                   "REF target ratios need to be larger than "
+                   "zero, but the ratio for `{}` is not.",
+                   type );
+
+  int const total = [&] {
+    int res = 0;
+    for( auto const type :
+         enum_values<e_expeditionary_force_type> )
+      res += ratio[type].percent;
+    return res;
+  }();
+  REFL_VALIDATE(
+      total == 100,
+      "REF target ratio (percents) need to add to 100." );
 
   return base::valid;
 }

@@ -55,10 +55,10 @@ LUA_STARTUP( lua::state& st ) {
   using U = ::rn::ExpeditionaryForce;
   auto u  = st.usertype.create<U>();
 
-  u["regulars"]  = &U::regulars;
+  u["regular"]   = &U::regular;
   u["cavalry"]   = &U::cavalry;
   u["artillery"] = &U::artillery;
-  u["men_o_war"] = &U::men_o_war;
+  u["man_o_war"] = &U::man_o_war;
 };
 
 // RevolutionState

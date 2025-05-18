@@ -56,7 +56,7 @@ sumtype.NationTurnState {
     view_mode 'bool',
   },
   eot {},
-  finish {},
+  post {},
   finished {},
 }
 

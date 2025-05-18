@@ -131,7 +131,7 @@ maybe<InterventionLandUnits> pick_forces_to_deploy(
     return available.continental_army +
            available.continental_cavalry + available.artillery;
   };
-  if( available.men_o_war == 0 ) return nothing;
+  if( available.man_o_war == 0 ) return nothing;
   taken.continental_army =
       std::min( 2, available.continental_army );
   taken.continental_cavalry =
@@ -223,7 +223,7 @@ UnitId deploy_intervention_forces(
       ss.colonies.colony_for( location.colony_id );
   UNWRAP_CHECK_T( Player & player,
                   ss.players.players[colony.nation] );
-  CHECK_GT( player.revolution.intervention_force.men_o_war, 0 );
+  CHECK_GT( player.revolution.intervention_force.man_o_war, 0 );
   // Use the non-interactive version because it is unlikely that
   // any interactive stuff would need to be done in this situa-
   // tion. Technically the ship could discover the pacific ocean,
@@ -251,14 +251,14 @@ UnitId deploy_intervention_forces(
       forces.continental_cavalry;
   player.revolution.intervention_force.artillery -=
       forces.artillery;
-  player.revolution.intervention_force.men_o_war -= 1;
+  player.revolution.intervention_force.man_o_war -= 1;
   CHECK_GE(
       player.revolution.intervention_force.continental_army, 0 );
   CHECK_GE(
       player.revolution.intervention_force.continental_cavalry,
       0 );
   CHECK_GE( player.revolution.intervention_force.artillery, 0 );
-  CHECK_GE( player.revolution.intervention_force.men_o_war, 0 );
+  CHECK_GE( player.revolution.intervention_force.man_o_war, 0 );
   return ship_id;
 }
 

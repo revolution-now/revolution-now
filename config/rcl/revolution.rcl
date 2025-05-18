@@ -64,11 +64,33 @@ declaration {
 
 ref_forces {
   initial_forces {
-    discoverer:   { regulars: 15, cavalry:  5, artillery:  2, men_o_war:  2 }
-    explorer:     { regulars: 23, cavalry: 10, artillery:  8, men_o_war:  5 }
-    conquistador: { regulars: 31, cavalry: 15, artillery: 14, men_o_war:  8 }
-    governor:     { regulars: 39, cavalry: 20, artillery: 20, men_o_war: 11 }
-    viceroy:      { regulars: 47, cavalry: 25, artillery: 26, men_o_war: 14 }
+    discoverer:   { regular: 15, cavalry:  5, artillery:  2, man_o_war:  2 }
+    explorer:     { regular: 23, cavalry: 10, artillery:  8, man_o_war:  5 }
+    conquistador: { regular: 31, cavalry: 15, artillery: 14, man_o_war:  8 }
+    governor:     { regular: 39, cavalry: 20, artillery: 20, man_o_war: 11 }
+    viceroy:      { regular: 47, cavalry: 25, artillery: 26, man_o_war: 14 }
+  }
+
+  # These percentages guide how new REF units are chosen when one
+  # needs to be added (this happens when royal money reaches a
+  # threshold).
+  #
+  # These are pecents (that must add to 100) that represent the
+  # ratios of numbers of each REF unit type that the distribution
+  # will tend toward as new units are added. This mirrors the
+  # OG's behavior; the percents were determined empirically and
+  # it is not clear how/why those particular numbers were chosen.
+  #
+  # Put another way: no matter how many/few REF units a game
+  # starts with, if one gives the King and infinite amount of
+  # royal_money and lets the game evolve for many hundreds of
+  # turns (so that a new REF unit is added each turn) then the
+  # distribution tends toward this one.
+  target_ratios {
+    ratio.regular.percent:   58
+    ratio.cavalry.percent:   19
+    ratio.artillery.percent: 14
+    ratio.man_o_war.percent:  9
   }
 }
 
@@ -78,31 +100,31 @@ intervention_forces {
       continental_army:    4,
       continental_cavalry: 2,
       artillery:           3,
-      men_o_war:           3,
+      man_o_war:           3,
     }
     explorer: {
       continental_army:    4,
       continental_cavalry: 2,
       artillery:           2,
-      men_o_war:           2,
+      man_o_war:           2,
     }
     conquistador: {
       continental_army:    3,
       continental_cavalry: 2,
       artillery:           2,
-      men_o_war:           2,
+      man_o_war:           2,
     }
     governor: {
       continental_army:    3,
       continental_cavalry: 1,
       artillery:           2,
-      men_o_war:           2,
+      man_o_war:           2,
     }
     viceroy: {
       continental_army:    2,
       continental_cavalry: 1,
       artillery:           2,
-      men_o_war:           2,
+      man_o_war:           2,
     }
   }
 
@@ -113,4 +135,23 @@ intervention_forces {
     governor:     6500
     viceroy:      8000
   }
+}
+
+royal_money {
+  # The Royal money supply increases by this amount each term at
+  # minimum. Beyond this, it may increase if the King receives
+  # tax revenue from sales/treasure.
+  constant_per_turn {
+    discoverer:   10
+    explorer:     18
+    conquistador: 26
+    governor:     34
+    viceroy:      42
+  }
+
+  # When the royal money reaches this value a new REF unit will
+  # be added to the expeditionary force, and the royal money will
+  # be lowered by this amount. In other words, this is the cost
+  # of one REF unit.
+  threshold_for_new_ref: 1800
 }

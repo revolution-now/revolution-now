@@ -36,9 +36,16 @@ struct.WarOfSuccession {
   enable_war_of_succession_default 'bool',
 }
 
+struct.RefTargetRatios {
+  ratio 'refl::enum_map<e_expeditionary_force_type, IntPercent>',
+
+  _features { equality, validation }
+}
 
 struct.RefForces {
   initial_forces 'refl::enum_map<e_difficulty, ExpeditionaryForce>',
+
+  target_ratios 'RefTargetRatios',
 }
 
 struct.InterventionForces {
@@ -47,6 +54,12 @@ struct.InterventionForces {
   bells_needed 'refl::enum_map<e_difficulty, int>',
 
   _features { equality, validation }
+}
+
+struct.RoyalMoney {
+  constant_per_turn 'refl::enum_map<e_difficulty, int>',
+
+  threshold_for_new_ref 'int',
 }
 
 namespace "rn"
@@ -59,6 +72,8 @@ struct.config_revolution_t {
   ref_forces 'config::revolution::RefForces',
 
   intervention_forces 'config::revolution::InterventionForces',
+
+  royal_money 'config::revolution::RoyalMoney',
 }
 
 config.revolution {}

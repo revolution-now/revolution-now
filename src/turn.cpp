@@ -49,6 +49,7 @@
 #include "plow.hpp"
 #include "rcl-game-storage.hpp"
 #include "rebel-sentiment.hpp"
+#include "ref.hpp"
 #include "report-congress.hpp"
 #include "road.hpp"
 #include "roles.hpp"
@@ -1467,12 +1468,28 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 
   // TODO:
   //
-  //   1. REF.
-  //   2. Sending units. NOTE: when your home country does this
-  //      there is a probability for an immediate large tax in-
-  //      crease; see config/tax file.
-  //   3. etc.
+  //   * Sending units. NOTE: when your home country does this
+  //     there is a probability for an immediate large tax in-
+  //     crease; see config/tax file.
   //
+}
+
+// This is for things that should be done after a nation's turn
+// ends. This means even after the "end of turn" is clicked, if
+// that happens to flash on a given turn.
+wait<> post_nation( SS& ss, TS& ts, Player& player ) {
+  // Evolve royal money and check if we need to add a new REF
+  // unit.
+  RoyalMoneyChange const change =
+      evolved_royal_money( ss.as_const, as_const( player ) );
+  apply_royal_money_change( player, change );
+  if( change.new_unit_produced ) {
+    e_expeditionary_force_type const type = select_next_ref_type(
+        player.revolution.expeditionary_force );
+    add_ref_unit( player.revolution.expeditionary_force, type );
+    co_await add_ref_unit_ui_seq( ts.euro_minds()[player.nation],
+                                  type );
+  }
 }
 
 // Processes the current state and returns the next state.
@@ -1502,14 +1519,14 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
         // As in the OG, this setting means "always stop on end
         // of turn," even we otherwise wouldn't have.
         co_return NationTurnState::eot{};
-      co_return NationTurnState::finish{};
+      co_return NationTurnState::post{};
     }
     CASE( eot ) {
       SWITCH( co_await end_of_turn( engine, ss, ts, player ) ) {
         CASE( not_done_yet ) {
           co_return NationTurnState::eot{};
         }
-        CASE( proceed ) { co_return NationTurnState::finish{}; }
+        CASE( proceed ) { co_return NationTurnState::post{}; }
         CASE( return_to_units ) {
           NationTurnState::units units;
           if( return_to_units.first_to_ask.has_value() )
@@ -1519,7 +1536,10 @@ wait<NationTurnState> nation_turn_iter( IEngine& engine, SS& ss,
       }
       SHOULD_NOT_BE_HERE; // for gcc.
     }
-    CASE( finish ) { co_return NationTurnState::finished{}; }
+    CASE( post ) {
+      co_await post_nation( ss, ts, player );
+      co_return NationTurnState::finished{};
+    }
     CASE( finished ) { SHOULD_NOT_BE_HERE; }
   }
 }
