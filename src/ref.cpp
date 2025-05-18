@@ -24,7 +24,6 @@ using namespace std;
 // ss
 #include "ss/player.rds.hpp"
 #include "ss/ref.hpp"
-#include "ss/settings.rds.hpp"
 
 // C++ standard library
 #include <ranges>
@@ -45,17 +44,16 @@ using ::refl::enum_map;
 /****************************************************************
 ** Public API.
 *****************************************************************/
-RoyalMoneyChange evolved_royal_money( SSConst const& ss,
-                                      Player const& player ) {
+RoyalMoneyChange evolved_royal_money(
+    e_difficulty const difficulty, int const royal_money ) {
   RoyalMoneyChange res;
-  res.old_value = player.royal_money;
-  res.per_turn_increase =
-      config_revolution.royal_money.constant_per_turn
-          [ss.settings.game_setup_options.difficulty];
+  res.old_value         = royal_money;
+  res.per_turn_increase = config_revolution.royal_money
+                              .constant_per_turn[difficulty];
   res.new_value = res.old_value + res.per_turn_increase;
   int const threshold =
       config_revolution.royal_money.threshold_for_new_ref;
-  if( res.new_value > threshold ) {
+  if( res.new_value >= threshold ) {
     res.new_value -= threshold;
     res.new_unit_produced = true;
     res.amount_subtracted = threshold;
@@ -109,9 +107,10 @@ e_expeditionary_force_type select_next_ref_type(
   vector<pair<e_expeditionary_force_type, double>>
       sorted_metrics = metrics;
   // Sort largest to smallest.
-  rg::sort( sorted_metrics, []( auto const& l, auto const& r ) {
-    return r.second < l.second;
-  } );
+  rg::stable_sort( sorted_metrics,
+                   []( auto const& l, auto const& r ) {
+                     return r.second < l.second;
+                   } );
 
   CHECK( !sorted_metrics.empty() );
   auto const& [type, _] = sorted_metrics[0];

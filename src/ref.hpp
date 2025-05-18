@@ -27,10 +27,10 @@ namespace rn {
 struct ExpeditionaryForce;
 struct IEuroMind;
 struct Player;
-struct SSConst;
 
 enum class e_expeditionary_force_type;
 enum class e_unit_type;
+enum class e_difficulty;
 
 /****************************************************************
 ** Public API
@@ -40,7 +40,7 @@ enum class e_unit_type;
 // which are done immediately when tax revenue is received and
 // are handled in their respective modules.
 [[nodiscard]] RoyalMoneyChange evolved_royal_money(
-    SSConst const& ss, Player const& player );
+    e_difficulty difficulty, int royal_money );
 
 void apply_royal_money_change( Player& player,
                                RoyalMoneyChange const& change );

@@ -1480,8 +1480,9 @@ wait<> nation_start_of_turn( SS& ss, TS& ts, Player& player ) {
 wait<> post_nation( SS& ss, TS& ts, Player& player ) {
   // Evolve royal money and check if we need to add a new REF
   // unit.
-  RoyalMoneyChange const change =
-      evolved_royal_money( ss.as_const, as_const( player ) );
+  RoyalMoneyChange const change = evolved_royal_money(
+      ss.settings.game_setup_options.difficulty,
+      as_const( player.royal_money ) );
   apply_royal_money_change( player, change );
   if( change.new_unit_produced ) {
     e_expeditionary_force_type const type = select_next_ref_type(
