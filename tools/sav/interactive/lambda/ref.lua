@@ -9,7 +9,7 @@ local function lambda( sav )
       assert( HEADER.expeditionary_force.artillery )
   local ships =
       assert( HEADER.expeditionary_force['man-o-wars'] )
-  local nation_idx = NATIONS.DUTCH
+  local nation_idx = NATIONS.SPANISH
   local nation = assert( sav.NATION[nation_idx] )
   local royal_money = assert( nation.royal_money )
   local player_total_income =
@@ -21,7 +21,7 @@ local function lambda( sav )
   if total_land == 0 then return end
 
   local pc = function( n, tot )
-    return math.floor( ((n * 1.0) / tot) * 1000 ) / 10
+    return math.floor( ((n * 1.0) / tot) * 10000 ) / 100
   end
 
   local regulars_pc = pc( regulars, total )
@@ -34,13 +34,13 @@ local function lambda( sav )
   local artillery_pc_land = pc( artillery, total_land )
 
   printf( '------------------------------------------------' )
-  printf( 'regulars:  %3d  (%2.1f%%)  (%2.1f%%)', regulars,
+  printf( 'regulars:  %3d  (%2.2f%%)  (%2.2f%%)', regulars,
           regulars_pc, regulars_pc_land )
-  printf( 'cavalry:   %3d  (%2.1f%%)  (%2.1f%%)', cavalry,
+  printf( 'cavalry:   %3d  (%2.2f%%)  (%2.2f%%)', cavalry,
           cavalry_pc, cavalry_pc_land )
-  printf( 'artillery: %3d  (%2.1f%%)  (%2.1f%%)', artillery,
+  printf( 'artillery: %3d  (%2.2f%%)  (%2.2f%%)', artillery,
           artillery_pc, artillery_pc_land )
-  printf( 'ships:     %3d  (%2.1f%%)', ships, ships_pc )
+  printf( 'ships:     %3d  (%2.2f%%)', ships, ships_pc )
   print()
   printf( 'royal_money:          %d', royal_money )
   printf( 'player_total_income:  %d', player_total_income )
