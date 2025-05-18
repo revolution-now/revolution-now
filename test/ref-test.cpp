@@ -15,6 +15,8 @@
 
 // Testing.
 #include "test/fake/world.hpp"
+#include "test/mocks/ieuro-mind.hpp"
+#include "test/util/coro.hpp"
 
 // ss
 #include "src/ss/player.rds.hpp"
@@ -287,14 +289,99 @@ TEST_CASE( "[ref] select_next_ref_type" ) {
 
 TEST_CASE( "[ref] add_ref_unit" ) {
   world w;
+  ExpeditionaryForce force, expected;
+  e_expeditionary_force_type type = {};
+
+  auto const f = [&] { add_ref_unit( force, type ); };
+
+  using enum e_expeditionary_force_type;
+
+  force    = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 1 };
+  type     = artillery;
+  expected = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 3,
+               .man_o_war = 1 };
+  f();
+  REQUIRE( force == expected );
+
+  force    = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 1 };
+  type     = regular;
+  expected = { .regular   = 7,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 1 };
+  f();
+  REQUIRE( force == expected );
+
+  force    = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 1 };
+  type     = cavalry;
+  expected = { .regular   = 6,
+               .cavalry   = 201,
+               .artillery = 2,
+               .man_o_war = 1 };
+  f();
+  REQUIRE( force == expected );
+
+  force    = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 1 };
+  type     = man_o_war;
+  expected = { .regular   = 6,
+               .cavalry   = 200,
+               .artillery = 2,
+               .man_o_war = 2 };
+  f();
+  REQUIRE( force == expected );
 }
 
 TEST_CASE( "[ref] ref_unit_to_unit_type" ) {
   world w;
+
+  auto const f = []( e_expeditionary_force_type const type ) {
+    return ref_unit_to_unit_type( type );
+  };
+
+  using enum e_expeditionary_force_type;
+
+  REQUIRE( f( regular ) == e_unit_type::regular );
+  REQUIRE( f( cavalry ) == e_unit_type::cavalry );
+  REQUIRE( f( artillery ) == e_unit_type::artillery );
+  REQUIRE( f( man_o_war ) == e_unit_type::man_o_war );
 }
 
 TEST_CASE( "[ref] add_ref_unit_ui_seq" ) {
   world w;
+
+  MockIEuroMind& mock_mind = w.euro_mind( w.default_nation() );
+
+  auto const f = [&]( e_expeditionary_force_type const type ) {
+    co_await_test( add_ref_unit_ui_seq( mock_mind, type ) );
+  };
+
+  using enum e_expeditionary_force_type;
+
+  mock_mind.EXPECT__message_box(
+      "The King has announced an increase to the Royal military "
+      "budget. [Regulars] have been added to the Royal "
+      "Expeditionary Force, causing alarm among colonists." );
+  f( regular );
+
+  mock_mind.EXPECT__message_box(
+      "The King has announced an increase to the Royal military "
+      "budget. [Men-O-War] have been added to the Royal "
+      "Expeditionary Force, causing alarm among colonists." );
+  f( man_o_war );
 }
 
 TEST_CASE( "[ref] add_ref_unit (loop)" ) {
