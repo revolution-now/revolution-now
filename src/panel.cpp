@@ -260,6 +260,12 @@ struct PanelPlane::Impl : public IPlane {
       write_tile( *box );
       write_terrain( *box );
       // TODO
+
+      // TODO: when the white box is over a foreign nation (or
+      // REF), it looks like the game does not give full info on
+      // how many units are on the tile. We may want to replicate
+      // this assuming it is true, though maybe the suppression
+      // should be turned off in cheat mode.
     }
 
     // Extra debugging.
