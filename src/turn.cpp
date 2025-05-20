@@ -1369,8 +1369,9 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
   // as many times as there are units adjacent to it. So just it-
   // erate over all the units and do one at a time. NOTE: it
   // seems that in some cases the artillery icon has a red X over
-  // it; I think this is when the colony has no artillery units
-  // in it, so the combat strength of it may depend on that.
+  // it; one thought was that this happens when the colony has no
+  // artillery units in it, but it doesn't seem to happen consis-
+  // tently in relation to that, so not sure what it is.
 }
 
 /****************************************************************
