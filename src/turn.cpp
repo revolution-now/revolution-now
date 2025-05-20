@@ -1359,9 +1359,18 @@ wait<> units_turn( IEngine& engine, SS& ss, TS& ts,
       return should_remove_unit_from_queue(
           ss.units.unit_for( id ) );
     } );
-    if( units.empty() ) co_return;
+    if( units.empty() ) break;
     q = deque( units.begin(), units.end() );
   }
+
+  // TODO: Fortresses fire on units that have ended their turn
+  // adjacent to a fortress. I think this is where the OG does
+  // that, but should confirm again. The same fortress can fire
+  // as many times as there are units adjacent to it. So just it-
+  // erate over all the units and do one at a time. NOTE: it
+  // seems that in some cases the artillery icon has a red X over
+  // it; I think this is when the colony has no artillery units
+  // in it, so the combat strength of it may depend on that.
 }
 
 /****************************************************************
