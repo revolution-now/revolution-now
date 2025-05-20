@@ -126,6 +126,19 @@ wait<> run_colony_starvation( SS& ss, TS& ts, Colony& colony ) {
   // !! Do not reference `colony` beyond this point.
 }
 
+wait<> fire_fortifications( SS&, TS&, Player&, Colony& ) {
+  // TODO: Forts and Fortresses fire on units that are adjacent
+  // to the fortress. The same fort/fortress can fire as many
+  // times as there are units adjacent to it. So just iterate
+  // over all of the surrounding squares in clockwise order and
+  // do one at a time. NOTE: it seems that in some cases the ar-
+  // tillery icon has a red X over it; one thought was that this
+  // happens when the colony has no artillery units in it, but it
+  // doesn't seem to happen consistently in relation to that, so
+  // not sure what it is.
+  co_return;
+}
+
 } // namespace
 
 /****************************************************************
@@ -156,6 +169,10 @@ wait<> evolve_colonies_for_player(
   for( ColonyId const colony_id : colonies ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
     lg.debug( "evolving colony \"{}\".", colony.name );
+    // The OG appears to do this precisely here, namely at the
+    // start of each colony's evolution, but before evolving the
+    // colony and showing colony notifications.
+    co_await fire_fortifications( ss, ts, player, colony );
     evolutions.push_back(
         colony_evolver.evolve_colony_one_turn( colony ) );
     ColonyEvolution const& ev = evolutions.back();
