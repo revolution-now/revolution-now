@@ -77,6 +77,22 @@ maybe<UnitType> should_promote_euro_unit( SSConst const& ss,
   if( !promoted.has_value() ) return nothing;
   UNWRAP_CHECK( player, ss.players.players[unit.nation()] );
   bool should_promote = true;
+  // During the war of independence, veteran units (only) can be
+  // promoted to continental units as a result of winning in com-
+  // bat. Here is what appears to affect it:
+  //
+  //   * SoL in colony: the SoL in the colony appears to have no
+  //     effect, since even when it is zero, the promotion still
+  //     seems to happen with the usual probability (unless
+  //     George Washington was acquired in which case it happens
+  //     always upon victory).
+  //   * George Washington: having George Washington seems to (as
+  //     usual) make the promotion happen always upon winning,
+  //     even if the colony has zero SoL.
+  //   * Happens the same outside of the colony.
+  //
+  // That makes things pretty simple, since promotion to conti-
+  // nental units introduces no new mechanics.
   if( promoted->type_obj().unit_type_modifiers().contains(
           e_unit_type_modifier::independence ) &&
       player.revolution.status < e_revolution_status::declared )
