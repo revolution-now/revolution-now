@@ -151,7 +151,7 @@ TEST_CASE(
   HiddenTerrainAnimationSequence expected;
   W.create_map( { .w = 4, .h = 4 } );
   e_player const player = W.default_player_type();
-  VisibilityForNation const viz( W.ss(), player );
+  VisibilityForPlayer const viz( W.ss(), player );
 
   auto const seq =
       anim_seq_for_hidden_terrain( W.ss(), viz, W.rand() );

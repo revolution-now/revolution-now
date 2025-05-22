@@ -228,7 +228,7 @@ TEST_CASE( "[unit-mgr] coord_for_unit_multi_ownership" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_type" ) {
   world w;
-  VisibilityForNation const viz( w.ss(),
+  VisibilityForPlayer const viz( w.ss(),
                                  w.default_player_type() );
   Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   { .x = 3, .y = 3 } );
@@ -271,8 +271,8 @@ TEST_CASE( "[unit-mgr] change_unit_type" ) {
 
 TEST_CASE( "[unit-mgr] change_unit_player" ) {
   world w;
-  VisibilityForNation const dutch_viz( w.ss(), e_player::dutch );
-  VisibilityForNation const spanish_viz( w.ss(),
+  VisibilityForPlayer const dutch_viz( w.ss(), e_player::dutch );
+  VisibilityForPlayer const spanish_viz( w.ss(),
                                          e_player::spanish );
   Unit& unit =
       w.add_unit_on_map( e_unit_type::free_colonist,
@@ -373,8 +373,8 @@ TEST_CASE( "[unit-mgr] change_unit_player_and_move" ) {
   Unit& unit = w.add_unit_on_map( e_unit_type::free_colonist,
                                   src, e_player::dutch );
 
-  VisibilityForNation const dutch_viz( w.ss(), e_player::dutch );
-  VisibilityForNation const spanish_viz( w.ss(),
+  VisibilityForPlayer const dutch_viz( w.ss(), e_player::dutch );
+  VisibilityForPlayer const spanish_viz( w.ss(),
                                          e_player::spanish );
 
   auto f = [&] {
@@ -848,7 +848,7 @@ TEST_CASE( "[unit-mgr] euro_units_from_coord_recursive" ) {
 }
 
 TEST_CASE(
-    "[unit-mgr] euro_units_from_coord_recursive/nation" ) {
+    "[unit-mgr] euro_units_from_coord_recursive/player" ) {
   world w;
 
   point tile;

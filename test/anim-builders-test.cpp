@@ -1312,7 +1312,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "none visible" ) {
-    VisibilityForNation const viz( W.ss(), e_player::french );
+    VisibilityForPlayer const viz( W.ss(), e_player::french );
 
     tribes   = { e_tribe::inca };
     expected = {
@@ -1352,7 +1352,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "some visible" ) {
-    VisibilityForNation const viz( W.ss(), e_player::french );
+    VisibilityForPlayer const viz( W.ss(), e_player::french );
 
     W.map_updater().make_squares_visible(
         e_player::french, { { .x = 1, .y = 1 } } );
@@ -1439,7 +1439,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "kill multiple" ) {
-    VisibilityForNation const viz( W.ss(), e_player::french );
+    VisibilityForPlayer const viz( W.ss(), e_player::french );
 
     W.map_updater().make_squares_visible(
         e_player::french, { { .x = 1, .y = 1 } } );

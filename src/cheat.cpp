@@ -55,6 +55,7 @@
 // ss
 #include "ss/colony.rds.hpp"
 #include "ss/land-view.rds.hpp"
+#include "ss/nation.hpp"
 #include "ss/natives.hpp"
 #include "ss/players.rds.hpp"
 #include "ss/ref.hpp"
@@ -215,37 +216,45 @@ wait<> cheat_reveal_map( SS& ss, TS& ts ) {
 
 wait<> cheat_set_human_players( SS& ss, TS& ts ) {
   // All enabled by default.
-  refl::enum_map<e_player, CheckBoxInfo> info_map;
-  for( e_player player : refl::enum_values<e_player> ) {
-    info_map[player] =
-        CheckBoxInfo{ .name = config_nation.players[player]
+  refl::enum_map<e_european_nation, CheckBoxInfo> info_map;
+  for( auto const nation :
+       refl::enum_values<e_european_nation> ) {
+    e_player const player_type = colonist_player_for( nation );
+    info_map[nation] =
+        CheckBoxInfo{ .name = config_nation.players[player_type]
                                   .display_name_pre_declaration,
                       .on       = false,
                       .disabled = true };
-    if( !ss.players.players[player].has_value() ) {
-      info_map[player].disabled = true;
-      info_map[player].on       = false;
+    if( !ss.players.players[player_type].has_value() ) {
+      info_map[nation].disabled = true;
+      info_map[nation].on       = false;
       continue;
     }
-    info_map[player].disabled = false;
-    info_map[player].on = ss.players.players[player]->human;
+    info_map[nation].disabled = false;
+    info_map[nation].on = ss.players.players[player_type]->human;
   }
 
   while( true ) {
-    co_await ts.gui.enum_check_boxes<e_player>(
+    co_await ts.gui.enum_check_boxes<e_european_nation>(
         "Select Human Nations:", info_map );
     bool found_human = false;
-    for( e_player player : refl::enum_values<e_player> )
-      if( info_map[player].on ) found_human = true;
+    for( auto const nation :
+         refl::enum_values<e_european_nation> )
+      if( info_map[nation].on ) //
+        found_human = true;
     if( found_human ) break;
     co_await ts.gui.message_box(
-        "There must be at least one human player." );
+        "There must be at least one human nation." );
   }
 
   // Set new human statuses.
-  for( e_player player : refl::enum_values<e_player> )
-    if( ss.players.players[player].has_value() )
-      ss.players.players[player]->human = info_map[player].on;
+  for( auto const nation :
+       refl::enum_values<e_european_nation> ) {
+    e_player const player_type = colonist_player_for( nation );
+    if( ss.players.players[player_type].has_value() )
+      ss.players.players[player_type]->human =
+          info_map[nation].on;
+  }
 
   ts.euro_minds() = create_euro_minds( ss, ts.gui );
 
@@ -481,7 +490,7 @@ wait<> kill_natives( SS& ss, TS& ts ) {
     vector<Coord> const affected_fogged = [&] {
       vector<Coord> res;
       res.reserve( affected_coords.size() );
-      VisibilityForNation const viz( ss, player );
+      VisibilityForPlayer const viz( ss, player );
       for( Coord const tile : affected_coords )
         if( viz.visible( tile ) == e_tile_visibility::fogged )
           res.push_back( tile );

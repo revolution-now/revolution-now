@@ -125,7 +125,7 @@ struct ND Unit {
   // Clear a unit's orders (they will then wait for orders).
   void clear_orders() { o_.orders = unit_orders::none{}; }
 
-  /******************* Type/Nation Changing ********************/
+  /******************* Type/Player Changing ********************/
 
  private:
   // Should not call this directly, instead should use

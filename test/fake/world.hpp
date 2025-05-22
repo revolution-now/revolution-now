@@ -310,7 +310,7 @@ struct World {
   }
 
   // Note that this function has a different convention than the
-  // usual in this module. When `nation` is nothing it means that
+  // usual in this module. When `player` is nothing it means that
   // there is no human player, as opposed to the usual meaning
   // which would be that the "default" player is selected.
   void set_human_player( maybe<e_player> player );

@@ -144,11 +144,11 @@ struct VisibilityEntire : IVisibility {
 };
 
 /****************************************************************
-** VisibilityForNation
+** VisibilityForPlayer
 *****************************************************************/
 // For when we are viewing the map from a player's perspective.
-struct VisibilityForNation : IVisibility {
-  VisibilityForNation( SSConst const& ss, e_player player );
+struct VisibilityForPlayer : IVisibility {
+  VisibilityForPlayer( SSConst const& ss, e_player player );
 
  public: // Implement IVisibility.
   base::maybe<e_player> player() const override {

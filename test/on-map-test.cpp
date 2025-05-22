@@ -402,8 +402,8 @@ TEST_CASE(
 
   SECTION( "spanish" ) {
     // In this case the visibility will not need to change be-
-    // cause we haven't set any active nations, so therefore the
-    // first human player in the order list of nations (spanish)
+    // cause we haven't set any active players, so therefore the
+    // first human player in the order list of players (spanish)
     // will be considered as the viewer, and since the spanish
     // are being visited, there is no player change.
     W.spanish().human = true;

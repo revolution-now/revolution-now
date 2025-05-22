@@ -667,7 +667,7 @@ TEST_CASE( "[cheat] kill_natives" ) {
     REQUIRE( !w.natives().dwelling_exists( dwelling_id_3 ) );
     REQUIRE( !w.natives().dwelling_exists( dwelling_id_4 ) );
     REQUIRE( w.natives().dwelling_exists( dwelling_id_5 ) );
-    VisibilityForNation const viz( w.ss(),
+    VisibilityForPlayer const viz( w.ss(),
                                    w.default_player_type() );
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::hidden );

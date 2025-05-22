@@ -100,7 +100,7 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   point const tile = { .x = 2, .y = 1 };
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const player_viz( w.ss(),
+  VisibilityForPlayer const player_viz( w.ss(),
                                         e_player::english );
 
   IVisibility const* viz = {};
@@ -587,7 +587,7 @@ TEST_CASE( "[disband] execute_disband" ) {
   EntitiesOnTile entities;
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const player_viz( w.ss(),
+  VisibilityForPlayer const player_viz( w.ss(),
                                         e_player::english );
 
   IVisibility const* viz = &full_viz;
@@ -844,7 +844,7 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
   EntitiesOnTile entities;
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const player_viz( w.ss(),
+  VisibilityForPlayer const player_viz( w.ss(),
                                         e_player::english );
 
   IVisibility const* viz = &full_viz;

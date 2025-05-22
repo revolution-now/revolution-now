@@ -285,7 +285,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, no visibility" ) {
-    VisibilityForNation const viz( W.ss(), e_player::english );
+    VisibilityForPlayer const viz( W.ss(), e_player::english );
 
     REQUIRE( viz.player() == e_player::english );
 
@@ -328,7 +328,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, no fog" ) {
-    VisibilityForNation const viz( W.ss(), e_player::english );
+    VisibilityForPlayer const viz( W.ss(), e_player::english );
 
     REQUIRE( viz.player() == e_player::english );
 
@@ -382,7 +382,7 @@ TEST_CASE( "[visibility] Visibility" ) {
   }
 
   SECTION( "with player, some visibility, some fog" ) {
-    VisibilityForNation const viz( W.ss(), e_player::english );
+    VisibilityForPlayer const viz( W.ss(), e_player::english );
 
     REQUIRE( viz.player() == e_player::english );
 
@@ -907,7 +907,7 @@ TEST_CASE( "[visibility] VisibilityWithOverrides" ) {
   Coord const kOutsideCoord = { .x = 2, .y = 2 };
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
   VisibilityEntire viz_entire( W.ss() );
-  VisibilityForNation viz_player( W.ss(), e_player::english );
+  VisibilityForPlayer viz_player( W.ss(), e_player::english );
   VisibilityOverrides overrides;
   // This will keep a reference to the overrides.
   VisibilityWithOverrides viz_overrides_entire(
@@ -1113,7 +1113,7 @@ TEST_CASE( "[visibility] resource_at" ) {
   BASE_CHECK( !W.terrain().square_exists( kOutsideCoord ) );
 
   VisibilityEntire viz_entire( W.ss() );
-  VisibilityForNation viz_player( W.ss(), e_player::english );
+  VisibilityForPlayer viz_player( W.ss(), e_player::english );
   VisibilityOverrides overrides;
   // These will keep references to `overrides`.
   VisibilityWithOverrides viz_overrides_entire(
@@ -1360,7 +1360,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
       REQUIRE( map_revealed == MapRevealed::entire{} );
     }
 
-    SECTION( "nation/french -> french" ) {
+    SECTION( "player/french -> french" ) {
       map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), french );
@@ -1371,7 +1371,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
                MapRevealed::player{ .type = french } );
     }
 
-    SECTION( "nation/french -> english" ) {
+    SECTION( "player/french -> english" ) {
       map_revealed = MapRevealed::player{ .type = french };
       mock_land_view.EXPECT__set_visibility( english );
       mock_land_view.EXPECT__set_visibility( french );
@@ -1425,7 +1425,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
       REQUIRE( map_revealed == MapRevealed::entire{} );
     }
 
-    SECTION( "nation/french -> french" ) {
+    SECTION( "player/french -> french" ) {
       map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), french );
@@ -1436,7 +1436,7 @@ TEST_CASE( "[visibility] ScopedMapViewer" ) {
                MapRevealed::player{ .type = french } );
     }
 
-    SECTION( "nation/french -> english" ) {
+    SECTION( "player/french -> english" ) {
       map_revealed = MapRevealed::player{ .type = french };
       {
         ScopedMapViewer const _( w.ss(), w.ts(), english );

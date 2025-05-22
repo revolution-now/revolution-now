@@ -351,7 +351,7 @@ void ColonyLandView::draw_land_3x3( rr::Renderer& renderer,
   // here.
   rr::Painter painter       = renderer.painter();
   Coord const colony_square = colony_.location;
-  VisibilityForNation const viz( ss_, player_.type );
+  VisibilityForPlayer const viz( ss_, player_.type );
   // Render terrain.
   for( Rect const local_rect : gfx::subrects(
            Rect{ .x = 0, .y = 0, .w = 3, .h = 3 } ) ) {

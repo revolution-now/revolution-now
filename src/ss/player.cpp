@@ -10,8 +10,9 @@
 *****************************************************************/
 #include "player.hpp"
 
-// gs
+// ss
 #include "ss/fathers.hpp"
+#include "ss/nation.hpp"
 #include "ss/old-world-state.hpp"
 #include "ss/revolution.hpp"
 
@@ -31,8 +32,23 @@ using namespace std;
 
 namespace rn {
 
+using ::base::valid;
+using ::base::valid_or;
+
 void linker_dont_discard_module_player();
 void linker_dont_discard_module_player() {}
+
+/****************************************************************
+** Player
+*****************************************************************/
+valid_or<string> Player::validate() const {
+  REFL_VALIDATE( european_nation_for( type ) == european_nation,
+                 "Player {} has inconsistent type (={}) and "
+                 "european_nation (={}).",
+                 type, type, european_nation );
+
+  return valid;
+}
 
 /****************************************************************
 ** Lua Bindings

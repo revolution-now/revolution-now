@@ -899,7 +899,7 @@ void perform_euro_unit_combat_effects(
     // We need to use this special function to do the nation
     // change and the move at the same time. If we did the move
     // first then there would be an intermediate state where we'd
-    // have multiple units of different nations on the same
+    // have multiple units of different players on the same
     // square, which we don't want. On the other hand, if we were
     // to do the the player change first then it would cause the
     // map squares around the captured unit to be revealed to the

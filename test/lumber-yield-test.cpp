@@ -89,7 +89,7 @@ TEST_CASE( "[lumber-yield] pioneer" ) {
     REQUIRE( f() == expected );
   }
 
-  SECTION( "one colony, wrong nation" ) {
+  SECTION( "one colony, wrong player" ) {
     W.found_colony_with_new_unit( { .x = 2, .y = 2 },
                                   e_player::french );
     expected = {};
@@ -254,7 +254,7 @@ TEST_CASE( "[lumber-yield] hardy_pioneer" ) {
     REQUIRE( f() == expected );
   }
 
-  SECTION( "one colony, wrong nation" ) {
+  SECTION( "one colony, wrong player" ) {
     W.found_colony_with_new_unit( { .x = 2, .y = 2 },
                                   e_player::french );
     expected = {};

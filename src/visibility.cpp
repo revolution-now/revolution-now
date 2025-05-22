@@ -171,9 +171,9 @@ maybe<Dwelling const&> VisibilityEntire::dwelling_at(
 }
 
 /****************************************************************
-** VisibilityForNation
+** VisibilityForPlayer
 *****************************************************************/
-VisibilityForNation::VisibilityForNation( SSConst const& ss,
+VisibilityForPlayer::VisibilityForPlayer( SSConst const& ss,
                                           e_player player )
   : IVisibility( ss ),
     ss_( ss ),
@@ -182,7 +182,7 @@ VisibilityForNation::VisibilityForNation( SSConst const& ss,
     player_terrain_( addressof(
         ss.terrain.player_terrain( player ).value() ) ) {}
 
-e_tile_visibility VisibilityForNation::visible(
+e_tile_visibility VisibilityForPlayer::visible(
     point const tile ) const {
   maybe<PlayerSquare const&> player_square =
       player_square_at( tile );
@@ -200,14 +200,14 @@ e_tile_visibility VisibilityForNation::visible(
   }
 }
 
-maybe<PlayerSquare const&> VisibilityForNation::player_square_at(
+maybe<PlayerSquare const&> VisibilityForPlayer::player_square_at(
     point const tile ) const {
   // If it's a proto square then can't obtain a player square.
   if( !on_map( tile ) ) return nothing;
   return player_terrain_->map[tile];
 }
 
-maybe<Colony const&> VisibilityForNation::colony_at(
+maybe<Colony const&> VisibilityForPlayer::colony_at(
     point const tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
@@ -221,7 +221,7 @@ maybe<Colony const&> VisibilityForNation::colony_at(
   }
 }
 
-maybe<Dwelling const&> VisibilityForNation::dwelling_at(
+maybe<Dwelling const&> VisibilityForPlayer::dwelling_at(
     point const tile ) const {
   UNWRAP_RETURN( player_square, player_square_at( tile ) );
   SWITCH( player_square ) {
@@ -235,7 +235,7 @@ maybe<Dwelling const&> VisibilityForNation::dwelling_at(
   }
 }
 
-MapSquare const& VisibilityForNation::square_at(
+MapSquare const& VisibilityForPlayer::square_at(
     point const tile ) const {
   maybe<PlayerSquare const&> const player_square =
       player_square_at( tile );
@@ -314,7 +314,7 @@ MapSquare const& VisibilityWithOverrides::square_at(
 std::unique_ptr<IVisibility const> create_visibility_for(
     SSConst const& ss, maybe<e_player> player ) {
   if( player.has_value() )
-    return make_unique<VisibilityForNation const>( ss, *player );
+    return make_unique<VisibilityForPlayer const>( ss, *player );
   else
     return make_unique<VisibilityEntire const>( ss );
 }

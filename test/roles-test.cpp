@@ -109,7 +109,7 @@ TEST_CASE( "[roles] player_for_role" ) {
   REQUIRE( f( e_player_role::viewer ) == nothing );
   REQUIRE( f( e_player_role::active ) == e_player::spanish );
 
-  // Switch to english nation-map-view.
+  // Switch to english player-map-view.
   W.land_view().map_revealed =
       MapRevealed::player{ .type = e_player::english };
   REQUIRE( f( e_player_role::viewer ) == e_player::english );

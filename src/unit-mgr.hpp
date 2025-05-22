@@ -165,7 +165,7 @@ NativeUnitId create_unit_on_map_non_interactive(
     DwellingId dwelling_id );
 
 /****************************************************************
-** Type/Nation Change.
+** Type/Player Change.
 *****************************************************************/
 void change_unit_type( SS& ss, TS& ts, Unit& unit,
                        UnitComposition const& new_comp );

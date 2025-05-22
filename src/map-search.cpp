@@ -152,7 +152,7 @@ maybe<Colony const&> find_any_close_colony(
 maybe<Colony const&> find_close_explored_colony(
     SSConst const& ss, e_player player, point location,
     double max_distance ) {
-  VisibilityForNation const viz( ss, player );
+  VisibilityForPlayer const viz( ss, player );
   base::generator<point> const search =
       outward_spiral_pythdist_search_existing_gen(
           ss, location, max_distance );

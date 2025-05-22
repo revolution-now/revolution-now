@@ -142,4 +142,6 @@ struct.Player {
 
   # Stats collected for the purpose of calculating a final score.
   score_stats 'PlayerScoreStats',
+
+  _features { equality, validation }
 }
