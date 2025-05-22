@@ -323,6 +323,7 @@ local STARTING_GOLD = {
 
 local function create_player_state( settings, nation, player )
   player.nation = nation
+  player.european_nation = nation
   player.money = assert(
                      STARTING_GOLD[settings.game_setup_options
                          .difficulty] )

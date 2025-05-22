@@ -34,6 +34,7 @@ struct.PlayerScoreStats {
 struct.Player {
   # Somewhat just for convenience.
   nation 'e_nation',
+  european_nation 'e_european_nation',
 
   human 'bool',
 

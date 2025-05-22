@@ -63,6 +63,7 @@ LUA_STARTUP( lua::state& st ) {
     auto u  = st.usertype.create<U>();
 
     u["nation"]              = &U::nation;
+    u["european_nation"]     = &U::european_nation;
     u["human"]               = &U::human;
     u["money"]               = &U::money;
     u["crosses"]             = &U::crosses;

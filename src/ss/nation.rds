@@ -16,3 +16,10 @@ enum.e_nation {
   spanish,
   dutch,
 }
+
+enum.e_european_nation {
+  english,
+  french,
+  spanish,
+  dutch,
+}

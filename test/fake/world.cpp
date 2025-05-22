@@ -46,6 +46,7 @@
 #include "config/unit-type.rds.hpp"
 
 // ss
+#include "src/ss/nation.hpp"
 #include "src/ss/players.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/root.hpp"
@@ -457,6 +458,8 @@ void World::add_player( e_nation nation ) {
   root().players.players[nation] = Player{};
   // This is the minimal amount that we need to set for a player.
   root().players.players[nation]->nation = nation;
+  root().players.players[nation]->european_nation =
+      european_nation_for( nation );
   root().zzz_terrain.initialize_player_terrain(
       nation, /*visible=*/false );
 }
