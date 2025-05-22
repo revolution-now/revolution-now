@@ -39,7 +39,7 @@ struct ViewportController;
 struct ILandViewPlane {
   virtual ~ILandViewPlane() = default;
 
-  virtual void set_visibility( maybe<e_nation> nation ) = 0;
+  virtual void set_visibility( maybe<e_player> player ) = 0;
 
   virtual wait<> ensure_visible( Coord const& coord ) = 0;
 
@@ -104,12 +104,12 @@ struct ILandViewPlane {
 *****************************************************************/
 struct LandViewPlane : ILandViewPlane {
   LandViewPlane( IEngine& engine, SS& ss, TS& ts,
-                 maybe<e_nation> visibility );
+                 maybe<e_player> visibility );
 
   ~LandViewPlane() override;
 
  public: // Implement ILandViewPlane.
-  void set_visibility( maybe<e_nation> nation ) override;
+  void set_visibility( maybe<e_player> player ) override;
 
   wait<> ensure_visible( Coord const& coord ) override;
   wait<> center_on_tile( gfx::point tile ) override;

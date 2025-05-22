@@ -611,7 +611,7 @@ TravelHandler::confirm_travel_impl() {
           society_on_square( ss_, move_dst );
       society.has_value() ) {
     CHECK( *society == Society{ Society::european{
-                         .nation = unit.nation() } } );
+                         .player = unit.player_type() } } );
     relationship = e_unit_relationship::friendly;
   }
 
@@ -1113,10 +1113,10 @@ struct NativeDwellingHandler : public CommandHandler {
     if( outcome_.holds<
             EnterDwellingOutcome::attack_brave_on_dwelling>() ) {
       TribeRelationship& relationship =
-          tribe_.relationship[unit_.nation()];
+          tribe_.relationship[unit_.player_type()];
       // The player has already confirmed that they want to at-
       // tack, so no need to re-ask them.
-      relationship.nation_has_attacked_tribe = true;
+      relationship.player_has_attacked_tribe = true;
       // Delegate: the order handling process will be restarted
       // with this new handler.
       NativeUnitId const defender_id =
@@ -1128,10 +1128,10 @@ struct NativeDwellingHandler : public CommandHandler {
     if( outcome_
             .holds<EnterDwellingOutcome::attack_village>() ) {
       TribeRelationship& relationship =
-          tribe_.relationship[unit_.nation()];
+          tribe_.relationship[unit_.player_type()];
       // The player has already confirmed that they want to at-
       // tack.
-      relationship.nation_has_attacked_tribe = true;
+      relationship.player_has_attacked_tribe = true;
       // Delegate: the order handling process will be restarted
       // with this new handler.
       return attack_dwelling_handler( ss_, ts_, unit_id_,
@@ -1244,7 +1244,7 @@ unique_ptr<CommandHandler> dispatch( SS& ss, TS& ts,
   CHECK( society.has_value() );
 
   if( *society == Society{ Society::european{
-                    .nation = attacker.nation() } } )
+                    .player = attacker.player_type() } } )
     // Friendly unit on target square, so not an attack.
     return make_unique<TravelHandler>( ss, ts, attacker_id, d,
                                        player );

@@ -144,7 +144,7 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
                           .display_name = "(no production)" } );
   maybe<int> initial_selection;
   int const population = colony_population( colony );
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  UNWRAP_CHECK( player, ss.players.players[colony.player] );
   e_water_access const water_access =
       colony_water_access( ss, ts, colony );
   for( e_colony_building building :
@@ -229,7 +229,7 @@ wait<> select_colony_construction( SSConst const& ss, TS& ts,
 
 maybe<RushConstruction> rush_construction_cost(
     SSConst const& ss, Colony const& colony ) {
-  UNWRAP_CHECK( player, ss.players.players[colony.nation] );
+  UNWRAP_CHECK( player, ss.players.players[colony.player] );
   UNWRAP_RETURN( project, colony.construction );
   UNWRAP_CHECK( total_requirements,
                 requirements_for_construction( project ) );
@@ -275,7 +275,7 @@ wait<> rush_construction_prompt(
         "because tools are currently boycotted in {}.",
         construction_name( invoice.project ),
         invoice.needed_tools,
-        config_nation.nations[player.nation].harbor_city_name );
+        config_nation.players[player.type].harbor_city_name );
     co_return;
   }
 

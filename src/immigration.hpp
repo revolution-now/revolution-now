@@ -59,7 +59,7 @@ e_unit_type pick_next_unit_for_pool(
 // This is not cheap to compute, so should be computed only when
 // needed.
 CrossesCalculation compute_crosses(
-    UnitsState const& units_state, e_nation nation );
+    UnitsState const& units_state, e_player player );
 
 // This is called each turn to accumulate some crosses based on
 // production and dock bonus/malus. Note that the total colonies'

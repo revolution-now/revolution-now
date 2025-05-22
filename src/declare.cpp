@@ -51,14 +51,14 @@ bool rebellion_large_enough_to_declare(
 /****************************************************************
 ** Public API.
 *****************************************************************/
-maybe<e_nation> human_player_that_declared( SSConst const& ss ) {
+maybe<e_player> human_player_that_declared( SSConst const& ss ) {
   using enum e_revolution_status;
   // The players state validation should have ensured that there
   // is at most one human player that has declared.
-  for( auto const& [nation, player] : ss.players.players )
+  for( auto const& [type, player] : ss.players.players )
     if( player.has_value() && player->human &&
         player->revolution.status >= declared )
-      return nation;
+      return type;
   return nothing;
 }
 
@@ -68,8 +68,8 @@ valid_or<e_declare_rejection> can_declare_independence(
     using enum e_revolution_status;
     using enum e_declare_rejection;
     case not_declared: {
-      for( auto const& [nation, other] : ss.players.players )
-        if( other.has_value() && nation != player.nation )
+      for( auto const& [type, other] : ss.players.players )
+        if( other.has_value() && type != player.type )
           if( other->revolution.status >= declared )
             return other_human_already_declared;
       if( rebellion_large_enough_to_declare( ss.settings,
@@ -114,7 +114,7 @@ wait<ui::e_confirm> ask_declare( IGui& gui,
         "Shall we declare independence from [{}], Your "
         "Excellency?  Doing so will end this turn and "
         "immediately put us at war with the crown.",
-        config_nation.nations[player.nation].country_name ),
+        config_nation.players[player.type].country_name ),
     .yes_label =
         "Yes! Give me liberty or give me death! ([Leave])",
     .no_label =

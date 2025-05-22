@@ -834,7 +834,7 @@ ColonyEvolution evolve_colony_one_turn( SS& ss, TS& ts,
   ev.production = production_for_colony( ss, colony );
 
   Player& player =
-      player_for_nation_or_die( ss.players, colony.nation );
+      player_for_player_or_die( ss.players, colony.player );
 
   // This must be done after computing the production for the
   // colony since we want the production to use last turn's SoL %

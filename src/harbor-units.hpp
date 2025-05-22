@@ -45,16 +45,16 @@ bool is_unit_in_port( UnitsState const& units_state, UnitId id );
 // in the ordering map.
 std::vector<UnitId> harbor_units_on_dock(
     UnitsState const& units_state,
-    e_nation nation ); // Sorted by arrival.
+    e_player player ); // Sorted by arrival.
 std::vector<UnitId> harbor_units_in_port(
     UnitsState const& units_state,
-    e_nation nation ); // Sorted by arrival.
+    e_player player ); // Sorted by arrival.
 std::vector<UnitId> harbor_units_inbound(
     UnitsState const& units_state,
-    e_nation nation ); // to harbor
+    e_player player ); // to harbor
 std::vector<UnitId> harbor_units_outbound(
     UnitsState const& units_state,
-    e_nation nation ); // to new world
+    e_player player ); // to new world
 
 /****************************************************************
 ** Harbor ownership changes.

@@ -26,7 +26,7 @@ struct SS;
 // This is an implementation that will consult with a human user
 // via GUI actions or input in order to fulfill the requests.
 struct HumanEuroMind final : IEuroMind {
-  HumanEuroMind( e_nation nation, SS& ss, IGui& gui );
+  HumanEuroMind( e_player player, SS& ss, IGui& gui );
 
  public: // IMind.
   wait<> message_box( std::string const& msg ) override;

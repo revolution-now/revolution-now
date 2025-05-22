@@ -92,10 +92,10 @@ void HarborStatusBar::draw_text( rr::Renderer& renderer ) const {
 }
 
 string HarborStatusBar::build_status_normal() const {
-  auto& nation       = nation_obj( player_.nation );
+  auto& player       = player_obj( player_.type );
   string const stats = fmt::format(
       "{}, {}. {}, {}. Tax: {}%  Treasury: {}{}",
-      nation.harbor_city_name, nation.country_name,
+      player.harbor_city_name, player.country_name,
       season_name( ss_.turn.time_point.season ),
       ss_.turn.time_point.year, player_.old_world.taxes.tax_rate,
       player_.money, config_text.special_chars.currency );

@@ -28,9 +28,9 @@ namespace rn {
 /****************************************************************
 ** HumanEuroMind
 *****************************************************************/
-HumanEuroMind::HumanEuroMind( e_nation nation, SS& ss,
+HumanEuroMind::HumanEuroMind( e_player player, SS& ss,
                               IGui& gui )
-  : IEuroMind( nation ), ss_( ss ), gui_( gui ) {}
+  : IEuroMind( player ), ss_( ss ), gui_( gui ) {}
 
 wait<> HumanEuroMind::message_box( string const& msg ) {
   co_await gui_.message_box( msg );
@@ -63,8 +63,8 @@ wait<> HumanEuroMind::notify_captured_cargo(
 }
 
 Player const& HumanEuroMind::player() {
-  return player_for_nation_or_die( as_const( ss_.players ),
-                                   nation() );
+  return player_for_player_or_die( as_const( ss_.players ),
+                                   player_type() );
 }
 
 } // namespace rn

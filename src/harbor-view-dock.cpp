@@ -76,7 +76,7 @@ bool HarborDockUnits::update_units_impl( int const row_inc ) {
   units_.clear();
   auto const& units_layout = backdrop_.dock_units_layout();
   vector<UnitId> const dock_units =
-      harbor_units_on_dock( ss_.units, player_.nation );
+      harbor_units_on_dock( ss_.units, player_.type );
 
   auto units_iter = dock_units.begin();
 

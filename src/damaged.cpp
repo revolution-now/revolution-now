@@ -50,8 +50,8 @@ struct ColonyWithDrydock {
 };
 
 ShipRepairPort find_repair_port_for_ship_pre_independence(
-    SSConst const& ss, e_nation nation, Coord ship_location ) {
-  vector<ColonyId> colonies = ss.colonies.for_nation( nation );
+    SSConst const& ss, e_player player, Coord ship_location ) {
+  vector<ColonyId> colonies = ss.colonies.for_player( player );
   // So that we don't rely on hash map iteration order.
   sort( colonies.begin(), colonies.end() );
   if( colonies.empty() )
@@ -86,12 +86,13 @@ ShipRepairPort find_repair_port_for_ship_pre_independence(
 ** Public API
 *****************************************************************/
 maybe<ShipRepairPort> find_repair_port_for_ship(
-    SSConst const& ss, e_nation nation, Coord ship_location ) {
+    SSConst const& ss, e_player const player_type,
+    Coord ship_location ) {
   ShipRepairPort const res =
       find_repair_port_for_ship_pre_independence(
-          ss, nation, ship_location );
+          ss, player_type, ship_location );
   Player const& player =
-      player_for_nation_or_die( ss.players, nation );
+      player_for_player_or_die( ss.players, player_type );
   if( player.revolution.status >=
       e_revolution_status::declared ) {
     // After independence is declared we cannot go back to the
@@ -156,7 +157,7 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
   // captured by a foreign power and the ship becomes damaged and
   // moved to a different port (which is what normally happens)
   // and some military units it contains are left on the colony
-  // square and reassigned to the other nation.
+  // square and reassigned to the other player.
   vector<UnitId> const units_in_cargo = ship.cargo().units();
   for( UnitId const held_id : units_in_cargo )
     UnitOwnershipChanger( ss, held_id ).destroy();
@@ -183,14 +184,14 @@ void move_damaged_ship_for_repair( SS& ss, TS& ts, Unit& ship,
   }
 }
 
-string ship_repair_port_name( SSConst const& ss, e_nation nation,
+string ship_repair_port_name( SSConst const& ss, e_player player,
                               ShipRepairPort const& port ) {
   SWITCH( port ) {
     CASE( colony ) {
       return ss.colonies.colony_for( colony.id ).name;
     }
     CASE( european_harbor ) {
-      return nation_obj( nation ).harbor_city_name;
+      return player_obj( player ).harbor_city_name;
     }
   }
 }
@@ -205,17 +206,18 @@ string ship_damaged_reason( e_ship_damaged_reason reason ) {
   }
 }
 
-string ship_damaged_message( SSConst const& ss, e_nation nation,
+string ship_damaged_message( SSConst const& ss,
+                             e_player const player_type,
                              e_unit_type ship_type,
                              e_ship_damaged_reason reason,
                              ShipRepairPort const& port ) {
   Player const& player =
-      player_for_nation_or_die( ss.players, nation );
+      player_for_player_or_die( ss.players, player_type );
   return fmt::format(
       "[{}] [{}] damaged {}! Ship sent to [{}] for repairs.",
-      nation_possessive( player ), unit_attr( ship_type ).name,
+      player_possessive( player ), unit_attr( ship_type ).name,
       ship_damaged_reason( reason ),
-      ship_repair_port_name( ss, nation, port ) );
+      ship_repair_port_name( ss, player_type, port ) );
 }
 
 string ship_damaged_no_port_message(
@@ -224,7 +226,7 @@ string ship_damaged_no_port_message(
   return fmt::format(
       "[{}] [{}] damaged {}! As there are no available repair "
       "ports, the ship has been lost.",
-      nation_possessive( player ), unit_attr( ship_type ).name,
+      player_possessive( player ), unit_attr( ship_type ).name,
       ship_damaged_reason( reason ) );
 }
 

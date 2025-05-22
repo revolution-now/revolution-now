@@ -78,15 +78,15 @@ constexpr int minimum_alarm_for_named_level(
 // TODO: this may not be a relevant quantity in the OG.
 int effective_dwelling_alarm( SSConst const& ss,
                               Dwelling const& dwelling,
-                              e_nation nation ) {
+                              e_player player ) {
   Tribe const& tribe = ss.natives.tribe_for( dwelling.id );
-  if( !tribe.relationship[nation].encountered ) return 0;
+  if( !tribe.relationship[player].encountered ) return 0;
   int const tribal_alarm =
-      tribe.relationship[nation].tribal_alarm;
+      tribe.relationship[player].tribal_alarm;
   CHECK_GE( tribal_alarm, 0 );
   CHECK_LT( tribal_alarm, 100 );
   int const dwelling_only_alarm =
-      dwelling.relationship[nation].dwelling_only_alarm;
+      dwelling.relationship[player].dwelling_only_alarm;
   CHECK_GE( dwelling_only_alarm, 0 );
   CHECK_LT( dwelling_only_alarm, 100 );
   // The alarm A is given by:
@@ -117,15 +117,15 @@ void increase_tribal_alarm( Player const& player, double delta,
 e_enter_dwelling_reaction reaction_for_dwelling(
     SSConst const& ss, Player const& player, Tribe const& tribe,
     Dwelling const& dwelling ) {
-  if( !tribe.relationship[player.nation].encountered )
+  if( !tribe.relationship[player.type].encountered )
     // Not yet made contact.
     return e_enter_dwelling_reaction::wave_happily;
   TribeRelationship const& relationship =
-      tribe.relationship[player.nation];
+      tribe.relationship[player.type];
   if( relationship.at_war )
     return e_enter_dwelling_reaction::scalps_and_war_drums;
   int const effective_alarm =
-      effective_dwelling_alarm( ss, dwelling, player.nation );
+      effective_dwelling_alarm( ss, dwelling, player.type );
   CHECK_GE( effective_alarm, 0 );
   CHECK_LT( effective_alarm, 100 );
   // The below assumes there are five elements in the enum; if

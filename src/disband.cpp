@@ -56,13 +56,13 @@ bool can_disband_foreign_units( SSConst const& ss ) {
 }
 
 bool can_disband_unit( SSConst const& ss,
-                       e_nation const& player_nation,
+                       e_player const& player_type,
                        GenericUnitId const generic_unit_id ) {
   switch( ss.units.unit_kind( generic_unit_id ) ) {
     case e_unit_kind::euro: {
       Unit const& unit =
           ss.units.euro_unit_for( generic_unit_id );
-      if( unit.nation() != player_nation )
+      if( unit.player_type() != player_type )
         return can_disband_foreign_units( ss );
       return true;
     }
@@ -146,13 +146,13 @@ wait<maybe<EntitiesOnTile>> disband_selection_dialog(
       switch( ss.units.unit_kind( unit_id ) ) {
         case e_unit_kind::euro: {
           Unit const& unit = ss.units.euro_unit_for( unit_id );
-          // Note we use viz.nation here instead of player na-
+          // Note we use viz.player here instead of player na-
           // tion, because it really matters more what view the
           // player is assuming here.
-          if( viz.nation() != unit.nation() )
-            owner_name = nation_possessive( player );
+          if( viz.player() != unit.player_type() )
+            owner_name = player_possessive( player );
           return make_unique<FakeUnitView>(
-              unit.type(), unit.nation(), unit.orders() );
+              unit.type(), unit.player_type(), unit.orders() );
         }
         case e_unit_kind::native:
           NativeUnit const& native_unit =
@@ -284,8 +284,8 @@ DisbandingPermissions disbandable_entities_on_tile(
     }();
     for( auto const generic_unit_id : units_sorted ) {
       bool const disbandable =
-          !viz.nation().has_value() ||
-          can_disband_unit( ss, *viz.nation(), generic_unit_id );
+          !viz.player().has_value() ||
+          can_disband_unit( ss, *viz.player(), generic_unit_id );
       if( disbandable )
         perms.disbandable.units.push_back( generic_unit_id );
     }
@@ -526,8 +526,8 @@ wait<> execute_disband( SS& ss, TS& ts, IVisibility const& viz,
     // get rendered and the dwelling will continue to appear. If
     // we are disbanding a phantom dwelling, this will simply ex-
     // pose to the player the fact that it is no longer there.
-    if( auto const nation = viz.nation(); nation.has_value() )
-      map_updater.make_squares_visible( *nation, { tile } );
+    if( auto const player = viz.player(); player.has_value() )
+      map_updater.make_squares_visible( *player, { tile } );
 
   if( destroy_tribe.has_value() )
     co_await destroy_tribe_interactive( ss, ts, *destroy_tribe );

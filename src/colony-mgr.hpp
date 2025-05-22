@@ -39,7 +39,7 @@ struct TS;
 struct Unit;
 
 enum class e_outdoor_job;
-enum class e_nation;
+enum class e_player;
 
 valid_or<e_new_colony_name_err> is_valid_new_colony_name(
     ColoniesState const& colonies_state, std::string_view name );
@@ -47,11 +47,11 @@ valid_or<e_new_colony_name_err> is_valid_new_colony_name(
 valid_or<e_found_colony_err> unit_can_found_colony(
     SSConst const& ss, UnitId founder );
 
-// This will change the nation of the colony and all units that
+// This will change the player of the colony and all units that
 // are workers in the colony as well as units that are in the
 // same map square as the colony.
-void change_colony_nation( SS& ss, TS& ts, Colony& colony,
-                           e_nation new_nation );
+void change_colony_player( SS& ss, TS& ts, Colony& colony,
+                           e_player new_player );
 
 // Before calling this, it should already have been the case that
 // `can_found_colony` was called to validate; so it should work,
@@ -60,11 +60,11 @@ ColonyId found_colony( SS& ss, TS& ts, Player const& player,
                        UnitId founder, std::string_view name );
 
 // This basically creates a default-constructed colony and gives
-// it a nation, name, and location, but nothing more. So it is
+// it a player, name, and location, but nothing more. So it is
 // not a valid colony yet. Normal game code shouldn't really call
 // this, it is mostly exposed for testing.
 ColonyId create_empty_colony( ColoniesState& colonies_state,
-                              e_nation nation, Coord where,
+                              e_player player, Coord where,
                               std::string_view name );
 
 // Will strip the unit of any commodities (including inventory

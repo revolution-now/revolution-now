@@ -46,9 +46,9 @@ struct MapUpdaterOptions {
   // The desired value of this `nation` field at any given time
   // can be derived from other state in the game, but it is here
   // to represent the current state of rendering (with respect to
-  // nation perspective) on the GPU, so that if that desired
+  // player perspective) on the GPU, so that if that desired
   // value changes, we know when we need to redraw.
-  maybe<e_nation> nation = nothing;
+  maybe<e_player> player = nothing;
   bool grid              = false;
   bool render_fog_of_war = true;
 
@@ -110,7 +110,7 @@ struct IMapUpdater {
   virtual void modify_entire_map_no_redraw(
       MapUpdateFunc mutator ) = 0;
 
-  // If the given nation cannot see the squares they will be made
+  // If the given player cannot see the squares they will be made
   // visible, and if they were already visible then they will be
   // updated in case they were stale. In either case, it will
   // also remove the fog from the squares if there is any. The
@@ -118,16 +118,16 @@ struct IMapUpdater {
   // for each tile, respectively, and which will have been re-
   // drawn.
   virtual std::vector<BuffersUpdated> make_squares_visible(
-      e_nation nation, std::vector<Coord> const& tiles ) = 0;
+      e_player player, std::vector<Coord> const& tiles ) = 0;
 
   // If the squares are not fogged from the perspective of the
-  // nation then they are made so and any redrawing is done if
+  // player then they are made so and any redrawing is done if
   // necessary, if fog rendering is enabled. If the squares are
   // not visible then no changes are made. Returns which buffers
   // needed a redraw for each tile respectively, if any (in prac-
   // tice, this will just be the obfuscation buffer).
   virtual std::vector<BuffersUpdated> make_squares_fogged(
-      e_nation nation, std::vector<Coord> const& tiles ) = 0;
+      e_player player, std::vector<Coord> const& tiles ) = 0;
 
   // This should not be used by most game code. This is for those
   // rare cases where the rendered tile changes in response to a

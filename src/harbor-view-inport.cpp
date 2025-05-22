@@ -117,7 +117,7 @@ HarborInPortShips::units() const {
   vector<UnitWithPosition> units;
   auto spot_it = layout_.slots.begin();
   for( UnitId const unit_id :
-       harbor_units_in_port( ss_.units, player_.nation ) ) {
+       harbor_units_in_port( ss_.units, player_.type ) ) {
     if( spot_it == layout_.slots.end() ) break;
     units.push_back( { .id = unit_id, .bounds = *spot_it } );
     ++spot_it;
@@ -171,7 +171,7 @@ wait<> HarborInPortShips::click_on_unit( UnitId const unit_id ) {
     }
     if( choice == "set sail" ) {
       unit_sail_to_new_world( ss_, unit_id );
-      if( harbor_units_in_port( ss_.units, player_.nation )
+      if( harbor_units_in_port( ss_.units, player_.type )
               .empty() ) {
         // Small delay so that the user can see the ship moving
         // into the outbound box briefly before the screen

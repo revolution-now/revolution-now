@@ -16,7 +16,7 @@ namespace "rn"
 interface.IMapSearch {
   find_close_encountered_tribe {
     returns 'maybe<e_tribe>',
-    nation 'e_nation',
+    player 'e_player',
     location 'gfx::point',
     max_distance 'double',
   },

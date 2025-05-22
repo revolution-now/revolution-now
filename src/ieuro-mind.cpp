@@ -27,13 +27,14 @@ namespace rn {
 /****************************************************************
 ** IEuroMind
 *****************************************************************/
-IEuroMind::IEuroMind( e_nation nation ) : nation_( nation ) {}
+IEuroMind::IEuroMind( e_player player_type )
+  : player_type_( player_type ) {}
 
 /****************************************************************
 ** NoopEuroMind
 *****************************************************************/
-NoopEuroMind::NoopEuroMind( SSConst const& ss, e_nation nation )
-  : IEuroMind( nation ), ss_( ss ) {}
+NoopEuroMind::NoopEuroMind( SSConst const& ss, e_player player )
+  : IEuroMind( player ), ss_( ss ) {}
 
 wait<> NoopEuroMind::message_box( string const& ) { co_return; }
 
@@ -58,8 +59,8 @@ wait<> NoopEuroMind::notify_captured_cargo( Player const&,
 }
 
 Player const& NoopEuroMind::player() {
-  return player_for_nation_or_die( as_const( ss_.players ),
-                                   nation() );
+  return player_for_player_or_die( as_const( ss_.players ),
+                                   player_type() );
 }
 
 } // namespace rn

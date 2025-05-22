@@ -86,7 +86,7 @@ sumtype.LiveAmongTheNatives {
   unhappy {},
 
   # The dwelling (if it is a non-capital) will not teach a
-  # colonist twice, even if they are of a different nation.
+  # colonist twice, even if they are of a different player.
   already_taught {},
 
   # The unit cannot be taught if it already has some expertise.

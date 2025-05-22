@@ -208,7 +208,7 @@ struct LandViewPlane::Impl : public IPlane {
         e_menu_item::toggle_view_mode, *this ) );
   }
 
-  Impl( IEngine& engine, SS& ss, TS& ts, maybe<e_nation> nation )
+  Impl( IEngine& engine, SS& ss, TS& ts, maybe<e_player> player )
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
@@ -216,7 +216,7 @@ struct LandViewPlane::Impl : public IPlane {
       viewport_( ss.terrain, ss.land_view.viewport,
                  viewport_rect_pixels() ),
       animator_( engine_.sfx(), ss, viewport_, viz_ ) {
-    set_visibility( nation );
+    set_visibility( player );
     CHECK( viz_ != nullptr );
     register_menu_items( ts.planes.get().menu );
     // Initialize general global data.
@@ -471,12 +471,12 @@ struct LandViewPlane::Impl : public IPlane {
       }
       case e::cheat_create_unit: {
         if( !cheat_mode_enabled( ss_ ) ) break;
-        maybe<e_nation> const nation =
+        maybe<e_player> const player =
             player_for_role( ss_, e_player_role::active );
-        if( !nation.has_value() ) break;
+        if( !player.has_value() ) break;
         auto const tile = cheat_target_square( ss_, ts_ );
         if( !tile.has_value() ) break;
-        co_await cheat_create_unit_on_map( ss_, ts_, *nation,
+        co_await cheat_create_unit_on_map( ss_, ts_, *player,
                                            *tile );
         break;
       }
@@ -548,10 +548,10 @@ struct LandViewPlane::Impl : public IPlane {
         if( o.mods.shf_down ) {
           // cheat mode.
           if( !cheat_mode_enabled( ss_ ) ) break;
-          maybe<e_nation> const nation =
+          maybe<e_player> const player =
               player_for_role( ss_, e_player_role::active );
-          if( !nation.has_value() ) break;
-          co_await cheat_create_unit_on_map( ss_, ts_, *nation,
+          if( !player.has_value() ) break;
+          co_await cheat_create_unit_on_map( ss_, ts_, *player,
                                              o.coord );
           break;
         }
@@ -1316,8 +1316,8 @@ struct LandViewPlane::Impl : public IPlane {
         Coord::from_gfx( tile ) );
   }
 
-  void set_visibility( maybe<e_nation> nation ) {
-    viz_ = create_visibility_for( ss_, nation );
+  void set_visibility( maybe<e_player> player ) {
+    viz_ = create_visibility_for( ss_, player );
   }
 
   void zoom_out_full() {
@@ -1689,7 +1689,7 @@ IPlane& LandViewPlane::impl() { return *impl_; }
 LandViewPlane::~LandViewPlane() = default;
 
 LandViewPlane::LandViewPlane( IEngine& engine, SS& ss, TS& ts,
-                              maybe<e_nation> visibility )
+                              maybe<e_player> visibility )
   : impl_( new Impl( engine, ss, ts, visibility ) ) {}
 
 wait<> LandViewPlane::ensure_visible( Coord const& coord ) {
@@ -1700,8 +1700,8 @@ wait<> LandViewPlane::center_on_tile( point const tile ) {
   return impl_->center_on_tile( tile );
 }
 
-void LandViewPlane::set_visibility( maybe<e_nation> nation ) {
-  return impl_->set_visibility( nation );
+void LandViewPlane::set_visibility( maybe<e_player> player ) {
+  return impl_->set_visibility( player );
 }
 
 wait<> LandViewPlane::ensure_visible_unit( GenericUnitId id ) {

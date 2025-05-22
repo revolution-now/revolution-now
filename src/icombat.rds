@@ -54,14 +54,14 @@ sumtype.EuroUnitCombatOutcome {
   # This will happen to a non-military unit (excluding ships)
   # that are attacked by other europeans.
   captured {
-    new_nation 'e_nation',
+    new_player 'e_player',
     new_coord 'Coord',
   },
   # This is for veteran colonists that lose their veteran status
   # upon capture.
   captured_and_demoted {
     to 'e_unit_type',
-    new_nation 'e_nation',
+    new_player 'e_player',
     new_coord 'Coord',
   },
   # Promotion/demotion.

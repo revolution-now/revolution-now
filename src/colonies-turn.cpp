@@ -150,14 +150,14 @@ wait<> evolve_colonies_for_player(
     IHarborViewer& harbor_viewer,
     IColonyNotificationGenerator const&
         colony_notification_generator ) {
-  e_nation nation = player.nation;
-  lg.info( "processing colonies for the {}.", nation );
+  e_player const player_type = player.type;
+  lg.info( "processing colonies for the {}.", player_type );
   unordered_map<ColonyId, Colony> const& colonies_all =
       ss.colonies.all();
   vector<ColonyId> colonies;
   colonies.reserve( colonies_all.size() );
   for( auto const& [colony_id, colony] : colonies_all )
-    if( colony.nation == nation )
+    if( colony.player == player_type )
       colonies.push_back( colony_id );
   // This is so that we process them in a deterministic order
   // that doesn't depend on hash map iteration order.
@@ -219,7 +219,7 @@ wait<> evolve_colonies_for_player(
 
   // Crosses/immigration.
   CrossesCalculation const crosses_calc =
-      compute_crosses( ss.units, player.nation );
+      compute_crosses( ss.units, player.type );
   give_new_crosses_to_player( player, crosses_calc, evolutions );
   maybe<UnitId> immigrant = co_await check_for_new_immigrant(
       ss, ts, player, crosses_calc.crosses_needed );
@@ -230,7 +230,7 @@ wait<> evolve_colonies_for_player(
     // harbor view just after displaying the message but only
     // when there is a ship in the harbor.
     int const num_ships_in_port =
-        harbor_units_in_port( ss.units, player.nation ).size();
+        harbor_units_in_port( ss.units, player.type ).size();
     if( num_ships_in_port > 0 ) co_await harbor_viewer.show();
   }
 }

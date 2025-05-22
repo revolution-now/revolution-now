@@ -32,12 +32,12 @@ struct SSConst;
 struct TS;
 struct Player;
 
-enum class e_nation;
+enum class e_player;
 
 /****************************************************************
 ** Public API.
 *****************************************************************/
-maybe<e_nation> human_player_that_declared( SSConst const& ss );
+maybe<e_player> human_player_that_declared( SSConst const& ss );
 
 base::valid_or<e_declare_rejection> can_declare_independence(
     SSConst const& ss, Player const& player );

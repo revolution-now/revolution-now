@@ -29,7 +29,7 @@ HarborUnloadables find_unloadable_slots_in_harbor(
     SSConst const& ss, UnitId const ship_id ) {
   Unit const& unit = ss.units.unit_for( ship_id );
   UNWRAP_CHECK_T( Player const& player,
-                  ss.players.players[unit.nation()] );
+                  ss.players.players[unit.player_type()] );
 
   auto const& commodities = player.old_world.market.commodities;
 

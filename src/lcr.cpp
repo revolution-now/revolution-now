@@ -131,7 +131,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
       int total = player.money += trinkets.gold;
       lg.info(
           "{} gold added to {} treasury.  current balance: {}.",
-          trinkets.gold, player.nation, total );
+          trinkets.gold, player.type, total );
       result = LostCityRumorUnitChange::other{};
       break;
     }
@@ -150,7 +150,7 @@ wait<LostCityRumorUnitChange> run_burial_mounds_result(
     // Do this after so that the exclamation marks on the
     // dwellings appear after the message box closes.
     increase_tribal_alarm_from_burial_ground_trespass(
-        as_const( player ), tribe.relationship[player.nation] );
+        as_const( player ), tribe.relationship[player.type] );
   }
   co_return result;
 }
@@ -275,7 +275,7 @@ wait<LostCityRumorUnitChange> run_rumor_result(
       // dwellings appear after the message box closes.
       increase_tribal_alarm(
           player, holy_shrines.alarm_increase,
-          tribe.relationship[player.nation].tribal_alarm );
+          tribe.relationship[player.type].tribal_alarm );
       co_return LostCityRumorUnitChange::other{};
     }
     CASE( none ) {
@@ -420,7 +420,7 @@ LostCityRumor compute_rumor_type(
       auto const burial_grounds = [&]() -> maybe<e_tribe> {
         maybe<e_tribe> const close_encountered_tribe =
             map_search.find_close_encountered_tribe(
-                player.nation, tile,
+                player.type, tile,
                 config_lcr.burial_grounds_radius );
         if( close_encountered_tribe.has_value() )
           return pick_burial_grounds_result(
@@ -455,7 +455,7 @@ LostCityRumor compute_rumor_type(
     case e_rumor_type::holy_shrines: {
       maybe<e_tribe> const close_encountered_tribe =
           map_search.find_close_encountered_tribe(
-              player.nation, tile,
+              player.type, tile,
               config_lcr.burial_grounds_radius );
       if( close_encountered_tribe.has_value() ) {
         auto const& range =

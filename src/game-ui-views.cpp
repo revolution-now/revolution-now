@@ -122,7 +122,7 @@ unique_ptr<UnitActivationView> UnitActivationView::Create(
     auto const& unit = ss.units.unit_for( id );
 
     auto fake_unit_view = make_unique<ui::FakeUnitView>(
-        unit.desc().type, unit.nation(), unit.orders() );
+        unit.desc().type, unit.player_type(), unit.orders() );
     auto* p_fake_unit_view = fake_unit_view.get();
 
     auto border_view = make_unique<ui::BorderView>(

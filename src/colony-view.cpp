@@ -156,7 +156,7 @@ struct ColonyPlane : public IPlane {
     : engine_( engine ),
       ss_( ss ),
       ts_( ts ),
-      player_( ss.players.players[colony.nation].value() ),
+      player_( ss.players.players[colony.player].value() ),
       colony_( colony ) {}
 
   void on_logical_resolution_selected(

@@ -133,7 +133,7 @@ void LandViewRenderer::render_single_unit(
       maybe<UnitFlagRenderInfo> flag_info;
       if( flag_options.has_value() )
         flag_info = euro_unit_flag_render_info(
-            unit, viz_->nation(), *flag_options );
+            unit, viz_->player(), *flag_options );
       render_unit( renderer_, where, unit,
                    UnitRenderOptions{ .flag   = flag_info,
                                       .shadow = UnitShadow{} } );
@@ -244,11 +244,11 @@ void LandViewRenderer::render_single_unit_depixelate_to(
     .flag_count = flag_count, .type = e_flag_char_type::normal };
   Unit const& unit = ss_.units.unit_for( unit_id );
   UnitFlagRenderInfo const flag_info =
-      euro_unit_flag_render_info( unit, viz_->nation(),
+      euro_unit_flag_render_info( unit, viz_->player(),
                                   flag_options );
   UnitFlagRenderInfo const target_flag_info =
       euro_unit_type_flag_info( target_type, unit.orders(),
-                                unit.nation() );
+                                unit.player_type() );
 
   render_unit_depixelate_to(
       renderer_, where, unit, target_type, stage,
@@ -413,7 +413,7 @@ void LandViewRenderer::render_units_impl() const {
   // slide under and from under it when moving. However, there is
   // one case where we don't want that: when the unit sliding is
   // 1) a european unit, and 2) the map is currently being viewed
-  // from the perspective of that unit's nation. When (and only
+  // from the perspective of that unit's player. When (and only
   // when) those two conditions are met, the unit can potentially
   // remove obfuscation as it moves. When it does that, we don't
   // want to render it under the obfuscation because it doesn't
@@ -445,7 +445,7 @@ void LandViewRenderer::render_units_impl() const {
           return false;
         auto const& unit = ss_.units.euro_unit_for( id );
         if( player_for_role( ss_, e_player_role::viewer ) !=
-            unit.nation() )
+            unit.player_type() )
           return false;
         return true;
       };

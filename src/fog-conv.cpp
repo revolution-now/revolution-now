@@ -58,7 +58,7 @@ FrozenDwelling dwelling_to_frozen_dwelling(
     Unit const& unit = ss.units.unit_for( *missionary_id );
     UNWRAP_CHECK( level, missionary_type( unit.type() ) );
     mission = FrozenMission{
-      .nation = unit.nation(),
+      .player = unit.player_type(),
       .level  = level,
     };
   }
@@ -83,7 +83,7 @@ FrozenColony colony_to_frozen_colony( SSConst const& ss,
 
   int const population = colony_population( colony );
   Player const& player =
-      player_for_nation_or_die( ss.players, colony.nation );
+      player_for_player_or_die( ss.players, colony.player );
   // In a normal game a colony population should never be zero,
   // but it is convenient to allow for this case for unit tests.
   int const sol_int_percent =

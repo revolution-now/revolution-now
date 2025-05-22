@@ -45,7 +45,7 @@ enum class e_unit_type;
 // chosen that, then instead it will return nothing. This is be-
 // cause ships cannot go to europe to be repaired in that case.
 maybe<ShipRepairPort> find_repair_port_for_ship(
-    SSConst const& ss, e_nation nation, Coord ship_location );
+    SSConst const& ss, e_player player, Coord ship_location );
 
 // Returns a predicate describing why the ship was damaged.
 std::string ship_damaged_reason( e_ship_damaged_reason reason );
@@ -58,12 +58,12 @@ std::string ship_still_damaged_message(
 
 // Will be either a colony name or the harbor city name.
 std::string ship_repair_port_name( SSConst const& ss,
-                                   e_nation nation,
+                                   e_player player,
                                    ShipRepairPort const& port );
 
 // Produces the message that is displayed when a ship is damaged.
 std::string ship_damaged_message( SSConst const& ss,
-                                  e_nation nation,
+                                  e_player player,
                                   e_unit_type ship_type,
                                   e_ship_damaged_reason reason,
                                   ShipRepairPort const& port );

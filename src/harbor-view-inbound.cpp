@@ -103,7 +103,7 @@ HarborInboundShips::units() const {
   vector<UnitWithPosition> units;
   auto spot_it = layout_.slots.begin();
   for( UnitId const unit_id :
-       harbor_units_inbound( ss_.units, player_.nation ) ) {
+       harbor_units_inbound( ss_.units, player_.type ) ) {
     if( spot_it == layout_.slots.end() ) break;
     units.push_back( { .id = unit_id, .bounds = *spot_it } );
     ++spot_it;

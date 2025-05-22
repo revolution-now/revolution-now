@@ -107,7 +107,7 @@ HarborOutboundShips::units() const {
   vector<UnitWithPosition> units;
   auto spot_it = layout_.slots.begin();
   for( UnitId const unit_id :
-       harbor_units_outbound( ss_.units, player_.nation ) ) {
+       harbor_units_outbound( ss_.units, player_.type ) ) {
     if( spot_it == layout_.slots.end() ) break;
     units.push_back( { .id = unit_id, .bounds = *spot_it } );
     ++spot_it;
@@ -243,7 +243,7 @@ wait<> HarborOutboundShips::post_successful_sink(
       // bound box from the inbound box as well, but we only do
       // this when they are dragging from the in port box since
       // that is what the OG does and it feels better somehow.
-      if( harbor_units_in_port( ss_.units, player_.nation )
+      if( harbor_units_in_port( ss_.units, player_.type )
               .empty() ) {
         // Small delay so that the user can see the ship moving
         // into the outbound box briefly before the screen
@@ -281,8 +281,7 @@ void HarborOutboundShips::draw( rr::Renderer& renderer,
     string const new_world_name =
         player_.new_world_name.has_value()
             ? *player_.new_world_name
-            : config_nation.nations[player_.nation]
-                  .new_world_name;
+            : config_nation.players[player_.type].new_world_name;
     label_line_2 = new_world_name;
   } else {
     // Just use "new world" here because we're in compact mode

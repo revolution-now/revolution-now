@@ -37,7 +37,7 @@ struct TribeRelationship;
 // player.
 int effective_dwelling_alarm( SSConst const& ss,
                               Dwelling const& dwelling,
-                              e_nation nation );
+                              e_player player );
 
 // This is the method that all other code should call in order to
 // increase tribal alarm, since it ensures that modifiers get ap-

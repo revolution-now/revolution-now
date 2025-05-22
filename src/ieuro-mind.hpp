@@ -26,7 +26,7 @@
 
 namespace rn {
 
-enum class e_nation;
+enum class e_player;
 enum class e_woodcut;
 
 struct CapturableCargo;
@@ -41,12 +41,12 @@ struct Unit;
 ** IEuroMind
 *****************************************************************/
 struct IEuroMind : IMind {
-  IEuroMind( e_nation nation );
+  IEuroMind( e_player player );
 
   virtual ~IEuroMind() override = default;
 
   // For convenience.
-  e_nation nation() const { return nation_; }
+  e_player player_type() const { return player_type_; }
 
   // For convenience.
   virtual Player const& player() = 0;
@@ -73,7 +73,7 @@ struct IEuroMind : IMind {
       Unit const& dst_unit, Commodity const& stolen ) = 0;
 
  private:
-  e_nation nation_ = {};
+  e_player player_type_ = {};
 };
 
 /****************************************************************
@@ -82,7 +82,7 @@ struct IEuroMind : IMind {
 // Minimal implementation does not either nothing or the minimum
 // necessary to fulfill the contract of each request.
 struct NoopEuroMind final : IEuroMind {
-  NoopEuroMind( SSConst const& ss, e_nation nation );
+  NoopEuroMind( SSConst const& ss, e_player player );
 
  public: // IMind.
   wait<> message_box( std::string const& msg ) override;

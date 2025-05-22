@@ -136,9 +136,9 @@ void bartolome_de_las_casas( SS& ss, TS& ts,
   auto free_colonist_type = e_unit_type::free_colonist;
   for( auto& [unit_id, state] : units_all ) {
     Unit& unit = ss.units.unit_for( unit_id );
-    if( unit.nation() != player.nation ) continue;
+    if( unit.player_type() != player.type ) continue;
     if( unit.type() != e_unit_type::native_convert ) continue;
-    // We have a native convert of the appropriate nation.
+    // We have a native convert of the appropriate player.
     change_unit_type( ss, ts, unit, free_colonist_type );
   }
 }
@@ -173,7 +173,7 @@ void francisco_de_coronado( SS& ss, TS& ts,
       make_visible.push_back( tile );
     }
   }
-  ts.map_updater().make_squares_visible( player.nation,
+  ts.map_updater().make_squares_visible( player.type,
                                          make_visible );
 }
 
@@ -187,7 +187,7 @@ void sieur_de_la_salle( SS& ss, Player& player ) {
       ss.colonies.all();
   for( auto& [colony_id, _] : colonies_all ) {
     Colony& colony = ss.colonies.colony_for( colony_id );
-    if( colony.nation != player.nation ) continue;
+    if( colony.player != player.type ) continue;
     give_stockade_if_needed( player, colony );
   }
 }
@@ -199,7 +199,7 @@ void pocahontas( SS& ss, Player const& player ) {
   for( e_tribe tribe : refl::enum_values<e_tribe> ) {
     if( !ss.natives.tribe_exists( tribe ) ) continue;
     Tribe& tribe_obj   = ss.natives.tribe_for( tribe );
-    auto& relationship = tribe_obj.relationship[player.nation];
+    auto& relationship = tribe_obj.relationship[player.type];
     if( !relationship.encountered ) continue;
     // If the tribe already has an alarm lower than this then we
     // don't want to raise it.
@@ -257,7 +257,7 @@ void hernando_de_soto( SS& ss, TS& ts, Player& player ) {
       maybe<Unit const&> unit =
           ss.units.maybe_euro_unit_for( generic_id );
       if( !unit.has_value() ) break;
-      if( unit->nation() != player.nation ) break;
+      if( unit->player_type() != player.type ) break;
       UnitOwnershipChanger( ss, unit->id() )
           .reinstate_on_map_if_on_map( ts );
     }
