@@ -69,14 +69,14 @@ struct World : testing::World {
     };
     // clang-format on
     build_map( std::move( tiles ), 6 );
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
 
     // This is so that we don't try to pop up a box telling the
     // player that they've discovered the new world.
-    player( e_nation::dutch ).new_world_name  = "";
-    player( e_nation::french ).new_world_name = "";
+    player( e_player::dutch ).new_world_name  = "";
+    player( e_player::french ).new_world_name = "";
   }
 };
 
@@ -420,7 +420,7 @@ TEST_CASE(
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
       command::move{ .d = e_direction::se } );
-  W.euro_mind( W.default_nation() )
+  W.euro_mind( W.default_player_type() )
       .EXPECT__message_box(
           "We cannot attack a land unit from a ship." );
   wait<bool> w_confirm = handler->confirm();
@@ -435,17 +435,17 @@ TEST_CASE(
   World W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 0, .y = 0 }, e_nation::dutch );
+                         { .x = 0, .y = 0 }, e_player::dutch );
 
   Unit const& colonist =
       W.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 1, .y = 1 }, e_nation::french );
+                         { .x = 1, .y = 1 }, e_player::french );
 
-  BASE_CHECK( caravel.nation() != colonist.nation() );
+  BASE_CHECK( caravel.player_type() != colonist.player_type() );
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), colonist.id(),
       command::move{ .d = e_direction::nw } );
-  W.euro_mind( e_nation::french )
+  W.euro_mind( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -463,17 +463,17 @@ TEST_CASE(
   World W;
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 1, .y = 0 }, e_nation::dutch );
+                         { .x = 1, .y = 0 }, e_player::dutch );
 
   Unit const& soldier =
       W.add_unit_on_map( e_unit_type::free_colonist,
-                         { .x = 1, .y = 1 }, e_nation::french );
+                         { .x = 1, .y = 1 }, e_player::french );
 
-  BASE_CHECK( caravel.nation() != soldier.nation() );
+  BASE_CHECK( caravel.player_type() != soldier.player_type() );
   unique_ptr<CommandHandler> handler = handle_command(
       W.engine(), W.ss(), W.ts(), W.french(), soldier.id(),
       command::move{ .d = e_direction::n } );
-  W.euro_mind( e_nation::french )
+  W.euro_mind( e_player::french )
       .EXPECT__message_box(
           "Our land units can neither attack nor board foreign "
           "ships." );
@@ -488,17 +488,17 @@ TEST_CASE(
   MockLandViewPlane mock_land_view;
   W.planes().get().set_bottom<ILandViewPlane>( mock_land_view );
   Colony const& colony =
-      W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+      W.add_colony( { .x = 1, .y = 0 }, e_player::dutch );
   Unit const& master_distiller =
       W.add_unit_indoors( colony.id, e_indoor_job::bells,
                           e_unit_type::master_distiller );
   Unit const& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 1, .y = 0 }, e_nation::dutch );
+                         { .x = 1, .y = 0 }, e_player::dutch );
   Unit const& soldier =
       W.add_unit_on_map( e_unit_type::soldier,
-                         { .x = 1, .y = 1 }, e_nation::french );
-  BASE_CHECK( colony.nation != soldier.nation() );
+                         { .x = 1, .y = 1 }, e_player::french );
+  BASE_CHECK( colony.player != soldier.player_type() );
 
   auto require_on_map = [&]( Unit const& unit ) {
     REQUIRE( as_const( W.units() )
@@ -553,7 +553,7 @@ TEST_CASE(
             soldier, master_distiller, colony )
         .returns( combat );
     mock_land_view.EXPECT__animate( _ );
-    W.euro_mind( e_nation::dutch )
+    W.euro_mind( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Master Distiller defeats [French] in 1!" );
     co_await_test( handler->perform() );
@@ -595,7 +595,7 @@ TEST_CASE(
         .EXPECT__euro_attack_euro( soldier, soldier_onboard )
         .returns( combat );
     mock_land_view.EXPECT__animate( _ );
-    W.euro_mind( e_nation::dutch )
+    W.euro_mind( e_player::dutch )
         .EXPECT__message_box(
             "[Dutch] Soldier defeats [French] in 1!" );
     co_await_test( handler->perform() );

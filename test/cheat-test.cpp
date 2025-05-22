@@ -32,6 +32,7 @@
 
 // ss
 #include "src/ss/land-view.rds.hpp"
+#include "src/ss/nation.hpp"
 #include "src/ss/natives.hpp"
 #include "src/ss/ref.hpp"
 #include "src/ss/settings.rds.hpp"
@@ -623,11 +624,11 @@ TEST_CASE( "[cheat] kill_natives" ) {
     w.square( { .x = 2, .y = 1 } ).road = true;
     w.square( { .x = 1, .y = 1 } ).road = true;
     w.map_updater().make_squares_visible(
-        w.default_nation(), { { .x = 1, .y = 0 } } );
+        w.default_player_type(), { { .x = 1, .y = 0 } } );
     w.map_updater().make_squares_visible(
-        w.default_nation(), { { .x = 0, .y = 1 } } );
+        w.default_player_type(), { { .x = 0, .y = 1 } } );
     w.map_updater().make_squares_fogged(
-        w.default_nation(), { { .x = 0, .y = 1 } } );
+        w.default_player_type(), { { .x = 0, .y = 1 } } );
     w.gui().EXPECT__check_box_selector( _, _ ).returns(
         wait( unordered_map<int, bool>{
           { static_cast<int>( e_tribe::tupi ), true } } ) );
@@ -666,7 +667,8 @@ TEST_CASE( "[cheat] kill_natives" ) {
     REQUIRE( !w.natives().dwelling_exists( dwelling_id_3 ) );
     REQUIRE( !w.natives().dwelling_exists( dwelling_id_4 ) );
     REQUIRE( w.natives().dwelling_exists( dwelling_id_5 ) );
-    VisibilityForNation const viz( w.ss(), w.default_nation() );
+    VisibilityForNation const viz( w.ss(),
+                                   w.default_player_type() );
     REQUIRE( viz.visible( { .x = 0, .y = 0 } ) ==
              e_tile_visibility::hidden );
     REQUIRE( viz.visible( { .x = 1, .y = 0 } ) ==
@@ -724,14 +726,15 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
   auto const& map_revealed = w.land_view().map_revealed;
 
   w.turn().cycle =
-      TurnCycle::nation{ .nation = w.default_nation() };
+      TurnCycle::nation{ .european_nation = european_nation_for(
+                             w.default_player_type() ) };
 
   // Starting state sanity check.
   REQUIRE_FALSE( show_indian_moves );
   REQUIRE_FALSE( show_foreign_moves );
   REQUIRE( map_revealed.holds<MapRevealed::no_special_view>() );
 
-  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  mock_land_view.EXPECT__set_visibility( maybe<e_player>{} );
   f();
   REQUIRE_FALSE( show_indian_moves );
   REQUIRE_FALSE( show_foreign_moves );
@@ -739,7 +742,7 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
 
   show_indian_moves  = true;
   show_foreign_moves = true;
-  mock_land_view.EXPECT__set_visibility( e_nation::dutch );
+  mock_land_view.EXPECT__set_visibility( e_player::dutch );
   f();
   REQUIRE( show_indian_moves );
   REQUIRE( show_foreign_moves );
@@ -747,13 +750,13 @@ TEST_CASE( "[cheat] cheat_toggle_reveal_full_map" ) {
 
   show_indian_moves  = true;
   show_foreign_moves = true;
-  mock_land_view.EXPECT__set_visibility( maybe<e_nation>{} );
+  mock_land_view.EXPECT__set_visibility( maybe<e_player>{} );
   f();
   REQUIRE_FALSE( show_indian_moves );
   REQUIRE_FALSE( show_foreign_moves );
   REQUIRE( map_revealed.holds<MapRevealed::entire>() );
 
-  mock_land_view.EXPECT__set_visibility( e_nation::dutch );
+  mock_land_view.EXPECT__set_visibility( e_player::dutch );
   f();
   REQUIRE_FALSE( show_indian_moves );
   REQUIRE_FALSE( show_foreign_moves );

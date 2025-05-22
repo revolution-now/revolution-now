@@ -59,10 +59,10 @@ using ::mock::matchers::StrContains;
 struct World : testing::World {
   using Base = testing::World;
 
-  static inline e_nation const kAttackingNation =
-      e_nation::english;
-  static inline e_nation const kDefendingNation =
-      e_nation::french;
+  static inline e_player const kAttackingNation =
+      e_player::english;
+  static inline e_player const kDefendingNation =
+      e_player::french;
 
   static inline e_tribe const kNativeTribe = e_tribe::apache;
 
@@ -72,7 +72,7 @@ struct World : testing::World {
     set_human_player( kAttackingNation );
     common_player_init( player( kAttackingNation ) );
     common_player_init( player( kDefendingNation ) );
-    set_default_player( kAttackingNation );
+    set_default_player_type( kAttackingNation );
     create_default_map();
     planes().get().set_bottom<ILandViewPlane>(
         mock_land_view_plane_ );
@@ -166,14 +166,14 @@ struct World : testing::World {
   // to use the "contains" variants further below to both avoid
   // redundant tests and to make these tests less fragile against
   // changes to those messages.
-  void expect_msg_equals( e_nation nation, string_view msg ) {
-    euro_mind( nation ).EXPECT__message_box( string( msg ) );
+  void expect_msg_equals( e_player player, string_view msg ) {
+    euro_mind( player ).EXPECT__message_box( string( msg ) );
   }
 
   template<typename... Args>
-  void expect_msg_contains( e_nation nation,
+  void expect_msg_contains( e_player player,
                             Args&&... fragments ) {
-    euro_mind( nation ).EXPECT__message_box(
+    euro_mind( player ).EXPECT__message_box(
         AllOf( StrContains( string( fragments ) )... ) );
   }
 
@@ -200,16 +200,16 @@ struct World : testing::World {
     expect_some_animation();
   }
 
-  void expect_promotion( e_nation nation ) {
-    expect_msg_contains( nation, "victory" );
+  void expect_promotion( e_player player ) {
+    expect_msg_contains( player, "victory" );
   }
 
-  void expect_evaded( e_nation nation ) {
-    expect_msg_contains( nation, "evades" );
+  void expect_evaded( e_player player ) {
+    expect_msg_contains( player, "evades" );
   }
 
-  void expect_ship_sunk( e_nation nation ) {
-    expect_msg_contains( nation, "sunk by" );
+  void expect_ship_sunk( e_player player ) {
+    expect_msg_contains( player, "sunk by" );
   }
 
   void expect_tribe_wiped_out( string_view tribe_name ) {
@@ -221,8 +221,8 @@ struct World : testing::World {
       UnitId const src, UnitId const dst,
       CapturableCargo const& capturable ) {
     Unit& dst_unit              = units().unit_for( dst );
-    e_nation const taker_nation = dst_unit.nation();
-    auto& taker_mind            = euro_mind( taker_nation );
+    e_player const taker_player = dst_unit.player_type();
+    auto& taker_mind            = euro_mind( taker_player );
     taker_mind
         .EXPECT__select_commodities_to_capture( src, dst,
                                                 capturable )
@@ -231,11 +231,11 @@ struct World : testing::World {
   }
 
   [[nodiscard]] auto expect_attacking_player() {
-    return Field( &Player::nation, kAttackingNation );
+    return Field( &Player::type, kAttackingNation );
   }
 
   [[nodiscard]] auto expect_defending_player() {
-    return Field( &Player::nation, kDefendingNation );
+    return Field( &Player::type, kDefendingNation );
   }
 
   [[nodiscard]] auto expect_unit_of_type(
@@ -410,8 +410,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -443,8 +443,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -475,8 +475,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -506,8 +506,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -518,7 +518,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
       .attacker = { .outcome =
                         EuroUnitCombatOutcome::no_change{} },
       .defender = { .outcome = EuroUnitCombatOutcome::captured{
-                      .new_nation = W.kAttackingNation,
+                      .new_player = W.kAttackingNation,
                       .new_coord  = W.kLandAttack } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_unit_type::free_colonist );
@@ -537,8 +537,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -552,7 +552,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
       .defender = {
         .outcome = EuroUnitCombatOutcome::captured_and_demoted{
           .to         = e_unit_type::free_colonist,
-          .new_nation = W.kAttackingNation,
+          .new_player = W.kAttackingNation,
           .new_coord  = W.kLandAttack } } };
     tie( combat.attacker.id, combat.defender.id ) = W.add_pair(
         e_unit_type::soldier, e_unit_type::veteran_colonist );
@@ -573,8 +573,8 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 
@@ -598,7 +598,7 @@ TEST_CASE( "[attack-handlers] attack_euro_land_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
   }
 }
@@ -610,7 +610,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   Tribe& tribe = W.tribe( W.kNativeTribe );
   TribeRelationship& relationship =
       tribe.relationship[W.kAttackingNation];
-  relationship.nation_has_attacked_tribe = true;
+  relationship.player_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
 
   auto expect_combat = [&] {
@@ -628,7 +628,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
   };
 
   SECTION( "ask attack, cancel" ) {
-    relationship.nation_has_attacked_tribe = false;
+    relationship.player_has_attacked_tribe = false;
 
     combat = {
       .winner   = e_combat_winner::attacker,
@@ -649,13 +649,13 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     REQUIRE( defender.type == e_native_unit_type::brave );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 0 );
     REQUIRE( attacker.movement_points() == 1 );
   }
 
   SECTION( "ask attack, proceed" ) {
-    relationship.nation_has_attacked_tribe = false;
+    relationship.player_has_attacked_tribe = false;
 
     combat = {
       .winner   = e_combat_winner::attacker,
@@ -675,7 +675,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
   }
@@ -707,7 +707,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
   }
@@ -739,7 +739,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
   }
@@ -773,7 +773,7 @@ TEST_CASE( "[attack-handlers] attack_native_unit_handler" ) {
              W.kLandAttack );
     REQUIRE( W.units().coord_for( defender.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
   }
@@ -788,7 +788,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
   Tribe& tribe = W.tribe( W.kNativeTribe );
   TribeRelationship& relationship =
       tribe.relationship[W.kAttackingNation];
-  relationship.nation_has_attacked_tribe = true;
+  relationship.player_has_attacked_tribe = true;
   REQUIRE( relationship.tribal_alarm == 0 );
   Dwelling& dwelling =
       W.add_dwelling( W.kLandDefend, W.kNativeTribe );
@@ -846,7 +846,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
@@ -899,7 +899,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( !W.units().exists( missionary_id ) );
@@ -951,7 +951,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( !W.units().exists( missionary_id ) );
@@ -1002,7 +1002,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( W.units().exists( missionary_id ) );
@@ -1046,7 +1046,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
@@ -1095,7 +1095,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
@@ -1151,7 +1151,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
     REQUIRE( W.square( W.kLandDefend ).road == false );
@@ -1196,7 +1196,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
     REQUIRE( W.square( W.kLandDefend ).road == false );
@@ -1245,7 +1245,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
     REQUIRE( W.square( W.kLandDefend ).road == false );
@@ -1295,7 +1295,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
     REQUIRE( W.square( W.kLandDefend ).road == false );
@@ -1354,7 +1354,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
         as_const( W.units() ).ownership_of( missionary_id ) ==
@@ -1425,7 +1425,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
     REQUIRE( attacker.type() == e_unit_type::veteran_soldier );
     REQUIRE( W.units().coord_for( attacker.id() ) ==
              W.kLandAttack );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( !W.units().exists( missionary_id ) );
     REQUIRE( player.score_stats.dwellings_burned == 1 );
@@ -1473,7 +1473,7 @@ TEST_CASE( "[attack-handlers] attack_dwelling_handler" ) {
              W.kLandAttack );
     REQUIRE( W.natives().coord_for( dwelling.id ) ==
              W.kLandDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
     REQUIRE( relationship.tribal_alarm == 10 );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE(
@@ -1539,8 +1539,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
              W.kWaterAttack );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
@@ -1581,8 +1581,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         UnitOwnership::harbor{
           .port_status = PortStatus::in_port{},
           .sailed_from = nothing } );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
@@ -1630,8 +1630,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
         UnitOwnership::world{ .coord = { .x = 2, .y = 2 } } );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
@@ -1678,8 +1678,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
     REQUIRE(
         as_const( W.units() ).ownership_of( defender.id() ) ==
         UnitOwnership::world{ .coord = { .x = 2, .y = 2 } } );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 4 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
@@ -1773,8 +1773,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         UnitOwnership::harbor{
           .port_status = PortStatus::in_port{},
           .sailed_from = nothing } );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( galleon.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( galleon.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( galleon.movement_points() == 6 );
     REQUIRE( !attacker.orders().holds<unit_orders::damaged>() );
@@ -1814,7 +1814,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         W.units().unit_for( combat.defender.id );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
   }
@@ -1861,7 +1861,7 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
         W.units().unit_for( combat.defender.id );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( !defender.orders().holds<unit_orders::damaged>() );
     REQUIRE( defender.cargo().count_items() == 0 );
@@ -1946,8 +1946,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
           .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==
@@ -2016,8 +2016,8 @@ TEST_CASE( "[attack-handlers] naval_battle_handler" ) {
           .sailed_from = nothing } );
     REQUIRE( W.units().coord_for( defender.id() ) ==
              W.kWaterDefend );
-    REQUIRE( attacker.nation() == W.kAttackingNation );
-    REQUIRE( defender.nation() == W.kDefendingNation );
+    REQUIRE( attacker.player_type() == W.kAttackingNation );
+    REQUIRE( defender.player_type() == W.kDefendingNation );
     REQUIRE( attacker.movement_points() == 0 );
     REQUIRE( defender.movement_points() == 5 );
     REQUIRE( attacker.orders() ==

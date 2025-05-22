@@ -47,9 +47,9 @@ struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
     create_default_map();
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
   }
 
   void create_default_map() {
@@ -113,10 +113,10 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
 
   // Make sure that it supports selling boycotted goods just in
   // case the relevant config flag (`respect_boycotts`) is off.
-  W.player( e_nation::dutch )
+  W.player( e_player::dutch )
       .old_world.market.commodities[e_commodity::sugar]
       .boycott = true;
-  W.player( e_nation::french )
+  W.player( e_player::french )
       .old_world.market.commodities[e_commodity::sugar]
       .boycott = true;
 
@@ -129,8 +129,8 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
       .tax_amount                     = 7,
       .money_delta_final              = 93,
       .player_volume_delta            = 100,
-      .intrinsic_volume_delta         = { { e_nation::dutch, 1 },
-                                          { e_nation::french, 1 } },
+      .intrinsic_volume_delta         = { { e_player::dutch, 1 },
+                                          { e_player::french, 1 } },
       .global_intrinsic_volume_deltas = { { e_commodity::sugar,
                                             2 } },
       .price_change                   = create_price_change(
@@ -144,8 +144,8 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
       .tax_amount                     = 14,
       .money_delta_final              = 186,
       .player_volume_delta            = 200,
-      .intrinsic_volume_delta         = { { e_nation::dutch, 2 },
-                                          { e_nation::french, 2 } },
+      .intrinsic_volume_delta         = { { e_player::dutch, 2 },
+                                          { e_player::french, 2 } },
       .global_intrinsic_volume_deltas = { { e_commodity::rum,
                                             4 } },
       .price_change                   = create_price_change(
@@ -157,10 +157,10 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
     INFO( fmt::format( "comm: {}", comm ) );
     if( comm == e_commodity::sugar ) {
       REQUIRE( colony.commodities[comm] == 50 );
-      REQUIRE( W.player( e_nation::french )
+      REQUIRE( W.player( e_player::french )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 1 );
-      REQUIRE( W.player( e_nation::dutch )
+      REQUIRE( W.player( e_player::dutch )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 1 );
       REQUIRE( W.players()
@@ -171,10 +171,10 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
           10 );
     } else if( comm == e_commodity::rum ) {
       REQUIRE( colony.commodities[comm] == 50 );
-      REQUIRE( W.player( e_nation::french )
+      REQUIRE( W.player( e_player::french )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 2 );
-      REQUIRE( W.player( e_nation::dutch )
+      REQUIRE( W.player( e_player::dutch )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 2 );
       REQUIRE( W.players()
@@ -185,10 +185,10 @@ TEST_CASE( "[custom-house] apply_custom_house_sales" ) {
           10 );
     } else {
       REQUIRE( colony.commodities[comm] == 150 );
-      REQUIRE( W.player( e_nation::french )
+      REQUIRE( W.player( e_player::french )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 0 );
-      REQUIRE( W.player( e_nation::dutch )
+      REQUIRE( W.player( e_player::dutch )
                    .old_world.market.commodities[comm]
                    .intrinsic_volume == 0 );
       REQUIRE( W.players()
@@ -230,7 +230,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution.status = e_revolution_status::not_declared;
-    W.set_human_player( e_nation::dutch );
+    W.set_human_player( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -247,8 +247,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .money_delta_final        = 675,
                         .player_volume_delta      = 150,
                         .intrinsic_volume_delta =
-                            { { e_nation::dutch, 199 },
-                              { e_nation::french, 300 } },
+                            { { e_player::dutch, 199 },
+                              { e_player::french, 300 } },
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
@@ -264,8 +264,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .money_delta_final        = 675,
                         .player_volume_delta      = 150,
                         .intrinsic_volume_delta =
-                            { { e_nation::dutch, 99 },
-                              { e_nation::french, 150 } },
+                            { { e_player::dutch, 99 },
+                              { e_player::french, 150 } },
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
@@ -297,7 +297,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     dutch.revolution.status = e_revolution_status::declared;
     // One should be enough here.
     colony.custom_house[e_commodity::furs] = true;
-    W.set_human_player( e_nation::dutch );
+    W.set_human_player( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected = {
@@ -312,8 +312,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
               .money_delta_final        = 150 * 5 - 375,
               .player_volume_delta      = 150,
               .intrinsic_volume_delta =
-                  { { e_nation::dutch, 199 },
-                    { e_nation::french, 300 } },
+                  { { e_player::dutch, 199 },
+                    { e_player::french, 300 } },
               .global_intrinsic_volume_deltas = {
                 /*only processed goods*/ },
               .price_change =
@@ -334,7 +334,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
     colony.custom_house[e_commodity::cloth]   = true;
     colony.custom_house[e_commodity::muskets] = true;
     dutch.revolution.status = e_revolution_status::not_declared;
-    W.set_human_player( e_nation::dutch );
+    W.set_human_player( e_player::dutch );
     CustomHouseSales const res =
         compute_custom_house_sales( W.ss(), dutch, colony );
     expected =
@@ -351,8 +351,8 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
                         .money_delta_final        = 675,
                         .player_volume_delta      = 150,
                         .intrinsic_volume_delta =
-                            { { e_nation::dutch, 199 },
-                              { e_nation::french, 300 } },
+                            { { e_player::dutch, 199 },
+                              { e_player::french, 300 } },
                         .global_intrinsic_volume_deltas = {
                             /*only processed goods*/ },
                         .price_change = create_price_change(
@@ -382,7 +382,7 @@ TEST_CASE( "[custom-house] compute_custom_house_sales" ) {
 }
 
 // This tests that a custom house selling silver will cause the
-// price to drop at the proper rate for a non-dutch nation.
+// price to drop at the proper rate for a non-dutch player.
 TEST_CASE(
     "[custom-house] custom house affects french market "
     "properly" ) {
@@ -395,7 +395,7 @@ TEST_CASE(
       e_difficulty::conquistador;
   // Init player.
   Player& french = W.french();
-  W.set_human_player( e_nation::french );
+  W.set_human_player( e_player::french );
   french.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =
@@ -424,8 +424,8 @@ TEST_CASE(
         .tax_amount               = 0,
         .money_delta_final        = 1900,
         .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
-                                      { e_nation::french, 400 } },
+        .intrinsic_volume_delta   = { { e_player::dutch, 266 },
+                                      { e_player::french, 400 } },
         .global_intrinsic_volume_deltas = {
           /*only processed goods*/ },
         .price_change =
@@ -480,7 +480,7 @@ TEST_CASE(
       e_difficulty::conquistador;
   // Init player.
   Player& dutch = W.dutch();
-  W.set_human_player( e_nation::dutch );
+  W.set_human_player( e_player::dutch );
   dutch.revolution.status = e_revolution_status::not_declared;
   // Init colony.
   auto [colony, founder] =
@@ -509,8 +509,8 @@ TEST_CASE(
         .tax_amount               = 0,
         .money_delta_final        = 1900,
         .player_volume_delta      = 100,
-        .intrinsic_volume_delta   = { { e_nation::dutch, 266 },
-                                      { e_nation::french, 400 } },
+        .intrinsic_volume_delta   = { { e_player::dutch, 266 },
+                                      { e_player::french, 400 } },
         .global_intrinsic_volume_deltas = {
           /*only processed goods*/ },
         .price_change =

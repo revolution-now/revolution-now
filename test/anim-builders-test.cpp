@@ -43,8 +43,8 @@ using P = AnimationPrimitive;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::french );
-    set_default_player( e_nation::french );
+    add_player( e_player::french );
+    set_default_player_type( e_player::french );
     create_default_map();
   }
 
@@ -739,8 +739,8 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
 
   Unit const& defender = W.add_unit_on_map( e_unit_type::soldier,
                                             { .x = 1, .y = 0 } );
-  Colony const& colony =
-      W.add_colony( { .x = 1, .y = 0 }, W.default_nation() );
+  Colony const& colony = W.add_colony( { .x = 1, .y = 0 },
+                                       W.default_player_type() );
   W.square( { .x = 1, .y = 1 } ).road = true;
   Dwelling& dwelling =
       W.add_dwelling( { .x = 2, .y = 1 }, e_tribe::sioux );
@@ -834,11 +834,11 @@ TEST_CASE( "[anim-builders] anim_seq_for_brave_attack_colony" ) {
 
     UnitId const wagon_train_id =
         W.add_unit_on_map( e_unit_type::wagon_train,
-                           colony.location, colony.nation )
+                           colony.location, colony.player )
             .id();
     UnitId const treasure_id =
         W.add_unit_on_map( e_unit_type::treasure,
-                           colony.location, colony.nation )
+                           colony.location, colony.player )
             .id();
 
     combat.attacker.outcome =
@@ -1312,7 +1312,7 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "none visible" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::french );
+    VisibilityForNation const viz( W.ss(), e_player::french );
 
     tribes   = { e_tribe::inca };
     expected = {
@@ -1352,14 +1352,14 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "some visible" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::french );
+    VisibilityForNation const viz( W.ss(), e_player::french );
 
     W.map_updater().make_squares_visible(
-        e_nation::french, { { .x = 1, .y = 1 } } );
+        e_player::french, { { .x = 1, .y = 1 } } );
     W.map_updater().make_squares_fogged(
-        e_nation::french, { { .x = 1, .y = 1 } } );
+        e_player::french, { { .x = 1, .y = 1 } } );
     W.map_updater().make_squares_visible(
-        e_nation::french, { { .x = 1, .y = 3 } } );
+        e_player::french, { { .x = 1, .y = 3 } } );
 
     tribes   = { e_tribe::inca };
     expected = {
@@ -1439,14 +1439,14 @@ TEST_CASE( "[anim-builders] anim_seq_for_cheat_kill_natives" ) {
   }
 
   SECTION( "kill multiple" ) {
-    VisibilityForNation const viz( W.ss(), e_nation::french );
+    VisibilityForNation const viz( W.ss(), e_player::french );
 
     W.map_updater().make_squares_visible(
-        e_nation::french, { { .x = 1, .y = 1 } } );
+        e_player::french, { { .x = 1, .y = 1 } } );
     W.map_updater().make_squares_fogged(
-        e_nation::french, { { .x = 1, .y = 1 } } );
+        e_player::french, { { .x = 1, .y = 1 } } );
     W.map_updater().make_squares_visible(
-        e_nation::french, { { .x = 1, .y = 3 } } );
+        e_player::french, { { .x = 1, .y = 3 } } );
 
     tribes = { e_tribe::aztec, e_tribe::apache };
     expected =

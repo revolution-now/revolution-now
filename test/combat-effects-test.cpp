@@ -52,15 +52,15 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::dutch );
-    add_player( e_nation::french );
-    set_default_player( e_nation::dutch );
+    add_player( e_player::dutch );
+    add_player( e_player::french );
+    set_default_player_type( e_player::dutch );
     create_default_map();
   }
 
-  inline static e_nation const kAttackerNation = e_nation::dutch;
-  inline static e_nation const kDefenderNation =
-      e_nation::french;
+  inline static e_player const kAttackerNation = e_player::dutch;
+  inline static e_player const kDefenderNation =
+      e_player::french;
 
   inline static e_tribe const kNativeTribe = e_tribe::sioux;
 
@@ -253,7 +253,7 @@ TEST_CASE(
       .defender_outcome =
           EuroUnitCombatOutcome::captured_and_demoted{
             .to         = e_unit_type::free_colonist,
-            .new_nation = W.kAttackerNation,
+            .new_player = W.kAttackerNation,
             .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -276,7 +276,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -482,7 +482,7 @@ TEST_CASE(
       .defender_outcome =
           EuroUnitCombatOutcome::captured_and_demoted{
             .to         = e_unit_type::free_colonist,
-            .new_nation = W.kAttackerNation,
+            .new_player = W.kAttackerNation,
             .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -504,7 +504,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Soldier defeats "
@@ -580,7 +580,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Regular defeats "
@@ -605,7 +605,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Regular defeats "
@@ -627,7 +627,7 @@ TEST_CASE(
       .winner           = e_combat_winner::attacker,
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Dragoon defeats "
@@ -745,7 +745,7 @@ TEST_CASE(
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome =
           EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
+            .new_player = W.kAttackerNation,
             .new_coord  = W.kLandAttackerCoord },
       .attacker_colony = e_colony::yes_and_visible_to_owner };
     expected = {
@@ -771,7 +771,7 @@ TEST_CASE(
       .attacker_outcome = EuroUnitCombatOutcome::no_change{},
       .defender_outcome =
           EuroUnitCombatOutcome::captured{
-            .new_nation = W.kAttackerNation,
+            .new_player = W.kAttackerNation,
             .new_coord  = W.kLandAttackerCoord },
       .attacker_colony = e_colony::yes_and_visible_to_both };
     expected = {
@@ -820,7 +820,7 @@ TEST_CASE(
           EuroUnitCombatOutcome::promoted{
             .to = e_unit_type::veteran_dragoon },
       .defender_outcome = EuroUnitCombatOutcome::captured{
-        .new_nation = W.kAttackerNation,
+        .new_player = W.kAttackerNation,
         .new_coord  = W.kLandAttackerCoord } };
     expected = {
       .summaries = { .attacker = "[Dutch] Dragoon defeats "
@@ -2443,7 +2443,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points() == 1 );
@@ -2466,12 +2466,12 @@ TEST_CASE(
     unit.sentry();
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured{
-      .new_nation = e_nation::french,
+      .new_player = e_player::french,
       .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
-    REQUIRE( unit.nation() == e_nation::french );
+    REQUIRE( unit.player_type() == e_player::french );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
     REQUIRE( unit.movement_points() == 0 );
@@ -2485,12 +2485,12 @@ TEST_CASE(
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured_and_demoted{
       .to         = e_unit_type::free_colonist,
-      .new_nation = e_nation::french,
+      .new_player = e_player::french,
       .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
-    REQUIRE( unit.nation() == e_nation::french );
+    REQUIRE( unit.player_type() == e_player::french );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
     REQUIRE( unit.movement_points() == 0 );
@@ -2506,12 +2506,12 @@ TEST_CASE(
     unit_id = unit.id();
     outcome = EuroUnitCombatOutcome::captured_and_demoted{
       .to         = e_unit_type::free_colonist,
-      .new_nation = e_nation::french,
+      .new_player = e_player::french,
       .new_coord  = { .x = 0, .y = 1 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::free_colonist );
-    REQUIRE( unit.nation() == e_nation::french );
+    REQUIRE( unit.player_type() == e_player::french );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 1 } );
     REQUIRE( unit.movement_points() == 0 );
@@ -2529,7 +2529,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::veteran_colonist );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points() == 1 );
@@ -2547,7 +2547,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::veteran_soldier );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 1, .y = 1 } );
     REQUIRE( unit.movement_points() == 1 );
@@ -2770,7 +2770,7 @@ TEST_CASE(
   SECTION( "no_change" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::caravel,
-                           { .x = 0, .y = 2 }, e_nation::dutch );
+                           { .x = 0, .y = 2 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2778,7 +2778,7 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::privateer, { .x = 0, .y = 3 },
-        e_nation::french );
+        e_player::french );
     // Need to do this after adding the other unit otherwise the
     // sentry'd unit will get unsentry'd.
     unit.sentry();
@@ -2787,7 +2787,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::caravel );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 2 } );
     REQUIRE( unit.movement_points() == 4 );
@@ -2799,7 +2799,7 @@ TEST_CASE(
   SECTION( "moved" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2807,14 +2807,14 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::moved{
                .to = { .x = 0, .y = 2 } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( W.units().coord_for( unit_id ) ==
              Coord{ .x = 0, .y = 2 } );
     REQUIRE( unit.movement_points() == 8 );
@@ -2826,7 +2826,7 @@ TEST_CASE(
   SECTION( "damaged, sent to harbor" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2834,14 +2834,14 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
                .port = ShipRepairPort::european_harbor{} };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::harbor{
                .port_status = PortStatus::in_port{},
@@ -2855,22 +2855,22 @@ TEST_CASE(
 
   SECTION( "damaged, sent to colony" ) {
     Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+        W.add_colony( { .x = 1, .y = 0 }, e_player::dutch );
     colony.name = "Billooboo";
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id                   = unit.id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
                .port = ShipRepairPort::colony{ .id = colony.id } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::world{ .coord = colony.location } );
     REQUIRE( unit.movement_points() == 8 );
@@ -2881,11 +2881,11 @@ TEST_CASE(
 
   SECTION( "damaged, sent to colony, one unit lost" ) {
     Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+        W.add_colony( { .x = 1, .y = 0 }, e_player::dutch );
     colony.name = "Billooboo";
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2893,14 +2893,14 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::damaged{
                .port = ShipRepairPort::colony{ .id = colony.id } };
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::world{ .coord = colony.location } );
     REQUIRE( unit.movement_points() == 8 );
@@ -2913,11 +2913,11 @@ TEST_CASE(
   SECTION( "sunk" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id                   = unit.id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::merchantman, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::sunk{};
     f();
@@ -2927,7 +2927,7 @@ TEST_CASE(
   SECTION( "sunk, three units on board lost" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id1 =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2943,7 +2943,7 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::merchantman, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
     outcome          = EuroNavalUnitCombatOutcome::sunk{};
     f();
@@ -2971,7 +2971,7 @@ TEST_CASE(
   SECTION( "damaged, sent to harbor" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -2979,7 +2979,7 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
 
     affected = { .id      = unit.id(),
@@ -2988,7 +2988,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::harbor{
                .port_status = PortStatus::in_port{},
@@ -3002,15 +3002,15 @@ TEST_CASE(
 
   SECTION( "damaged, sent to colony" ) {
     Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+        W.add_colony( { .x = 1, .y = 0 }, e_player::dutch );
     colony.name = "Billooboo";
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id                   = unit.id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
 
     affected = {
@@ -3020,7 +3020,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::world{ .coord = colony.location } );
     REQUIRE( unit.movement_points() == 8 );
@@ -3031,11 +3031,11 @@ TEST_CASE(
 
   SECTION( "damaged, sent to colony, one unit lost" ) {
     Colony& colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::dutch );
+        W.add_colony( { .x = 1, .y = 0 }, e_player::dutch );
     colony.name = "Billooboo";
     Unit& unit =
         W.add_unit_on_map( e_unit_type::privateer,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -3043,7 +3043,7 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::caravel, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
 
     affected = {
@@ -3053,7 +3053,7 @@ TEST_CASE(
     f();
     REQUIRE( W.units().exists( unit_id ) );
     REQUIRE( unit.type() == e_unit_type::privateer );
-    REQUIRE( unit.nation() == e_nation::dutch );
+    REQUIRE( unit.player_type() == e_player::dutch );
     REQUIRE( as_const( W.units() ).ownership_of( unit_id ) ==
              UnitOwnership::world{ .coord = colony.location } );
     REQUIRE( unit.movement_points() == 8 );
@@ -3066,11 +3066,11 @@ TEST_CASE(
   SECTION( "sunk" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id                   = unit.id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::merchantman, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
 
     affected = { .id      = unit.id(),
@@ -3082,7 +3082,7 @@ TEST_CASE(
   SECTION( "sunk, three units on board lost" ) {
     Unit& unit =
         W.add_unit_on_map( e_unit_type::frigate,
-                           { .x = 0, .y = 3 }, e_nation::dutch );
+                           { .x = 0, .y = 3 }, e_player::dutch );
     unit_id = unit.id();
     UnitId const onboard_id1 =
         W.add_unit_in_cargo( e_unit_type::free_colonist,
@@ -3098,7 +3098,7 @@ TEST_CASE(
             .id();
     Unit const& opponent_unit = W.add_unit_on_map(
         e_unit_type::merchantman, { .x = 0, .y = 2 },
-        e_nation::french );
+        e_player::french );
     opponent_unit_id = opponent_unit.id();
 
     affected = { .id      = unit.id(),
@@ -3190,8 +3190,8 @@ TEST_CASE( "[combat-effects] filter_combat_effects_msgs" ) {
 
 TEST_CASE( "[combat-effects] show_combat_effects_msg" ) {
   World W;
-  MockIEuroMind& attacker_mind = W.euro_mind( e_nation::dutch );
-  MockIEuroMind& defender_mind = W.euro_mind( e_nation::french );
+  MockIEuroMind& attacker_mind = W.euro_mind( e_player::dutch );
+  MockIEuroMind& defender_mind = W.euro_mind( e_player::french );
 
   FilteredMixedCombatEffectsMessages msgs;
 

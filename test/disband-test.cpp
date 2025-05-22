@@ -67,9 +67,9 @@ using ::mock::matchers::StrContains;
 *****************************************************************/
 struct world : testing::World {
   world() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -100,8 +100,8 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   point const tile = { .x = 2, .y = 1 };
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const nation_viz( w.ss(),
-                                        e_nation::english );
+  VisibilityForNation const player_viz( w.ss(),
+                                        e_player::english );
 
   IVisibility const* viz = {};
 
@@ -115,11 +115,11 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
   using clear    = FogStatus::clear;
 
   auto add_unit = [&](
-                      maybe<e_nation> const nation = nothing,
+                      maybe<e_player> const player = nothing,
                       maybe<point> const p = nothing ) -> auto& {
     return w.add_unit_on_map(
         e_unit_type::free_colonist, p.value_or( tile ),
-        nation.value_or( w.default_nation() ) );
+        player.value_or( w.default_player_type() ) );
   };
 
   auto add_brave = [&]( Dwelling const& dwelling,
@@ -138,10 +138,10 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
       expected.disbandable.units.push_back( native_unit.id );
     } };
 
-  auto add_colony = [&]( maybe<e_nation> const nation =
+  auto add_colony = [&]( maybe<e_player> const player =
                              nothing ) -> auto& {
-    return w.add_colony( tile,
-                         nation.value_or( w.default_nation() ) );
+    return w.add_colony(
+        tile, player.value_or( w.default_player_type() ) );
   };
 
   auto expect_colony = [&]( Colony const& colony ) {
@@ -185,7 +185,7 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
     w.settings().cheat_options.enabled = true;
     SECTION( "empty" ) {
       viz = &full_viz;
-      add_unit( w.default_nation(), tile.moved_down( 1 ) );
+      add_unit( w.default_player_type(), tile.moved_down( 1 ) );
       REQUIRE( f() == expected );
     }
     SECTION( "viz=full" ) {
@@ -211,11 +211,11 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, no units" ) {
-        expect_colony( add_colony( e_nation::french ) );
+        expect_colony( add_colony( e_player::french ) );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, with units" ) {
-        expect_colony( add_colony( e_nation::french ) );
+        expect_colony( add_colony( e_player::french ) );
         expect_unit( add_unit() );
         expect_unit( add_unit() );
         REQUIRE( f() == expected );
@@ -230,17 +230,17 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "one unit, foreign" ) {
-        expect_unit( add_unit( e_nation::french ) );
+        expect_unit( add_unit( e_player::french ) );
         REQUIRE( f() == expected );
       }
       SECTION( "two units, foreign" ) {
-        expect_unit( add_unit( e_nation::french ) );
-        expect_unit( add_unit( e_nation::french ) );
+        expect_unit( add_unit( e_player::french ) );
+        expect_unit( add_unit( e_player::french ) );
         REQUIRE( f() == expected );
       }
     }
     SECTION( "viz=player" ) {
-      viz = &nation_viz;
+      viz = &player_viz;
       SECTION( "dwelling, hidden" ) {
         add_dwelling();
         REQUIRE( f() == expected );
@@ -302,24 +302,24 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, hidden" ) {
-        add_colony( e_nation::french );
+        add_colony( e_player::french );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, fogged" ) {
-        Colony const& colony = add_colony( e_nation::french );
+        Colony const& colony = add_colony( e_player::french );
         expect_colony( colony );
         make_fogged( colony );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, clear" ) {
-        expect_colony( add_colony( e_nation::french ) );
+        expect_colony( add_colony( e_player::french ) );
         make_clear();
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, with units" ) {
-        expect_colony( add_colony( e_nation::french ) );
-        expect_unit( add_unit( e_nation::french ) );
-        expect_unit( add_unit( e_nation::french ) );
+        expect_colony( add_colony( e_player::french ) );
+        expect_unit( add_unit( e_player::french ) );
+        expect_unit( add_unit( e_player::french ) );
         make_clear();
         REQUIRE( f() == expected );
       }
@@ -334,18 +334,18 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "one unit, foreign, hidden" ) {
-        add_unit( e_nation::french );
+        add_unit( e_player::french );
         REQUIRE( f() == expected );
       }
       SECTION( "one unit, foreign, clear" ) {
         make_clear();
-        expect_unit( add_unit( e_nation::french ) );
+        expect_unit( add_unit( e_player::french ) );
         REQUIRE( f() == expected );
       }
       SECTION( "two units, foreign, clear" ) {
         make_clear();
-        expect_unit( add_unit( e_nation::french ) );
-        expect_unit( add_unit( e_nation::french ) );
+        expect_unit( add_unit( e_player::french ) );
+        expect_unit( add_unit( e_player::french ) );
         REQUIRE( f() == expected );
       }
     }
@@ -355,11 +355,11 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
     w.settings().cheat_options.enabled = false;
     SECTION( "empty" ) {
       viz = &full_viz;
-      add_unit( w.default_nation(), tile.moved_down( 1 ) );
+      add_unit( w.default_player_type(), tile.moved_down( 1 ) );
       REQUIRE( f() == expected );
     }
     SECTION( "viz=player" ) {
-      viz = &nation_viz;
+      viz = &player_viz;
       SECTION( "dwelling, hidden" ) {
         add_dwelling();
         REQUIRE( f() == expected );
@@ -414,23 +414,23 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, hidden" ) {
-        add_colony( e_nation::french );
+        add_colony( e_player::french );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, fogged" ) {
-        Colony const& colony = add_colony( e_nation::french );
+        Colony const& colony = add_colony( e_player::french );
         make_fogged( colony );
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, clear" ) {
-        add_colony( e_nation::french );
+        add_colony( e_player::french );
         make_clear();
         REQUIRE( f() == expected );
       }
       SECTION( "colony, foreign, with units" ) {
-        add_colony( e_nation::french );
-        add_unit( e_nation::french );
-        add_unit( e_nation::french );
+        add_colony( e_player::french );
+        add_unit( e_player::french );
+        add_unit( e_player::french );
         make_clear();
         REQUIRE( f() == expected );
       }
@@ -445,18 +445,18 @@ TEST_CASE( "[disband] disbandable_entities_on_tile" ) {
         REQUIRE( f() == expected );
       }
       SECTION( "one unit, foreign, hidden" ) {
-        add_unit( e_nation::french );
+        add_unit( e_player::french );
         REQUIRE( f() == expected );
       }
       SECTION( "one unit, foreign, clear" ) {
         make_clear();
-        add_unit( e_nation::french );
+        add_unit( e_player::french );
         REQUIRE( f() == expected );
       }
       SECTION( "two units, foreign, clear" ) {
         make_clear();
-        add_unit( e_nation::french );
-        add_unit( e_nation::french );
+        add_unit( e_player::french );
+        add_unit( e_player::french );
         REQUIRE( f() == expected );
       }
     }
@@ -587,8 +587,8 @@ TEST_CASE( "[disband] execute_disband" ) {
   EntitiesOnTile entities;
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const nation_viz( w.ss(),
-                                        e_nation::english );
+  VisibilityForNation const player_viz( w.ss(),
+                                        e_player::english );
 
   IVisibility const* viz = &full_viz;
 
@@ -600,9 +600,9 @@ TEST_CASE( "[disband] execute_disband" ) {
 
   auto add_unit =
       [&]( e_unit_type const type = e_unit_type::free_colonist,
-           maybe<e_nation> const nation = nothing ) -> auto& {
+           maybe<e_player> const player = nothing ) -> auto& {
     return w.add_unit_on_map(
-        type, tile, nation.value_or( w.default_nation() ) );
+        type, tile, player.value_or( w.default_player_type() ) );
   };
 
   auto add_cargo_unit =
@@ -620,10 +620,10 @@ TEST_CASE( "[disband] execute_disband" ) {
         dwelling.id );
   };
 
-  auto add_colony = [&]( maybe<e_nation> const nation =
+  auto add_colony = [&]( maybe<e_player> const player =
                              nothing ) -> auto& {
-    return w.add_colony( tile,
-                         nation.value_or( w.default_nation() ) );
+    return w.add_colony(
+        tile, player.value_or( w.default_player_type() ) );
   };
 
   auto add_dwelling = [&]() -> auto& {
@@ -636,7 +636,7 @@ TEST_CASE( "[disband] execute_disband" ) {
   // One foreign euro unit.
   {
     UnitId const unit_id =
-        add_unit( e_unit_type::free_colonist, e_nation::french )
+        add_unit( e_unit_type::free_colonist, e_player::french )
             .id();
     entities = { .units = { unit_id } };
     f();
@@ -759,11 +759,11 @@ TEST_CASE( "[disband] execute_disband" ) {
 
   // Foreign colony.
   {
-    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     // The reference returned by add_colony will be dangling
     // after the disbanding, so we just copy it straight away.
-    entities = { .colony = add_colony( e_nation::french ) };
+    entities = { .colony = add_colony( e_player::french ) };
     f();
     REQUIRE(
         !w.colonies().exists( entities.colony.value().id ) );
@@ -793,9 +793,9 @@ TEST_CASE( "[disband] execute_disband" ) {
                  .holds<PlayerSquare::unexplored>() );
   }
 
-  // Dwelling, nation visibility.
+  // Dwelling, player visibility.
   {
-    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
     f();
@@ -822,9 +822,9 @@ TEST_CASE( "[disband] execute_disband" ) {
                  .fog_status.holds<FogStatus::fogged>() );
   }
 
-  // Fogged foreign colony, nation visibility.
+  // Fogged foreign colony, player visibility.
   {
-    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     Colony const fake_colony;
     w.player_square( tile )
@@ -844,8 +844,8 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
   EntitiesOnTile entities;
 
   VisibilityEntire const full_viz( w.ss() );
-  VisibilityForNation const nation_viz( w.ss(),
-                                        e_nation::english );
+  VisibilityForNation const player_viz( w.ss(),
+                                        e_player::english );
 
   IVisibility const* viz = &full_viz;
 
@@ -872,9 +872,9 @@ TEST_CASE( "[disband] execute_disband / destroy tribe" ) {
                  .holds<PlayerSquare::unexplored>() );
   }
 
-  // Dwelling, nation visibility.
+  // Dwelling, player visibility.
   {
-    SCOPED_SET_AND_RESTORE( viz, &nation_viz );
+    SCOPED_SET_AND_RESTORE( viz, &player_viz );
     w.mark_all_unexplored();
     entities = { .dwelling = add_dwelling() };
     w.gui()

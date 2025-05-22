@@ -49,9 +49,9 @@ using ::mock::matchers::Approx;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::english );
-    add_player( e_nation::french );
-    set_default_player( e_nation::english );
+    add_player( e_player::english );
+    add_player( e_player::french );
+    set_default_player_type( e_player::english );
     create_default_map();
   }
 
@@ -153,10 +153,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
   SECTION( "soldier->soldier, attacker wins, no promotion" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     W.expect_promotion( false );
     expected = {
@@ -177,10 +177,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
   SECTION( "soldier->soldier, attacker wins, rand promotion" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     W.expect_promotion( true );
     expected = {
@@ -206,10 +206,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
         UnitType::create( e_unit_type::soldier,
                           e_unit_type::indentured_servant )
             .value(),
-        { .x = 1, .y = 0 }, e_nation::english );
+        { .x = 1, .y = 0 }, e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     english.fathers.has[e_founding_father::george_washington] =
         true;
@@ -236,10 +236,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
         UnitType::create( e_unit_type::soldier,
                           e_unit_type::petty_criminal )
             .value(),
-        { .x = 1, .y = 0 }, e_nation::english );
+        { .x = 1, .y = 0 }, e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     W.expect_promotion( true );
     expected = {
@@ -269,10 +269,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
         UnitType::create( e_unit_type::soldier,
                           e_unit_type::expert_farmer )
             .value(),
-        { .x = 1, .y = 0 }, e_nation::english );
+        { .x = 1, .y = 0 }, e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     expected = {
       .winner   = e_combat_winner::attacker,
@@ -294,10 +294,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
       "independence" ) {
     attacker = &W.add_unit_on_map( e_unit_type::veteran_dragoon,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .666666 );
     expected = {
       .winner   = e_combat_winner::attacker,
@@ -319,10 +319,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
       "independence" ) {
     attacker = &W.add_unit_on_map( e_unit_type::veteran_dragoon,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::free_colonist,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .8 );
     W.expect_promotion( true );
     english.revolution.status = e_revolution_status::declared;
@@ -340,7 +340,7 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
                     .base_weight     = 1.0,
                     .modified_weight = 1.0,
                     .outcome = EuroUnitCombatOutcome::captured{
-                      .new_nation = e_nation::english,
+                      .new_player = e_player::english,
                       .new_coord  = { .x = 1, .y = 0 } } } };
     REQUIRE( f() == expected );
   }
@@ -350,10 +350,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
       "capture_and_demote" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::veteran_colonist,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
@@ -369,7 +369,7 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
         .modified_weight = 1.0,
         .outcome = EuroUnitCombatOutcome::captured_and_demoted{
           .to         = e_unit_type::free_colonist,
-          .new_nation = e_nation::english,
+          .new_player = e_player::english,
           .new_coord  = { .x = 1, .y = 0 } } } };
     REQUIRE( f() == expected );
   }
@@ -377,10 +377,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
   SECTION( "veteran_dragoon->free_colonist, attacker loses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::veteran_dragoon,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::free_colonist,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .2 );
     expected = {
       .winner   = e_combat_winner::defender,
@@ -402,10 +402,10 @@ TEST_CASE( "[combat] euro_attack_euro" ) {
       "artillery->dragoon, attacker loses, defender promoted" ) {
     attacker = &W.add_unit_on_map( e_unit_type::artillery,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::dragoon,
                                    { .x = 1, .y = 1 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .375 );
     W.expect_promotion( true );
     expected = {
@@ -443,7 +443,7 @@ TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
   SECTION( "soldier, attacker wins" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
@@ -465,7 +465,7 @@ TEST_CASE( "[combat] euro_attack_undefended_colony" ) {
   SECTION( "soldier, attacker loses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     W.expect_defender_wins( .333333 );
     expected = {
       .winner    = e_combat_winner::defender,
@@ -502,7 +502,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
   SECTION( "soldier->brave, attacker wins, brave destroyed" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -528,7 +528,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
       "destroyed" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -555,7 +555,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
       "retains muskets" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::armed_brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -583,7 +583,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
       "retains horses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -611,7 +611,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
       "destroyed, retains muskets+horses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_warrior, { .x = 1, .y = 1 },
         dwelling.id );
@@ -640,7 +640,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
   SECTION( "soldier->brave, attacker loses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::soldier,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -664,7 +664,7 @@ TEST_CASE( "[combat] euro_attack_brave" ) {
   SECTION( "scout->brave, attacker loses" ) {
     attacker = &W.add_unit_on_map( e_unit_type::scout,
                                    { .x = 1, .y = 0 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 1, .y = 1 },
         dwelling.id );
@@ -1181,8 +1181,8 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   CombatBraveAttackColony expected;
   RealCombat combat( W.ss(), W.rand() );
 
-  Colony const& colony =
-      W.add_colony( { .x = 1, .y = 0 }, W.default_nation() );
+  Colony const& colony = W.add_colony( { .x = 1, .y = 0 },
+                                       W.default_player_type() );
   Unit const& indoor_unit =
       W.add_unit_indoors( colony.id, e_indoor_job::bells,
                           e_unit_type::free_colonist );
@@ -1272,7 +1272,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=brave|def=free_colonist|att=loses" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1297,7 +1297,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=arm.brave|def=free_colonist|att=loses" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::armed_brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1327,7 +1327,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=arm.brv|def=free_col|att=lose|ret=mus" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::armed_brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1357,7 +1357,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=mnt.brave|def=free_colonist|att=loses" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1384,7 +1384,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=mnt.brv|def=free_col|att=lose|ret=hrs" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1413,7 +1413,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=brave|def=free_colonist|att=wins" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1439,7 +1439,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=brave|def=soldier|att=loses|promo=no" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1467,7 +1467,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=brave|def=soldier|att=loses|promo=yes" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1495,7 +1495,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=brave|def=vet.soldier|att=loses" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::brave, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1522,7 +1522,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=mt.wr|def=vet.sold|att=lose|ret" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_warrior, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1555,7 +1555,7 @@ TEST_CASE( "[combat] brave_attack_colony" ) {
   }
 
   SECTION( "cols=2|att=mnt.warrior|def=vet.soldier|att=wins" ) {
-    W.add_colony( { .x = 1, .y = 2 }, W.default_nation() );
+    W.add_colony( { .x = 1, .y = 2 }, W.default_player_type() );
     attacker = &W.add_native_unit_on_map(
         e_native_unit_type::mounted_warrior, { .x = 0, .y = 1 },
         dwelling.id );
@@ -1592,7 +1592,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
   e_tribe const tribe_type = e_tribe::arawak;
   Tribe& tribe             = W.add_tribe( tribe_type );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
   Dwelling& dwelling =
@@ -1610,7 +1610,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
   SECTION( "soldier, attacker wins" ) {
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     expected = {
@@ -1636,7 +1636,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_defender_wins( .333333 );
     expected = {
       .winner          = e_combat_winner::defender,
@@ -1659,7 +1659,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     dwelling.population = 1;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_defender_wins( .333333 );
     expected = {
       .winner          = e_combat_winner::defender,
@@ -1683,7 +1683,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                                   dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_defender_wins( .333333 );
     expected = {
       .winner          = e_combat_winner::defender,
@@ -1709,7 +1709,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                                   dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( true );
     W.expect_convert( false, .66 );
@@ -1739,7 +1739,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
                                   dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     W.expect_convert( true, .66 );
@@ -1770,7 +1770,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( false );
     expected = {
@@ -1798,7 +1798,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_defender_wins( .333333 );
     W.expect_burn_mission( true );
     expected = {
@@ -1826,7 +1826,7 @@ TEST_CASE( "[combat] euro_attack_dwelling no-burn" ) {
     relationship.tribal_alarm = 85;
     attacker =
         &W.add_unit_on_map( e_unit_type::soldier, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .666666 );
     W.expect_promotion( false );
     W.expect_burn_mission( true );
@@ -1856,7 +1856,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
   e_tribe const tribe_type = e_tribe::arawak;
   Tribe& tribe             = W.add_tribe( tribe_type );
   TribeRelationship& relationship =
-      tribe.relationship[W.default_nation()];
+      tribe.relationship[W.default_player_type()];
   relationship.encountered   = true;
   Coord const kAttackerCoord = { .x = 1, .y = 0 };
   Dwelling& dwelling =
@@ -1884,7 +1884,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
   SECTION( "dragoon, attacker wins, no treasure" ) {
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
@@ -1915,7 +1915,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     relationship.tribal_alarm = 90;
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
@@ -1947,7 +1947,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     relationship.tribal_alarm = 90;
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     // This will produce a treasure amount of 345, which will
@@ -1982,7 +1982,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
         .fathers.has[e_founding_father::hernan_cortes] = true;
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     // This will produce a treasure amount of 345, which will be
@@ -2015,7 +2015,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
   SECTION( "dragoon, attacker wins, with treasure" ) {
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     // This will produce a treasure amount of 345, which will
@@ -2052,7 +2052,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
     W.units().destroy_unit( brave2_id );
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
@@ -2091,7 +2091,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
             .id();
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     W.expect_convert( true, .22 );
@@ -2126,10 +2126,10 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
         UnitType::create( e_unit_type::missionary,
                           e_unit_type::indentured_servant )
             .value(),
-        dwelling.id, e_nation::french );
+        dwelling.id, e_player::french );
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( false );
     W.expect_treasure_amount( .33, 300, 800, nothing );
@@ -2166,7 +2166,7 @@ TEST_CASE( "[combat] euro_attack_dwelling village-burn" ) {
         dwelling.id );
     attacker =
         &W.add_unit_on_map( e_unit_type::dragoon, kAttackerCoord,
-                            e_nation::english );
+                            e_player::english );
     W.expect_attacker_wins( .75 );
     W.expect_promotion( true );
     W.expect_burn_mission( true );
@@ -2221,10 +2221,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
   SECTION( "privateer->caravel, evades" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_evade( .217391 );
     expected = {
       .winner       = nothing,
@@ -2251,10 +2251,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -2285,10 +2285,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::merchantman,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .75 );
     W.expect_defender_wins( .428571 );
     W.expect_no_sinks( 0.923077 );
@@ -2319,10 +2319,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "sinks" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::merchantman,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .75 );
     W.expect_defender_wins( .428571 );
     W.expect_sinks( 0.076923 );
@@ -2350,10 +2350,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "frigate->galleon, no evade, frigate wins, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::galleon,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .5 );
     W.expect_attacker_wins( .615385 );
     W.expect_no_sinks( .625 );
@@ -2382,10 +2382,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
   SECTION( "frigate->galleon, no evade, frigate wins, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::galleon,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .5 );
     W.expect_attacker_wins( .615385 );
     W.expect_sinks( .375 );
@@ -2413,10 +2413,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
   SECTION( "frigate->privateer, evades" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_evade( .72 );
     expected = {
       .winner       = nothing,
@@ -2442,10 +2442,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "frigate->privateer, no evade, frigate loses, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .28 );
     W.expect_defender_wins( .333333 );
     W.expect_no_sinks( .888888 );
@@ -2475,10 +2475,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "frigate->privateer, no evade, frigate loses, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .28 );
     W.expect_defender_wins( .333333 );
     W.expect_sinks( .111111 );
@@ -2506,10 +2506,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "frigate->privateer, no evade, frigate wins, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .28 );
     W.expect_attacker_wins( .666666 );
     W.expect_no_sinks( .5 );
@@ -2538,10 +2538,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
   SECTION( "frigate->privateer, no evade, frigate wins, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .28 );
     W.expect_attacker_wins( .666666 );
     W.expect_sinks( .5 );
@@ -2571,10 +2571,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "loses, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
@@ -2604,10 +2604,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "loses, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
@@ -2635,10 +2635,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "wins, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     W.expect_no_sinks( .666666 );
     expected = {
@@ -2668,10 +2668,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "wins, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::man_o_war,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .5 );
     W.expect_sinks( .333333 );
     expected = {
@@ -2700,10 +2700,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "loses, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .666666 );
     W.expect_no_sinks( .5 );
     expected = {
@@ -2733,10 +2733,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "loses, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_defender_wins( .666666 );
     W.expect_sinks( .5 );
     expected = {
@@ -2764,10 +2764,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "wins, damaged" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .333333 );
     W.expect_no_sinks( .888888 );
     expected = {
@@ -2797,10 +2797,10 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "wins, sunk" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_attacker_wins( .333333 );
     W.expect_sinks( .111111 );
     expected = {
@@ -2829,18 +2829,18 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "ships affected" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::galleon,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     // Add some other ships that will be affected when the de-
     // fender loses.
     Unit const& privateer = W.add_unit_on_map(
         e_unit_type::privateer, { .x = 1, .y = 3 },
-        e_nation::french );
+        e_player::french );
     Unit const& merchantman = W.add_unit_on_map(
         e_unit_type::merchantman, { .x = 1, .y = 3 },
-        e_nation::french );
+        e_player::french );
 
     W.expect_no_evade( .5 );
     W.expect_attacker_wins( .615385 );
@@ -2892,16 +2892,16 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "damaged, no other ships affected" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::galleon,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     // Add some other ships that should not be affected when the
     // defender loses.
     W.add_unit_on_map( e_unit_type::privateer,
-                       { .x = 1, .y = 3 }, e_nation::french );
+                       { .x = 1, .y = 3 }, e_player::french );
     W.add_unit_on_map( e_unit_type::merchantman,
-                       { .x = 1, .y = 3 }, e_nation::french );
+                       { .x = 1, .y = 3 }, e_player::french );
 
     W.expect_no_evade( .5 );
     W.expect_defender_wins( .384615 );
@@ -2933,16 +2933,16 @@ TEST_CASE( "[combat] ship_attack_ship" ) {
       "attacker affected" ) {
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     // Add some other ships on the attackers square that should
     // not be affected despite the attacker losing.
     W.add_unit_on_map( e_unit_type::privateer,
-                       { .x = 0, .y = 3 }, e_nation::english );
+                       { .x = 0, .y = 3 }, e_player::english );
     W.add_unit_on_map( e_unit_type::merchantman,
-                       { .x = 0, .y = 3 }, e_nation::english );
+                       { .x = 0, .y = 3 }, e_player::english );
 
     W.expect_no_evade( .28 );
     W.expect_defender_wins( .333333 );
@@ -2985,10 +2985,10 @@ TEST_CASE(
   SECTION( "no colonies" ) {
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -3015,13 +3015,13 @@ TEST_CASE(
   }
 
   SECTION( "no colonies after decl. independence" ) {
-    W.declare_independence( e_nation::english );
+    W.declare_independence( e_player::english );
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -3047,14 +3047,14 @@ TEST_CASE(
 
   SECTION( "foreign colony with drydock" ) {
     Colony& colony =
-        W.add_colony( { .x = 2, .y = 2 }, e_nation::french );
+        W.add_colony( { .x = 2, .y = 2 }, e_player::french );
     colony.buildings[e_colony_building::drydock] = true;
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -3082,14 +3082,14 @@ TEST_CASE(
 
   SECTION( "friendly colony with drydock" ) {
     Colony& colony =
-        W.add_colony( { .x = 2, .y = 2 }, e_nation::english );
+        W.add_colony( { .x = 2, .y = 2 }, e_player::english );
     colony.buildings[e_colony_building::drydock] = true;
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -3118,17 +3118,17 @@ TEST_CASE(
 
   SECTION(
       "friendly colony with drydock w/ decl. independence." ) {
-    W.declare_independence( e_nation::english );
-    W.declare_independence( e_nation::french );
+    W.declare_independence( e_player::english );
+    W.declare_independence( e_player::french );
     Colony& colony =
-        W.add_colony( { .x = 2, .y = 2 }, e_nation::english );
+        W.add_colony( { .x = 2, .y = 2 }, e_player::english );
     colony.buildings[e_colony_building::drydock] = true;
     attacker = &W.add_unit_on_map( e_unit_type::privateer,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .782609 );
     W.expect_defender_wins( .2 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.
@@ -3156,13 +3156,13 @@ TEST_CASE(
   }
 
   SECTION( "friendly colony with no drydock" ) {
-    W.add_colony( { .x = 2, .y = 2 }, e_nation::english );
+    W.add_colony( { .x = 2, .y = 2 }, e_player::english );
     attacker = &W.add_unit_on_map( e_unit_type::frigate,
                                    { .x = 0, .y = 3 },
-                                   e_nation::english );
+                                   e_player::english );
     defender = &W.add_unit_on_map( e_unit_type::caravel,
                                    { .x = 1, .y = 3 },
-                                   e_nation::french );
+                                   e_player::french );
     W.expect_no_evade( .583333 );
     W.expect_defender_wins( .111111 );
     W.expect_no_sinks( 1.0 ); // caravel has 0 "guns" strength.

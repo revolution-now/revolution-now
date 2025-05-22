@@ -39,9 +39,9 @@ using namespace std;
 struct World : testing::World {
   using Base = testing::World;
   World() : Base() {
-    add_player( e_nation::french );
-    add_player( e_nation::spanish );
-    set_default_player( e_nation::french );
+    add_player( e_player::french );
+    add_player( e_player::spanish );
+    set_default_player_type( e_player::french );
     create_default_map();
   }
 
@@ -72,8 +72,8 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
   Coord const ship_location      = { .x = 4, .y = 4 };
 
   auto f = [&] {
-    return find_repair_port_for_ship( W.ss(), W.default_nation(),
-                                      ship_location );
+    return find_repair_port_for_ship(
+        W.ss(), W.default_player_type(), ship_location );
   };
 
   // No colonies.
@@ -82,7 +82,7 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
 
   // One foreign colony with no drydock.
   Colony& colony_spanish_1 =
-      W.add_colony( { .x = 3, .y = 4 }, e_nation::spanish );
+      W.add_colony( { .x = 3, .y = 4 }, e_player::spanish );
   expected = ShipRepairPort::european_harbor{};
   REQUIRE( f() == expected );
 
@@ -98,13 +98,13 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
 
   // One friendly colony with no drydock.
   Colony& colony_1 =
-      W.add_colony( { .x = 1, .y = 2 }, e_nation::french );
+      W.add_colony( { .x = 1, .y = 2 }, e_player::french );
   expected = ShipRepairPort::european_harbor{};
   REQUIRE( f() == expected );
 
   // Two friendly colonies with no drydock.
   Colony& colony_2 =
-      W.add_colony( { .x = 0, .y = 0 }, e_nation::french );
+      W.add_colony( { .x = 0, .y = 0 }, e_player::french );
   expected = ShipRepairPort::european_harbor{};
   REQUIRE( f() == expected );
 
@@ -133,7 +133,7 @@ TEST_CASE( "[damaged] find_repair_port_for_ship" ) {
 
   // Three friendly colonies, new one with drydock.
   Colony& colony_3 =
-      W.add_colony( { .x = 5, .y = 4 }, e_nation::french );
+      W.add_colony( { .x = 5, .y = 4 }, e_player::french );
   colony_3.buildings[e_colony_building::drydock] = true;
   expected = ShipRepairPort::colony{ .id = colony_3.id };
   REQUIRE( f() == expected );
@@ -174,8 +174,8 @@ TEST_CASE( "[damaged] find_repair_port_for_ship from land" ) {
   Coord const ship_location      = { .x = 2, .y = 3 };
 
   auto f = [&] {
-    return find_repair_port_for_ship( W.ss(), W.default_nation(),
-                                      ship_location );
+    return find_repair_port_for_ship(
+        W.ss(), W.default_player_type(), ship_location );
   };
 
   // No colonies.
@@ -262,7 +262,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
 
   auto f = [&]( Unit const& ship ) {
     return ship_damaged_no_port_message(
-        W.player( ship.nation() ), ship.type(), reason );
+        W.player( ship.player_type() ), ship.type(), reason );
   };
 
   reason = e_ship_damaged_reason::battle;
@@ -271,7 +271,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "available repair ports, the ship has been lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
-               e_nation::french ) ) == expected );
+               e_player::french ) ) == expected );
 
   reason = e_ship_damaged_reason::battle;
   expected =
@@ -279,7 +279,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "available repair ports, the ship has been lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::galleon, { .x = 0, .y = 0 },
-               e_nation::spanish ) ) == expected );
+               e_player::spanish ) ) == expected );
 
   reason = e_ship_damaged_reason::colony_abandoned;
   expected =
@@ -288,7 +288,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
-               e_nation::french ) ) == expected );
+               e_player::french ) ) == expected );
 
   reason = e_ship_damaged_reason::colony_abandoned;
   expected =
@@ -297,7 +297,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::galleon, { .x = 0, .y = 0 },
-               e_nation::spanish ) ) == expected );
+               e_player::spanish ) ) == expected );
 
   reason = e_ship_damaged_reason::colony_starved;
   expected =
@@ -306,7 +306,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
-               e_nation::french ) ) == expected );
+               e_player::french ) ) == expected );
 
   reason = e_ship_damaged_reason::colony_starved;
   expected =
@@ -315,7 +315,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::galleon, { .x = 0, .y = 0 },
-               e_nation::spanish ) ) == expected );
+               e_player::spanish ) ) == expected );
 
   // Post-declaration.
   W.default_player().revolution.status =
@@ -326,7 +326,7 @@ TEST_CASE( "[damaged] ship_damaged_no_port_message" ) {
       "available repair ports, the ship has been lost.";
   REQUIRE( f( W.add_unit_on_map(
                e_unit_type::privateer, { .x = 0, .y = 0 },
-               e_nation::french ) ) == expected );
+               e_player::french ) ) == expected );
 }
 
 TEST_CASE( "[damaged] ship_damaged_message" ) {
@@ -336,7 +336,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
   e_ship_damaged_reason reason = {};
 
   auto f = [&]( Unit const& ship ) {
-    return ship_damaged_message( W.ss(), ship.nation(),
+    return ship_damaged_message( W.ss(), ship.player_type(),
                                  ship.type(), reason, port );
   };
 
@@ -348,7 +348,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "[La Rochelle] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::privateer, { .x = 0, .y = 0 },
-                 e_nation::french ) ) == expected );
+                 e_player::french ) ) == expected );
 
     Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
     colony.name    = "some colony";
@@ -359,7 +359,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "[some colony] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                 e_nation::spanish ) ) == expected );
+                 e_player::spanish ) ) == expected );
   }
 
   SECTION( "battle, post declaration" ) {
@@ -372,7 +372,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "[La Rochelle] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::privateer, { .x = 0, .y = 0 },
-                 e_nation::french ) ) == expected );
+                 e_player::french ) ) == expected );
 
     Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
     colony.name    = "some colony";
@@ -383,7 +383,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "[some colony] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                 e_nation::spanish ) ) == expected );
+                 e_player::spanish ) ) == expected );
   }
 
   SECTION( "colony_abandoned" ) {
@@ -394,7 +394,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "Ship sent to [La Rochelle] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::privateer, { .x = 0, .y = 0 },
-                 e_nation::french ) ) == expected );
+                 e_player::french ) ) == expected );
 
     Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
     colony.name    = "some colony";
@@ -405,7 +405,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "Ship sent to [some colony] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                 e_nation::spanish ) ) == expected );
+                 e_player::spanish ) ) == expected );
   }
 
   SECTION( "colony_starved" ) {
@@ -416,7 +416,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "Ship sent to [La Rochelle] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::privateer, { .x = 0, .y = 0 },
-                 e_nation::french ) ) == expected );
+                 e_player::french ) ) == expected );
 
     Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
     colony.name    = "some colony";
@@ -427,7 +427,7 @@ TEST_CASE( "[damaged] ship_damaged_message" ) {
         "Ship sent to [some colony] for repairs.";
     REQUIRE( f( W.add_unit_on_map(
                  e_unit_type::man_o_war, { .x = 0, .y = 0 },
-                 e_nation::spanish ) ) == expected );
+                 e_player::spanish ) ) == expected );
   }
 }
 
@@ -441,13 +441,13 @@ TEST_CASE( "[damaged] units_lost_on_ship_message" ) {
 
   Unit& privateer =
       W.add_unit_on_map( e_unit_type::privateer,
-                         { .x = 0, .y = 0 }, e_nation::french );
+                         { .x = 0, .y = 0 }, e_player::french );
   Unit& galleon =
       W.add_unit_on_map( e_unit_type::galleon,
-                         { .x = 0, .y = 0 }, e_nation::spanish );
+                         { .x = 0, .y = 0 }, e_player::spanish );
   Unit& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 0, .y = 0 }, e_nation::french );
+                         { .x = 0, .y = 0 }, e_player::french );
 
   W.add_unit_in_cargo( e_unit_type::free_colonist,
                        privateer.id() );
@@ -476,13 +476,13 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
 
   Unit& privateer =
       W.add_unit_on_map( e_unit_type::privateer,
-                         { .x = 0, .y = 0 }, e_nation::french );
+                         { .x = 0, .y = 0 }, e_player::french );
   Unit& galleon =
       W.add_unit_on_map( e_unit_type::galleon,
-                         { .x = 0, .y = 0 }, e_nation::spanish );
+                         { .x = 0, .y = 0 }, e_player::spanish );
   Unit& caravel =
       W.add_unit_on_map( e_unit_type::caravel,
-                         { .x = 0, .y = 0 }, e_nation::french );
+                         { .x = 0, .y = 0 }, e_player::french );
 
   privateer.sentry();
   galleon.fortify();
@@ -622,9 +622,9 @@ TEST_CASE( "[damaged] move_damaged_ship_for_repair" ) {
 
   SECTION( "to colony" ) {
     Colony const& french_colony =
-        W.add_colony( { .x = 1, .y = 0 }, e_nation::french );
+        W.add_colony( { .x = 1, .y = 0 }, e_player::french );
     Colony const& spanish_colony =
-        W.add_colony( { .x = 0, .y = 1 }, e_nation::spanish );
+        W.add_colony( { .x = 0, .y = 1 }, e_player::spanish );
 
     port = ShipRepairPort::colony{ .id = french_colony.id };
     f( privateer );
@@ -734,28 +734,28 @@ TEST_CASE( "[damaged] ship_repair_port_name" ) {
   World W;
   ShipRepairPort port;
   string expected;
-  e_nation nation = {};
+  e_player player = {};
 
   auto f = [&] {
-    return ship_repair_port_name( W.ss(), nation, port );
+    return ship_repair_port_name( W.ss(), player, port );
   };
 
   SECTION( "colony" ) {
     Colony& colony = W.add_colony( { .x = 1, .y = 0 } );
     colony.name    = "some colony";
-    nation         = colony.nation; // should be irrelevant.
+    player         = colony.player; // should be irrelevant.
     port           = ShipRepairPort::colony{ .id = colony.id };
     expected       = "some colony";
     REQUIRE( f() == expected );
   }
 
   SECTION( "harbor" ) {
-    nation   = e_nation::french;
+    player   = e_player::french;
     port     = ShipRepairPort::european_harbor{};
     expected = "La Rochelle";
     REQUIRE( f() == expected );
 
-    nation   = e_nation::spanish;
+    player   = e_player::spanish;
     port     = ShipRepairPort::european_harbor{};
     expected = "Seville";
     REQUIRE( f() == expected );
